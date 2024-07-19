@@ -44,7 +44,7 @@ public sealed class RuntimeExpressionEvaluatorTests
                 responseBody.RootElement));
     }
 
-    private static TheoryData<RuntimeExpression, OpenApiParameter, object?> Expressions()
+    public static TheoryData<RuntimeExpression, OpenApiParameter, object?> Expressions()
     {
         return new TheoryData<RuntimeExpression, OpenApiParameter, object?>
         {

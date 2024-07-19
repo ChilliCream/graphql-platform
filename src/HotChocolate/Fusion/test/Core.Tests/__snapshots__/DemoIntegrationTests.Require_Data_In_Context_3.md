@@ -110,7 +110,7 @@ query Large {
 ## QueryPlan Hash
 
 ```text
-101625F3F501285D93CDCE7FAFC995538EC16F8E
+B3E0703565E9626DBFAFDCB4CBD1DE815EBE4DB0
 ```
 
 ## QueryPlan
@@ -174,7 +174,7 @@ query Large {
             "type": "ResolveByKeyBatch",
             "subgraph": "Accounts",
             "document": "query Large_3($__fusion_exports__4: [ID!]!) { usersById(ids: $__fusion_exports__4) { birthdate __fusion_exports__4: id } }",
-            "selectionSetId": 5,
+            "selectionSetId": 3,
             "path": [
               "usersById"
             ],
@@ -188,7 +188,7 @@ query Large {
             "type": "ResolveByKeyBatch",
             "subgraph": "Products",
             "document": "query Large_5($__fusion_exports__6: [ID!]!) { nodes(ids: $__fusion_exports__6) { ... on Product { name __fusion_exports__1: dimension { size } __fusion_exports__2: dimension { weight } __fusion_exports__5: id __fusion_exports__6: id } } }",
-            "selectionSetId": 3,
+            "selectionSetId": 4,
             "path": [
               "nodes"
             ],
@@ -214,14 +214,14 @@ query Large {
       {
         "type": "Compose",
         "selectionSetIds": [
-          5
+          3
         ]
       },
       {
         "type": "Resolve",
         "subgraph": "Shipping",
         "document": "query Large_4($__fusion_exports__1: Int!, $__fusion_exports__2: Int!, $__fusion_exports__5: ID!) { productById(id: $__fusion_exports__5) { deliveryEstimate(size: $__fusion_exports__1, weight: $__fusion_exports__2, zip: \u0022abc\u0022) { max } } }",
-        "selectionSetId": 3,
+        "selectionSetId": 4,
         "path": [
           "productById"
         ],
@@ -240,7 +240,7 @@ query Large {
       {
         "type": "Compose",
         "selectionSetIds": [
-          3
+          4
         ]
       }
     ]

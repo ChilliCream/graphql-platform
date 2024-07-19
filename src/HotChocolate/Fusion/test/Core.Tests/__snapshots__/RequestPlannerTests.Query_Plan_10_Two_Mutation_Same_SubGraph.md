@@ -60,7 +60,7 @@ mutation AddReviews {
             "type": "Resolve",
             "subgraph": "Accounts",
             "document": "query AddReviews_2($__fusion_exports__1: ID!) { userById(id: $__fusion_exports__1) { birthdate } }",
-            "selectionSetId": 6,
+            "selectionSetId": 5,
             "path": [
               "userById"
             ],
@@ -74,7 +74,7 @@ mutation AddReviews {
             "type": "Resolve",
             "subgraph": "Accounts",
             "document": "query AddReviews_3($__fusion_exports__2: ID!) { userById(id: $__fusion_exports__2) { birthdate } }",
-            "selectionSetId": 3,
+            "selectionSetId": 6,
             "path": [
               "userById"
             ],
@@ -89,7 +89,7 @@ mutation AddReviews {
       {
         "type": "Compose",
         "selectionSetIds": [
-          3,
+          5,
           6
         ]
       }

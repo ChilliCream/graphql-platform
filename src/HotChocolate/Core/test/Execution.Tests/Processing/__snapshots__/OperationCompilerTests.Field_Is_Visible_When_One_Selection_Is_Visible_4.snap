@@ -17,11 +17,11 @@ fragment abc on Droid {
 query foo($v: Boolean!) @includeCondition(flag: 2) {
   ... on Query {
     hero(episode: EMPIRE) @__execute(id: 0, kind: PURE, type: COMPOSITE) {
-      ... on Human {
-        name @conditional @__execute(id: 1, kind: PURE, type: LEAF)
-      }
       ... on Droid {
-        name @__execute(id: 2, kind: PURE, type: LEAF)
+        name @__execute(id: 1, kind: PURE, type: LEAF)
+      }
+      ... on Human {
+        name @conditional @__execute(id: 2, kind: PURE, type: LEAF)
       }
     }
   }

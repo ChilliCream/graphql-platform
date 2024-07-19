@@ -98,16 +98,16 @@ query DashboardContainerQuery {
   ... on Query {
     ticker: assets(first: 10, order: { price: { tradableMarketCapRank: ASC } }) @__execute(id: 0, kind: DEFAULT, type: COMPOSITE) {
       ... on AssetsConnection {
-        nodes @__execute(id: 19, kind: DEFAULT, type: COMPOSITE_LIST) {
+        nodes @__execute(id: 6, kind: DEFAULT, type: COMPOSITE_LIST) {
           ... on Asset {
             symbol @__execute(id: 20, kind: DEFAULT, type: LEAF)
             color @__execute(id: 21, kind: DEFAULT, type: LEAF)
             price @__execute(id: 22, kind: DEFAULT, type: COMPOSITE) {
               ... on AssetPrice {
-                currency @__execute(id: 24, kind: DEFAULT, type: LEAF)
-                lastPrice @__execute(id: 25, kind: DEFAULT, type: LEAF)
-                change24Hour @__execute(id: 26, kind: DEFAULT, type: LEAF)
-                id @__execute(id: 27, kind: DEFAULT, type: LEAF)
+                currency @__execute(id: 36, kind: DEFAULT, type: LEAF)
+                lastPrice @__execute(id: 37, kind: DEFAULT, type: LEAF)
+                change24Hour @__execute(id: 38, kind: DEFAULT, type: LEAF)
+                id @__execute(id: 39, kind: DEFAULT, type: LEAF)
               }
             }
             id @__execute(id: 23, kind: DEFAULT, type: LEAF)
@@ -117,32 +117,32 @@ query DashboardContainerQuery {
     }
     featured: assets(where: { symbol: { in: [ "BTC", "ADA", "ALGO" ] } }) @__execute(id: 1, kind: DEFAULT, type: COMPOSITE) {
       ... on AssetsConnection {
-        nodes @__execute(id: 4, kind: DEFAULT, type: COMPOSITE_LIST) {
+        nodes @__execute(id: 7, kind: DEFAULT, type: COMPOSITE_LIST) {
           ... on Asset {
-            id @__execute(id: 5, kind: DEFAULT, type: LEAF)
-            symbol @__execute(id: 6, kind: DEFAULT, type: LEAF)
-            color @__execute(id: 7, kind: DEFAULT, type: LEAF)
-            price @__execute(id: 8, kind: DEFAULT, type: COMPOSITE) {
+            id @__execute(id: 24, kind: DEFAULT, type: LEAF)
+            symbol @__execute(id: 25, kind: DEFAULT, type: LEAF)
+            color @__execute(id: 26, kind: DEFAULT, type: LEAF)
+            price @__execute(id: 27, kind: DEFAULT, type: COMPOSITE) {
               ... on AssetPrice {
-                currency @__execute(id: 9, kind: DEFAULT, type: LEAF)
-                lastPrice @__execute(id: 10, kind: DEFAULT, type: LEAF)
-                change24Hour @__execute(id: 11, kind: DEFAULT, type: LEAF)
-                change(span: DAY) @__execute(id: 12, kind: DEFAULT, type: COMPOSITE) {
+                currency @__execute(id: 40, kind: DEFAULT, type: LEAF)
+                lastPrice @__execute(id: 41, kind: DEFAULT, type: LEAF)
+                change24Hour @__execute(id: 42, kind: DEFAULT, type: LEAF)
+                change(span: DAY) @__execute(id: 43, kind: DEFAULT, type: COMPOSITE) {
                   ... on AssetPriceChange {
-                    history @__execute(id: 14, kind: DEFAULT, type: COMPOSITE) {
+                    history @__execute(id: 45, kind: DEFAULT, type: COMPOSITE) {
                       ... on HistoryConnection {
-                        nodes @__execute(id: 16, kind: DEFAULT, type: COMPOSITE_LIST) {
+                        nodes @__execute(id: 47, kind: DEFAULT, type: COMPOSITE_LIST) {
                           ... on AssetPriceHistory {
-                            epoch @__execute(id: 17, kind: DEFAULT, type: LEAF)
-                            price @__execute(id: 18, kind: DEFAULT, type: LEAF)
+                            epoch @__execute(id: 48, kind: DEFAULT, type: LEAF)
+                            price @__execute(id: 49, kind: DEFAULT, type: LEAF)
                           }
                         }
                       }
                     }
-                    id @__execute(id: 15, kind: DEFAULT, type: LEAF)
+                    id @__execute(id: 46, kind: DEFAULT, type: LEAF)
                   }
                 }
-                id @__execute(id: 13, kind: DEFAULT, type: LEAF)
+                id @__execute(id: 44, kind: DEFAULT, type: LEAF)
               }
             }
           }
@@ -167,19 +167,19 @@ fragment Fragment_0 on Query {
 }
 
 fragment Fragment_1 on AssetsConnection {
-  nodes @__execute(id: 39, kind: DEFAULT, type: COMPOSITE_LIST) {
+  nodes @__execute(id: 4, kind: DEFAULT, type: COMPOSITE_LIST) {
     ... on Asset {
-      id @__execute(id: 40, kind: DEFAULT, type: LEAF)
-      symbol @__execute(id: 41, kind: DEFAULT, type: LEAF)
-      name @__execute(id: 42, kind: DEFAULT, type: LEAF)
-      imageUrl @__execute(id: 43, kind: DEFAULT, type: LEAF)
-      isInWatchlist @__execute(id: 44, kind: DEFAULT, type: LEAF)
-      price @__execute(id: 45, kind: DEFAULT, type: COMPOSITE) {
+      id @__execute(id: 8, kind: DEFAULT, type: LEAF)
+      symbol @__execute(id: 9, kind: DEFAULT, type: LEAF)
+      name @__execute(id: 10, kind: DEFAULT, type: LEAF)
+      imageUrl @__execute(id: 11, kind: DEFAULT, type: LEAF)
+      isInWatchlist @__execute(id: 12, kind: DEFAULT, type: LEAF)
+      price @__execute(id: 13, kind: DEFAULT, type: COMPOSITE) {
         ... on AssetPrice {
-          currency @__execute(id: 46, kind: DEFAULT, type: LEAF)
-          lastPrice @__execute(id: 47, kind: DEFAULT, type: LEAF)
-          change24Hour @__execute(id: 48, kind: DEFAULT, type: LEAF)
-          id @__execute(id: 49, kind: DEFAULT, type: LEAF)
+          currency @__execute(id: 28, kind: DEFAULT, type: LEAF)
+          lastPrice @__execute(id: 29, kind: DEFAULT, type: LEAF)
+          change24Hour @__execute(id: 30, kind: DEFAULT, type: LEAF)
+          id @__execute(id: 31, kind: DEFAULT, type: LEAF)
         }
       }
     }
@@ -187,19 +187,19 @@ fragment Fragment_1 on AssetsConnection {
 }
 
 fragment Fragment_2 on AssetsConnection {
-  nodes @__execute(id: 28, kind: DEFAULT, type: COMPOSITE_LIST) {
+  nodes @__execute(id: 5, kind: DEFAULT, type: COMPOSITE_LIST) {
     ... on Asset {
-      id @__execute(id: 29, kind: DEFAULT, type: LEAF)
-      symbol @__execute(id: 30, kind: DEFAULT, type: LEAF)
-      name @__execute(id: 31, kind: DEFAULT, type: LEAF)
-      imageUrl @__execute(id: 32, kind: DEFAULT, type: LEAF)
-      isInWatchlist @__execute(id: 33, kind: DEFAULT, type: LEAF)
-      price @__execute(id: 34, kind: DEFAULT, type: COMPOSITE) {
+      id @__execute(id: 14, kind: DEFAULT, type: LEAF)
+      symbol @__execute(id: 15, kind: DEFAULT, type: LEAF)
+      name @__execute(id: 16, kind: DEFAULT, type: LEAF)
+      imageUrl @__execute(id: 17, kind: DEFAULT, type: LEAF)
+      isInWatchlist @__execute(id: 18, kind: DEFAULT, type: LEAF)
+      price @__execute(id: 19, kind: DEFAULT, type: COMPOSITE) {
         ... on AssetPrice {
-          currency @__execute(id: 35, kind: DEFAULT, type: LEAF)
-          lastPrice @__execute(id: 36, kind: DEFAULT, type: LEAF)
-          change24Hour @__execute(id: 37, kind: DEFAULT, type: LEAF)
-          id @__execute(id: 38, kind: DEFAULT, type: LEAF)
+          currency @__execute(id: 32, kind: DEFAULT, type: LEAF)
+          lastPrice @__execute(id: 33, kind: DEFAULT, type: LEAF)
+          change24Hour @__execute(id: 34, kind: DEFAULT, type: LEAF)
+          id @__execute(id: 35, kind: DEFAULT, type: LEAF)
         }
       }
     }

@@ -1149,6 +1149,172 @@ public class OperationCompilerTests
         MatchSnapshot(document, operation);
     }
 
+    [Fact]
+    public async Task AbstractTypes()
+    {
+        // arrange
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddDocumentFromString(
+                    """
+                    type Query {
+                      organizationUnits: [OrganizationUnit!]!
+                    }
+
+                    interface OrganizationUnit {
+                      id: ID!
+                      name: String!
+                      someType: SomeType!
+                      children: [OrganizationUnit!]!
+                    }
+
+                    type SomeType {
+                        id: ID!
+                        name: String!
+                    }
+
+                    type OrganizationUnit1 implements OrganizationUnit {
+                      id: ID!
+                      name: String!
+                      someType: SomeType!
+                      children: [OrganizationUnit!]!
+                    }
+
+                    type OrganizationUnit2 implements OrganizationUnit {
+                      id: ID!
+                      name: String!
+                      someType: SomeType!
+                      children: [OrganizationUnit!]!
+                    }
+                    """)
+                .UseField(next => next)
+                .BuildSchemaAsync();
+
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+                organizationUnits {
+                    id
+                    name
+                    someType {
+                        id
+                        name
+                    }
+                    children {
+                        id
+                        name
+                        someType {
+                            id
+                            name
+                        }
+                        children {
+                            id
+                            name
+                            someType {
+                                id
+                                name
+                            }
+                        }
+                    }
+                }
+            }
+            """);
+
+        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().Single();
+
+        // act
+        var compiler = new OperationCompiler(new InputParser());
+        var operation = compiler.Compile("opid", operationDefinition, schema.QueryType, document, schema);
+
+        // assert
+        MatchSnapshot(document, operation);
+    }
+
+    [Fact]
+    public async Task Ensure_Selection_Backlog_Does_Not_Exponentially_Grow()
+    {
+        // arrange
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddDocumentFromString(
+                    """
+                    type Query {
+                      organizationUnits: [OrganizationUnit!]!
+                    }
+
+                    interface OrganizationUnit {
+                      id: ID!
+                      name: String!
+                      someType: SomeType!
+                      children: [OrganizationUnit!]!
+                    }
+
+                    type SomeType {
+                        id: ID!
+                        name: String!
+                    }
+
+                    type OrganizationUnit1 implements OrganizationUnit {
+                      id: ID!
+                      name: String!
+                      someType: SomeType!
+                      children: [OrganizationUnit!]!
+                    }
+
+                    type OrganizationUnit2 implements OrganizationUnit {
+                      id: ID!
+                      name: String!
+                      someType: SomeType!
+                      children: [OrganizationUnit!]!
+                    }
+                    """)
+                .UseField(next => next)
+                .BuildSchemaAsync();
+
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+                organizationUnits {
+                    id
+                    name
+                    someType {
+                        id
+                        name
+                    }
+                    children {
+                        id
+                        name
+                        someType {
+                            id
+                            name
+                        }
+                        children {
+                            id
+                            name
+                            someType {
+                                id
+                                name
+                            }
+                        }
+                    }
+                }
+            }
+            """);
+
+        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().Single();
+
+        // act
+        var compiler = new OperationCompiler(new InputParser());
+        compiler.Compile("opid", operationDefinition, schema.QueryType, document, schema);
+
+        // assert
+        Assert.Equal(29, compiler.Metrics.Selections);
+        Assert.Equal(7, compiler.Metrics.SelectionSetVariants);
+        Assert.Equal(4, compiler.Metrics.BacklogMaxSize);
+    }
+
     private static void MatchSnapshot(DocumentNode original, IOperation compiled)
     {
         var sb = new StringBuilder();
