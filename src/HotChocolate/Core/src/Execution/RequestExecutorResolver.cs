@@ -15,6 +15,7 @@ using HotChocolate.Execution.Errors;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Internal;
 using HotChocolate.Execution.Options;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -365,9 +366,9 @@ internal sealed partial class RequestExecutorResolver
         var descriptorContext = context.SchemaBuilder.CreateContext();
 
         await foreach (var member in
-                       typeModuleChangeMonitor.CreateTypesAsync(descriptorContext)
-                           .WithCancellation(cancellationToken)
-                           .ConfigureAwait(false))
+           typeModuleChangeMonitor.CreateTypesAsync(descriptorContext)
+               .WithCancellation(cancellationToken)
+               .ConfigureAwait(false))
         {
             switch (member)
             {
@@ -383,8 +384,10 @@ internal sealed partial class RequestExecutorResolver
 
         await OnConfigureSchemaBuilderAsync(context, schemaServices, setup, cancellationToken);
 
-        context.SchemaBuilder.TryAddTypeInterceptor(
-            new SetSchemaNameInterceptor(context.SchemaName));
+        context
+            .SchemaBuilder
+            .TryAddTypeInterceptor(new SetSchemaNameInterceptor(context.SchemaName))
+            .TryAddTypeInterceptor(new FeatureInterceptor());
 
         var schema = context.SchemaBuilder.Create(descriptorContext);
         AssertSchemaNameValid(schema, context.SchemaName);
@@ -442,33 +445,25 @@ internal sealed partial class RequestExecutorResolver
         }
     }
 
-    private sealed class RegisteredExecutor : IDisposable
+    private sealed class RegisteredExecutor(
+        IRequestExecutor executor,
+        IServiceProvider services,
+        IExecutionDiagnosticEvents diagnosticEvents,
+        RequestExecutorSetup setup,
+        TypeModuleChangeMonitor typeModuleChangeMonitor)
+        : IDisposable
     {
         private bool _disposed;
 
-        public RegisteredExecutor(
-            IRequestExecutor executor,
-            IServiceProvider services,
-            IExecutionDiagnosticEvents diagnosticEvents,
-            RequestExecutorSetup setup,
-            TypeModuleChangeMonitor typeModuleChangeMonitor)
-        {
-            Executor = executor;
-            Services = services;
-            DiagnosticEvents = diagnosticEvents;
-            Setup = setup;
-            TypeModuleChangeMonitor = typeModuleChangeMonitor;
-        }
+        public IRequestExecutor Executor { get; } = executor;
 
-        public IRequestExecutor Executor { get; }
+        public IServiceProvider Services { get; } = services;
 
-        public IServiceProvider Services { get; }
+        public IExecutionDiagnosticEvents DiagnosticEvents { get; } = diagnosticEvents;
 
-        public IExecutionDiagnosticEvents DiagnosticEvents { get; }
+        public RequestExecutorSetup Setup { get; } = setup;
 
-        public RequestExecutorSetup Setup { get; }
-
-        public TypeModuleChangeMonitor TypeModuleChangeMonitor { get; }
+        public TypeModuleChangeMonitor TypeModuleChangeMonitor { get; } = typeModuleChangeMonitor;
 
         public void Dispose()
         {
@@ -485,22 +480,15 @@ internal sealed partial class RequestExecutorResolver
         }
     }
 
-    private sealed class SetSchemaNameInterceptor : TypeInterceptor
+    private sealed class SetSchemaNameInterceptor(string schemaName) : TypeInterceptor
     {
-        private readonly string _schemaName;
-
-        public SetSchemaNameInterceptor(string schemaName)
-        {
-            _schemaName = schemaName;
-        }
-
         public override void OnBeforeCompleteName(
             ITypeCompletionContext completionContext,
             DefinitionBase definition)
         {
             if (completionContext.IsSchema)
             {
-                definition.Name = _schemaName;
+                definition.Name = schemaName;
             }
         }
     }
@@ -559,26 +547,18 @@ internal sealed partial class RequestExecutorResolver
             }
         }
 
-        private sealed class TypeModuleEnumerable : IAsyncEnumerable<ITypeSystemMember>
+        private sealed class TypeModuleEnumerable(
+            List<ITypeModule> typeModules,
+            IDescriptorContext context)
+            : IAsyncEnumerable<ITypeSystemMember>
         {
-            private readonly List<ITypeModule> _typeModules;
-            private readonly IDescriptorContext _context;
-
-            public TypeModuleEnumerable(
-                List<ITypeModule> typeModules,
-                IDescriptorContext context)
-            {
-                _typeModules = typeModules;
-                _context = context;
-            }
-
             public async IAsyncEnumerator<ITypeSystemMember> GetAsyncEnumerator(
                 CancellationToken cancellationToken = default)
             {
-                foreach (var typeModule in _typeModules)
+                foreach (var typeModule in typeModules)
                 {
                     var types =
-                        await typeModule.CreateTypesAsync(_context, cancellationToken)
+                        await typeModule.CreateTypesAsync(context, cancellationToken)
                             .ConfigureAwait(false);
 
                     foreach (var type in types)
@@ -590,31 +570,24 @@ internal sealed partial class RequestExecutorResolver
         }
     }
 
-    private sealed class RequestContextPooledObjectPolicy : PooledObjectPolicy<RequestContext>
+    private sealed class RequestContextPooledObjectPolicy(
+        ISchema schema,
+        IErrorHandler errorHandler,
+        IExecutionDiagnosticEvents diagnosticEvents,
+        ulong executorVersion)
+        : PooledObjectPolicy<RequestContext>
     {
-        private readonly ISchema _schema;
-        private readonly ulong _executorVersion;
-        private readonly IErrorHandler _errorHandler;
-        private readonly IExecutionDiagnosticEvents _diagnosticEvents;
+        private readonly ISchema _schema = schema ??
+            throw new ArgumentNullException(nameof(schema));
 
-        public RequestContextPooledObjectPolicy(
-            ISchema schema,
-            IErrorHandler errorHandler,
-            IExecutionDiagnosticEvents diagnosticEvents,
-            ulong executorVersion)
-        {
-            _schema = schema ??
-                throw new ArgumentNullException(nameof(schema));
-            _errorHandler = errorHandler ??
-                throw new ArgumentNullException(nameof(errorHandler));
-            _diagnosticEvents = diagnosticEvents ??
-                throw new ArgumentNullException(nameof(diagnosticEvents));
-            _executorVersion = executorVersion;
-        }
+        private readonly IErrorHandler _errorHandler = errorHandler ??
+            throw new ArgumentNullException(nameof(errorHandler));
+        private readonly IExecutionDiagnosticEvents _diagnosticEvents = diagnosticEvents ??
+            throw new ArgumentNullException(nameof(diagnosticEvents));
 
 
         public override RequestContext Create()
-            => new(_schema, _executorVersion, _errorHandler, _diagnosticEvents);
+            => new(_schema, executorVersion, _errorHandler, _diagnosticEvents);
 
         public override bool Return(RequestContext obj)
         {
@@ -693,24 +666,20 @@ internal sealed partial class RequestExecutorResolver
             }
         }
 
-        private sealed class Subscription : IDisposable
+        private sealed class Subscription(
+            EventObservable parent,
+            IObserver<RequestExecutorEvent> observer)
+            : IDisposable
         {
-            private readonly EventObservable _parent;
             private bool _disposed;
 
-            public Subscription(EventObservable parent, IObserver<RequestExecutorEvent> observer)
-            {
-                _parent = parent;
-                Observer = observer;
-            }
-
-            public IObserver<RequestExecutorEvent> Observer { get; }
+            public IObserver<RequestExecutorEvent> Observer { get; } = observer;
 
             public void Dispose()
             {
                 if (!_disposed)
                 {
-                    _parent.Unsubscribe(this);
+                    parent.Unsubscribe(this);
                     _disposed = true;
                 }
             }
@@ -730,6 +699,21 @@ internal sealed partial class RequestExecutorResolver
         public Action<IList<RequestCoreMiddleware>>? DefaultPipelineFactory { get; } = defaultPipelineFactory;
 
         public IList<RequestCoreMiddleware> Pipeline { get; } = pipeline;
+    }
+
+    private sealed class FeatureInterceptor : TypeInterceptor
+    {
+        public override void OnBeforeCompleteType(
+            ITypeCompletionContext completionContext,
+            DefinitionBase definition)
+        {
+            if (definition is SchemaTypeDefinition schemaDef)
+            {
+                var operationCompilerFeature = new OperationCompilerFeature(
+                    completionContext.DescriptorContext.Services.GetServices<IOperationCompilerOptimizer>());
+                schemaDef.Features.Set(operationCompilerFeature);
+            }
+        }
     }
 
 #if NET6_0_OR_GREATER

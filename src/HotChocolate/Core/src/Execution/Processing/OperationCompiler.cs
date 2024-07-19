@@ -22,9 +22,6 @@ namespace HotChocolate.Execution.Processing;
 /// </summary>
 public sealed partial class OperationCompiler
 {
-    private static readonly ImmutableList<ISelectionSetOptimizer> _emptyOptimizers =
-        ImmutableList<ISelectionSetOptimizer>.Empty;
-
     private readonly InputParser _parser;
     private readonly CreateFieldPipeline _createFieldPipeline;
     private readonly Queue<BacklogItem> _backlog = new();
@@ -33,14 +30,14 @@ public sealed partial class OperationCompiler
     private readonly Dictionary<int, SelectionVariants> _selectionVariants = new();
     private readonly Dictionary<string, FragmentDefinitionNode> _fragmentDefinitions = new(Ordinal);
     private readonly Dictionary<string, object?> _contextData = new();
-    private readonly List<IOperationOptimizer> _operationOptimizers = [];
-    private readonly List<ISelectionSetOptimizer> _selectionSetOptimizers = [];
     private readonly List<Selection> _selections = [];
     private readonly HashSet<string> _directiveNames = new(Ordinal);
     private readonly List<FieldMiddleware> _pipelineComponents = [];
     private readonly HashSet<int> _enqueuedSelectionSets = new();
     private IncludeCondition[] _includeConditions = [];
     private CompilerContext? _deferContext;
+    private ImmutableArray<IOperationOptimizer> _operationOptimizers =
+        ImmutableArray<IOperationOptimizer>.Empty;
     private int _nextSelectionId;
     private int _nextSelectionSetRefId;
     private int _nextSelectionSetId;
@@ -70,7 +67,6 @@ public sealed partial class OperationCompiler
         ObjectType operationType,
         DocumentNode document,
         ISchema schema,
-        IReadOnlyList<IOperationCompilerOptimizer>? optimizers = null,
         bool enableNullBubbling = true)
     {
         if (string.IsNullOrEmpty(operationId))
@@ -103,16 +99,8 @@ public sealed partial class OperationCompiler
         try
         {
             var backlogMaxSize = 0;
-
-            // prepare optimizers
-            PrepareOptimizers(optimizers);
-
-            var rootOptimizers = _emptyOptimizers;
-
-            if (_selectionSetOptimizers.Count > 0)
-            {
-                rootOptimizers = ImmutableList.CreateRange(_selectionSetOptimizers);
-            }
+            var selectionSetOptimizers = schema.GetSelectionSetOptimizers();
+            _operationOptimizers = schema.GetOperationOptimizers();
 
             // collect root fields
             var rootPath = SelectionPath.Root;
@@ -121,7 +109,7 @@ public sealed partial class OperationCompiler
             SelectionSetInfo[] infos = [new(operationDefinition.SelectionSet, 0)];
 
             var context = new CompilerContext(schema, document, enableNullBubbling);
-            context.Initialize(operationType, variants, infos, rootPath, rootOptimizers);
+            context.Initialize(operationType, variants, infos, rootPath, selectionSetOptimizers);
             CompileSelectionSet(context);
 
             // process consecutive selections
@@ -170,12 +158,12 @@ public sealed partial class OperationCompiler
             _selectionVariants.Clear();
             _fragmentDefinitions.Clear();
             _contextData.Clear();
-            _operationOptimizers.Clear();
-            _selectionSetOptimizers.Clear();
             _selections.Clear();
             _directiveNames.Clear();
             _pipelineComponents.Clear();
             _enqueuedSelectionSets.Clear();
+
+            _operationOptimizers = ImmutableArray<IOperationOptimizer>.Empty;
 
             _includeConditions = [];
             _deferContext = null;
@@ -191,7 +179,7 @@ public sealed partial class OperationCompiler
     {
         var variants = new SelectionVariants[_selectionVariants.Count];
 
-        if (_operationOptimizers.Count == 0)
+        if (_operationOptimizers.Length == 0)
         {
             CompleteResolvers(schema);
 
@@ -240,7 +228,7 @@ public sealed partial class OperationCompiler
             }
 
 #if NET5_0_OR_GREATER
-            var optSpan = AsSpan(_operationOptimizers);
+            var optSpan = _operationOptimizers.AsSpan();
             ref var optStart = ref GetReference(optSpan);
             ref var optEnd = ref Unsafe.Add(ref optStart, optSpan.Length);
 
@@ -250,7 +238,7 @@ public sealed partial class OperationCompiler
                 optStart = ref Unsafe.Add(ref optStart, 1)!;
             }
 #else
-            for (var i = 0; i < _operationOptimizers.Count; i++)
+            for (var i = 0; i < _operationOptimizers.Length; i++)
             {
                 _operationOptimizers[i].OptimizeOperation(context);
             }
@@ -822,37 +810,6 @@ public sealed partial class OperationCompiler
 
     private void ReturnContext(CompilerContext context)
         => _deferContext ??= context;
-
-    private void PrepareOptimizers(IReadOnlyList<IOperationCompilerOptimizer>? optimizers)
-    {
-        // we only clear the selectionSetOptimizers since we use this list as a temp
-        // to temporarily store the selectionSetOptimizers before they are copied to
-        // the context.
-        _selectionSetOptimizers.Clear();
-
-        if (optimizers is null)
-        {
-            return;
-        }
-
-        if (optimizers.Count > 0)
-        {
-            for (var i = 0; i < optimizers.Count; i++)
-            {
-                var optimizer = optimizers[i];
-
-                if (optimizer is ISelectionSetOptimizer selectionSetOptimizer)
-                {
-                    _selectionSetOptimizers.Add(selectionSetOptimizer);
-                }
-
-                if (optimizer is IOperationOptimizer operationOptimizer)
-                {
-                    _operationOptimizers.Add(operationOptimizer);
-                }
-            }
-        }
-    }
 
     internal void RegisterNewSelection(Selection newSelection)
     {

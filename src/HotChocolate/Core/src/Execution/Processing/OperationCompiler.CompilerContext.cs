@@ -20,16 +20,14 @@ public sealed partial class OperationCompiler
 
         public SelectionPath Path { get; private set; } = SelectionPath.Root;
 
-        public Dictionary<string, Selection> Fields { get; } =
-            new(Ordinal);
+        public Dictionary<string, Selection> Fields { get; } = new(Ordinal);
 
         public List<Fragment> Fragments { get; } = [];
 
         public SelectionVariants SelectionVariants { get; private set; } = default!;
 
-        public IImmutableList<ISelectionSetOptimizer> Optimizers { get; private set; } =
-            ImmutableList<ISelectionSetOptimizer>.Empty;
-        
+        public ImmutableArray<ISelectionSetOptimizer> Optimizers { get; private set; }
+
         public bool EnableNullBubbling { get; } = enableNullBubbling;
 
         public void Initialize(
@@ -37,13 +35,13 @@ public sealed partial class OperationCompiler
             SelectionVariants selectionVariants,
             SelectionSetInfo[] selectionInfos,
             SelectionPath path,
-            IImmutableList<ISelectionSetOptimizer>? optimizers = null)
+            ImmutableArray<ISelectionSetOptimizer>? optimizers = null)
         {
             Type = type;
             SelectionVariants = selectionVariants;
             SelectionInfos = selectionInfos;
             Path = path;
-            Optimizers = optimizers ?? ImmutableList<ISelectionSetOptimizer>.Empty;
+            Optimizers = optimizers ?? ImmutableArray<ISelectionSetOptimizer>.Empty;
             Fields.Clear();
             Fragments.Clear();
         }
