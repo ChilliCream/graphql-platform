@@ -16,28 +16,15 @@ internal sealed class OperationResolverMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ObjectPool<OperationCompiler> _operationCompilerPool;
-    private readonly IOperationCompilerOptimizer[]? _optimizers;
 
     private OperationResolverMiddleware(
         RequestDelegate next,
-        ObjectPool<OperationCompiler> operationCompilerPool,
-        IEnumerable<IOperationCompilerOptimizer> optimizers)
+        ObjectPool<OperationCompiler> operationCompilerPool)
     {
-        if (optimizers is null)
-        {
-            throw new ArgumentNullException(nameof(optimizers));
-        }
-
         _next = next ??
             throw new ArgumentNullException(nameof(next));
         _operationCompilerPool = operationCompilerPool ??
             throw new ArgumentNullException(nameof(operationCompilerPool));
-        _optimizers = optimizers.ToArray();
-
-        if (_optimizers.Length == 0)
-        {
-            _optimizers = null;
-        }
     }
 
     public async ValueTask InvokeAsync(IRequestContext context)
@@ -88,7 +75,6 @@ internal sealed class OperationResolverMiddleware
             operationType,
             context.Document!,
             context.Schema,
-            _optimizers,
             IsNullBubblingEnabled(context));
         _operationCompilerPool.Return(compiler);
         return operation;
@@ -106,17 +92,14 @@ internal sealed class OperationResolverMiddleware
         };
 
     private bool IsNullBubblingEnabled(IRequestContext context)
-        => !context.Schema.ContextData.ContainsKey(EnableTrueNullability) || 
+        => !context.Schema.ContextData.ContainsKey(EnableTrueNullability) ||
             !context.ContextData.ContainsKey(EnableTrueNullability);
 
     public static RequestCoreMiddleware Create()
         => (core, next) =>
         {
             var operationCompilerPool = core.Services.GetRequiredService<ObjectPool<OperationCompiler>>();
-            var optimizers1 = core.Services.GetRequiredService<IEnumerable<IOperationCompilerOptimizer>>();
-            var optimizers2 = core.SchemaServices.GetRequiredService<IEnumerable<IOperationCompilerOptimizer>>();
-            optimizers1 = optimizers1.Concat(optimizers2);
-            var middleware = new OperationResolverMiddleware(next, operationCompilerPool, optimizers1);
+            var middleware = new OperationResolverMiddleware(next, operationCompilerPool);
             return context => middleware.InvokeAsync(context);
         };
 }

@@ -354,7 +354,7 @@ public class CodeFirstSchemaTests
                 .BuildSchemaAsync();
 
         var exception = await Assert.ThrowsAsync<SchemaException>(Error);
-        Assert.Equal(1, exception.Errors.Count);
+        Assert.Single(exception.Errors);
         exception.Errors[0].Message.MatchSnapshot();
     }
 

@@ -15,10 +15,10 @@ internal static class ErrorHelper
     {
         var filterType = context.Types.OfType<IFilterInputType>().First();
 
-        INullabilityNode nullability =
+        IType expectedType =
             isMemberInvalid && field.Type.IsListType()
-            ? new ListNullabilityNode(null, new RequiredModifierNode(null, null))
-            : new RequiredModifierNode(null, null);
+                ? new ListType(new NonNullType(field.Type.ElementType()))
+                : new NonNullType(field.Type);
 
         return ErrorBuilder.New()
             .SetMessage(
@@ -27,7 +27,7 @@ internal static class ErrorHelper
                 filterType.Print())
             .AddLocation(value)
             .SetCode(ErrorCodes.Data.NonNullError)
-            .SetExtension("expectedType", field.Type.RewriteNullability(nullability).Print())
+            .SetExtension("expectedType", expectedType.Print())
             .SetExtension("filterType", filterType.Print())
             .Build();
     }

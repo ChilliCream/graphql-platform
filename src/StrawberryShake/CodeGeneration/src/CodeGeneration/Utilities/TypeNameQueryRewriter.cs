@@ -16,7 +16,6 @@ internal sealed class TypeNameQueryRewriter : SyntaxRewriter<TypeNameQueryRewrit
         null,
         new NameNode(TypeName),
         null,
-        null,
         Array.Empty<DirectiveNode>(),
         Array.Empty<ArgumentNode>(),
         null);

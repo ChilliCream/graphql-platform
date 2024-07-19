@@ -10,7 +10,7 @@ public sealed partial class OperationCompiler
         int selectionSetId,
         Selection selection,
         SelectionPath path,
-        IImmutableList<ISelectionSetOptimizer> optimizers)
+        ImmutableArray<ISelectionSetOptimizer> optimizers)
     {
         public ObjectType Type { get; } = type;
 
@@ -20,6 +20,6 @@ public sealed partial class OperationCompiler
 
         public SelectionPath Path { get; } = path;
 
-        public IImmutableList<ISelectionSetOptimizer> Optimizers { get; } = optimizers;
+        public ImmutableArray<ISelectionSetOptimizer> Optimizers { get; } = optimizers;
     }
 }

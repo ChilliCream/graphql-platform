@@ -48,7 +48,7 @@ namespace HotChocolate.Types.NodaTime.Tests
                         .Build());
 
             Assert.Null(result.ExpectQueryResult().Data);
-            Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
+            Assert.Single(result.ExpectQueryResult().Errors!);
         }
 
         [Fact]
@@ -73,7 +73,7 @@ namespace HotChocolate.Types.NodaTime.Tests
                         .Build());
 
             Assert.Null(result.ExpectQueryResult().Data);
-            Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
+            Assert.Single(result.ExpectQueryResult().Errors!);
             Assert.Null(result.ExpectQueryResult().Errors![0].Code);
             Assert.Equal(
                 "Unable to deserialize string to LocalDate",

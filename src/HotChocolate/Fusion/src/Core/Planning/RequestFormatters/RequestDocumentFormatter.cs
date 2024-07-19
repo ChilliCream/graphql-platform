@@ -18,7 +18,6 @@ internal abstract class RequestDocumentFormatter(FusionGraphConfiguration config
         null,
         new NameNode("__typename"),
         null,
-        null,
         Array.Empty<DirectiveNode>(),
         Array.Empty<ArgumentNode>(),
         null);
@@ -239,7 +238,6 @@ internal abstract class RequestDocumentFormatter(FusionGraphConfiguration config
                     null,
                     new(binding.Name),
                     alias,
-                    node.Required,
                     node.Directives,
                     node.Arguments,
                     selectionSetNode));

@@ -86,7 +86,7 @@ query Requires {
 ## QueryPlan Hash
 
 ```text
-156A66BF984BDE259CFD46F7024F2A1FFFC7A673
+81E2443FA7571C7520DA95C63465CE71A5EDB898
 ```
 
 ## QueryPlan
@@ -125,7 +125,7 @@ query Requires {
             "type": "ResolveByKeyBatch",
             "subgraph": "Accounts",
             "document": "query Requires_2($__fusion_exports__3: [ID!]!) { usersById(ids: $__fusion_exports__3) { birthdate __fusion_exports__3: id } }",
-            "selectionSetId": 4,
+            "selectionSetId": 2,
             "path": [
               "usersById"
             ],
@@ -139,7 +139,7 @@ query Requires {
             "type": "ResolveByKeyBatch",
             "subgraph": "Products",
             "document": "query Requires_4($__fusion_exports__4: [ID!]!) { nodes(ids: $__fusion_exports__4) { ... on Product { __fusion_exports__1: dimension { size } __fusion_exports__2: dimension { weight } __fusion_exports__4: id } } }",
-            "selectionSetId": 2,
+            "selectionSetId": 3,
             "path": [
               "nodes"
             ],
@@ -162,14 +162,14 @@ query Requires {
       {
         "type": "Compose",
         "selectionSetIds": [
-          4
+          2
         ]
       },
       {
         "type": "Resolve",
         "subgraph": "Shipping",
         "document": "query Requires_3($__fusion_exports__1: Int!, $__fusion_exports__2: Int!, $__fusion_exports__4: ID!) { productById(id: $__fusion_exports__4) { deliveryEstimate(size: $__fusion_exports__1, weight: $__fusion_exports__2, zip: \u002212345\u0022) { min max } } }",
-        "selectionSetId": 2,
+        "selectionSetId": 3,
         "path": [
           "productById"
         ],
@@ -188,7 +188,7 @@ query Requires {
       {
         "type": "Compose",
         "selectionSetIds": [
-          2
+          3
         ]
       }
     ]

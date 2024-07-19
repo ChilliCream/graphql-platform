@@ -12,7 +12,7 @@ public class SourceObjectConversionTests
         // arrange
         var conversionTriggered = false;
 
-        var executor = new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryType>()
             .AddTypeConverter<Foo, Baz>(input =>
@@ -23,8 +23,7 @@ public class SourceObjectConversionTests
             .Services
             .BuildServiceProvider()
             .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync()
-            .Result;
+            .GetRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync("{ foo { qux } }");

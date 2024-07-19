@@ -6,7 +6,7 @@ using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Processing;
 
-internal sealed class SelectionVariants : ISelectionVariants
+internal sealed class SelectionVariants(int id) : ISelectionVariants
 {
     private IObjectType? _firstType;
     private SelectionSet? _firstSelectionSet;
@@ -15,12 +15,7 @@ internal sealed class SelectionVariants : ISelectionVariants
     private Dictionary<IObjectType, SelectionSet>? _map;
     private bool _readOnly;
 
-    public SelectionVariants(int id)
-    {
-        Id = id;
-    }
-
-    public int Id { get; }
+    public int Id { get; } = id;
 
     public IEnumerable<IObjectType> GetPossibleTypes()
         => _map?.Keys ?? GetPossibleTypesLazy();

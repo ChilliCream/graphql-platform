@@ -13,7 +13,6 @@ jobs:
   check-changes:
     name: Check for Changes
     runs-on: ubuntu-latest
-    if: github.event.pull_request.draft == false
     outputs:
       website_changes: ${{ steps.check-website.outputs.website_changes }}
       library_changes: ${{ steps.check-library.outputs.library_changes }}
