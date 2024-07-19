@@ -35,7 +35,7 @@ public class PortTypeTests : ScalarTypeTestBase
     [InlineData(typeof(NullValueNode), null, true)]
     public void IsInstanceOfType_GivenValueNode_MatchExpected(
         Type type,
-        object value,
+        object? value,
         bool expected)
     {
         // arrange
@@ -62,7 +62,7 @@ public class PortTypeTests : ScalarTypeTestBase
     [InlineData(8080, true)]
     [InlineData(65535, true)]
     [InlineData(null, true)]
-    public void IsInstanceOfType_GivenObject_MatchExpected(object value, bool expected)
+    public void IsInstanceOfType_GivenObject_MatchExpected(object? value, bool expected)
     {
         // arrange
         // act
@@ -119,7 +119,7 @@ public class PortTypeTests : ScalarTypeTestBase
     [InlineData(typeof(IntValueNode), 8080)]
     [InlineData(typeof(IntValueNode), 65535)]
     [InlineData(typeof(NullValueNode), null)]
-    public void ParseValue_GivenObject_MatchExpectedType(Type type, object value)
+    public void ParseValue_GivenObject_MatchExpectedType(Type type, object? value)
     {
         // arrange
         // act
@@ -223,7 +223,7 @@ public class PortTypeTests : ScalarTypeTestBase
     [InlineData(typeof(IntValueNode), 8080)]
     [InlineData(typeof(IntValueNode), 65535)]
     [InlineData(typeof(NullValueNode), null)]
-    public void ParseResult_GivenObject_MatchExpectedType(Type type, object value)
+    public void ParseResult_GivenObject_MatchExpectedType(Type type, object? value)
     {
         // arrange
         // act

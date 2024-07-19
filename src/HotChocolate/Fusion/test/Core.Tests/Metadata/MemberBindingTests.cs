@@ -21,11 +21,11 @@ public class MemberBindingTests
     [InlineData("", "Member1")]
     [InlineData("  ", "Member1")]
     public void Constructor_InvalidSubgraphName_ThrowsArgumentException(
-        string subgraphName,
+        string? subgraphName,
         string name)
     {
         // act and assert
-        Assert.Throws<ArgumentException>(() => new MemberBinding(subgraphName, name));
+        Assert.Throws<ArgumentException>(() => new MemberBinding(subgraphName!, name));
     }
 
     [Theory]
@@ -34,9 +34,9 @@ public class MemberBindingTests
     [InlineData("Subgraph1", "  ")]
     public void Constructor_InvalidName_ThrowsArgumentException(
         string subgraphName,
-        string name)
+        string? name)
     {
         // act and assert
-        Assert.Throws<ArgumentException>(() => new MemberBinding(subgraphName, name));
+        Assert.Throws<ArgumentException>(() => new MemberBinding(subgraphName, name!));
     }
 }

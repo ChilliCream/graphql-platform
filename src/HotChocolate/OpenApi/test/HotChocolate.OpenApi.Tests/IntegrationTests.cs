@@ -93,43 +93,7 @@ public sealed class IntegrationTests
         Snapshot.Match(result, postFix: caseName, extension: ".json");
     }
 
-    private static TestServer CreateOpenApiServer()
-    {
-        var builder = new WebHostBuilder();
-
-        builder
-            .ConfigureServices(services =>
-            {
-                services.AddRouting();
-                services.AddControllers();
-            })
-            .Configure(app =>
-            {
-                app.UseRouting();
-                app.UseEndpoints(e => e.MapControllers());
-            });
-
-        return new TestServer(builder);
-    }
-
-    private static Mock<IHttpClientFactory> CreateHttpClientFactoryMock(TestServer openApiServer)
-    {
-        var httpClientFactoryMock = new Mock<IHttpClientFactory>();
-
-        httpClientFactoryMock
-            .Setup(f => f.CreateClient(It.IsAny<string>()))
-            .Returns(() =>
-            {
-                var client = openApiServer.CreateClient();
-                client.BaseAddress = new Uri("http://localhost:5000");
-
-                return client;
-            });
-
-        return httpClientFactoryMock;
-    }
-
-    private static TheoryData<string, string> OperationsWithoutMutationConventions()
+    public static TheoryData<string, string> OperationsWithoutMutationConventions()
     {
         return new TheoryData<string, string>
         {
@@ -216,7 +180,7 @@ public sealed class IntegrationTests
         };
     }
 
-    private static TheoryData<string, string> OperationsWithMutationConventions()
+    public static TheoryData<string, string> OperationsWithMutationConventions()
     {
         return new TheoryData<string, string>
         {
@@ -307,7 +271,7 @@ public sealed class IntegrationTests
         };
     }
 
-    private static TheoryData<string, string> OperationsWithLinks()
+    public static TheoryData<string, string> OperationsWithLinks()
     {
         return new TheoryData<string, string>
         {
@@ -348,5 +312,41 @@ public sealed class IntegrationTests
                 """
             },
         };
+    }
+
+    private static TestServer CreateOpenApiServer()
+    {
+        var builder = new WebHostBuilder();
+
+        builder
+            .ConfigureServices(services =>
+            {
+                services.AddRouting();
+                services.AddControllers();
+            })
+            .Configure(app =>
+            {
+                app.UseRouting();
+                app.UseEndpoints(e => e.MapControllers());
+            });
+
+        return new TestServer(builder);
+    }
+
+    private static Mock<IHttpClientFactory> CreateHttpClientFactoryMock(TestServer openApiServer)
+    {
+        var httpClientFactoryMock = new Mock<IHttpClientFactory>();
+
+        httpClientFactoryMock
+            .Setup(f => f.CreateClient(It.IsAny<string>()))
+            .Returns(() =>
+            {
+                var client = openApiServer.CreateClient();
+                client.BaseAddress = new Uri("http://localhost:5000");
+
+                return client;
+            });
+
+        return httpClientFactoryMock;
     }
 }
