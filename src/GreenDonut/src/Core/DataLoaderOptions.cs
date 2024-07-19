@@ -9,8 +9,8 @@ public sealed class DataLoaderOptions
 {
     /// <summary>
     /// Gets or sets the maximum batch size per request. If set to
-    /// <c>0</c>, the request will be not cut into smaller batches. The
-    /// default value is set to <c>0</c>.
+    /// <c>0</c>, the request will not be cut into smaller batches. The
+    /// default value is set to <c>1024</c>.
     /// </summary>
     public int MaxBatchSize { get; set; } = 1024;
 
