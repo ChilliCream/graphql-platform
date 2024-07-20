@@ -356,8 +356,8 @@ public class IdAttributeTests
     public async Task Id_On_Objects_Legacy_StringAndIntId()
     {
         // arrange
-        var legacySomeStringId = Convert.ToBase64String("Some\ndtest"u8);;
-        var legacySomeIntId = Convert.ToBase64String("Some\ni123"u8);;
+        var legacySomeStringId = Convert.ToBase64String("Some\ndtest"u8);
+        var legacySomeIntId = Convert.ToBase64String("Some\ni123"u8);
 
         // act
         var result =
@@ -392,6 +392,44 @@ public class IdAttributeTests
             result = result.ToJson(),
             legacySomeStringId,
             legacySomeIntId
+        }.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Id_On_Objects_Legacy_StronglyTypedId()
+    {
+        // arrange
+        var legacyStronglyTypedId = Convert.ToBase64String("Product\nd123-456"u8);
+
+        // act
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .AddType<FooPayload>()
+                .AddGlobalObjectIdentification(false)
+                .AddNodeIdValueSerializer<StronglyTypedIdNodeIdValueSerializer>()
+                .ExecuteRequestAsync(
+                    OperationRequestBuilder.New()
+                        .SetDocument(
+                            """
+                            query foo ($customId: ID!, $nullCustomId: ID = null) {
+                                nullableCustomId(id: $customId)
+                                nullableCustomIdGivenNull: nullableCustomId(id: $nullCustomId)
+                                customIds(ids: [$customId $customId])
+                                nullableCustomIds(ids: [$customId $nullCustomId $customId])
+                            }
+                            """)
+                        .SetVariableValues(new Dictionary<string, object?>
+                        {
+                            {"customId", legacyStronglyTypedId},
+                        })
+                        .Build());
+
+        // assert
+        new
+        {
+            result = result.ToJson(), legacySomeStronglyTypedId = legacyStronglyTypedId,
         }.MatchSnapshot();
     }
 

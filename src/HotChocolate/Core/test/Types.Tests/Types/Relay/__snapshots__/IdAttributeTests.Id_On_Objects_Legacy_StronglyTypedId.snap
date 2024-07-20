@@ -1,0 +1,4 @@
+﻿{
+  "result": "{\n  \"data\": {\n    \"nullableCustomId\": \"123-456\",\n    \"nullableCustomIdGivenNull\": \"null\",\n    \"customIds\": \"123-456, 123-456\",\n    \"nullableCustomIds\": \"123-456, null, 123-456\"\n  }\n}",
+  "legacySomeStronglyTypedId": "UHJvZHVjdApkMTIzLTQ1Ng=="
+}
