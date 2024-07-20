@@ -57,7 +57,7 @@ public static class PagingHelper
         PagingOptions options,
         FieldMiddlewareDefinition placeholder)
     {
-        options = context.GetSettings(options);
+        options = context.GetPagingOptions(options);
         entityType ??= context.GetType<IOutputType>(definition.Type!).ToRuntimeType();
 
         var source = GetSourceType(context.TypeInspector, definition, entityType);
@@ -194,12 +194,12 @@ public static class PagingHelper
         return false;
     }
 
-    public static PagingOptions GetSettings(
+    public static PagingOptions GetPagingOptions(
         this ITypeCompletionContext context,
         PagingOptions options) =>
-        context.DescriptorContext.GetSettings(options);
+        context.DescriptorContext.GetPagingOptions(options);
 
-    public static PagingOptions GetSettings(
+    public static PagingOptions GetPagingOptions(
         this IDescriptorContext context,
         PagingOptions options)
     {

@@ -107,7 +107,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
             .Extend()
             .OnBeforeCreate((c, d) =>
             {
-                var pagingOptions = c.GetSettings(options);
+                var pagingOptions = c.GetPagingOptions(options);
                 if (string.IsNullOrEmpty(collectionSegmentName))
                 {
                     collectionSegmentName =
@@ -198,7 +198,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
             .Extend()
             .OnBeforeCreate((c, d) =>
             {
-                var pagingOptions = c.GetSettings(options);
+                var pagingOptions = c.GetPagingOptions(options);
                 if (string.IsNullOrEmpty(collectionSegmentName))
                 {
                     collectionSegmentName =
@@ -285,7 +285,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
                 namedType);
         }
 
-        options = context.GetSettings(options);
+        options = context.GetPagingOptions(options);
 
         // last but not leas we create a type reference that can be put on the field definition
         // to tell the type discovery that this field needs this result type.

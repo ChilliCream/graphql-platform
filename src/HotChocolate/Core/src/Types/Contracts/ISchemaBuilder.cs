@@ -5,6 +5,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Pagination;
 
 #nullable enable
 
@@ -30,9 +31,15 @@ public interface ISchemaBuilder
 
     ISchemaBuilder SetSchema(Action<ISchemaTypeDescriptor> configure);
 
+    [Obsolete("Use ModifyOptions instead.")]
     ISchemaBuilder SetOptions(IReadOnlySchemaOptions options);
 
     ISchemaBuilder ModifyOptions(Action<SchemaOptions> configure);
+    
+    [Obsolete("Use ModifyPagingOptions instead.")]
+    ISchemaBuilder SetPagingOptions(PagingOptions options);
+
+    ISchemaBuilder ModifyPagingOptions(Action<PagingOptions> configure);
 
     ISchemaBuilder Use(FieldMiddleware middleware);
 

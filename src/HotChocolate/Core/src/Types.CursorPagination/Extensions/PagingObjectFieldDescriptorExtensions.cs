@@ -131,7 +131,7 @@ public static class PagingObjectFieldDescriptorExtensions
             .Extend()
             .OnBeforeCreate((c, d) =>
             {
-                var pagingOptions = c.GetSettings(options);
+                var pagingOptions = c.GetPagingOptions(options);
                 var backward = pagingOptions.AllowBackwardPagination ?? AllowBackwardPagination;
                 d.State = d.State.Add(WellKnownContextData.PagingOptions, pagingOptions);
                 d.Flags |= FieldFlags.Connection;
@@ -218,7 +218,7 @@ public static class PagingObjectFieldDescriptorExtensions
             .Extend()
             .OnBeforeCreate((c, d) =>
             {
-                var pagingOptions = c.GetSettings(options);
+                var pagingOptions = c.GetPagingOptions(options);
                 var backward = pagingOptions.AllowBackwardPagination ?? AllowBackwardPagination;
                 d.State = d.State.Add(WellKnownContextData.PagingOptions, pagingOptions);
                 d.Flags |= FieldFlags.Connection;
@@ -355,7 +355,7 @@ public static class PagingObjectFieldDescriptorExtensions
                 namedType);
         }
 
-        options = context.GetSettings(options);
+        options = context.GetPagingOptions(options);
 
         // last but not least we create a type reference that can be put on the field definition
         // to tell the type discovery that this field needs this result type.
