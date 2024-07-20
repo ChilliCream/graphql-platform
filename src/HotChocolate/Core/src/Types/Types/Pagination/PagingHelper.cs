@@ -15,13 +15,13 @@ using static HotChocolate.WellKnownMiddleware;
 
 namespace HotChocolate.Types.Pagination;
 
-public static class PagingHelper
+internal static class PagingHelper
 {
     public static IObjectFieldDescriptor UsePaging(
         IObjectFieldDescriptor descriptor,
         Type? entityType,
         GetPagingProvider resolvePagingProvider,
-        PagingOptions options)
+        PagingOptions? options)
     {
         if (descriptor is null)
         {
@@ -38,7 +38,7 @@ public static class PagingHelper
                     c,
                     d,
                     entityType,
-                    options.ProviderName,
+                    options?.ProviderName,
                     resolvePagingProvider,
                     options,
                     placeholder),
@@ -54,7 +54,7 @@ public static class PagingHelper
         Type? entityType,
         string? name,
         GetPagingProvider resolvePagingProvider,
-        PagingOptions options,
+        PagingOptions? options,
         FieldMiddlewareDefinition placeholder)
     {
         options = context.GetPagingOptions(options);
@@ -196,14 +196,14 @@ public static class PagingHelper
 
     public static PagingOptions GetPagingOptions(
         this ITypeCompletionContext context,
-        PagingOptions options) =>
+        PagingOptions? options) =>
         context.DescriptorContext.GetPagingOptions(options);
 
     public static PagingOptions GetPagingOptions(
         this IDescriptorContext context,
-        PagingOptions options)
+        PagingOptions? options)
     {
-        options = options.Copy();
+        options = options?.Copy() ?? new();
 
         if (context.ContextData.TryGetValue(typeof(PagingOptions).FullName!, out var o) &&
             o is PagingOptions global)

@@ -105,7 +105,7 @@ public partial class SchemaBuilder
                 lazySchema,
                 typeInterceptor);
 
-            context.ContextData[typeof(PagingOptions).FullName!] = builder._options;
+            context.ContextData[typeof(PagingOptions).FullName!] = builder._pagingOptions;
 
             return context;
         }
