@@ -409,6 +409,28 @@ public static class FusionRequestExecutorBuilderExtensions
         return builder;
     }
 
+    /// <summary>
+    /// Adds a type that will be used to create a middleware for the execution pipeline.
+    /// </summary>
+    /// <param name="builder">
+    /// The gateway builder.
+    /// </param>
+    /// <returns>
+    /// Returns the gateway builder for configuration chaining.
+    /// </returns>
+    public static FusionGatewayBuilder UseRequest<TMiddleware>(
+        this FusionGatewayBuilder builder)
+        where TMiddleware : class
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        builder.CoreBuilder.UseRequest<TMiddleware>();
+        return builder;
+    }
+
     private static IRequestExecutorBuilder UseFusionDefaultPipeline(
         this IRequestExecutorBuilder builder)
     {
