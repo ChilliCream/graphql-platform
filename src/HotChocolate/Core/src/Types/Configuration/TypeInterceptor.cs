@@ -120,7 +120,7 @@ public abstract class TypeInterceptor
     /// </returns>
     public virtual IEnumerable<TypeReference> RegisterMoreTypes(
         IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
-        => Enumerable.Empty<TypeReference>();
+        => [];
 
     public virtual void OnTypeRegistered(
         ITypeDiscoveryContext discoveryContext)

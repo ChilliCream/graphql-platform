@@ -22,7 +22,7 @@ public class ObjectFieldDescriptor
     , IObjectFieldDescriptor
 {
     private bool _argumentsInitialized;
-    private ParameterInfo[] _parameterInfos = Array.Empty<ParameterInfo>();
+    private ParameterInfo[] _parameterInfos = [];
 
     /// <summary>
     /// Creates a new instance of <see cref="ObjectFieldDescriptor"/>

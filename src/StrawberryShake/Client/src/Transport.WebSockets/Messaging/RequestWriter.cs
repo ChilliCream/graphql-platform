@@ -98,7 +98,7 @@ public class RequestWriter
         if (!_disposed && disposing)
         {
             ArrayPool<byte>.Shared.Return(_buffer);
-            _buffer = Array.Empty<byte>();
+            _buffer = [];
             _disposed = true;
         }
     }

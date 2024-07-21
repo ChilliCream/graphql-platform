@@ -152,7 +152,7 @@ public class JsonOperationRequestSerializerTests
     {
         public OperationKind Kind => OperationKind.Query;
 
-        public ReadOnlySpan<byte> Body => Array.Empty<byte>();
+        public ReadOnlySpan<byte> Body => [];
 
         public DocumentHash Hash { get; } = new("MD5", "ABCDEF");
     }

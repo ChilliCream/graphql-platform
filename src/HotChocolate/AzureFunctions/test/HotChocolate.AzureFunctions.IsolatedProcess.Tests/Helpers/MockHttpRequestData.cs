@@ -69,8 +69,7 @@ public sealed class MockHttpRequestData : HttpRequestData, IDisposable
 
     public override Uri Url { get; }
 
-    public override IEnumerable<ClaimsIdentity> Identities { get; } =
-        Enumerable.Empty<ClaimsIdentity>();
+    public override IEnumerable<ClaimsIdentity> Identities { get; } = [];
 
     public override string Method { get; }
 
