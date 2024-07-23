@@ -61,55 +61,29 @@ public sealed partial class OperationCompiler
 
     internal OperationCompilerMetrics Metrics => _metrics;
 
-    public IOperation Compile(
-        string operationId,
-        OperationDefinitionNode operationDefinition,
-        ObjectType operationType,
-        DocumentNode document,
-        ISchema schema,
-        bool enableNullBubbling = true)
+    public IOperation Compile(OperationCompilerRequest request)
     {
-        if (string.IsNullOrEmpty(operationId))
+        if (string.IsNullOrEmpty(request.Id))
         {
             throw new ArgumentException(
                 OperationCompiler_OperationIdNullOrEmpty,
-                nameof(operationId));
-        }
-
-        if (operationDefinition is null)
-        {
-            throw new ArgumentNullException(nameof(operationDefinition));
-        }
-
-        if (operationType is null)
-        {
-            throw new ArgumentNullException(nameof(operationType));
-        }
-
-        if (document is null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
-
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
+                nameof(request.Id));
         }
 
         try
         {
             var backlogMaxSize = 0;
-            var selectionSetOptimizers = schema.GetSelectionSetOptimizers();
-            _operationOptimizers = schema.GetOperationOptimizers();
+            var selectionSetOptimizers = request.SelectionSetOptimizers;
+            _operationOptimizers = request.OperationOptimizers;
 
             // collect root fields
             var rootPath = SelectionPath.Root;
-            var id = GetOrCreateSelectionSetRefId(operationDefinition.SelectionSet, rootPath);
+            var id = GetOrCreateSelectionSetRefId(request.Definition.SelectionSet, rootPath);
             var variants = GetOrCreateSelectionVariants(id);
-            SelectionSetInfo[] infos = [new(operationDefinition.SelectionSet, 0)];
+            SelectionSetInfo[] infos = [new(request.Definition.SelectionSet, 0)];
 
-            var context = new CompilerContext(schema, document, enableNullBubbling);
-            context.Initialize(operationType, variants, infos, rootPath, selectionSetOptimizers);
+            var context = new CompilerContext(request.Schema, request.Document, request.EnableNullBubbling);
+            context.Initialize(request.RootType, variants, infos, rootPath, selectionSetOptimizers);
             CompileSelectionSet(context);
 
             // process consecutive selections
@@ -130,12 +104,7 @@ public sealed partial class OperationCompiler
             }
 
             // create operation
-            var operation = CreateOperation(
-                operationId,
-                operationDefinition,
-                operationType,
-                document,
-                schema);
+            var operation = CreateOperation(request);
 
             _metrics = new OperationCompilerMetrics(
                 _nextSelectionId,
@@ -170,18 +139,13 @@ public sealed partial class OperationCompiler
         }
     }
 
-    private Operation CreateOperation(
-        string operationId,
-        OperationDefinitionNode operationDefinition,
-        ObjectType operationType,
-        DocumentNode document,
-        ISchema schema)
+    private Operation CreateOperation(OperationCompilerRequest request)
     {
         var variants = new SelectionVariants[_selectionVariants.Count];
 
         if (_operationOptimizers.Length == 0)
         {
-            CompleteResolvers(schema);
+            CompleteResolvers(request.Schema);
 
             // if we do not have any optimizers we will copy
             // the variants and seal them in one go.
@@ -198,11 +162,11 @@ public sealed partial class OperationCompiler
             // more mutations on the compiled selection variants.
             // after we have executed all optimizers we will seal the selection variants.
             var context = new OperationOptimizerContext(
-                operationId,
-                document,
-                operationDefinition,
-                schema,
-                operationType,
+                request.Id,
+                request.Document,
+                request.Definition,
+                request.Schema,
+                request.RootType,
                 variants,
                 _includeConditions,
                 _contextData,
@@ -244,7 +208,7 @@ public sealed partial class OperationCompiler
             }
 #endif
 
-            CompleteResolvers(schema);
+            CompleteResolvers(request.Schema);
 
             variantsSpan = variants.AsSpan();
             variantsStart = ref GetReference(variantsSpan)!;
@@ -258,10 +222,10 @@ public sealed partial class OperationCompiler
         }
 
         return new Operation(
-            operationId,
-            document,
-            operationDefinition,
-            operationType,
+            request.Id,
+            request.Document,
+            request.Definition,
+            request.RootType,
             variants,
             _includeConditions,
             new Dictionary<string, object?>(_contextData),

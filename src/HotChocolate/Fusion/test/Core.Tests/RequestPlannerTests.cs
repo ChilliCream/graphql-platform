@@ -1597,11 +1597,12 @@ public class RequestPlannerTests
         var operationCompiler = new OperationCompiler(new());
         var operationDef = (OperationDefinitionNode)request.Definitions[0];
         var operation = operationCompiler.Compile(
-            "abc",
-            operationDef,
-            schema.GetOperationType(operationDef.Operation)!,
-            request,
-            schema);
+            new OperationCompilerRequest(
+                "abc",
+                request,
+                operationDef,
+                schema.GetOperationType(operationDef.Operation)!,
+                schema));
 
         var queryPlanner = new QueryPlanner(serviceConfig, schema);
         var queryPlan = queryPlanner.Plan(operation);
