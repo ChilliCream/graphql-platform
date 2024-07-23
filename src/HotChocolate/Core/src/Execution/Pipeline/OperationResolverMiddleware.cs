@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
@@ -8,7 +6,6 @@ using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.Execution.ErrorHelper;
-using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Execution.Pipeline;
 
@@ -16,15 +13,18 @@ internal sealed class OperationResolverMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ObjectPool<OperationCompiler> _operationCompilerPool;
+    private readonly OperationCompilerOptimizers _operationCompilerOptimizers;
 
     private OperationResolverMiddleware(
         RequestDelegate next,
-        ObjectPool<OperationCompiler> operationCompilerPool)
+        ObjectPool<OperationCompiler> operationCompilerPool,
+        OperationCompilerOptimizers operationCompilerOptimizer)
     {
-        _next = next ??
-            throw new ArgumentNullException(nameof(next));
-        _operationCompilerPool = operationCompilerPool ??
-            throw new ArgumentNullException(nameof(operationCompilerPool));
+        _next = next ?? throw new ArgumentNullException(nameof(next));
+        _operationCompilerPool =
+            operationCompilerPool ?? throw new ArgumentNullException(nameof(operationCompilerPool));
+        _operationCompilerOptimizers = operationCompilerOptimizer
+            ?? throw new ArgumentNullException(nameof(operationCompilerOptimizer));
     }
 
     public async ValueTask InvokeAsync(IRequestContext context)
@@ -68,15 +68,20 @@ internal sealed class OperationResolverMiddleware
         OperationDefinitionNode operationDefinition,
         ObjectType operationType)
     {
-        var compiler = _operationCompilerPool.Get();
-        var operation = compiler.Compile(
+        var request = new OperationCompilerRequest(
             operationId,
+            context.Document!,
             operationDefinition,
             operationType,
-            context.Document!,
             context.Schema,
-            IsNullBubblingEnabled(context));
+            _operationCompilerOptimizers.OperationOptimizers,
+            _operationCompilerOptimizers.SelectionSetOptimizers,
+            context.IsNullBubblingEnabled());
+
+        var compiler = _operationCompilerPool.Get();
+        var operation = compiler.Compile(request);
         _operationCompilerPool.Return(compiler);
+
         return operation;
     }
 
@@ -91,15 +96,12 @@ internal sealed class OperationResolverMiddleware
             _ => throw ThrowHelper.RootTypeNotSupported(operationType),
         };
 
-    private bool IsNullBubblingEnabled(IRequestContext context)
-        => !context.Schema.ContextData.ContainsKey(EnableTrueNullability) ||
-            !context.ContextData.ContainsKey(EnableTrueNullability);
-
     public static RequestCoreMiddleware Create()
         => (core, next) =>
         {
             var operationCompilerPool = core.Services.GetRequiredService<ObjectPool<OperationCompiler>>();
-            var middleware = new OperationResolverMiddleware(next, operationCompilerPool);
+            var optimizers = core.SchemaServices.GetRequiredService<OperationCompilerOptimizers>();
+            var middleware = new OperationResolverMiddleware(next, operationCompilerPool, optimizers);
             return context => middleware.InvokeAsync(context);
         };
 }
