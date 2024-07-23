@@ -76,8 +76,7 @@ public sealed class FileReferenceNode
     /// <returns>
     /// Returns the children of this node..
     /// </returns>
-    public IEnumerable<ISyntaxNode> GetNodes()
-        => Enumerable.Empty<ISyntaxNode>();
+    public IEnumerable<ISyntaxNode> GetNodes() => [];
 
     /// <summary>
     /// Determines whether the specified <see cref="IValueNode"/> is equal

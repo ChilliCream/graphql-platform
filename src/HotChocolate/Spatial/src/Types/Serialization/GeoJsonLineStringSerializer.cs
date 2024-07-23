@@ -24,9 +24,7 @@ internal class GeoJsonLineStringSerializer : GeoJsonInputObjectSerializer<LineSt
 
         if (coordinates is List<Coordinate> list)
         {
-            coordinates = list.Count == 0
-                ? Array.Empty<Coordinate>()
-                : list.ToArray();
+            coordinates = list.Count == 0 ? [] : list.ToArray();
         }
 
         if (coordinates is not IList coordsObject ||

@@ -380,7 +380,7 @@ internal sealed class ComposeCommand : Command
         [JsonPropertyOrder(101)]
         public string[] Exclude
         {
-            get => _exclude ?? Array.Empty<string>();
+            get => _exclude ?? [];
             set => _exclude = value;
         }
     }

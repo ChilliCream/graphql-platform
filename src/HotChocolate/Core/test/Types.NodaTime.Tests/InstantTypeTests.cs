@@ -101,7 +101,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void PatternEmpty_ThrowSchemaException()
         {
-            static object Call() => new InstantType(Array.Empty<IPattern<Instant>>());
+            static object Call() => new InstantType([]);
             Assert.Throws<SchemaException>(Call);
         }
     }

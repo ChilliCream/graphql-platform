@@ -1185,7 +1185,7 @@ public class IntegrationTests
     public class ProviderByName
     {
         [UsePaging(ProviderName = "Abc")]
-        public string[] Abc => Array.Empty<string>();
+        public string[] Abc => [];
     }
 
     public class FluentPaging

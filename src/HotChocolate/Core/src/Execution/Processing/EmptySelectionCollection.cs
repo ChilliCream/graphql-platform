@@ -9,7 +9,7 @@ namespace HotChocolate.Execution.Processing;
 
 internal sealed class EmptySelectionCollection : ISelectionCollection
 {
-    private static readonly ISelection[] _empty = Array.Empty<ISelection>();
+    private static readonly ISelection[] _empty = [];
 
     public static EmptySelectionCollection Instance { get; } = new();
 

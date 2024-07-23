@@ -37,7 +37,7 @@ internal sealed class OperationCacheMiddleware
 
             if (operationId is null)
             {
-                operationId = context.CreateCacheId(context.DocumentId.Value.Value, context.Request.OperationName);
+                operationId = context.CreateCacheId();
                 context.OperationId = operationId;
             }
 
@@ -61,7 +61,7 @@ internal sealed class OperationCacheMiddleware
             }
         }
     }
-    
+
     public static RequestCoreMiddleware Create()
         => (core, next) =>
         {

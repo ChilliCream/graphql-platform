@@ -22,7 +22,7 @@ public class GraphQLException : Exception
 
     public GraphQLException(params IError[] errors)
     {
-        Errors = errors ?? Array.Empty<IError>();
+        Errors = errors ?? [];
     }
 
     public GraphQLException(IEnumerable<IError> errors)
