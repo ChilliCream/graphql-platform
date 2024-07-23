@@ -46,6 +46,50 @@ public class DefaultNodeIdSerializerTests
     }
 
     [Fact]
+    public void Parse_Empty_GuidId()
+    {
+        var serializer = CreateSerializer(new GuidNodeIdValueSerializer(false));
+
+        var id = serializer.Parse("Rm9vOjAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAw", typeof(Guid));
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal(Guid.Empty, id.InternalId);
+    }
+
+    [Fact]
+    public void Parse_Empty_GuidId_Compressed()
+    {
+        var serializer = CreateSerializer(new GuidNodeIdValueSerializer(true));
+
+        var id = serializer.Parse("Rm9vOgAAAAAAAAAAAAAAAAAAAAA=", typeof(Guid));
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal(Guid.Empty, id.InternalId);
+    }
+
+    [Fact]
+    public void Parse_Normal_GuidId()
+    {
+        var serializer = CreateSerializer(new GuidNodeIdValueSerializer(false));
+
+        var id = serializer.Parse("Rm9vOjFhZTI3YjE0OGNmNjQ0MGQ5YTQ2MDkwOTBhNGFmNmYz", typeof(Guid));
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal(new Guid("1ae27b14-8cf6-440d-9a46-09090a4af6f3"), id.InternalId);
+    }
+
+    [Fact]
+    public void Parse_Normal_GuidId_Compressed()
+    {
+        var serializer = CreateSerializer(new GuidNodeIdValueSerializer(true));
+
+        var id = serializer.Parse("Rm9vOhR74hr2jA1EmkYJCQpK9vM=", typeof(Guid));
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal(new Guid("1ae27b14-8cf6-440d-9a46-09090a4af6f3"), id.InternalId);
+    }
+
+    [Fact]
     public void Parse_Empty_StringId()
     {
         var lookup = new Mock<INodeIdRuntimeTypeLookup>();
@@ -167,7 +211,17 @@ public class DefaultNodeIdSerializerTests
     }
 
     [Fact]
-    public void Serialize_Guid()
+    public void Serialize_Empty_Guid()
+    {
+        var serializer = CreateSerializer(new GuidNodeIdValueSerializer(false));
+
+        var id = serializer.Format("Foo", Guid.Empty);
+
+        Assert.Equal("Rm9vOjAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAw", id);
+    }
+
+    [Fact]
+    public void Serialize_Empty_Guid_Compressed()
     {
         var serializer = CreateSerializer(new GuidNodeIdValueSerializer());
 
@@ -177,13 +231,24 @@ public class DefaultNodeIdSerializerTests
     }
 
     [Fact]
-    public void Serialize_Guid_Normal()
+    public void Serialize_Normal_Guid()
     {
         var serializer = CreateSerializer(new GuidNodeIdValueSerializer(false));
 
-        var id = serializer.Format("Foo", Guid.Empty);
+        var internalId = new Guid("1ae27b14-8cf6-440d-9a46-09090a4af6f3");
+        var id = serializer.Format("Foo", internalId);
 
-        Assert.Equal("Rm9vOjAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAw", id);
+        Assert.Equal("Rm9vOjFhZTI3YjE0OGNmNjQ0MGQ5YTQ2MDkwOTBhNGFmNmYz", id);
+    }
+
+    [Fact]
+    public void Serialize_Normal_Guid_Compressed()
+    {
+        var serializer = CreateSerializer(new GuidNodeIdValueSerializer());
+
+        var id = serializer.Format("Foo", new Guid("1ae27b14-8cf6-440d-9a46-09090a4af6f3"));
+
+        Assert.Equal("Rm9vOhR74hr2jA1EmkYJCQpK9vM=", id);
     }
 
     [Fact]
