@@ -39,7 +39,7 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
             .AddGraphQLServer()
             .AddRavenFiltering()
             .AddRavenPagingProviders()
-            .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = false})
+            .ModifyPagingOptions(o => o.RequirePagingBoundaries = false)
             .AddQueryType(
                 c =>
                 {

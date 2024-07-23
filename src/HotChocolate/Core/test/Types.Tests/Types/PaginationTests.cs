@@ -26,7 +26,7 @@ public class PaginationTests
                         await new ServiceCollection()
                             .AddGraphQL()
                             .AddQueryType<QueryType>()
-                            .SetPagingOptions(new PagingOptions { DefaultPageSize = 50, })
+                            .ModifyPagingOptions(o => o.DefaultPageSize = 50)
                             .BuildRequestExecutorAsync(cancellationToken: ct);
 
                     snapshot.Add(
@@ -58,7 +58,7 @@ public class PaginationTests
                         await new ServiceCollection()
                             .AddGraphQL()
                             .AddQueryType<QueryType>()
-                            .SetPagingOptions(new PagingOptions { DefaultPageSize = 50, })
+                            .ModifyPagingOptions(o => o.DefaultPageSize = 50)
                             .BuildRequestExecutorAsync(cancellationToken: ct);
 
                     snapshot.Add(await executor

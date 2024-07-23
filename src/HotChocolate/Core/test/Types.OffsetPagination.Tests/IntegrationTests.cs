@@ -79,7 +79,7 @@ namespace HotChocolate.Types.Pagination
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
-                    .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = true, })
+                    .ModifyPagingOptions(o => o.RequirePagingBoundaries = true)
                     .Services
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
@@ -107,7 +107,7 @@ namespace HotChocolate.Types.Pagination
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
-                    .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = true, })
+                    .ModifyPagingOptions(o => o.RequirePagingBoundaries = true)
                     .Services
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
@@ -270,7 +270,7 @@ namespace HotChocolate.Types.Pagination
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
-                    .SetPagingOptions(new PagingOptions { DefaultPageSize = 2, })
+                    .ModifyPagingOptions(o => o.DefaultPageSize = 2)
                     .Services
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
@@ -298,7 +298,7 @@ namespace HotChocolate.Types.Pagination
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
-                    .SetPagingOptions(new PagingOptions { DefaultPageSize = 50, })
+                    .ModifyPagingOptions(o => o.DefaultPageSize = 50)
                     .Services
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
@@ -326,7 +326,7 @@ namespace HotChocolate.Types.Pagination
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryAttr>()
-                    .SetPagingOptions(new PagingOptions { DefaultPageSize = 2, })
+                    .ModifyPagingOptions(o => o.DefaultPageSize = 2)
                     .Services
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
