@@ -33,7 +33,7 @@ internal sealed class DefaultErrorHandler : IErrorHandler
 
     private DefaultErrorHandler()
     {
-        _filters = Array.Empty<IErrorFilter>();
+        _filters = [];
         _includeExceptionDetails = false;
     }
 

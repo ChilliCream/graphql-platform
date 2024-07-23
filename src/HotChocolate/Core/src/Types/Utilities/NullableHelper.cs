@@ -102,7 +102,7 @@ internal readonly struct NullableHelper
 
             return flags;
         }
-        return Array.Empty<bool?>();
+        return [];
     }
 
     private static NullableContextAttribute? GetNullableContextAttribute(

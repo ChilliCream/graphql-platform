@@ -156,7 +156,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void PatternEmpty_ThrowSchemaException()
         {
-            static object Call() => new ZonedDateTimeType(Array.Empty<IPattern<ZonedDateTime>>());
+            static object Call() => new ZonedDateTimeType([]);
             Assert.Throws<SchemaException>(Call);
         }
     }

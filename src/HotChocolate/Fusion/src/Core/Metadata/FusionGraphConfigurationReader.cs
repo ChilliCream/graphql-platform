@@ -534,9 +534,7 @@ internal sealed class FusionGraphConfigurationReader
             kind,
             select,
             placeholder,
-            _assert.Count == 0
-                ? Array.Empty<string>()
-                : _assert.ToArray(),
+            _assert.Count == 0 ? [] : _assert.ToArray(),
             arguments ?? _emptyArgumentDefs);
 
         static void OptionalArgs(HashSet<string> assert)

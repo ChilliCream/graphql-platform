@@ -97,7 +97,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void PatternEmpty_ThrowSchemaException()
         {
-            static object Call() => new LocalDateType(Array.Empty<IPattern<LocalDate>>());
+            static object Call() => new LocalDateType([]);
             Assert.Throws<SchemaException>(Call);
         }
     }

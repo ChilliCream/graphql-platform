@@ -36,7 +36,7 @@ public sealed class NullValueNode
     public object? Value { get; }
 
     /// <inheritdoc />
-    public IEnumerable<ISyntaxNode> GetNodes() => Enumerable.Empty<ISyntaxNode>();
+    public IEnumerable<ISyntaxNode> GetNodes() => [];
 
     /// <summary>
     /// Determines whether the specified <see cref="NullValueNode"/>

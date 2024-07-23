@@ -127,7 +127,7 @@ internal sealed class ErrorTypeHelper
             }
         }
 
-        return Array.Empty<Type>();
+        return [];
     }
 
     public void InitializerErrorTypeInterface(IDescriptorContext context)

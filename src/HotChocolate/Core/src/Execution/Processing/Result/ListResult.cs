@@ -11,7 +11,7 @@ namespace HotChocolate.Execution.Processing;
 /// </summary>
 public sealed class ListResult : ResultData, IReadOnlyList<object?>
 {
-    private object?[] _buffer = Array.Empty<object?>();
+    private object?[] _buffer = [];
     private int _capacity;
     private int _count;
 
