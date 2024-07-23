@@ -21,6 +21,8 @@ public class CatalogContext(string connectionString) : DbContext
 
     public DbSet<Brand> Brands { get; set; } = default!;
 
+    public DbSet<Test> Tests { get; set; } = default!;
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         builder.ApplyConfiguration(new BrandEntityTypeConfiguration());
