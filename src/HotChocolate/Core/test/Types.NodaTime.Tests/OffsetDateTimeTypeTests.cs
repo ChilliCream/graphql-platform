@@ -156,7 +156,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void PatternEmptyThrowSchemaException()
         {
-            static object Call() => new OffsetDateTimeType(Array.Empty<IPattern<OffsetDateTime>>());
+            static object Call() => new OffsetDateTimeType([]);
             Assert.Throws<SchemaException>(Call);
         }
     }

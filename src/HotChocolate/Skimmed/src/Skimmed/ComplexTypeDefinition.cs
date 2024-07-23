@@ -108,19 +108,11 @@ public abstract class ComplexTypeDefinition(string name)
 
         _features = _features is null
             ? EmptyFeatureCollection.Default
-            : new ReadOnlyFeatureCollection(_features);
+            : _features.ToReadOnly();
 
         foreach (var field in _fields)
         {
             field.Seal();
-        }
-
-        foreach (var feature in _features)
-        {
-            if(feature.Value is ISealable sealable)
-            {
-                sealable.Seal();
-            }
         }
 
         _isReadOnly = true;

@@ -5,7 +5,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders;
 
 public class MethodCallBuilder : ICode
 {
-    private string[] _methodName = Array.Empty<string>();
+    private string[] _methodName = [];
     private bool _determineStatement = true;
     private bool _setNullForgiving;
     private bool _wrapArguments;

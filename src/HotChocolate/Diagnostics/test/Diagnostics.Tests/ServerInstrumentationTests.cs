@@ -440,7 +440,7 @@ public class ServerInstrumentationTests : ServerTestBase
                     services
                         .AddGraphQLServer()
                         .AddInstrumentation(options)
-                        .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = false})
+                        .ModifyPagingOptions(o => o.RequirePagingBoundaries = false)
                         .ModifyOptions(
                             o =>
                             {

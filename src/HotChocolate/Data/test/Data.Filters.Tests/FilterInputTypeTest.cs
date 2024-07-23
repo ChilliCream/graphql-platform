@@ -452,7 +452,7 @@ public class FilterInputTypeTest : FilterTestBase
 
         public int Chapters { get; set; }
 
-        public int[] LinesPerPage { get; set; } = Array.Empty<int>();
+        public int[] LinesPerPage { get; set; } = [];
 
         public ICollection<Author>? CoAuthors { get; set; }
 

@@ -86,7 +86,7 @@ public class IntegrationTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryType>()
-                .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = true, })
+                .ModifyPagingOptions(o => o.RequirePagingBoundaries = true)
                 .Services
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
@@ -219,7 +219,7 @@ public class IntegrationTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryType>()
-                .SetPagingOptions(new PagingOptions { MaxPageSize = 2, })
+                .ModifyPagingOptions(o => o.MaxPageSize = 2)
                 .Services
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
@@ -286,7 +286,7 @@ public class IntegrationTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryType>()
-                .SetPagingOptions(new PagingOptions { MaxPageSize = 2, })
+                .ModifyPagingOptions(o => o.MaxPageSize = 2)
                 .Services
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
@@ -419,7 +419,7 @@ public class IntegrationTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryType>()
-                .SetPagingOptions(new PagingOptions { DefaultPageSize = 2, })
+                .ModifyPagingOptions(o => o.DefaultPageSize = 2)
                 .Services
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
@@ -453,7 +453,7 @@ public class IntegrationTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryAttr>()
-                .SetPagingOptions(new PagingOptions { DefaultPageSize = 2, })
+                .ModifyPagingOptions(o => o.DefaultPageSize = 2)
                 .Services
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
@@ -787,7 +787,7 @@ public class IntegrationTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryType>()
-                .SetPagingOptions(new PagingOptions { AllowBackwardPagination = false, })
+                .ModifyPagingOptions(o => o.AllowBackwardPagination = false)
                 .Services
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
@@ -804,7 +804,7 @@ public class IntegrationTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryAttr>()
-                .SetPagingOptions(new PagingOptions { AllowBackwardPagination = false, })
+                .ModifyPagingOptions(o => o.AllowBackwardPagination = false)
                 .AddInterfaceType<ISome>(d => d.Field(t => t.ExplicitType()).UsePaging())
                 .Services
                 .BuildServiceProvider()
@@ -855,7 +855,7 @@ public class IntegrationTests
                 .AddGraphQL()
                 .AddQueryType<ProviderByName>()
                 .AddCursorPagingProvider<DummyProvider>(providerName: "Abc")
-                .SetPagingOptions(new PagingOptions { InferConnectionNameFromField = false, })
+                .ModifyPagingOptions(o => o.InferConnectionNameFromField = false)
                 .Services
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
@@ -963,7 +963,7 @@ public class IntegrationTests
         // assert
         result.ToJson().MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Invalid_After_Index_Cursor()
     {
@@ -987,10 +987,10 @@ public class IntegrationTests
               }
             }
             """);
-        
+
         await result.MatchSnapshotAsync();
     }
-    
+
     [Fact]
     public async Task Invalid_Before_Index_Cursor()
     {
@@ -1014,7 +1014,7 @@ public class IntegrationTests
               }
             }
             """);
-        
+
         await result.MatchSnapshotAsync();
     }
 
@@ -1185,7 +1185,7 @@ public class IntegrationTests
     public class ProviderByName
     {
         [UsePaging(ProviderName = "Abc")]
-        public string[] Abc => Array.Empty<string>();
+        public string[] Abc => [];
     }
 
     public class FluentPaging

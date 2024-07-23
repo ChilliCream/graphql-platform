@@ -315,7 +315,7 @@ internal static class MiddlewareHelper
             Error = errorResult;
             StatusCode = statusCode;
             RequestFlags = GraphQLRequestFlags.None;
-            AcceptMediaTypes = Array.Empty<AcceptMediaType>();
+            AcceptMediaTypes = [];
         }
 
         public ValidateAcceptContentTypeResult(

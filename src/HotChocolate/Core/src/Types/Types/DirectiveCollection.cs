@@ -35,9 +35,7 @@ public sealed class DirectiveCollection : IDirectiveCollection
         get
         {
             var directives = _directives;
-            return directives.Length == 0
-                ? Enumerable.Empty<Directive>()
-                : FindDirectives(directives, directiveName);
+            return directives.Length == 0 ? [] : FindDirectives(directives, directiveName);
         }
     }
 

@@ -61,7 +61,7 @@ public class IsSelectedAttribute : Attribute
         else
         {
             Fields = selectionSet;
-            FieldNames = Array.Empty<string>();
+            FieldNames = [];
         }
     }
 

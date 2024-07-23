@@ -55,7 +55,7 @@ public class PagingTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
-                .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = false })
+                .ModifyPagingOptions(o => o.RequirePagingBoundaries = false)
                 .AddFiltering()
                 .AddSorting()
                 .BuildRequestExecutorAsync();
@@ -366,7 +366,7 @@ public class PagingTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
-                .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = false })
+                .ModifyPagingOptions(o => o.RequirePagingBoundaries = false)
                 .AddFiltering()
                 .AddSorting()
                 .BuildRequestExecutorAsync();
@@ -419,7 +419,7 @@ public class PagingTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
-                .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = false })
+                .ModifyPagingOptions(o => o.RequirePagingBoundaries = false)
                 .AddFiltering()
                 .AddSorting()
                 .BuildRequestExecutorAsync();
@@ -472,7 +472,7 @@ public class PagingTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
-                .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = false })
+                .ModifyPagingOptions(o => o.RequirePagingBoundaries = false)
                 .AddFiltering()
                 .AddSorting()
                 .BuildRequestExecutorAsync();

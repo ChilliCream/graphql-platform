@@ -5,7 +5,7 @@ namespace HotChocolate.Types.Pagination;
 /// <summary>
 /// The paging options.
 /// </summary>
-public struct PagingOptions
+public class PagingOptions
 {
     /// <summary>
     /// Gets or sets the default page size.

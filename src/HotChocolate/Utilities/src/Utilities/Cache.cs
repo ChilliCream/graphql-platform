@@ -82,7 +82,7 @@ public sealed class Cache<TValue>(int size)
         {
             if (_head is null)
             {
-                return Array.Empty<string>();
+                return [];
             }
 
             var index = 0;

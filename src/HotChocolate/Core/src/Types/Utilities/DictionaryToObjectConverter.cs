@@ -6,14 +6,11 @@ using HotChocolate.Internal;
 
 namespace HotChocolate.Utilities;
 
-public sealed class DictionaryToObjectConverter : DictionaryVisitor<ConverterContext>
+public sealed class DictionaryToObjectConverter(ITypeConverter converter)
+    : DictionaryVisitor<ConverterContext>
 {
-    private readonly ITypeConverter _converter;
-
-    public DictionaryToObjectConverter(ITypeConverter converter)
-    {
-        _converter = converter ?? throw new ArgumentNullException(nameof(converter));
-    }
+    private readonly ITypeConverter _converter = converter
+        ?? throw new ArgumentNullException(nameof(converter));
 
     public object Convert(object from, Type to)
     {

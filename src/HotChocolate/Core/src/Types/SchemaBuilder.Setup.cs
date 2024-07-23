@@ -12,6 +12,7 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Factories;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Types.Interceptors;
+using HotChocolate.Types.Pagination;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
@@ -103,6 +104,8 @@ public partial class SchemaBuilder
                 builder._contextData,
                 lazySchema,
                 typeInterceptor);
+
+            context.ContextData[typeof(PagingOptions).FullName!] = builder._pagingOptions;
 
             return context;
         }

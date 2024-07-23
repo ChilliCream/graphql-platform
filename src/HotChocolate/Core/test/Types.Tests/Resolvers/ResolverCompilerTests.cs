@@ -24,8 +24,7 @@ namespace HotChocolate.Resolvers;
 
 public class ResolverCompilerTests
 {
-    private readonly IParameterExpressionBuilder[] _empty =
-        Array.Empty<IParameterExpressionBuilder>();
+    private readonly IParameterExpressionBuilder[] _empty = [];
 
     [Fact]
     public async Task Compile_TaskObjMethod_NoParams_SourceResolver()

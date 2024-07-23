@@ -259,7 +259,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
             return Enum.GetValues(enumType).Cast<object>();
         }
 
-        return Enumerable.Empty<object>();
+        return [];
     }
 
     /// <inheritdoc />

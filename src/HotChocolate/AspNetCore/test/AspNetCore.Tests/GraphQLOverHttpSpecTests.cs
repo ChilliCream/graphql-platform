@@ -141,7 +141,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         // act
         using var request = new HttpRequestMessage(HttpMethod.Post, _url)
         {
-            Content = new ByteArrayContent(Array.Empty<byte>())
+            Content = new ByteArrayContent([])
             {
                 Headers =
                 {
