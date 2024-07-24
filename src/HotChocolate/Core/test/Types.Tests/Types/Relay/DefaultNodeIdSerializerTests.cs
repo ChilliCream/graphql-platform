@@ -447,7 +447,7 @@ public class DefaultNodeIdSerializerTests
             return NodeIdFormatterResult.InvalidValue;
         }
 
-        public bool TryParse(ReadOnlySpan<byte> buffer, [NotNullWhen(true)] out object? value)
+        public bool TryParse(ReadOnlySpan<byte> buffer, [NotNullWhen(true)] out object value)
         {
             var formattedValue = Encoding.UTF8.GetString(buffer);
             value = StronglyTypedId.Parse(formattedValue);
