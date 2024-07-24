@@ -38,7 +38,7 @@ internal sealed class QueryCacheMiddleware
 
         var queryResult = context.Result?.ExpectQueryResult();
 
-        if (queryResult is not null)
+        if (queryResult is { Errors: null })
         {
             var contextData =
                 queryResult.ContextData is not null
