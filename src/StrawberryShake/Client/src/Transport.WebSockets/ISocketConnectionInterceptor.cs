@@ -25,7 +25,19 @@ public interface ISocketConnectionInterceptor
         ISocketProtocol protocol,
         CancellationToken cancellationToken);
 
+    /// <summary>
+    /// This method is called when the socket connection is opened.
+    /// </summary>
+    /// <param name="client">
+    /// The client that opened the connection.
+    /// </param>
     public void OnConnectionOpened(ISocketClient client);
 
+    /// <summary>
+    /// This method is called when the socket connection is closed.
+    /// </summary>
+    /// <param name="client">
+    /// The client that closed the connection.
+    /// </param>
     public void OnConnectionClosed(ISocketClient client);
 }
