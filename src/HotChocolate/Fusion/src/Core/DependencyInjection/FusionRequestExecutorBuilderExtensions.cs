@@ -503,7 +503,7 @@ public static class FusionRequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        return builder.UseRequest<DistributedOperationExecutionMiddleware>();
+        return builder.UseRequest(DistributedOperationExecutionMiddleware.Create());
     }
 
     internal static void AddDefaultPipeline(this IList<RequestCoreMiddleware> pipeline)
