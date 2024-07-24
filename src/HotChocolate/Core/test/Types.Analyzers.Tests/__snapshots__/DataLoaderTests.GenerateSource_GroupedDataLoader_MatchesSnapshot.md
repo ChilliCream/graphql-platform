@@ -1,4 +1,4 @@
-# GenerateSource_GroupDataLoader_MatchesSnapshot
+# GenerateSource_GroupedDataLoader_MatchesSnapshot
 
 ## HotChocolateDataLoader.735550c.g.cs
 

@@ -27,7 +27,7 @@ public class DataLoaderTests
     }
 
     [Fact]
-    public async Task GenerateSource_GroupDataLoader_MatchesSnapshot()
+    public async Task GenerateSource_GroupedDataLoader_MatchesSnapshot()
     {
         await TestHelper.GetGeneratedSourceSnapshot(
             """
