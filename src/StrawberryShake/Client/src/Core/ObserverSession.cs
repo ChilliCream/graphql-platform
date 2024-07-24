@@ -8,12 +8,7 @@ internal class ObserverSession : IDisposable
     private IDisposable? _storeSession;
     private bool _disposed;
 
-    public ObserverSession()
-    {
-        RequestSession = new RequestSession();
-    }
-
-    public RequestSession RequestSession { get; }
+    public RequestSession RequestSession { get; } = new();
 
     public bool HasStoreSession
     {
