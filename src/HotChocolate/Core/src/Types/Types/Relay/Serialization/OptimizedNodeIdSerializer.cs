@@ -97,22 +97,20 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
         Base64.DecodeFromUtf8InPlace(span, out var written);
         span = span.Slice(0, written);
 
-        var index = span.IndexOf(_delimiter);
-        var delimiterOffset = 1;
-        if (index == -1)
+        var delimiterIndex = FindDelimiterIndex(span);
+        if (delimiterIndex == -1)
         {
-            index = span.IndexOf(_legacyDelimiter);
+            Clear(rentedBuffer);
+            throw new NodeIdInvalidFormatException(formattedId);
+        }
 
-            if (index < 0)
-            {
-                Clear(rentedBuffer);
-                throw new NodeIdInvalidFormatException(formattedId);
-            }
-
+        var delimiterOffset = 1;
+        if (span[delimiterIndex] == _legacyDelimiter)
+        {
             delimiterOffset = 2;
         }
 
-        var typeName = span.Slice(0, index);
+        var typeName = span.Slice(0, delimiterIndex);
         if (!_spanSerializerMap.TryGetValue(typeName, out var serializer))
         {
             var typeNameString = ToString(typeName);
@@ -120,7 +118,7 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
             throw new NodeIdMissingSerializerException(typeNameString);
         }
 
-        var value = serializer.Parse(span.Slice(index + delimiterOffset));
+        var value = serializer.Parse(span.Slice(delimiterIndex + delimiterOffset));
         Clear(rentedBuffer);
         return value;
     }
@@ -153,22 +151,20 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
         Base64.DecodeFromUtf8InPlace(span, out var written);
         span = span.Slice(0, written);
 
-        var index = span.IndexOf(_delimiter);
-        var delimiterOffset = 1;
-        if (index == -1)
+        var delimiterIndex = FindDelimiterIndex(span);
+        if (delimiterIndex == -1)
         {
-            index = span.IndexOf(_legacyDelimiter);
+            Clear(rentedBuffer);
+            throw new NodeIdInvalidFormatException(formattedId);
+        }
 
-            if (index < 0)
-            {
-                Clear(rentedBuffer);
-                throw new NodeIdInvalidFormatException(formattedId);
-            }
-
+        var delimiterOffset = 1;
+        if (span[delimiterIndex] == _legacyDelimiter)
+        {
             delimiterOffset = 2;
         }
 
-        var typeName = span.Slice(0, index);
+        var typeName = span.Slice(0, delimiterIndex);
         INodeIdValueSerializer? valueSerializer = null;
         if (!_spanSerializerMap.TryGetValue(typeName, out var serializer))
         {
@@ -203,7 +199,7 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
             throw SerializerMissing(typeName, rentedBuffer);
         }
 
-        var value = ParseValue(valueSerializer, serializer.TypeName, span.Slice(index + delimiterOffset));
+        var value = ParseValue(valueSerializer, serializer.TypeName, span.Slice(delimiterIndex + delimiterOffset));
         Clear(rentedBuffer);
         return value;
     }
@@ -237,6 +233,21 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
         }
 
         throw new NodeIdInvalidFormatException(ToString(formattedValue));
+    }
+
+#if NET8_0_OR_GREATER
+    private static readonly SearchValues<byte>
+        _delimiterSearchValues = SearchValues.Create([_delimiter, _legacyDelimiter]);
+#endif
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int FindDelimiterIndex(ReadOnlySpan<byte> span)
+    {
+#if NET8_0_OR_GREATER
+        return span.IndexOfAny(_delimiterSearchValues);
+#else
+        return span.IndexOfAny([_delimiter, _legacyDelimiter]);
+#endif
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
