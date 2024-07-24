@@ -9,6 +9,9 @@ public class DataLoaderTests
     {
         await TestHelper.GetGeneratedSourceSnapshot(
             """
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
             using HotChocolate;
 
             namespace TestNamespace;
@@ -16,8 +19,8 @@ public class DataLoaderTests
             internal static class TestClass
             {
                 [DataLoader]
-                public static async Task<IReadOnlyDictionary<Guid, Entity>> GetEntityByIdAsync(
-                    IReadOnlyList<Guid> entityIds,
+                public static async Task<IReadOnlyDictionary<int, Entity>> GetEntityByIdAsync(
+                    IReadOnlyList<int> entityIds,
                     CancellationToken cancellationToken) { }
             }
             """).MatchMarkdownAsync();
@@ -28,6 +31,10 @@ public class DataLoaderTests
     {
         await TestHelper.GetGeneratedSourceSnapshot(
             """
+            using System.Collections.Generic;
+            using System.Linq;
+            using System.Threading;
+            using System.Threading.Tasks;
             using HotChocolate;
 
             namespace TestNamespace;
@@ -35,8 +42,8 @@ public class DataLoaderTests
             internal static class TestClass
             {
                 [DataLoader]
-                public static async Task<ILookup<Guid, Entity>> GetEntitiesByIdAsync(
-                    IReadOnlyList<Guid> entityIds,
+                public static async Task<ILookup<int, Entity>> GetEntitiesByIdAsync(
+                    IReadOnlyList<int> entityIds,
                     CancellationToken cancellationToken) { }
             }
             """).MatchMarkdownAsync();
@@ -47,6 +54,8 @@ public class DataLoaderTests
     {
         await TestHelper.GetGeneratedSourceSnapshot(
             """
+            using System.Threading;
+            using System.Threading.Tasks;
             using HotChocolate;
 
             namespace TestNamespace;
@@ -55,7 +64,7 @@ public class DataLoaderTests
             {
                 [DataLoader]
                 public static async Task<Entity> GetEntityByIdAsync(
-                    Guid entityId,
+                    int entityId,
                     CancellationToken cancellationToken) { }
             }
             """).MatchMarkdownAsync();

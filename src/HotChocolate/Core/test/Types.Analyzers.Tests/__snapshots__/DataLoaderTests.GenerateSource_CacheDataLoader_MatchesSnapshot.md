@@ -18,12 +18,12 @@ using Microsoft.Extensions.DependencyInjection;
 namespace TestNamespace
 {
     public interface IEntityByIdDataLoader
-        : global::GreenDonut.IDataLoader<Guid, Entity>
+        : global::GreenDonut.IDataLoader<int, Entity>
     {
     }
 
     public sealed class EntityByIdDataLoader
-        : global::GreenDonut.CacheDataLoader<Guid, Entity>
+        : global::GreenDonut.CacheDataLoader<int, Entity>
         , IEntityByIdDataLoader
     {
         private readonly global::System.IServiceProvider _services;
@@ -37,11 +37,10 @@ namespace TestNamespace
                 throw new global::System.ArgumentNullException(nameof(services));
         }
         protected override async global::System.Threading.Tasks.Task<Entity> LoadSingleAsync(
-            Guid key,
+            int key,
             global::System.Threading.CancellationToken ct)
         {
-            var p1 = _services.GetRequiredService<CancellationToken>();
-            return await TestNamespace.TestClass.GetEntityByIdAsync(key, p1).ConfigureAwait(false);
+            return await TestNamespace.TestClass.GetEntityByIdAsync(key, ct).ConfigureAwait(false);
         }
     }
 

@@ -18,30 +18,30 @@ using Microsoft.Extensions.DependencyInjection;
 namespace TestNamespace
 {
     public interface IEntityByIdDataLoader
-        : global::GreenDonut.IDataLoader<IReadOnlyList<Guid>, IReadOnlyDictionary<Guid, Entity>>
+        : global::GreenDonut.IDataLoader<int, Entity>
     {
     }
 
     public sealed class EntityByIdDataLoader
-        : global::GreenDonut.CacheDataLoader<IReadOnlyList<Guid>, IReadOnlyDictionary<Guid, Entity>>
+        : global::GreenDonut.BatchDataLoader<int, Entity>
         , IEntityByIdDataLoader
     {
         private readonly global::System.IServiceProvider _services;
 
         public EntityByIdDataLoader(
             global::System.IServiceProvider services,
+            global::GreenDonut.IBatchScheduler batchScheduler,
             global::GreenDonut.DataLoaderOptions options)
-            : base(options)
+            : base(batchScheduler, options)
         {
             _services = services ??
                 throw new global::System.ArgumentNullException(nameof(services));
         }
-        protected override async global::System.Threading.Tasks.Task<IReadOnlyDictionary<Guid, Entity>> LoadSingleAsync(
-            IReadOnlyList<Guid> key,
+        protected override async global::System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyDictionary<int, Entity>> LoadBatchAsync(
+            System.Collections.Generic.IReadOnlyList<int> keys,
             global::System.Threading.CancellationToken ct)
         {
-            var p1 = _services.GetRequiredService<CancellationToken>();
-            return await TestNamespace.TestClass.GetEntityByIdAsync(key, p1).ConfigureAwait(false);
+            return await TestNamespace.TestClass.GetEntityByIdAsync(keys, ct).ConfigureAwait(false);
         }
     }
 
