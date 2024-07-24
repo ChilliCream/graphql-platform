@@ -151,16 +151,18 @@ public sealed class DefaultNodeIdSerializer(
         span = span.Slice(0, written);
 
         var index = span.IndexOf(_delimiter);
+        var delimiterOffset = 1;
         if (index == -1)
         {
-            if (TryParseLegacyFormat(span, out var nodeId))
+            index = span.IndexOf(_legacyDelimiter);
+
+            if (index < 0)
             {
                 Clear(rentedBuffer);
-                return nodeId;
+                throw new NodeIdInvalidFormatException(formattedId);
             }
 
-            Clear(rentedBuffer);
-            throw new NodeIdInvalidFormatException(formattedId);
+            delimiterOffset = 2;
         }
 
         var typeName = span.Slice(0, index);
@@ -174,7 +176,7 @@ public sealed class DefaultNodeIdSerializer(
             throw new NodeIdInvalidFormatException(formattedId);
         }
 
-        if (serializer.TryParse(span.Slice(index + 1), out var value))
+        if (serializer.TryParse(span.Slice(index + delimiterOffset), out var value))
         {
             return new NodeId(typeNameString, value);
         }
@@ -206,16 +208,18 @@ public sealed class DefaultNodeIdSerializer(
         span = span.Slice(0, written);
 
         var index = span.IndexOf(_delimiter);
+        var delimiterOffset = 1;
         if (index == -1)
         {
-            if (TryParseLegacyFormat(span, out var nodeId))
+            index = span.IndexOf(_legacyDelimiter);
+
+            if (index < 0)
             {
                 Clear(rentedBuffer);
-                return nodeId;
+                throw new NodeIdInvalidFormatException(formattedId);
             }
 
-            Clear(rentedBuffer);
-            throw new NodeIdInvalidFormatException(formattedId);
+            delimiterOffset = 2;
         }
 
         var typeName = span.Slice(0, index);
@@ -228,7 +232,7 @@ public sealed class DefaultNodeIdSerializer(
             throw new NodeIdInvalidFormatException(formattedId);
         }
 
-        if (serializer.TryParse(span.Slice(index + 1), out var value))
+        if (serializer.TryParse(span.Slice(index + delimiterOffset), out var value))
         {
             return new NodeId(typeNameString, value);
         }
@@ -252,29 +256,6 @@ public sealed class DefaultNodeIdSerializer(
         }
 
         return null;
-    }
-
-    private static bool TryParseLegacyFormat(ReadOnlySpan<byte> span, out NodeId nodeId)
-    {
-        var index = span.IndexOf(_legacyDelimiter);
-        if (index > -1)
-        {
-            var legacyFormattedIdValue = span.Slice(index + 1);
-            if (legacyFormattedIdValue[0] is
-                LegacyNodeIdSerializer.Default or
-                LegacyNodeIdSerializer.Guid or
-                LegacyNodeIdSerializer.Int or
-                LegacyNodeIdSerializer.Long or
-                LegacyNodeIdSerializer.Short)
-            {
-                var internalId = LegacyNodeIdSerializer.ParseValueInternal(legacyFormattedIdValue);
-                nodeId = new NodeId(ToString(span.Slice(0, index)), internalId);
-                return true;
-            }
-        }
-
-        nodeId = default;
-        return false;
     }
 
     private static void Clear(byte[]? rentedBuffer = null)

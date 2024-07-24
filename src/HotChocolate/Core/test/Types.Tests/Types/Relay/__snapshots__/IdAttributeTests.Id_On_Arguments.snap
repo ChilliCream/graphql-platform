@@ -23,6 +23,11 @@
     "optionalGuidIdGivenNothing": "NO VALUE",
     "guidIdList": "26a2dc8f-4dab-408c-88c6-523a0a89a2b5, 26a2dc8f-4dab-408c-88c6-523a0a89a2b5",
     "nullableGuidIdList": "26a2dc8f-4dab-408c-88c6-523a0a89a2b5, 00000000-0000-0000-0000-000000000000, 26a2dc8f-4dab-408c-88c6-523a0a89a2b5",
-    "optionalGuidIdList": "26a2dc8f-4dab-408c-88c6-523a0a89a2b5, 26a2dc8f-4dab-408c-88c6-523a0a89a2b5"
+    "optionalGuidIdList": "26a2dc8f-4dab-408c-88c6-523a0a89a2b5, 26a2dc8f-4dab-408c-88c6-523a0a89a2b5",
+    "customId": "1-2",
+    "nullableCustomId": "1-2",
+    "nullableCustomIdGivenNull": "null",
+    "customIds": "1-2, 1-2",
+    "nullableCustomIds": "1-2, null, 1-2"
   }
 }

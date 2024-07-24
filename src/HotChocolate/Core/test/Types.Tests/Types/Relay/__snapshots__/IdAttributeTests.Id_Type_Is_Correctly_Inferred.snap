@@ -43,6 +43,10 @@ type Query {
   optionalGuidIdList(id: [ID] = [  ]): String!
   interceptedId(id: ID!): String!
   interceptedIds(id: [ID!]!): String!
+  customId(id: ID!): String!
+  nullableCustomId(id: ID): String!
+  customIds(ids: [ID!]!): String!
+  nullableCustomIds(ids: [ID]!): String!
   foo(input: FooInput!): IFooPayload!
 }
 
