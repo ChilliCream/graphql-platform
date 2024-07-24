@@ -17,7 +17,7 @@ public interface ISocketOperation : IAsyncDisposable
     string Id { get; }
 
     /// <summary>
-    /// CReate an operation message stream.
+    /// CRate an operation message stream.
     /// </summary>
     IAsyncEnumerable<OperationMessage> ReadAsync();
 

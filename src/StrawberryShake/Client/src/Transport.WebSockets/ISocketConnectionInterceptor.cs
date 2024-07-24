@@ -24,4 +24,8 @@ public interface ISocketConnectionInterceptor
     public ValueTask<object?> CreateConnectionInitPayload(
         ISocketProtocol protocol,
         CancellationToken cancellationToken);
+
+    public void OnConnectionOpened(ISocketClient client);
+
+    public void OnConnectionClosed(ISocketClient client);
 }

@@ -10,7 +10,7 @@ public sealed class SocketOperationException : Exception
     /// <summary>
     /// Creates a new <see cref="SocketOperationException"/>
     /// </summary>
-    public SocketOperationException() : base()
+    public SocketOperationException()
     {
     }
 
