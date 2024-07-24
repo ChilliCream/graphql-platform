@@ -98,16 +98,18 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
         span = span.Slice(0, written);
 
         var index = span.IndexOf(_delimiter);
+        var delimiterOffset = 1;
         if (index == -1)
         {
-            if (TryParseLegacyFormat(span, out var nodeId))
+            index = span.IndexOf(_legacyDelimiter);
+
+            if (index < 0)
             {
                 Clear(rentedBuffer);
-                return nodeId;
+                throw new NodeIdInvalidFormatException(formattedId);
             }
 
-            Clear(rentedBuffer);
-            throw new NodeIdInvalidFormatException(formattedId);
+            delimiterOffset = 2;
         }
 
         var typeName = span.Slice(0, index);
@@ -118,32 +120,9 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
             throw new NodeIdMissingSerializerException(typeNameString);
         }
 
-        var value = serializer.Parse(span.Slice(index + 1));
+        var value = serializer.Parse(span.Slice(index + delimiterOffset));
         Clear(rentedBuffer);
         return value;
-    }
-
-    private bool TryParseLegacyFormat(ReadOnlySpan<byte> span, out NodeId nodeId)
-    {
-        var index = span.IndexOf(_legacyDelimiter);
-        if (index > -1 && _spanSerializerMap.TryGetValue(span.Slice(0, index), out var serializer))
-        {
-            var legacyFormattedIdValue = span.Slice(index + 1);
-            if (legacyFormattedIdValue[0] is
-                LegacyNodeIdSerializer.Default or
-                LegacyNodeIdSerializer.Guid or
-                LegacyNodeIdSerializer.Int or
-                LegacyNodeIdSerializer.Long or
-                LegacyNodeIdSerializer.Short)
-            {
-                var internalId = LegacyNodeIdSerializer.ParseValueInternal(legacyFormattedIdValue);
-                nodeId = new NodeId(serializer.TypeName, internalId);
-                return true;
-            }
-        }
-
-        nodeId = default;
-        return false;
     }
 
     public unsafe NodeId Parse(string formattedId, Type runtimeType)
@@ -175,10 +154,18 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
         span = span.Slice(0, written);
 
         var index = span.IndexOf(_delimiter);
+        var delimiterOffset = 1;
         if (index == -1)
         {
-            Clear(rentedBuffer);
-            throw new NodeIdInvalidFormatException(formattedId);
+            index = span.IndexOf(_legacyDelimiter);
+
+            if (index < 0)
+            {
+                Clear(rentedBuffer);
+                throw new NodeIdInvalidFormatException(formattedId);
+            }
+
+            delimiterOffset = 2;
         }
 
         var typeName = span.Slice(0, index);
@@ -216,7 +203,7 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
             throw SerializerMissing(typeName, rentedBuffer);
         }
 
-        var value = ParseValue(valueSerializer, serializer.TypeName, span.Slice(index + 1));
+        var value = ParseValue(valueSerializer, serializer.TypeName, span.Slice(index + delimiterOffset));
         Clear(rentedBuffer);
         return value;
     }

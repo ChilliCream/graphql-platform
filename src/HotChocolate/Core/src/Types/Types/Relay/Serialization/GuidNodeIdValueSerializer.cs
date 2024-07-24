@@ -58,7 +58,7 @@ internal sealed class GuidNodeIdValueSerializer(bool compress = true) : INodeIdV
             return false;
         }
 
-        if (Utf8Parser.TryParse(buffer, out Guid parsedValue, out _))
+        if (Utf8Parser.TryParse(buffer, out Guid parsedValue, out _, 'N'))
         {
             value = parsedValue;
             return true;
