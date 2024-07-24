@@ -79,7 +79,7 @@ internal static class DirectiveClassMiddlewareFactory
     internal static DirectiveMiddleware Create(Type middlewareType)
         => (DirectiveMiddleware)_createGeneric
             .MakeGenericMethod(middlewareType)
-            .Invoke(null, Array.Empty<object>())!;
+            .Invoke(null, [])!;
 
     internal static DirectiveMiddleware Create<TMiddleware>(
         Func<IServiceProvider, FieldDelegate, TMiddleware> activate)

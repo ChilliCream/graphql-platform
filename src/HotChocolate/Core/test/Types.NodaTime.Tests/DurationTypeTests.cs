@@ -221,7 +221,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void PatternEmpty_ThrowSchemaException()
         {
-            static object Call() => new DurationType(Array.Empty<IPattern<Duration>>());
+            static object Call() => new DurationType([]);
             Assert.Throws<SchemaException>(Call);
         }
     }

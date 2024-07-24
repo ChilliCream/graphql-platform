@@ -85,7 +85,7 @@ internal sealed class QueryPlan
         }
         else
         {
-            _exportKeyToVariableName = Array.Empty<(string, string)>();
+            _exportKeyToVariableName = [];
         }
     }
 

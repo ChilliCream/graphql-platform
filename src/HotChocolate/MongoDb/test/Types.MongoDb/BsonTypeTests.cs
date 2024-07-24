@@ -817,7 +817,7 @@ public class BsonTypeTests
         var type = schema.GetType<BsonType>("Bson");
 
         // act
-        var result = type.IsInstanceOfType(new ObjectValueNode(Array.Empty<ObjectFieldNode>()));
+        var result = type.IsInstanceOfType(new ObjectValueNode([]));
 
         // assert
         Assert.True(result);
@@ -840,7 +840,7 @@ public class BsonTypeTests
         var type = schema.GetType<BsonType>("Bson");
 
         // act
-        var result = type.IsInstanceOfType(new ListValueNode(Array.Empty<IValueNode>()));
+        var result = type.IsInstanceOfType(new ListValueNode([]));
 
         // assert
         Assert.True(result);

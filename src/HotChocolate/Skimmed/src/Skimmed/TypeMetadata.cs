@@ -1,9 +1,11 @@
+using HotChocolate.Features;
+
 namespace HotChocolate.Skimmed;
 
 public sealed class TypeMetadata : ISealable
 {
-    private bool _isReadOnly;
     private bool _isExtension;
+    private bool _isReadOnly;
 
     public bool IsExtension
     {

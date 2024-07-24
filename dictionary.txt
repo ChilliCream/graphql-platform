@@ -44,6 +44,8 @@ graphyne
 greendonut
 Hasura
 HCXXXX
+hhmm
+HHmmssfffffff
 hotchocolate
 Includable
 inheritdocs

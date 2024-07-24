@@ -13,7 +13,7 @@ namespace HotChocolate.Types;
 
 public partial class InterfaceType
 {
-    private InterfaceType[] _implements = Array.Empty<InterfaceType>();
+    private InterfaceType[] _implements = [];
     private Action<IInterfaceTypeDescriptor>? _configure;
     private ResolveAbstractType? _resolveAbstractType;
     private ISchema _schema = default!;

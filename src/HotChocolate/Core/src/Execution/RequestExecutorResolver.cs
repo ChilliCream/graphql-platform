@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+
 #if NET6_0_OR_GREATER
 using System.Reflection.Metadata;
 #endif
@@ -325,6 +327,33 @@ internal sealed partial class RequestExecutorResolver
                 sp.GetApplicationService<DefaultRequestContextAccessor>(),
                 version));
 
+        serviceCollection.AddSingleton<OperationCompilerOptimizers>(
+            sp =>
+            {
+                var optimizers = sp.GetServices<IOperationCompilerOptimizer>();
+                var selectionSetOptimizers = ImmutableArray.CreateBuilder<ISelectionSetOptimizer>();
+                var operationOptimizers = ImmutableArray.CreateBuilder<IOperationOptimizer>();
+
+                foreach (var optimizer in optimizers)
+                {
+                    if (optimizer is ISelectionSetOptimizer selectionSetOptimizer)
+                    {
+                        selectionSetOptimizers.Add(selectionSetOptimizer);
+                    }
+
+                    if (optimizer is IOperationOptimizer operationOptimizer)
+                    {
+                        operationOptimizers.Add(operationOptimizer);
+                    }
+                }
+
+                return new OperationCompilerOptimizers
+                {
+                    SelectionSetOptimizers = selectionSetOptimizers.ToImmutable(),
+                    OperationOptimizers = operationOptimizers.ToImmutable()
+                };
+            });
+
         OnConfigureSchemaServices(context, serviceCollection, setup);
 
         SchemaBuilder.AddCoreSchemaServices(serviceCollection, lazy);
@@ -386,8 +415,7 @@ internal sealed partial class RequestExecutorResolver
 
         context
             .SchemaBuilder
-            .TryAddTypeInterceptor(new SetSchemaNameInterceptor(context.SchemaName))
-            .TryAddTypeInterceptor(new FeatureInterceptor());
+            .TryAddTypeInterceptor(new SetSchemaNameInterceptor(context.SchemaName));
 
         var schema = context.SchemaBuilder.Create(descriptorContext);
         AssertSchemaNameValid(schema, context.SchemaName);
@@ -699,21 +727,6 @@ internal sealed partial class RequestExecutorResolver
         public Action<IList<RequestCoreMiddleware>>? DefaultPipelineFactory { get; } = defaultPipelineFactory;
 
         public IList<RequestCoreMiddleware> Pipeline { get; } = pipeline;
-    }
-
-    private sealed class FeatureInterceptor : TypeInterceptor
-    {
-        public override void OnBeforeCompleteType(
-            ITypeCompletionContext completionContext,
-            DefinitionBase definition)
-        {
-            if (definition is SchemaTypeDefinition schemaDef)
-            {
-                var operationCompilerFeature = new OperationCompilerFeature(
-                    completionContext.DescriptorContext.Services.GetServices<IOperationCompilerOptimizer>());
-                schemaDef.Features.Set(operationCompilerFeature);
-            }
-        }
     }
 
 #if NET6_0_OR_GREATER

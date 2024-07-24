@@ -50,6 +50,6 @@ public static class ServiceFactory
         }
         
         static ObjectFactory CreateFactory(Type instanceType)
-            => ActivatorUtilities.CreateFactory(instanceType, Array.Empty<Type>());
+            => ActivatorUtilities.CreateFactory(instanceType, []);
     }
 }

@@ -89,7 +89,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void PatternEmptyThrowSchemaException()
         {
-            static object Call() => new PeriodType(Array.Empty<IPattern<Period>>());
+            static object Call() => new PeriodType([]);
             Assert.Throws<SchemaException>(Call);
         }
     }

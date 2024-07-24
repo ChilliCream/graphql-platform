@@ -6,4 +6,9 @@
     <RootNamespace>HotChocolate.Pagination</RootNamespace>
     <Description>Contains primitives for implementing keyset pagination.</Description>
   </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Pagination.EntityFramework.Tests" />
+  </ItemGroup>
+
 </Project>

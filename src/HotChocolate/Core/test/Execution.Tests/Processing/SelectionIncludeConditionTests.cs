@@ -642,7 +642,7 @@ public class SelectionIncludeConditionTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
-                .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = false })
+                .ModifyPagingOptions(o => o.RequirePagingBoundaries = false)
                 .ExecuteRequestAsync(
                     OperationRequestBuilder.New()
                         .SetDocument(
