@@ -17,7 +17,7 @@ public sealed class SocketClientStub : ISocketClient
         new(TaskCreationOptions.None);
     private bool _isClosed = true;
 
-    public event EventHandler? OnConnectionClosed;
+    public event EventHandler? OnConnectionClosed { add { } remove { } }
 
     public SemaphoreSlim Blocker { get; } = new(0);
 
