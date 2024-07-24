@@ -16,7 +16,7 @@
     <PackageVersion Include="ChilliCream.Testing.Utilities" Version="0.2.0" />
     <PackageVersion Include="coverlet.msbuild" Version="3.1.2" />
     <PackageVersion Include="DiffPlex" Version="1.7.1" />
-    <PackageVersion Include="FsCheck.Xunit" Version="3.0.0-beta2" />
+    <PackageVersion Include="FsCheck.Xunit" Version="3.0.0-rc3" />
     <PackageVersion Include="FSharp.Core" Version="8.0.100" />
     <PackageVersion Include="Glob" Version="1.1.9" />
     <PackageVersion Include="IdentityModel" Version="4.1.1" />
