@@ -431,6 +431,66 @@ public static class FusionRequestExecutorBuilderExtensions
         return builder;
     }
 
+    /// <summary>
+    /// Adds a delegate that will be used to create a middleware for the execution pipeline.
+    /// </summary>
+    /// <param name="builder">
+    /// The gateway builder.
+    /// </param>
+    /// <param name="middleware">
+    /// A delegate that is used to create a middleware for the execution pipeline.
+    /// </param>
+    /// <returns>
+    /// Returns the gateway builder for configuration chaining.
+    /// </returns>
+    public static FusionGatewayBuilder UseRequest(
+        this FusionGatewayBuilder builder,
+        RequestCoreMiddleware middleware)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (middleware is null)
+        {
+            throw new ArgumentNullException(nameof(middleware));
+        }
+
+        builder.CoreBuilder.UseRequest(middleware);
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds a delegate that will be used to create a middleware for the execution pipeline.
+    /// </summary>
+    /// <param name="builder">
+    /// The gateway builder.
+    /// </param>
+    /// <param name="middleware">
+    /// A delegate that is used to create a middleware for the execution pipeline.
+    /// </param>
+    /// <returns>
+    /// Returns the gateway builder for configuration chaining.
+    /// </returns>
+    public static FusionGatewayBuilder UseRequest(
+        this FusionGatewayBuilder builder,
+        RequestMiddleware middleware)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (middleware is null)
+        {
+            throw new ArgumentNullException(nameof(middleware));
+        }
+
+        builder.CoreBuilder.UseRequest(middleware);
+        return builder;
+    }
+
     private static IRequestExecutorBuilder UseFusionDefaultPipeline(
         this IRequestExecutorBuilder builder)
     {
