@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
@@ -26,6 +27,7 @@ public class IdAttributeTests
         var stringId = Convert.ToBase64String("Query:abc"u8);
         var guidId = Convert.ToBase64String(
             Combine("Query:"u8, new Guid("26a2dc8f-4dab-408c-88c6-523a0a89a2b5").ToByteArray()));
+        var customId = Convert.ToBase64String("Query:1-2"u8);
 
         // act
         var result =
@@ -34,6 +36,7 @@ public class IdAttributeTests
                 .AddQueryType<Query>()
                 .AddType<FooPayload>()
                 .AddGlobalObjectIdentification(false)
+                .AddNodeIdValueSerializer<StronglyTypedIdNodeIdValueSerializer>()
                 .ExecuteRequestAsync(
                     OperationRequestBuilder.New()
                         .SetDocument(
@@ -45,6 +48,8 @@ public class IdAttributeTests
                                 $nullStringId: ID = null
                                 $guidId: ID!
                                 $nullGuidId: ID = null
+                                $customId: ID!
+                                $nullCustomId: ID = null
                             ) {
                                 intId(id: $intId)
                                 nullableIntId(id: $intId)
@@ -70,6 +75,11 @@ public class IdAttributeTests
                                 guidIdList(id: [$guidId $guidId])
                                 nullableGuidIdList(id: [$guidId $nullGuidId $guidId])
                                 optionalGuidIdList(id: [$guidId $guidId])
+                                customId(id: $customId)
+                                nullableCustomId(id: $customId)
+                                nullableCustomIdGivenNull: nullableCustomId(id: $nullCustomId)
+                                customIds(ids: [$customId $customId])
+                                nullableCustomIds(ids: [$customId $nullCustomId $customId])
                             }
                             """)
                         .SetVariableValues(
@@ -77,7 +87,8 @@ public class IdAttributeTests
                             {
                                 { "intId", intId },
                                 { "stringId", stringId },
-                                { "guidId", guidId }
+                                { "guidId", guidId },
+                                { "customId", customId }
                             })
                         .Build());
 
@@ -342,6 +353,87 @@ public class IdAttributeTests
     }
 
     [Fact]
+    public async Task Id_On_Objects_Legacy_StringAndIntId()
+    {
+        // arrange
+        var legacySomeStringId = Convert.ToBase64String("Some\ndtest"u8);
+        var legacySomeIntId = Convert.ToBase64String("Some\ni123"u8);
+
+        // act
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .AddType<FooPayload>()
+                .AddGlobalObjectIdentification(false)
+                .ExecuteRequestAsync(
+                    OperationRequestBuilder.New()
+                        .SetDocument(
+                            """
+                            query foo ($someId: ID! $someIntId: ID!) {
+                                foo(input: { someId: $someId someIds: [$someIntId] }) {
+                                    someId
+                                    ... on FooPayload {
+                                        someIds
+                                    }
+                                }
+                            }
+                            """)
+                        .SetVariableValues(new Dictionary<string, object?>
+                        {
+                            {"someId", legacySomeStringId},
+                            {"someIntId", legacySomeIntId},
+                        })
+                        .Build());
+
+        // assert
+        new
+        {
+            result = result.ToJson(),
+            legacySomeStringId,
+            legacySomeIntId
+        }.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Id_On_Objects_Legacy_StronglyTypedId()
+    {
+        // arrange
+        var legacyStronglyTypedId = Convert.ToBase64String("Product\nd123-456"u8);
+
+        // act
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .AddType<FooPayload>()
+                .AddGlobalObjectIdentification(false)
+                .AddNodeIdValueSerializer<StronglyTypedIdNodeIdValueSerializer>()
+                .ExecuteRequestAsync(
+                    OperationRequestBuilder.New()
+                        .SetDocument(
+                            """
+                            query foo ($customId: ID!, $nullCustomId: ID = null) {
+                                nullableCustomId(id: $customId)
+                                nullableCustomIdGivenNull: nullableCustomId(id: $nullCustomId)
+                                customIds(ids: [$customId $customId])
+                                nullableCustomIds(ids: [$customId $nullCustomId $customId])
+                            }
+                            """)
+                        .SetVariableValues(new Dictionary<string, object?>
+                        {
+                            {"customId", legacyStronglyTypedId},
+                        })
+                        .Build());
+
+        // assert
+        new
+        {
+            result = result.ToJson(), legacySomeStronglyTypedId = legacyStronglyTypedId,
+        }.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task Id_Type_Is_Correctly_Inferred()
     {
         var schema =
@@ -424,6 +516,18 @@ public class IdAttributeTests
 
         public string InterceptedIds([InterceptedID("Query")] [ID] int[] id) =>
             string.Join(", ", id.Select(t => t.ToString()));
+
+        public string CustomId([ID] StronglyTypedId id) =>
+            id.ToString();
+
+        public string NullableCustomId([ID] StronglyTypedId? id) =>
+            id?.ToString() ?? "null";
+
+        public string CustomIds([ID] List<StronglyTypedId> ids) =>
+            string.Join(", ", ids.Select(t => t.ToString()));
+
+        public string NullableCustomIds([ID] List<StronglyTypedId?> ids) =>
+            string.Join(", ", ids.Select(t => t?.ToString() ?? "null"));
 
         public IFooPayload Foo(FooInput input) =>
             new FooPayload(
@@ -534,6 +638,45 @@ public class IdAttributeTests
         IReadOnlyList<int>? InterceptedIds { get; }
 
         string Raw { get; }
+    }
+
+    public class StronglyTypedIdNodeIdValueSerializer : INodeIdValueSerializer
+    {
+        public bool IsSupported(Type type) => type == typeof(StronglyTypedId);
+
+        public NodeIdFormatterResult Format(Span<byte> buffer, object value, out int written)
+        {
+            if (value is StronglyTypedId stronglyTypedId)
+            {
+                var formattedValue = stronglyTypedId.ToString();
+                written = Encoding.UTF8.GetBytes(formattedValue, buffer);
+                return NodeIdFormatterResult.Success;
+            }
+
+            written = 0;
+            return NodeIdFormatterResult.InvalidValue;
+        }
+
+        public bool TryParse(ReadOnlySpan<byte> buffer, [NotNullWhen(true)] out object? value)
+        {
+            var formattedValue = Encoding.UTF8.GetString(buffer);
+            value = StronglyTypedId.Parse(formattedValue);
+            return true;
+        }
+    }
+
+    public record StronglyTypedId(int Part1, int Part2)
+    {
+        public override string ToString()
+        {
+            return $"{Part1}-{Part2}";
+        }
+
+        public static StronglyTypedId Parse(string value)
+        {
+            var parts = value.Split('-');
+            return new StronglyTypedId(int.Parse(parts[0]), int.Parse(parts[1]));
+        }
     }
 
     [AttributeUsage(

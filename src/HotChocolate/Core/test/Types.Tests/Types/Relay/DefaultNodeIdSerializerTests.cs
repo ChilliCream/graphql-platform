@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using CookieCrumble;
@@ -42,6 +43,50 @@ public class DefaultNodeIdSerializerTests
 
         Assert.Equal("Foo", id.TypeName);
         Assert.Equal("abc", id.InternalId);
+    }
+
+    [Fact]
+    public void Parse_Empty_GuidId()
+    {
+        var serializer = CreateSerializer(new GuidNodeIdValueSerializer(false));
+
+        var id = serializer.Parse("Rm9vOjAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAw", typeof(Guid));
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal(Guid.Empty, id.InternalId);
+    }
+
+    [Fact]
+    public void Parse_Empty_GuidId_Compressed()
+    {
+        var serializer = CreateSerializer(new GuidNodeIdValueSerializer(true));
+
+        var id = serializer.Parse("Rm9vOgAAAAAAAAAAAAAAAAAAAAA=", typeof(Guid));
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal(Guid.Empty, id.InternalId);
+    }
+
+    [Fact]
+    public void Parse_Normal_GuidId()
+    {
+        var serializer = CreateSerializer(new GuidNodeIdValueSerializer(false));
+
+        var id = serializer.Parse("Rm9vOjFhZTI3YjE0OGNmNjQ0MGQ5YTQ2MDkwOTBhNGFmNmYz", typeof(Guid));
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal(new Guid("1ae27b14-8cf6-440d-9a46-09090a4af6f3"), id.InternalId);
+    }
+
+    [Fact]
+    public void Parse_Normal_GuidId_Compressed()
+    {
+        var serializer = CreateSerializer(new GuidNodeIdValueSerializer(true));
+
+        var id = serializer.Parse("Rm9vOhR74hr2jA1EmkYJCQpK9vM=", typeof(Guid));
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal(new Guid("1ae27b14-8cf6-440d-9a46-09090a4af6f3"), id.InternalId);
     }
 
     [Fact]
@@ -166,7 +211,17 @@ public class DefaultNodeIdSerializerTests
     }
 
     [Fact]
-    public void Serialize_Guid()
+    public void Serialize_Empty_Guid()
+    {
+        var serializer = CreateSerializer(new GuidNodeIdValueSerializer(false));
+
+        var id = serializer.Format("Foo", Guid.Empty);
+
+        Assert.Equal("Rm9vOjAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAw", id);
+    }
+
+    [Fact]
+    public void Serialize_Empty_Guid_Compressed()
     {
         var serializer = CreateSerializer(new GuidNodeIdValueSerializer());
 
@@ -176,13 +231,24 @@ public class DefaultNodeIdSerializerTests
     }
 
     [Fact]
-    public void Serialize_Guid_Normal()
+    public void Serialize_Normal_Guid()
     {
         var serializer = CreateSerializer(new GuidNodeIdValueSerializer(false));
 
-        var id = serializer.Format("Foo", Guid.Empty);
+        var internalId = new Guid("1ae27b14-8cf6-440d-9a46-09090a4af6f3");
+        var id = serializer.Format("Foo", internalId);
 
-        Assert.Equal("Rm9vOjAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAw", id);
+        Assert.Equal("Rm9vOjFhZTI3YjE0OGNmNjQ0MGQ5YTQ2MDkwOTBhNGFmNmYz", id);
+    }
+
+    [Fact]
+    public void Serialize_Normal_Guid_Compressed()
+    {
+        var serializer = CreateSerializer(new GuidNodeIdValueSerializer());
+
+        var id = serializer.Format("Foo", new Guid("1ae27b14-8cf6-440d-9a46-09090a4af6f3"));
+
+        Assert.Equal("Rm9vOhR74hr2jA1EmkYJCQpK9vM=", id);
     }
 
     [Fact]
@@ -220,6 +286,18 @@ public class DefaultNodeIdSerializerTests
         var parsed = serializer.Parse(id, typeof(CompositeId));
 
         Assert.Equal(compositeId, parsed.InternalId);
+    }
+
+    [Fact]
+    public void Parse_Legacy_StronglyTypedId()
+    {
+        var stronglyTypedId = new StronglyTypedId(123, 456);
+        var serializer = CreateSerializer(new StronglyTypedIdNodeIdValueSerializer());
+        var id = Convert.ToBase64String("Product\nd123-456"u8);
+
+        var parsed = serializer.Parse(id, typeof(StronglyTypedId));
+
+        Assert.Equal(stronglyTypedId, parsed.InternalId);
     }
 
     [Fact]
@@ -351,4 +429,43 @@ public class DefaultNodeIdSerializerTests
     }
 
     private readonly record struct CompositeId(string A, int B, Guid C, bool D);
+
+    public class StronglyTypedIdNodeIdValueSerializer : INodeIdValueSerializer
+    {
+        public bool IsSupported(Type type) => type == typeof(StronglyTypedId);
+
+        public NodeIdFormatterResult Format(Span<byte> buffer, object value, out int written)
+        {
+            if (value is StronglyTypedId stronglyTypedId)
+            {
+                var formattedValue = stronglyTypedId.ToString();
+                written = Encoding.UTF8.GetBytes(formattedValue, buffer);
+                return NodeIdFormatterResult.Success;
+            }
+
+            written = 0;
+            return NodeIdFormatterResult.InvalidValue;
+        }
+
+        public bool TryParse(ReadOnlySpan<byte> buffer, [NotNullWhen(true)] out object? value)
+        {
+            var formattedValue = Encoding.UTF8.GetString(buffer);
+            value = StronglyTypedId.Parse(formattedValue);
+            return true;
+        }
+    }
+
+    public record StronglyTypedId(int Part1, int Part2)
+    {
+        public override string ToString()
+        {
+            return $"{Part1}-{Part2}";
+        }
+
+        public static StronglyTypedId Parse(string value)
+        {
+            var parts = value.Split('-');
+            return new StronglyTypedId(int.Parse(parts[0]), int.Parse(parts[1]));
+        }
+    }
 }
