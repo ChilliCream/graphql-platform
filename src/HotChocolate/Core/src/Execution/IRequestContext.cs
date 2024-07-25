@@ -22,7 +22,7 @@ public interface IRequestContext : IHasContextData
     /// Gets the request executor version.
     /// </summary>
     ulong ExecutorVersion { get; }
-    
+
     /// <summary>
     /// Gets the index of the request that corresponds to this context.
     /// </summary>

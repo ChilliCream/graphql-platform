@@ -158,7 +158,7 @@ MULTI_VALUES:
 
         public AcceptHeaderResult(string headerValue)
         {
-            AcceptMediaTypes = Array.Empty<AcceptMediaType>();
+            AcceptMediaTypes = [];
             ErrorResult = ErrorHelper.InvalidAcceptMediaType(headerValue);
             HasError = true;
         }

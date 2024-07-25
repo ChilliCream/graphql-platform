@@ -21,7 +21,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
     private ITypeCompletionContext _completionContext = default!;
     private ObjectTypeDefinition? _mutationTypeDef;
     private FieldMiddlewareDefinition? _errorNullMiddleware;
-    private TypeInterceptor[] _siblings = Array.Empty<TypeInterceptor>();
+    private TypeInterceptor[] _siblings = [];
 
     internal override void InitializeContext(
         IDescriptorContext context,

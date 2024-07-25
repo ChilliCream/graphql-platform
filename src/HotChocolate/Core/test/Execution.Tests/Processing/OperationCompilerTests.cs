@@ -32,11 +32,12 @@ public class OperationCompilerTests
         // act
         var compiler = new OperationCompiler(new InputParser());
         var operation = compiler.Compile(
-            "opid",
-            operationDefinition,
-            schema.QueryType,
-            document,
-            schema);
+            new OperationCompilerRequest(
+                "opid",
+                document,
+                operationDefinition,
+                schema.QueryType,
+                schema));
 
         // assert
         MatchSnapshot(document, operation);
@@ -63,11 +64,12 @@ public class OperationCompilerTests
         // act
         var compiler = new OperationCompiler(new InputParser());
         var operation = compiler.Compile(
-            "opid",
-            operationDefinition,
-            schema.QueryType,
-            document,
-            schema);
+            new OperationCompilerRequest(
+                "opid",
+                document,
+                operationDefinition,
+                schema.QueryType,
+                schema));
 
         // assert
         MatchSnapshot(document, operation);
@@ -94,11 +96,12 @@ public class OperationCompilerTests
         // act
         var compiler = new OperationCompiler(new InputParser());
         var operation = compiler.Compile(
-            "opid",
-            operationDefinition,
-            schema.QueryType,
-            document,
-            schema);
+            new OperationCompilerRequest(
+                "opid",
+                document,
+                operationDefinition,
+                schema.QueryType,
+                schema));
 
         // assert
         MatchSnapshot(document, operation);
@@ -131,11 +134,12 @@ public class OperationCompilerTests
         // act
         var compiler = new OperationCompiler(new InputParser());
         var operation = compiler.Compile(
-            "opid",
-            operationDefinition,
-            schema.QueryType,
-            document,
-            schema);
+            new OperationCompilerRequest(
+                "opid",
+                document,
+                operationDefinition,
+                schema.QueryType,
+                schema));
 
         // assert
         MatchSnapshot(document, operation);
@@ -173,11 +177,12 @@ public class OperationCompilerTests
         // act
         var compiler = new OperationCompiler(new InputParser());
         var operation = compiler.Compile(
-            "opid",
-            operationDefinition,
-            schema.QueryType,
-            document,
-            schema);
+            new OperationCompilerRequest(
+                "opid",
+                document,
+                operationDefinition,
+                schema.QueryType,
+                schema));
 
         // assert
         MatchSnapshot(document, operation);
@@ -240,11 +245,12 @@ public class OperationCompilerTests
         // act
         var compiler = new OperationCompiler(new InputParser());
         var operation = compiler.Compile(
-            "opid",
-            operationDefinition,
-            schema.QueryType,
-            document,
-            schema);
+            new OperationCompilerRequest(
+                "opid",
+                document,
+                operationDefinition,
+                schema.QueryType,
+                schema));
 
         // assert
         MatchSnapshot(document, operation);
@@ -271,11 +277,12 @@ public class OperationCompilerTests
         // act
         var compiler = new OperationCompiler(new InputParser());
         var operation = compiler.Compile(
-            "opid",
-            operationDefinition,
-            schema.QueryType,
-            document,
-            schema);
+            new OperationCompilerRequest(
+                "opid",
+                document,
+                operationDefinition,
+                schema.QueryType,
+                schema));
 
         // assert
         MatchSnapshot(document, operation);
@@ -303,7 +310,13 @@ public class OperationCompilerTests
         void Action()
         {
             var compiler = new OperationCompiler(new InputParser());
-            compiler.Compile("opid", operationDefinition, schema.QueryType, document, schema);
+            compiler.Compile(
+                new OperationCompilerRequest(
+                    "opid",
+                    document,
+                    operationDefinition,
+                    schema.QueryType,
+                    schema));
         }
 
         // assert
@@ -341,11 +354,12 @@ public class OperationCompilerTests
         // act
         var compiler = new OperationCompiler(new InputParser());
         var operation = compiler.Compile(
-            "opid",
-            operationDefinition,
-            schema.QueryType,
-            document,
-            schema);
+            new OperationCompilerRequest(
+                "opid",
+                document,
+                operationDefinition,
+                schema.QueryType,
+                schema));
 
         // assert
         MatchSnapshot(document, operation);
@@ -380,11 +394,12 @@ public class OperationCompilerTests
         // act
         var compiler = new OperationCompiler(new InputParser());
         var operation = compiler.Compile(
-            "opid",
-            operationDefinition,
-            schema.QueryType,
-            document,
-            schema);
+            new OperationCompilerRequest(
+                "opid",
+                document,
+                operationDefinition,
+                schema.QueryType,
+                schema));
 
         // assert
         MatchSnapshot(document, operation);
@@ -420,11 +435,12 @@ public class OperationCompilerTests
         // act
         var compiler = new OperationCompiler(new InputParser());
         var operation = compiler.Compile(
-            "opid",
-            operationDefinition,
-            schema.QueryType,
-            document,
-            schema);
+            new OperationCompilerRequest(
+                "opid",
+                document,
+                operationDefinition,
+                schema.QueryType,
+                schema));
 
         // assert
         MatchSnapshot(document, operation);
@@ -462,11 +478,12 @@ public class OperationCompilerTests
         // act
         var compiler = new OperationCompiler(new InputParser());
         var operation = compiler.Compile(
-            "opid",
-            operationDefinition,
-            schema.QueryType,
-            document,
-            schema);
+            new OperationCompilerRequest(
+                "opid",
+                document,
+                operationDefinition,
+                schema.QueryType,
+                schema));
 
         // assert
         MatchSnapshot(document, operation);
@@ -509,11 +526,12 @@ public class OperationCompilerTests
         // act
         var compiler = new OperationCompiler(new InputParser());
         var operation = compiler.Compile(
-            "opid",
-            operationDefinition,
-            schema.QueryType,
-            document,
-            schema);
+            new OperationCompilerRequest(
+                "opid",
+                document,
+                operationDefinition,
+                schema.QueryType,
+                schema));
 
         // assert
         MatchSnapshot(document, operation);
@@ -585,11 +603,12 @@ public class OperationCompilerTests
         // act
         var compiler = new OperationCompiler(new InputParser());
         var operation = compiler.Compile(
-            "opid",
-            operationDefinition,
-            schema.QueryType,
-            document,
-            schema);
+            new OperationCompilerRequest(
+                "opid",
+                document,
+                operationDefinition,
+                schema.QueryType,
+                schema));
 
         // assert
         MatchSnapshot(document, operation);
@@ -630,11 +649,12 @@ public class OperationCompilerTests
         // act
         var compiler = new OperationCompiler(new InputParser());
         var operation = compiler.Compile(
-            "opid",
-            operationDefinition,
-            schema.QueryType,
-            document,
-            schema);
+            new OperationCompilerRequest(
+                "opid",
+                document,
+                operationDefinition,
+                schema.QueryType,
+                schema));
 
         // assert
         MatchSnapshot(document, operation);
@@ -665,11 +685,12 @@ public class OperationCompilerTests
         // act
         var compiler = new OperationCompiler(new InputParser());
         var operation = compiler.Compile(
-            "opid",
-            operationDefinition,
-            schema.QueryType,
-            document,
-            schema);
+            new OperationCompilerRequest(
+                "opid",
+                document,
+                operationDefinition,
+                schema.QueryType,
+                schema));
 
         // assert
         MatchSnapshot(document, operation);
@@ -707,11 +728,12 @@ public class OperationCompilerTests
         // act
         var compiler = new OperationCompiler(new InputParser());
         var operation = compiler.Compile(
-            "opid",
-            operationDefinition,
-            schema.QueryType,
-            document,
-            schema);
+            new OperationCompilerRequest(
+                "opid",
+                document,
+                operationDefinition,
+                schema.QueryType,
+                schema));
 
         // assert
         MatchSnapshot(document, operation);
@@ -741,11 +763,12 @@ public class OperationCompilerTests
         // act
         var compiler = new OperationCompiler(new InputParser());
         var operation = compiler.Compile(
-            "opid",
-            operationDefinition,
-            schema.QueryType,
-            document,
-            schema);
+            new OperationCompilerRequest(
+                "opid",
+                document,
+                operationDefinition,
+                schema.QueryType,
+                schema));
 
         // assert
         MatchSnapshot(document, operation);
@@ -777,11 +800,12 @@ public class OperationCompilerTests
         // act
         var compiler = new OperationCompiler(new InputParser());
         var operation = compiler.Compile(
-            "opid",
-            operationDefinition,
-            schema.QueryType,
-            document,
-            schema);
+            new OperationCompilerRequest(
+                "opid",
+                document,
+                operationDefinition,
+                schema.QueryType,
+                schema));
 
         // assert
         MatchSnapshot(document, operation);
@@ -813,11 +837,12 @@ public class OperationCompilerTests
         // act
         var compiler = new OperationCompiler(new InputParser());
         var operation = compiler.Compile(
-            "opid",
-            operationDefinition,
-            schema.QueryType,
-            document,
-            schema);
+            new OperationCompilerRequest(
+                "opid",
+                document,
+                operationDefinition,
+                schema.QueryType,
+                schema));
 
         // assert
         MatchSnapshot(document, operation);
@@ -850,11 +875,12 @@ public class OperationCompilerTests
         // act
         var compiler = new OperationCompiler(new InputParser());
         var operation = compiler.Compile(
-            "opid",
-            operationDefinition,
-            schema.QueryType,
-            document,
-            schema);
+            new OperationCompilerRequest(
+                "opid",
+                document,
+                operationDefinition,
+                schema.QueryType,
+                schema));
 
         // assert
         MatchSnapshot(document, operation);
@@ -885,11 +911,12 @@ public class OperationCompilerTests
         // act
         var compiler = new OperationCompiler(new InputParser());
         var operation = compiler.Compile(
-            "opid",
-            operationDefinition,
-            schema.QueryType,
-            document,
-            schema);
+            new OperationCompilerRequest(
+                "opid",
+                document,
+                operationDefinition,
+                schema.QueryType,
+                schema));
 
         // assert
         MatchSnapshot(document, operation);
@@ -917,11 +944,12 @@ public class OperationCompilerTests
         // act
         var compiler = new OperationCompiler(new InputParser());
         var operation = compiler.Compile(
-            "opid",
-            operationDefinition,
-            schema.QueryType,
-            document,
-            schema);
+            new OperationCompilerRequest(
+                "opid",
+                document,
+                operationDefinition,
+                schema.QueryType,
+                schema));
 
         // assert
         MatchSnapshot(document, operation);
@@ -946,11 +974,12 @@ public class OperationCompilerTests
         // act
         var compiler = new OperationCompiler(new InputParser());
         var operation = compiler.Compile(
-            "opid",
-            operationDefinition,
-            schema.QueryType,
-            document,
-            schema);
+            new OperationCompilerRequest(
+                "opid",
+                document,
+                operationDefinition,
+                schema.QueryType,
+                schema));
 
         // assert
         MatchSnapshot(document, operation);
@@ -976,11 +1005,12 @@ public class OperationCompilerTests
         // act
         var compiler = new OperationCompiler(new InputParser());
         var operation = compiler.Compile(
-            "opid",
-            operationDefinition,
-            schema.QueryType,
-            document,
-            schema);
+            new OperationCompilerRequest(
+                "opid",
+                document,
+                operationDefinition,
+                schema.QueryType,
+                schema));
 
         // assert
         MatchSnapshot(document, operation);
@@ -1020,11 +1050,12 @@ public class OperationCompilerTests
         // act
         var compiler = new OperationCompiler(new InputParser());
         var operation = compiler.Compile(
-            "opid",
-            operationDefinition,
-            schema.QueryType,
-            document,
-            schema);
+            new OperationCompilerRequest(
+                "opid",
+                document,
+                operationDefinition,
+                schema.QueryType,
+                schema));
 
         // assert
         MatchSnapshot(document, operation);
@@ -1064,11 +1095,12 @@ public class OperationCompilerTests
         // act
         var compiler = new OperationCompiler(new InputParser());
         var operation = compiler.Compile(
-            "opid",
-            operationDefinition,
-            schema.QueryType,
-            document,
-            schema);
+            new OperationCompilerRequest(
+                "opid",
+                document,
+                operationDefinition,
+                schema.QueryType,
+                schema));
 
         // assert
         MatchSnapshot(document, operation);
@@ -1109,11 +1141,12 @@ public class OperationCompilerTests
         // act
         var compiler = new OperationCompiler(new InputParser());
         var operation = compiler.Compile(
-            "opid",
-            operationDefinition,
-            schema.QueryType,
-            document,
-            schema);
+            new OperationCompilerRequest(
+                "opid",
+                document,
+                operationDefinition,
+                schema.QueryType,
+                schema));
 
         // assert
         MatchSnapshot(document, operation);
@@ -1139,11 +1172,12 @@ public class OperationCompilerTests
         // act
         var compiler = new OperationCompiler(new InputParser());
         var operation = compiler.Compile(
-            "opid",
-            operationDefinition,
-            schema.QueryType,
-            document,
-            schema);
+            new OperationCompilerRequest(
+                "opid",
+                document,
+                operationDefinition,
+                schema.QueryType,
+                schema));
 
         // assert
         MatchSnapshot(document, operation);
@@ -1225,7 +1259,13 @@ public class OperationCompilerTests
 
         // act
         var compiler = new OperationCompiler(new InputParser());
-        var operation = compiler.Compile("opid", operationDefinition, schema.QueryType, document, schema);
+        var operation = compiler.Compile(
+            new OperationCompilerRequest(
+                "opid",
+                document,
+                operationDefinition,
+                schema.QueryType,
+                schema));
 
         // assert
         MatchSnapshot(document, operation);
@@ -1307,7 +1347,13 @@ public class OperationCompilerTests
 
         // act
         var compiler = new OperationCompiler(new InputParser());
-        compiler.Compile("opid", operationDefinition, schema.QueryType, document, schema);
+        compiler.Compile(
+            new OperationCompilerRequest(
+                "opid",
+                document,
+                operationDefinition,
+                schema.QueryType,
+                schema));
 
         // assert
         Assert.Equal(29, compiler.Metrics.Selections);

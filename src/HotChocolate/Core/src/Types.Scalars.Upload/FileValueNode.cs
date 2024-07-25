@@ -129,8 +129,7 @@ public class FileValueNode
         return Equals(obj as FileValueNode);
     }
 
-    public IEnumerable<ISyntaxNode> GetNodes() =>
-        Enumerable.Empty<ISyntaxNode>();
+    public IEnumerable<ISyntaxNode> GetNodes() => [];
 
     /// <summary>
     /// Serves as a hash function for a <see cref="FileValueNode"/>

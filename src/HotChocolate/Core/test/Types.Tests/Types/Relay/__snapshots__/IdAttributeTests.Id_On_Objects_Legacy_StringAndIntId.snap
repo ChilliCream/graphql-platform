@@ -1,0 +1,5 @@
+﻿{
+  "result": "{\n  \"data\": {\n    \"foo\": {\n      \"someId\": \"QmFyOnRlc3Q=\",\n      \"someIds\": [\n        \"QmF6OjEyMw==\"\n      ]\n    }\n  }\n}",
+  "legacySomeStringId": "U29tZQpkdGVzdA==",
+  "legacySomeIntId": "U29tZQppMTIz"
+}

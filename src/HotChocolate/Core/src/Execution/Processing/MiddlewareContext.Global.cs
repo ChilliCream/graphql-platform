@@ -228,7 +228,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
         {
             await _cleanupTasks[0].Invoke().ConfigureAwait(false);
             await _cleanupTasks[1].Invoke().ConfigureAwait(false);
-            await _cleanupTasks[3].Invoke().ConfigureAwait(false);
+            await _cleanupTasks[2].Invoke().ConfigureAwait(false);
             return;
         }
 

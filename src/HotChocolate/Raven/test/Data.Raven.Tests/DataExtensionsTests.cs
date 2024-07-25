@@ -110,7 +110,7 @@ public class DataExtensionsTests : IClassFixture<RavenDBResource<CustomRavenDBDe
         .AddRavenProjections()
         .AddRavenSorting()
         .AddRavenPagingProviders()
-        .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = false })
+        .ModifyPagingOptions(o => o.RequirePagingBoundaries = false)
         .RegisterDocumentStore()
         .AddQueryType<Query>()
         .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)

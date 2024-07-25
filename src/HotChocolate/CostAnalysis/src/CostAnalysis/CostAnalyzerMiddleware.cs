@@ -32,7 +32,7 @@ internal sealed class CostAnalyzerMiddleware(
         var operationId = context.OperationId;
         if (operationId is null)
         {
-            operationId = context.CreateCacheId(context.DocumentId.Value.Value, context.Request.OperationName);
+            operationId = context.CreateCacheId();
             context.OperationId = operationId;
         }
 

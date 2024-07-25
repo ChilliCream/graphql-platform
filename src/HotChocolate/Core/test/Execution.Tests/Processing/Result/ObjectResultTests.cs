@@ -95,6 +95,32 @@ namespace HotChocolate.Execution.Processing
         [InlineData(4)]
         [InlineData(3)]
         [Theory]
+        public void TryGetValue_ValueIsNotFound(int capacity)
+        {
+            // arrange
+            var objectResult = new ObjectResult();
+            objectResult.EnsureCapacity(capacity);
+            objectResult.SetValueUnsafe(0, "abc", "def");
+            objectResult.SetValueUnsafe(capacity / 2, "def", "def");
+            objectResult.SetValueUnsafe(capacity - 1, "ghi", "def");
+
+            IReadOnlyDictionary<string, object> dict = objectResult;
+
+            // act
+            var found = dict.TryGetValue("jkl", out var value);
+
+            // assert
+            Assert.False(found);
+            Assert.Null(value);
+        }
+
+        [InlineData(9)]
+        [InlineData(8)]
+        [InlineData(7)]
+        [InlineData(5)]
+        [InlineData(4)]
+        [InlineData(3)]
+        [Theory]
         public void ContainsKey(int capacity)
         {
             // arrange

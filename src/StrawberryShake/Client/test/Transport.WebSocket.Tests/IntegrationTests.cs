@@ -326,5 +326,13 @@ public class IntegrationTests : ServerTestBase
             ISocketProtocol protocol,
             CancellationToken cancellationToken)
             => new(payload);
+
+        public void OnConnectionOpened(ISocketClient client)
+        {
+        }
+
+        public void OnConnectionClosed(ISocketClient client)
+        {
+        }
     }
 }

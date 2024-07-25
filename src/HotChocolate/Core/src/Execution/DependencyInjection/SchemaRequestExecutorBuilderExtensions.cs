@@ -10,6 +10,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// </summary>
 public static partial class SchemaRequestExecutorBuilderExtensions
 {
+    [Obsolete("Use ModifyOptions instead.")]
     public static IRequestExecutorBuilder SetOptions(
         this IRequestExecutorBuilder builder,
         IReadOnlySchemaOptions options)

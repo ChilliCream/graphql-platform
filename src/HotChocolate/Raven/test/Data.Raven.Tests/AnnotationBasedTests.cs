@@ -252,7 +252,7 @@ public class AnnotationBasedTests(RavenDBResource<CustomRavenDBDefaultOptions> r
         .AddRavenProjections()
         .AddRavenSorting()
         .AddRavenPagingProviders()
-        .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = false})
+        .ModifyPagingOptions(o => o.RequirePagingBoundaries = false)
         .RegisterDocumentStore()
         .AddQueryType<Query>()
         .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)

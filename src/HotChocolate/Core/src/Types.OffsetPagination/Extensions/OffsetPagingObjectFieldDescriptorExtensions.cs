@@ -46,7 +46,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
         Type? itemType = null,
         GetOffsetPagingProvider? resolvePagingProvider = null,
         string? collectionSegmentName = null,
-        PagingOptions options = default)
+        PagingOptions? options = null)
         where TSchemaType : IOutputType =>
         UseOffsetPaging(
             descriptor,
@@ -86,7 +86,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
         Type? entityType = null,
         GetOffsetPagingProvider? resolvePagingProvider = null,
         string? collectionSegmentName = null,
-        PagingOptions options = default)
+        PagingOptions? options = null)
     {
         if (descriptor is null)
         {
@@ -107,7 +107,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
             .Extend()
             .OnBeforeCreate((c, d) =>
             {
-                var pagingOptions = c.GetSettings(options);
+                var pagingOptions = c.GetPagingOptions(options);
                 if (string.IsNullOrEmpty(collectionSegmentName))
                 {
                     collectionSegmentName =
@@ -159,7 +159,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
     public static IInterfaceFieldDescriptor UseOffsetPaging<TSchemaType>(
         this IInterfaceFieldDescriptor descriptor,
         string? collectionSegmentName = null,
-        PagingOptions options = default)
+        PagingOptions? options = null)
         where TSchemaType : class, IOutputType =>
         UseOffsetPaging(descriptor, typeof(TSchemaType), collectionSegmentName, options);
 
@@ -185,7 +185,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
         this IInterfaceFieldDescriptor descriptor,
         Type? itemType = null,
         string? collectionSegmentName = null,
-        PagingOptions options = default)
+        PagingOptions? options = null)
     {
         if (descriptor is null)
         {
@@ -198,7 +198,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
             .Extend()
             .OnBeforeCreate((c, d) =>
             {
-                var pagingOptions = c.GetSettings(options);
+                var pagingOptions = c.GetPagingOptions(options);
                 if (string.IsNullOrEmpty(collectionSegmentName))
                 {
                     collectionSegmentName =
@@ -267,7 +267,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
         MemberInfo? resolverMember,
         string? collectionSegmentName,
         TypeReference? itemsType,
-        PagingOptions options)
+        PagingOptions? options)
     {
         var typeInspector = context.TypeInspector;
 
@@ -285,7 +285,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
                 namedType);
         }
 
-        options = context.GetSettings(options);
+        options = context.GetPagingOptions(options);
 
         // last but not leas we create a type reference that can be put on the field definition
         // to tell the type discovery that this field needs this result type.

@@ -222,7 +222,7 @@ public sealed class ObjectResult
         }
 
         value = null;
-        return true;
+        return false;
     }
 
     public IEnumerator<ObjectFieldResult> GetEnumerator()

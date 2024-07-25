@@ -11,12 +11,9 @@ using static HotChocolate.StarWars.Types.Subscriptions;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubCompletion
 {
-    public class StarWarsOnReviewSubCompletionTest : ServerTestBase
+    public class StarWarsOnReviewSubCompletionTest(TestServerFactory serverFactory)
+        : ServerTestBase(serverFactory)
     {
-        public StarWarsOnReviewSubCompletionTest(TestServerFactory serverFactory) : base(serverFactory)
-        {
-        }
-
         [Fact]
         public async Task Watch_StarWarsOnReviewSubCompletion_Test()
         {

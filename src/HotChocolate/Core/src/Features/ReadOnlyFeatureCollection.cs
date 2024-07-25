@@ -30,6 +30,15 @@ public sealed class ReadOnlyFeatureCollection : IFeatureCollection
 #else
         _features = features.ToDictionary(t => t.Key, t => t.Value);
 #endif
+
+        foreach (var feature in _features.Values)
+        {
+            if (feature is ISealable sealable)
+            {
+                sealable.Seal();
+            }
+        }
+
         _containerRevision = features.Revision;
     }
 

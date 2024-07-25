@@ -176,7 +176,7 @@ internal sealed class __Type : ObjectType
         public static object AppliedDirectives(IResolverContext context) =>
             context.Parent<IType>() is IHasDirectives hasDirectives
                 ? hasDirectives.Directives.Where(t => t.Type.IsPublic).Select(d => d.AsSyntaxNode())
-                : Enumerable.Empty<DirectiveNode>();
+                : [];
     }
 
     public static class Names

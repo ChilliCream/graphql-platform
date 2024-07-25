@@ -121,5 +121,5 @@ public sealed class FusionFeatureCollection : IReadOnlyCollection<IFusionFeature
     /// <summary>
     /// Gets an empty feature collection.
     /// </summary>
-    public static FusionFeatureCollection Empty { get; } = new(Array.Empty<IFusionFeature>());
+    public static FusionFeatureCollection Empty { get; } = new([]);
 }

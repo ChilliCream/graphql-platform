@@ -12,5 +12,13 @@ internal class DefaultSocketConnectionInterceptor : ISocketConnectionInterceptor
         return default;
     }
 
+    public virtual void OnConnectionOpened(ISocketClient client)
+    {
+    }
+
+    public virtual void OnConnectionClosed(ISocketClient client)
+    {
+    }
+
     public static readonly DefaultSocketConnectionInterceptor Instance = new();
 }
