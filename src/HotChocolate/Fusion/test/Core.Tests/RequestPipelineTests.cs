@@ -119,16 +119,17 @@ public class RequestPipelineTests(ITestOutputHelper output)
         var result = await executor.ExecuteAsync("{ __typename }");
 
         // assert
-        result.MatchInlineSnapshot("""
-                                   {
-                                     "data": {
-                                       "result": true
-                                     },
-                                     "extensions": {
-                                       "state": "default pipeline didn't run"
-                                     }
-                                   }
-                                   """);
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "result": true
+              },
+              "extensions": {
+                "state": "default pipeline didn't run"
+              }
+            }
+            """);
     }
 
     private class TestMiddleware(RequestDelegate next)
