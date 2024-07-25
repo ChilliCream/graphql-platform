@@ -1,5 +1,8 @@
 namespace HotChocolate.Pagination.Serialization;
 
+/// <summary>
+/// Allows to register and resolve <see cref="ICursorKeySerializer"/>s.
+/// </summary>
 public static class CursorKeySerializerRegistration
 {
     private static readonly object _sync = new();
@@ -24,8 +27,21 @@ public static class CursorKeySerializerRegistration
         new ULongCursorKeySerializer(),
     ];
 
+    /// <summary>
+    /// Find a <see cref="ICursorKeySerializer"/> for the given key type.
+    /// </summary>
+    /// <param name="keyType">
+    /// The key type for which to find a <see cref="ICursorKeySerializer"/>.
+    /// </param>
+    /// <returns>
+    /// Returns a <see cref="ICursorKeySerializer"/> for the given key type.
+    /// </returns>
+    /// <exception cref="NotSupportedException">
+    /// Throws if no <see cref="ICursorKeySerializer"/> was found for the given key type.
+    /// </exception>
     public static ICursorKeySerializer Find(Type keyType)
     {
+        // ReSharper disable once InconsistentlySynchronizedField
         var serializers = _serializers.AsSpan();
         foreach (var serializer in serializers)
         {
@@ -38,6 +54,12 @@ public static class CursorKeySerializerRegistration
         throw new NotSupportedException($"The key type `{keyType.FullName ?? keyType.Name}` is not supported.");
     }
 
+    /// <summary>
+    /// Registers a <see cref="ICursorKeySerializer"/>.
+    /// </summary>
+    /// <param name="serializer">
+    /// The <see cref="ICursorKeySerializer"/> to register.
+    /// </param>
     public static void Register(ICursorKeySerializer serializer)
     {
         lock (_sync)
@@ -49,6 +71,12 @@ public static class CursorKeySerializerRegistration
         }
     }
 
+    /// <summary>
+    /// Registers multiple <see cref="ICursorKeySerializer"/>s.
+    /// </summary>
+    /// <param name="serializers">
+    /// The <see cref="ICursorKeySerializer"/>s to register.
+    /// </param>
     public static void Register(params ICursorKeySerializer[] serializers)
     {
         if (serializers.Length == 0)
