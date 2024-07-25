@@ -126,6 +126,17 @@ public class DefaultNodeIdSerializerTests
     }
 
     [Fact]
+    public void Parse_Legacy_StringId()
+    {
+        var serializer = CreateSerializer(new StringNodeIdValueSerializer());
+
+        var id = serializer.Parse("Rm9vCmRhYmM=", typeof(string));
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal("abc", id.InternalId);
+    }
+
+    [Fact]
     public void Parse_Small_Legacy_StringId()
     {
         var lookup = new Mock<INodeIdRuntimeTypeLookup>();
@@ -137,6 +148,28 @@ public class DefaultNodeIdSerializerTests
 
         Assert.Equal("Foo", id.TypeName);
         Assert.Equal("abc", id.InternalId);
+    }
+
+    [Fact]
+    public void Parse_StringId_With_Colons()
+    {
+        var serializer = CreateSerializer(new StringNodeIdValueSerializer());
+
+        var id = serializer.Parse("Rm9vOjE6Mjoz", typeof(string));
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal("1:2:3", id.InternalId);
+    }
+
+    [Fact]
+    public void Parse_Legacy_StringId_With_Colons()
+    {
+        var serializer = CreateSerializer(new StringNodeIdValueSerializer());
+
+        var id = serializer.Parse("Rm9vCmQxOjI6Mw==", typeof(string));
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal("1:2:3", id.InternalId);
     }
 
     [Fact]
