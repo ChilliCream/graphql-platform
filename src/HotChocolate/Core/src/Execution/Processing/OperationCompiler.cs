@@ -38,7 +38,8 @@ public sealed partial class OperationCompiler
     private readonly List<Selection> _selections = [];
     private readonly HashSet<string> _directiveNames = new(Ordinal);
     private readonly List<FieldMiddleware> _pipelineComponents = [];
-    private IncludeCondition[] _includeConditions = Array.Empty<IncludeCondition>();
+    private readonly HashSet<int> _enqueuedSelectionSets = new();
+    private IncludeCondition[] _includeConditions = [];
     private CompilerContext? _deferContext;
     private int _nextSelectionId;
     private int _nextSelectionSetRefId;
@@ -160,8 +161,9 @@ public sealed partial class OperationCompiler
             _selections.Clear();
             _directiveNames.Clear();
             _pipelineComponents.Clear();
+            _enqueuedSelectionSets.Clear();
 
-            _includeConditions = Array.Empty<IncludeCondition>();
+            _includeConditions = [];
             _deferContext = null;
         }
     }
@@ -355,18 +357,15 @@ public sealed partial class OperationCompiler
 
                 var selectionPath = context.Path.Append(selection.ResponseName);
                 selectionSetId = GetOrCreateSelectionSetRefId(selection.SelectionSet, selectionPath);
-                var selectionVariants = GetOrCreateSelectionVariants(selectionSetId);
                 var possibleTypes = context.Schema.GetPossibleTypes(fieldType);
 
-                for (var i = possibleTypes.Count - 1; i >= 0; i--)
+                if (_enqueuedSelectionSets.Add(selectionSetId))
                 {
-                    var objectType = possibleTypes[i];
-
-                    if (!selectionVariants.ContainsSelectionSet(objectType))
+                    for (var i = possibleTypes.Count - 1; i >= 0; i--)
                     {
                         _backlog.Push(
                             new BacklogItem(
-                                objectType,
+                                possibleTypes[i],
                                 selectionSetId,
                                 selection,
                                 selectionPath,
@@ -451,21 +450,21 @@ public sealed partial class OperationCompiler
             case SyntaxKind.Field:
                 ResolveField(
                     context,
-                    (FieldNode) selection,
+                    (FieldNode)selection,
                     includeCondition);
                 break;
 
             case SyntaxKind.InlineFragment:
                 ResolveInlineFragment(
                     context,
-                    (InlineFragmentNode) selection,
+                    (InlineFragmentNode)selection,
                     includeCondition);
                 break;
 
             case SyntaxKind.FragmentSpread:
                 ResolveFragmentSpread(
                     context,
-                    (FragmentSpreadNode) selection,
+                    (FragmentSpreadNode)selection,
                     includeCondition);
                 break;
         }
@@ -579,9 +578,9 @@ public sealed partial class OperationCompiler
         IReadOnlyList<DirectiveNode> directives,
         long includeCondition)
     {
-        if (typeCondition is null ||
-            (context.Schema.TryGetTypeFromAst(typeCondition, out IType typeCon) &&
-                DoesTypeApply(typeCon, context.Type)))
+        if (typeCondition is null
+            || (context.Schema.TryGetTypeFromAst(typeCondition, out IType typeCon)
+                && DoesTypeApply(typeCon, context.Type)))
         {
             includeCondition = GetSelectionIncludeCondition(selection, includeCondition);
 
@@ -644,8 +643,8 @@ public sealed partial class OperationCompiler
         => typeCondition.Kind switch
         {
             TypeKind.Object => ReferenceEquals(typeCondition, current),
-            TypeKind.Interface => current.IsImplementing((InterfaceType) typeCondition),
-            TypeKind.Union => ((UnionType) typeCondition).Types.ContainsKey(current.Name),
+            TypeKind.Interface => current.IsImplementing((InterfaceType)typeCondition),
+            TypeKind.Union => ((UnionType)typeCondition).Types.ContainsKey(current.Name),
             _ => false
         };
 
@@ -661,8 +660,8 @@ public sealed partial class OperationCompiler
 
             for (var i = 0; i < document.Definitions.Count; i++)
             {
-                if (document.Definitions[i] is FragmentDefinitionNode fragmentDefinition &&
-                    fragmentDefinition.Name.Value.EqualsOrdinal(fragmentName))
+                if (document.Definitions[i] is FragmentDefinitionNode fragmentDefinition
+                    && fragmentDefinition.Name.Value.EqualsOrdinal(fragmentName))
                 {
                     value = fragmentDefinition;
                     _fragmentDefinitions.Add(fragmentName, value);
@@ -704,6 +703,7 @@ public sealed partial class OperationCompiler
             variants = new SelectionVariants(selectionSetId);
             _selectionVariants.Add(selectionSetId, variants);
         }
+
         return variants;
     }
 
@@ -847,26 +847,25 @@ public sealed partial class OperationCompiler
         }
     }
 
-    private readonly struct SelectionSetRef : IEquatable<SelectionSetRef>
+    private readonly struct SelectionSetRef(
+        SelectionSetNode selectionSet,
+        SelectionPath path)
+        : IEquatable<SelectionSetRef>
     {
-        public SelectionSetRef(SelectionSetNode selectionSet, SelectionPath path)
-        {
-            SelectionSet = selectionSet;
-            Path = path;
-        }
+        public SelectionSetNode SelectionSet { get; } = selectionSet;
 
-        public SelectionSetNode SelectionSet { get; }
-
-        public SelectionPath Path { get; }
+        public SelectionPath Path { get; } = path;
 
         public bool Equals(SelectionSetRef other)
-            => SelectionSet.Equals(other.SelectionSet, SyntaxComparison.Syntax) &&
-                Path.Equals(other.Path);
+            => SyntaxComparer.BySyntax.Equals(SelectionSet, other.SelectionSet)
+                && Path.Equals(other.Path);
 
         public override bool Equals(object? obj)
             => obj is SelectionSetRef other && Equals(other);
 
         public override int GetHashCode()
-            => HashCode.Combine(SelectionSet, Path);
+            => HashCode.Combine(
+                SyntaxComparer.BySyntax.GetHashCode(SelectionSet),
+                Path.GetHashCode());
     }
 }

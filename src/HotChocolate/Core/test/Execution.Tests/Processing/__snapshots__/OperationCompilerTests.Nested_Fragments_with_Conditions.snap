@@ -88,19 +88,19 @@ query($if: Boolean!) @includeCondition(flag: 2) @includeCondition(flag: 3) {
                     __typename @conditional @__execute(id: 17, kind: PURE, type: LEAF)
                     friends @conditional @__execute(id: 18, kind: DEFAULT, type: COMPOSITE) {
                       ... on FriendsConnection {
-                        nodes @conditional @__execute(id: 19, kind: PURE, type: COMPOSITE_LIST) {
+                        nodes @conditional @__execute(id: 10, kind: PURE, type: COMPOSITE_LIST) {
                           ... on Human {
-                            __typename @conditional @__execute(id: 20, kind: PURE, type: LEAF)
-                            name @conditional @__execute(id: 21, kind: PURE, type: LEAF)
-                            otherHuman @conditional @__execute(id: 22, kind: PURE, type: COMPOSITE) {
+                            __typename @conditional @__execute(id: 11, kind: PURE, type: LEAF)
+                            name @conditional @__execute(id: 12, kind: PURE, type: LEAF)
+                            otherHuman @conditional @__execute(id: 13, kind: PURE, type: COMPOSITE) {
                               ... on Human {
-                                __typename @conditional @__execute(id: 23, kind: PURE, type: LEAF)
-                                name @conditional @__execute(id: 24, kind: PURE, type: LEAF)
+                                __typename @conditional @__execute(id: 14, kind: PURE, type: LEAF)
+                                name @conditional @__execute(id: 15, kind: PURE, type: LEAF)
                               }
                             }
                           }
                           ... on Droid {
-                            __typename @conditional @__execute(id: 25, kind: PURE, type: LEAF)
+                            __typename @conditional @__execute(id: 16, kind: PURE, type: LEAF)
                           }
                         }
                       }
