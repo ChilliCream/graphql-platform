@@ -255,8 +255,8 @@ public sealed class DefaultNodeIdSerializer(
     }
 
 #if NET8_0_OR_GREATER
-    private static readonly SearchValues<byte>
-        _delimiterSearchValues = SearchValues.Create([_delimiter, _legacyDelimiter]);
+    private static readonly SearchValues<byte> _delimiterSearchValues = 
+    		SearchValues.Create([_delimiter, _legacyDelimiter]);
 #endif
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
