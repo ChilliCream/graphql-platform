@@ -4,9 +4,9 @@
     "net6.0": {
       "BananaCakePop.Middleware": {
         "type": "Direct",
-        "requested": "[16.0.1, )",
-        "resolved": "16.0.1",
-        "contentHash": "i/LDG7Lw2ln1WM7GaMyNDWHExtN15/O/xgcX8lhBK6FZFPBnlq6FJW4GuS3vs0UpLB1TvX2tcOenMlXjcMZq0g==",
+        "requested": "[16.0.3, )",
+        "resolved": "16.0.3",
+        "contentHash": "gwWk5ykS1uum2/++x3UnGhmjs+4itxce1lW5YnKdb8JeG4QxAMzSWVGh3B1ehiKJNAuvNtbfBwp2BAQvOsq02g==",
         "dependencies": {
           "Yarp.ReverseProxy": "2.1.0"
         }
@@ -335,9 +335,9 @@
     "net7.0": {
       "BananaCakePop.Middleware": {
         "type": "Direct",
-        "requested": "[16.0.1, )",
-        "resolved": "16.0.1",
-        "contentHash": "i/LDG7Lw2ln1WM7GaMyNDWHExtN15/O/xgcX8lhBK6FZFPBnlq6FJW4GuS3vs0UpLB1TvX2tcOenMlXjcMZq0g==",
+        "requested": "[16.0.3, )",
+        "resolved": "16.0.3",
+        "contentHash": "gwWk5ykS1uum2/++x3UnGhmjs+4itxce1lW5YnKdb8JeG4QxAMzSWVGh3B1ehiKJNAuvNtbfBwp2BAQvOsq02g==",
         "dependencies": {
           "Yarp.ReverseProxy": "2.1.0"
         }
@@ -646,9 +646,9 @@
     "net8.0": {
       "BananaCakePop.Middleware": {
         "type": "Direct",
-        "requested": "[16.0.1, )",
-        "resolved": "16.0.1",
-        "contentHash": "i/LDG7Lw2ln1WM7GaMyNDWHExtN15/O/xgcX8lhBK6FZFPBnlq6FJW4GuS3vs0UpLB1TvX2tcOenMlXjcMZq0g==",
+        "requested": "[16.0.3, )",
+        "resolved": "16.0.3",
+        "contentHash": "gwWk5ykS1uum2/++x3UnGhmjs+4itxce1lW5YnKdb8JeG4QxAMzSWVGh3B1ehiKJNAuvNtbfBwp2BAQvOsq02g==",
         "dependencies": {
           "Yarp.ReverseProxy": "2.1.0"
         }

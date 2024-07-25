@@ -68,8 +68,8 @@
       },
       "BananaCakePop.Middleware": {
         "type": "Transitive",
-        "resolved": "16.0.1",
-        "contentHash": "i/LDG7Lw2ln1WM7GaMyNDWHExtN15/O/xgcX8lhBK6FZFPBnlq6FJW4GuS3vs0UpLB1TvX2tcOenMlXjcMZq0g==",
+        "resolved": "16.0.3",
+        "contentHash": "gwWk5ykS1uum2/++x3UnGhmjs+4itxce1lW5YnKdb8JeG4QxAMzSWVGh3B1ehiKJNAuvNtbfBwp2BAQvOsq02g==",
         "dependencies": {
           "Yarp.ReverseProxy": "2.1.0"
         }
@@ -1656,7 +1656,7 @@
       "hotchocolate.aspnetcore": {
         "type": "Project",
         "dependencies": {
-          "BananaCakePop.Middleware": "[16.0.1, )",
+          "BananaCakePop.Middleware": "[16.0.3, )",
           "HotChocolate": "[0.0.0, )",
           "HotChocolate.Subscriptions.InMemory": "[0.0.0, )",
           "HotChocolate.Transport.Sockets": "[0.0.0, )",
@@ -1903,8 +1903,8 @@
       },
       "BananaCakePop.Middleware": {
         "type": "Transitive",
-        "resolved": "16.0.1",
-        "contentHash": "i/LDG7Lw2ln1WM7GaMyNDWHExtN15/O/xgcX8lhBK6FZFPBnlq6FJW4GuS3vs0UpLB1TvX2tcOenMlXjcMZq0g==",
+        "resolved": "16.0.3",
+        "contentHash": "gwWk5ykS1uum2/++x3UnGhmjs+4itxce1lW5YnKdb8JeG4QxAMzSWVGh3B1ehiKJNAuvNtbfBwp2BAQvOsq02g==",
         "dependencies": {
           "Yarp.ReverseProxy": "2.1.0"
         }
@@ -3508,7 +3508,7 @@
       "hotchocolate.aspnetcore": {
         "type": "Project",
         "dependencies": {
-          "BananaCakePop.Middleware": "[16.0.1, )",
+          "BananaCakePop.Middleware": "[16.0.3, )",
           "HotChocolate": "[0.0.0, )",
           "HotChocolate.Subscriptions.InMemory": "[0.0.0, )",
           "HotChocolate.Transport.Sockets": "[0.0.0, )",
@@ -3795,8 +3795,8 @@
       },
       "BananaCakePop.Middleware": {
         "type": "Transitive",
-        "resolved": "16.0.1",
-        "contentHash": "i/LDG7Lw2ln1WM7GaMyNDWHExtN15/O/xgcX8lhBK6FZFPBnlq6FJW4GuS3vs0UpLB1TvX2tcOenMlXjcMZq0g==",
+        "resolved": "16.0.3",
+        "contentHash": "gwWk5ykS1uum2/++x3UnGhmjs+4itxce1lW5YnKdb8JeG4QxAMzSWVGh3B1ehiKJNAuvNtbfBwp2BAQvOsq02g==",
         "dependencies": {
           "Yarp.ReverseProxy": "2.1.0"
         }
@@ -5425,7 +5425,7 @@
       "hotchocolate.aspnetcore": {
         "type": "Project",
         "dependencies": {
-          "BananaCakePop.Middleware": "[16.0.1, )",
+          "BananaCakePop.Middleware": "[16.0.3, )",
           "HotChocolate": "[0.0.0, )",
           "HotChocolate.Subscriptions.InMemory": "[0.0.0, )",
           "HotChocolate.Transport.Sockets": "[0.0.0, )",
