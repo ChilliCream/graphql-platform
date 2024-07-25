@@ -84,13 +84,14 @@ public class RequestPipelineTests(ITestOutputHelper output)
         var result = await executor.ExecuteAsync("{ __typename }");
 
         // assert
-        result.MatchInlineSnapshot("""
-                                   {
-                                     "data": {
-                                       "__typename": "Query"
-                                     }
-                                   }
-                                   """);
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "__typename": "Query"
+              }
+            }
+            """);
     }
 
     [Fact]
