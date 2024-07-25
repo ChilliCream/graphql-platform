@@ -48,12 +48,12 @@ public class RequestPipelineTests(ITestOutputHelper output)
         result.MatchInlineSnapshot(
             """
             {
-                "data": {
-                    "result": true
-                },
-                "extensions": {
-                    "state": "custom middleware short-circuited"
-                }
+              "data": {
+                "result": true
+              },
+              "extensions": {
+                "state": "custom middleware short-circuited"
+              }
             }
             """);
     }
