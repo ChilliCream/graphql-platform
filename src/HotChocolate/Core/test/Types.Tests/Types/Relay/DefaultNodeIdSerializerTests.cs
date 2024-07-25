@@ -90,6 +90,17 @@ public class DefaultNodeIdSerializerTests
     }
 
     [Fact]
+    public void Parse_Legacy_Normal_GuidId()
+    {
+        var serializer = CreateSerializer(new GuidNodeIdValueSerializer());
+
+        var id = serializer.Parse("Rm9vCmdhYWY1ZjAzNjk0OGU0NDRkYWRhNTM2ZTY1MTNkNTJjZA==", typeof(Guid));
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal(new Guid("aaf5f036-948e-444d-ada5-36e6513d52cd"), id.InternalId);
+    }
+
+    [Fact]
     public void Parse_Empty_StringId()
     {
         var lookup = new Mock<INodeIdRuntimeTypeLookup>();
