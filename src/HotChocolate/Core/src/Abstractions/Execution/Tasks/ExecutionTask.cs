@@ -1,11 +1,10 @@
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace HotChocolate.Execution;
 
 /// <summary>
-/// Provides the base implementation for a executable task.
+/// Provides the base implementation for an executable task.
 /// </summary>
 /// <remarks>
 /// The task is by default a parallel execution task.
@@ -42,23 +41,23 @@ public abstract class ExecutionTask : IExecutionTask
     public bool IsRegistered { get; set; }
 
     /// <inheritdoc />
-    public void BeginExecute(CancellationToken cancellationToken)
+    public void BeginExecute(IExecutionTaskScheduler scheduler)
     {
         Status = ExecutionTaskStatus.Running;
-        _task = ExecuteInternalAsync(cancellationToken).AsTask();
+        _task = scheduler.Schedule(ExecuteInternalAsync);
     }
 
     /// <inheritdoc />
-    public Task WaitForCompletionAsync(CancellationToken cancellationToken)
+    public Task WaitForCompletionAsync()
         => _task ?? Task.CompletedTask;
 
-    private async ValueTask ExecuteInternalAsync(CancellationToken cancellationToken)
+    private async Task ExecuteInternalAsync()
     {
         try
         {
             using (Context.Track(this))
             {
-                await ExecuteAsync(cancellationToken).ConfigureAwait(false);
+                await ExecuteAsync().ConfigureAwait(false);
             }
         }
         catch (OperationCanceledException)
@@ -72,7 +71,7 @@ public abstract class ExecutionTask : IExecutionTask
         {
             Faulted();
 
-            if (!cancellationToken.IsCancellationRequested)
+            if (!Context.RequestAborted.IsCancellationRequested)
             {
                 Context.ReportError(this, ex);
             }
@@ -83,12 +82,9 @@ public abstract class ExecutionTask : IExecutionTask
     }
 
     /// <summary>
-    /// This execute method represents the work of this task.
+    /// This execute-method represents the work of this task.
     /// </summary>
-    /// <param name="cancellationToken">
-    /// The cancellation token.
-    /// </param>
-    protected abstract ValueTask ExecuteAsync(CancellationToken cancellationToken);
+    protected abstract ValueTask ExecuteAsync();
 
     /// <summary>
     /// Completes the task as faulted.

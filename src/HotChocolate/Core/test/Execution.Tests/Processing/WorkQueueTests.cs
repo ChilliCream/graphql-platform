@@ -135,14 +135,14 @@ public class WorkQueueTests
         public bool IsSerial { get; set; }
         public bool IsRegistered { get; set; }
 
-        public void BeginExecute(CancellationToken cancellationToken)
+        public void BeginExecute(IExecutionTaskScheduler scheduler)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
-        public Task WaitForCompletionAsync(CancellationToken cancellationToken)
+        public Task WaitForCompletionAsync()
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
     }
 }

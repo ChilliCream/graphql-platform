@@ -1,0 +1,8 @@
+﻿{
+  "Scheduler": {
+    "IsProcessing": true,
+    "MaximumConcurrencyLevel": 2147483647,
+    "Id": 2
+  },
+  "DispatchOnSchedule": false
+}

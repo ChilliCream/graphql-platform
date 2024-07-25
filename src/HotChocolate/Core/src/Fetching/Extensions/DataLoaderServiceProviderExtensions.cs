@@ -7,7 +7,7 @@ internal static class DataLoaderServiceProviderExtensions
 {
     public static void InitializeDataLoaderScope(this IServiceProvider services)
     {
-        var batchHandler = services.GetRequiredService<IBatchHandler>();
+        var batchHandler = services.GetRequiredService<IBatchDispatcher>();
         var dataLoaderScopeHolder = services.GetRequiredService<IDataLoaderScopeFactory>();
         dataLoaderScopeHolder.BeginScope(batchHandler);
     }

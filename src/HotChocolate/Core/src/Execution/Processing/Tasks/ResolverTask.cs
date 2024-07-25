@@ -67,13 +67,13 @@ internal sealed partial class ResolverTask(ObjectPool<ResolverTask> objectPool) 
     public bool IsRegistered { get; set; }
 
     /// <inheritdoc />
-    public void BeginExecute(CancellationToken cancellationToken)
+    public void BeginExecute(IExecutionTaskScheduler scheduler)
     {
         Status = ExecutionTaskStatus.Running;
-        _task = ExecuteAsync(cancellationToken);
+        _task = scheduler.Schedule(ExecuteAsync);
     }
 
     /// <inheritdoc />
-    public Task WaitForCompletionAsync(CancellationToken cancellationToken)
+    public Task WaitForCompletionAsync()
         => _task ?? Task.CompletedTask;
 }

@@ -5,7 +5,7 @@ using Snapshooter.Xunit;
 
 namespace HotChocolate.Fetching;
 
-public class BatchSchedulerTests
+public class DefaultBatchDispatcherTests
 {
     [Fact]
     public void Dispatch_OneAction_ShouldDispatchOneAction()
@@ -15,7 +15,7 @@ public class BatchSchedulerTests
         context.Setup(t => t.Register(It.IsAny<IExecutionTask>()));
         var hasTask = false;
 
-        var scheduler = new BatchScheduler();
+        var scheduler = new DefaultBatchDispatcher();
         scheduler.TaskEnqueued += (_, _) => hasTask = true;
 
         ValueTask Dispatch() => default;
@@ -35,7 +35,7 @@ public class BatchSchedulerTests
     public void Initialize_Nothing_ShouldMatchSnapshot()
     {
         // act
-        var scheduler = new BatchScheduler();
+        var scheduler = new DefaultBatchDispatcher();
 
         // assert
         scheduler.MatchSnapshot();
@@ -46,7 +46,7 @@ public class BatchSchedulerTests
     {
         // arrange
         var hasTask = false;
-        var scheduler = new BatchScheduler();
+        var scheduler = new DefaultBatchDispatcher();
         scheduler.TaskEnqueued += (_, _) => hasTask = true;
         ValueTask Dispatch() => default;
 
@@ -62,7 +62,7 @@ public class BatchSchedulerTests
     {
         // arrange
         var hasBeenRaised = false;
-        var scheduler = new BatchScheduler();
+        var scheduler = new DefaultBatchDispatcher();
         ValueTask Dispatch() => default;
 
         scheduler.TaskEnqueued += (_, _) => hasBeenRaised = true;

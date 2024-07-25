@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Fetching;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using static HotChocolate.Fusion.Utilities.Utf8QueryPlanPropertyNames;
@@ -51,7 +52,7 @@ internal sealed class Introspect(int id, SelectionSet selectionSet) : QueryPlanN
             var value = values[0];
             List<Task>? asyncTasks = null;
             ExecutePureFieldsAndEnqueueResolvers(context, value, cancellationToken, ref asyncTasks);
-            
+
             if(asyncTasks is { Count: > 0, })
             {
                 await Task.WhenAll(asyncTasks).ConfigureAwait(false);
@@ -97,10 +98,10 @@ internal sealed class Introspect(int id, SelectionSet selectionSet) : QueryPlanN
                 result,
                 i,
                 ImmutableDictionary<string, object?>.Empty);
-            resolverTask.BeginExecute(ct);
+            resolverTask.BeginExecute(DefaultExecutionTaskScheduler.Instance);
 
             asyncTasks ??= [];
-            asyncTasks.Add(resolverTask.WaitForCompletionAsync(ct));
+            asyncTasks.Add(resolverTask.WaitForCompletionAsync());
 
             NEXT:
             selection = ref Unsafe.Add(ref selection, 1)!;
