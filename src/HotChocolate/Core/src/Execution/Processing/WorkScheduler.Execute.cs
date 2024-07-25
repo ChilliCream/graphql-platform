@@ -42,14 +42,14 @@ RESTART:
 
                     if (!first.IsSerial)
                     {
-                        first.BeginExecute(_ct);
+                        first.BeginExecute(_batchDispatcher.Scheduler);
                         buffer[0] = null;
 
                         // if work is not serial we will just enqueue it and not wait
                         // for it to finish.
                         for (var i = 1; i < work; i++)
                         {
-                            buffer[i]!.BeginExecute(_ct);
+                            buffer[i]!.BeginExecute(_batchDispatcher.Scheduler);
                             buffer[i] = null;
                         }
                     }
@@ -60,8 +60,8 @@ RESTART:
                         try
                         {
                             _batchDispatcher.DispatchOnSchedule = true;
-                            first.BeginExecute(_ct);
-                            await first.WaitForCompletionAsync(_ct).ConfigureAwait(false);
+                            first.BeginExecute(_batchDispatcher.Scheduler);
+                            await first.WaitForCompletionAsync().ConfigureAwait(false);
                             buffer[0] = null;
                         }
                         finally
@@ -136,7 +136,7 @@ RESTART:
         return size;
     }
 
-    private void BatchDispatcherEventHandler(object? source, EventArgs args)
+    private void OnTaskEnqueued(object? source, EventArgs args)
     {
         lock (_sync)
         {
@@ -145,6 +145,9 @@ RESTART:
 
         _pause.TryContinue();
     }
+
+    private void OnAllTasksCompleted(object? source, EventArgs args)
+        => _pause.TryContinue();
 
     private void HandleError(Exception exception)
     {
@@ -178,13 +181,11 @@ RESTART:
                 if (!_isCompleted)
                 {
                     var isWaitingForTaskCompletion = _work.HasRunningTasks && _work.IsEmpty;
-                    var hasWork = !_work.IsEmpty || !_serial.IsEmpty;
-
                     if (isWaitingForTaskCompletion)
                     {
                         _pause.Reset();
 
-                        if (_hasBatches)
+                        if (_hasBatches && !_batchDispatcher.Scheduler.IsProcessing)
                         {
                             _hasBatches = false;
                             _batchDispatcher.BeginDispatch(_ct);
@@ -192,6 +193,7 @@ RESTART:
                     }
                     else
                     {
+                        var hasWork = !_work.IsEmpty || !_serial.IsEmpty;
                         if (!hasWork)
                         {
                             _isCompleted = true;

@@ -27,7 +27,8 @@ internal sealed partial class WorkScheduler(OperationContext operationContext)
     public void Initialize(IBatchDispatcher batchDispatcher)
     {
         _batchDispatcher = batchDispatcher;
-        _batchDispatcher.TaskEnqueued += BatchDispatcherEventHandler;
+        _batchDispatcher.TaskEnqueued += OnTaskEnqueued;
+        _batchDispatcher.Scheduler.AllTasksCompleted += OnAllTasksCompleted;
 
         _errorHandler = operationContext.ErrorHandler;
         _result = operationContext.Result;
@@ -52,7 +53,8 @@ internal sealed partial class WorkScheduler(OperationContext operationContext)
         _serial.Clear();
         _pause.Reset();
 
-        _batchDispatcher.TaskEnqueued -= BatchDispatcherEventHandler;
+        _batchDispatcher.TaskEnqueued -= OnTaskEnqueued;
+        _batchDispatcher.Scheduler.AllTasksCompleted -= OnAllTasksCompleted;
         _batchDispatcher = default!;
 
         _requestContext = default!;

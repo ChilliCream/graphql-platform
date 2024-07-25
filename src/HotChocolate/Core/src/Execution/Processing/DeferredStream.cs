@@ -134,7 +134,7 @@ internal sealed class DeferredStream : DeferredExecutionTask
 
         public ResolverTask? ChildTask { get; private set; }
 
-        protected override async ValueTask ExecuteAsync(CancellationToken cancellationToken)
+        protected override async ValueTask ExecuteAsync()
         {
             ChildTask = null;
             _deferredStream.Index++;

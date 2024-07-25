@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 
 namespace HotChocolate.Execution;
 
@@ -8,6 +9,12 @@ namespace HotChocolate.Execution;
 /// </summary>
 public interface IExecutionTaskContext
 {
+    /// <summary>
+    /// Notifies when the connection underlying this request is aborted
+    /// and thus request operations should be cancelled.
+    /// </summary>
+    CancellationToken RequestAborted { get; }
+
     /// <summary>
     /// Tracks the running task for the diagnostics.
     /// </summary>

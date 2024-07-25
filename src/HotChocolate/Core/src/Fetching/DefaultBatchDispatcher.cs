@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Execution;
 using static System.Threading.Interlocked;
 
 namespace HotChocolate.Fetching;
@@ -9,7 +11,7 @@ namespace HotChocolate.Fetching;
 /// <summary>
 /// The execution engine batch dispatcher.
 /// </summary>
-public sealed class BatchScheduler : IBatchHandler
+public sealed class DefaultBatchDispatcher : IBatchDispatcher
 {
     private static List<Func<ValueTask>>? _localTasks;
     private static List<Task<Exception?>>? _localProcessing;
@@ -40,6 +42,8 @@ public sealed class BatchScheduler : IBatchHandler
             }
         }
     }
+
+    public IExecutionTaskScheduler Scheduler { get; } = new BatchExecutionTaskScheduler();
 
     /// <inheritdoc />
     public bool DispatchOnSchedule
@@ -221,6 +225,171 @@ public sealed class BatchScheduler : IBatchHandler
         finally
         {
             _semaphore.Release();
+        }
+    }
+}
+
+public sealed class DefaultExecutionTaskScheduler : IExecutionTaskScheduler
+{
+    public event EventHandler? AllTasksCompleted;
+
+    public bool IsProcessing => false;
+
+    public Task Schedule(Func<Task> work)
+        => work();
+
+    public static readonly DefaultExecutionTaskScheduler Instance = new();
+}
+
+public class BatchExecutionTaskScheduler : TaskScheduler, IExecutionTaskScheduler
+{
+    private readonly List<Task> _tasks = new(16);
+    private int _activeTasks;
+
+    public event EventHandler? AllTasksCompleted;
+
+    public bool IsProcessing
+    {
+        get
+        {
+            return Volatile.Read(ref _activeTasks) == 0;
+        }
+    }
+
+    public Task Schedule(Func<Task> work)
+    {
+        var capturedContext = ExecutionContext.Capture();
+
+        var task = Task.Factory.StartNew<Task>(
+            state =>
+            {
+                if (state is ExecutionContext context)
+                {
+                    var task = new TaskCompletionSource<object?>();
+
+                    async void Execute(object _)
+                    {
+                        try
+                        {
+                            await work();
+                        }
+                        catch (Exception ex)
+                        {
+                            task.SetException(ex);
+                        }
+
+                        task.SetResult(null);
+                    }
+
+                    ExecutionContext.Run(context, Execute, null);
+
+                    return task.Task;
+                }
+
+                return work();
+            },
+            capturedContext,
+            CancellationToken.None,
+            TaskCreationOptions.None,
+            this);
+
+        return task.Unwrap();
+    }
+
+    protected override IEnumerable<Task> GetScheduledTasks()
+    {
+        Task[] tasks;
+
+        lock (_tasks)
+        {
+            tasks = _tasks.ToArray();
+        }
+
+        return tasks;
+    }
+
+    protected override void QueueTask(Task task)
+    {
+        EnqueueTask(task);
+
+        ThreadPool.QueueUserWorkItem(
+            static state =>
+            {
+                var scheduler = (BatchExecutionTaskScheduler)state!;
+                while (scheduler.TryTakeNextTask(out var task))
+                {
+                    scheduler.TryExecuteTask(task);
+                    scheduler.CompletedTask();
+                }
+            },
+            this);
+    }
+
+    protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
+    {
+        if (!taskWasPreviouslyQueued)
+        {
+            return false;
+        }
+
+        // We try to take the task from the task backlog,
+        // if not possible we cannot inline.
+        if (!TryTakeTask(task))
+        {
+            return false;
+        }
+
+        var executed = TryExecuteTask(task);
+
+        if (executed)
+        {
+            CompletedTask();
+        }
+
+        return executed;
+    }
+
+    private bool TryTakeNextTask([NotNullWhen(true)] out Task? task)
+    {
+        lock (_tasks)
+        {
+            if (_tasks.Count > 0)
+            {
+                var index = _tasks.Count - 1;
+                task = _tasks[index];
+                _tasks.RemoveAt(index);
+                return true;
+            }
+        }
+
+        task = null;
+        return false;
+    }
+
+    private bool TryTakeTask(Task task)
+    {
+        lock (_tasks)
+        {
+            return _tasks.Remove(task);
+        }
+    }
+
+    private void EnqueueTask(Task task)
+    {
+        Increment(ref _activeTasks);
+
+        lock (_tasks)
+        {
+            _tasks.Add(task);
+        }
+    }
+
+    private void CompletedTask()
+    {
+        var current = Decrement(ref _activeTasks);
+        if (current == 0)
+        {
+            AllTasksCompleted?.Invoke(this, EventArgs.Empty);
         }
     }
 }

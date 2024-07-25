@@ -50,16 +50,13 @@ public interface IExecutionTask
     /// <summary>
     /// Begins executing this task.
     /// </summary>
-    /// <param name="cancellationToken">
-    /// The cancellation token.
+    /// <param name="scheduler">
+    /// The task scheduler to schedule work for this task.
     /// </param>
-    void BeginExecute(CancellationToken cancellationToken);
+    void BeginExecute(IExecutionTaskScheduler scheduler);
 
     /// <summary>
     /// The running task can be awaited to track completion of this particular task.
     /// </summary>
-    /// <param name="cancellationToken">
-    /// The cancellation token.
-    /// </param>
-    Task WaitForCompletionAsync(CancellationToken cancellationToken);
+    Task WaitForCompletionAsync();
 }
