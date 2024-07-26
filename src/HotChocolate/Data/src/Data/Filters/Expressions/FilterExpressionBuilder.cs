@@ -202,8 +202,9 @@ public static class FilterExpressionBuilder
 
     private static Expression CreateAndConvertParameter<T>(object value)
     {
-        Expression<Func<T>> lambda = () => (T)value;
-        return lambda.Body;
+        ExpressionParameter<T> parameter = new((T)value);
+        return Expression.Property(Expression.Constant(parameter),
+            nameof(parameter.p));
     }
 
     private static Expression CreateParameter(object? value, Type type)
@@ -253,4 +254,8 @@ public static class FilterExpressionBuilder
             return (methodInfo, expressionDelegate);
         });
     }
+
+    // ReSharper disable once InconsistentNaming
+    // ReSharper disable once NotAccessedPositionalProperty.Local
+    private readonly record struct ExpressionParameter<T>(T p);
 }
