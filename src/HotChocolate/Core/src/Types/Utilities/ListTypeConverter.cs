@@ -50,7 +50,10 @@ internal sealed class ListTypeConverter : IChangeTypeProvider
                 return true;
             }
 
-            if (target.IsGenericType && target.GetGenericTypeDefinition() == typeof(Dictionary<,>))
+            if (target.IsGenericType
+                && (target.GetGenericTypeDefinition() == typeof(Dictionary<,>)
+                    || target.GetGenericTypeDefinition() == typeof(IDictionary<,>)
+                    || target.GetGenericTypeDefinition() == typeof(IReadOnlyDictionary<,>)))
             {
                 var converterMethod =
                     _dictionaryConvert.MakeGenericMethod(targetElement.GetGenericArguments());
