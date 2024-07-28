@@ -31,6 +31,24 @@ public class IntegrationTests
     }
 
     [Fact]
+    public async Task SetPagingOptionsIsStillApplied()
+    {
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .SetPagingOptions(new PagingOptions
+                {
+                    IncludeTotalCount = true
+                })
+                .Services
+                .BuildServiceProvider()
+                .GetRequestExecutorAsync();
+
+        executor.Schema.Print().MatchSnapshot();
+    }
+
+    [Fact]
     public async Task Attribute_Simple_StringList_Schema()
     {
         var executor =

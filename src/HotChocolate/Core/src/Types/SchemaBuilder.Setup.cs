@@ -63,6 +63,8 @@ public partial class SchemaBuilder
                     typeInterceptors.Add(builder._schemaFirstTypeInterceptor);
                 }
 
+                context.ContextData[typeof(PagingOptions).FullName!] = builder._pagingOptions;
+
                 InitializeInterceptors(
                     context.Services,
                     builder._typeInterceptors,
@@ -104,8 +106,6 @@ public partial class SchemaBuilder
                 builder._contextData,
                 lazySchema,
                 typeInterceptor);
-
-            context.ContextData[typeof(PagingOptions).FullName!] = builder._pagingOptions;
 
             return context;
         }
