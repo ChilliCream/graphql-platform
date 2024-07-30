@@ -34,6 +34,7 @@ public class IntegrationTests
     public async Task SetPagingOptionsIsStillApplied()
     {
         var executor =
+#pragma warning disable CS0618 // Type or member is obsolete
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryType>()
@@ -41,6 +42,7 @@ public class IntegrationTests
                 {
                     IncludeTotalCount = true
                 })
+#pragma warning restore CS0618 // Type or member is obsolete
                 .Services
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
