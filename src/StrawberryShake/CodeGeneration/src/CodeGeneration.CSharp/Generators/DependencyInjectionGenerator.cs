@@ -114,7 +114,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
             .SetPrivate()
             .SetStatic()
             .SetReturnType(IServiceCollection)
-            .AddParameter(_parentServices, x => x.SetType(IServiceProvider))
+            .AddParameter(_parentServices, x => x.SetType(TypeNames.IServiceProvider))
             .AddParameter(_services, x => x.SetType(ServiceCollection))
             .AddParameter(
                 _strategy,
@@ -483,7 +483,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
             }
         }
 
-        var stringTypeInfo = new RuntimeTypeInfo(String);
+        var stringTypeInfo = new RuntimeTypeInfo(TypeNames.String);
         foreach (var scalar in
                  descriptor.TypeDescriptors.OfType<ScalarTypeDescriptor>())
         {

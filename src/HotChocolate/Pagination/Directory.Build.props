@@ -6,7 +6,6 @@
     <NoWarn>$(NoWarn);CA1062</NoWarn>
     <NeutralLanguage>en</NeutralLanguage>
     <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
 </Project>

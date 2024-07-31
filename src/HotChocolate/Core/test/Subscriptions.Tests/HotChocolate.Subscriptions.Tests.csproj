@@ -6,7 +6,6 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 

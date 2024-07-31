@@ -4,6 +4,7 @@ using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
+using Path = HotChocolate.Path;
 
 #nullable enable
 

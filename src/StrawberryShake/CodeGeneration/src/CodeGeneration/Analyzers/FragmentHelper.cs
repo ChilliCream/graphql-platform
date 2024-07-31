@@ -10,6 +10,7 @@ using HotChocolate.Utilities;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using static StrawberryShake.CodeGeneration.Analyzers.Models.OutputModelKind;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
+using Path = HotChocolate.Path;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;
 

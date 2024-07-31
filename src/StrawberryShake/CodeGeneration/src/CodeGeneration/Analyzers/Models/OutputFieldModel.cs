@@ -3,6 +3,7 @@ using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
+using Path = HotChocolate.Path;
 
 namespace StrawberryShake.CodeGeneration.Analyzers.Models;
 

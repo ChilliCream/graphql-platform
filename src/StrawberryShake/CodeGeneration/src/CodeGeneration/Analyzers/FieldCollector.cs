@@ -8,6 +8,7 @@ using HotChocolate.Types;
 using HotChocolate.Utilities;
 using IHasDirectives = HotChocolate.Language.IHasDirectives;
 using static StrawberryShake.CodeGeneration.Utilities.TypeHelpers;
+using Path = HotChocolate.Path;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;
 
