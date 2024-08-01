@@ -23,7 +23,7 @@ public static class TestHttpContextHelper
         request.Host = new HostString(DefaultAzFuncGraphQLUri.Host, DefaultAzFuncGraphQLUri.Port);
         request.Path = new PathString(DefaultAzFuncGraphQLUri.AbsolutePath);
         request.QueryString = new QueryString(DefaultAzFuncGraphQLUri.Query);
-        request.Body = new IO.MemoryStream(Encoding.UTF8.GetBytes(CreateRequestBody(query)));
+        request.Body = new MemoryStream(Encoding.UTF8.GetBytes(CreateRequestBody(query)));
         request.ContentType = TestConstants.DefaultJsonContentType;
 
         httpContext.Response.Body = new MemoryStream();

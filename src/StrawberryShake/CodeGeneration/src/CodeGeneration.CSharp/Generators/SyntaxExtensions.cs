@@ -71,8 +71,8 @@ public static class SyntaxExtensions
                                     Token(
                                         TriviaList(),
                                         SyntaxKind.XmlTextLiteralNewLineToken,
-                                        System.Environment.NewLine,
-                                        System.Environment.NewLine,
+                                        Environment.NewLine,
+                                        Environment.NewLine,
                                         TriviaList())))))));
     }
 

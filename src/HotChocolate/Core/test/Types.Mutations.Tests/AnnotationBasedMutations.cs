@@ -1283,7 +1283,7 @@ public class AnnotationBasedMutations
 
     public class SimpleMutationReturnList
     {
-        public System.Collections.Generic.List<string> DoSomething(string something)
+        public List<string> DoSomething(string something)
             => [something,];
     }
 

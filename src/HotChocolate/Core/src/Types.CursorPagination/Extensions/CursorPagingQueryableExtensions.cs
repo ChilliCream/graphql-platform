@@ -170,7 +170,7 @@ public static class CursorPagingQueryableExtensions
     /// cursor paging algorithm to the provided <paramref name="enumerable"/>.
     /// </returns>
     public static ValueTask<Connection<TEntity>> ApplyCursorPaginationAsync<TEntity>(
-        this System.Collections.Generic.IEnumerable<TEntity> enumerable,
+        this IEnumerable<TEntity> enumerable,
         IResolverContext context,
         int? defaultPageSize = null,
         int? totalCount = null,

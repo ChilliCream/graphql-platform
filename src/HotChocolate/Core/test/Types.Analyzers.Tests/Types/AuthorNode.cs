@@ -28,17 +28,17 @@ public static partial class AuthorNode
         => someArg1 + someArg2;
 
     public static IEnumerable<Author> GetAuthorsPure()
-        => throw new System.NotImplementedException();
+        => throw new NotImplementedException();
 
     public static IQueryable<Author> GetAuthorsQuery()
-        => throw new System.NotImplementedException();
+        => throw new NotImplementedException();
 
     public static Task<IEnumerable<Author>> GetAuthorsNeedsPostProcessor()
-        => throw new System.NotImplementedException();
+        => throw new NotImplementedException();
 
     [UseListPostProcessor<Author>]
     public static Task<IEnumerable<Author>> GetAuthorsHasPostProcessor()
-        => throw new System.NotImplementedException();
+        => throw new NotImplementedException();
 
     [Query]
     public static string QueryFieldCollocatedWithAuthor() => "hello";

@@ -391,7 +391,7 @@ public sealed class TypeInfos
     public RuntimeTypeInfo GetOrAdd(RuntimeTypeDirective runtimeType) =>
         GetOrAdd(runtimeType.Name, () => new(runtimeType.Name, runtimeType.ValueType ?? false));
 
-    private RuntimeTypeInfo GetOrAdd(string fullTypeName, System.Func<RuntimeTypeInfo> factory)
+    private RuntimeTypeInfo GetOrAdd(string fullTypeName, Func<RuntimeTypeInfo> factory)
     {
         if (!fullTypeName.StartsWith("global::"))
         {

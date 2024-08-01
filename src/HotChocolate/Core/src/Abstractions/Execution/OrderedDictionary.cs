@@ -23,7 +23,7 @@ public class OrderedDictionary<TKey, TValue>
     {
         if (values is null)
         {
-            throw new System.ArgumentNullException(nameof(values));
+            throw new ArgumentNullException(nameof(values));
         }
 
         _order = [];
@@ -40,7 +40,7 @@ public class OrderedDictionary<TKey, TValue>
     {
         if (source is null)
         {
-            throw new System.ArgumentNullException(nameof(source));
+            throw new ArgumentNullException(nameof(source));
         }
 
         _order = [..source._order,];

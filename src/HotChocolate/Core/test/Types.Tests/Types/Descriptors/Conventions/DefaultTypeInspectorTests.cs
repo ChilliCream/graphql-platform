@@ -735,7 +735,7 @@ public class DefaultTypeInspectorTests
             IDescriptor descriptor,
             ICustomAttributeProvider element)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
     }
 

@@ -41,7 +41,7 @@ public interface IDirectiveTypeDescriptor<T>
     ///
     /// Explicit:
     /// All arguments have to specified explicitly via
-    /// <see cref="Argument(System.Linq.Expressions.Expression{System.Func{T,object}})"/>.
+    /// <see cref="Argument(Expression{Func{T,object}})"/>.
     /// </param>
     IDirectiveTypeDescriptor<T> BindArguments(
         BindingBehavior behavior);
