@@ -1367,24 +1367,9 @@ public class OperationCompilerTests
         var schema =
             await new ServiceCollection()
                 .AddGraphQLServer()
-                .AddDocumentFromString(
-                    """
-                    type Query {
-                        oneOrTwo: OneOrTwo!
-                    }
-
-                    union OneOrTwo = TypeOne | TypeTwo
-
-                    type TypeOne {
-                      field1: String!
-                      field2: String
-                    }
-
-                    type TypeTwo {
-                      field1: String!
-                      field2: String
-                    }
-                    """)
+                .AddQueryType<UnionQuery>()
+                .AddType<TypeOne>()
+                .AddType<TypeTwo>()
                 .UseField(next => next)
                 .BuildSchemaAsync();
 
@@ -1398,13 +1383,11 @@ public class OperationCompilerTests
             }
 
             fragment TypeOneParts on TypeOne {
-              field1
-              field2
+              field1 { name }
             }
 
             fragment TypeTwoParts on TypeTwo {
-              field1
-              field2
+              field1 { name }
             }
             """);
 
@@ -1446,11 +1429,11 @@ public class OperationCompilerTests
             }
 
             fragment TypeOneParts on TypeOne {
-              field1
+              field1 { name }
             }
 
             fragment TypeTwoParts on TypeTwo {
-              field1
+              field1 { name }
             }
             """);
 
@@ -1521,14 +1504,25 @@ public class OperationCompilerTests
 
     public class TypeOne : IOneOrTwo
     {
-        public string Field1 => "Field1";
+        public FieldOne1 Field1 => new();
     }
 
     public class TypeTwo : IOneOrTwo
     {
-        public string Field1 => "Field1";
+        public FieldTwo1 Field1 => new();
     }
 
     [UnionType]
     public interface IOneOrTwo;
+
+    public class FieldOne1
+    {
+        public string Name => "Name";
+    }
+
+    public class FieldTwo1
+    {
+        public string Name => "Name";
+    }
+
 }

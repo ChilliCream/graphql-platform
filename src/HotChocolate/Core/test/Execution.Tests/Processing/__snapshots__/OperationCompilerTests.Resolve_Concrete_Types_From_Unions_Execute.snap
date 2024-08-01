@@ -1,7 +1,9 @@
 {
   "data": {
     "oneOrTwo": {
-      "field1": "Field1"
+      "field1": {
+        "name": "Name"
+      }
     }
   }
 }
