@@ -1,7 +1,7 @@
 namespace HotChocolate.Fusion.Composition.Features;
 
 /// <summary>
-/// Represents the available Fusion composition features. 
+/// Represents the available Fusion composition features.
 /// </summary>
 public static class FusionFeatures
 {
@@ -11,7 +11,7 @@ public static class FusionFeatures
     public static NodeFieldFeature NodeField => NodeFieldFeature.Instance;
 
     /// <summary>
-    /// Specifies if the fusion graph shall re-encode the ids of subgraph schemas. 
+    /// Specifies if the fusion graph shall re-encode the ids of subgraph schemas.
     /// </summary>
     public static ReEncodeIdsFeature ReEncodeIds => ReEncodeIdsFeature.Instance;
 
@@ -29,6 +29,6 @@ public static class FusionFeatures
     /// </returns>
     public static TagDirectiveFeature TagDirective(
         IEnumerable<string>? exclude = null,
-        bool makeTagsPublic = false) 
+        bool makeTagsPublic = false)
         => new(exclude, makeTagsPublic);
 }

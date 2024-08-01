@@ -16,7 +16,7 @@ internal class ObjectToDictionaryConverter
     {
         _converter = converter ?? throw new ArgumentNullException(nameof(converter));
     }
-    
+
     public object Convert(object obj)
     {
         if(obj is null)

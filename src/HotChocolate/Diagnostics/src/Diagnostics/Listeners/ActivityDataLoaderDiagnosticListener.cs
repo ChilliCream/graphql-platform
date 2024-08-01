@@ -38,4 +38,3 @@ internal sealed class ActivityDataLoaderDiagnosticListener : DataLoaderDiagnosti
         return new DataLoaderBatchScope<TKey>(_enricher, dataLoader, keys, activity);
     }
 }
-

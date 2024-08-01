@@ -7,7 +7,7 @@ using static HotChocolate.Utilities.Introspection.IntrospectionQueryHelper;
 namespace HotChocolate.Utilities.Introspection;
 
 /// <summary>
-/// This helper class issues requests to determine what capabilities a GraphQL server has. 
+/// This helper class issues requests to determine what capabilities a GraphQL server has.
 /// </summary>
 internal sealed class CapabilityInspector
 {
@@ -35,7 +35,7 @@ internal sealed class CapabilityInspector
         await inspector.RunInspectionAsync().ConfigureAwait(false);
         return inspector._features;
     }
-    
+
     private Task RunInspectionAsync()
         => Task.WhenAll(
             InspectArgumentDeprecationAsync(),
@@ -239,7 +239,7 @@ internal sealed class CapabilityInspector
             }
         }
     }
-    
+
     private async Task InspectSchemaAsync()
     {
         // Queries/inspect_schema.graphql
@@ -277,7 +277,7 @@ internal sealed class CapabilityInspector
 
         using var response = await _client.SendAsync(request, _cancellationToken).ConfigureAwait(false);
         using var result = await response.ReadAsResultAsync(_cancellationToken).ConfigureAwait(false);
-        
+
         if (result.Data.ValueKind is JsonValueKind.Object &&
             result.Data.TryGetProperty("__type", out var type) &&
             type.TryGetProperty("fields", out var fields))

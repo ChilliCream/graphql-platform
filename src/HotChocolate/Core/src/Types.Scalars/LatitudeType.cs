@@ -23,7 +23,7 @@ public class LatitudeType : ScalarType<double, StringValueNode>
     {
         Description = description;
     }
-    
+
     /// <summary>
     /// Initializes a new instance of <see cref="LatitudeType"/>
     /// </summary>

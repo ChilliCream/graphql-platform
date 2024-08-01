@@ -235,7 +235,7 @@ public abstract class TypeInterceptor
         ObjectFieldDefinition mutationField)
     {
     }
-    
+
     /// <summary>
     /// This method is called before the types are completed.
     /// </summary>

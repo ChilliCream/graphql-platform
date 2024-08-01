@@ -37,7 +37,7 @@ public readonly struct OperationBatchRequest(
         {
             throw new ArgumentNullException(nameof(writer));
         }
-        
+
         Utf8JsonWriterHelper.WriteOperationRequest(writer, this);
     }
 
@@ -59,7 +59,7 @@ public readonly struct OperationBatchRequest(
         {
             return false;
         }
-        
+
         for (var i = 0; i < Requests.Count; i++)
         {
             if (!Requests[i].Equals(other.Requests[i]))
@@ -67,7 +67,7 @@ public readonly struct OperationBatchRequest(
                 return false;
             }
         }
-        
+
         return true;
     }
 

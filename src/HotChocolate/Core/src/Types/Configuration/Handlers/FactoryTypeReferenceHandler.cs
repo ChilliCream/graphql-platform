@@ -4,7 +4,7 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Configuration;
 
-internal sealed class FactoryTypeReferenceHandler(IDescriptorContext context) 
+internal sealed class FactoryTypeReferenceHandler(IDescriptorContext context)
     : ITypeRegistrarHandler
 {
     private readonly HashSet<string> _handled = [];

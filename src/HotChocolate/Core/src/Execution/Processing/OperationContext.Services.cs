@@ -23,7 +23,7 @@ internal sealed partial class OperationContext
     /// Gets access to the input parser.
     /// </summary>
     public InputParser InputParser => _inputParser;
-    
+
     /// <summary>
     /// Gets the service scope initializer.
     /// </summary>

@@ -36,7 +36,6 @@ public class DescriptorContextTests
         Assert.Equal(options, context.Options);
     }
 
-
     [Fact]
     public void Create_With_Custom_NamingConventions_AsIConvention()
     {

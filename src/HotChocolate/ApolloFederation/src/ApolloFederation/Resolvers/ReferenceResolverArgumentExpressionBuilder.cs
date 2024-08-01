@@ -48,7 +48,7 @@ internal sealed class ReferenceResolverArgumentExpressionBuilder :
 
     // NOTE: It will use the default handler without these two.
     public override bool IsDefaultHandler => true;
-    
+
     public override bool CanHandle(ParameterInfo parameter) => true;
 
     private string[] RequirePathAndGetSeparatedPath(ParameterInfo parameter)
@@ -63,12 +63,11 @@ internal sealed class ReferenceResolverArgumentExpressionBuilder :
     }
 
     private readonly List<string[]> _requiredPaths = [];
-    
+
     public IReadOnlyList<string[]> Required => _requiredPaths;
 
     protected override bool ResolveDefaultIfNotExistsParameterValue(
         Type targetType,
         ParameterInfo parameter)
         => false;
-
 }

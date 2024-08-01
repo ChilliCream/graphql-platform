@@ -62,8 +62,6 @@ internal static class MessageHelper
 #endif
     }
 
-
-
     public static async ValueTask SendCompleteMessageAsync(
         this WebSocket socket,
         string operationSessionId,
@@ -101,6 +99,4 @@ internal static class MessageHelper
         await socket.SendAsync(arrayWriter.ToArraySegment(), Text, true, ct).ConfigureAwait(false);
 #endif
     }
-
-
 }

@@ -33,7 +33,6 @@ public static partial class SchemaBuilderExtensions
                     n, fieldReference, middleware(n))));
     }
 
-
     public static ISchemaBuilder Map<TMiddleware>(
         this ISchemaBuilder builder,
         FieldReference fieldReference)

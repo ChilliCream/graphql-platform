@@ -144,7 +144,6 @@ public class ArrayWriterTests
     [Fact]
     public void GetMemory_ShouldThrowWhenNegativeSizeHint()
     {
-
         // Arrange
         using var writer = new ArrayWriter();
 

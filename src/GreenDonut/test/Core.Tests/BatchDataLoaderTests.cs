@@ -67,7 +67,7 @@ public class BatchDataLoaderTests
             new AutoBatchScheduler(),
             new DataLoaderOptions
             {
-                Cache = cacheOwner.Cache, 
+                Cache = cacheOwner.Cache,
                 CancellationToken = cacheOwner.CancellationToken,
             });
 

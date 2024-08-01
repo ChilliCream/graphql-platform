@@ -28,7 +28,6 @@ public static class TestHelper
         mock.Setup(c => c.Parent<_Service>()).Returns(new _Service());
         mock.Setup(c => c.Clone()).Returns(mock.Object);
         mock.SetupGet(c => c.Schema).Returns(schema);
-        
 
         if (type is not null)
         {

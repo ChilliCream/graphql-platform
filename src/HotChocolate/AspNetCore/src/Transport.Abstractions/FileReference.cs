@@ -37,14 +37,14 @@ public sealed class FileReference
         if (string.IsNullOrWhiteSpace(fileName))
         {
             throw new ArgumentException(
-                FileReference_FileName_NullOrEmpty, 
+                FileReference_FileName_NullOrEmpty,
                 nameof(fileName));
         }
-        
+
         _openRead = () => stream;
         FileName = fileName;
     }
-    
+
     /// <summary>
     /// Creates a new instance of <see cref="FileReference" />
     /// </summary>
@@ -65,10 +65,10 @@ public sealed class FileReference
         if (string.IsNullOrWhiteSpace(fileName))
         {
             throw new ArgumentException(
-                FileReference_FileName_NullOrEmpty, 
+                FileReference_FileName_NullOrEmpty,
                 nameof(fileName));
         }
-        
+
         _openRead = openRead ?? throw new ArgumentNullException(nameof(openRead));
         FileName = fileName;
     }
@@ -77,7 +77,7 @@ public sealed class FileReference
     /// The file name eg. <c>foo.txt</c>.
     /// </summary>
     public string FileName { get; }
-    
+
     /// <summary>
     /// Opens the file stream.
     /// </summary>

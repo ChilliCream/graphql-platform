@@ -60,7 +60,6 @@ public class DatabaseHelperTests
                 Value = "ghi",
             }));
 
-
         // assert
         var entities = new List<EntityDto>();
         await foreach (var entityDto in helper.GetAllEntitiesAsync(connection))
@@ -179,7 +178,6 @@ public class DatabaseHelperTests
                 ResultType = "ghi",
                 DataInfo = "jkl",
             }));
-
 
         // assert
         var collections = new List<OperationDto>();

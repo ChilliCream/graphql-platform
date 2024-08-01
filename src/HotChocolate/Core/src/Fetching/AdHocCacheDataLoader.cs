@@ -21,6 +21,6 @@ internal sealed class AdHocCacheDataLoader<TKey, TValue> : CacheDataLoader<TKey,
 
     protected override Task<TValue> LoadSingleAsync(
         TKey key,
-        CancellationToken cancellationToken) 
+        CancellationToken cancellationToken)
         => _fetch(key, cancellationToken);
 }

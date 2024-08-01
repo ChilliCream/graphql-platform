@@ -22,7 +22,7 @@ public sealed class DataLoaderOptions
     /// The default value is set to <c>null</c>.
     /// </summary>
     public ITaskCache? Cache { get; set; }
-    
+
     /// <summary>
     /// Gets the cancellation token that shall be used for dispatch tasks.
     /// </summary>

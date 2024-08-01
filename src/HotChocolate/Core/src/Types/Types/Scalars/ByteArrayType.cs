@@ -19,7 +19,7 @@ public class ByteArrayType : ScalarType<byte[], StringValueNode>
     {
         Description = description;
     }
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="ByteArrayType"/> class.
     /// </summary>

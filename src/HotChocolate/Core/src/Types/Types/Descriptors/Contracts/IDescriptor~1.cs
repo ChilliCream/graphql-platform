@@ -21,7 +21,6 @@ public interface IDescriptor<out T> : IDescriptor where T : DefinitionBase
     /// <returns></returns>
     IDescriptorExtension<T> Extend();
 
-
     /// <summary>
     /// Provides access to the underlying configuration. This is useful for extensions.
     /// </summary>

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,7 +20,6 @@ public class ListTypeTests
         // assert
         Assert.Equal(innerType, type.ElementType);
     }
-
 
     [Fact]
     public void EnsureNonNullElementTypeIsCorrectlySet()

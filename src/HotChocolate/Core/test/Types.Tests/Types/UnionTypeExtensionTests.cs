@@ -23,7 +23,6 @@ public class UnionTypeExtensionTests
             t => Assert.IsType<BType>(t));
     }
 
-
     [Fact]
     public void UnionTypeExtension_SetTypeContextData()
     {

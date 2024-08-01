@@ -257,7 +257,6 @@ public static partial class RequestExecutorBuilderExtensions
             (services, options) => options.OnConfigureRequestExecutorOptionsHooks.Add(
                 new OnConfigureRequestExecutorOptionsAction(
                     (_, o) => modify(services, o))));
-
     }
 
     /// <summary>

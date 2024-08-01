@@ -29,5 +29,5 @@ public static class HttpRequestHeadersExtensions
 
         headers.Add("GraphQL-Preflight", "1");
         return headers;
-    }  
+    }
 }

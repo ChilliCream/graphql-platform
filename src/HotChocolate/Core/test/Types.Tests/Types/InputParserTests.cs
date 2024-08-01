@@ -380,7 +380,7 @@ public class InputParserTests
             .BuildRequestExecutorAsync();
 
         // act
-        var query = 
+        var query =
             OperationRequest.FromSourceText(
                 """
                 {

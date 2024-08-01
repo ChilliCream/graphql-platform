@@ -73,7 +73,6 @@ public class OperationStoreTests
         var request = new OperationRequest("abc", document.Object);
         IOperationResult<string>? lastResult = null;
 
-
         // act
         using var session =
             System.ObservableExtensions.Subscribe(

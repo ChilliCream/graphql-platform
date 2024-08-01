@@ -10,7 +10,7 @@ public sealed class ErrorMarker
     {
         // Intentionally left blank.
     }
-    
+
     /// <summary>
     /// Gets the error marker instance.
     /// </summary>

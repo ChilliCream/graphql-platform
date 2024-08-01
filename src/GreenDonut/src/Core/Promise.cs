@@ -13,7 +13,7 @@ namespace GreenDonut;
 public readonly struct Promise<TValue> : IPromise
 {
     private readonly TaskCompletionSource<TValue>? _completionSource;
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="Promise{TValue}"/> class
     /// </summary>
@@ -24,7 +24,7 @@ public readonly struct Promise<TValue> : IPromise
     {
         Task = System.Threading.Tasks.Task.FromResult(value);
     }
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="Promise{TValue}"/> class
     /// </summary>
@@ -38,7 +38,7 @@ public readonly struct Promise<TValue> : IPromise
     {
         Task = task ?? throw new ArgumentNullException(nameof(task));
     }
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="Promise{TValue}"/> class
     /// </summary>
@@ -58,12 +58,12 @@ public readonly struct Promise<TValue> : IPromise
     /// Gets the task that represents the promise.
     /// </summary>
     public Task<TValue> Task { get; }
-    
+
     Task IPromise.Task => Task;
 
     void IPromise.TryCancel()
         => _completionSource?.TrySetCanceled();
-    
+
     /// <summary>
     /// Implicitly converts a <see cref="TaskCompletionSource{TResult}"/> to a promise.
     /// </summary>
@@ -73,6 +73,6 @@ public readonly struct Promise<TValue> : IPromise
     /// <returns>
     /// The promise that represents the task completion source.
     /// </returns>
-    public static implicit operator Promise<TValue>(TaskCompletionSource<TValue> promise) 
+    public static implicit operator Promise<TValue>(TaskCompletionSource<TValue> promise)
         => new(promise);
 }

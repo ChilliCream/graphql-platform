@@ -337,7 +337,6 @@ public class PagingTests
             .MatchMarkdownAsync();
     }
 
-
     [Fact]
     public async Task Filtering_Specific_Filter_Used()
     {

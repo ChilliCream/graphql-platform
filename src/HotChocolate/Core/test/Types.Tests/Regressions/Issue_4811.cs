@@ -75,7 +75,6 @@ public class Issue_4811
         }
     }
 
-
     public class CreateCnaeInput
     {
         public CreateCnaeInput(CNAEMutationInput cnae)

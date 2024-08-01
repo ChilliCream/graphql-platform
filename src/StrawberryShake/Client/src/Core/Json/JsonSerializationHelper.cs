@@ -137,7 +137,6 @@ public static class JsonSerializationHelper
 
     public static object? ReadValue(JsonElement element)
     {
-
         switch (element.ValueKind)
         {
             case JsonValueKind.Null:

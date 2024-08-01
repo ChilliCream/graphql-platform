@@ -261,7 +261,6 @@ public class AnyType : ScalarType
                         {
                             return false;
                         }
-
                     }
 
                     runtimeValue = result;

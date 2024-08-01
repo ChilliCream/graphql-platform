@@ -182,7 +182,6 @@ public class DependencyInjectionTests
 
     public class Query1
     {
-
     }
 
     [ExtendObjectType(typeof(Query1))]

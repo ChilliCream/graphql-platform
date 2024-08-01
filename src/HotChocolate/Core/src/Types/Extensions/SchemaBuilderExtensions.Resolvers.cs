@@ -589,7 +589,6 @@ public static partial class SchemaBuilderExtensions
 
             AddResolverTypeInternal(builder, typeName, resolverType);
 
-
             return builder;
         }
 

@@ -32,7 +32,7 @@ internal delegate IEnumerable<IParameterHandler> CreateDelegateHandlers(
 /// <summary>
 /// This helper compiles classes to middleware delegates.
 /// </summary>
-#if NET6_0_OR_GREATER 
+#if NET6_0_OR_GREATER
 internal static class MiddlewareCompiler<[DynamicallyAccessedMembers(PublicConstructors | PublicMethods)] TMiddleware>
 #else
 internal static class MiddlewareCompiler<TMiddleware>

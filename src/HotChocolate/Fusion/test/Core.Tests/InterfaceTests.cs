@@ -9,7 +9,6 @@ using Xunit.Abstractions;
 using static HotChocolate.Language.Utf8GraphQLParser;
 using static HotChocolate.Fusion.TestHelper;
 
-
 namespace HotChocolate.Fusion;
 
 public class InterfaceTests

@@ -24,7 +24,7 @@ public class StringTokenReaderTests
         Assert.Equal(TokenKind.String, reader.Kind);
     }
 
-    // allowed escape characters "	\	/	b	f	n	r	t
+    // allowed escape characters " \ / b f n r t
     // see also http://facebook.github.io/graphql/draft/#EscapedCharacter
     // \" -> "
     [InlineData("\"\\\"456\"", "\"456")]

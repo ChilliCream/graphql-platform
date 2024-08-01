@@ -85,7 +85,6 @@ public class DirectiveTests : TypeTestBase
         Assert.Equal("456", runtimeValue.Child.Bar);
     }
 
-
     [Fact]
     public void Directive_AsValue_Same()
     {

@@ -18,7 +18,7 @@ internal static partial class ValueCompletion
     {
         var operationContext = context.OperationContext;
         var resolverContext = context.ResolverContext;
-        
+
         try
         {
             var leafType = (ILeafType)type;

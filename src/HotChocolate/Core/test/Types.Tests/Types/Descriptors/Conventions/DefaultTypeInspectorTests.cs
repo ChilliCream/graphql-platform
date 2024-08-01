@@ -291,9 +291,6 @@ public class DefaultTypeInspectorTests
         Assert.Null(typeReference.Scope);
     }
 
-
-
-
     [Fact]
     public void GetArgumentTypeRef_Parameter_Is_Null()
     {
@@ -687,7 +684,6 @@ public class DefaultTypeInspectorTests
         public string ShouldNotBeFound(
             object o) => null;
 
-
         public string ShouldBeFound(
             [GraphQLType(typeof(StringType))]
             object o) => null;
@@ -697,7 +693,6 @@ public class DefaultTypeInspectorTests
     {
         public string ShouldNotBeFound(
             object o) => null;
-
 
         public string ShouldBeFound(
             [Some]

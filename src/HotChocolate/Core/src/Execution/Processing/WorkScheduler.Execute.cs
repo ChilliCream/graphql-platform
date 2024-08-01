@@ -74,7 +74,6 @@ RESTART:
                 {
                     break;
                 }
-
             } while (!_ct.IsCancellationRequested);
         }
         catch (Exception ex)

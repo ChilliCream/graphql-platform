@@ -382,7 +382,6 @@ public class DataLoaderTests(ITestOutputHelper output)
         Assert.Equal(expectedException.Message, actualException.Message);
     }
 
-
     [Fact(DisplayName = "LoadAsync: Should handle batching error")]
     public async Task LoadBatchingError()
     {
@@ -452,10 +451,10 @@ public class DataLoaderTests(ITestOutputHelper output)
 
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         var ct = cts.Token;
-        using var cacheOwner = caching 
+        using var cacheOwner = caching
             ? new TaskCacheOwner()
             : null;
-        
+
         var options = new DataLoaderOptions
         {
             Cache = cacheOwner?.Cache,

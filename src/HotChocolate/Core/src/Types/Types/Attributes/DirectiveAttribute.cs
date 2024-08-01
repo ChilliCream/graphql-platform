@@ -27,8 +27,8 @@ public abstract class DirectiveAttribute<TDirective> : DescriptorAttribute where
     }
 
     protected internal sealed override void TryConfigure(
-        IDescriptorContext context, 
-        IDescriptor descriptor, 
+        IDescriptorContext context,
+        IDescriptor descriptor,
         ICustomAttributeProvider element)
     {
         switch (descriptor)
@@ -84,7 +84,7 @@ public abstract class DirectiveAttribute<TDirective> : DescriptorAttribute where
             default:
                 throw new ArgumentOutOfRangeException(nameof(descriptor));
         }
-        
+
         OnConfigure(context, _directive, element);
     }
 
@@ -94,4 +94,4 @@ public abstract class DirectiveAttribute<TDirective> : DescriptorAttribute where
         ICustomAttributeProvider element)
     {
     }
-} 
+}

@@ -24,5 +24,4 @@ public partial class QueryInstrumentationTests
             return Task.FromResult<IReadOnlyDictionary<string, string>>(dict);
         }
     }
-
 }

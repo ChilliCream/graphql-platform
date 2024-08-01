@@ -73,7 +73,6 @@ public class Utf8HelperTests
             Encoding.UTF8.GetString(output.ToArray()));
     }
 
-
     [InlineData("\\\"\"")]
     [InlineData("\\\"")]
     [Theory]

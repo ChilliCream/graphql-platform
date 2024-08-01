@@ -26,6 +26,6 @@ internal sealed class AdHocGroupedDataLoader<TKey, TValue> : GroupedDataLoader<T
 
     protected override Task<ILookup<TKey, TValue>> LoadGroupedBatchAsync(
         IReadOnlyList<TKey> keys,
-        CancellationToken cancellationToken) 
+        CancellationToken cancellationToken)
         => _fetch(keys, cancellationToken);
 }

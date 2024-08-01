@@ -12,7 +12,7 @@ public static class OperationRequestBuilderExtensions
     /// Allows introspection usage in the current request.
     /// </summary>
     public static OperationRequestBuilder AllowIntrospection(
-        this OperationRequestBuilder builder) 
+        this OperationRequestBuilder builder)
         => builder.SetGlobalState(WellKnownContextData.IntrospectionAllowed, null);
 
     /// <summary>
@@ -57,21 +57,21 @@ public static class OperationRequestBuilderExtensions
     /// </summary>
     public static OperationRequestBuilder SetMaximumAllowedComplexity(
         this OperationRequestBuilder builder,
-        int maximumAllowedComplexity) 
+        int maximumAllowedComplexity)
         => builder.SetGlobalState(WellKnownContextData.MaximumAllowedComplexity, maximumAllowedComplexity);
 
     /// <summary>
     /// Marks the current request to allow non-persisted queries.
     /// </summary>
     public static OperationRequestBuilder AllowNonPersistedQuery(
-        this OperationRequestBuilder builder) 
+        this OperationRequestBuilder builder)
         => builder.SetGlobalState(WellKnownContextData.NonPersistedQueryAllowed, true);
 
     /// <summary>
     /// Skips the request execution depth analysis.
     /// </summary>
     public static OperationRequestBuilder SkipExecutionDepthAnalysis(
-        this OperationRequestBuilder builder) 
+        this OperationRequestBuilder builder)
         => builder.SetGlobalState(WellKnownContextData.SkipDepthAnalysis, null);
 
     /// <summary>
@@ -80,7 +80,7 @@ public static class OperationRequestBuilderExtensions
     /// </summary>
     public static OperationRequestBuilder SetMaximumAllowedExecutionDepth(
         this OperationRequestBuilder builder,
-        int maximumAllowedDepth) 
+        int maximumAllowedDepth)
         => builder.SetGlobalState(WellKnownContextData.MaxAllowedExecutionDepth, maximumAllowedDepth);
 
     /// <summary>
@@ -88,6 +88,6 @@ public static class OperationRequestBuilderExtensions
     /// </summary>
     public static OperationRequestBuilder SetUser(
         this OperationRequestBuilder builder,
-        ClaimsPrincipal claimsPrincipal) 
+        ClaimsPrincipal claimsPrincipal)
         => builder.SetGlobalState(nameof(ClaimsPrincipal), claimsPrincipal);
 }

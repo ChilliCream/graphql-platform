@@ -174,7 +174,6 @@ public class FooDataLoader : DataLoaderBase<Guid, Foo>
         _fooRepository = fooRepository;
     }
 
-
     protected override async Task<IReadOnlyList<Result<Foo>>> FetchAsync(
         IReadOnlyList<Guid> keys,
         CancellationToken cancellationToken)
@@ -199,7 +198,6 @@ public class FooDataLoader : DataLoaderBase<Guid, Foo>
     {
         _fooRepository = fooRepository;
     }
-
 
     //                          ▼
     protected override async ValueTask<IReadOnlyList<Result<Foo>>> FetchAsync(

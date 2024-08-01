@@ -100,7 +100,6 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
             t => Assert.Equal("c", t));
     }
 
-
     [Fact]
     public void UnignoreOverriddenPropertyField()
     {

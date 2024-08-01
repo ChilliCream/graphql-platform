@@ -126,7 +126,6 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
         Assert.Equal("Bar", stubClient.SchemaName);
     }
 
-
     [Fact]
     public void AddInMemoryClientActionServiceProvider_NoServices_ThrowException()
     {
@@ -273,7 +272,6 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
         // assert
         Assert.Equal("Bar", stubClient.SchemaName);
     }
-
 
     [Fact]
     public void AddInMemoryClientAsyncActionServiceProvider_NoServices_ThrowException()

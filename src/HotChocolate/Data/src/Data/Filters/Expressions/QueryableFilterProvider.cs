@@ -128,7 +128,6 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
         }
 
         return new ExpressionFilterMetadata(fieldDefinition.Expression);
-
     }
 
     /// <summary>

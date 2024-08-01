@@ -288,5 +288,4 @@ internal static class ThrowHelper
 
     public static NotSupportedException MultiPartFormatter_ResultNotSupported(string typeName)
         => new(string.Format(ThrowHelper_JsonFormatter_ResultNotSupported, typeName));
-
 }

@@ -63,7 +63,7 @@ public partial class ObjectType
 
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Object;
-    
+
     /// <summary>
     /// Gets the interfaces that are implemented by this type.
     /// </summary>

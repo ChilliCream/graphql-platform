@@ -248,7 +248,6 @@ public static class PagingObjectFieldDescriptorExtensions
                 d.Type = CreateConnectionTypeRef(c, d.Member, connectionName, typeRef, options);
             });
 
-
         return descriptor;
     }
 

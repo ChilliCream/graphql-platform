@@ -682,7 +682,6 @@ public class ObjectTypeExtensionTests
         SnapshotExtensions.MatchSnapshot(schema);
     }
 
-
     [Fact]
     public async Task Query_Extension_With_Static_Members_2_Schema()
     {
@@ -963,7 +962,6 @@ public class ObjectTypeExtensionTests
 
     public interface IMarker
     {
-
     }
 
     public class BindResolver_With_Property_PersonDto

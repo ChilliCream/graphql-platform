@@ -327,7 +327,6 @@ public class ObjectTypeTests : TypeTestBase
         Assert.IsType<StringType>(fooType.Fields["bar"].Type);
     }
 
-
     [Fact]
     public void TwoInterfacesProvideFieldAWithDifferentOutputType()
     {
@@ -1998,7 +1997,6 @@ public class ObjectTypeTests : TypeTestBase
         // assert
         SnapshotExtensions.MatchSnapshot(schema);
     }
-
 
     [Fact]
     public async Task Static_Field_Inference_3()

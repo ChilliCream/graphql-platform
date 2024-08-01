@@ -1,4 +1,4 @@
-﻿namespace HotChocolate.Template.Server.Types;
+namespace HotChocolate.Template.Server.Types;
 
 [QueryType]
 public static class Query

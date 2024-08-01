@@ -12,7 +12,7 @@ public interface IMaxExecutionDepthOptionsAccessor
     int? MaxAllowedExecutionDepth { get; }
 
     /// <summary>
-    /// Specifies that the max execution depth analysis 
+    /// Specifies that the max execution depth analysis
     /// shall skip introspection fields.
     /// </summary>
     bool SkipIntrospectionFields { get; }

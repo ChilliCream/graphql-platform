@@ -1,4 +1,4 @@
-﻿using ChilliCream.Testing;
+using ChilliCream.Testing;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -922,7 +922,6 @@ public class FieldSelectionMergingRuleTests()
             }
             """);
     }
-
 
     [Fact]
     public void ConflictingReturnTypesWhichPotentiallyOverlap()

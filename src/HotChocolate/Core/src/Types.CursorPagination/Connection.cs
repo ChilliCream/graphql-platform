@@ -98,7 +98,7 @@ public class Connection : IPage
     /// Gets an cashed empty connection object.
     /// </summary>
     public static Connection Empty() => EmptyConnectionHolder.Empty;
-    
+
     /// <summary>
     /// Gets an cashed empty connection object.
     /// </summary>

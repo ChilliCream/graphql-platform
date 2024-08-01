@@ -5,8 +5,8 @@ using System;
 namespace HotChocolate;
 
 /// <summary>
-/// This exception indicates that the specified 
-/// <see cref="InvalidSchemaCoordinateException.Coordinate"/> 
+/// This exception indicates that the specified
+/// <see cref="InvalidSchemaCoordinateException.Coordinate"/>
 /// could not be resolved.
 /// </summary>
 public class InvalidSchemaCoordinateException : Exception

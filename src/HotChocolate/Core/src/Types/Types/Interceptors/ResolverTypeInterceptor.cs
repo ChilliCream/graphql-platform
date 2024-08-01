@@ -271,7 +271,6 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
                         argumentNames: map,
                         parameterExpressionBuilders: field.GetParameterExpressionBuilders());
 
-
                     if (TrySetRuntimeTypeFromMember(context, field.Type, field.Member) is { } u)
                     {
                         foreach (var updated in u)

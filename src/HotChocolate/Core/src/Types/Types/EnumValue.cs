@@ -30,7 +30,7 @@ public sealed class EnumValue : IEnumValue
                 TypeResources.EnumValue_ValueIsNull,
                 nameof(enumValueDefinition));
         }
-        
+
         Name = string.IsNullOrEmpty(enumValueDefinition.Name)
             ? enumValueDefinition.RuntimeValue.ToString()!
             : enumValueDefinition.Name;

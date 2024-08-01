@@ -177,7 +177,6 @@ public class SerializerResolverTests
         Assert.IsType<ArgumentNullException>(ex);
     }
 
-
     [Fact]
     public void GetInputValueFormatter_FormatterRegistered_ReturnFormatter()
     {

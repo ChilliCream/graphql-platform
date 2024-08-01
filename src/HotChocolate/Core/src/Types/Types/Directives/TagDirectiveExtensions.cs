@@ -209,7 +209,7 @@ public static class TagDirectiveExtensions
         ApplyTag(descriptor, name);
         return descriptor;
     }
-    
+
     /// <summary>
     /// Adds a @tag(name: "your-value") to an <see cref="InterfaceType"/>.
     /// <code>
@@ -463,7 +463,7 @@ public static class TagDirectiveExtensions
             case IDirectiveArgumentDescriptor desc:
                 var extend = desc.Extend();
                 extend.Definition.AddDirective(
-                    new Tag(name), 
+                    new Tag(name),
                     extend.Context.TypeInspector);
                 extend.Definition.Dependencies.Add(
                     new TypeDependency(

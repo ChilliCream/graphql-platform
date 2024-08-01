@@ -61,7 +61,7 @@ public class InputObjectTypeDescriptor
         InputObjectTypeDefinition definition)
     {
         Context.Descriptors.Push(this);
-        
+
         if (!Definition.AttributesAreApplied && Definition.RuntimeType != typeof(object))
         {
             Context.TypeInspector.ApplyAttributes(

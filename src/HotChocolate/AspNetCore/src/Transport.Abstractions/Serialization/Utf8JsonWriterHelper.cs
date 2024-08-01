@@ -24,20 +24,20 @@ internal static class Utf8JsonWriterHelper
                 case OperationRequest operationRequest:
                     WriteOperationRequest(writer, operationRequest);
                     break;
-                
+
                 case VariableBatchRequest variableBatchRequest:
                     WriteOperationRequest(writer, variableBatchRequest);
                     break;
-                
+
                 default:
                     throw new NotSupportedException(
                         "The operation request type is not supported.");
             }
         }
-        
+
         writer.WriteEndArray();
     }
-    
+
     public static void WriteOperationRequest(Utf8JsonWriter writer, OperationRequest request)
     {
         writer.WriteStartObject();
@@ -81,7 +81,7 @@ internal static class Utf8JsonWriterHelper
 
         writer.WriteEndObject();
     }
-    
+
     public static void WriteOperationRequest(Utf8JsonWriter writer, VariableBatchRequest request)
     {
         writer.WriteStartObject();
@@ -90,7 +90,7 @@ internal static class Utf8JsonWriterHelper
         {
             writer.WriteString(Utf8GraphQLRequestProperties.IdProp, request.Id);
         }
- 
+
         if (request.Query is not null)
         {
             writer.WriteString(Utf8GraphQLRequestProperties.QueryProp, request.Query);
@@ -188,7 +188,7 @@ internal static class Utf8JsonWriterHelper
             case byte[] bytes:
                 writer.WriteBase64StringValue(bytes);
                 break;
-            
+
             case IReadOnlyList<IReadOnlyDictionary<string, object?>> list:
                 WriteList(writer, list);
                 break;
@@ -277,7 +277,7 @@ internal static class Utf8JsonWriterHelper
 
         writer.WriteEndObject();
     }
-    
+
     private static void WriteList<T>(
         Utf8JsonWriter writer,
         IReadOnlyList<T> list)
@@ -313,12 +313,12 @@ internal static class Utf8JsonWriterHelper
     {
         Dictionary<FileReference, FilePath[]>? files = null;
         CollectFiles(requestBody, ref files);
-        
+
         if (files is null)
         {
             return Array.Empty<FileReferenceInfo>();
         }
-                
+
         var fileInfos = new List<FileReferenceInfo>();
         var index = 0;
 

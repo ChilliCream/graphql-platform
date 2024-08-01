@@ -100,7 +100,6 @@ public partial class TypeMapperGenerator
                 .SetCondition(argument)
                 .SetCode(ExceptionBuilder.Inline(TypeNames.GraphQLClientException)));
 
-
         var ifCorrectType = IfBuilder
             .New()
             .AddCode(constructorCall)

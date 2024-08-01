@@ -1,4 +1,4 @@
-﻿using HotChocolate.Language;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Metadata;
 

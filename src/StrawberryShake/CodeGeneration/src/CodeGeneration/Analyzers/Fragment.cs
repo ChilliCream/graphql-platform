@@ -31,7 +31,7 @@ public class Fragment
         if (string.IsNullOrEmpty(name))
         {
             throw new ArgumentException(
-                $"'{nameof(name)}' cannot be null or empty", 
+                $"'{nameof(name)}' cannot be null or empty",
                 nameof(name));
         }
 

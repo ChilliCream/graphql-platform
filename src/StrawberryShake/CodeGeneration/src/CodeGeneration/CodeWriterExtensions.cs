@@ -15,7 +15,7 @@ public static class CodeWriterExtensions
 
 #if DEBUG
         writer.WriteIndentedLine(
-            "[global::System.CodeDom.Compiler.GeneratedCode(" + 
+            "[global::System.CodeDom.Compiler.GeneratedCode(" +
             "\"StrawberryShake\", \"11.0.0\")]");
 #else
             writer.WriteIndentedLine(

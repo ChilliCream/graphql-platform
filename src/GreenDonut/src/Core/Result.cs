@@ -49,7 +49,7 @@ public readonly record struct Result<TValue>
     /// otherwise <c>null</c>.
     /// </summary>
     public Exception? Error { get; }
-    
+
     /// <summary>
     /// Creates a new error result.
     /// </summary>

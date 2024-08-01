@@ -88,7 +88,6 @@ public class PersonBatchDataLoader : BatchDataLoader<string, Person>
     }
 }
 
-
 public class Query
 {
     public async Task<Person> GetPerson(
@@ -160,7 +159,6 @@ public class PersonBatchDataLoader : BatchDataLoader<string, Person>
     }
 }
 
-
 public class Query
 {
     public async Task<Person> GetPerson(
@@ -214,7 +212,6 @@ public class PersonsByLastNameDataloader
     {
         _repository = repository;
     }
-
 
     protected override async Task<ILookup<string, Person>> LoadGroupedBatchAsync(
         IReadOnlyList<string> names,

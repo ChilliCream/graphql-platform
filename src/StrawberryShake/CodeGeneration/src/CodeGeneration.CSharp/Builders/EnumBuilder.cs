@@ -68,7 +68,7 @@ public class EnumBuilder : ITypeBuilder
         _xmlComment?.Build(writer);
 
         writer.WriteGeneratedAttribute();
-        
+
         var modifier = _accessModifier.ToString().ToLowerInvariant();
 
         if (_underlyingType is null)

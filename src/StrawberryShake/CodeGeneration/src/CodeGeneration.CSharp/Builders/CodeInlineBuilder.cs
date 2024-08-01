@@ -8,7 +8,7 @@ public class CodeInlineBuilder : ICode
 
     public static CodeInlineBuilder New() => new();
 
-    public static CodeInlineBuilder From(string sourceText) => 
+    public static CodeInlineBuilder From(string sourceText) =>
         New().SetText(sourceText);
 
     public CodeInlineBuilder SetText(string value)

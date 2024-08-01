@@ -43,4 +43,4 @@ file static class DataLoaderServiceProviderExtensions
 {
     public static T GetDataLoader<T>(this IServiceProvider services) where T : IDataLoader
         => services.GetRequiredService<IDataLoaderScope>().GetDataLoader<T>();
-}  
+}

@@ -471,7 +471,6 @@ public class SchemaFirstTests
     [Fact]
     public async Task Ensure_Input_Only_Enums_Are_Correctly_Bound()
     {
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddDocumentFromString(@"
@@ -521,7 +520,6 @@ public class SchemaFirstTests
     [Fact]
     public async Task Ensure_Input_Only_Enums_Are_Correctly_Bound_When_Using_BindRuntimeType()
     {
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddDocumentFromString(@"

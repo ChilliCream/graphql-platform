@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace HotChocolate.Data.TestContext.EntityConfigurations;
@@ -13,11 +13,11 @@ internal sealed class ProductEntityTypeConfiguration : IEntityTypeConfiguration<
         builder
             .Property(ci => ci.Name)
             .HasMaxLength(50);
-        
+
         builder
             .Property(ci => ci.Description)
             .HasMaxLength(2048);
-        
+
         builder
             .Property(ci => ci.ImageFileName)
             .HasMaxLength(256);

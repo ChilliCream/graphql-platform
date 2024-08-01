@@ -50,7 +50,7 @@ public sealed class FieldError : IFieldResult
     /// Gets the error objects.
     /// </summary>
     public IReadOnlyList<object> Errors { get; }
-    
+
     /// <summary>
     /// Gets the mutation result value.
     /// </summary>

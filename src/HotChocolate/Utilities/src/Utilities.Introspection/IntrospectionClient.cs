@@ -149,7 +149,6 @@ public static class IntrospectionClient
         CancellationToken cancellationToken = default)
         => InspectServerAsync(client, default, cancellationToken);
 
-
     /// <summary>
     /// Gets the supported GraphQL server capabilities from the server by doing an introspection query.
     /// </summary>

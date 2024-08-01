@@ -246,7 +246,6 @@ public class LocalDateTypeTests : ScalarTypeTestBase
         var scalar = CreateType<LocalDateType>();
         object? resultValue =  new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
 
-
         // act
         var result = scalar.Deserialize(resultValue);
 

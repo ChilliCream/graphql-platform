@@ -66,7 +66,6 @@ internal static class ExternalSetterExpressionHelper
             .MakeGenericMethod(property.PropertyType)
             .Invoke(null, [runtimeType, property,])!;
 
-
     private static Expression CreateSetValueExpression<TValue>(
         Type runtimeType,
         PropertyInfo property)

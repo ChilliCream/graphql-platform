@@ -178,7 +178,6 @@ internal sealed class IsSelectedParameterExpressionBuilder
             return base.Enter(node, context);
         }
 
-
         protected override ISyntaxVisitorAction Leave(InlineFragmentNode node, IsSelectedContext context)
         {
             if (node.TypeCondition is not null)

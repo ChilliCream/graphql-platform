@@ -8,10 +8,10 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Configuration;
 
-internal sealed class ScalarTypeDiscoveryHandler(ITypeInspector typeInspector) 
+internal sealed class ScalarTypeDiscoveryHandler(ITypeInspector typeInspector)
     : TypeDiscoveryHandler
 {
-    private ITypeInspector TypeInspector { get; } = 
+    private ITypeInspector TypeInspector { get; } =
         typeInspector ?? throw new ArgumentNullException(nameof(typeInspector));
 
     public override bool TryInferType(

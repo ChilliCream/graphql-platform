@@ -4,7 +4,6 @@ namespace HotChocolate.Skimmed.Tests;
 
 public class ArgumentTests
 {
-
     [Fact]
     public void Argument_WithStringValueNode_CreatesInstanceWithNameAndValueNode()
     {

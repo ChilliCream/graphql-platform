@@ -263,7 +263,6 @@ file static class ResolverHelpers
         return null;
     }
 
-
     private static IResolverResultPostProcessor CreateListPostProcessor<T>()
         => new ListPostProcessor<T>();
 }

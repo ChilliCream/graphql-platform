@@ -21,4 +21,3 @@ internal sealed class ResolverArgument(
 
     public IInputValueFormatter? Formatter { get; } = formatter;
 }
-

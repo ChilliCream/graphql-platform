@@ -281,7 +281,6 @@ public class IntegrationTests : ServerTestBase
             return payload;
         }
 
-
 #pragma warning disable CS0618
         [SubscribeAndResolve]
 #pragma warning restore CS0618

@@ -137,7 +137,7 @@ public class ObjectFieldDescriptor
     protected override void OnCreateDefinition(ObjectFieldDefinition definition)
     {
         Context.Descriptors.Push(this);
-        
+
         var member = definition.ResolverMember ?? definition.Member;
 
         if (!Definition.AttributesAreApplied && member is not null)

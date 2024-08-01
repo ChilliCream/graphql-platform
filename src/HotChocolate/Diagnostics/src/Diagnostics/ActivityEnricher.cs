@@ -42,7 +42,6 @@ public class ActivityEnricher
         _options = options;
     }
 
-
     /// <summary>
     /// Gets the <see cref="StringBuilder"/> pool used by this enricher.
     /// </summary>
@@ -299,7 +298,6 @@ public class ActivityEnricher
         Exception exception,
         Activity activity)
     {
-
     }
 
     public virtual void EnrichParseHttpRequest(HttpContext context, Activity activity)
@@ -619,7 +617,7 @@ public class ActivityEnricher
         {
             return NullValueNode.Default;
         }
-        
+
         if (variableSet.Count == 1)
         {
             var variables = variableSet[0];
@@ -633,7 +631,7 @@ public class ActivityEnricher
                 var valueNode = value is null ? NullValueNode.Default : (IValueNode)value;
                 fields[index++] = new ObjectFieldNode(name, valueNode);
             }
-            
+
             return new ObjectValueNode(fields);
         }
 
@@ -641,7 +639,7 @@ public class ActivityEnricher
         {
             var variableSetCount = variableSet.Count;
             var items = new IValueNode[variableSetCount];
-            
+
             for(var i = 0; i < variableSetCount; i++)
             {
                 var variables = variableSet[i];

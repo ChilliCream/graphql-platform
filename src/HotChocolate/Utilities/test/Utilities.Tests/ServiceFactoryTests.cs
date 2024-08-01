@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -36,7 +36,7 @@ public class ServiceFactoryTests
         var serviceProvider = new DictionaryServiceProvider(
             typeof(ClassWithNoDependencies),
             new ClassWithNoDependencies());
-        
+
         // act
         var instance = ServiceFactory.CreateInstance(serviceProvider, typeof(ClassWithDependencies));
 
@@ -95,7 +95,7 @@ public class ServiceFactoryTests
 
     private sealed class ClassWithDependencies(ClassWithNoDependencies dependency)
     {
-        public ClassWithNoDependencies Dependency { get; } = 
+        public ClassWithNoDependencies Dependency { get; } =
             dependency ?? throw new ArgumentNullException(nameof(dependency));
     }
 

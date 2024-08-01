@@ -1,4 +1,4 @@
-﻿namespace HotChocolate.Language.Visitors;
+namespace HotChocolate.Language.Visitors;
 
 /// <summary>
 /// Raised when a required <see cref="ISyntaxNode"/> is rewritten to <see langword="null"/>.

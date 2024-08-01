@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 
@@ -93,7 +93,6 @@ public sealed class Cache<TValue>(int size)
             {
                 keys[index++] = current.Key;
                 current = current.Next!;
-
             } while (current != _head);
 
             return keys;

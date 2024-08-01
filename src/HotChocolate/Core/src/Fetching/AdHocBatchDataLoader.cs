@@ -25,6 +25,6 @@ internal sealed class AdHocBatchDataLoader<TKey, TValue> : BatchDataLoader<TKey,
 
     protected override Task<IReadOnlyDictionary<TKey, TValue>> LoadBatchAsync(
         IReadOnlyList<TKey> keys,
-        CancellationToken cancellationToken) 
+        CancellationToken cancellationToken)
         => _fetch(keys, cancellationToken);
 }

@@ -122,7 +122,6 @@ public class FromJsonDirectiveTests
             .MatchSnapshotAsync();
     }
 
-
     public class Query
     {
         public JsonElement GetFoo() => JsonDocument.Parse(@"{ ""bar"": ""abc"" }").RootElement;

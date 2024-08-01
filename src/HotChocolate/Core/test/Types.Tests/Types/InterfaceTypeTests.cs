@@ -157,7 +157,6 @@ public class InterfaceTypeTests : TypeTestBase
             });
     }
 
-
     [Fact]
     public void UnIgnoreFieldsFromClrInterface()
     {

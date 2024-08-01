@@ -24,7 +24,7 @@ public interface IOperationDocumentStorage
     ValueTask<IOperationDocument?> TryReadAsync(
         OperationDocumentId documentId,
         CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Saves an operation document to the storage.
     /// </summary>

@@ -36,7 +36,7 @@ public interface ISchemaBuilder
     ISchemaBuilder SetOptions(IReadOnlySchemaOptions options);
 
     ISchemaBuilder ModifyOptions(Action<SchemaOptions> configure);
-    
+
     [Obsolete("Use ModifyPagingOptions instead.")]
     ISchemaBuilder SetPagingOptions(PagingOptions options);
 

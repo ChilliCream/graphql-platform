@@ -360,7 +360,6 @@ public static class SchemaPrinter
         );
     }
 
-
     private static EnumValueDefinitionNode PrintEnumValue(IEnumValue enumValue)
     {
         var directives = enumValue.Directives

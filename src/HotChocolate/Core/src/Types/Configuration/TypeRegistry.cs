@@ -47,7 +47,7 @@ internal sealed class TypeRegistry
             return true;
         }
 
-        if (typeReference is ExtendedTypeReference extendedTypeRef && 
+        if (typeReference is ExtendedTypeReference extendedTypeRef &&
             _runtimeTypeRefs.TryGetValue(extendedTypeRef, out var reference))
         {
             return _typeRegister.ContainsKey(reference);

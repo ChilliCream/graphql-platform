@@ -54,7 +54,7 @@ internal sealed class OnlyPersistedQueriesAllowedMiddleware
 
         return default;
     }
-    
+
     public static RequestCoreMiddleware Create()
         => (core, next) =>
         {

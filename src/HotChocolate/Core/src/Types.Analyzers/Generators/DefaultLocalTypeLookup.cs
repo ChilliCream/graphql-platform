@@ -39,7 +39,6 @@ public sealed class DefaultLocalTypeLookup(ImmutableArray<SyntaxInfo> syntaxInfo
             }
         }
 
-
         typeDisplayName = type.Name;
         return true;
     }

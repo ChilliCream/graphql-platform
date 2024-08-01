@@ -276,7 +276,7 @@ public class UnionType
                         .Build());
                     continue;
                 }
-                
+
                 typeSet.Add(objectType);
             }
             else

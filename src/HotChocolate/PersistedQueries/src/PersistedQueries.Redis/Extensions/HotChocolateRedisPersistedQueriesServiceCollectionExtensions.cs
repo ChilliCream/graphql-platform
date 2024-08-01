@@ -45,7 +45,7 @@ public static class HotChocolateRedisPersistedQueriesServiceCollectionExtensions
             .AddSingleton<IOperationDocumentStorage>(
                 sp => new RedisQueryStorage(databaseFactory(sp), queryExpiration));
     }
-    
+
     private static IServiceCollection RemoveService<TService>(
         this IServiceCollection services)
     {

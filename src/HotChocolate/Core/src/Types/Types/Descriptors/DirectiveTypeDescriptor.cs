@@ -57,7 +57,7 @@ public class DirectiveTypeDescriptor
         DirectiveTypeDefinition definition)
     {
         Context.Descriptors.Push(this);
-        
+
         if (!Definition.AttributesAreApplied && Definition.RuntimeType != typeof(object))
         {
             Context.TypeInspector.ApplyAttributes(
@@ -81,7 +81,7 @@ public class DirectiveTypeDescriptor
         definition.Arguments.AddRange(arguments.Values);
 
         base.OnCreateDefinition(definition);
-        
+
         Context.Descriptors.Pop();
     }
 

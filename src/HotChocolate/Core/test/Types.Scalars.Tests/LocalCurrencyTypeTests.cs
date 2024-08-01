@@ -257,7 +257,6 @@ public class LocalCurrencyTypeTests : ScalarTypeTestBase
         var scalar = CreateType<LocalCurrencyType>();
         object resultValue = 0.99m;
 
-
         // act
         var result = scalar.Deserialize(resultValue);
 

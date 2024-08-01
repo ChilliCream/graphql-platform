@@ -10,4 +10,3 @@ namespace HotChocolate.Resolvers;
 /// </summary>
 /// <param name="context">The middleware context.</param>
 public delegate ValueTask FieldDelegate(IMiddlewareContext context);
-

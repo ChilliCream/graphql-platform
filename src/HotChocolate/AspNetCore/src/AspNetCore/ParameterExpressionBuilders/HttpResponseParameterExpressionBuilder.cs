@@ -14,4 +14,3 @@ internal sealed class HttpResponseParameterExpressionBuilder()
     public override bool CanHandle(ParameterInfo parameter)
         => parameter.ParameterType == typeof(HttpResponse);
 }
-
