@@ -1,6 +1,3 @@
-using System.Collections.Immutable;
-using System.Data;
-
 namespace HotChocolate.Types.Analyzers;
 
 public static class WellKnownTypes

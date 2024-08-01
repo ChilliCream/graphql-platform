@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
@@ -1286,7 +1283,7 @@ public class AnnotationBasedMutations
 
     public class SimpleMutationReturnList
     {
-        public System.Collections.Generic.List<string> DoSomething(string something)
+        public List<string> DoSomething(string something)
             => [something,];
     }
 

@@ -1,7 +1,5 @@
-using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Threading;
 
 namespace HotChocolate.Execution.Processing;
 

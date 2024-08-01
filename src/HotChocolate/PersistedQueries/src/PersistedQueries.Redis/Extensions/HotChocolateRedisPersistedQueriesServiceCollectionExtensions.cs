@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using HotChocolate.Execution;
 using HotChocolate.PersistedQueries.Redis;
 using Microsoft.Extensions.DependencyInjection;

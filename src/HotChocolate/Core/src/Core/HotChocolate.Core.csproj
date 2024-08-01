@@ -7,7 +7,6 @@
     <Description>Contains the Hot Chocolate GraphQL query execution engine and query validation.</Description>
     <NoWarn>$(NoWarn);NU5128</NoWarn>
     <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;

@@ -1,4 +1,3 @@
-using System;
 using System.Text.Json;
 using static HotChocolate.Transport.Properties.TransportAbstractionResources;
 using static HotChocolate.Transport.Serialization.Utf8GraphQLResultProperties;

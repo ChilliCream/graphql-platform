@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Text;
 using CookieCrumble;
 using Xunit;

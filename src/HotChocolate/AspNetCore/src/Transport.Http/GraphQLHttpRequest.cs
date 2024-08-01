@@ -1,6 +1,3 @@
-using System;
-using System.Net.Http;
-
 namespace HotChocolate.Transport.Http;
 
 /// <summary>

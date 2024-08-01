@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
 namespace StrawberryShake.CodeGeneration.Extensions;

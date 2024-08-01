@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
 

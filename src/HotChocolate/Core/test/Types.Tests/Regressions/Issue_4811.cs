@@ -1,7 +1,6 @@
 #nullable enable
 
 using System.ComponentModel.DataAnnotations;
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;

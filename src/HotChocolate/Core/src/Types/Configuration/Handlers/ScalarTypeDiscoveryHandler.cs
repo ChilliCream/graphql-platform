@@ -1,6 +1,5 @@
 #nullable enable
 
-using System;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Internal;
 using HotChocolate.Types;

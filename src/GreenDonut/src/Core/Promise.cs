@@ -1,12 +1,9 @@
-using System;
-using System.Threading.Tasks;
-
 namespace GreenDonut;
 
 /// <summary>
 /// Represents a promise to fetch data within the DataLoader.
 /// A promise can be based on the actual value,
-/// a <see cref="System.Threading.Tasks.Task{TResult}"/>,
+/// a <see cref="Task{TResult}"/>,
 /// or a <see cref="TaskCompletionSource{TResult}"/>.
 /// </summary>
 /// <typeparam name="TValue"></typeparam>

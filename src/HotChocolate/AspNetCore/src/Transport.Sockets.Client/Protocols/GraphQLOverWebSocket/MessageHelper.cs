@@ -1,7 +1,5 @@
 using System.Net.WebSockets;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Transport.Serialization;
 using HotChocolate.Utilities;
 using static System.Net.WebSockets.WebSocketMessageType;

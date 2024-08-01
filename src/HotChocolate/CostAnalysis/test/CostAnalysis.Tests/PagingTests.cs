@@ -6,7 +6,6 @@ using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.CostAnalysis;

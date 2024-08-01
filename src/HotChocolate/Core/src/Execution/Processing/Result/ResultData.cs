@@ -1,7 +1,5 @@
 #nullable enable
 
-using System;
-
 namespace HotChocolate.Execution.Processing;
 
 /// <summary>

@@ -1,5 +1,4 @@
 #nullable enable
-using System;
 using System.Buffers;
 using System.Buffers.Text;
 using System.Collections.Concurrent;

@@ -1,5 +1,4 @@
 #nullable enable
-using System;
 using System.Buffers.Text;
 using System.Diagnostics.CodeAnalysis;
 

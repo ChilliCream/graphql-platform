@@ -1,7 +1,4 @@
-using System;
 using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution.Options;
 using Microsoft.Extensions.DependencyInjection;
 using static System.Threading.CancellationTokenSource;

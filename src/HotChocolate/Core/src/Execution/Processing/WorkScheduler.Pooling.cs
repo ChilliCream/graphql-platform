@@ -1,5 +1,4 @@
 using System.Runtime.CompilerServices;
-using System.Threading;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Fetching;
 using static HotChocolate.Execution.ThrowHelper;

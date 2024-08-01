@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -739,7 +735,7 @@ public class DefaultTypeInspectorTests
             IDescriptor descriptor,
             ICustomAttributeProvider element)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
     }
 

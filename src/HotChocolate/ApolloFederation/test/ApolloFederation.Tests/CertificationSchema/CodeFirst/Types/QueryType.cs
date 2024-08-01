@@ -1,4 +1,3 @@
-using System.Linq;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Types;
 

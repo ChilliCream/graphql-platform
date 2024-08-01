@@ -1,6 +1,3 @@
-using System;
-using System.IO;
-using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using Snapshooter.Xunit;

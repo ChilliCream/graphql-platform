@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types;

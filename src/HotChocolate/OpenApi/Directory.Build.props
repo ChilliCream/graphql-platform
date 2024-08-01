@@ -4,7 +4,6 @@
   <PropertyGroup>
     <TargetFrameworks>net8.0</TargetFrameworks>
     <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
 </Project>

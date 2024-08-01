@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Execution.Processing;
 
 public sealed class ObjectFieldResult

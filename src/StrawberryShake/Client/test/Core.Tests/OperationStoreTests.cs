@@ -1,4 +1,3 @@
-using System;
 using Moq;
 
 namespace StrawberryShake;
@@ -75,7 +74,7 @@ public class OperationStoreTests
 
         // act
         using var session =
-            System.ObservableExtensions.Subscribe(
+            ObservableExtensions.Subscribe(
                 store.Watch<string>(request),
                 r =>
                 {

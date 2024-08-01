@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using HotChocolate.Language;
 using StrawberryShake.Tools.Configuration;
 

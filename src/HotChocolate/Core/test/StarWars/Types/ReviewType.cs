@@ -1,6 +1,5 @@
 using HotChocolate.Types;
 using HotChocolate.StarWars.Models;
-using System.Threading.Tasks;
 
 namespace HotChocolate.StarWars.Types;
 

@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.AspNetCore.Tests.Utilities;
-using HotChocolate.Types.Pagination;
 using Snapshooter;
 using Snapshooter.Xunit;
 using static HotChocolate.Diagnostics.ActivityTestHelper;

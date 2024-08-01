@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <RootNamespace>HotChocolate.Features</RootNamespace>
-    <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 

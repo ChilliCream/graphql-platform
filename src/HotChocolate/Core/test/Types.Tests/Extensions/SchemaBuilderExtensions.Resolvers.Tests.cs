@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using Snapshooter.Xunit;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;

@@ -1,5 +1,3 @@
-using System;
-using System.Threading;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing;

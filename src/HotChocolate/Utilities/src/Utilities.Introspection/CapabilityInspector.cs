@@ -1,6 +1,4 @@
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Transport.Http;
 using static HotChocolate.Utilities.Introspection.IntrospectionQueryHelper;
 

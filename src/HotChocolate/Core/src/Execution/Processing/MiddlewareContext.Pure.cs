@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Threading;
 using HotChocolate.Execution.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;

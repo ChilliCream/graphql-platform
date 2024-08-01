@@ -1,5 +1,4 @@
 using System.Text.Json;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;

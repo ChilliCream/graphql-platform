@@ -137,12 +137,12 @@ public class WorkQueueTests
 
         public void BeginExecute(CancellationToken cancellationToken)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public Task WaitForCompletionAsync(CancellationToken cancellationToken)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
     }
 }

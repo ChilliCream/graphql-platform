@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Language;

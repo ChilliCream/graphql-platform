@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
 internal static class ParameterExpressionBuilderHelpers

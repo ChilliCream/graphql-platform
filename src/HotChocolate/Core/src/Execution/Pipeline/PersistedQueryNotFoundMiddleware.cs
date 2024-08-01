@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.WellKnownContextData;

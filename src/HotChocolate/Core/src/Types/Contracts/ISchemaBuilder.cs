@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Configuration;
-using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
