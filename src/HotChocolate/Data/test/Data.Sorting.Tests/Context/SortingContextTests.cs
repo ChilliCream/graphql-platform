@@ -47,7 +47,7 @@ public class SortingContextTests
         Assert.Equal("title", field.Field.Name);
         Assert.Equal("DESC", operation);
     }
-    
+
     [Fact]
     public async Task When_Sorting_Is_Empty_IsDefined_Should_Be_False()
     {
@@ -84,7 +84,7 @@ public class SortingContextTests
         Assert.NotNull(context);
         Assert.False(context!.IsDefined);
     }
-    
+
     [Fact]
     public async Task When_Sorting_Is_Set_IsDefined_Should_Be_True()
     {
@@ -106,7 +106,7 @@ public class SortingContextTests
             .BuildRequestExecutorAsync();
 
         // act
-        const string query = 
+        const string query =
             """
             {
               test(order: { title: DESC }) {

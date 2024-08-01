@@ -329,7 +329,6 @@ public class ProjectToTests
             => dbContext.Memberships.ProjectTo<Membership, MembershipDto>(context);
     }
 
-
     public class BloggingContext : DbContext
     {
         public DbSet<Blog> Blogs { get; set; } = default!;
@@ -408,7 +407,6 @@ public class ProjectToTests
         public int ImageId { get; set; }
 
         public string? Url { get; set; }
-
 
         public Post? Post { get; set; }
     }

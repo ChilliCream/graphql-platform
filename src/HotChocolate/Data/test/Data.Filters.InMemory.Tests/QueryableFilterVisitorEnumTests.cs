@@ -285,7 +285,6 @@ public class QueryableFilterVisitorEnumTests
         public FooEnum BarEnum { get; set; }
     }
 
-
     public class FooNullable
     {
         public int Id { get; set; }

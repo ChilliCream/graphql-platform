@@ -2,7 +2,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types;
 
-public sealed class InterfaceField(InterfaceFieldDefinition definition, int index) 
+public sealed class InterfaceField(InterfaceFieldDefinition definition, int index)
     : OutputFieldBase(definition, index)
 {
     /// <summary>

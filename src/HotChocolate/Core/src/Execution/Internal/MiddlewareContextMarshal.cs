@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
 
@@ -32,7 +31,7 @@ public static class MiddlewareContextMarshal
             ? middlewareContext.ParentResult
             : null;
     }
-    
+
     /// <summary>
     /// Gets the parent result data of the current <paramref name="resultData"/>.
     /// </summary>
@@ -54,7 +53,7 @@ public static class MiddlewareContextMarshal
         {
             throw new ArgumentNullException(nameof(resultData));
         }
-        
+
         return resultData.Parent;
     }
 
@@ -79,7 +78,7 @@ public static class MiddlewareContextMarshal
         {
             throw new ArgumentNullException(nameof(resultData));
         }
-        
+
         return resultData.ParentIndex;
     }
 }

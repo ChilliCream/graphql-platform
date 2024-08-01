@@ -1,4 +1,3 @@
-using System.Linq;
 using Snapshooter.Xunit;
 
 namespace HotChocolate.Types;

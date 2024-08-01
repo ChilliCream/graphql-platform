@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Transport.Sockets.Client.Properties;
 
 namespace HotChocolate.Transport.Sockets.Client;

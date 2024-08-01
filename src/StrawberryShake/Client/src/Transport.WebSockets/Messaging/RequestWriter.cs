@@ -1,4 +1,3 @@
-using System;
 using System.Buffers;
 
 namespace StrawberryShake.Transport.WebSockets;

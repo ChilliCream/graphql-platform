@@ -3,7 +3,6 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Fusion</AssemblyName>
     <RootNamespace>HotChocolate.Fusion</RootNamespace>
-    <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
@@ -55,6 +54,5 @@
       <DependentUpon>ResolverNodeBase.cs</DependentUpon>
     </Compile>
   </ItemGroup>
-
 
 </Project>

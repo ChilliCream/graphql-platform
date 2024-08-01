@@ -48,7 +48,7 @@ public class WebSocketClientProtocolTests(TestServerFactory serverFactory, ITest
 
                     var mutationRequest = new ClientQueryRequest
                     {
-                        Query = 
+                        Query =
                             """
                             mutation {
                                 createReview(episode: NEW_HOPE review: {
@@ -88,7 +88,7 @@ public class WebSocketClientProtocolTests(TestServerFactory serverFactory, ITest
                     snapshot.Add(result);
                 })
             .MatchAsync();
-            
+
     [Fact]
     public Task Subscribe_Disconnect()
     {

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.ApolloFederation.FederationContextData;
@@ -47,7 +46,7 @@ public static class ContactDescriptorExtensions
     /// </exception>
     public static IRequestExecutorBuilder AddContact(
         this IRequestExecutorBuilder builder,
-        string name, 
+        string name,
         string? url = null,
         string? description = null)
     {
@@ -74,7 +73,7 @@ public static class ContactDescriptorExtensions
     /// <see href="https://www.apollographql.com/docs/graphos/graphs/federated-graphs/#contact-info-for-subgraphs">
     /// Subgraph Contact Information</see>
     /// for additional details.
-    /// 
+    ///
     /// <example>
     /// schema
     ///   @contact(
@@ -120,14 +119,14 @@ public static class ContactDescriptorExtensions
 
         return builder;
     }
-    
+
     /// <summary>
     /// Applies @contact directive which can be used to provide team contact information to your subgraph schema.
     /// This information is automatically parsed and displayed by Apollo Studio. See
     /// <see href="https://www.apollographql.com/docs/graphos/graphs/federated-graphs/#contact-info-for-subgraphs">
     /// Subgraph Contact Information</see>
     /// for additional details.
-    /// 
+    ///
     /// <example>
     /// schema
     ///   @contact(
@@ -169,7 +168,7 @@ public static class ContactDescriptorExtensions
                 {
                     return;
                 }
-                
+
                 if (!sb.ContextData.TryAdd(ContactMarker, 1))
                 {
                     throw ThrowHelper.Contact_Not_Repeatable();

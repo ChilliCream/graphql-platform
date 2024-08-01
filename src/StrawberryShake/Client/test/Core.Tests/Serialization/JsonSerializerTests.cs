@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Text.Json;
 
 namespace StrawberryShake.Serialization;

@@ -369,7 +369,6 @@ public class QueryableProjectionVisitorPagingTests
             .MatchAsync();
     }
 
-
     [Fact]
     public async Task CreateOffsetPagingNullable_ProjectsTwoProperties_Items()
     {

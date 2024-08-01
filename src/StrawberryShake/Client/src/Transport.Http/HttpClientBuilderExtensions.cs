@@ -1,5 +1,3 @@
-using System;
-using System.Net.Http;
 using System.Net.Http.Headers;
 using StrawberryShake;
 using StrawberryShake.Transport.Http;

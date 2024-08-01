@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using HotChocolate.Execution;
 using HotChocolate.PersistedQueries.Redis;
 using Microsoft.Extensions.DependencyInjection;
@@ -45,7 +43,7 @@ public static class HotChocolateRedisPersistedQueriesServiceCollectionExtensions
             .AddSingleton<IOperationDocumentStorage>(
                 sp => new RedisQueryStorage(databaseFactory(sp), queryExpiration));
     }
-    
+
     private static IServiceCollection RemoveService<TService>(
         this IServiceCollection services)
     {

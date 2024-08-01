@@ -86,7 +86,6 @@ let ``Fetching a person with an optional name works`` () =
     test <@ actual = expected @>
   }
 
-
 [<Fact>]
 let ``Fetching a person with no name works`` () =
   task {

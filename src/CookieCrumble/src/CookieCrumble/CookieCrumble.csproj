@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFrameworks>$(Library2TargetFrameworks)</TargetFrameworks>
-    <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyName>CookieCrumble</AssemblyName>

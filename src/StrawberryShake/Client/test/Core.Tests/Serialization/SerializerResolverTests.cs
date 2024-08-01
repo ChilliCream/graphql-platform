@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
@@ -176,7 +173,6 @@ public class SerializerResolverTests
         // assert
         Assert.IsType<ArgumentNullException>(ex);
     }
-
 
     [Fact]
     public void GetInputValueFormatter_FormatterRegistered_ReturnFormatter()

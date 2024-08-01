@@ -1,4 +1,4 @@
-﻿using GreenDonut;
+using GreenDonut;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
 

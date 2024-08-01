@@ -136,5 +136,4 @@ internal static class SchemaDebugFormatter
                 return new NamedTypeNode(((INamedTypeDefinition)type).Name);
         }
     }
-
 }

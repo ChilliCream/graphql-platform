@@ -1,4 +1,3 @@
-using System;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace GreenDonut.DependencyInjection;
@@ -9,8 +8,8 @@ namespace GreenDonut.DependencyInjection;
 public sealed class DataLoaderRegistration
 {
     private readonly DataLoaderFactory _factory;
-    
-    public DataLoaderRegistration(Type instanceType) 
+
+    public DataLoaderRegistration(Type instanceType)
         : this(instanceType, instanceType) { }
 
     public DataLoaderRegistration(Type serviceType, Type instanceType)

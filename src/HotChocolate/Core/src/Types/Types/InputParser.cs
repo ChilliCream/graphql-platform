@@ -1,9 +1,7 @@
 #nullable enable
 
-using System;
 using System.Buffers;
 using System.Collections;
-using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using static HotChocolate.Utilities.ThrowHelper;

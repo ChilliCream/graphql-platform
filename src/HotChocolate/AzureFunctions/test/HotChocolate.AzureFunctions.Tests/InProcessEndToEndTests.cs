@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using HotChocolate.AzureFunctions.Tests.Helpers;
 using HotChocolate.Types;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;

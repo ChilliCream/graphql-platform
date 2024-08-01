@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Net;
 using HotChocolate;
 using HotChocolate.Execution;
@@ -134,7 +132,7 @@ public static partial class RequestExecutorBuilderExtensions
             {
                 return next(context);
             }
-            
+
             var error = ReadPersistedQueryMiddleware_PersistedQueryNotFound();
             var result = OperationResultBuilder.CreateError(
                 error,
@@ -146,7 +144,6 @@ public static partial class RequestExecutorBuilderExtensions
             context.DiagnosticEvents.RequestError(context, new GraphQLException(error));
             context.Result = result;
             return default;
-
         });
 
     public static IRequestExecutorBuilder UseWritePersistedQuery(

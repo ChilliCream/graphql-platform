@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using Snapshooter.Xunit;
 using Xunit;
 

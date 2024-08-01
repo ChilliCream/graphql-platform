@@ -1,5 +1,4 @@
 using System.Drawing;
-using System.Linq;
 using System.Text.RegularExpressions;
 using Snapshooter.Xunit;
 

@@ -6,8 +6,6 @@ namespace GreenDonut;
 /// </summary>
 public readonly record struct TaskCacheKey(string Type, object Key);
 #else
-using System;
-
 namespace GreenDonut;
 
 /// <summary>

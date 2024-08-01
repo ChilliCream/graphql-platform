@@ -12,7 +12,6 @@ public interface IProtocolHandler
     /// </summary>
     string Name { get; }
 
-
     ValueTask OnReceiveAsync(
         ISocketSession session,
         ReadOnlySequence<byte> message,

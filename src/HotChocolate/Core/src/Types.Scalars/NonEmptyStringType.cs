@@ -18,7 +18,7 @@ public class NonEmptyStringType : StringType
         : base(name, description, bind)
     {
     }
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="NonEmptyStringType"/> class.
     /// </summary>

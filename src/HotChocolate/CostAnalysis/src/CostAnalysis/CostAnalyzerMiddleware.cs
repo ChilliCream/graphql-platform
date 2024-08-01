@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection.Metadata;
 using HotChocolate.CostAnalysis.Caching;
 using HotChocolate.CostAnalysis.Utilities;
 using HotChocolate.Execution;

@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Resolvers;
 
 /// <summary>

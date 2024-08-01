@@ -1,4 +1,3 @@
-using System.Linq;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Descriptors;
 using StrawberryShake.CodeGeneration.Utilities;

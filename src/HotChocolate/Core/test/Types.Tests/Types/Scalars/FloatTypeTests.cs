@@ -1,4 +1,3 @@
-﻿using System;
 using System.Text;
 using HotChocolate.Language;
 
@@ -262,7 +261,6 @@ public class FloatTypeTests
         // assert
         Assert.Throws<SerializationException>(action);
     }
-
 
     [Fact]
     public void ParseValue_Wrong_Value_Throws()

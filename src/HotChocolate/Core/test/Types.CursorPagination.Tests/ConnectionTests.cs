@@ -1,7 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
 namespace HotChocolate.Types.Pagination;
 
 public class ConnectionTests

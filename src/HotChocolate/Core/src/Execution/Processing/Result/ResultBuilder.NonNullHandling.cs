@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Net.Http.Headers;
 using HotChocolate.Language;
 using static HotChocolate.Execution.ErrorHelper;
 

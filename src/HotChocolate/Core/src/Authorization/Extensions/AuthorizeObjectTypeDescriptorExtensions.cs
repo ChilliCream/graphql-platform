@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Authorization;
 
 namespace HotChocolate.Types;

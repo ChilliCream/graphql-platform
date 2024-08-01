@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using HotChocolate.Types.Relay;
@@ -202,7 +199,6 @@ public class NodeTypeTests : TypeTestBase
 
         schema.ToString().MatchSnapshot();
     }
-
 
     [Fact]
     public async Task Node_Attribute_Does_Not_Throw_Execute_Query()

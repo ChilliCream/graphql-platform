@@ -12,14 +12,14 @@ public sealed class TestOperationDocumentStorage : IOperationDocumentStorage
         _cache.Add(
             "60ddx_GGk4FDObSa6eK0sg",
             Utf8GraphQLParser.Parse(@"{ hero { name } }"));
-        
+
         _cache.Add(
             "abc123",
             Utf8GraphQLParser.Parse(@"query($if: Boolean) { hero { name @skip(if: $if) } }"));
     }
 
     public async ValueTask<IOperationDocument?> TryReadAsync(
-        OperationDocumentId documentId, 
+        OperationDocumentId documentId,
         CancellationToken cancellationToken = default)
     {
         if (_cache.TryGetValue(documentId.Value, out var document))

@@ -20,4 +20,3 @@ internal sealed class DefaultDocumentCache(int capacity = 100) : IDocumentCache
 
     public void Clear() => _cache.Clear();
 }
-

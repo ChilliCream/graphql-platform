@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Types.Relay.Descriptors;
 
 namespace HotChocolate.Types;

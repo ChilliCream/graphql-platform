@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp;
 
 namespace StrawberryShake.CodeGeneration;

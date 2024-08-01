@@ -1,8 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace HotChocolate.Utilities.StreamAdapters;
 
@@ -52,7 +48,7 @@ internal sealed class EnumerableStreamAdapter : IAsyncEnumerable<object?>
             {
                 return;
             }
-            
+
             _disposable?.Dispose();
             _disposed = true;
         }
@@ -78,7 +74,6 @@ internal sealed class EnumerableStreamAdapter<T> : IAsyncEnumerable<object?>
         private readonly IDisposable? _disposable;
         private readonly CancellationToken _cancellationToken;
         private bool _disposed;
-
 
         public Enumerator(IEnumerable<T> enumerator, CancellationToken cancellationToken)
         {
@@ -106,7 +101,7 @@ internal sealed class EnumerableStreamAdapter<T> : IAsyncEnumerable<object?>
             {
                 return;
             }
-            
+
             _disposable?.Dispose();
             _disposed = true;
         }

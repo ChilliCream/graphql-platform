@@ -1,4 +1,3 @@
-using System;
 using StackExchange.Redis;
 using HotChocolate.Execution.Configuration;
 using HotChocolate;

@@ -34,7 +34,7 @@ public sealed class ArgumentNode : ISyntaxNode
         : this(null, new NameNode(name), new IntValueNode(value))
     {
     }
-    
+
     /// <summary>
     /// Initializes a new instance of <see cref="ArgumentNode"/>.
     /// </summary>

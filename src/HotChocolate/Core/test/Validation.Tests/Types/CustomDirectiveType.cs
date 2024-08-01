@@ -31,6 +31,5 @@ public class CustomDirectiveType
             .Type<StringType>();
         descriptor.Argument("arg4")
             .Type<StringType>();
-
     }
 }

@@ -8,5 +8,4 @@ namespace GreenDonut;
 /// <seealso cref="DataLoaderDiagnosticEventListener"/>
 public interface IDataLoaderDiagnosticEventListener : IDataLoaderDiagnosticEvents
 {
-
 }

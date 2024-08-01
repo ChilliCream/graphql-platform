@@ -1,8 +1,5 @@
 using System.CommandLine;
-using System.IO;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

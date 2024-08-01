@@ -1,7 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace HotChocolate.Execution;
 
 /// <summary>
@@ -52,4 +48,3 @@ public interface IRequestExecutorResolver
     /// </param>
     void EvictRequestExecutor(string? schemaName = default);
 }
-

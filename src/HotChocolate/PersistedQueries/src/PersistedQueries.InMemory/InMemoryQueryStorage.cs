@@ -1,6 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using Microsoft.Extensions.Caching.Memory;
@@ -21,10 +18,10 @@ public class InMemoryQueryStorage : IOperationDocumentStorage
     {
         _cache = cache ?? throw new ArgumentNullException(nameof(cache));
     }
-    
+
     /// <inheritdoc />
     public ValueTask<IOperationDocument?> TryReadAsync(
-        OperationDocumentId documentId, 
+        OperationDocumentId documentId,
         CancellationToken cancellationToken = default)
     {
         if (OperationDocumentId.IsNullOrEmpty(documentId))
@@ -47,24 +44,23 @@ public class InMemoryQueryStorage : IOperationDocumentStorage
         {
             throw new ArgumentNullException(nameof(documentId));
         }
-        
+
         if (document is null)
         {
             throw new ArgumentNullException(nameof(document));
         }
 
         _cache.GetOrCreate<OperationDocument>(
-            documentId.Value, 
+            documentId.Value,
             _ =>
             {
                 if (document is OperationDocument parsedDocument)
                 {
                     return parsedDocument;
                 }
-                
+
                 var documentNode = Utf8GraphQLParser.Parse(document.AsSpan());
                 return new OperationDocument(documentNode);
-
             });
 
         return default;

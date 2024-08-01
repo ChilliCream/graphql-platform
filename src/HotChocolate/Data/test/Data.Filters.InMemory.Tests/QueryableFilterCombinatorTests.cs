@@ -29,7 +29,7 @@ public class QueryableFilterCombinatorTests
         // assert
         var res1 = await tester.ExecuteAsync(
             """
-            { 
+            {
               root(where: { }) {
                 bar
               }
@@ -52,14 +52,14 @@ public class QueryableFilterCombinatorTests
 
         public bool Bar { get; set; }
     }
-    
+
     public class FooNullable
     {
         public int Id { get; set; }
 
         public bool? Bar { get; set; }
     }
-    
+
     public class FooFilterInput : FilterInputType<Foo>;
 
     public class FooNullableFilterInput : FilterInputType<FooNullable>;

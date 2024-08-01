@@ -1,4 +1,3 @@
-using System;
 using System.Reflection;
 using System.Linq.Expressions;
 using HotChocolate.Configuration;

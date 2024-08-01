@@ -1,11 +1,9 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Types.Relay;
 using static HotChocolate.Tests.TestHelper;
-using System.Threading.Tasks;
 using HotChocolate.Tests;
 using Snapshooter.Xunit;
 using HotChocolate.Execution;
-using System;
 
 namespace HotChocolate.Types
 {

@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
@@ -39,7 +38,7 @@ public class EnumValueDescriptor
     protected override void OnCreateDefinition(EnumValueDefinition definition)
     {
         Context.Descriptors.Push(this);
-        
+
         if (Definition is { AttributesAreApplied: false, Member: not null, })
         {
             Context.TypeInspector.ApplyAttributes(

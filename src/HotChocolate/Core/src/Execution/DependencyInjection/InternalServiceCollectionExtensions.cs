@@ -1,4 +1,3 @@
-using System;
 using GreenDonut;
 using GreenDonut.DependencyInjection;
 using HotChocolate.Execution;

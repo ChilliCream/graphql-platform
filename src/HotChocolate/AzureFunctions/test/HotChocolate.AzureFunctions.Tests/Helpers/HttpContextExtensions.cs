@@ -1,5 +1,3 @@
-using System.IO;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.AzureFunctions.Tests.Helpers;

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using HotChocolate.Language;
 
 namespace StrawberryShake.CodeGeneration.Utilities;
