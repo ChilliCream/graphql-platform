@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using static System.Environment;
 
 namespace HotChocolate.Execution.Processing;

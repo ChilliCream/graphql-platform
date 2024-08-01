@@ -1,4 +1,3 @@
-using HotChocolate;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using Path = HotChocolate.Path;
 

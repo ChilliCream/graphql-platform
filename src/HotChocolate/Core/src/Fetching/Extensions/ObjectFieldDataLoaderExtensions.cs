@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading.Tasks;
 using GreenDonut;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;

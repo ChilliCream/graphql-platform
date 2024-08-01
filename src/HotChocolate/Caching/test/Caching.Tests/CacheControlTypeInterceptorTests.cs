@@ -1,7 +1,4 @@
-using System;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using HotChocolate.Types;

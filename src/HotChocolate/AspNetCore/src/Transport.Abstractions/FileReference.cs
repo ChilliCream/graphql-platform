@@ -1,5 +1,3 @@
-using System;
-using System.IO;
 using static HotChocolate.Transport.Properties.TransportAbstractionResources;
 
 namespace HotChocolate.Transport.Http;

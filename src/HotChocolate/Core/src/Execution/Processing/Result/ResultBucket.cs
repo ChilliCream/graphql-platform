@@ -1,8 +1,6 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Threading;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing;

@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using GreenDonut;
 using HotChocolate.Diagnostics.Scopes;
 using static HotChocolate.Diagnostics.HotChocolateActivitySource;

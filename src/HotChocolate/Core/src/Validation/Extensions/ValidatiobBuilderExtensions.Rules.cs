@@ -1,4 +1,3 @@
-using System.Linq;
 using HotChocolate.Validation.Options;
 using HotChocolate.Validation.Rules;
 

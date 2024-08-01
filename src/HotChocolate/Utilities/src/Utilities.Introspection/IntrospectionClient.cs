@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Transport.Http;
 using static HotChocolate.Utilities.Introspection.CapabilityInspector;

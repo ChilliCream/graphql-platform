@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Resolvers;
 
 public class FieldReferenceTests

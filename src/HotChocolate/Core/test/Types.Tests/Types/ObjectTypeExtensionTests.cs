@@ -1,10 +1,6 @@
 #pragma warning disable RCS1102 // Make class static
 
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;

@@ -1,4 +1,3 @@
-using System;
 using Snapshooter.Xunit;
 using HotChocolate.Types;
 using HotChocolate.Language;

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using static HotChocolate.Authorization.Properties.AuthCoreResources;
 using static HotChocolate.WellKnownContextData;

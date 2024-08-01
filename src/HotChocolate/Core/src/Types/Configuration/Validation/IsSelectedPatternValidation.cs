@@ -1,10 +1,8 @@
 #nullable enable
 
-using System.Collections.Generic;
 using System.Text;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
-using HotChocolate.Resolvers.Expressions.Parameters;
 using HotChocolate.Types;
 using HotChocolate.Types.Attributes;
 using HotChocolate.Types.Descriptors;

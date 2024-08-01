@@ -1,7 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Utilities;

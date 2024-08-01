@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-
 #nullable enable
 
 namespace HotChocolate.Resolvers;

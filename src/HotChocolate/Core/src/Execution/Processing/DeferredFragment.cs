@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Threading.Tasks;
 using static HotChocolate.Execution.Processing.Tasks.ResolverTaskFactory;
 using static HotChocolate.WellKnownContextData;
 

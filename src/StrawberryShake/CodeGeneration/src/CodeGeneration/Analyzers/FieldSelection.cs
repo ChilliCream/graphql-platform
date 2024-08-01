@@ -1,4 +1,3 @@
-using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using Path = HotChocolate.Path;

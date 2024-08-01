@@ -1,4 +1,3 @@
-using System;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace StrawberryShake.Transport.WebSockets;

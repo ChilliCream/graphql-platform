@@ -1,6 +1,3 @@
-using System;
-using System.Threading;
-
 namespace HotChocolate.Fetching;
 
 /// <summary>

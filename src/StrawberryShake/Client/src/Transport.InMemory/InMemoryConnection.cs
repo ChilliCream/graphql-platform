@@ -1,9 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Execution;
 using StrawberryShake.Internal;

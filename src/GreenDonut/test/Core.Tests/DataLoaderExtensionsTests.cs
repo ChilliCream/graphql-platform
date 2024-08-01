@@ -1,7 +1,5 @@
 // ReSharper disable InconsistentNaming
 
-using System;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace GreenDonut;

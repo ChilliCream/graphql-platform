@@ -1,6 +1,5 @@
 using System.Reflection;
 using HotChocolate.Internal;
-using HotChocolate.Resolvers;
 using HotChocolate.Resolvers.Expressions.Parameters;
 using Microsoft.AspNetCore.Http;
 

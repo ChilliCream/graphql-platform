@@ -1,7 +1,4 @@
-using System.Threading.Tasks;
 using GreenDonut;
-using System.Collections.Generic;
-using System.Threading;
 
 namespace HotChocolate.Diagnostics;
 

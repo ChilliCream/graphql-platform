@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;

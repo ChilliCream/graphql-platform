@@ -1,4 +1,3 @@
-using System;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 using Snapshooter.Xunit;

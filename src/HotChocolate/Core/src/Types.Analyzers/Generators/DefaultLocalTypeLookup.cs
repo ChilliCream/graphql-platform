@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using HotChocolate.Types.Analyzers.FileBuilders;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;

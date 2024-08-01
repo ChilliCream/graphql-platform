@@ -1,4 +1,3 @@
-using System.Linq;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Directives;

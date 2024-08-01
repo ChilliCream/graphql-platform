@@ -1,11 +1,9 @@
-using System;
 using System.Text;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Microsoft.Net.Http.Headers;
 using IO = System.IO;
-using System.IO;
 
 namespace HotChocolate.AzureFunctions.Tests.Helpers;
 

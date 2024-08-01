@@ -1,6 +1,4 @@
-using System.IO;
 using System.Text;
-using System.Threading.Tasks;
 using HotChocolate.AzureFunctions.IsolatedProcess.Tests.Helpers;
 using HotChocolate.Types;
 using Microsoft.AspNetCore.Http;

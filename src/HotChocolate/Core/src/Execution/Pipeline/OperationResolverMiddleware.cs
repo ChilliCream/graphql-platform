@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;

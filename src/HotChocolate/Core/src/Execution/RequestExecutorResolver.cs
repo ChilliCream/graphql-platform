@@ -1,13 +1,9 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 
 #if NET6_0_OR_GREATER
 using System.Reflection.Metadata;
 #endif
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Configuration;
 #if NET6_0_OR_GREATER
 using HotChocolate.Execution;

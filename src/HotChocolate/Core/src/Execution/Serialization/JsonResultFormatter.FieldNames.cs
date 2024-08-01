@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Execution.Serialization;
 
 public sealed partial class JsonResultFormatter

@@ -1,7 +1,5 @@
 #nullable enable
-using System;
 using System.Buffers;
-using System.Collections.Generic;
 using System.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
