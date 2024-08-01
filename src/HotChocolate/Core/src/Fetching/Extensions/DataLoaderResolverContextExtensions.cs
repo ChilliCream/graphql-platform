@@ -75,7 +75,7 @@ public static class DataLoaderResolverContextExtensions
         var services = context.RequestServices;
         var scope = services.GetRequiredService<IDataLoaderScope>();
         return scope.GetDataLoader(Create, name);
-        
+
         IDataLoader<TKey, TValue> Create(IServiceProvider sp)
             => new AdHocBatchDataLoader<TKey, TValue>(
                 name ?? "default",

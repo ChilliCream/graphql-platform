@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Validation;
 
@@ -161,15 +161,15 @@ public class DirectivesAreDefinedRuleTests
                     skippedField
                     }
                 }
-                
+
                 mutation @onMutation {
                     someField
                 }
-                
+
                 subscription @onSubscription {
                     someField
                 }
-                
+
                 fragment Frag on SomeType @onFragmentDefinition {
                     someField
                 }
@@ -191,8 +191,8 @@ public class DirectivesAreDefinedRuleTests
     {
         ExpectErrors(@"
                 query Foo($var: Boolean) @include(if: true) {
-                    name   
-                } 
+                    name
+                }
             ");
     }
 
@@ -201,8 +201,8 @@ public class DirectivesAreDefinedRuleTests
     {
         ExpectErrors(@"
                  query Foo($var: Boolean)  {
-                    name @onQuery   
-                } 
+                    name @onQuery
+                }
             ");
     }
 
@@ -211,15 +211,15 @@ public class DirectivesAreDefinedRuleTests
     {
         ExpectErrors(@"
                  query Foo($var: Boolean)  {
-                    name @onQuery @include(if: $var) 
-                } 
+                    name @onQuery @include(if: $var)
+                }
             ");
     }
 
     [Fact]
     public void WithMisplacedDirectivesOnMutation()
     {
-        ExpectErrors(@" 
+        ExpectErrors(@"
                 mutation Bar @onQuery {
                     someField
                 }
@@ -229,7 +229,7 @@ public class DirectivesAreDefinedRuleTests
     [Fact]
     public void WithMisplacedDirectivesOnSubscription()
     {
-        ExpectErrors(@" 
+        ExpectErrors(@"
                 subscription Bar @onQuery {
                     someField
                 }
@@ -241,8 +241,8 @@ public class DirectivesAreDefinedRuleTests
     {
         ExpectErrors(@"
                 query Foo($var: Boolean @onQuery(if: true))  {
-                    name  
-                } 
+                    name
+                }
             ");
     }
 
@@ -250,7 +250,7 @@ public class DirectivesAreDefinedRuleTests
     public void WithMisplacedDirectivesOnFragemnt()
     {
         ExpectErrors(@"
-                 query Foo($var: Boolean)  { 
+                 query Foo($var: Boolean)  {
                     ...Frag @onQuery
                 }
                 fragment Frag on Query  {
@@ -268,24 +268,24 @@ public class DirectivesAreDefinedRuleTests
                 }
             ");
     }
-        
+
     [Fact]
     public void NoDirectives()
     {
-        ExpectValid(@"  
+        ExpectValid(@"
                 {
                     ...Test
                 }
                 fragment Test on Query {
                     name
-                } 
+                }
             ");
     }
 
     [Fact]
     public void UniqueDirectivesInDifferentLocations()
     {
-        ExpectValid(@"  
+        ExpectValid(@"
                 {
                     ...Test
                 }
@@ -298,7 +298,7 @@ public class DirectivesAreDefinedRuleTests
     [Fact]
     public void UniqueDirectivesInSameLocations()
     {
-        ExpectValid(@"  
+        ExpectValid(@"
                 {
                     ...Test
                 }
@@ -311,7 +311,7 @@ public class DirectivesAreDefinedRuleTests
     [Fact]
     public void SameDirectivesInDifferentLocations()
     {
-        ExpectValid(@"  
+        ExpectValid(@"
                 {
                     ...Test
                 }
@@ -324,7 +324,7 @@ public class DirectivesAreDefinedRuleTests
     [Fact]
     public void SameDirectivesInSimilarLocations()
     {
-        ExpectValid(@"  
+        ExpectValid(@"
                 {
                     ...Test
                 }
@@ -338,7 +338,7 @@ public class DirectivesAreDefinedRuleTests
     [Fact]
     public void RepeatableDirectivesInSameLocation()
     {
-        ExpectValid(@"  
+        ExpectValid(@"
                 {
                     ...Test
                 }
@@ -351,7 +351,7 @@ public class DirectivesAreDefinedRuleTests
     [Fact]
     public void DuplicateDirectivesInOneLocation()
     {
-        ExpectErrors(@"  
+        ExpectErrors(@"
                 {
                     ...Test
                 }
@@ -364,7 +364,7 @@ public class DirectivesAreDefinedRuleTests
     [Fact]
     public void ManyDuplicateDirectivesInOneLocation()
     {
-        ExpectErrors(@"  
+        ExpectErrors(@"
                 {
                     ...Test
                 }
@@ -377,7 +377,7 @@ public class DirectivesAreDefinedRuleTests
     [Fact]
     public void DifferentDuplicateDirectivesInOneLocation()
     {
-        ExpectErrors(@"  
+        ExpectErrors(@"
                 {
                     ...Test
                 }
@@ -390,7 +390,7 @@ public class DirectivesAreDefinedRuleTests
     [Fact]
     public void DuplicateDirectivesInManyLocations()
     {
-        ExpectErrors(@"  
+        ExpectErrors(@"
                 {
                     ...Test
                 }

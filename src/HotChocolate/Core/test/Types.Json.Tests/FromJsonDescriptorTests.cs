@@ -406,7 +406,6 @@ public class FromJsonDescriptorTests
             """);
     }
 
-
     public class Query
     {
         [GraphQLType("Foo")]

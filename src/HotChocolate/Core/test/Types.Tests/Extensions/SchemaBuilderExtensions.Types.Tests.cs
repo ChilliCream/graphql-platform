@@ -974,7 +974,6 @@ public class SchemaBuilderExtensionsTypeTests
             .MatchSnapshot();
     }
 
-
     [Fact]
     public void AddEnumType_BuilderIsNull_ArgumentNullException()
     {
@@ -1154,7 +1153,6 @@ public class SchemaBuilderExtensionsTypeTests
 
     public interface IMyInterface
     {
-
     }
 
     public enum MyEnum

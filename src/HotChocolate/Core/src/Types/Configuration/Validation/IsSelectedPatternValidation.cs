@@ -141,7 +141,6 @@ internal sealed class IsSelectedPatternValidation : ISchemaValidationRule
             return base.Enter(node, context);
         }
 
-
         protected override ISyntaxVisitorAction Leave(InlineFragmentNode node, ValidateIsSelectedPatternContext context)
         {
             if (node.TypeCondition is not null)

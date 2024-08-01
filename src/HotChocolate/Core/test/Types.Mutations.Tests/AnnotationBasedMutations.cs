@@ -1736,7 +1736,6 @@ public class AnnotationBasedMutations
         public ErrorNotAnnotated NotAnnotated(string something) => default!;
 
         public ErrorAnnotatedAndNot Both(string something) => default!;
-
     }
 
     public class ErrorNotAnnotated : IErrorInterface

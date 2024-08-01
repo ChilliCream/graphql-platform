@@ -1,4 +1,4 @@
-﻿#pragma warning disable CA1812
+#pragma warning disable CA1812
 using System.Collections.Generic;
 
 #nullable disable

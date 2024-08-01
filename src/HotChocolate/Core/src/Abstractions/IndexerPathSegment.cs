@@ -15,10 +15,10 @@ public sealed class IndexerPathSegment : Path
         {
             throw new ArgumentOutOfRangeException(nameof(index));
         }
-        
+
         Index = index;
     }
-    
+
     /// <summary>
     /// Gets the <see cref="Index"/> which represents the position an element in a
     /// list of the result structure.
@@ -27,8 +27,8 @@ public sealed class IndexerPathSegment : Path
 
     /// <inheritdoc />
     public override bool Equals(Path? other)
-        => base.Equals(other) && 
-            other is IndexerPathSegment indexer && 
+        => base.Equals(other) &&
+            other is IndexerPathSegment indexer &&
             Index.Equals(indexer.Index);
 
     /// <inheritdoc />

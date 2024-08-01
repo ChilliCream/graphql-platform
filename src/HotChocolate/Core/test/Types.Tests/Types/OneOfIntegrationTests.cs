@@ -337,7 +337,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .Print()
             .MatchSnapshot();
 
-
     [Fact]
     public async Task Oneof_introspection()
     {

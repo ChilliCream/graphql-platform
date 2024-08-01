@@ -86,7 +86,7 @@ internal sealed class TimeoutMiddleware
             }
         }
     }
-    
+
     public static RequestCoreMiddleware Create()
         => (core, next) =>
         {
@@ -95,4 +95,3 @@ internal sealed class TimeoutMiddleware
             return context => middleware.InvokeAsync(context);
         };
 }
-

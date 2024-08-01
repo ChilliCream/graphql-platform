@@ -198,7 +198,6 @@ public class DataTypeMapperTests
             });
     }
 
-
     [Fact]
     public void MapDataTypeDescriptors_DataInterfaceType()
     {

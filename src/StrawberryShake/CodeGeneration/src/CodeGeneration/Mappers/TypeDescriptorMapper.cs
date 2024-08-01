@@ -354,7 +354,6 @@ public static partial class TypeDescriptorMapper
                 parentRuntimeType));
     }
 
-
     private static void CollectClassesThatImplementInterface(
         OperationModel operation,
         OutputTypeModel outputType,

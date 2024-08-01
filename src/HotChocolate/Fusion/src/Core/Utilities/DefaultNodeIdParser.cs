@@ -20,11 +20,11 @@ internal sealed class DefaultNodeIdParser : NodeIdParser
         if (!Convert.TryFromBase64String(id, span, out var written))
         {
             throw new IdSerializationException(
-                DefaultIdParser_ParseTypeName_InvalidFormat, 
-                OperationStatus.InvalidData, 
+                DefaultIdParser_ParseTypeName_InvalidFormat,
+                OperationStatus.InvalidData,
                 id);
         }
-        
+
         var index = span[..written].IndexOfAny(_separators);
         var typeName = span[..index];
         var s = _utf8.GetString(typeName);
@@ -35,6 +35,5 @@ internal sealed class DefaultNodeIdParser : NodeIdParser
         }
 
         return s;
-
     }
 }

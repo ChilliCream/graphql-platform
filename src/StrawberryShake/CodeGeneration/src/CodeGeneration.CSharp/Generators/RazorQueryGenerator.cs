@@ -23,7 +23,7 @@ public class RazorQueryGenerator : CSharpSyntaxGenerator<OperationDescriptor>
     {
         var componentName = $"Use{descriptor.Name}";
         var resultType = descriptor.ResultTypeReference.GetRuntimeType().ToString();
-        
+
         var modifier = settings.AccessModifier == AccessModifier.Public
             ? SyntaxKind.PublicKeyword
             : SyntaxKind.InternalKeyword;

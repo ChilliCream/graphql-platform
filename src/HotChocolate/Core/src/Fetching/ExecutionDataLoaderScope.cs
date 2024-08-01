@@ -66,7 +66,7 @@ internal sealed class ExecutionDataLoaderScope(
         private readonly IBatchScheduler _batchScheduler;
 
         public DataLoaderServiceProvider(IServiceProvider innerServiceProvider, IBatchScheduler batchScheduler)
-        {   
+        {
             _innerServiceProvider = innerServiceProvider;
             _batchScheduler = batchScheduler;
             var serviceInspector = innerServiceProvider.GetService<IServiceProviderIsService>();
@@ -86,7 +86,7 @@ internal sealed class ExecutionDataLoaderScope(
             {
                 return _serviceInspector;
             }
-            
+
             if(serviceType == typeof(IBatchScheduler))
             {
                 return _batchScheduler;
@@ -100,7 +100,7 @@ internal sealed class ExecutionDataLoaderScope(
             : IServiceProviderIsService
         {
             public bool IsService(Type serviceType)
-                => typeof(IBatchDispatcher) == serviceType || 
+                => typeof(IBatchDispatcher) == serviceType ||
                     innerIsServiceInspector.IsService(serviceType);
         }
     }

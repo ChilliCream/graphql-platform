@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types;
@@ -65,7 +65,6 @@ public class IdTypeTests
         // assert
         Assert.True(result);
     }
-
 
     [Fact]
     public void IsInstanceOfType_IntValueNode()

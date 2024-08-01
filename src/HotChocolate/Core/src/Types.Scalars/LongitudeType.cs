@@ -23,7 +23,7 @@ public class LongitudeType : ScalarType<double, StringValueNode>
     {
         Description = description;
     }
-    
+
     /// <summary>
     /// Initializes a new instance of <see cref="LongitudeType"/>
     /// </summary>

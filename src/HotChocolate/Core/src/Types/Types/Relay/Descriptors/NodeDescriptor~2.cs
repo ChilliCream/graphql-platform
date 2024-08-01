@@ -69,7 +69,6 @@ public class NodeDescriptor<TNode, TId> : INodeDescriptor<TNode, TId>
             }
 
             return null;
-
         });
     }
 

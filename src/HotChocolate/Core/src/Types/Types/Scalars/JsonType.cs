@@ -23,7 +23,7 @@ public sealed class JsonType : ScalarType<JsonElement>
     /// </summary>
     public JsonType(string name, BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, bind) { }
-    
+
     /// <summary>
     /// Initializes a new instance of <see cref="JsonType"/>.
     /// </summary>
@@ -262,7 +262,6 @@ public sealed class JsonType : ScalarType<JsonElement>
                     default:
                         throw new ArgumentOutOfRangeException(nameof(node));
                 }
-
 
                 return base.Enter(node, context);
             }

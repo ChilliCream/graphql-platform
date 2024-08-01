@@ -92,7 +92,7 @@ public class ArgumentDescriptor
         }
 
         base.OnCreateDefinition(definition);
-        
+
         Context.Descriptors.Pop();
     }
 

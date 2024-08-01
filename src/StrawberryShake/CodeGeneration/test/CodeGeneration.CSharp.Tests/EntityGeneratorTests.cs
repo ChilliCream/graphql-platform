@@ -32,7 +32,7 @@ public class EntityGeneratorTests
             FileResource.Open("Schema.extensions.graphql"),
             FileResource.Open("ChatSchema.graphql"));
     }
-    
+
     [Fact]
     public void Generate_ChatClient_MapperMapsEntityOnRootCorrectly_With_Records()
     {
@@ -51,7 +51,7 @@ public class EntityGeneratorTests
             FileResource.Open("Schema.extensions.graphql"),
             FileResource.Open("BookSchema.graphql"));
     }
-    
+
     [Fact]
     public void Generate_BookClient_DataOnly_UnionDataTypes_With_Records()
     {

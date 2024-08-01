@@ -89,7 +89,6 @@ internal static class OperationContextExtensions
         }
     }
 
-
     public static OperationContext SetLabel(
         this OperationContext context,
         string? label)

@@ -78,7 +78,7 @@ public static partial class RequestExecutorBuilderExtensions
         configure(options);
         services.AddSingleton(
             sp => new InputParser(
-                sp.GetRequiredService<ITypeConverter>(), 
+                sp.GetRequiredService<ITypeConverter>(),
                 options));
         return services;
     }

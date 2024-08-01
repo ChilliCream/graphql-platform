@@ -869,7 +869,6 @@ public class IsSelectedTests
             };
         }
 
-
         public User GetUser_Context_1(IResolverContext context)
         {
             ((IMiddlewareContext)context).OperationResult.SetExtension("isSelected", context.IsSelected("email"));

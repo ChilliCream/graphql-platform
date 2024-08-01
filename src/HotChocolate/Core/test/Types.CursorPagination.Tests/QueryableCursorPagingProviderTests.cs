@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -59,7 +59,6 @@ public class QueryableCursorPagingProviderTests
             connection.Info.HasNextPage,
             "HasNextPage");
     }
-
 
     [Fact]
     public async Task TakeLastSingle()

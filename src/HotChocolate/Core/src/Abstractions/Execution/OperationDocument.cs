@@ -20,7 +20,7 @@ public sealed class OperationDocument(DocumentNode document) : IOperationDocumen
     /// Gets the parsed GraphQL operation document.
     /// </summary>
     public DocumentNode Document { get; } = document ?? throw new ArgumentNullException(nameof(document));
-    
+
     /// <summary>
     /// Writes the current document to the output stream.
     /// </summary>
@@ -39,7 +39,7 @@ public sealed class OperationDocument(DocumentNode document) : IOperationDocumen
         {
             throw new ArgumentNullException(nameof(output));
         }
-        
+
         await Document.PrintToAsync(output, false, cancellationToken).ConfigureAwait(false);
     }
 

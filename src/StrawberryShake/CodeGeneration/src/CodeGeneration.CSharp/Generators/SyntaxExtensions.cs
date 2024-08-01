@@ -132,7 +132,6 @@ public static class SyntaxExtensions
                             SyntaxKind.StringLiteralExpression,
                             Literal(version))));
 
-
         return (T)type
             .WithAttributeLists(
                 SingletonList(
@@ -286,7 +285,6 @@ public static class SyntaxExtensions
                                                 SingletonSeparatedList(
                                                     Argument(IdentifierName(
                                                         parameterName)))))))))));
-
 
         var assignmentExpression =
             AssignmentExpression(

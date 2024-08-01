@@ -75,7 +75,7 @@ internal sealed class SelectionExecutionStep : ExecutionStep
     /// Gets the subgraph from which this execution step will fetch data.
     /// </summary>
     public string SubgraphName { get; }
-    
+
     /// <summary>
     /// Gets the selection path from which this execution step was spawned.
     /// </summary>

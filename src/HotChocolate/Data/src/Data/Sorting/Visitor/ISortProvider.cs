@@ -34,4 +34,3 @@ public interface ISortProvider
         ISortInputTypeDefinition typeDefinition,
         ISortFieldDefinition fieldDefinition);
 }
-

@@ -106,7 +106,6 @@ public static class NameUtils
         if (property is { Length: >0, } && property[0] == '_')
         {
             return $"this.{property}";
-
         }
 
         return property;

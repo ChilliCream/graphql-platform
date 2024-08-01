@@ -573,7 +573,7 @@ public class SubscriptionTypeTests : TypeTestBase
     {
         // arrange
         var snapshot = new Snapshot();
-        
+
         // act
         var executor = await TestHelper.CreateExecutorAsync(
             r => r
@@ -593,7 +593,7 @@ public class SubscriptionTypeTests : TypeTestBase
     {
         // arrange
         var snapshot = new Snapshot();
-        
+
         // act
         var executor = await TestHelper.CreateExecutorAsync(
             r => r
@@ -613,7 +613,7 @@ public class SubscriptionTypeTests : TypeTestBase
     {
         // arrange
         var snapshot = new Snapshot();
-        
+
         // act
         var executor = await TestHelper.CreateExecutorAsync(
             r => r

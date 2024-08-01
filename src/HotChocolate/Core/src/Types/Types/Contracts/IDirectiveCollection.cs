@@ -30,7 +30,7 @@ public interface IDirectiveCollection : IReadOnlyCollection<Directive>
     /// Returns the first directive that matches the given name or <c>null</c>.
     /// </returns>
     Directive? FirstOrDefault(string directiveName);
-    
+
     /// <summary>
     /// Gets the first directive that matches the given <typeparamref name="TRuntimeType"/> or <c>null</c>.
     /// </summary>
@@ -50,7 +50,7 @@ public interface IDirectiveCollection : IReadOnlyCollection<Directive>
     /// exists; otherwise, <c>false</c> will be returned.
     /// </returns>
     bool ContainsDirective(string directiveName);
-    
+
     /// <summary>
     /// Checks if a directive with the specified <typeparamref name="TRuntimeType"/> exists.
     /// </summary>

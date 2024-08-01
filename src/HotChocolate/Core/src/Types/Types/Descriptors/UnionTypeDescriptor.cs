@@ -41,7 +41,7 @@ public class UnionTypeDescriptor
     protected override void OnCreateDefinition(UnionTypeDefinition definition)
     {
         Context.Descriptors.Push(this);
-        
+
         if (!Definition.AttributesAreApplied && Definition.RuntimeType != typeof(object))
         {
             Context.TypeInspector.ApplyAttributes(Context, this, Definition.RuntimeType);
@@ -52,7 +52,7 @@ public class UnionTypeDescriptor
 
         Context.Descriptors.Pop();
     }
-    
+
     public IUnionTypeDescriptor Name(string value)
     {
         Definition.Name = value;

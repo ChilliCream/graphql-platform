@@ -33,7 +33,6 @@ internal sealed class LegacyNodeIdSerializer : INodeIdSerializer
             throw new ArgumentNullException(nameof(internalId));
         }
 
-
         string? idString = null;
 
         switch (internalId)

@@ -189,7 +189,6 @@ public class DirectiveTypeTests : TypeTestBase
                 .Use((_, _) => _ => default)
                 .Argument("a").Type<StringType>());
 
-
         var objectType = new ObjectType(
             t =>
             {
@@ -299,7 +298,7 @@ public class DirectiveTypeTests : TypeTestBase
         var directive = schema.GetDirectiveType("foo");
         Assert.NotNull(directive.Middleware);
     }
-    
+
     [Fact]
     public async Task Use_EnsureClassMiddlewareDoesNotTrap_Next()
     {
@@ -311,13 +310,13 @@ public class DirectiveTypeTests : TypeTestBase
                 {
                     descriptor
                         .Name("Query");
-                    
+
                     descriptor
                         .Field("foo")
                         .Type<StringType>()
                         .Resolve("bar")
                         .Directive("foo");
-                    
+
                     descriptor
                         .Field("foo1")
                         .Type<IntType>()
@@ -340,7 +339,7 @@ public class DirectiveTypeTests : TypeTestBase
         await schema.MakeExecutable().ExecuteAsync("{ foo1 }");
         await schema.MakeExecutable().ExecuteAsync("{ foo foo1 }");
         var result = await schema.MakeExecutable().ExecuteAsync("{ foo foo1 }");
-        
+
         result.MatchSnapshot();
     }
 
@@ -912,7 +911,7 @@ public class DirectiveTypeTests : TypeTestBase
         public Task InvokeAsync(IMiddlewareContext context) =>
             Task.CompletedTask;
     }
-    
+
     public class DirectiveMiddleware1
     {
         private readonly FieldDelegate _next;

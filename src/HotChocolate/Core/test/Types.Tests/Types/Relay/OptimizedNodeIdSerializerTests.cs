@@ -19,7 +19,6 @@ public class OptimizedNodeIdSerializerTests
         Assert.Equal("Rm9vOg==", id);
     }
 
-
     [Fact]
     public void Format_Small_StringId()
     {

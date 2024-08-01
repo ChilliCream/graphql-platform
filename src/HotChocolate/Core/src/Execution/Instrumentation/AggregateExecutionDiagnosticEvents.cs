@@ -231,7 +231,6 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         }
     }
 
-
     public IDisposable ExecuteSubscription(ISubscription subscription)
     {
         var scopes = new IDisposable[_listeners.Length];

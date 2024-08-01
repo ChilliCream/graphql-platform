@@ -26,7 +26,7 @@ public class ServiceAttribute : Attribute
     {
         Key = key;
     }
-    
+
     /// <summary>
     /// Gets the key that shall be used to resolve the service.
     /// </summary>

@@ -1161,7 +1161,6 @@ public class IntegrationTests
             descriptor
                 .Field(t => t.Names())
                 .UsePaging(options: new() { InferConnectionNameFromField = true, });
-
         }
     }
 

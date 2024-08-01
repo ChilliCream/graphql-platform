@@ -4,7 +4,6 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Fusion.SourceSchema.Types;
 
-
 public sealed class InternalAttribute : ObjectFieldDescriptorAttribute
 {
     protected override void OnConfigure(

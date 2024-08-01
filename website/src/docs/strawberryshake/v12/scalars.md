@@ -47,7 +47,6 @@ public partial class GetUser_User : IEquatable<GetUser_User>, IGetUser_User
 {
     // ....
 
-
     // The runtimeType is DateTime
     public DateTime? RegistrationDate { get; }
 

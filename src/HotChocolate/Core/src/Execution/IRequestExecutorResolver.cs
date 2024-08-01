@@ -52,4 +52,3 @@ public interface IRequestExecutorResolver
     /// </param>
     void EvictRequestExecutor(string? schemaName = default);
 }
-

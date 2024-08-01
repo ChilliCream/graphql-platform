@@ -99,7 +99,6 @@ internal sealed class ComposeCommand : Command
             settingsFile = new FileInfo(settingsFileName);
         }
 
-
         await using var package = FusionGraphPackage.Open(packageFile.FullName);
 
         if (removeSubgraphs is not null)

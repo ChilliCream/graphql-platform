@@ -40,8 +40,8 @@ public class InitCommandHandler : CommandHandler<InitCommandArguments>
             accessToken?.Token,
             accessToken?.Scheme,
             CustomHeaderHelper.ParseHeadersArgument(arguments.CustomHeaders.Values),
-            arguments.TypeDepth.HasValue() && 
-            int.TryParse(arguments.TypeDepth.Value(), out var typeDepth) && 
+            arguments.TypeDepth.HasValue() &&
+            int.TryParse(arguments.TypeDepth.Value(), out var typeDepth) &&
             typeDepth >= 3 ? typeDepth : 6);
 
         if (arguments.FromFile.HasValue())
@@ -64,7 +64,6 @@ public class InitCommandHandler : CommandHandler<InitCommandArguments>
 
             return 0;
         }
-
 
         if (await ExecuteInternalAsync(context, cancellationToken).ConfigureAwait(false))
         {

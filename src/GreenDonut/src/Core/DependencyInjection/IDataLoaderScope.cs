@@ -1,7 +1,7 @@
 namespace GreenDonut.DependencyInjection;
 
 /// <summary>
-/// The DataLoader scope provides access to the DataLoader bound to the current execution. 
+/// The DataLoader scope provides access to the DataLoader bound to the current execution.
 /// </summary>
 public interface IDataLoaderScope
 {
@@ -33,4 +33,3 @@ public interface IDataLoaderScope
     /// </returns>
     T GetDataLoader<T>() where T : IDataLoader;
 }
-

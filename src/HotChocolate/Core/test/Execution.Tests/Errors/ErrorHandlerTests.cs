@@ -45,7 +45,7 @@ public class ErrorHandlerTests
             .AddDocumentFromString("type Query { foo: String bar: String }")
             .AddResolver("Query", "foo", _ => throw new Exception("Foo"))
             .AddResolver("Query", "bar", _ => throw new NullReferenceException("Foo"))
-            
+
             // error filter configuration
             .AddErrorFilter(
                 error =>
@@ -76,12 +76,12 @@ public class ErrorHandlerTests
         var executor = await new ServiceCollection()
             // error filter configuration
             .AddErrorFilter<DummyErrorFilter>()
-            
+
             // general graphql configuration
             .AddGraphQL()
             .AddDocumentFromString("type Query { foo: String }")
             .AddResolver("Query", "foo", _ => throw new Exception("Foo"))
-            
+
             // build graphql executor
             .BuildRequestExecutorAsync();
 
@@ -102,10 +102,10 @@ public class ErrorHandlerTests
             // general graphql configuration
             .AddGraphQL()
             .AddQueryType<Query>()
-            
+
             // error filter configuration
             .AddErrorFilter<DummyErrorFilter>()
-            
+
             // build graphql executor
             .BuildRequestExecutorAsync();
 
@@ -125,14 +125,14 @@ public class ErrorHandlerTests
         var executor = await new ServiceCollection()
             // service configuration
             .AddSingleton<SomeService>()
-            
+
             // general graphql configuration
             .AddGraphQL()
             .AddQueryType<Query>()
-            
+
             // error filter configuration
             .AddErrorFilter<DummyErrorFilterWithDependency>()
-            
+
             // build graphql executor
             .BuildRequestExecutorAsync();
 
@@ -153,10 +153,10 @@ public class ErrorHandlerTests
             // general graphql configuration
             .AddGraphQL()
             .AddQueryType<Query>()
-            
+
             // error filter configuration
             .AddErrorFilter(_ => new DummyErrorFilter())
-            
+
             // build graphql executor
             .BuildRequestExecutorAsync();
 
@@ -176,12 +176,12 @@ public class ErrorHandlerTests
         var executor = await new ServiceCollection()
             // error filter configuration
             .AddErrorFilter(_ => new DummyErrorFilter())
-            
+
             // general graphql configuration
             .AddGraphQL()
             .AddDocumentFromString("type Query { foo: String }")
             .AddResolver("Query", "foo", _ => throw new Exception("Foo"))
-            
+
             // build graphql executor
             .BuildRequestExecutorAsync();
 
@@ -201,12 +201,12 @@ public class ErrorHandlerTests
         var executor = await new ServiceCollection()
             // error filter configuration
             .AddErrorFilter(_ => new AggregateErrorFilter())
-            
+
             // general graphql configuration
             .AddGraphQL()
             .AddDocumentFromString("type Query { foo: String }")
             .AddResolver("Query", "foo", _ => throw new Exception("Foo"))
-            
+
             // build graphql executor
             .BuildRequestExecutorAsync();
 
@@ -235,7 +235,7 @@ public class ErrorHandlerTests
                     ctx.ReportError(new AggregateError(new Error("abc"), new Error("def")));
                     return "Hello";
                 })
-            
+
             // build graphql executor
             .BuildRequestExecutorAsync();
 
@@ -245,7 +245,7 @@ public class ErrorHandlerTests
         // assert
         snapshot.Add(result);
     }
-    
+
     public class DummyErrorFilter : IErrorFilter
     {
         public IError OnError(IError error)

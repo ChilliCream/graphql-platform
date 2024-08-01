@@ -16,7 +16,7 @@ internal sealed class RavenQueryableFilterProvider : QueryableFilterProvider
         : base(configure)
     {
     }
-    
+
     [ActivatorUtilitiesConstructor]
     public RavenQueryableFilterProvider() { }
 

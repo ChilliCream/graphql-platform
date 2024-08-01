@@ -59,7 +59,6 @@ public class IsolatedProcessEndToEndTests
                 graphQL.AddQueryType(
                     d => d.Name("Query").Field("person").Resolve(ctx =>
                     {
-
                         var darkSideLeader = ctx.ContextData.TryGetValue(
                             nameof(HttpContext),
                             out var httpContext)

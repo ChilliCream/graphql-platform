@@ -47,7 +47,7 @@ file sealed class DelegateServiceInitializer<TService>(
     Action<TService, TService> initializer)
     : ServiceInitializer<TService>
 {
-    private readonly Action<TService, TService> _initializer = initializer ?? 
+    private readonly Action<TService, TService> _initializer = initializer ??
         throw new ArgumentNullException(nameof(initializer));
 
     protected override void Initialize(TService requestScopeService, TService resolverScopeService)

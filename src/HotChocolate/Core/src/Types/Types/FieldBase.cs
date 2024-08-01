@@ -21,7 +21,7 @@ public abstract class FieldBase
     {
         _definition = definition ?? throw new ArgumentNullException(nameof(definition));
         Index = index;
-        
+
         Name = definition.Name.EnsureGraphQLName();
         Description = definition.Description;
         Flags = definition.Flags;

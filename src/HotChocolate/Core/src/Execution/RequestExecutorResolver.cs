@@ -613,7 +613,6 @@ internal sealed partial class RequestExecutorResolver
         private readonly IExecutionDiagnosticEvents _diagnosticEvents = diagnosticEvents ??
             throw new ArgumentNullException(nameof(diagnosticEvents));
 
-
         public override RequestContext Create()
             => new(_schema, executorVersion, _errorHandler, _diagnosticEvents);
 

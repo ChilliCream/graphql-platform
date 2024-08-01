@@ -4,7 +4,7 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Configuration;
 
-internal sealed class ExtendedTypeDirectiveReferenceHandler(ITypeInspector typeInspector) 
+internal sealed class ExtendedTypeDirectiveReferenceHandler(ITypeInspector typeInspector)
     : ITypeRegistrarHandler
 {
     public TypeReferenceKind Kind => TypeReferenceKind.DirectiveExtendedType;

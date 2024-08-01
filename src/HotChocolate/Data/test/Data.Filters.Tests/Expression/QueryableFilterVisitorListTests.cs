@@ -4,7 +4,6 @@ namespace HotChocolate.Data.Filters.Expressions;
 
 public class QueryableFilterVisitorListTests : FilterVisitorTestBase
 {
-
     [Fact]
     public void Create_ArraySomeStringEqual_Expression()
     {
@@ -324,7 +323,6 @@ public class QueryableFilterVisitorListTests : FilterVisitorTestBase
         var d = new Foo { FooNested = new FooNested[] { null!, }, };
         Assert.False(func(d));
     }
-
 
     [Fact]
     public void Create_ArraySomeStringEqual_Expression_Null()

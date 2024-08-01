@@ -126,7 +126,6 @@ internal static class ClassBuilderExtensions
                 .Members
                 .ToArray());
 
-
         BuildGetHashCodeMethod(properties).Build(codeWriter);
         codeWriter.Flush();
         var hashCodeMethod = builder.ToString();

@@ -31,7 +31,7 @@ internal sealed class InstrumentationMiddleware
             }
         }
     }
-    
+
     public static RequestCoreMiddleware Create()
         => (core, next) =>
         {

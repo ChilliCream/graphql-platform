@@ -23,9 +23,9 @@ public sealed class SchemaException : Exception
         Errors = errors.ToArray();
         Debug.WriteLine(Message);
     }
-    
+
     public IReadOnlyList<ISchemaError> Errors { get; }
-    
+
     private static string CreateErrorMessage(IReadOnlyList<ISchemaError> errors)
     {
         if (errors is null || errors.Count == 0)

@@ -42,7 +42,7 @@ public class EnumTypeDescriptor
         EnumTypeDefinition definition)
     {
         Context.Descriptors.Push(this);
-        
+
         if (!Definition.AttributesAreApplied && Definition.RuntimeType != typeof(object))
         {
             Context.TypeInspector.ApplyAttributes(
@@ -63,7 +63,7 @@ public class EnumTypeDescriptor
         }
 
         base.OnCreateDefinition(definition);
-        
+
         Context.Descriptors.Pop();
     }
 

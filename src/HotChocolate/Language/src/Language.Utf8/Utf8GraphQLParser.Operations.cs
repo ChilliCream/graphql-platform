@@ -282,7 +282,6 @@ public ref partial struct Utf8GraphQLParser
         return _emptyArguments;
     }
 
-
     /// <summary>
     /// Parses an argument.
     /// <see cref="ArgumentNode" />:

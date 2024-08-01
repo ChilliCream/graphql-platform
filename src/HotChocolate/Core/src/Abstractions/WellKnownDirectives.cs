@@ -64,7 +64,7 @@ public static class WellKnownDirectives
     /// The name of the @tag directive.
     /// </summary>
     public const string Tag = "tag";
-    
+
     /// <summary>
     /// The name of the @tag argument name.
     /// </summary>

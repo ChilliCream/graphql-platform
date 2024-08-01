@@ -62,5 +62,4 @@ public sealed class OpaQueryRequest
 
         public object? Extensions { get; }
     }
-
 }

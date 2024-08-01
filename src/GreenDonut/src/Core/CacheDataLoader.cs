@@ -20,7 +20,7 @@ public abstract class CacheDataLoader<TKey, TValue>
         if (options.Cache is null)
         {
             throw new ArgumentException(
-                "A cache must be provided when using the CacheDataLoader.", 
+                "A cache must be provided when using the CacheDataLoader.",
                 nameof(options));
         }
     }

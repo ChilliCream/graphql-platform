@@ -27,7 +27,6 @@ public class CodeBlockBuilder : ICode
             {
                 builder.AddCode(CodeLineBuilder.From(line));
             }
-
         } while (line is not null);
 
         return builder;

@@ -34,12 +34,10 @@ public class UseOffsetPagingAttribute : DescriptorAttribute
         Order = order;
     }
 
-
     /// <summary>
     /// The schema type representation of the item type.
     /// </summary>
     public Type? Type { get; private set; }
-
 
     /// <summary>
     /// Specifies the collection segment name.

@@ -36,7 +36,7 @@ internal sealed class OperationVariableCoercionMiddleware
             context.Result = ErrorHelper.StateInvalidForOperationVariableCoercion();
         }
     }
-    
+
     public static RequestCoreMiddleware Create()
         => (core, next) =>
         {

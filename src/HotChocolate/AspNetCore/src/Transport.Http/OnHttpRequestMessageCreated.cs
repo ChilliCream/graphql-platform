@@ -6,5 +6,5 @@ namespace HotChocolate.Transport.Http;
 /// A delegate to intercept the <see cref="HttpRequestMessage"/> before it is sent.
 /// </summary>
 public delegate void OnHttpRequestMessageCreated(
-    GraphQLHttpRequest request, 
+    GraphQLHttpRequest request,
     HttpRequestMessage requestMessage);

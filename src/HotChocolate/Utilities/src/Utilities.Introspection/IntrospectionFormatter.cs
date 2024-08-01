@@ -127,7 +127,6 @@ internal static class IntrospectionFormatter
 
         foreach (var value in enumValues)
         {
-
             values.Add(new EnumValueDefinitionNode
             (
                 null,

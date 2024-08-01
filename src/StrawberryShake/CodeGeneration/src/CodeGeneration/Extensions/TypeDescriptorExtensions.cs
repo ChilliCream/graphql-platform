@@ -47,7 +47,6 @@ public static class TypeDescriptorExtensions
                 d.IsEntity() ||
                 d.Properties.Any(p => p.Type.IsEntity() || p.Type.IsOrContainsEntity()),
 
-
             NonNullTypeDescriptor d => d.InnerType.IsOrContainsEntity(),
 
             _ => false,

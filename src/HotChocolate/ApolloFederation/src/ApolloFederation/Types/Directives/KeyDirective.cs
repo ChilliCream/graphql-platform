@@ -24,9 +24,9 @@ namespace HotChocolate.ApolloFederation.Types;
 /// </summary>
 [Package(Federation20)]
 [DirectiveType(
-    KeyDirective_Name, 
-    DirectiveLocation.Object | 
-    DirectiveLocation.Interface, 
+    KeyDirective_Name,
+    DirectiveLocation.Object |
+    DirectiveLocation.Interface,
     IsRepeatable = true)]
 [GraphQLDescription(KeyDirective_Description)]
 [KeyLegacySupport]
@@ -38,17 +38,17 @@ public sealed class KeyDirective
         Fields = FieldSetType.ParseSelectionSet(fields);
         Resolvable = resolvable;
     }
-    
+
     public KeyDirective(SelectionSetNode fields, bool resolvable = true)
     {
         ArgumentNullException.ThrowIfNull(fields);
         Fields = fields;
         Resolvable = resolvable;
     }
-    
+
     [FieldSet]
     public SelectionSetNode Fields { get; }
-    
+
     [GraphQLType<BooleanType>]
     [DefaultValue(true)]
     public bool Resolvable { get; }

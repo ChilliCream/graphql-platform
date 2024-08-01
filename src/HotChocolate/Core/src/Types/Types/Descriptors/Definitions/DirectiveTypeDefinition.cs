@@ -82,7 +82,6 @@ public class DirectiveTypeDefinition : DefinitionBase, IHasRuntimeType
     /// </summary>
     public bool HasArguments => _arguments is { Count: > 0, };
 
-
     /// <summary>
     /// Gets or sets the input object runtime value factory delegate.
     /// </summary>

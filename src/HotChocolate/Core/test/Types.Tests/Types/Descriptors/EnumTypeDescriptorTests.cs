@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 
@@ -153,7 +153,6 @@ public class EnumTypeDescriptorTests : DescriptorTestBase
                     });
             });
     }
-
 
     private enum FooEnum
     {

@@ -24,8 +24,8 @@ namespace StarWars.Reviews
         /// </returns>
         [Subscribe]
         public Review OnReview(
-            [Topic]Episode episode, 
-            [EventMessage]Review message) => 
+            [Topic]Episode episode,
+            [EventMessage]Review message) =>
             message;
     }
 }

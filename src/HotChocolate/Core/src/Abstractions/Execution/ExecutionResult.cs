@@ -14,7 +14,6 @@ public abstract class ExecutionResult : IExecutionResult
 
     protected ExecutionResult()
     {
-
     }
 
     protected ExecutionResult(Func<ValueTask>[] cleanupTasks)

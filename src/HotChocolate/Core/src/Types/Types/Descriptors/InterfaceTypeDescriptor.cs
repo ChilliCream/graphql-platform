@@ -59,7 +59,7 @@ public class InterfaceTypeDescriptor
         InterfaceTypeDefinition definition)
     {
         Context.Descriptors.Push(this);
-        
+
         if (!Definition.AttributesAreApplied && Definition.RuntimeType != typeof(object))
         {
             Context.TypeInspector.ApplyAttributes(

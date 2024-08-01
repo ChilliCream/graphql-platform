@@ -100,7 +100,6 @@ public sealed class GraphQLWebSocketProtocol : SocketProtocolBase
         await _receiver.Stop().ConfigureAwait(false);
     }
 
-
     private ValueTask ProcessAsync(
         ReadOnlySequence<byte> slice,
         CancellationToken cancellationToken)

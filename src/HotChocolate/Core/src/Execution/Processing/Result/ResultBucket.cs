@@ -74,10 +74,10 @@ internal sealed class ResultBucket<T> where T : class
             {
                 mem = default;
             }
-            
+
             mem = ref Unsafe.Add(ref mem, 1);
         }
-        
+
         _index = 0;
     }
 }

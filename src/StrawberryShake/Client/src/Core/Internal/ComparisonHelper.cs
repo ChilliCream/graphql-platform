@@ -171,12 +171,12 @@ public static class ComparisonHelper
         {
             return DictionaryEqualInternal(firstReadDict, secondReadDict);
         }
-        
+
         if (first is IEnumerable<KeyValuePair<string, object?>> firstKvp &&
             second is IEnumerable<KeyValuePair<string, object?>> secondKvp)
         {
             return DictionaryEqualInternal(
-                firstKvp.ToDictionary(t => t.Key, t => t.Value), 
+                firstKvp.ToDictionary(t => t.Key, t => t.Value),
                 secondKvp.ToDictionary(t => t.Key, t => t.Value));
         }
 

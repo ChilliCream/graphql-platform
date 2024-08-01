@@ -13,7 +13,7 @@ namespace HotChocolate.Execution;
 public sealed class OperationDocumentSourceText(string sourceText) : IOperationDocument
 {
     /// <summary>
-    /// Gets the GraphQL operation document source text. 
+    /// Gets the GraphQL operation document source text.
     /// </summary>
     public string SourceText { get; } = sourceText ?? throw new ArgumentNullException(nameof(sourceText));
 
@@ -35,7 +35,7 @@ public sealed class OperationDocumentSourceText(string sourceText) : IOperationD
         {
             throw new ArgumentNullException(nameof(output));
         }
-        
+
         var buffer = Encoding.UTF8.GetBytes(SourceText);
         await output.WriteAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false);
     }

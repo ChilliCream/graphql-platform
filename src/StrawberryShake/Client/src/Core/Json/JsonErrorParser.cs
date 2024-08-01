@@ -152,7 +152,6 @@ public static class JsonErrorParser
 
                 return array;
 
-
             case JsonValueKind.String:
                 return element.GetString();
 

@@ -12,7 +12,7 @@ internal sealed class PersistedQueryNotFoundMiddleware
     private readonly RequestDelegate _next;
     private readonly IExecutionDiagnosticEvents _diagnosticEvents;
     private readonly Dictionary<string, object?> _statusCode = new() { { HttpStatusCode, 400 }, };
-    
+
     private PersistedQueryNotFoundMiddleware(
         RequestDelegate next,
         [SchemaService] IExecutionDiagnosticEvents diagnosticEvents)
@@ -44,7 +44,7 @@ internal sealed class PersistedQueryNotFoundMiddleware
 
         return default;
     }
-    
+
     public static RequestCoreMiddleware Create()
         => (core, next) =>
         {

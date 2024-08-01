@@ -122,7 +122,6 @@ public sealed class Session : ISession
         _socketProtocol.Subscribe(ReceiveMessage);
     }
 
-
     /// <summary>
     /// Closes a session over the socket
     /// </summary>

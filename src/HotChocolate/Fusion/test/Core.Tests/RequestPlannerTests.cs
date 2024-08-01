@@ -979,7 +979,6 @@ public class RequestPlannerTests
         await snapshot.MatchMarkdownAsync();
     }
 
-
     [Fact]
     public async Task Query_Plan_25_Variables_Are_Passed_Through()
     {

@@ -726,7 +726,6 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
         public int Id { get; set; }
 
         public Foo Foo { get; set; } = null!;
-
     }
 
     public class BarNullable
@@ -734,7 +733,6 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
         public int Id { get; set; }
 
         public FooNullable? Foo { get; set; }
-
     }
 
     public class BarFilterInput : FilterInputType<Bar>

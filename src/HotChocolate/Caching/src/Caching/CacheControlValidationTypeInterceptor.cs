@@ -20,7 +20,7 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
             _queryContext = completionContext;
         }
     }
-    
+
     public override void OnValidateType(
         ITypeSystemObjectContext validationContext,
         DefinitionBase definition)

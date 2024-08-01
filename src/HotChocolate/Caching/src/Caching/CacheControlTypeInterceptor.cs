@@ -149,7 +149,7 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
 
         return false;
     }
-    
+
     /// <summary>
     /// Defines if a resolver is possible fetching data and causing higher impact on the system.
     /// </summary>

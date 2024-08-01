@@ -38,7 +38,7 @@ public static class ComposeDirectiveDescriptorExtensions
     /// <paramref name="directiveName"/> is <c>null</c>.
     /// </exception>
     public static IRequestExecutorBuilder ExportDirective(
-        this IRequestExecutorBuilder builder, 
+        this IRequestExecutorBuilder builder,
         string directiveName)
     {
         ArgumentNullException.ThrowIfNull(builder);
@@ -53,7 +53,7 @@ public static class ComposeDirectiveDescriptorExtensions
 
         return builder;
     }
-    
+
     public static IRequestExecutorBuilder ExportDirective<T>(
         this IRequestExecutorBuilder builder)
     {
@@ -61,7 +61,7 @@ public static class ComposeDirectiveDescriptorExtensions
 
         builder.AddType<T>();
         builder.AddType<ComposeDirective>();
-        
+
         builder.ConfigureSchema(
             sb =>
             {

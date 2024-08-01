@@ -126,4 +126,3 @@ public sealed class OperationResult : IDisposable
             root.TryGetProperty(VariableIndexProp, out var variableIndex) ? variableIndex.GetInt32() : null);
     }
 }
-

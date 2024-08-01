@@ -81,7 +81,6 @@ public class CustomParameterExpressionBuilder<TArg> : CustomParameterExpressionB
     {
         _expression = expression;
         _canHandle = canHandle;
-
     }
 
     /// <summary>

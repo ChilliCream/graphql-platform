@@ -80,5 +80,3 @@ public sealed class MockHttpRequestData : HttpRequestData, IDisposable
         Body.Dispose();
     }
 }
-
-

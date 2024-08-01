@@ -93,7 +93,6 @@ public class InputObjectTypeAttributeTests
             .MatchSnapshotAsync();
     }
 
-
     [Fact]
     public async Task Infer_Default_Values_From_Attribute_Execute_With_Variables()
     {

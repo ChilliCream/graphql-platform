@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types;
@@ -219,7 +219,6 @@ public class ByteTypeTests
         // assert
         Assert.Throws<SerializationException>(action);
     }
-
 
     [Fact]
     public void ParseValue_Wrong_Value_Throws()

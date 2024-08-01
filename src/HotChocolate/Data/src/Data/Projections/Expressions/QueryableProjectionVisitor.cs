@@ -19,7 +19,7 @@ public class QueryableProjectionVisitor : ProjectionVisitor<QueryableProjectionC
         {
             return base.VisitObjectType(field, objectType, selection, context);
         }
-        
+
         var selections = context.ResolverContext.GetSelections(objectType, selection, true);
 
         if (selections.Count == 0)
@@ -36,7 +36,6 @@ public class QueryableProjectionVisitor : ProjectionVisitor<QueryableProjectionC
         scope.AddAbstractType(objectType.RuntimeType, scope.Level.Pop());
 
         return res;
-
     }
 
     public static readonly QueryableProjectionVisitor Default = new();

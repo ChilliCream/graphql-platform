@@ -185,7 +185,6 @@ public class ReaderTests
                 (byte)'c',
         };
 
-
         var tokens = new List<SyntaxTokenInfo>();
         var reader = new Utf8GraphQLReader(sourceText);
 

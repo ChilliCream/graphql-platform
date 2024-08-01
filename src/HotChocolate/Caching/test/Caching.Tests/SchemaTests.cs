@@ -76,7 +76,6 @@ public class SchemaTests
     {
         public static Book GetBook()
             => new Book("C# in depth.", "abc");
-
 }
 
     public record Book(

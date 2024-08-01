@@ -34,7 +34,7 @@ public sealed class TaskCacheOwner : IDisposable
         _cache = pool.Get();
         CancellationToken = _cts.Token;
     }
-    
+
     /// <summary>
     /// The task cancellation token that shall be used for a DataLoader session with this cache.
     /// The cancellation will be signaled when the cache is returned to its pool.

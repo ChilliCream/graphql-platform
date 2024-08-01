@@ -121,7 +121,6 @@ public class OperationRequestTests
         var document = new Mock<IDocument>();
         var dict = new Dictionary<string, object?> { { "a", "a" }, };
 
-
         var a = new OperationRequest(
             null,
             "abc",
@@ -592,7 +591,7 @@ public class OperationRequestTests
         // assert
         Assert.True(a.Equals(b));
     }
-    
+
     [Fact]
     public void Equals_No_Variables()
     {

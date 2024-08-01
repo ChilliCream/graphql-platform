@@ -39,7 +39,6 @@ public readonly struct ObjectFieldBinding
     /// </summary>
     public ObjectFieldBindingType Type { get; }
 
-
     /// <summary>
     /// Defines if the bound property shall be replaced.
     /// </summary>

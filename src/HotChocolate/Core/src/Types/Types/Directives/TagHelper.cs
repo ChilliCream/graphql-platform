@@ -9,7 +9,7 @@ internal static class TagHelper
     public static void ModifyOptions(IDescriptorContext context, Action<TagOptions> configure)
     {
         TagOptions? options = null;
-        
+
         if (context.ContextData.TryGetValue(WellKnownContextData.TagOptions, out var value) &&
             value is TagOptions opt)
         {
@@ -20,5 +20,4 @@ internal static class TagHelper
         context.ContextData[WellKnownContextData.TagOptions] = options;
         configure(options);
     }
-    
 }

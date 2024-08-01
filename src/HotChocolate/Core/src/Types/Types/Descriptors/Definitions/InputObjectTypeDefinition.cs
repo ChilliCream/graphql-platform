@@ -123,4 +123,3 @@ public class InputObjectTypeDefinition : TypeDefinitionBase
         target.GetFieldData ??= GetFieldData;
     }
 }
-
