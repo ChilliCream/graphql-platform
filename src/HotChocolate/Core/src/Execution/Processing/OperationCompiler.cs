@@ -111,7 +111,7 @@ public sealed partial class OperationCompiler
 
             // collect root fields
             var rootPath = SelectionPath.Root;
-            var id = GetOrCreateSelectionSetRefId(operationDefinition.SelectionSet, rootPath);
+            var id = GetOrCreateSelectionSetRefId(operationDefinition.SelectionSet, operationType.Name, rootPath);
             var variants = GetOrCreateSelectionVariants(id);
             SelectionSetInfo[] infos = [new(operationDefinition.SelectionSet, 0),];
 
@@ -356,7 +356,7 @@ public sealed partial class OperationCompiler
                 }
 
                 var selectionPath = context.Path.Append(selection.ResponseName);
-                selectionSetId = GetOrCreateSelectionSetRefId(selection.SelectionSet, selectionPath);
+                selectionSetId = GetOrCreateSelectionSetRefId(selection.SelectionSet, fieldType.Name, selectionPath);
                 var possibleTypes = context.Schema.GetPossibleTypes(fieldType);
 
                 if (_enqueuedSelectionSets.Add(selectionSetId))
@@ -598,7 +598,8 @@ public sealed partial class OperationCompiler
                     ifConditionFlags = GetSelectionIncludeCondition(ifCondition, includeCondition);
                 }
 
-                var id = GetOrCreateSelectionSetRefId(selectionSet, context.Path);
+                var typeName = typeCondition?.Name.Value ?? context.Type.Name;
+                var id = GetOrCreateSelectionSetRefId(selectionSet, typeName, context.Path);
                 var variants = GetOrCreateSelectionVariants(id);
                 var infos = new SelectionSetInfo[] { new(selectionSet, includeCondition), };
 
@@ -683,9 +684,12 @@ public sealed partial class OperationCompiler
 
     private int GetNextFragmentId() => _nextFragmentId++;
 
-    private int GetOrCreateSelectionSetRefId(SelectionSetNode selectionSet, SelectionPath path)
+    private int GetOrCreateSelectionSetRefId(
+        SelectionSetNode selectionSet,
+        string selectionSetType,
+        SelectionPath path)
     {
-        var selectionSetRef = new SelectionSetRef(selectionSet, path);
+        var selectionSetRef = new SelectionSetRef(selectionSet, selectionSetType, path);
 
         if (!_selectionSetIdLookup.TryGetValue(selectionSetRef, out var selectionSetId))
         {
@@ -849,6 +853,7 @@ public sealed partial class OperationCompiler
 
     private readonly struct SelectionSetRef(
         SelectionSetNode selectionSet,
+        string selectionSetTypeName,
         SelectionPath path)
         : IEquatable<SelectionSetRef>
     {
@@ -856,9 +861,12 @@ public sealed partial class OperationCompiler
 
         public SelectionPath Path { get; } = path;
 
+        public string SelectionSetTypeName { get; } = selectionSetTypeName;
+
         public bool Equals(SelectionSetRef other)
             => SyntaxComparer.BySyntax.Equals(SelectionSet, other.SelectionSet)
-                && Path.Equals(other.Path);
+                && Path.Equals(other.Path)
+                && Ordinal.Equals(SelectionSetTypeName, other.SelectionSetTypeName);
 
         public override bool Equals(object? obj)
             => obj is SelectionSetRef other && Equals(other);
@@ -866,6 +874,7 @@ public sealed partial class OperationCompiler
         public override int GetHashCode()
             => HashCode.Combine(
                 SyntaxComparer.BySyntax.GetHashCode(SelectionSet),
-                Path.GetHashCode());
+                Path.GetHashCode(),
+                Ordinal.GetHashCode(SelectionSetTypeName));
     }
 }
