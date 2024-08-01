@@ -14,7 +14,7 @@ internal sealed class AsyncTaskDispatcher : IAsyncDisposable
     public AsyncTaskDispatcher(Func<CancellationToken, Task> handler)
     {
         _handler = handler;
-        _eventProcessorTask = new ContinuousTask(EventHandler);
+        _eventProcessorTask = new ContinuousTask(EventHandler, TimeProvider.System);
     }
 
     public async Task Initialize(CancellationToken cancellationToken)

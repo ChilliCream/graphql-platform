@@ -1,7 +1,7 @@
 using System;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Moq;
 
 namespace HotChocolate.Subscriptions.Postgres;
 
@@ -18,7 +18,7 @@ public class BackgroundTaskTests
             return Task.CompletedTask;
         });
 
-        var backgroundTask = new ContinuousTask(handler);
+        var backgroundTask = new ContinuousTask(handler, TimeProvider.System);
 
         // Act
         await backgroundTask.DisposeAsync();
@@ -38,7 +38,7 @@ public class BackgroundTaskTests
             return Task.CompletedTask;
         });
 
-        var backgroundTask = new ContinuousTask(handler);
+        var backgroundTask = new ContinuousTask(handler, TimeProvider.System);
 
         // Act
         await backgroundTask.DisposeAsync();
@@ -58,7 +58,7 @@ public class BackgroundTaskTests
             return Task.CompletedTask;
         });
 
-        var backgroundTask = new ContinuousTask(handler);
+        var backgroundTask = new ContinuousTask(handler, TimeProvider.System);
 
         // Act
         SpinWait.SpinUntil(() => handlerCalled, TimeSpan.FromSeconds(1));
@@ -81,7 +81,7 @@ public class BackgroundTaskTests
             return Task.CompletedTask;
         });
 
-        var backgroundTask = new ContinuousTask(handler);
+        var backgroundTask = new ContinuousTask(handler, TimeProvider.System);
         await backgroundTask.DisposeAsync();
 
         handlerCalled = false;
@@ -98,35 +98,27 @@ public class BackgroundTaskTests
     {
         // Arrange
         var hitCount = 0;
-        var stopwatch = new Stopwatch();
-        var handler = new Func<CancellationToken, Task>(async (token) =>
+        var handler = new Func<CancellationToken, Task>(_ =>
         {
             hitCount++;
 
-            if (hitCount == 1)
-            {
-                stopwatch.Start();
-                throw new Exception("First call exception");
-            }
-
-            if (hitCount == 2)
-            {
-                stopwatch.Stop();
-            }
-
-            if (hitCount > 2)
-            {
-                await Task.Delay(-1, token); // Wait indefinitely
-            }
+            throw new Exception("First call exception");
         });
 
-        var backgroundTask = new ContinuousTask(handler);
+        var mockTimeProvider = new Mock<TimeProvider>();
+        var backgroundTask = new ContinuousTask(handler, mockTimeProvider.Object);
 
         // Act
-        SpinWait.SpinUntil(() => hitCount == 2, TimeSpan.FromSeconds(5));
+        SpinWait.SpinUntil(() => hitCount == 1, TimeSpan.FromSeconds(5));
 
         // Assert
-        Assert.InRange(stopwatch.ElapsedMilliseconds, 1000, 2000);
+        mockTimeProvider.Verify(
+            tp => tp.CreateTimer(
+                It.IsAny<TimerCallback>(),
+                It.IsAny<object>(),
+                TimeSpan.FromSeconds(1),
+                Timeout.InfiniteTimeSpan),
+            Times.Once);
 
         // Cleanup
         await backgroundTask.DisposeAsync();
