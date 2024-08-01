@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Interceptors;
@@ -588,7 +584,6 @@ public static partial class SchemaBuilderExtensions
             }
 
             AddResolverTypeInternal(builder, typeName, resolverType);
-
 
             return builder;
         }

@@ -1,4 +1,3 @@
-using System;
 using System.Text;
 using Xunit;
 
@@ -72,7 +71,6 @@ public class Utf8HelperTests
         Assert.Equal("hello_123_" + unescaped,
             Encoding.UTF8.GetString(output.ToArray()));
     }
-
 
     [InlineData("\\\"\"")]
     [InlineData("\\\"")]

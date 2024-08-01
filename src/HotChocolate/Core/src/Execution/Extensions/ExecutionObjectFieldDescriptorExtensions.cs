@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
 using static HotChocolate.Execution.Processing.OperationCompilerOptimizerHelper;

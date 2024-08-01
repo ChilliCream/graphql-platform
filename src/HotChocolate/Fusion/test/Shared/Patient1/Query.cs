@@ -1,4 +1,4 @@
-﻿using HotChocolate.Types.Relay;
+using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Fusion.Shared.Patients;
 

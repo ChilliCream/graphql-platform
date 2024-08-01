@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Execution.Serialization;
 
 public sealed partial class JsonResultFormatter
@@ -23,8 +21,8 @@ public sealed partial class JsonResultFormatter
     private static ReadOnlySpan<byte> Column => "column"u8;
 
     private static ReadOnlySpan<byte> Incremental => "incremental"u8;
-    
+
     private static ReadOnlySpan<byte> RequestIndex => "requestIndex"u8;
-    
+
     private static ReadOnlySpan<byte> VariableIndex => "variableIndex"u8;
 }

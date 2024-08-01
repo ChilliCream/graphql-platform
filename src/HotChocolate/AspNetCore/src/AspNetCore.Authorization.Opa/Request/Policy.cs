@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace HotChocolate.AspNetCore.Authorization;
 
 public sealed class Policy

@@ -33,5 +33,4 @@ public class SchemaHelperTests
             "global::System.String",
             scalarType.ContextData["StrawberryShake.RuntimeType"]);
     }
-
 }

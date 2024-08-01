@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Execution;
 using HotChocolate.Types;

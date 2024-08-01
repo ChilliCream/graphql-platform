@@ -1,7 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace GreenDonut;
@@ -67,7 +63,7 @@ public class BatchDataLoaderTests
             new AutoBatchScheduler(),
             new DataLoaderOptions
             {
-                Cache = cacheOwner.Cache, 
+                Cache = cacheOwner.Cache,
                 CancellationToken = cacheOwner.CancellationToken,
             });
 

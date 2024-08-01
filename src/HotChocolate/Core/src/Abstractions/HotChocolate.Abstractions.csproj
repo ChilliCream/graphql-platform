@@ -30,7 +30,6 @@
     <PackageReference Include="System.Collections.Immutable" />
   </ItemGroup>
 
-
   <ItemGroup>
     <ProjectReference Include="..\..\..\Primitives\src\Primitives\HotChocolate.Primitives.csproj" />
   </ItemGroup>

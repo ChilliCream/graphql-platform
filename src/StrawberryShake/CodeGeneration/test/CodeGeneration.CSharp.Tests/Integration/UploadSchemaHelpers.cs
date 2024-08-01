@@ -8,7 +8,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar;
 
 public static class UploadSchemaHelpers
 {
-
     public static MemoryStream CreateStream(string str)
     {
         var data = new MemoryStream();
@@ -84,5 +83,4 @@ public static class UploadSchemaHelpers
     public record Bar(Baz? Baz);
 
     public record Baz(IFile? File);
-
 }

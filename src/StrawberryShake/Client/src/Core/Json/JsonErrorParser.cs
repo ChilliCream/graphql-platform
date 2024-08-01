@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Text.Json;
 using static StrawberryShake.Properties.Resources;
 
@@ -151,7 +149,6 @@ public static class JsonErrorParser
                 }
 
                 return array;
-
 
             case JsonValueKind.String:
                 return element.GetString();

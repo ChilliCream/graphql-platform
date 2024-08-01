@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using HotChocolate.Language.Utilities;
 using Xunit;
 

@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;

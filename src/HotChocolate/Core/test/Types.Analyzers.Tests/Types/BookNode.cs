@@ -1,7 +1,3 @@
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using HotChocolate.Resolvers;
 using HotChocolate.Types.Relay;
 using Microsoft.AspNetCore.Http;
 

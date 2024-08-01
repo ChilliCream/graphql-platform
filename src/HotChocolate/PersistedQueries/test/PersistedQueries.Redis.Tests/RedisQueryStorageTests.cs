@@ -1,4 +1,4 @@
-﻿using HotChocolate.Execution;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using Snapshooter.Xunit;
@@ -32,12 +32,12 @@ public class RedisQueryStorageTests(RedisResource redisResource) : IClassFixture
             },
             () => _database.KeyDeleteAsync(documentId.Value));
     }
-    
+
     [Fact]
     public Task Write_Query_documentId_Invalid()
     {
         var documentId = new OperationDocumentId();
-        
+
         return TryTest(async () =>
         {
             var storage = new RedisQueryStorage(_database);

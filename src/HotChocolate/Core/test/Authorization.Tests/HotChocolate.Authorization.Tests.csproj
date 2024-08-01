@@ -4,7 +4,6 @@
     <AssemblyName>HotChocolate.Authorization.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Authorization</RootNamespace>
     <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>

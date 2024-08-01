@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Threading;
 using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Instrumentation;
 using Microsoft.Extensions.DependencyInjection;

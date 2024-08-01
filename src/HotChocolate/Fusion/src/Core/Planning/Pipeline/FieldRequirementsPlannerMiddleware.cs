@@ -281,8 +281,6 @@ internal sealed class FieldRequirementsPlannerMiddleware(
         }
     }
 
-
-
     private static void ResolveVariablesInContext(
         QueryPlanContext context,
         FieldContext fieldContext,

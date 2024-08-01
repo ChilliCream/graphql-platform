@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using HotChocolate;
 using HotChocolate.Execution;
@@ -10,6 +7,7 @@ using HotChocolate.Utilities;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using static StrawberryShake.CodeGeneration.Analyzers.Models.OutputModelKind;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
+using Path = HotChocolate.Path;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;
 

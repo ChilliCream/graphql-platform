@@ -3,7 +3,6 @@ using HotChocolate.Data.MongoDb.Paging;
 using HotChocolate.Data.MongoDb.Relay;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Types;
-using HotChocolate.Types.Relay;
 using MongoDB.Bson;
 
 namespace Microsoft.Extensions.DependencyInjection;

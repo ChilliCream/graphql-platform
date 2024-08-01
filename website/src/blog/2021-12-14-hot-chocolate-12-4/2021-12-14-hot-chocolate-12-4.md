@@ -227,7 +227,6 @@ services
         })
     ...
 
-
 public class Mutation
 {
     [UseMutationConvention]

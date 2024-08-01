@@ -95,7 +95,6 @@ internal static class TestHelper
             _value = writer.GetWrittenSpan().ToArray();
         }
 
-
         public override string? Name { get; }
 
         public override ReadOnlySpan<byte> Value => _value;

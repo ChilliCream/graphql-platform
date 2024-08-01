@@ -1,12 +1,7 @@
-﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
@@ -59,7 +54,6 @@ public class QueryableCursorPagingProviderTests
             connection.Info.HasNextPage,
             "HasNextPage");
     }
-
 
     [Fact]
     public async Task TakeLastSingle()

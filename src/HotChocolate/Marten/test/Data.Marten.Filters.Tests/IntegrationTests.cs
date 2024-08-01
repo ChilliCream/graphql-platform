@@ -10,7 +10,6 @@ public class IntegrationTests : IAsyncLifetime
 {
     protected static ResourceContainer Container { get; } = new();
 
-
     [Fact]
     public async Task Ensure_Marten_Works()
     {
@@ -60,7 +59,6 @@ public class IntegrationTests : IAsyncLifetime
         public IQueryable<Foo> GetFoos(IDocumentSession session)
             => session.Query<Foo>();
     }
-
 
     public class Foo
     {

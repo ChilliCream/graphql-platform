@@ -1,5 +1,3 @@
-using System;
-
 namespace StrawberryShake;
 
 internal class ObserverSession : IDisposable

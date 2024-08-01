@@ -3,7 +3,6 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
-using ObjectResult = HotChocolate.Execution.Processing.ObjectResult;
 
 namespace HotChocolate.CostAnalysis;
 

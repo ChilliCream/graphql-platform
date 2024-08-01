@@ -22,7 +22,6 @@ public sealed class InstrumentationOptions
     /// </summary>
     public bool IncludeDocument { get; set; }
 
-
     /// <summary>
     /// Specifies if DataLoader batch keys shall included into the tracing data.
     /// </summary>

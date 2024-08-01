@@ -1,4 +1,3 @@
-using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Properties;
@@ -69,7 +68,6 @@ public class NodeDescriptor<TNode, TId> : INodeDescriptor<TNode, TId>
             }
 
             return null;
-
         });
     }
 

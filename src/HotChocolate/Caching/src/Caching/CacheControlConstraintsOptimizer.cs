@@ -173,5 +173,4 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
 
         internal int? MaxAge { get; set; }
     }
-
 }

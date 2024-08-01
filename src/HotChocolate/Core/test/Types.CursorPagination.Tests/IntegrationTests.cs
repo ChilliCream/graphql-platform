@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Internal;
@@ -1161,7 +1156,6 @@ public class IntegrationTests
             descriptor
                 .Field(t => t.Names())
                 .UsePaging(options: new() { InferConnectionNameFromField = true, });
-
         }
     }
 

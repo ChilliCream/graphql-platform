@@ -202,9 +202,6 @@ public ref partial struct Utf8GraphQLParser
         return _emptyFieldDefinitions;
     }
 
-
-
-
     /// <summary>
     /// Parses a interface type or object type field definition.
     /// <see cref="FieldDefinitionNode" />:
@@ -431,8 +428,6 @@ public ref partial struct Utf8GraphQLParser
 
         return _emptyEnumValues;
     }
-
-
 
     /// <summary>
     /// Parses an enum value definitions.

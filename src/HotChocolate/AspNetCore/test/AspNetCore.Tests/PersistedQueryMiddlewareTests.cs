@@ -26,7 +26,7 @@ public class PersistedQueryMiddlewareTests(TestServerFactory serverFactory) : Se
         var json = await result.Content.ReadFromJsonAsync<JsonDocument>();
         json!.RootElement.MatchMarkdownSnapshot();
     }
-    
+
     [Fact]
     public async Task ExecutePersistedQuery_NotFound()
     {
@@ -43,7 +43,7 @@ public class PersistedQueryMiddlewareTests(TestServerFactory serverFactory) : Se
         var json = await result.Content.ReadFromJsonAsync<JsonDocument>();
         json!.RootElement.MatchMarkdownSnapshot();
     }
-    
+
     [Fact]
     public async Task ExecutePersistedQuery_InvalidId()
     {
@@ -60,7 +60,7 @@ public class PersistedQueryMiddlewareTests(TestServerFactory serverFactory) : Se
         var json = await result.Content.ReadFromJsonAsync<JsonDocument>();
         json!.RootElement.MatchMarkdownSnapshot();
     }
-    
+
     [Fact]
     public async Task ExecutePersistedQuery_HttpPost_Empty_Body_Success()
     {
@@ -77,7 +77,7 @@ public class PersistedQueryMiddlewareTests(TestServerFactory serverFactory) : Se
             """,
             Encoding.UTF8,
             "application/json");
-        
+
         var result = await client.PostAsync(
             "/graphql/q/60ddx_GGk4FDObSa6eK0sg/Test",
             body);
@@ -87,7 +87,7 @@ public class PersistedQueryMiddlewareTests(TestServerFactory serverFactory) : Se
         var json = await result.Content.ReadFromJsonAsync<JsonDocument>();
         json!.RootElement.MatchMarkdownSnapshot();
     }
-    
+
     [Fact]
     public async Task ExecutePersistedQuery_HttpPost_Empty_Body_NotFound()
     {
@@ -104,7 +104,7 @@ public class PersistedQueryMiddlewareTests(TestServerFactory serverFactory) : Se
             """,
             Encoding.UTF8,
             "application/json");
-        
+
         var result = await client.PostAsync(
             "/graphql/q/60ddx_GGk4FDObSa6eK0sg1/Test",
             body);
@@ -114,7 +114,7 @@ public class PersistedQueryMiddlewareTests(TestServerFactory serverFactory) : Se
         var json = await result.Content.ReadFromJsonAsync<JsonDocument>();
         json!.RootElement.MatchMarkdownSnapshot();
     }
-    
+
     [Fact]
     public async Task ExecutePersistedQuery_HttpPost_Empty_Body_InvalidId()
     {
@@ -131,7 +131,7 @@ public class PersistedQueryMiddlewareTests(TestServerFactory serverFactory) : Se
             """,
             Encoding.UTF8,
             "application/json");
-        
+
         var result = await client.PostAsync(
             "/graphql/q/60ddx_GGk4+FDObSa6eK0sg1/Test",
             body);
@@ -141,7 +141,7 @@ public class PersistedQueryMiddlewareTests(TestServerFactory serverFactory) : Se
         var json = await result.Content.ReadFromJsonAsync<JsonDocument>();
         json!.RootElement.MatchMarkdownSnapshot();
     }
-    
+
     [Fact]
     public async Task ExecutePersistedQuery_HttpPost_With_Variables_Success()
     {
@@ -161,7 +161,7 @@ public class PersistedQueryMiddlewareTests(TestServerFactory serverFactory) : Se
             """,
             Encoding.UTF8,
             "application/json");
-        
+
         var result = await client.PostAsync(
             "/graphql/q/abc123/Test",
             body);

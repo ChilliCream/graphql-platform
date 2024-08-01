@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Internal;
 using HotChocolate.Types.Pagination;
 

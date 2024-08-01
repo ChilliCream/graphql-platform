@@ -33,7 +33,7 @@ public class ShortType : IntegerTypeBase<short>
     {
         Description = description;
     }
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="ShortType"/> class.
     /// </summary>

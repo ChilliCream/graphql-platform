@@ -1,4 +1,4 @@
-﻿using HotChocolate.Types;
+using HotChocolate.Types;
 using Snapshooter.Xunit;
 
 namespace HotChocolate.Execution.Integration.InputOutputObjectAreTheSame;

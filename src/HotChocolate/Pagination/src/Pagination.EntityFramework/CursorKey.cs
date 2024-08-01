@@ -23,6 +23,3 @@ internal sealed class CursorKey(
         return serializer.TryFormat(key, buffer, out written);
     }
 }
-
-
-

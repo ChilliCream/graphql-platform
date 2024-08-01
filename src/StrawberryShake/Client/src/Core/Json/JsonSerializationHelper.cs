@@ -1,6 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
 using StrawberryShake.Internal;
@@ -137,7 +135,6 @@ public static class JsonSerializationHelper
 
     public static object? ReadValue(JsonElement element)
     {
-
         switch (element.ValueKind)
         {
             case JsonValueKind.Null:

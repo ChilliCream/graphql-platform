@@ -1,5 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Utilities;
@@ -141,7 +139,6 @@ public class TypeConverterTests
         Assert.Null(output);
     }
 
-
     [Fact]
     public void Convert_NullableLong_Int()
     {
@@ -158,7 +155,6 @@ public class TypeConverterTests
         Assert.IsType<int>(output);
         Assert.Equal(55, output);
     }
-
 
     [InlineData("{2d84dcd6-3439-4ebe-8427-f4b1e1730c47}")]
     [InlineData("2d84dcd6-3439-4ebe-8427-f4b1e1730c47")]

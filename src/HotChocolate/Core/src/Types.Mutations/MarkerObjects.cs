@@ -11,7 +11,7 @@ internal sealed class NullMarker
     {
         // intentionally left empty
     }
- 
+
     /// <summary>
     /// Gets the null success result marker.
     /// </summary>

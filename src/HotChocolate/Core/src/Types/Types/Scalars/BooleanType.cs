@@ -24,7 +24,7 @@ public class BooleanType : ScalarType<bool, BooleanValueNode>
     {
         Description = description;
     }
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="BooleanType"/> class.
     /// </summary>

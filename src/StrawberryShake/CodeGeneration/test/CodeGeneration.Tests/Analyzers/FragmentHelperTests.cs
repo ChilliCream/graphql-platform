@@ -8,7 +8,6 @@ namespace StrawberryShake.CodeGeneration.Analyzers;
 
 public class FragmentHelperTests
 {
-
     [Fact]
     public async Task GetReturnTypeName_Found()
     {

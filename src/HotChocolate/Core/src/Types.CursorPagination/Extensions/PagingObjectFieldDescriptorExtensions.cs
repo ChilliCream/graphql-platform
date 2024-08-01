@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Language;
@@ -247,7 +244,6 @@ public static class PagingObjectFieldDescriptorExtensions
 
                 d.Type = CreateConnectionTypeRef(c, d.Member, connectionName, typeRef, options);
             });
-
 
         return descriptor;
     }

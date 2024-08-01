@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Types;
 using static HotChocolate.Execution.Properties.Resources;
 using static HotChocolate.Execution.ThrowHelper;

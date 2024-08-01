@@ -2,7 +2,7 @@ using HotChocolate.Execution.Processing;
 
 namespace HotChocolate.Data.Projections;
 
-internal sealed class ProjectionOptimizer(IProjectionProvider provider) 
+internal sealed class ProjectionOptimizer(IProjectionProvider provider)
     : ISelectionSetOptimizer
 {
     public void OptimizeSelectionSet(SelectionSetOptimizerContext context)

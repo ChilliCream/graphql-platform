@@ -1,10 +1,5 @@
-using System;
 using System.Buffers;
-using System.Collections.Generic;
-using System.IO;
 using System.IO.Pipelines;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution.Serialization;

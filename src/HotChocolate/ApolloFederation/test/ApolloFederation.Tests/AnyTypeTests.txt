@@ -344,7 +344,6 @@ public class AnyTypeTests
         Assert.Throws<SerializationException>(Action);
     }
 
-
     [Fact]
     public void ParseValue_Null()
     {

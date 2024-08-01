@@ -1,6 +1,5 @@
 #nullable enable
 
-using System.Collections.Generic;
 using HotChocolate.ApolloFederation.Resolvers;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;

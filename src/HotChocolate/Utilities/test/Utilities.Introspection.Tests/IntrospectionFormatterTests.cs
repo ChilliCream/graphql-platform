@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using ChilliCream.Testing;
 using Snapshooter.Xunit;
 using Xunit;

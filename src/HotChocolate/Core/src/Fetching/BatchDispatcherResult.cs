@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Fetching.Properties;
 
 namespace HotChocolate.Fetching;

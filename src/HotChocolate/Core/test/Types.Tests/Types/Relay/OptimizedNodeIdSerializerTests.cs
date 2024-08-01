@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using CookieCrumble;
 using Moq;
@@ -18,7 +15,6 @@ public class OptimizedNodeIdSerializerTests
 
         Assert.Equal("Rm9vOg==", id);
     }
-
 
     [Fact]
     public void Format_Small_StringId()

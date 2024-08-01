@@ -168,7 +168,6 @@ public class TodoType : ObjectType<Todo>
     }
 }
 
-
 // Startup.cs
 public class Startup
 {
