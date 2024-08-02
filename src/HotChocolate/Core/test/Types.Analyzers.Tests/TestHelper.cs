@@ -64,7 +64,7 @@ internal static partial class TestHelper
                         m => m.Value.Replace(m.Groups[1].Value, "HASH"));
                 }
 
-                snapshot.Add(text, source.HintName);
+                snapshot.Add(text, source.HintName, MarkdownLanguages.CSharp);
             }
 
             // Add diagnostics.
@@ -143,7 +143,7 @@ internal static partial class TestHelper
         jsonWriter.WriteEndArray();
         jsonWriter.Flush();
 
-        snapshot.Add(Encoding.UTF8.GetString(stream.ToArray()), "Diagnostics");
+        snapshot.Add(Encoding.UTF8.GetString(stream.ToArray()), "Diagnostics", MarkdownLanguages.Json);
     }
 
     [GeneratedRegex("MiddlewareFactories([a-z0-9]{32})")]
