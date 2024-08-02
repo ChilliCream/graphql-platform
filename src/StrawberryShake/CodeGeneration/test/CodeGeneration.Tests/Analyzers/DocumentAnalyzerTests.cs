@@ -72,7 +72,6 @@ public class DocumentAnalyzerTests
             });
     }
 
-
     [Fact]
     public async Task One_Fragment_One_Deferred_Fragment()
     {

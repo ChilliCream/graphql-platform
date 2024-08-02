@@ -1,10 +1,7 @@
-using System;
 using System.Collections.Concurrent;
 #if NET8_0_OR_GREATER
 using System.Collections.Frozen;
 #endif
-using System.Collections.Generic;
-using System.Linq;
 using GreenDonut;
 using GreenDonut.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -51,7 +48,7 @@ public static class DataLoaderServiceCollectionExtension
         this IServiceCollection services)
     {
         services.TryAddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
-        
+
         services.AddSingleton<DataLoaderScopeFactory>();
         services.TryAddScoped<IDataLoaderScope>(sp => sp.GetRequiredService<DataLoaderScopeFactory>().CreateScope(sp));
         services.TryAddScoped<IBatchScheduler, AutoBatchScheduler>();
@@ -100,7 +97,7 @@ internal sealed class DataLoaderScopeFactory
 {
 #if NET8_0_OR_GREATER
     private readonly FrozenDictionary<Type, DataLoaderRegistration> _registrations;
-#else 
+#else
     private readonly Dictionary<Type, DataLoaderRegistration> _registrations;
 #endif
 
@@ -125,7 +122,6 @@ file sealed class DefaultDataLoaderScope(
     : IDataLoaderScope
 {
     private readonly ConcurrentDictionary<string, IDataLoader> _dataLoaders = new();
-
 
     public T GetDataLoader<T>(DataLoaderFactory<T> createDataLoader, string? name = null) where T : IDataLoader
     {

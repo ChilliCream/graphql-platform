@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -19,7 +18,7 @@ internal sealed class ResolverProvider : IDisposable
         }
 
         return (T)_instances.GetOrAdd(typeof(T), CreateResolver);
-        
+
         object CreateResolver(Type key)
             => ActivatorUtilities.CreateInstance(services, key);
     }
@@ -30,7 +29,7 @@ internal sealed class ResolverProvider : IDisposable
         {
             return;
         }
-        
+
         foreach (var instance in _instances.Values)
         {
             if (instance is IDisposable d)

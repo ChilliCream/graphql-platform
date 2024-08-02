@@ -23,7 +23,6 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// </param>
 internal sealed class Subscribe(int id, Config config) : ResolverNodeBase(id, config)
 {
-
     /// <summary>
     /// Gets the kind of this node.
     /// </summary>

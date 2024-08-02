@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace HotChocolate.ApolloFederation.CertificationSchema.AnnotationBased.Types;
 
 public class Data

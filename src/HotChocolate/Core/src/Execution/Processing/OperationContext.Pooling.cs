@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing.Tasks;
@@ -41,7 +38,7 @@ internal sealed partial class OperationContext
     public OperationContext(
         IFactory<ResolverTask> resolverTaskFactory,
         ResultBuilder resultBuilder,
-        ITypeConverter typeConverter, 
+        ITypeConverter typeConverter,
         AggregateServiceScopeInitializer serviceScopeInitializer)
     {
         _resolverTaskFactory = resolverTaskFactory;
@@ -61,7 +58,7 @@ internal sealed partial class OperationContext
         IOperation operation,
         IVariableValueCollection variables,
         object? rootValue,
-        Func<object?> resolveQueryRootValue, 
+        Func<object?> resolveQueryRootValue,
         int? variableIndex = null)
     {
         _requestContext = requestContext;
@@ -90,7 +87,7 @@ internal sealed partial class OperationContext
         {
             _resultBuilder.SetRequestIndex(requestContext.RequestIndex.Value);
         }
-        
+
         if (variableIndex.HasValue)
         {
             _resultBuilder.SetVariableIndex(variableIndex.Value);
@@ -119,12 +116,12 @@ internal sealed partial class OperationContext
         _workScheduler.Initialize(_batchDispatcher);
         _deferredWorkScheduler.InitializeFrom(this, context._deferredWorkScheduler);
         _resultBuilder.Initialize(_requestContext, _diagnosticEvents);
-        
+
         if (context._requestContext.RequestIndex.HasValue)
         {
             _resultBuilder.SetRequestIndex(context._requestContext.RequestIndex.Value);
         }
-        
+
         if (context._variableIndex.HasValue)
         {
             _resultBuilder.SetVariableIndex(context._variableIndex.Value);

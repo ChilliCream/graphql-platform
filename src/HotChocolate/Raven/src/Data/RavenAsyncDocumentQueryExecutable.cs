@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Runtime.CompilerServices;
-using Raven.Client.Documents;
 using Raven.Client.Documents.Session;
 
 namespace HotChocolate.Data.Raven;

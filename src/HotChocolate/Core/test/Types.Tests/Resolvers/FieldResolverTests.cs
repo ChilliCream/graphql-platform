@@ -1,6 +1,3 @@
-﻿using System;
-using System.Threading.Tasks;
-
 namespace HotChocolate.Resolvers;
 
 public class FieldResolverTests

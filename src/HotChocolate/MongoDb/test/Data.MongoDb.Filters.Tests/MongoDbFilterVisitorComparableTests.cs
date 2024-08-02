@@ -198,7 +198,6 @@ public class MongoDbFilterVisitorComparableTests
             .AddResult(res2, "13")
             .AddResult(res3, "null")
             .MatchAsync();
-
     }
 
     [Fact]
@@ -274,7 +273,6 @@ public class MongoDbFilterVisitorComparableTests
             .AddResult(res4, "null")
             .MatchAsync();
     }
-
 
     [Fact]
     public async Task Create_ShortGreaterThanOrEquals_Expression()
@@ -419,7 +417,6 @@ public class MongoDbFilterVisitorComparableTests
             .Create().AddResult(res1, "12").AddResult(res2, "13").AddResult(res3, "14").AddResult(res4, "null")
             .MatchAsync();
     }
-
 
     [Fact]
     public async Task Create_ShortLowerThanOrEquals_Expression()
@@ -837,7 +834,6 @@ public class MongoDbFilterVisitorComparableTests
             .AddResult(res4, "null")
             .MatchAsync();
     }
-
 
     [Fact]
     public async Task Create_ShortNullableLowerThanOrEquals_Expression()

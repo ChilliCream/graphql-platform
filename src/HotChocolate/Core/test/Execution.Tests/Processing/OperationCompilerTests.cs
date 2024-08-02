@@ -1,12 +1,11 @@
 using System.Text;
-using ChilliCream.Testing;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Snapshooter.Xunit;
+using CookieCrumble;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -1361,6 +1360,90 @@ public class OperationCompilerTests
         Assert.Equal(4, compiler.Metrics.BacklogMaxSize);
     }
 
+    [Fact]
+    public async Task Resolve_Concrete_Types_From_Unions()
+    {
+        // arrange
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<UnionQuery>()
+                .AddType<TypeOne>()
+                .AddType<TypeTwo>()
+                .UseField(next => next)
+                .BuildSchemaAsync();
+
+        var document = Utf8GraphQLParser.Parse(
+            """
+            query QueryName {
+              oneOrTwo {
+                ...TypeOneParts
+                ...TypeTwoParts
+              }
+            }
+
+            fragment TypeOneParts on TypeOne {
+              field1 { name }
+            }
+
+            fragment TypeTwoParts on TypeTwo {
+              field1 { name }
+            }
+            """);
+
+        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().Single();
+
+        // act
+        var compiler = new OperationCompiler(new InputParser());
+        var operation = compiler.Compile(
+            new OperationCompilerRequest(
+                "opid",
+                document,
+                operationDefinition,
+                schema.QueryType,
+                schema));
+
+        // assert
+        MatchSnapshot(document, operation);
+    }
+
+    [Fact]
+    public async Task Resolve_Concrete_Types_From_Unions_Execute()
+    {
+        // arrange
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<UnionQuery>()
+                .AddType<TypeOne>()
+                .AddType<TypeTwo>()
+                .BuildRequestExecutorAsync();
+
+        var document = Utf8GraphQLParser.Parse(
+            """
+            query QueryName {
+              oneOrTwo {
+                ...TypeOneParts
+                ...TypeTwoParts
+              }
+            }
+
+            fragment TypeOneParts on TypeOne {
+              field1 { name }
+            }
+
+            fragment TypeTwoParts on TypeTwo {
+              field1 { name }
+            }
+            """);
+
+        // act
+        var result = await executor.ExecuteAsync(builder => builder.SetDocument(document));
+
+        // assert
+        result.MatchSnapshot();
+    }
+
     private static void MatchSnapshot(DocumentNode original, IOperation compiled)
     {
         var sb = new StringBuilder();
@@ -1413,4 +1496,33 @@ public class OperationCompilerTests
             }
         }
     }
+
+    public class UnionQuery
+    {
+        public IOneOrTwo OneOrTwo() => new TypeOne();
+    }
+
+    public class TypeOne : IOneOrTwo
+    {
+        public FieldOne1 Field1 => new();
+    }
+
+    public class TypeTwo : IOneOrTwo
+    {
+        public FieldTwo1 Field1 => new();
+    }
+
+    [UnionType]
+    public interface IOneOrTwo;
+
+    public class FieldOne1
+    {
+        public string Name => "Name";
+    }
+
+    public class FieldTwo1
+    {
+        public string Name => "Name";
+    }
+
 }

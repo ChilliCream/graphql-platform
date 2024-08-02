@@ -32,7 +32,7 @@ internal sealed class DefaultWebSocketGraphQLSubscriptionClientFactory
             var httpClient = _httpClientFactory.CreateClient(httpClientConfig.ClientName);
             return new DefaultHttpGraphQLSubscriptionClient(httpClientConfig, httpClient);
         }
-        
+
         throw new ArgumentException(TransportConfigurationNotSupported, nameof(configuration));
     }
 }

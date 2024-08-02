@@ -132,7 +132,6 @@ var priceFieldDefinition = new ObjectFieldDefinition(
     TypeReference.Parse("Float!"),
     pureResolver: context => context.Parent<Dictionary<string, object>>()["price"]);
 
-
 objectTypeDefinition.Fields.Add(idFieldDefinition);
 objectTypeDefinition.Fields.Add(nameFieldDefinition);
 objectTypeDefinition.Fields.Add(priceFieldDefinition);

@@ -16,14 +16,14 @@ internal class EntityResolversCollection : ICollection<EntityResolver>
 
     public bool Contains(EntityResolver item)
         => _map.ContainsKey(item);
-    
+
     public void Add(EntityResolver item)
     {
         _signatureKeys.Add(item);
         _map.Add(item, item);
         _resolvers.Add(item);
     }
-    
+
     public bool TryAdd(EntityResolver item)
     {
         if (_signatureKeys.Add(item) && _map.TryAdd(item, item))
@@ -34,7 +34,7 @@ internal class EntityResolversCollection : ICollection<EntityResolver>
 
         return false;
     }
-    
+
     public bool Remove(EntityResolver item)
     {
         if(_map.TryGetValue(item, out var resolver))
@@ -75,7 +75,7 @@ internal class EntityResolversCollection : ICollection<EntityResolver>
             return string.Equals(SubgraphName, other.Value.SubgraphName, StringComparison.Ordinal) &&
                 SyntaxComparer.BySyntax.Equals(SelectionSet, other.Value.SelectionSet);
         }
-        
+
         public override int GetHashCode()
             => HashCode.Combine(SubgraphName, SyntaxComparer.BySyntax.GetHashCode(SelectionSet));
 
@@ -92,11 +92,11 @@ internal class EntityResolversCollection : ICollection<EntityResolver>
             PrintMembers(builder);
             return builder.ToString();
         }
-        
+
         public static implicit operator ResolverKey(EntityResolver value)
-            => new(value.SubgraphName, value.SelectionSet); 
+            => new(value.SubgraphName, value.SelectionSet);
     }
-    
+
     private readonly record struct ResolverSignatureKey(string SubgraphName, string StateKeys, EntityResolverKind Kind)
     {
         public bool Equals(ResolverSignatureKey? other)
@@ -110,7 +110,7 @@ internal class EntityResolversCollection : ICollection<EntityResolver>
                 string.Equals(StateKeys, other.Value.StateKeys, StringComparison.Ordinal) &&
                 Kind.Equals(other.Value.Kind);
         }
-        
+
         public override int GetHashCode()
             => HashCode.Combine(SubgraphName, StateKeys, Kind);
 
@@ -128,14 +128,14 @@ internal class EntityResolversCollection : ICollection<EntityResolver>
             PrintMembers(builder);
             return builder.ToString();
         }
-        
+
         public static implicit operator ResolverSignatureKey(EntityResolver value)
         {
             if (value.Variables.Count == 1)
             {
                 return new ResolverSignatureKey(value.SubgraphName, value.Variables.Keys.First(), value.Kind);
             }
-            
+
             var builder = new StringBuilder();
 
             foreach (var stateKey in value.Variables.OrderBy(t => t.Key))
@@ -143,7 +143,7 @@ internal class EntityResolversCollection : ICollection<EntityResolver>
                 builder.Append('>');
                 builder.Append(stateKey.Key);
             }
-            
+
             return new ResolverSignatureKey(value.SubgraphName, builder.ToString(), value.Kind);
         }
     }

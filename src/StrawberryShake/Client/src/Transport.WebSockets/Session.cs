@@ -1,8 +1,4 @@
-using System;
 using System.Collections.Concurrent;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using StrawberryShake.Properties;
 using StrawberryShake.Transport.WebSockets.Messages;
 
@@ -121,7 +117,6 @@ public sealed class Session : ISession
 
         _socketProtocol.Subscribe(ReceiveMessage);
     }
-
 
     /// <summary>
     /// Closes a session over the socket

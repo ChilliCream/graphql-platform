@@ -1,6 +1,5 @@
 using System.Reflection;
 using HotChocolate.Internal;
-using HotChocolate.Resolvers;
 using HotChocolate.Resolvers.Expressions.Parameters;
 using Microsoft.AspNetCore.Http;
 
@@ -14,4 +13,3 @@ internal sealed class HttpRequestParameterExpressionBuilder()
     public override bool CanHandle(ParameterInfo parameter)
         => parameter.ParameterType == typeof(HttpRequest);
 }
-

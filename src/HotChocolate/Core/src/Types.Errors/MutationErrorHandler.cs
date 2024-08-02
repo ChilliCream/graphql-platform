@@ -6,7 +6,7 @@ namespace HotChocolate.Types;
 public abstract class MutationErrorConfiguration
 {
     /// <summary>
-    /// Override to register error dependencies. 
+    /// Override to register error dependencies.
     /// </summary>
     /// <param name="context">
     /// The descriptor context.
@@ -17,7 +17,7 @@ public abstract class MutationErrorConfiguration
     public virtual IEnumerable<TypeReference> OnResolveDependencies(
         IDescriptorContext context)
         => Array.Empty<TypeReference>();
-    
+
     /// <summary>
     /// Override to register errors with a mutation.
     /// </summary>

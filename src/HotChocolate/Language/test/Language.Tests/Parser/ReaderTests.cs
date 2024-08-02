@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Text;
 using ChilliCream.Testing;
 using Snapshooter.Xunit;
@@ -184,7 +182,6 @@ public class ReaderTests
                 (byte)'b',
                 (byte)'c',
         };
-
 
         var tokens = new List<SyntaxTokenInfo>();
         var reader = new Utf8GraphQLReader(sourceText);

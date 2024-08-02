@@ -373,7 +373,6 @@ public static class Refactor
             base.VisitInputField(field, context);
         }
 
-
         private sealed class ValueRewriter : SyntaxRewriter<RewriterContext>
         {
             protected override EnumValueNode? RewriteEnumValue(
@@ -432,7 +431,6 @@ public static class Refactor
 
             base.VisitInputField(field, context);
         }
-
 
         private sealed class ValueRewriter : SyntaxRewriter<RewriterContext>
         {

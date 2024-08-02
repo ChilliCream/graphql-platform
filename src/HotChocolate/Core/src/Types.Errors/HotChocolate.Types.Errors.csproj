@@ -1,7 +1,6 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
@@ -26,7 +25,7 @@
     <Using Include="HotChocolate.Resolvers" />
     <Using Include="HotChocolate.Utilities" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Types.Mutations" />
     <InternalsVisibleTo Include="HotChocolate.Types.Queries" />

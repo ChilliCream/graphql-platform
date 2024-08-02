@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Execution.Processing;
 
 // ReSharper disable once CheckNamespace
@@ -88,7 +86,6 @@ internal static class OperationContextExtensions
             operationContext.DiagnosticEvents.ResolverError(resolverContext, handled);
         }
     }
-
 
     public static OperationContext SetLabel(
         this OperationContext context,

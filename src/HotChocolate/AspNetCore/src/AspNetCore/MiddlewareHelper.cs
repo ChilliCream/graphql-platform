@@ -133,7 +133,6 @@ internal static class MiddlewareHelper
                         operationId,
                         context.Request.Body,
                         context.RequestAborted);
-
             }
             catch (GraphQLRequestException ex)
             {

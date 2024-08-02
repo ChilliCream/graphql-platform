@@ -1,6 +1,3 @@
-using System;
-using System.Threading;
-
 namespace HotChocolate.Execution;
 
 internal sealed class DefaultRequestContextAccessor : IRequestContextAccessor

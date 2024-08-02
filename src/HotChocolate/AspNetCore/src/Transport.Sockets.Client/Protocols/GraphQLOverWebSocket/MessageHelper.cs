@@ -1,7 +1,5 @@
 using System.Net.WebSockets;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Transport.Serialization;
 using HotChocolate.Utilities;
 using static System.Net.WebSockets.WebSocketMessageType;
@@ -62,8 +60,6 @@ internal static class MessageHelper
 #endif
     }
 
-
-
     public static async ValueTask SendCompleteMessageAsync(
         this WebSocket socket,
         string operationSessionId,
@@ -101,6 +97,4 @@ internal static class MessageHelper
         await socket.SendAsync(arrayWriter.ToArraySegment(), Text, true, ct).ConfigureAwait(false);
 #endif
     }
-
-
 }

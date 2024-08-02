@@ -1,6 +1,4 @@
-using System.IO;
 using System.Text;
-using System.Threading.Tasks;
 using HotChocolate.AzureFunctions.IsolatedProcess.Tests.Helpers;
 using HotChocolate.Types;
 using Microsoft.AspNetCore.Http;
@@ -59,7 +57,6 @@ public class IsolatedProcessEndToEndTests
                 graphQL.AddQueryType(
                     d => d.Name("Query").Field("person").Resolve(ctx =>
                     {
-
                         var darkSideLeader = ctx.ContextData.TryGetValue(
                             nameof(HttpContext),
                             out var httpContext)

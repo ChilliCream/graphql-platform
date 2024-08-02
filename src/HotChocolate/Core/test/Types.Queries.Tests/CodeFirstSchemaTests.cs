@@ -1,6 +1,3 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate;
 using HotChocolate.Execution;
@@ -116,7 +113,7 @@ public class CodeFirstSchemaTests
 
         result.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Schema_Query_With_FieldResult_And_Exceptions()
     {
@@ -129,7 +126,7 @@ public class CodeFirstSchemaTests
 
         schema.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Execute_Query_With_FieldResult_And_Exceptions_Success()
     {
@@ -149,7 +146,7 @@ public class CodeFirstSchemaTests
 
         result.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Execute_Query_With_FieldResult_And_Exceptions_Error_1()
     {
@@ -169,7 +166,7 @@ public class CodeFirstSchemaTests
 
         result.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Execute_Query_With_FieldResult_And_Exceptions_Error_2()
     {
@@ -189,7 +186,7 @@ public class CodeFirstSchemaTests
 
         result.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Execute_Query_With_FieldResult_And_Exceptions_Unexpected_Error()
     {
@@ -210,7 +207,6 @@ public class CodeFirstSchemaTests
         result.MatchSnapshot();
     }
 
-
     [Fact]
     public async Task Schema_Query_With_FieldResult_And_Paging()
     {
@@ -225,7 +221,7 @@ public class CodeFirstSchemaTests
 
         schema.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Execute_Query_With_FieldResult_And_Paging()
     {
@@ -254,7 +250,7 @@ public class CodeFirstSchemaTests
 
         result.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Execute_Query_With_FieldResult_And_Paging_Error()
     {
@@ -284,7 +280,7 @@ public class CodeFirstSchemaTests
 
         result.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Execute_Query_With_FieldResult_And_Paging_Filtering_Sorting()
     {
@@ -313,7 +309,7 @@ public class CodeFirstSchemaTests
 
         result.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Execute_Query_With_FieldResult_And_Paging_Filtering_Sorting_Error()
     {
@@ -369,7 +365,7 @@ public class CodeFirstSchemaTests
                     ctx =>
                     {
                         var id = ctx.ArgumentValue<string>("id");
-                        
+
                         if (id == "1")
                         {
                             return new User("1", "Foo", "foo@bar.de", new AddressNotFound("1", "Failed"));
@@ -379,7 +375,7 @@ public class CodeFirstSchemaTests
                     });
         }
     }
-    
+
     public class QueryWithExceptionType : ObjectType
     {
         protected override void Configure(IObjectTypeDescriptor descriptor)
@@ -392,7 +388,7 @@ public class CodeFirstSchemaTests
                     ctx =>
                     {
                         var id = ctx.ArgumentValue<string>("id");
-                        
+
                         if (id == "1")
                         {
                             return new User("1", "Foo", "foo@bar.de", new AddressNotFound("1", "Failed"));
@@ -402,7 +398,7 @@ public class CodeFirstSchemaTests
                     });
         }
     }
-    
+
     public class QueryWithFieldResultAndExceptionType : ObjectType
     {
         protected override void Configure(IObjectTypeDescriptor descriptor)
@@ -417,7 +413,7 @@ public class CodeFirstSchemaTests
                     ctx =>
                     {
                         var id = ctx.ArgumentValue<string>("id");
-                        
+
                         if (id == "1")
                         {
                             return new User("1", "Foo", "foo@bar.de", new AddressNotFound("1", "Failed"));
@@ -450,19 +446,19 @@ public class CodeFirstSchemaTests
                     ctx =>
                     {
                         var error = ctx.ArgumentValue<bool>("error");
-                        
+
                         if (error)
                         {
                             return new UserNotFound("id", "Failed");
                         }
 
-                        return new FieldResult<IQueryable<User>, UserNotFound>( 
+                        return new FieldResult<IQueryable<User>, UserNotFound>(
                             new[]
                             {
                                 new User("1", "Foo", "foo@bar.de", new AddressNotFound("1", "Failed")),
                             }.AsQueryable());
                     });
-            
+
             descriptor
                 .Field("usersWithFilter")
                 .Argument("error", a => a.Type<NonNullType<BooleanType>>().DefaultValue(false))
@@ -473,13 +469,13 @@ public class CodeFirstSchemaTests
                     ctx =>
                     {
                         var error = ctx.ArgumentValue<bool>("error");
-                        
+
                         if (error)
                         {
                             return new UserNotFound("id", "Failed");
                         }
 
-                        return new FieldResult<IQueryable<User>, UserNotFound>( 
+                        return new FieldResult<IQueryable<User>, UserNotFound>(
                             new[]
                             {
                                 new User("1", "Foo", "foo@bar.de", new AddressNotFound("1", "Failed")),
@@ -487,8 +483,7 @@ public class CodeFirstSchemaTests
                     });
         }
     }
-    
-    
+
     public class UnionOnScalarFailsType : ObjectType
     {
         protected override void Configure(IObjectTypeDescriptor descriptor)
@@ -500,7 +495,7 @@ public class CodeFirstSchemaTests
                 .Resolve("some string");
         }
     }
-    
+
     public record User(string Id, string Name, string Email, FieldResult<Address, AddressNotFound> Address);
 
     public record Address(string Id, string Street, string City);

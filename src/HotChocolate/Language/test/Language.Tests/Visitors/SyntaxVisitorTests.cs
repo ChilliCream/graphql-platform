@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Xunit;
 using static HotChocolate.Language.Utf8GraphQLParser;
 using static HotChocolate.Language.Visitors.SyntaxVisitor;

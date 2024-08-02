@@ -20,7 +20,6 @@ public class ResultBuilderTests
         result.ToJson().MatchSnapshot();
     }
 
-
     private ResultPool CreatePool()
     {
         return new ResultPool(

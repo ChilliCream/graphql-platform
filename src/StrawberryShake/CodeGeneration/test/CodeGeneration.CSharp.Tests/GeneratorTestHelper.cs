@@ -175,7 +175,6 @@ public static class GeneratorTestHelper
             new AssertSettings { StrictValidation = true, },
             sourceTexts);
 
-
     public static void AssertStarWarsResult(
         AssertSettings settings,
         params string[] sourceTexts)

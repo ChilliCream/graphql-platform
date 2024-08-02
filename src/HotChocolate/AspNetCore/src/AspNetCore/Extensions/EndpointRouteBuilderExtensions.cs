@@ -85,7 +85,7 @@ public static class EndpointRouteBuilderExtensions
                 .Map(pattern, requestPipeline.Build())
                 .WithDisplayName("Hot Chocolate GraphQL Pipeline"));
     }
-    
+
     /// <summary>
     /// Adds a GraphQL endpoint to the endpoint configurations.
     /// </summary>
@@ -465,7 +465,7 @@ public static class EndpointRouteBuilderExtensions
         [StringSyntax("Route")] string path = _graphQLPersistedOperationPath,
         string? schemaName = default)
         => MapGraphQLPersistedOperations(endpointRouteBuilder, Parse(path), schemaName);
-    
+
     /// <summary>
     /// Adds a persisted query endpoint to the endpoint configurations.
     /// </summary>
@@ -493,7 +493,7 @@ public static class EndpointRouteBuilderExtensions
         return group;
     }
 #endif
-    
+
     /// <summary>
     /// Specifies the GraphQL server options.
     /// </summary>

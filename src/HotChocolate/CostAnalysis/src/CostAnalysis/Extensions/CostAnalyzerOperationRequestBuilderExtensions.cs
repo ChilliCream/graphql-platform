@@ -17,5 +17,3 @@ public static class CostAnalyzerOperationRequestBuilderExtensions
         return builder.AddGlobalState(WellKnownContextData.ValidateCost, true);
     }
 }
-
-

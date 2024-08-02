@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using HotChocolate.Validation;
@@ -43,7 +41,7 @@ internal sealed class ReadPersistedQueryMiddleware
             context.DocumentId ??
             context.DocumentHash ??
             context.Request.DocumentHash;
-        
+
         if (!OperationDocumentId.IsNullOrEmpty(documentId))
         {
             var operationDocument =
@@ -60,7 +58,7 @@ internal sealed class ReadPersistedQueryMiddleware
                 context.IsPersistedDocument = true;
                 _diagnosticEvents.RetrievedDocumentFromStorage(context);
             }
-            
+
             if (operationDocument is OperationDocumentSourceText sourceTextDoc)
             {
                 context.DocumentId = documentId;
@@ -72,7 +70,7 @@ internal sealed class ReadPersistedQueryMiddleware
             }
         }
     }
-    
+
     public static RequestCoreMiddleware Create()
         => (core, next) =>
         {

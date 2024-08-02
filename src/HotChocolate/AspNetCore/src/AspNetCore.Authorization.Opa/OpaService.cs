@@ -1,13 +1,9 @@
-using System;
-using System.Net.Http;
 #if NET6_0_OR_GREATER
 using System.Net.Http.Json;
 #else
 using System.Text;
 #endif
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 
 namespace HotChocolate.AspNetCore.Authorization;

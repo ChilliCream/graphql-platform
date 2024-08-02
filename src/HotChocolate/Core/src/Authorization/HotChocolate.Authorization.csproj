@@ -11,7 +11,7 @@
     <Description>This package contains the authorization abstractions for Hot Chocolate.</Description>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.AspNetCore.Authorization.Tests" />
   </ItemGroup>

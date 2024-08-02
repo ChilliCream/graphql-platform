@@ -139,7 +139,6 @@ internal static class Utf8Helper
         }
     }
 
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int HexToDecimal(int a)
     {

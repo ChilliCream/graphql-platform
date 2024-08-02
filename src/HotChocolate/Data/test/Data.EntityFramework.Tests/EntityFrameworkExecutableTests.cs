@@ -29,7 +29,6 @@ public class EntityFrameworkExecutableTests(AuthorFixture authorFixture)
             .AsQueryable()
             .AsEntityFrameworkExecutable();
 
-
         // assert
         Assert.True(executable is IQueryableExecutable<Author>);
         executable.MatchSnapshot();

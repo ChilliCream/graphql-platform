@@ -1,13 +1,9 @@
 #nullable enable
-using System;
 using System.Buffers;
 using System.Buffers.Text;
 #if NET8_0_OR_GREATER
 using System.Collections.Frozen;
-#else
-using System.Linq;
 #endif
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;

@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using HotChocolate;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;

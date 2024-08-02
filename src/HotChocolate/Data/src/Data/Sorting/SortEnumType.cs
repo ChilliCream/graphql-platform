@@ -22,7 +22,6 @@ public class SortEnumType : EnumType
             throw new ArgumentNullException(nameof(configure));
     }
 
-
     protected override EnumTypeDefinition CreateDefinition(
         ITypeDiscoveryContext context)
     {

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using CookieCrumble;
@@ -216,7 +213,7 @@ public class GraphQLRequestParserTests
             .Replace("/", "_")
             .Replace("+", "-")
             .TrimEnd('=');
-            
+
         var source = Encoding.UTF8.GetBytes(
             JsonConvert.SerializeObject(request).NormalizeLineBreaks());
 
@@ -276,7 +273,7 @@ public class GraphQLRequestParserTests
             .Replace("/", "_")
             .Replace("+", "-")
             .TrimEnd('=');
-        
+
         var cache = new DocumentCache();
 
         var requestParser = new Utf8GraphQLRequestParser(
@@ -322,7 +319,7 @@ public class GraphQLRequestParserTests
             .Replace("/", "_")
             .Replace("+", "-")
             .TrimEnd('=');
-        
+
         var cache = new DocumentCache();
 
         var requestParser = new Utf8GraphQLRequestParser(

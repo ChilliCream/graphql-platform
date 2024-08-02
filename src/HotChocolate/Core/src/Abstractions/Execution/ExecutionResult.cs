@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
 namespace HotChocolate.Execution;
 
 /// <summary>
@@ -14,7 +10,6 @@ public abstract class ExecutionResult : IExecutionResult
 
     protected ExecutionResult()
     {
-
     }
 
     protected ExecutionResult(Func<ValueTask>[] cleanupTasks)

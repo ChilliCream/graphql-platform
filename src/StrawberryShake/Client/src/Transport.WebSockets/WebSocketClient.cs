@@ -1,10 +1,6 @@
-using System;
-using System.Collections.Generic;
 using System.IO.Pipelines;
 using System.Net.WebSockets;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
 using StrawberryShake.Properties;
 
 namespace StrawberryShake.Transport.WebSockets;

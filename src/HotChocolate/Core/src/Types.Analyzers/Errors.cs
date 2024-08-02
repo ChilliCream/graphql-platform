@@ -59,7 +59,6 @@ public static class Errors
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-
     public static readonly DiagnosticDescriptor TooManyNodeResolverArguments =
         new(
             id: "HCXXXX",

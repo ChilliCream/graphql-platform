@@ -1,6 +1,5 @@
 #nullable enable
 
-using System.Collections.Generic;
 using HotChocolate.Types;
 
 namespace HotChocolate;

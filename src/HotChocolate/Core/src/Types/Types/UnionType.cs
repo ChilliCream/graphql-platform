@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Language.Utilities;
@@ -276,7 +274,7 @@ public class UnionType
                         .Build());
                     continue;
                 }
-                
+
                 typeSet.Add(objectType);
             }
             else

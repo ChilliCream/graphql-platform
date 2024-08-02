@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using HotChocolate.Configuration.Validation;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -336,7 +334,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .Create()
             .Print()
             .MatchSnapshot();
-
 
     [Fact]
     public async Task Oneof_introspection()

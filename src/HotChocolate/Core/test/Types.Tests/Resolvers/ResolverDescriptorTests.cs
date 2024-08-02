@@ -1,4 +1,3 @@
-using System.Linq;
 using HotChocolate.Resolvers.Expressions;
 
 namespace HotChocolate.Resolvers;

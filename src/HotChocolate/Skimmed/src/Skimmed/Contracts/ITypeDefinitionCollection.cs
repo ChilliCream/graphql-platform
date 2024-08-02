@@ -9,6 +9,6 @@ public interface ITypeDefinitionCollection : ICollection<INamedTypeDefinition>
     bool TryGetType(string name, [NotNullWhen(true)] out INamedTypeDefinition? type);
 
     bool TryGetType<T>(string name, [NotNullWhen(true)] out T? type) where T : INamedTypeDefinition;
-    
+
     bool ContainsName(string name);
 }

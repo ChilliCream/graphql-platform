@@ -1,8 +1,4 @@
-using System;
 using System.Data;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Tests;
 using Npgsql;
 using Squadron;

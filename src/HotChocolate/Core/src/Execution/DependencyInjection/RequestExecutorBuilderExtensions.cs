@@ -1,6 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
@@ -257,7 +254,6 @@ public static partial class RequestExecutorBuilderExtensions
             (services, options) => options.OnConfigureRequestExecutorOptionsHooks.Add(
                 new OnConfigureRequestExecutorOptionsAction(
                     (_, o) => modify(services, o))));
-
     }
 
     /// <summary>
