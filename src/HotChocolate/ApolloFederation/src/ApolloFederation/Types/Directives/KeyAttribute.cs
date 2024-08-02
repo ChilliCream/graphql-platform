@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.ApolloFederation.FederationContextData;

@@ -1,7 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace GreenDonut;
 
 /// <summary>
@@ -21,7 +17,7 @@ public abstract class FetchOnceDataLoader<TValue> : CacheDataLoader<string, TVal
         if (options.Cache is null)
         {
             throw new ArgumentException(
-                "A cache must be provided when using the FetchOnceDataLoader.", 
+                "A cache must be provided when using the FetchOnceDataLoader.",
                 nameof(options));
         }
     }

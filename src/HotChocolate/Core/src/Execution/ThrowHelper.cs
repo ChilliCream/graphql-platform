@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using static HotChocolate.Execution.Properties.Resources;
@@ -288,5 +286,4 @@ internal static class ThrowHelper
 
     public static NotSupportedException MultiPartFormatter_ResultNotSupported(string typeName)
         => new(string.Format(ThrowHelper_JsonFormatter_ResultNotSupported, typeName));
-
 }

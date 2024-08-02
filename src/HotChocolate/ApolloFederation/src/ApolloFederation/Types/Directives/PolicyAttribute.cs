@@ -39,7 +39,6 @@ namespace HotChocolate.ApolloFederation.Types;
 )]
 public sealed class PolicyAttribute(string[] policies) : DescriptorAttribute
 {
-
     /// <summary>
     /// Retrieves array of required authentication policies.
     /// </summary>

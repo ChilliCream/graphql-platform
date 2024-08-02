@@ -15,7 +15,6 @@ public class GraphQLRequestException : GraphQLException
     public GraphQLRequestException(params IError[] errors)
         : base(errors)
     {
-
     }
 
     public GraphQLRequestException(IEnumerable<IError> errors)

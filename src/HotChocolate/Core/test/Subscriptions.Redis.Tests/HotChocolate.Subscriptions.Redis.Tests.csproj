@@ -15,7 +15,7 @@
   <ItemGroup>
     <PackageReference Include="Squadron.Redis" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <None Update="$(MSBuildProjectDirectory)\__resources__\*.*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

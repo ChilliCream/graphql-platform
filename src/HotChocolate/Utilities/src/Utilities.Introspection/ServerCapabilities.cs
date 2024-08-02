@@ -35,7 +35,7 @@ public class ServerCapabilities
     /// Gets a value that defines if the GraphQL server supports argument deprecation.
     /// </summary>
     public bool HasArgumentDeprecation { get; internal set;}
-    
+
     /// <summary>
     /// Gets a value that defines if the GraphQL server supports schema descriptions.
     /// </summary>

@@ -18,7 +18,7 @@ namespace HotChocolate.ApolloFederation.Types;
 /// <see cref="RequiresScopesDirective">RequiresScopeDirectiveType</see> directive usage.
 /// Refer to the <see href="https://www.apollographql.com/docs/router/configuration/authorization#authenticated">
 /// Apollo Router article</see> for additional details.
-/// 
+///
 /// <example>
 /// type Foo @key(fields: "id") {
 ///   id: ID

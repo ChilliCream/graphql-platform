@@ -181,7 +181,6 @@ public class MongoDbFilterVisitorObjectIdTests
             .MatchAsync();
     }
 
-
     [Fact]
     public async Task Create_ObjectIdGreaterThanOrEquals_Expression()
     {
@@ -341,7 +340,6 @@ public class MongoDbFilterVisitorObjectIdTests
                                 .Create(), res1, "6124e80f3f5fc839830c1f69"), res2, "6124e80f3f5fc839830c1f6a"), res3, "6124e80f3f5fc839830c1f6b"), res4, "null")
             .MatchAsync();
     }
-
 
     [Fact]
     public async Task Create_ObjectIdLowerThanOrEquals_Expression()
@@ -689,7 +687,6 @@ public class MongoDbFilterVisitorObjectIdTests
             .MatchAsync();
     }
 
-
     [Fact]
     public async Task Create_ObjectIdNullableGreaterThanOrEquals_Expression()
     {
@@ -849,7 +846,6 @@ public class MongoDbFilterVisitorObjectIdTests
                                 .Create(), res1, "a"), res2, "6124e80f3f5fc839830c1f6a"), res3, "6124e80f3f5fc839830c1f6b"), res4, "null")
             .MatchAsync();
     }
-
 
     [Fact]
     public async Task Create_ObjectIdNullableLowerThanOrEquals_Expression()

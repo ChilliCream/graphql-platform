@@ -134,7 +134,6 @@ public abstract class SchemaVisitor<TContext>
 
     public virtual void VisitArgument(ArgumentAssignment argument, TContext context)
     {
-
     }
 
     public virtual void VisitInputFields(IFieldDefinitionCollection<InputFieldDefinition> fields, TContext context)

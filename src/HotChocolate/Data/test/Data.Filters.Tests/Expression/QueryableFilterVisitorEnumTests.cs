@@ -36,7 +36,6 @@ public class QueryableFilterVisitorEnumTests : FilterVisitorTestBase
         // act
         var func = tester.Build<Foo>(value);
 
-
         // assert
         var a = new Foo { BarEnum = FooEnum.BAZ, };
         Assert.True(func(a));

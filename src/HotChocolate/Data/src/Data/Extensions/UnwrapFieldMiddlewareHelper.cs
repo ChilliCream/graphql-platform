@@ -11,7 +11,7 @@ internal static class UnwrapFieldMiddlewareHelper
             return async ctx =>
             {
                 builder.Prepare(ctx);
-                
+
                 // first lets invoke the rest of the pipeline to get the resolver result.
                 await next(ctx).ConfigureAwait(false);
 
@@ -21,14 +21,14 @@ internal static class UnwrapFieldMiddlewareHelper
                 {
                     builder.Apply(ctx);
                 }
-                    
+
                 // if we how ever have a field result we will only invoke
                 // the data middleware if its a success result.
                 else if (fieldResult.IsSuccess)
                 {
                     // we need to unwrap the success result.
                     ctx.Result = fieldResult.Value;
-                        
+
                     // only after that we can invoke the data middleware.
                     builder.Apply(ctx);
                 }

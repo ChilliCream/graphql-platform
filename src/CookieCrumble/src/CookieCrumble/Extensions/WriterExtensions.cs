@@ -20,14 +20,14 @@ public static class WriterExtensions
         snapshot.GetSpan(1)[0] = (byte)'\n';
         snapshot.Advance(1);
     }
-    
+
     public static void AppendLine(this IBufferWriter<byte> snapshot, bool appendWhenTrue)
     {
         if (!appendWhenTrue)
         {
             return;
         }
-        
+
         snapshot.GetSpan(1)[0] = (byte)'\n';
         snapshot.Advance(1);
     }

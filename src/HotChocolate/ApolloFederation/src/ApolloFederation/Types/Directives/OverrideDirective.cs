@@ -47,7 +47,6 @@ namespace HotChocolate.ApolloFederation.Types;
 [OverrideLegacySupport]
 public sealed class OverrideDirective(string from)
 {
-
     /// <summary>
     /// Creates new instance of @override directive.
     /// </summary>

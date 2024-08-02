@@ -26,7 +26,6 @@
     <PackageReference Include="System.Text.Json" />
   </ItemGroup>
 
-
   <ItemGroup>
     <EmbeddedResource Update="Properties\TransportAbstractionResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

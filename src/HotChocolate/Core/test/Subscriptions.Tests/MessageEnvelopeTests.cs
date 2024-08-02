@@ -31,7 +31,7 @@ public class MessageEnvelopeTests
         var envelope = new MessageEnvelope<string>("abc", MessageKind.Completed);
         Assert.Null(envelope.Body);
     }
-    
+
     [Fact]
     public void CreateCompletedMessage_Body_Not_Null_ValueType()
     {

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace StrawberryShake.Tools.Configuration;
 
 public class StrawberryShakeSettingsTransportProfile

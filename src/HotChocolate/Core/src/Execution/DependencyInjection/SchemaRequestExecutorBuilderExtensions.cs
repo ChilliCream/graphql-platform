@@ -1,4 +1,3 @@
-using System;
 using HotChocolate;
 using HotChocolate.Execution.Configuration;
 
@@ -79,5 +78,4 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         bool trim = true) =>
         builder.ModifyOptions(o => o.RemoveUnreachableTypes = trim);
-
 }

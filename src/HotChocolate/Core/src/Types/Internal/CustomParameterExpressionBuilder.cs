@@ -1,4 +1,3 @@
-using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Resolvers;
@@ -81,7 +80,6 @@ public class CustomParameterExpressionBuilder<TArg> : CustomParameterExpressionB
     {
         _expression = expression;
         _canHandle = canHandle;
-
     }
 
     /// <summary>

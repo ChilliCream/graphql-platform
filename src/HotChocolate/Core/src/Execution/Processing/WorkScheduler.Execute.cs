@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using static System.Environment;
 
 namespace HotChocolate.Execution.Processing;
@@ -74,7 +72,6 @@ RESTART:
                 {
                     break;
                 }
-
             } while (!_ct.IsCancellationRequested);
         }
         catch (Exception ex)

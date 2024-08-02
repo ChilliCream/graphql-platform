@@ -35,5 +35,4 @@ internal static class ThrowHelper
             .SetCode(CodeGenerationErrorCodes.UnionTypeDataEntityMixed)
             .AddLocation(syntaxNode)
             .Build());
-
 }

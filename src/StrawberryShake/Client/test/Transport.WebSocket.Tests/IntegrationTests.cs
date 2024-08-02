@@ -1,11 +1,6 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Subscriptions;
@@ -280,7 +275,6 @@ public class IntegrationTests : ServerTestBase
 
             return payload;
         }
-
 
 #pragma warning disable CS0618
         [SubscribeAndResolve]

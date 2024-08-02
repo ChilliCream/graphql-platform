@@ -1,7 +1,5 @@
 #nullable enable
 
-using System.Collections.Generic;
-
 namespace HotChocolate.Execution.Processing;
 
 /// <summary>

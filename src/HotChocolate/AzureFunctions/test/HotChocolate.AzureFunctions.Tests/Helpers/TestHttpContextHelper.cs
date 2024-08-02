@@ -1,11 +1,9 @@
-using System;
 using System.Text;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Microsoft.Net.Http.Headers;
 using IO = System.IO;
-using System.IO;
 
 namespace HotChocolate.AzureFunctions.Tests.Helpers;
 
@@ -25,7 +23,7 @@ public static class TestHttpContextHelper
         request.Host = new HostString(DefaultAzFuncGraphQLUri.Host, DefaultAzFuncGraphQLUri.Port);
         request.Path = new PathString(DefaultAzFuncGraphQLUri.AbsolutePath);
         request.QueryString = new QueryString(DefaultAzFuncGraphQLUri.Query);
-        request.Body = new IO.MemoryStream(Encoding.UTF8.GetBytes(CreateRequestBody(query)));
+        request.Body = new MemoryStream(Encoding.UTF8.GetBytes(CreateRequestBody(query)));
         request.ContentType = TestConstants.DefaultJsonContentType;
 
         httpContext.Response.Body = new MemoryStream();

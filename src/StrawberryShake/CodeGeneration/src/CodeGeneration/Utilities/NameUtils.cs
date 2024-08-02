@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text;
 using HotChocolate;
 using StrawberryShake.CodeGeneration.CSharp;
+using Path = HotChocolate.Path;
 
 namespace StrawberryShake.CodeGeneration.Utilities;
 
@@ -106,7 +107,6 @@ public static class NameUtils
         if (property is { Length: >0, } && property[0] == '_')
         {
             return $"this.{property}";
-
         }
 
         return property;

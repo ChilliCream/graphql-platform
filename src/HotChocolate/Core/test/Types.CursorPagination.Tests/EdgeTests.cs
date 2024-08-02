@@ -1,6 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,7 +32,7 @@ public class EdgeTests
         // assert
         Assert.Throws<ArgumentNullException>(Action);
     }
-    
+
     [Fact]
     public void CreateEdge_CursorIsNull_ArgumentNullException_2()
     {

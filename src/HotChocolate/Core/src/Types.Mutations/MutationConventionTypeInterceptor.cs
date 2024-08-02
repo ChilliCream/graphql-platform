@@ -549,8 +549,6 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         }
     }
 
-
-
     private static Options CreateOptions(
         IDictionary<string, object?> contextData)
     {

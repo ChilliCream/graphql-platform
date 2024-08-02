@@ -5,5 +5,5 @@
     <TargetFrameworks>$(Library2TargetFrameworks)</TargetFrameworks>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-  
+
 </Project>

@@ -1,4 +1,3 @@
-using System;
 using System.Net.WebSockets;
 
 namespace HotChocolate.Transport.Sockets.Client;

@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Configuration;
-using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -36,7 +33,7 @@ public interface ISchemaBuilder
     ISchemaBuilder SetOptions(IReadOnlySchemaOptions options);
 
     ISchemaBuilder ModifyOptions(Action<SchemaOptions> configure);
-    
+
     [Obsolete("Use ModifyPagingOptions instead.")]
     ISchemaBuilder SetPagingOptions(PagingOptions options);
 

@@ -3,7 +3,6 @@ namespace HotChocolate.Fusion.Shared.Authors;
 
 public class Book
 {
-
     public string AuthorId { get; set;}
 
     public Author Author {get; set; }

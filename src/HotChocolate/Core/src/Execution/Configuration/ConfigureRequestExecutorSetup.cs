@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Execution.Configuration;
 
 public sealed class ConfigureRequestExecutorSetup : IConfigureRequestExecutorSetup

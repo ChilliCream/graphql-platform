@@ -174,7 +174,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
             var name2 = name;
             name = null;
 
-
             session.Dispose();
 
             // assert
@@ -248,7 +247,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
 
                     var name2 = name;
                     name = null;
-
 
                     session.Dispose();
 
@@ -379,6 +377,5 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
             // assert
             Assert.Equal(1, count);
         }
-
     }
 }

@@ -334,7 +334,6 @@ public class SchemaCoordinateTests
         Assert.Throws<InvalidSchemaCoordinateException>(Fail).Message.MatchSnapshot();
     }
 
-
     [Fact]
     public void GetMember_Invalid_DirectiveName()
     {

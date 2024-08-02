@@ -1,5 +1,3 @@
-using System;
-
 namespace StrawberryShake.Transport.WebSockets.Protocols;
 
 public static class GraphQLWebSocketMessageTypeSpans

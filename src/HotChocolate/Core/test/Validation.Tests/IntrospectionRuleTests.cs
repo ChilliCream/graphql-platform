@@ -1,5 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using ChilliCream.Testing;
 using static HotChocolate.Validation.TestHelper;
@@ -108,7 +106,6 @@ public class IntrospectionRuleTests
                 new(WellKnownContextData.IntrospectionAllowed, null),
             });
     }
-
 
     private ISchema CreateSchema()
     {

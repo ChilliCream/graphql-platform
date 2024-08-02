@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
@@ -81,7 +79,6 @@ public class DirectiveTypeDefinition : DefinitionBase, IHasRuntimeType
     /// Specifies if this directive definition has an arguments.
     /// </summary>
     public bool HasArguments => _arguments is { Count: > 0, };
-
 
     /// <summary>
     /// Gets or sets the input object runtime value factory delegate.

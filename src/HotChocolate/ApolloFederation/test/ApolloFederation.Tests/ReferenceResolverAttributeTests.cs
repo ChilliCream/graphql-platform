@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.ApolloFederation.Resolvers;
 using HotChocolate.ApolloFederation.Types;
@@ -65,7 +63,7 @@ public class ReferenceResolverAttributeTests
             .AddApolloFederation()
             .AddQueryType<QueryWithSingleKeyResolver>()
             .BuildSchemaAsync();
-        
+
         // act
         var type = schema.GetType<ObjectType>(nameof(ExternalSingleKeyResolver));
 
@@ -147,7 +145,7 @@ public class ReferenceResolverAttributeTests
             .AddApolloFederation()
             .AddQueryType<Query>()
             .BuildSchemaAsync();
-        
+
         // act
         var type = schema.GetType<ObjectType>(nameof(ExternalRefResolverRenamedMethod));
 

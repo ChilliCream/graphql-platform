@@ -7,7 +7,7 @@ internal sealed class TagContext
         new(StringComparer.Ordinal);
 
     public bool HasTags { get; set; }
-    
+
     public void RegisterTagCoordinate(string name, SchemaCoordinate coordinate)
     {
         if(_taggedTypes.TryGetValue(name, out var coordinates))
@@ -19,7 +19,7 @@ internal sealed class TagContext
             _taggedTypes.Add(name, [coordinate,]);
         }
     }
-    
+
     public IReadOnlySet<SchemaCoordinate> GetTagCoordinates(string name)
         => _taggedTypes.GetValueOrDefault(name, _empty);
 }

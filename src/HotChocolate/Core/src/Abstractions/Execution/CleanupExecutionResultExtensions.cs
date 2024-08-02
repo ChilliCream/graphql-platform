@@ -1,4 +1,3 @@
-using System;
 using static HotChocolate.Execution.ExecutionResultKind;
 using static HotChocolate.Properties.AbstractionResources;
 

@@ -1,4 +1,3 @@
-using System;
 using System.Buffers;
 
 namespace StrawberryShake.Internal;
@@ -86,7 +85,7 @@ public sealed class ArrayWriter : IBufferWriter<byte>, IDisposable
         {
             throw new ArgumentOutOfRangeException(
                 nameof(count),
-                count, 
+                count,
                 "Cannot advance past the end of the buffer.");
         }
 
@@ -155,7 +154,7 @@ public sealed class ArrayWriter : IBufferWriter<byte>, IDisposable
         EnsureBufferCapacity(size);
         return _buffer.AsSpan().Slice(_start, size);
     }
-    
+
     /// <summary>
     /// Gets the buffer as an <see cref="ArraySegment{T}"/>
     /// </summary>

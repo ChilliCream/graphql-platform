@@ -1,5 +1,4 @@
 using HotChocolate.Language;
-using System.Linq;
 
 namespace HotChocolate.Types;
 
@@ -22,7 +21,6 @@ public class UnionTypeExtensionTests
             t => Assert.IsType<AType>(t),
             t => Assert.IsType<BType>(t));
     }
-
 
     [Fact]
     public void UnionTypeExtension_SetTypeContextData()
