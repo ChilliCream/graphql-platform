@@ -25,7 +25,7 @@ public class TaskCacheOwnerTests
     {
         // arrange
         var pool = TaskCachePool.Create();
-        
+
         // act
         using var cacheOwner1 = new TaskCacheOwner(pool);
         using var cacheOwner2 = new TaskCacheOwner(pool);

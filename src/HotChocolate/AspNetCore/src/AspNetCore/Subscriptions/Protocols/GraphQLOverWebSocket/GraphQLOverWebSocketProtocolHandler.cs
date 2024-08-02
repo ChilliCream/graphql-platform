@@ -157,7 +157,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
                     await connection.CloseInvalidSubscribeMessageAsync(cancellationToken);
                     return;
                 }
-                
+
                 await SendErrorMessageAsync(
                     session,
                     idProp.GetString()!,

@@ -301,7 +301,6 @@ public class QueryableFilterVisitorComparableTests : IClassFixture<SchemaCache>
         await snapshot.MatchAsync();
     }
 
-
     [Fact]
     public async Task Create_ShortLowerThanOrEquals_Expression()
     {
@@ -710,7 +709,6 @@ public class QueryableFilterVisitorComparableTests : IClassFixture<SchemaCache>
         snapshot.Add(res4, "null");
         await snapshot.MatchAsync();
     }
-
 
     [Fact]
     public async Task Create_ShortNullableLowerThanOrEquals_Expression()

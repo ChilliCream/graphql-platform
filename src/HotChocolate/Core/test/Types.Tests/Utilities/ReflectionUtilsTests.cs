@@ -1,4 +1,4 @@
-﻿namespace HotChocolate.Utilities;
+namespace HotChocolate.Utilities;
 
 public class ReflectionUtilsTests
 {

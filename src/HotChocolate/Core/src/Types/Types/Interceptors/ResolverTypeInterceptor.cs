@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
@@ -270,7 +267,6 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
                         objectTypeDef.RuntimeType,
                         argumentNames: map,
                         parameterExpressionBuilders: field.GetParameterExpressionBuilders());
-
 
                     if (TrySetRuntimeTypeFromMember(context, field.Type, field.Member) is { } u)
                     {

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Options;
 using Microsoft.Extensions.DependencyInjection;
@@ -54,7 +51,7 @@ internal sealed class OnlyPersistedQueriesAllowedMiddleware
 
         return default;
     }
-    
+
     public static RequestCoreMiddleware Create()
         => (core, next) =>
         {

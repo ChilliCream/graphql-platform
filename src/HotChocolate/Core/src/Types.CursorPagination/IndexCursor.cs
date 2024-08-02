@@ -1,4 +1,3 @@
-using System;
 using System.Buffers;
 using System.Buffers.Text;
 using System.Text;
@@ -8,7 +7,7 @@ namespace HotChocolate.Types.Pagination;
 internal static class IndexCursor
 {
     private static readonly Encoding _utf8 = Encoding.UTF8;
-    
+
     public static unsafe string Format(Span<byte> buffer)
     {
         fixed (byte* bytePtr = buffer)
@@ -16,7 +15,7 @@ internal static class IndexCursor
             return _utf8.GetString(bytePtr, buffer.Length);
         }
     }
-    
+
     public static unsafe bool TryParse(string cursor, out int index)
     {
         fixed (char* cPtr = cursor)

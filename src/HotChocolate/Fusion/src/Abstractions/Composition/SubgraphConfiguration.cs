@@ -11,8 +11,8 @@ public sealed class SubgraphConfiguration
     /// Initializes a new instance of the <see cref="SubgraphConfiguration"/> class.
     /// </summary>
     /// <param name="name">
-	/// The name of the subgraph.
-	/// </param>
+    /// The name of the subgraph.
+    /// </param>
     /// <param name="schema">
     /// The schema associated with the subgraph.
     /// </param>

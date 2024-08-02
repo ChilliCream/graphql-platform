@@ -108,7 +108,6 @@ internal sealed class ErrorTypeHelper
             }
         }
 
-
         if (resultType is { IsValueType: true, IsGenericType: true, } &&
             typeof(IFieldResult).IsAssignableFrom(resultType))
         {
@@ -136,7 +135,7 @@ internal sealed class ErrorTypeHelper
         {
             return;
         }
-        
+
         var key = typeof(ErrorInterfaceType).FullName!;
 
         if (!context.ContextData.TryGetValue(key, out var value))

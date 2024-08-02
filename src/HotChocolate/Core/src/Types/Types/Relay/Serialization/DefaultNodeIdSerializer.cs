@@ -1,5 +1,4 @@
 #nullable enable
-using System;
 using System.Buffers;
 using System.Buffers.Text;
 using System.Collections.Concurrent;
@@ -255,7 +254,7 @@ public sealed class DefaultNodeIdSerializer(
     }
 
 #if NET8_0_OR_GREATER
-    private static readonly SearchValues<byte> _delimiterSearchValues = 
+    private static readonly SearchValues<byte> _delimiterSearchValues =
         SearchValues.Create([_delimiter, _legacyDelimiter]);
 #endif
 

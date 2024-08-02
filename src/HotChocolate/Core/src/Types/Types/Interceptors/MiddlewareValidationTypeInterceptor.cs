@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Text;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -15,9 +14,9 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
     private const string _useProjection = "UseProjection";
     private const string _useFiltering = "UseFiltering";
     private const string _useSorting = "UseSorting";
-    
+
     private readonly HashSet<string> _names = [];
-    
+
     public override void OnValidateType(
         ITypeSystemObjectContext validationContext,
         DefinitionBase definition)
@@ -44,7 +43,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
         IList<FieldMiddlewareDefinition> middlewareDefinitions)
     {
         _names.Clear();
-        
+
         var usePaging = false;
         var useProjections = false;
         var useFiltering = false;
@@ -76,12 +75,12 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
                             error = true;
                             break;
                         }
-                        
+
                         if (!_names.Add(definition.Key))
                         {
                             (duplicates ??= []).Add(_usePaging);
                         }
-                        
+
                         usePaging = true;
                         break;
 
@@ -91,12 +90,12 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
                             error = true;
                             break;
                         }
-                        
+
                         if (!_names.Add(definition.Key))
                         {
                             (duplicates ??= []).Add(_useProjection);
                         }
-                        
+
                         useProjections = true;
                         break;
 

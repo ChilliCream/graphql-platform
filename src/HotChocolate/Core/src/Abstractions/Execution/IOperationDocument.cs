@@ -1,8 +1,3 @@
-using System;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace HotChocolate.Execution;
 
 /// <summary>
@@ -19,7 +14,7 @@ public interface IOperationDocument
     /// Returns the binary document representation.
     /// </summary>
     ReadOnlySpan<byte> AsSpan();
-    
+
     /// <summary>
     /// Returns the binary document representation.
     /// </summary>

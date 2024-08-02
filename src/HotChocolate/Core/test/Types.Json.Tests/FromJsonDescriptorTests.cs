@@ -1,6 +1,4 @@
-using System;
 using System.Text.Json;
-using System.Threading.Tasks;
 using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
@@ -405,7 +403,6 @@ public class FromJsonDescriptorTests
             }
             """);
     }
-
 
     public class Query
     {

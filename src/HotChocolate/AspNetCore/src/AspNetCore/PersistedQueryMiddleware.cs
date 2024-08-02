@@ -13,13 +13,13 @@ internal static class PersistedQueryMiddleware
     internal static void MapPersistedQueryMiddleware(this RouteGroupBuilder groupBuilder, string schemaName)
     {
         var state = new State(schemaName);
-        
+
         groupBuilder
             .MapGet(
                 "/{OperationId}",
                 ([AsParameters] Services services, string operationId)
                     => ExecuteGetRequestAsync(state, services, operationId, null));
-        
+
         groupBuilder
             .MapGet(
                 "/{OperationId}/{DisplayName}",
@@ -31,7 +31,7 @@ internal static class PersistedQueryMiddleware
                 "/{OperationId}",
                 ([AsParameters] Services services, string operationId)
                     => ExecutePostRequestAsync(state, services, operationId, null));
-        
+
         groupBuilder
             .MapPost(
                 "/{OperationId}/{DisplayName}",

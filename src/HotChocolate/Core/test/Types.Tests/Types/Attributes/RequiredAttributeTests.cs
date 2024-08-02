@@ -1,4 +1,3 @@
-using System;
 using System.ComponentModel.DataAnnotations;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;

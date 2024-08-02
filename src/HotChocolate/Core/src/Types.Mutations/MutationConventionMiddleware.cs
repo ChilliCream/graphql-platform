@@ -44,7 +44,7 @@ internal sealed class MutationConventionMiddleware(
             {
                 kind = ValueKind.Unknown;
             }
-            
+
             arguments.Add(
                 argument.Name,
                 new ArgumentValue(

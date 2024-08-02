@@ -1,6 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Authorization.Properties;
 using HotChocolate.Language;
 using HotChocolate.Validation;

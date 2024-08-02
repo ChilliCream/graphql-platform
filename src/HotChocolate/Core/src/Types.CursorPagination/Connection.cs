@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Types.Pagination.Utilities;
 
 namespace HotChocolate.Types.Pagination;
@@ -98,7 +94,7 @@ public class Connection : IPage
     /// Gets an cashed empty connection object.
     /// </summary>
     public static Connection Empty() => EmptyConnectionHolder.Empty;
-    
+
     /// <summary>
     /// Gets an cashed empty connection object.
     /// </summary>

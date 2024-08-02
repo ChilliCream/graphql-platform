@@ -11,7 +11,7 @@ public interface ISyntaxNode
     SyntaxKind Kind { get; }
 
     /// <summary>
-    /// Gets a <see cref="Location"/> of this node in the parsed source text 
+    /// Gets a <see cref="Location"/> of this node in the parsed source text
     /// if available the parser provided this information.
     /// </summary>
     Location? Location { get; }

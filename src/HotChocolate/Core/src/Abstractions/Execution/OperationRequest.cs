@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using static HotChocolate.Properties.AbstractionResources;
 
 namespace HotChocolate.Execution;
@@ -114,7 +112,7 @@ public sealed class OperationRequest : IOperationRequest
     /// GraphQL request flags allow to limit the GraphQL executor capabilities.
     /// </summary>
     public GraphQLRequestFlags Flags { get; }
-    
+
     /// <summary>
     /// Creates a new request with the specified document.
     /// </summary>
@@ -135,7 +133,7 @@ public sealed class OperationRequest : IOperationRequest
             ContextData,
             Services,
             Flags);
-    
+
     /// <summary>
     /// Creates a new request with the specified document ID.
     /// </summary>
@@ -156,7 +154,7 @@ public sealed class OperationRequest : IOperationRequest
             ContextData,
             Services,
             Flags);
-    
+
     /// <summary>
     /// Creates a new request with the specified document hash.
     /// </summary>
@@ -177,7 +175,7 @@ public sealed class OperationRequest : IOperationRequest
             ContextData,
             Services,
             Flags);
-    
+
     /// <summary>
     /// Creates a new request with the specified operation name.
     /// </summary>
@@ -198,7 +196,7 @@ public sealed class OperationRequest : IOperationRequest
             ContextData,
             Services,
             Flags);
-    
+
     /// <summary>
     /// Creates a new request with the specified variable values.
     /// </summary>
@@ -219,7 +217,7 @@ public sealed class OperationRequest : IOperationRequest
             ContextData,
             Services,
             Flags);
-    
+
     /// <summary>
     /// Creates a new request with the specified extensions.
     /// </summary>
@@ -240,7 +238,7 @@ public sealed class OperationRequest : IOperationRequest
             ContextData,
             Services,
             Flags);
-    
+
     /// <summary>
     /// Creates a new request with the specified context data.
     /// </summary>
@@ -261,7 +259,7 @@ public sealed class OperationRequest : IOperationRequest
             contextData,
             Services,
             Flags);
-    
+
     /// <summary>
     /// Creates a new request with the specified services.
     /// </summary>
@@ -282,7 +280,7 @@ public sealed class OperationRequest : IOperationRequest
             ContextData,
             services,
             Flags);
-    
+
     /// <summary>
     /// Creates a new request with the specified flags.
     /// </summary>
@@ -363,7 +361,7 @@ public sealed class OperationRequest : IOperationRequest
             services,
             flags);
     }
-    
+
     /// <summary>
     /// Creates a persisted operation request.
     /// </summary>
@@ -415,7 +413,7 @@ public sealed class OperationRequest : IOperationRequest
             contextData,
             services,
             flags);
-    
+
     /// <summary>
     /// Creates a GraphQL request from a operation document source text.
     /// </summary>

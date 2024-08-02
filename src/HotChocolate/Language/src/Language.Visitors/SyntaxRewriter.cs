@@ -28,7 +28,6 @@ public static class SyntaxRewriter
         Action<ISyntaxNode?, TContext>? leave = null)
         where TContext : INavigatorContext
     {
-
         Func<ISyntaxNode, TContext, TContext> enterFunc = enter is not null
             ? (node, context) =>
             {

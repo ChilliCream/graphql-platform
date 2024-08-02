@@ -102,7 +102,7 @@ public static class SyntaxNodeExtensions
 
         throw new NotSupportedException();
     }
-    
+
     public static string Name(this ITypeNode type)
         => type.NamedType().Name.Value;
 

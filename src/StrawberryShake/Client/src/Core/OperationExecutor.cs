@@ -1,6 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using static StrawberryShake.Properties.Resources;
 
 namespace StrawberryShake;

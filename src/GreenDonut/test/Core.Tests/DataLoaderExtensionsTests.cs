@@ -1,7 +1,5 @@
 // ReSharper disable InconsistentNaming
 
-using System;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace GreenDonut;
@@ -62,14 +60,14 @@ public class DataLoaderExtensionsTests
         var fetch = TestHelpers.CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
         var loader = new DataLoader<string, string>(
-            fetch, 
+            fetch,
             batchScheduler,
             new DataLoaderOptions
             {
                 Cache = cacheOwner.Cache,
                 CancellationToken = cacheOwner.CancellationToken,
             });
-        
+
         const string key = "Foo";
         const string  value = "Bar";
 
@@ -90,14 +88,14 @@ public class DataLoaderExtensionsTests
         var fetch = TestHelpers.CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
         var loader = new DataLoader<string, string>(
-            fetch, 
+            fetch,
             batchScheduler,
             new DataLoaderOptions
             {
                 Cache = cacheOwner.Cache,
                 CancellationToken = cacheOwner.CancellationToken,
             });
-        
+
         const string key = "Foo";
         const string first = "Bar";
         const string second = "Baz";
@@ -134,7 +132,7 @@ public class DataLoaderExtensionsTests
         var fetch = TestHelpers.CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
         var loader = new DataLoader<string, string>(
-            fetch, 
+            fetch,
             batchScheduler,
             new DataLoaderOptions
             {

@@ -1,13 +1,9 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 
 #if NET6_0_OR_GREATER
 using System.Reflection.Metadata;
 #endif
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Configuration;
 #if NET6_0_OR_GREATER
 using HotChocolate.Execution;
@@ -612,7 +608,6 @@ internal sealed partial class RequestExecutorResolver
             throw new ArgumentNullException(nameof(errorHandler));
         private readonly IExecutionDiagnosticEvents _diagnosticEvents = diagnosticEvents ??
             throw new ArgumentNullException(nameof(diagnosticEvents));
-
 
         public override RequestContext Create()
             => new(_schema, executorVersion, _errorHandler, _diagnosticEvents);

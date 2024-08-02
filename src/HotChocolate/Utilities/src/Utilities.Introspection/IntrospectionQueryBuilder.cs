@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Language;
 
 namespace HotChocolate.Utilities.Introspection;
@@ -223,7 +221,6 @@ internal static class IntrospectionQueryBuilder
                             Array.Empty<DirectiveNode>()),
                     }));
 
-
     private static FieldNode CreateTypeField()
         => new FieldNode(
             new NameNode("type"),
@@ -354,7 +351,6 @@ internal static class IntrospectionQueryBuilder
             Array.Empty<DirectiveNode>(),
             CreateKindTypePair(ofType));
     }
-
 
     private static FieldNode CreateOfType(FieldNode? ofType = null)
         => new(

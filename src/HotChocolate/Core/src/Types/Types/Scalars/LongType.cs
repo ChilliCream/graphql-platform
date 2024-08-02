@@ -34,7 +34,7 @@ public class LongType
     {
         Description = description;
     }
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="LongType"/> class.
     /// </summary>

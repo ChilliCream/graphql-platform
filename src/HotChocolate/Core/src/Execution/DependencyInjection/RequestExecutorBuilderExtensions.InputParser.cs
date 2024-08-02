@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
@@ -78,7 +77,7 @@ public static partial class RequestExecutorBuilderExtensions
         configure(options);
         services.AddSingleton(
             sp => new InputParser(
-                sp.GetRequiredService<ITypeConverter>(), 
+                sp.GetRequiredService<ITypeConverter>(),
                 options));
         return services;
     }

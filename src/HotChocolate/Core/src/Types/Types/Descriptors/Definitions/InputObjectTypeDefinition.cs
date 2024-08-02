@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Utilities;
 
 #nullable enable
@@ -123,4 +120,3 @@ public class InputObjectTypeDefinition : TypeDefinitionBase
         target.GetFieldData ??= GetFieldData;
     }
 }
-

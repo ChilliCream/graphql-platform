@@ -134,7 +134,6 @@ partial class Build
             .Where(t => t.Path.ToString().StartsWith(testDirectory))
             .ToArray();
 
-
         Console.WriteLine("╬============================================");
         Console.WriteLine("║ Prepared Tests:");
         Console.WriteLine($"║ {RootDirectory.GetRelativePathTo(solutionDirectory)}:");

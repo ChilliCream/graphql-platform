@@ -21,8 +21,8 @@ namespace HotChocolate.ApolloFederation.Types;
 /// </summary>
 [Package(Federation20)]
 [DirectiveType(
-    ExtendsDirective_Name, 
-    DirectiveLocation.Object | 
+    ExtendsDirective_Name,
+    DirectiveLocation.Object |
     DirectiveLocation.Interface)]
 [GraphQLDescription(ExtendsDirective_Description)]
 public sealed class ExtendServiceTypeDirective

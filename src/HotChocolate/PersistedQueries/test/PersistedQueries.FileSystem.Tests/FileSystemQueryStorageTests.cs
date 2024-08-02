@@ -40,7 +40,7 @@ public class FileSystemQueryStorageTests
             }
         }
     }
-    
+
     [Fact]
     public async Task Write_Query_documentId_Invalid()
     {
@@ -130,7 +130,7 @@ public class FileSystemQueryStorageTests
             }
         }
     }
-    
+
     [Fact]
     public async Task Read_Query_documentId_Invalid()
     {

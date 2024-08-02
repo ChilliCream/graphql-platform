@@ -9,7 +9,6 @@ public class FilterConventionDefinition : IHasScope
     public static readonly string DefaultArgumentName = "where";
     private string _argumentName = DefaultArgumentName;
 
-
     public string? Scope { get; set; }
 
     public string ArgumentName

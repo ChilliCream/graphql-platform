@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Execution.Configuration;
 
 // ReSharper disable once CheckNamespace

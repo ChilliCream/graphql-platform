@@ -1,4 +1,4 @@
-﻿using HotChocolate.StarWars.Data;
+using HotChocolate.StarWars.Data;
 using HotChocolate.StarWars.Models;
 
 namespace HotChocolate.StarWars;

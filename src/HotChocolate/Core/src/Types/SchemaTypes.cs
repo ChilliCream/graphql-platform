@@ -1,12 +1,9 @@
 #nullable enable
 
-using System;
 #if NET8_0_OR_GREATER
 using System.Collections.Frozen;
 #endif
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using HotChocolate.Types;
 using static HotChocolate.Properties.TypeResources;
 

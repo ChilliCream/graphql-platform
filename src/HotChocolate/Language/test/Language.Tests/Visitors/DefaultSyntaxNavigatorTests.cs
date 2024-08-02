@@ -1,7 +1,5 @@
 #nullable enable
 
-using System;
-using System.Linq;
 using Xunit;
 using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
 

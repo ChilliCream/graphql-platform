@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Types;
 using static HotChocolate.Execution.Properties.Resources;
 using static HotChocolate.Execution.ThrowHelper;
@@ -54,9 +52,14 @@ internal sealed class SelectionVariants(int id) : ISelectionVariants
     {
         if (_map is not null)
         {
-            return _map.TryGetValue(typeContext, out var selections)
-                ? selections
-                : throw SelectionSet_TypeContextInvalid(typeContext);
+            if (_map.TryGetValue(typeContext, out var selections))
+            {
+                return selections;
+            }
+            else
+            {
+                throw SelectionSet_TypeContextInvalid(typeContext);
+            }
         }
 
         if (ReferenceEquals(_firstType, typeContext))

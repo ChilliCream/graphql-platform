@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Internal;
@@ -23,6 +18,26 @@ public class IntegrationTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryType>()
+                .Services
+                .BuildServiceProvider()
+                .GetRequestExecutorAsync();
+
+        executor.Schema.Print().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task SetPagingOptionsIsStillApplied()
+    {
+        var executor =
+#pragma warning disable CS0618 // Type or member is obsolete
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .SetPagingOptions(new PagingOptions
+                {
+                    IncludeTotalCount = true
+                })
+#pragma warning restore CS0618 // Type or member is obsolete
                 .Services
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
@@ -1161,7 +1176,6 @@ public class IntegrationTests
             descriptor
                 .Field(t => t.Names())
                 .UsePaging(options: new() { InferConnectionNameFromField = true, });
-
         }
     }
 

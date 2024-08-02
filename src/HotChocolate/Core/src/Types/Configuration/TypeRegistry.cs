@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
@@ -47,7 +44,7 @@ internal sealed class TypeRegistry
             return true;
         }
 
-        if (typeReference is ExtendedTypeReference extendedTypeRef && 
+        if (typeReference is ExtendedTypeReference extendedTypeRef &&
             _runtimeTypeRefs.TryGetValue(extendedTypeRef, out var reference))
         {
             return _typeRegister.ContainsKey(reference);

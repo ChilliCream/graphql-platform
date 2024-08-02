@@ -8,7 +8,7 @@ public class Dog
     public string Nickname { get; set; }
 
     public int? BarkVolume { get; set; }
-        
+
     public bool Barks { get; set; }
 
     public bool DoesKnowCommand(DogCommand dogCommand)

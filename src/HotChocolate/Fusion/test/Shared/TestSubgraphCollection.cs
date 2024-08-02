@@ -25,7 +25,7 @@ public class TestSubgraphCollection(ITestOutputHelper outputHelper, TestSubgraph
 
         return await GetExecutorAsync(fusionGraph);
     }
-    
+
     public async Task<IRequestExecutor> GetExecutorAsync(Skimmed.SchemaDefinition fusionGraph)
     {
         var httpClientFactory = GetHttpClientFactory();

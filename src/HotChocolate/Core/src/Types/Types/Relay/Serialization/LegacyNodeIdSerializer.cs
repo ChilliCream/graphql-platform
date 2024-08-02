@@ -1,6 +1,5 @@
 #nullable enable
 
-using System;
 using System.Buffers;
 using System.Buffers.Text;
 using System.Text;
@@ -32,7 +31,6 @@ internal sealed class LegacyNodeIdSerializer : INodeIdSerializer
         {
             throw new ArgumentNullException(nameof(internalId));
         }
-
 
         string? idString = null;
 

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -12,7 +11,7 @@ internal static class SchemaBuildingDirectiveHelper
 
     public static Stack<IDefinition> GetOrCreateDefinitionStack(this IDescriptorContext context)
     {
-        if (!context.ContextData.TryGetValue(_definitionStackKey, out var value) || 
+        if (!context.ContextData.TryGetValue(_definitionStackKey, out var value) ||
             value is not Stack<IDefinition> stack)
         {
             stack = new Stack<IDefinition>();

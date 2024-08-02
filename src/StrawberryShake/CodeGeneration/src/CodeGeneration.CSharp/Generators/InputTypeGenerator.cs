@@ -16,7 +16,7 @@ public class InputTypeGenerator : CSharpSyntaxGenerator<InputObjectTypeDescripto
     {
         var stateNamespace = $"{descriptor.RuntimeType.Namespace}.{State}";
         var infoInterfaceType = $"{stateNamespace}.{CreateInputValueInfo(descriptor.Name)}";
-        
+
         var modifier = settings.AccessModifier == AccessModifier.Public
             ? SyntaxKind.PublicKeyword
             : SyntaxKind.InternalKeyword;

@@ -1,8 +1,6 @@
-using System.Threading.Tasks;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
-using static HotChocolate.ApolloFederation.Properties.FederationResources;
 
 namespace HotChocolate.ApolloFederation;
 

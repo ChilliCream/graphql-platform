@@ -24,9 +24,9 @@ public class IntegrationTests : IClassFixture<RedisResource>
         // arrange
         var documentId = new OperationDocumentId(Guid.NewGuid().ToString("N"));
         var storage = new RedisQueryStorage(_database);
-        
+
         await storage.SaveAsync(
-            documentId, 
+            documentId,
             new OperationDocumentSourceText("{ __typename }"));
 
         var executor =
@@ -136,7 +136,6 @@ public class IntegrationTests : IClassFixture<RedisResource>
         // assert
         Assert.Null(result.ExpectQueryResult().Errors);
         result.MatchSnapshot();
-
     }
 
     [Fact]

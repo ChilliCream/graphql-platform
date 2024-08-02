@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using HotChocolate.Language;
@@ -48,23 +45,23 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
             current.OnBeforeCreateSchemaInternal(context, schemaBuilder);
             current = ref Unsafe.Add(ref current, 1)!;
         }
-        
+
         current = ref Unsafe.Add(ref start, 0)!;
         var i = 0;
-        TypeInterceptor[]? temp = null; 
-        
+        TypeInterceptor[]? temp = null;
+
         // next we determine the type interceptors that are enabled ...
         while (Unsafe.IsAddressLessThan(ref current, ref end))
         {
             var enabled = current.IsEnabled(context);
-            
+
             if (temp is null && !enabled)
             {
                 temp ??= new TypeInterceptor[_typeInterceptors.Length];
                 ref var next = ref Unsafe.Add(ref start, 0);
                 while (Unsafe.IsAddressLessThan(ref next, ref current))
                 {
-                    temp[i++] = next;   
+                    temp[i++] = next;
                     next = ref Unsafe.Add(ref next, 1)!;
                 }
             }
@@ -332,7 +329,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
             _mutationAggregator.OnBeforeCompleteMutation(completionContext, definition);
             return;
         }
-        
+
         ref var first = ref GetReference();
         var length = _typeInterceptors.Length;
 
@@ -434,7 +431,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
     }
 
     internal override void OnBeforeRegisterSchemaTypes(
-        IDescriptorContext context, 
+        IDescriptorContext context,
         SchemaTypesDefinition schemaTypesDefinition)
     {
         ref var first = ref GetReference();
@@ -477,4 +474,3 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 #endif
     }
 }
-

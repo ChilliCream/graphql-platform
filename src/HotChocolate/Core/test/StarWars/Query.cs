@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Text.Json;
 using HotChocolate.Resolvers;
 using HotChocolate.StarWars.Data;

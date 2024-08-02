@@ -1,6 +1,3 @@
-using System;
-using System.Net.Http;
-
 namespace HotChocolate.Transport.Http;
 
 /// <summary>
@@ -25,7 +22,7 @@ public sealed class GraphQLHttpRequest
         if (string.IsNullOrWhiteSpace(query))
         {
             throw new ArgumentException(
-                HttpResources.GraphQLHttpRequest_QueryNullOrEmpty, 
+                HttpResources.GraphQLHttpRequest_QueryNullOrEmpty,
                 nameof(query));
         }
 
@@ -54,14 +51,14 @@ public sealed class GraphQLHttpRequest
             body.ExtensionsNode is null)
         {
             throw new ArgumentException(
-                HttpResources.GraphQLHttpRequest_QueryIdAndExtensionsNullOrEmpty, 
+                HttpResources.GraphQLHttpRequest_QueryIdAndExtensionsNullOrEmpty,
                 nameof(body));
         }
 
         Body = body;
         Uri = requestUri;
     }
-    
+
     /// <summary>
     /// Initializes a new instance of <see cref="GraphQLHttpRequest"/>.
     /// </summary>
@@ -83,14 +80,14 @@ public sealed class GraphQLHttpRequest
             body.ExtensionsNode is null)
         {
             throw new ArgumentException(
-                HttpResources.GraphQLHttpRequest_QueryIdAndExtensionsNullOrEmpty, 
+                HttpResources.GraphQLHttpRequest_QueryIdAndExtensionsNullOrEmpty,
                 nameof(body));
         }
 
         Body = body;
         Uri = requestUri;
     }
-    
+
     /// <summary>
     /// Initializes a new instance of <see cref="GraphQLHttpRequest"/>.
     /// </summary>
@@ -108,7 +105,7 @@ public sealed class GraphQLHttpRequest
         if (body.Requests is { Count: 0, })
         {
             throw new ArgumentException(
-                HttpResources.GraphQLHttpRequest_RequiresOneOrMoreRequests, 
+                HttpResources.GraphQLHttpRequest_RequiresOneOrMoreRequests,
                 nameof(body));
         }
 
@@ -120,7 +117,7 @@ public sealed class GraphQLHttpRequest
                 request.ExtensionsNode is null)
             {
                 throw new ArgumentException(
-                    HttpResources.GraphQLHttpRequest_QueryIdAndExtensionsNullOrEmpty, 
+                    HttpResources.GraphQLHttpRequest_QueryIdAndExtensionsNullOrEmpty,
                     nameof(body));
             }
         }
@@ -138,30 +135,30 @@ public sealed class GraphQLHttpRequest
     /// Gets or sets the HTTP method.
     /// </summary>
     public GraphQLHttpMethod Method { get; set; } = GraphQLHttpMethod.Post;
-    
+
     /// <summary>
     /// Gets or sets the GraphQL request <see cref="Uri"/>.
     /// </summary>
     public Uri? Uri { get; set; }
-    
+
     /// <summary>
     /// Gets or sets a hook that can alter the <see cref="HttpRequestMessage"/> before it is sent.
     /// </summary>
     public OnHttpRequestMessageCreated? OnMessageCreated { get; set; }
-    
+
     /// <summary>
     /// Specifies if files shall be uploaded using the multipart request spec.
     /// </summary>
     public bool EnableFileUploads { get; set; }
-    
+
     /// <summary>
-    /// Specifies that the request URI represents a persisted document URI. 
+    /// Specifies that the request URI represents a persisted document URI.
     /// </summary>
     public bool PersistedDocumentUri { get; set; }
-    
+
     public static implicit operator GraphQLHttpRequest(OperationRequest body) => new(body);
-    
+
     public static implicit operator GraphQLHttpRequest(VariableBatchRequest body) => new(body);
-    
+
     public static implicit operator GraphQLHttpRequest(OperationBatchRequest body) => new(body);
 }

@@ -147,7 +147,6 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
             .Add(res2, "testbtestAndNull")
             .Add(res3, "testatest")
             .MatchAsync();
-
     }
 
     [Fact]

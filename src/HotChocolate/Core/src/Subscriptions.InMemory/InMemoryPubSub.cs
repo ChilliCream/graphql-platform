@@ -28,7 +28,7 @@ internal sealed class InMemoryPubSub : DefaultPubSub
         {
             topic.Publish(message);
         }
-        
+
         return ValueTask.CompletedTask;
     }
 

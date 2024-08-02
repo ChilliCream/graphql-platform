@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 
 #nullable enable

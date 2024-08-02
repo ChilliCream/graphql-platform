@@ -207,7 +207,6 @@ public class StringValueNodeTests
         // act
         value = value.WithLocation(location);
 
-
         // assert
         Assert.Equal("abc", value.Value);
         Assert.False(value.Block);
@@ -224,7 +223,6 @@ public class StringValueNodeTests
 
         // act
         value = value.WithValue("def");
-
 
         // assert
         Assert.Equal("def", value.Value);
@@ -243,7 +241,6 @@ public class StringValueNodeTests
 
         // act
         value = value.WithValue("def", true);
-
 
         // assert
         Assert.Equal("def", value.Value);

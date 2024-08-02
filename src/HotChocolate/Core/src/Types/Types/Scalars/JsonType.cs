@@ -1,7 +1,5 @@
 #nullable enable
-using System;
 using System.Buffers;
-using System.Collections.Generic;
 using System.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
@@ -23,7 +21,7 @@ public sealed class JsonType : ScalarType<JsonElement>
     /// </summary>
     public JsonType(string name, BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, bind) { }
-    
+
     /// <summary>
     /// Initializes a new instance of <see cref="JsonType"/>.
     /// </summary>
@@ -262,7 +260,6 @@ public sealed class JsonType : ScalarType<JsonElement>
                     default:
                         throw new ArgumentOutOfRangeException(nameof(node));
                 }
-
 
                 return base.Enter(node, context);
             }

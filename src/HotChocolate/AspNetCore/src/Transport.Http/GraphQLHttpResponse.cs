@@ -1,19 +1,13 @@
-using System;
-using System.Collections.Generic;
 using System.Net;
 #if NET6_0_OR_GREATER
 using System.Diagnostics;
-using System.IO;
 #endif
-using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
 #if NET6_0_OR_GREATER
 using System.Text;
 #endif
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Transport.Http;

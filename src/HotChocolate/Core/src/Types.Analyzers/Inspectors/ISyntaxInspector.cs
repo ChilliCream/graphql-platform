@@ -27,4 +27,3 @@ public interface ISyntaxInspector
         GeneratorSyntaxContext context,
         [NotNullWhen(true)] out SyntaxInfo? syntaxInfo);
 }
-
