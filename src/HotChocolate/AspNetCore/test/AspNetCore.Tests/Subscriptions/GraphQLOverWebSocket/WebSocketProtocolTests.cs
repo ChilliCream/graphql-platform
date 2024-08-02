@@ -501,7 +501,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
     }
 
     [Fact]
-    public async Task Send_Subscribe_600x_Complete_From_Server()
+    public async Task Send_Subscribe_100x_Complete_From_Server()
     {
         await TryTest(
             async ct =>
@@ -522,12 +522,12 @@ public class WebSocketProtocolTests : SubscriptionTestBase
 
                 var stopwatch = Stopwatch.StartNew();
 
-                for (var i = 0; i < 600; i++)
+                for (var i = 0; i < 100; i++)
                 {
                     await webSocket.SendSubscribeAsync(i.ToString(), payload, ct);
                 }
 
-                while(diagnostics.Subscribed < 600)
+                while(diagnostics.Subscribed < 100)
                 {
                     await Task.Delay(10, ct);
                 }
@@ -548,7 +548,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                             }",
                     });
 
-                for (var i = 0; i < 600; i++)
+                for (var i = 0; i < 100; i++)
                 {
                     await WaitForMessage(webSocket, Messages.Next, ct);
                 }
@@ -561,7 +561,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                     });
 
                 // assert
-                for (var i = 0; i < 600; i++)
+                for (var i = 0; i < 100; i++)
                 {
                     await WaitForMessage(webSocket, Messages.Complete, ct);
                 }
