@@ -1,6 +1,7 @@
 using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Execution.Errors;
 using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Pipeline;
 using HotChocolate.Fusion;
@@ -339,6 +340,66 @@ public static class FusionRequestExecutorBuilderExtensions
 
         builder.CoreBuilder.Configure(options => options.OnConfigureSchemaServicesHooks.Add(
             (ctx, sc) => sc.AddSingleton(modify)));
+
+        return builder;
+    }
+
+    public static FusionGatewayBuilder AddErrorFilter(
+        this FusionGatewayBuilder builder,
+        Func<IError, IError> errorFilter)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (errorFilter is null)
+        {
+            throw new ArgumentNullException(nameof(errorFilter));
+        }
+
+        builder.CoreBuilder.ConfigureSchemaServices(
+            s => s.AddSingleton<IErrorFilter>(
+                new FuncErrorFilterWrapper(errorFilter)));
+
+        return builder;
+    }
+
+    public static FusionGatewayBuilder AddErrorFilter<T>(
+        this FusionGatewayBuilder builder,
+        Func<IServiceProvider, T> factory)
+        where T : class, IErrorFilter
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (factory is null)
+        {
+            throw new ArgumentNullException(nameof(factory));
+        }
+
+        builder.CoreBuilder.ConfigureSchemaServices(
+            s => s.AddSingleton<IErrorFilter, T>(
+                sp => factory(sp.GetCombinedServices())));
+
+        return builder;
+    }
+
+    public static FusionGatewayBuilder AddErrorFilter<T>(
+        this FusionGatewayBuilder builder)
+        where T : class, IErrorFilter
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        builder.Services.TryAddSingleton<T>();
+        builder.CoreBuilder.ConfigureSchemaServices(
+            s => s.AddSingleton<IErrorFilter, T>(
+                sp => sp.GetApplicationService<T>()));
 
         return builder;
     }

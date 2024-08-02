@@ -155,6 +155,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
                     context.Operation.Document,
                     context.Operation.Definition,
                     context.Result,
+                    context.ErrorHandler,
                     response.Errors,
                     batchState.SelectionSetResult,
                     pathLength + 1,

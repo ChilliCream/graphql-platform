@@ -1,3 +1,4 @@
+using CookieCrumble;
 using HotChocolate.Fusion.Shared;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
@@ -2918,4 +2919,56 @@ public class SubgraphErrorTests(ITestOutputHelper output)
     }
 
     #endregion
+
+    [Fact]
+    public async Task ErrorFilter_Is_Applied()
+    {
+        // arrange
+        var subgraph = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              field: String @error
+            }
+            """
+        );
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
+        var executor = await subgraphs.GetExecutorAsync(
+            configureBuilder: builder =>
+                builder.AddErrorFilter(error => error.WithMessage("REPLACED MESSAGE").WithCode("CUSTOM_CODE")));
+        var request = """
+                      query {
+                        field
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        result.MatchInlineSnapshot("""
+                                   {
+                                     "errors": [
+                                       {
+                                         "message": "REPLACED MESSAGE",
+                                         "locations": [
+                                           {
+                                             "line": 2,
+                                             "column": 3
+                                           }
+                                         ],
+                                         "path": [
+                                           "field"
+                                         ],
+                                         "extensions": {
+                                           "code": "CUSTOM_CODE"
+                                         }
+                                       }
+                                     ],
+                                     "data": {
+                                       "field": null
+                                     }
+                                   }
+                                   """);
+    }
 }

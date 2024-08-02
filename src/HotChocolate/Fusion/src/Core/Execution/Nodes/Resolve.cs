@@ -149,6 +149,7 @@ internal sealed class Resolve(int id, Config config) : ResolverNodeBase(id, conf
                 context.Operation.Document,
                 context.Operation.Definition,
                 context.Result,
+                context.ErrorHandler,
                 response.Errors,
                 selectionSetResult,
                 pathLength,
