@@ -6,13 +6,23 @@
     "brandsNullable": {
       "edges": [
         {
-          "cursor": "QnJhbmREaXNwbGF5MTI6MTM="
+          "cursor": "QnJhbmQxMTo6MTI="
         },
         {
-          "cursor": "QnJhbmREaXNwbGF5MTQ6MTU="
+          "cursor": "QnJhbmQxMjo6MTM="
         }
       ],
       "nodes": [
+        {
+          "id": 12,
+          "name": "Brand11",
+          "displayName": null,
+          "brandDetails": {
+            "country": {
+              "name": "Country11"
+            }
+          }
+        },
         {
           "id": 13,
           "name": "Brand12",
@@ -22,23 +32,13 @@
               "name": "Country12"
             }
           }
-        },
-        {
-          "id": 15,
-          "name": "Brand14",
-          "displayName": "BrandDisplay14",
-          "brandDetails": {
-            "country": {
-              "name": "Country14"
-            }
-          }
         }
       ],
       "pageInfo": {
         "hasNextPage": false,
         "hasPreviousPage": true,
-        "startCursor": "QnJhbmREaXNwbGF5MTI6MTM=",
-        "endCursor": "QnJhbmREaXNwbGF5MTQ6MTU="
+        "startCursor": "QnJhbmQxMTo6MTI=",
+        "endCursor": "QnJhbmQxMjo6MTM="
       }
     }
   }

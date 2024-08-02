@@ -183,7 +183,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
             .ExecuteRequestAsync(
                 """
                 {
-                    brandsNullable(first: 2, after: "QnJhbmREaXNwbGF5MTA6MTE=") {
+                    brandsNullable(first: 2, after: "QnJhbmQxMDo6MTE=") {
                         edges {
                             cursor
                         }
@@ -451,7 +451,8 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
             PagingArguments arguments,
             CancellationToken ct)
             => await context.Brands
-                .OrderBy(t => t.DisplayName)
+                .OrderBy(t => t.Name)
+                .ThenBy(x => x.AlwaysNull)
                 .ThenBy(t => t.Id)
                 .ToPageAsync(arguments, cancellationToken: ct)
                 .ToConnectionAsync();

@@ -13,6 +13,8 @@ public class Brand
 
     public string? DisplayName { get; set; } = default!;
 
+    public string? AlwaysNull { get; set; }
+
     public ICollection<Product> Products { get; } = new List<Product>();
 
     public BrandDetails BrandDetails { get; set; } = default!;

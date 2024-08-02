@@ -6,34 +6,34 @@
     "brandsNullable": {
       "edges": [
         {
-          "cursor": "QnJhbmREaXNwbGF5MDox"
+          "cursor": "QnJhbmQwOjox"
         },
         {
-          "cursor": "QnJhbmREaXNwbGF5MTA6MTE="
+          "cursor": "QnJhbmQxOjoy"
         },
         {
-          "cursor": "QnJhbmREaXNwbGF5MTI6MTM="
+          "cursor": "QnJhbmQxMDo6MTE="
         },
         {
-          "cursor": "QnJhbmREaXNwbGF5MTQ6MTU="
+          "cursor": "QnJhbmQxMTo6MTI="
         },
         {
-          "cursor": "QnJhbmREaXNwbGF5MTY6MTc="
+          "cursor": "QnJhbmQxMjo6MTM="
         },
         {
-          "cursor": "QnJhbmREaXNwbGF5MTg6MTk="
+          "cursor": "QnJhbmQxMzo6MTQ="
         },
         {
-          "cursor": "QnJhbmREaXNwbGF5Mjoz"
+          "cursor": "QnJhbmQxNDo6MTU="
         },
         {
-          "cursor": "QnJhbmREaXNwbGF5MjA6MjE="
+          "cursor": "QnJhbmQxNTo6MTY="
         },
         {
-          "cursor": "QnJhbmREaXNwbGF5MjI6MjM="
+          "cursor": "QnJhbmQxNjo6MTc="
         },
         {
-          "cursor": "QnJhbmREaXNwbGF5MjQ6MjU="
+          "cursor": "QnJhbmQxNzo6MTg="
         }
       ],
       "nodes": [
@@ -48,12 +48,32 @@
           }
         },
         {
+          "id": 2,
+          "name": "Brand1",
+          "displayName": null,
+          "brandDetails": {
+            "country": {
+              "name": "Country1"
+            }
+          }
+        },
+        {
           "id": 11,
           "name": "Brand10",
           "displayName": "BrandDisplay10",
           "brandDetails": {
             "country": {
               "name": "Country10"
+            }
+          }
+        },
+        {
+          "id": 12,
+          "name": "Brand11",
+          "displayName": null,
+          "brandDetails": {
+            "country": {
+              "name": "Country11"
             }
           }
         },
@@ -68,12 +88,32 @@
           }
         },
         {
+          "id": 14,
+          "name": "Brand13",
+          "displayName": null,
+          "brandDetails": {
+            "country": {
+              "name": "Country13"
+            }
+          }
+        },
+        {
           "id": 15,
           "name": "Brand14",
           "displayName": "BrandDisplay14",
           "brandDetails": {
             "country": {
               "name": "Country14"
+            }
+          }
+        },
+        {
+          "id": 16,
+          "name": "Brand15",
+          "displayName": null,
+          "brandDetails": {
+            "country": {
+              "name": "Country15"
             }
           }
         },
@@ -88,52 +128,12 @@
           }
         },
         {
-          "id": 19,
-          "name": "Brand18",
-          "displayName": "BrandDisplay18",
+          "id": 18,
+          "name": "Brand17",
+          "displayName": null,
           "brandDetails": {
             "country": {
-              "name": "Country18"
-            }
-          }
-        },
-        {
-          "id": 3,
-          "name": "Brand2",
-          "displayName": "BrandDisplay2",
-          "brandDetails": {
-            "country": {
-              "name": "Country2"
-            }
-          }
-        },
-        {
-          "id": 21,
-          "name": "Brand20",
-          "displayName": "BrandDisplay20",
-          "brandDetails": {
-            "country": {
-              "name": "Country20"
-            }
-          }
-        },
-        {
-          "id": 23,
-          "name": "Brand22",
-          "displayName": "BrandDisplay22",
-          "brandDetails": {
-            "country": {
-              "name": "Country22"
-            }
-          }
-        },
-        {
-          "id": 25,
-          "name": "Brand24",
-          "displayName": "BrandDisplay24",
-          "brandDetails": {
-            "country": {
-              "name": "Country24"
+              "name": "Country17"
             }
           }
         }
@@ -141,8 +141,8 @@
       "pageInfo": {
         "hasNextPage": false,
         "hasPreviousPage": true,
-        "startCursor": "QnJhbmREaXNwbGF5MDox",
-        "endCursor": "QnJhbmREaXNwbGF5MjQ6MjU="
+        "startCursor": "QnJhbmQwOjox",
+        "endCursor": "QnJhbmQxNzo6MTg="
       }
     }
   }
