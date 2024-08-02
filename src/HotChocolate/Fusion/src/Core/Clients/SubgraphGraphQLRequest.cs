@@ -59,14 +59,14 @@ public sealed class SubgraphGraphQLRequest
     /// Gets the extensions.
     /// </summary>
     public ObjectValueNode? Extensions { get; }
-    
+
     /// <summary>
     /// Gets the transport features that are needed for this GraphQL request.
     /// </summary>
     public TransportFeatures TransportFeatures { get; }
 
     /// <summary>
-    /// Implicitly converts <see cref="SubgraphGraphQLRequest"/>s to <see cref="OperationRequest"/>s.  
+    /// Implicitly converts <see cref="SubgraphGraphQLRequest"/>s to <see cref="OperationRequest"/>s.
     /// </summary>
     /// <param name="request">
     /// The <see cref="SubgraphGraphQLRequest"/> to convert.
@@ -74,6 +74,6 @@ public sealed class SubgraphGraphQLRequest
     /// <returns>
     /// The converted <see cref="OperationRequest"/>.
     /// </returns>
-    public static implicit operator OperationRequest(SubgraphGraphQLRequest request) 
+    public static implicit operator OperationRequest(SubgraphGraphQLRequest request)
         => new(request.Document, null, null, request.VariableValues, request.Extensions);
 }

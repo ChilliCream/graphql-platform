@@ -62,7 +62,7 @@ internal static class CollectionUtils
         {
             usedBufferCapacity = array.Length;
         }
-    
+
         return array;
     }
 }

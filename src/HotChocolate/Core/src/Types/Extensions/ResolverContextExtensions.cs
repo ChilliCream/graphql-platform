@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Security.Claims;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;

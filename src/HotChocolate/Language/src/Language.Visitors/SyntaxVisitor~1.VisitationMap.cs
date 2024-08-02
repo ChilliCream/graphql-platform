@@ -787,7 +787,6 @@ public partial class SyntaxVisitor<TContext>
             }
         }
 
-
         for (var i = 0; i < node.Values.Count; i++)
         {
             if (Visit(node.Values[i], node, context).IsBreak())

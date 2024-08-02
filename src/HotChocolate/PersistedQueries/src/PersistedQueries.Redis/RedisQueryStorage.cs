@@ -1,6 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using StackExchange.Redis;
@@ -30,7 +27,7 @@ public class RedisQueryStorage : IOperationDocumentStorage
 
     /// <inheritdoc />
     public ValueTask<IOperationDocument?> TryReadAsync(
-        OperationDocumentId documentId, 
+        OperationDocumentId documentId,
         CancellationToken cancellationToken = default)
     {
         if (OperationDocumentId.IsNullOrEmpty(documentId))
@@ -40,7 +37,7 @@ public class RedisQueryStorage : IOperationDocumentStorage
 
         return TryReadInternalAsync(documentId);
     }
-    
+
     private async ValueTask<IOperationDocument?> TryReadInternalAsync(OperationDocumentId documentId)
     {
         var buffer = (byte[]?)await _database.StringGetAsync(documentId.Value).ConfigureAwait(false);
@@ -57,12 +54,12 @@ public class RedisQueryStorage : IOperationDocumentStorage
         {
             throw new ArgumentNullException(nameof(documentId));
         }
-        
+
         if (document is null)
         {
             throw new ArgumentNullException(nameof(document));
         }
-        
+
         return SaveInternalAsync(documentId, document);
     }
 

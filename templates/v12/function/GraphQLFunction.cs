@@ -9,9 +9,9 @@ public class GraphQLFunction
 {
     [FunctionName("GraphQLHttpFunction")]
     public Task<IActionResult> Run(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "graphql/{**slug}")] 
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "graphql/{**slug}")]
         HttpRequest request,
-        [GraphQL] 
+        [GraphQL]
         IGraphQLRequestExecutor executor)
         => executor.ExecuteAsync(request);
 }

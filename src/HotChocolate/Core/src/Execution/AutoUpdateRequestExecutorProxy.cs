@@ -1,7 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace HotChocolate.Execution;
 
 /// <summary>
@@ -15,7 +11,7 @@ public class AutoUpdateRequestExecutorProxy : IRequestExecutor, IDisposable
     private readonly RequestExecutorProxy _executorProxy;
     private IRequestExecutor _executor;
     private bool _disposed;
-    
+
     private AutoUpdateRequestExecutorProxy(
         RequestExecutorProxy requestExecutorProxy,
         IRequestExecutor initialExecutor)
@@ -126,7 +122,7 @@ public class AutoUpdateRequestExecutorProxy : IRequestExecutor, IDisposable
     /// </returns>
     public Task<IExecutionResult> ExecuteAsync(
         IOperationRequest request,
-        CancellationToken cancellationToken = default) 
+        CancellationToken cancellationToken = default)
         => _executor.ExecuteAsync(request, cancellationToken);
 
     /// <summary>
@@ -142,11 +138,11 @@ public class AutoUpdateRequestExecutorProxy : IRequestExecutor, IDisposable
     /// Returns a stream of query results.
     /// </returns>
     public Task<IResponseStream> ExecuteBatchAsync(
-        OperationRequestBatch requestBatch, 
+        OperationRequestBatch requestBatch,
         CancellationToken cancellationToken = default)
         => _executor.ExecuteBatchAsync(requestBatch, cancellationToken);
 
-    private void BeginUpdateExecutor() 
+    private void BeginUpdateExecutor()
         => Task.Run(UpdateExecutorAsync);
 
     private async ValueTask UpdateExecutorAsync()

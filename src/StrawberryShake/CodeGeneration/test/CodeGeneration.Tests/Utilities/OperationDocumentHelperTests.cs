@@ -1,4 +1,4 @@
-﻿using HotChocolate.Language;
+using HotChocolate.Language;
 using Snapshooter.Xunit;
 using static ChilliCream.Testing.FileResource;
 using static HotChocolate.Language.Utf8GraphQLParser;

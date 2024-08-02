@@ -1,4 +1,4 @@
-﻿namespace HotChocolate.Validation;
+namespace HotChocolate.Validation;
 
 public class Query
 {
@@ -7,7 +7,7 @@ public class Query
     public string B { get; set; }
 
     public string C { get; set; }
-        
+
     public string D { get; set; }
 
     public string Y { get; set; }

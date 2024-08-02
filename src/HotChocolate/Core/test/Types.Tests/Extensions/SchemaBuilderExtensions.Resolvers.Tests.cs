@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using Snapshooter.Xunit;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
@@ -26,7 +24,6 @@ public class SchemaBuilderExtensionsResolversTests
         // assert
         Assert.Throws<ArgumentNullException>(action);
     }
-
 
     [Fact]
     public void AddResolverContextObject_ResolverIsNull_ArgNullExcept()
@@ -85,7 +82,6 @@ public class SchemaBuilderExtensionsResolversTests
         // assert
         Assert.Throws<ArgumentNullException>(action);
     }
-
 
     [Fact]
     public void AddResolverContextTaskObject_ResolverIsNull_ArgNullExcept()
@@ -148,7 +144,6 @@ public class SchemaBuilderExtensionsResolversTests
         Assert.Throws<ArgumentNullException>(action);
     }
 
-
     [Fact]
     public void AddResolverContextTResult_ResolverIsNull_ArgNullExcept()
     {
@@ -210,7 +205,6 @@ public class SchemaBuilderExtensionsResolversTests
         Assert.Throws<ArgumentNullException>(action);
     }
 
-
     [Fact]
     public void AddResolverContextTaskTResult_ResolverIsNull_ArgNullExcept()
     {
@@ -270,7 +264,6 @@ public class SchemaBuilderExtensionsResolversTests
         // assert
         Assert.Throws<ArgumentNullException>(action);
     }
-
 
     [Fact]
     public void AddResolverObject_ResolverIsNull_ArgNullExcept()

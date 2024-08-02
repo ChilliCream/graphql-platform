@@ -1,8 +1,6 @@
-using System;
 #if NET8_0_OR_GREATER
 using System.Collections.Frozen;
 #endif
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Features;
 using HotChocolate.Types;

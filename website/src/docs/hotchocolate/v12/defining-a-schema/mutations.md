@@ -350,7 +350,7 @@ type Mutation {
 ## Errors
 
 The mutation conventions also allow you to create mutations that follow the error
-[stage 6a Pattern Marc-Andre Giroux layed out](https://xuorig.medium.com/a-guide-to-graphql-errors-bb9ba9f15f85) with minimal effort.
+[stage 6a Pattern Marc-Andre Giroux laid out](https://xuorig.medium.com/a-guide-to-graphql-errors-bb9ba9f15f85) with minimal effort.
 
 The basic concept here is to keep the resolver clean of any error handling code and use exceptions to signal an error state. The field will simply expose which exceptions are domain errors that shall be exposed to the schema. All other exceptions will still cause runtime errors.
 

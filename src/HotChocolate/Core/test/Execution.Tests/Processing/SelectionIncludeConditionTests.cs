@@ -1,7 +1,6 @@
 using CookieCrumble;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 

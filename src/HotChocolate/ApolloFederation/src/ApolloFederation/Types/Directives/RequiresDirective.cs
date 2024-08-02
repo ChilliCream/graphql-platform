@@ -36,13 +36,13 @@ public sealed class RequiresDirective
         ArgumentException.ThrowIfNullOrEmpty(fields);
         Fields = FieldSetType.ParseSelectionSet(fields);
     }
-    
+
     public RequiresDirective(SelectionSetNode fields)
     {
         ArgumentNullException.ThrowIfNull(fields);
         Fields = fields;
     }
-    
+
     [FieldSet]
     public SelectionSetNode Fields { get; }
 }

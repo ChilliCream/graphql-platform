@@ -26,10 +26,10 @@ public sealed class FileReferenceInfo
     /// Gets the file that shall be uploaded.
     /// </summary>
     public FileReference File { get; }
-    
+
     /// <summary>
     /// Gets the internal reference name that is used to refer to
-    /// this file instance within the GraphQL multipart request protocol. 
+    /// this file instance within the GraphQL multipart request protocol.
     /// </summary>
     public string Name { get; }
 }

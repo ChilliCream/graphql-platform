@@ -1,6 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Utilities;
@@ -55,7 +52,7 @@ public sealed class DictionaryServiceProvider : IServiceProvider, IServiceProvid
         }
 
         _services = services.ToDictionary(t => t.Key, t => t.Value);
-        _services[typeof(IServiceProviderIsService)] = this; 
+        _services[typeof(IServiceProviderIsService)] = this;
     }
 
     public object? GetService(Type serviceType)

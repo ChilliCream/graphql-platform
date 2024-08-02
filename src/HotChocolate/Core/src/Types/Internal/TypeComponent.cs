@@ -6,7 +6,7 @@ public readonly record struct TypeComponent(TypeComponentKind Kind, IExtendedTyp
     public override string ToString() => Kind.ToString();
 
     public static implicit operator TypeComponent(
-        (TypeComponentKind, IExtendedType) component) 
+        (TypeComponentKind, IExtendedType) component)
         => new(component.Item1, component.Item2);
 }
 #else

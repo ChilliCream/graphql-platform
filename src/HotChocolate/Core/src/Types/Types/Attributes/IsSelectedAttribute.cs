@@ -1,6 +1,5 @@
 #nullable enable
 
-using System;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types;

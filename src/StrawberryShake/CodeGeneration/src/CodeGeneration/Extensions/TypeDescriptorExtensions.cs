@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
 namespace StrawberryShake.CodeGeneration.Extensions;
@@ -46,7 +44,6 @@ public static class TypeDescriptorExtensions
             ComplexTypeDescriptor d =>
                 d.IsEntity() ||
                 d.Properties.Any(p => p.Type.IsEntity() || p.Type.IsOrContainsEntity()),
-
 
             NonNullTypeDescriptor d => d.InnerType.IsOrContainsEntity(),
 

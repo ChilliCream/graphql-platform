@@ -23,7 +23,6 @@ internal sealed class OneItemDictionary<TKey, TValue> : IReadOnlyDictionary<TKey
         _equalityComparer = EqualityComparer<TKey>.Default;
     }
 
-
     public TValue this[TKey key]
     {
         get

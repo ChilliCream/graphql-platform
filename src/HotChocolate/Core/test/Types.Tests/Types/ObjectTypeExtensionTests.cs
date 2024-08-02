@@ -1,10 +1,6 @@
 #pragma warning disable RCS1102 // Make class static
 
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -682,7 +678,6 @@ public class ObjectTypeExtensionTests
         SnapshotExtensions.MatchSnapshot(schema);
     }
 
-
     [Fact]
     public async Task Query_Extension_With_Static_Members_2_Schema()
     {
@@ -963,7 +958,6 @@ public class ObjectTypeExtensionTests
 
     public interface IMarker
     {
-
     }
 
     public class BindResolver_With_Property_PersonDto

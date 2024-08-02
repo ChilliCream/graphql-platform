@@ -1,7 +1,4 @@
-
-using HotChocolate;
 using HotChocolate.Internal;
-using HotChocolate.Pagination;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Pagination;
 

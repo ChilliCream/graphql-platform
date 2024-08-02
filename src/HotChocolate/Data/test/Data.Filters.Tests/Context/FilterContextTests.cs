@@ -50,7 +50,7 @@ public class FilterContextTests
         Assert.Equal("eq", operation.Field.Name);
         Assert.Equal("test", Assert.IsType<FilterValue>(operation.Value).Value);
     }
-    
+
     [Fact]
     public async Task When_Query_Is_Empty_IsDefined_Should_Be_False()
     {
@@ -72,7 +72,7 @@ public class FilterContextTests
             .BuildRequestExecutorAsync();
 
         // act
-        const string query = 
+        const string query =
             """
             {
               test {
@@ -87,7 +87,7 @@ public class FilterContextTests
         Assert.NotNull(context);
         Assert.False(context!.IsDefined);
     }
-    
+
     [Fact]
     public async Task When_Query_Is_Set_IsDefined_Should_Be_False()
     {
@@ -109,7 +109,7 @@ public class FilterContextTests
             .BuildRequestExecutorAsync();
 
         // act
-        const string query = 
+        const string query =
             """
             {
               test(where: { title: { eq: "test" } }) {

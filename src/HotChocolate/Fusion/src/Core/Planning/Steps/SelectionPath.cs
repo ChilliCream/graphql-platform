@@ -9,7 +9,7 @@ internal sealed class SelectionPath
         : this(selection, null)
     {
     }
-    
+
     private SelectionPath(ISelection selection, SelectionPath? parent)
     {
         Selection = selection;
@@ -17,7 +17,7 @@ internal sealed class SelectionPath
     }
 
     public SelectionPath? Parent { get; }
-    
+
     public ISelection Selection { get; }
 
     public SelectionPath Append(ISelection selection)
@@ -29,7 +29,7 @@ internal sealed class SelectionPath
         {
             return $"/{Selection.ResponseName}";
         }
-        
+
         var sb = new StringBuilder();
         var current = this;
 

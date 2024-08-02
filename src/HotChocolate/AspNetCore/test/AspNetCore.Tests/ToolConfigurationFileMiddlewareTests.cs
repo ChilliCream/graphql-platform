@@ -117,7 +117,7 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
                 DisableTelemetry = true,
             },
         };
-        
+
         var server = CreateStarWarsServer("/graphql", configureConventions: builder => builder.WithOptions(options));
 
         // act

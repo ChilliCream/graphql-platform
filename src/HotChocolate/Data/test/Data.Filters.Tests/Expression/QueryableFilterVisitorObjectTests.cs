@@ -530,13 +530,11 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
     public class Bar
     {
         public Foo? Foo { get; set; }
-
     }
 
     public class BarNullable
     {
         public FooNullable? Foo { get; set; }
-
     }
 
     public class BarFilterInput

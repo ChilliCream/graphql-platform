@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -868,7 +866,6 @@ public class IsSelectedTests
                 City = "f",
             };
         }
-
 
         public User GetUser_Context_1(IResolverContext context)
         {

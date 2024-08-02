@@ -113,4 +113,3 @@ public sealed class BooleanValueNode : IValueNode<bool>
     /// </summary>
     public static BooleanValueNode False { get; } = new(false);
 }
-

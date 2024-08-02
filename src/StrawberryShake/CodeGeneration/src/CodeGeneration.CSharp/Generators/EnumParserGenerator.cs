@@ -1,7 +1,6 @@
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
-using static StrawberryShake.CodeGeneration.TypeNames;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Generators;
 
@@ -24,12 +23,13 @@ public class EnumParserGenerator : CodeGenerator<EnumTypeDescriptor>
         var classBuilder = ClassBuilder
             .New(fileName)
             .SetAccessModifier(settings.AccessModifier)
-            .AddImplements(IInputValueFormatter)
-            .AddImplements(ILeafValueParser.WithGeneric(String, descriptor.Name));
+            .AddImplements(TypeNames.IInputValueFormatter)
+            .AddImplements(
+                TypeNames.ILeafValueParser.WithGeneric(TypeNames.String, descriptor.Name));
 
         classBuilder
             .AddMethod("Parse")
-            .AddParameter(serializedValue, x => x.SetType(String))
+            .AddParameter(serializedValue, x => x.SetType(TypeNames.String))
             .SetAccessModifier(AccessModifier.Public)
             .SetReturnType(descriptor.Name)
             .AddCode(CreateEnumParsingSwitch(serializedValue, descriptor));
@@ -37,15 +37,15 @@ public class EnumParserGenerator : CodeGenerator<EnumTypeDescriptor>
         classBuilder
             .AddMethod("Format")
             .SetAccessModifier(AccessModifier.Public)
-            .SetReturnType(Object)
-            .AddParameter(runtimeValue, x => x.SetType(Object.MakeNullable()))
+            .SetReturnType(TypeNames.Object)
+            .AddParameter(runtimeValue, x => x.SetType(TypeNames.Object.MakeNullable()))
             .AddCode(CreateEnumFormattingSwitch(runtimeValue, descriptor));
 
         classBuilder
             .AddProperty("TypeName")
             .AsLambda(descriptor.Name.AsStringToken())
             .SetPublic()
-            .SetType(String);
+            .SetType(TypeNames.String);
 
         classBuilder.Build(writer);
     }

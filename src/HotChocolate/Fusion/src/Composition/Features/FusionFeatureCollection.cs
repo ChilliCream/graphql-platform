@@ -117,7 +117,7 @@ public sealed class FusionFeatureCollection : IReadOnlyCollection<IFusionFeature
 
     IEnumerator IEnumerable.GetEnumerator()
         => GetEnumerator();
-    
+
     /// <summary>
     /// Gets an empty feature collection.
     /// </summary>

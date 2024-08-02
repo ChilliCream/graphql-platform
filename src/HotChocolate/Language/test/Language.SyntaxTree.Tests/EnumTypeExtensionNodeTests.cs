@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using Xunit;
 
 namespace HotChocolate.Language.SyntaxTree;
@@ -77,7 +75,6 @@ public class EnumTypeExtensionNodeTests
         var name = new NameNode("foo");
         var values = new List<EnumValueDefinitionNode>();
 
-
         // act
         EnumTypeExtensionNode Action()
             => new(location, name, null!, values);
@@ -123,7 +120,6 @@ public class EnumTypeExtensionNodeTests
         // act
         type = type.WithName(new NameNode("baz"));
 
-
         // assert
         Assert.Equal("baz", type.Name.Value);
     }
@@ -145,7 +141,6 @@ public class EnumTypeExtensionNodeTests
 
         // act
         type = type.WithDirectives(directives);
-
 
         // assert
         Assert.Equal(directives, type.Directives);
@@ -169,7 +164,6 @@ public class EnumTypeExtensionNodeTests
         // act
         type = type.WithValues(values);
 
-
         // assert
         Assert.Equal(values, type.Values);
     }
@@ -191,7 +185,6 @@ public class EnumTypeExtensionNodeTests
 
         // act
         type = type.WithLocation(location);
-
 
         // assert
         Assert.Equal(location, type.Location);

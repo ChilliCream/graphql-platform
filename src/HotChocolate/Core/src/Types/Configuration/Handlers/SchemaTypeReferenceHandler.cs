@@ -17,7 +17,7 @@ internal sealed class SchemaTypeReferenceHandler : ITypeRegistrarHandler
         {
             return;
         }
-        
+
         var tsm = typeRef.Type;
 
         // if it is a type object we will make sure it is unwrapped.

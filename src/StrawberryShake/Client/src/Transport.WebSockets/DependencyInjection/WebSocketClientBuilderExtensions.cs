@@ -1,4 +1,3 @@
-using System;
 using Microsoft.Extensions.Options;
 using StrawberryShake;
 using StrawberryShake.Transport.WebSockets;

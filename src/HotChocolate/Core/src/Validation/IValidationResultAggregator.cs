@@ -1,5 +1,3 @@
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Language;
 
 namespace HotChocolate.Validation;

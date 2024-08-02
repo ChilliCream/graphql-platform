@@ -354,7 +354,7 @@ public class PersistedQueryTests : ServerTestBase
             new(StringComparer.Ordinal);
 
         public ValueTask<IOperationDocument?> TryReadAsync(
-            OperationDocumentId documentId, 
+            OperationDocumentId documentId,
             CancellationToken cancellationToken = default)
             => _cache.TryGetValue(documentId.Value, out var value)
                 ? new ValueTask<IOperationDocument?>(value)
@@ -365,7 +365,7 @@ public class PersistedQueryTests : ServerTestBase
             IOperationDocument document,
             CancellationToken cancellationToken = default)
             => throw new NotImplementedException();
-        
+
         public void AddQuery(string key, string query)
         {
             var doc = new OperationDocument(Utf8GraphQLParser.Parse(query));

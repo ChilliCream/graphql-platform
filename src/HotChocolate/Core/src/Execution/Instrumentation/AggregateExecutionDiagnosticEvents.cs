@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
 
@@ -230,7 +227,6 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
             _listeners[i].StopProcessing(context);
         }
     }
-
 
     public IDisposable ExecuteSubscription(ISubscription subscription)
     {

@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Types;
 
 public static class TypeNamePrinter

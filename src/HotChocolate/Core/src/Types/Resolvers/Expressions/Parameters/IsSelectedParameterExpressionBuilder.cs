@@ -1,7 +1,5 @@
 #nullable enable
 
-using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
@@ -177,7 +175,6 @@ internal sealed class IsSelectedParameterExpressionBuilder
 
             return base.Enter(node, context);
         }
-
 
         protected override ISyntaxVisitorAction Leave(InlineFragmentNode node, IsSelectedContext context)
         {
