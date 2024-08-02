@@ -5,18 +5,21 @@
     <AssemblyName>HotChocolate.Pagination.EntityFramework</AssemblyName>
     <RootNamespace>HotChocolate.Pagination</RootNamespace>
     <Description>Provides helper classes to implement cursor paging in a layered architecture without the need to reference HotChocolate GraphQL libraries.</Description>
+    <IsTrimmable Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">true</IsTrimmable>
+    <EnableTrimAnalyzer Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">true</EnableTrimAnalyzer>
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
   <ItemGroup>
-    <Using Include="Microsoft.EntityFrameworkCore" />
+    <Using Include="Microsoft.EntityFrameworkCore"/>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Pagination.Core\HotChocolate.Pagination.Core.csproj" />
+    <ProjectReference Include="..\Pagination.Core\HotChocolate.Pagination.Core.csproj"/>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore"/>
   </ItemGroup>
 
 </Project>
