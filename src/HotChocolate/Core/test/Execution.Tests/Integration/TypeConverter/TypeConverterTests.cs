@@ -30,7 +30,7 @@ public class TypeConverterTests
                             new Dictionary<string, object>
                             {
                                 { "id", "934b987bc0d842bbabfd8a3b3f8b476e" },
-                                { "time", "2018-05-29T01:00Z" },
+                                { "time", "2018-05-29T01:00:00Z" },
                                 { "number", (byte)123 },
                             }
                         }
@@ -48,7 +48,8 @@ public class TypeConverterTests
                 query foo($time: DateTime) {
                     time(time: $time)
                 }",
-                request: r => r.SetVariableValues(new Dictionary<string, object> { { "time", "2018-05-29T01:00Z" }, }),
+                request: r => r.SetVariableValues(
+                    new Dictionary<string, object> { { "time", "2018-05-29T01:00:00Z" }, }),
                 configure: c => c.AddQueryType<QueryType>())
             .MatchSnapshotAsync();
     }
@@ -89,7 +90,7 @@ public class TypeConverterTests
                             new Dictionary<string, object>
                             {
                                 { "id", "934b987bc0d842bbabfd8a3b3f8b476e" },
-                                { "time", "2018-05-29T01:00Z" },
+                                { "time", "2018-05-29T01:00:00Z" },
                                 { "number", (byte)123 },
                             }
                         },
