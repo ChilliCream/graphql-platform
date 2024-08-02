@@ -322,7 +322,7 @@ public sealed partial class OperationCompiler
                 }
 
                 var selectionPath = context.Path.Append(selection.ResponseName);
-                selectionSetId = GetOrCreateSelectionSetRefId(selection, selectionPath);
+                selectionSetId = GetOrCreateSelectionSetRefId(selection.SelectionSet, fieldType.Name, selectionPath);
                 var possibleTypes = context.Schema.GetPossibleTypes(fieldType);
 
                 if (_enqueuedSelectionSets.Add(selectionSetId))
@@ -651,14 +651,6 @@ public sealed partial class OperationCompiler
     internal int GetNextSelectionId() => _nextSelectionId++;
 
     private int GetNextFragmentId() => _nextFragmentId++;
-
-    private int GetOrCreateSelectionSetRefId(
-        Selection selection,
-        SelectionPath path)
-        => GetOrCreateSelectionSetRefId(
-            selection.SyntaxNode.SelectionSet,
-            selection.Type.NamedType().Name,
-            path);
 
     private int GetOrCreateSelectionSetRefId(
         SelectionSetNode selectionSet,
