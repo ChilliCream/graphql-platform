@@ -183,7 +183,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
             .ExecuteRequestAsync(
                 """
                 {
-                    brandsNullable(first: 2, after: "QnJhbmQxMDo6MTE=") {
+                    brandsNullable(first: 2, after: "QnJhbmQxMDpcbnVsbDoxMQ==") {
                         edges {
                             cursor
                         }
