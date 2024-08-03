@@ -20,7 +20,7 @@ public sealed class DemoIntegrationTests(ITestOutputHelper output)
         var fusionConfig = await composer.ComposeAsync(
         [
             demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl)
+            demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl)
         ]);
 
         fusionConfig.MatchSnapshot(extension: ".graphql");
@@ -37,7 +37,7 @@ public sealed class DemoIntegrationTests(ITestOutputHelper output)
         var fusionConfig = await composer.ComposeAsync(
         [
             demoProject.Accounts.ToConfiguration(),
-                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl)
+            demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl)
         ]);
 
         fusionConfig.MatchSnapshot(extension: ".graphql");
@@ -54,8 +54,8 @@ public sealed class DemoIntegrationTests(ITestOutputHelper output)
         var fusionConfig = await composer.ComposeAsync(
         [
             demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+            demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+            demoProject.Products.ToConfiguration(ProductsExtensionSdl)
         ]);
 
         fusionConfig.MatchSnapshot(extension: ".graphql");
@@ -110,8 +110,8 @@ public sealed class DemoIntegrationTests(ITestOutputHelper output)
         var fusionConfig = await composer.ComposeAsync(
         [
             demoProject.Accounts.ToConfiguration(),
-                demoProject.Reviews.ToConfiguration(),
-                demoProject.Products.ToConfiguration()
+            demoProject.Reviews.ToConfiguration(),
+            demoProject.Products.ToConfiguration()
         ]);
 
         fusionConfig.MatchSnapshot(extension: ".graphql");
