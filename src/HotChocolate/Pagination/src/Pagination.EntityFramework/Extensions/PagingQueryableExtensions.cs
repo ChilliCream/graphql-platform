@@ -179,7 +179,7 @@ public static class PagingQueryableExtensions
 
     internal static Expression<Func<T, bool>> BuildWhereExpression<T>(
         CursorKey[] keys,
-        object[] cursor,
+        object?[] cursor,
         bool forward)
     {
         if (keys == null)
