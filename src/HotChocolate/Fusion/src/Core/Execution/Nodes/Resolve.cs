@@ -76,8 +76,11 @@ internal sealed class Resolve(int id, Config config) : ResolverNodeBase(id, conf
         catch (Exception ex)
         {
             context.DiagnosticEvents.ResolveError(ex);
-            var error = context.OperationContext.ErrorHandler.CreateUnexpectedError(ex);
-            context.Result.AddError(error.Build());
+
+            var errorHandler = context.ErrorHandler;
+            var error = errorHandler.CreateUnexpectedError(ex).Build();
+            error = errorHandler.Handle(error);
+            context.Result.AddError(error);
         }
     }
 
@@ -149,6 +152,7 @@ internal sealed class Resolve(int id, Config config) : ResolverNodeBase(id, conf
                 context.Operation.Document,
                 context.Operation.Definition,
                 context.Result,
+                context.ErrorHandler,
                 response.Errors,
                 selectionSetResult,
                 pathLength,
