@@ -313,31 +313,31 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
             .AddQueryType<Query>()
             .AddPagingArguments()
             .ExecuteRequestAsync(
-                @"
-                    {
-                        brandsDeep {
-                            edges {
-                                cursor
-                            }
-                            nodes {
-                                id
-                                name
-                                displayName
-                                brandDetails {
-                                    country {
-                                        name
-                                    }
+                """
+                {
+                    brandsDeep {
+                        edges {
+                            cursor
+                        }
+                        nodes {
+                            id
+                            name
+                            displayName
+                            brandDetails {
+                                country {
+                                    name
                                 }
                             }
-                            pageInfo {
-                                hasNextPage
-                                hasPreviousPage
-                                startCursor
-                                endCursor
-                            }
+                        }
+                        pageInfo {
+                            hasNextPage
+                            hasPreviousPage
+                            startCursor
+                            endCursor
                         }
                     }
-                    ");
+                }
+                """);
 
         // Assert
         result.MatchMarkdownSnapshot();

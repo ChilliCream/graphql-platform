@@ -15,21 +15,11 @@ internal sealed class CursorKey(
 
     public bool Ascending { get; set; } = ascending;
 
-    public object Parse(ReadOnlySpan<byte> cursorValue)
-        => serializer.Parse(cursorValue);
+    public object? Parse(ReadOnlySpan<byte> cursorValue)
+        => CursorKeySerializerHelper.Parse(cursorValue, serializer);
 
     public bool TryFormat(object entity, Span<byte> buffer, out int written)
-    {
-        var key = GetValue(entity);
-
-        if (key is null)
-        {
-            written = 0;
-            return true;
-        }
-
-        return serializer.TryFormat(key, buffer, out written);
-    }
+        => CursorKeySerializerHelper.TryFormat(GetValue(entity), serializer, buffer, out written);
 
     private Delegate? _compiled;
 

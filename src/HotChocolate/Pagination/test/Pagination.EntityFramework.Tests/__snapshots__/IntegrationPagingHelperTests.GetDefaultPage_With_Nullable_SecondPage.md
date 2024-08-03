@@ -6,10 +6,10 @@
     "brandsNullable": {
       "edges": [
         {
-          "cursor": "QnJhbmQxMTo6MTI="
+          "cursor": "QnJhbmQxMTpcbnVsbDoxMg=="
         },
         {
-          "cursor": "QnJhbmQxMjo6MTM="
+          "cursor": "QnJhbmQxMjpcbnVsbDoxMw=="
         }
       ],
       "nodes": [
@@ -37,8 +37,8 @@
       "pageInfo": {
         "hasNextPage": false,
         "hasPreviousPage": true,
-        "startCursor": "QnJhbmQxMTo6MTI=",
-        "endCursor": "QnJhbmQxMjo6MTM="
+        "startCursor": "QnJhbmQxMTpcbnVsbDoxMg==",
+        "endCursor": "QnJhbmQxMjpcbnVsbDoxMw=="
       }
     }
   }

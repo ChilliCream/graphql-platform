@@ -6,9 +6,10 @@ namespace HotChocolate.Pagination;
 
 internal static class CursorParser
 {
+    private const byte _escape = (byte)':';
     private const byte _separator = (byte)':';
 
-    public static object[] Parse(string cursor, ReadOnlySpan<CursorKey> keys)
+    public static object?[] Parse(string cursor, ReadOnlySpan<CursorKey> keys)
     {
         if (cursor == null)
         {
@@ -33,13 +34,13 @@ internal static class CursorParser
         var key = 0;
         var start = 0;
         var end = 0;
-        var parsedCursor = new object[keys.Length];
+        var parsedCursor = new object?[keys.Length];
         for(var current = 0; current < bufferSpan.Length; current++)
         {
             var code = bufferSpan[current];
             end++;
 
-            if (code == _separator || current == bufferSpan.Length - 1)
+            if (CanParse(code, current, bufferSpan))
             {
                 if (key >= keys.Length)
                 {
@@ -62,5 +63,28 @@ internal static class CursorParser
 
         ArrayPool<byte>.Shared.Return(buffer);
         return parsedCursor;
+
+        static bool CanParse(byte code, int pos, ReadOnlySpan<byte> buffer)
+        {
+            if (code == _separator)
+            {
+                if (pos == 0)
+                {
+                    return true;
+                }
+
+                if (buffer[pos - 1] != _escape)
+                {
+                    return true;
+                }
+            }
+
+            if(pos == buffer.Length - 1)
+            {
+                return true;
+            }
+
+            return false;
+        }
     }
 }

@@ -103,7 +103,7 @@ internal sealed class BatchQueryRewriter<T>(PagingArguments arguments) : Express
                 .GetMethods(BindingFlags.Public | BindingFlags.Static)
                 .First(t => t.Name.Equals("Where") && t.GetGenericArguments().Length == 1)
                 .MakeGenericMethod(typeof(T));
-        
+
         MethodInfo Take()
             => take ??= typeof(Enumerable)
                 .GetMethods(BindingFlags.Public | BindingFlags.Static)
