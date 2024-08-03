@@ -6,6 +6,8 @@ namespace HotChocolate.Pagination;
 
 internal sealed class BatchQueryRewriter<T>(PagingArguments arguments) : ExpressionVisitor
 {
+    private static readonly Type _enumerable = typeof(Enumerable);
+    private static readonly Type _extensions = typeof(EntityFrameworkQueryableExtensions);
     private PropertyInfo? _resultProperty;
     private CursorKey[]? _keys;
 
@@ -47,7 +49,7 @@ internal sealed class BatchQueryRewriter<T>(PagingArguments arguments) : Express
         return Expression.Call(null, Include(), node.Arguments[0], Expression.Constant(newLambda));
 
         MethodInfo Include()
-            => typeof(EntityFrameworkQueryableExtensions)
+            => _extensions
                 .GetMethods(BindingFlags.Public | BindingFlags.Static)
                 .First(t => t.Name.Equals("Include") && t.GetGenericArguments().Length == 2)
                 .MakeGenericMethod(entityType, typeof(IEnumerable<>).MakeGenericType(includeType));
@@ -97,11 +99,11 @@ internal sealed class BatchQueryRewriter<T>(PagingArguments arguments) : Express
         return enumerable;
 
         MethodInfo Where()
-            => where ??= typeof(Enumerable)
+            => where ??= _enumerable
                 .GetMethods(BindingFlags.Public | BindingFlags.Static)
                 .First(t => t.Name.Equals("Where") && t.GetGenericArguments().Length == 1)
                 .MakeGenericMethod(typeof(T));
-
+        
         MethodInfo Take()
             => take ??= typeof(Enumerable)
                 .GetMethods(BindingFlags.Public | BindingFlags.Static)
