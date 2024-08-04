@@ -29,4 +29,6 @@ public sealed class CompositeInterfaceTypeCollection(CompositeInterfaceType[] in
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    public static CompositeInterfaceTypeCollection Empty { get; } = new([]);
 }

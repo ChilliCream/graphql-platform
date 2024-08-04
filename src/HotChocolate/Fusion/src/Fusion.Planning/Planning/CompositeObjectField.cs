@@ -1,4 +1,5 @@
 using HotChocolate.Fusion.Planning.Collections;
+using HotChocolate.Fusion.Planning.Completion;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -10,6 +11,10 @@ public sealed class CompositeObjectField(
     CompositeInputFieldCollection arguments)
     : ICompositeField
 {
+    private ICompositeType _type = default!;
+    private SourceObjectFieldCollection _sources = default!;
+    private DirectiveCollection _directives = default!;
+    private bool _completed;
     public string Name { get; } = name;
 
     public string? Description { get; } = description;
@@ -18,13 +23,66 @@ public sealed class CompositeObjectField(
 
     public string? DeprecationReason { get; } = deprecationReason;
 
-    public DirectiveCollection Directives { get; } = default!;
+    public DirectiveCollection Directives
+    {
+        get => _directives;
+        private set
+        {
+            if (_completed)
+            {
+                throw new NotSupportedException(
+                    "The type definition is sealed and cannot be modified.");
+            }
+
+            _directives = value;
+        }
+    }
 
     public CompositeInputFieldCollection Arguments { get; } = arguments;
 
-    public ICompositeType Type { get; private set; } = default!;
+    public ICompositeType Type
+    {
+        get => _type;
+        private set
+        {
+            if (_completed)
+            {
+                throw new NotSupportedException(
+                    "The type definition is sealed and cannot be modified.");
+            }
 
-    public SourceObjectFieldCollection Sources { get; } = default!;
+            _type = value;
+        }
+    }
 
+    public SourceObjectFieldCollection Sources
+    {
+        get => _sources;
+        private set
+        {
+            if (_completed)
+            {
+                throw new NotSupportedException(
+                    "The type definition is sealed and cannot be modified.");
+            }
 
+            _sources = value;
+        }
+    }
+
+    internal void Complete(CompositeObjectFieldCompletionContext context)
+    {
+        if (_completed)
+        {
+            throw new NotSupportedException(
+                "The type definition is sealed and cannot be modified.");
+        }
+
+        Directives = context.Directives;
+        Type = context.Type;
+        Sources = context.Sources;
+        _completed = true;
+    }
+
+    public override string ToString() => Name;
 }

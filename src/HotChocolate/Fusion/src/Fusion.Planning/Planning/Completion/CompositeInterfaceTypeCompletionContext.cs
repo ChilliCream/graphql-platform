@@ -1,16 +1,12 @@
-using System.Collections.Immutable;
-using HotChocolate.Language;
+using HotChocolate.Fusion.Planning.Collections;
 
 namespace HotChocolate.Fusion.Planning.Completion;
 
 internal ref struct CompositeInterfaceTypeCompletionContext(
-    ICompositeSchemaContext context,
-    IImmutableList<DirectiveNode> directives,
-    IImmutableList<NamedTypeNode> interfaces)
+    DirectiveCollection directives,
+    CompositeInterfaceTypeCollection interfaces)
 {
-    public ICompositeSchemaContext Context { get; } = context;
+    public DirectiveCollection Directives { get; } = directives;
 
-    public IImmutableList<DirectiveNode> Directives { get; } = directives;
-
-    public IImmutableList<NamedTypeNode> Interfaces { get; } = interfaces;
+    public CompositeInterfaceTypeCollection Interfaces { get; } = interfaces;
 }

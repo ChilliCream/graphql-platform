@@ -6,13 +6,16 @@ namespace HotChocolate.Fusion.Planning;
 /// <summary>
 /// Represents the base class for a GraphQL object type definition or an interface type definition.
 /// </summary>
-public abstract class CompositeComplexType : ICompositeType
+public abstract class CompositeComplexType : ICompositeNamedType
 {
     private DirectiveCollection _directives = default!;
     private CompositeInterfaceTypeCollection _implements = default!;
     private bool _completed;
 
-    protected CompositeComplexType(string name, string? description, CompositeObjectFieldCollection fields)
+    protected CompositeComplexType(
+        string name,
+        string? description,
+        CompositeObjectFieldCollection fields)
     {
         Name = name;
         Description = description;
@@ -66,5 +69,14 @@ public abstract class CompositeComplexType : ICompositeType
     /// </value>
     public CompositeObjectFieldCollection Fields { get; }
 
-    private protected void Complete() => _completed = true;
+    private protected void Complete()
+    {
+        if (_completed)
+        {
+            throw new NotSupportedException(
+                "The type definition is sealed and cannot be modified.");
+        }
+
+        _completed = true;
+    }
 }

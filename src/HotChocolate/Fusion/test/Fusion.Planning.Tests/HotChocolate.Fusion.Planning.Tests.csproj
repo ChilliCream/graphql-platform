@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\CookieCrumble\test\CookieCrumble.Tests\CookieCrumble.Tests.csproj" />
     <ProjectReference Include="..\..\src\Fusion.Planning\HotChocolate.Fusion.Planning.csproj" />
   </ItemGroup>
 

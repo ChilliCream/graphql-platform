@@ -14,7 +14,10 @@ public sealed class CompositeObjectType(
 
     internal void Complete(CompositeObjectTypeCompletionContext context)
     {
-        Directives = CompletionTools.CreateDirectiveCollection(context.Context, context.Directives);
-        Implements = CompletionTools.CreateInterfaceTypeCollection(context.Context, context.Interfaces);
+        Directives = context.Directives;
+        Implements = context.Interfaces;
+        base.Complete();
     }
+
+    public override string ToString() => Name;
 }

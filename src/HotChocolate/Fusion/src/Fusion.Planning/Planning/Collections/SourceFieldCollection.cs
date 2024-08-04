@@ -9,12 +9,12 @@ public class SourceFieldCollection<TField> : IEnumerable<TField> where TField : 
 
     protected SourceFieldCollection(IEnumerable<TField> fields)
     {
-        _fields = fields.ToFrozenDictionary(t => t.Name);
+        _fields = fields.ToFrozenDictionary(t => t.SchemaName);
     }
 
     public int Count => _fields.Count;
 
-    public TField this[string name] => _fields[name];
+    public TField this[string schemaName] => _fields[schemaName];
 
     public IEnumerator<TField> GetEnumerator()
         => ((IEnumerable<TField>)_fields.Values).GetEnumerator();

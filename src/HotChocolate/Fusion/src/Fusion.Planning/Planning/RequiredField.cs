@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace HotChocolate.Fusion.Planning.Directives;
+namespace HotChocolate.Fusion.Planning;
 
 /// <summary>
 /// Represents GraphQL selection path which is used in the operation compiler.

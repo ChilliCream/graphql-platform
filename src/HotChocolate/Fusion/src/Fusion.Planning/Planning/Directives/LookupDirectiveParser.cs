@@ -4,23 +4,28 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning.Directives;
 
-internal static class RequiredDirectiveParser
+internal static class LookupDirectiveParser
 {
     public static bool CanParse(DirectiveNode directiveNode)
-        => directiveNode.Name.Value.Equals("fusion__requires", StringComparison.Ordinal);
+        => directiveNode.Name.Value.Equals("fusion__lookup", StringComparison.Ordinal);
 
-    public static RequireDirective Parse(DirectiveNode directiveNode)
+    public static LookupDirective Parse(DirectiveNode directive)
     {
         string? schemaName = null;
+        SelectionSetNode? key = null;
         FieldDefinitionNode? field = null;
         ImmutableArray<string>? map = null;
 
-        foreach (var argument in directiveNode.Arguments)
+        foreach (var argument in directive.Arguments)
         {
             switch (argument.Name.Value)
             {
                 case "schema":
                     schemaName = ((EnumValueNode)argument.Value).Value;
+                    break;
+
+                case "key":
+                    key = Utf8GraphQLParser.Syntax.ParseSelectionSet(((StringValueNode)argument.Value).Value);
                     break;
 
                 case "field":
@@ -33,29 +38,35 @@ internal static class RequiredDirectiveParser
 
                 default:
                     throw new DirectiveParserException(
-                        $"The argument `{argument.Name.Value}` is not supported on @require.");
+                        $"The argument `{argument.Name.Value}` is not supported on @lookup.");
             }
         }
 
         if (string.IsNullOrEmpty(schemaName))
         {
             throw new DirectiveParserException(
-                "The `schema` argument is required on the @require directive.");
+                "The `schema` argument is required on the @lookup directive.");
+        }
+
+        if (key is null)
+        {
+            throw new DirectiveParserException(
+                "The `key` argument is required on the @lookup directive.");
         }
 
         if (field is null)
         {
             throw new DirectiveParserException(
-                "The `field` argument is required on the @require directive.");
+                "The `field` argument is required on the @lookup directive.");
         }
 
         if (map is null)
         {
             throw new DirectiveParserException(
-                "The `map` argument is required on the @require directive.");
+                "The `map` argument is required on the @lookup directive.");
         }
 
-        return new RequireDirective(schemaName, field, map.Value);
+        return new LookupDirective(schemaName, key, field, map.Value);
     }
 
     private static ImmutableArray<string> ParseMap(IValueNode value)
@@ -81,36 +92,36 @@ internal static class RequiredDirectiveParser
             "The value is expected to be a list of strings or a string.");
     }
 
-    public static ImmutableArray<RequireDirective> Parse(
+    public static ImmutableArray<LookupDirective> Parse(
         IReadOnlyList<DirectiveNode> directiveNodes)
     {
-        ImmutableArray<RequireDirective>.Builder? temp = null;
+        ImmutableArray<LookupDirective>.Builder? temp = null;
 
         for (var i = 0; i < directiveNodes.Count; i++)
         {
             var directiveNode = directiveNodes[i];
             if (CanParse(directiveNode))
             {
-                temp ??= ImmutableArray.CreateBuilder<RequireDirective>();
+                temp ??= ImmutableArray.CreateBuilder<LookupDirective>();
                 temp.Add(Parse(directiveNode));
             }
         }
 
-        return temp?.ToImmutable() ?? ImmutableArray<RequireDirective>.Empty;
+        return temp?.ToImmutable() ?? ImmutableArray<LookupDirective>.Empty;
     }
 
     public static bool TryParse(
         IReadOnlyList<DirectiveNode> directiveNodes,
-        [NotNullWhen(true)] out ImmutableArray<RequireDirective>? directives)
+        [NotNullWhen(true)] out ImmutableArray<LookupDirective>? directives)
     {
-        ImmutableArray<RequireDirective>.Builder? temp = null;
+        ImmutableArray<LookupDirective>.Builder? temp = null;
 
         for (var i = 0; i < directiveNodes.Count; i++)
         {
             var directiveNode = directiveNodes[i];
             if (CanParse(directiveNode))
             {
-                temp ??= ImmutableArray.CreateBuilder<RequireDirective>();
+                temp ??= ImmutableArray.CreateBuilder<LookupDirective>();
                 temp.Add(Parse(directiveNode));
             }
         }

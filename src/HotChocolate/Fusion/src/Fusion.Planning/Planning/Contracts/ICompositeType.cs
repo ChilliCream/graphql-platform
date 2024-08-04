@@ -6,3 +6,8 @@ public interface ICompositeType
 {
     TypeKind Kind { get; }
 }
+
+public interface ICompositeNamedType : ICompositeType
+{
+    string Name { get; }
+}

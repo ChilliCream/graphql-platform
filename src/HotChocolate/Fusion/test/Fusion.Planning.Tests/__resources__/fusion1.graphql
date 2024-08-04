@@ -1,57 +1,54 @@
-{
-}
 type Query {
-  productById(id: ID!): Product
-  @fusion__field(schema: PRODUCTS)
+    productById(id: ID!): Product
+        @fusion__field(schema: PRODUCTS)
 }
-
 
 type Product
-@fusion_type(schema: PRODUCTS)
-@fusion_type(schema: SHIPPING)
-@fusion__lookup(
-schema: PRODUCTS
-key: "{ id }"
-field: "productById(id: ID!): Product"
-map: ["id"]
-)
-@fusion__lookup(
-schema: SHIPPING
-key: "{ id }"
-field: "productById(id: ID!): Product"
-map: ["id"]
-) {
-id: ID!
-@fusion__field(schema: PRODUCTS)
-@fusion__field(schema: SHIPPING)
-name: String!
-@fusion__field(schema: PRODUCTS)
-description: String
-@fusion__field(schema: PRODUCTS)
-price: Float!
-@fusion__field(schema: PRODUCTS)
-dimension: ProductDimension!
-@fusion__field(schema: PRODUCTS)
-estimatedDelivery(postCode: String): Int!
-@fusion__field(schema: SHIPPING)
-@fusion__requires(
-schema: SHIPPING
-field: "estimatedDelivery(postCode: String, height: Int!, width: Int!): Int!"
-map: ["dimension.height", "dimension.width"]
-)
+    @fusion__type(schema: PRODUCTS)
+    @fusion__type(schema: SHIPPING)
+    @fusion__lookup(
+        schema: PRODUCTS
+        key: "{ id }"
+        field: "productById(id: ID!): Product"
+        map: ["id"]
+    )
+    @fusion__lookup(
+        schema: SHIPPING
+        key: "{ id }"
+        field: "productById(id: ID!): Product"
+        map: ["id"]
+    ) {
+    id: ID!
+        @fusion__field(schema: PRODUCTS)
+        @fusion__field(schema: SHIPPING)
+    name: String!
+        @fusion__field(schema: PRODUCTS)
+    description: String
+        @fusion__field(schema: PRODUCTS)
+    price: Float!
+        @fusion__field(schema: PRODUCTS)
+    dimension: ProductDimension!
+        @fusion__field(schema: PRODUCTS)
+    estimatedDelivery(postCode: String): Int!
+        @fusion__field(schema: SHIPPING)
+        @fusion__requires(
+            schema: SHIPPING
+            field: "estimatedDelivery(postCode: String, height: Int!, width: Int!): Int!"
+            map: ["dimension.height", "dimension.width"]
+        )
 }
 
 type ProductDimension
-@fusion_type(schema: PRODUCTS) {
-height: Int!
-@fusion__field(schema: PRODUCTS)
-width: Int!
-@fusion__field(schema: PRODUCTS)
+    @fusion__type(schema: PRODUCTS) {
+    height: Int!
+        @fusion__field(schema: PRODUCTS)
+    width: Int!
+        @fusion__field(schema: PRODUCTS)
 }
 
 enum fusion__Schema {
-PRODUCTS
-SHIPPING
+  PRODUCTS
+  SHIPPING
 }
 
 scalar fusion__FieldDefinition
@@ -59,27 +56,33 @@ scalar fusion__FieldSelectionMap
 scalar fusion__FieldSelectionSet
 scalar fusion__Type
 
-directive @fusion_type(
-schema: Schema!
+directive @fusion__type(
+  schema: fusion__Schema!
 ) repeatable on OBJECT | INTERFACE | UNION | ENUM | INPUT_OBJECT | SCALAR
 
 directive @fusion__field(
-schema: Schema
-provides: FieldSelectionSet
-sourceName: String
-sourceType: Type
-external: Boolean! = false
+  schema: fusion__Schema!
+  provides: FieldSelectionSet
+  sourceName: String
+  sourceType: Type
+  external: Boolean! = false
 ) repeatable on FIELD_DEFINITION
 
+directive @fusion__inputField(
+  schema: fusion__Schema!
+  sourceName: String
+  sourceType: Type
+) repeatable on INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
+
 directive @fusion__requires(
-schema: fusion__Schema!
-field: fusion__FieldDefinition!
-map: [fusion__FieldSelectionMap!]!
+  schema: fusion__Schema!
+  field: fusion__FieldDefinition!
+  map: [fusion__FieldSelectionMap!]!
 ) repeatable on FIELD_DEFINITION
 
 directive @fusion__lookup(
-schema: fusion__Schema!
-key: fusion__FieldSelectionSet!
-field: fusion__FieldDefinition!
-map: [fusion__FieldSelectionMap!]!
+  schema: fusion__Schema!
+  key: fusion__FieldSelectionSet!
+  field: fusion__FieldDefinition!
+  map: [fusion__FieldSelectionMap!]!
 ) repeatable on OBJECT | INTERFACE

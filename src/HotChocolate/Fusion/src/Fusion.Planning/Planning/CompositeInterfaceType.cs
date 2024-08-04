@@ -14,7 +14,7 @@ public sealed class CompositeInterfaceType(
 
     internal void Complete(CompositeInterfaceTypeCompletionContext context)
     {
-        Directives = CompletionTools.CreateDirectiveCollection(context.Context, context.Directives);
-        Implements = CompletionTools.CreateInterfaceTypeCollection(context.Context, context.Interfaces);
+        Directives = context.Directives;
+        Implements = context.Interfaces;
     }
 }

@@ -1,8 +1,8 @@
 using System.Collections.Immutable;
 
-namespace HotChocolate.Fusion.Planning.Directives;
+namespace HotChocolate.Fusion.Planning;
 
-public sealed class Requirement(
+public sealed class FieldRequirements(
     string schemaName,
     ImmutableArray<RequiredArgument> arguments,
     ImmutableArray<RequiredField> fields)
@@ -13,7 +13,7 @@ public sealed class Requirement(
     public string SchemaName { get; } = schemaName;
 
     /// <summary>
-    /// Gets the arguments
+    /// Gets the arguments that represent field requirements.
     /// </summary>
     public ImmutableArray<RequiredArgument> Arguments { get; } = arguments;
 

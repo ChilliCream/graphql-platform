@@ -31,4 +31,6 @@ public sealed class CompositeInputField(
         Directives = context.Directives;
         Type = context.Type;
     }
+
+    public override string ToString() => Name;
 }

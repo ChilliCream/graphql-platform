@@ -8,7 +8,7 @@ internal static class DeprecatedDirectiveParser
     public static bool CanParse(DirectiveNode directiveNode)
         => directiveNode.Name.Value == "deprecated";
 
-    public static Deprecated Parse(DirectiveNode directiveNode)
+    public static DeprecatedDirective Parse(DirectiveNode directiveNode)
     {
         var reason = "No longer supported";
 
@@ -26,12 +26,12 @@ internal static class DeprecatedDirectiveParser
             }
         }
 
-        return new Deprecated(reason);
+        return new DeprecatedDirective(reason);
     }
 
     public static bool TryParse(
         IReadOnlyList<DirectiveNode> directiveNodes,
-        [NotNullWhen(true)] out Deprecated? deprecated)
+        [NotNullWhen(true)] out DeprecatedDirective? deprecated)
     {
         for (var i = 0; i < directiveNodes.Count; i++)
         {
