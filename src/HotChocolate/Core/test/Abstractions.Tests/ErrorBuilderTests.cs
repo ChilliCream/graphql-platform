@@ -25,7 +25,7 @@ public class ErrorBuilderTests
         // arrange
         IError error = new Error (
             "123",
-            extensions: new OrderedDictionary<string, object>
+            extensions: new OrderedDictionary<string, object?>
             {
                 {"foo", "bar"},
             });
@@ -47,7 +47,7 @@ public class ErrorBuilderTests
         IError error = new Error
         (
             "123",
-            extensions: new OrderedDictionary<string, object>
+            extensions: new OrderedDictionary<string, object?>
             {
                 {"foo", "bar"},
             }
@@ -68,7 +68,7 @@ public class ErrorBuilderTests
         IError error = new Error
         (
             "123",
-            extensions: new OrderedDictionary<string, object>
+            extensions: new OrderedDictionary<string, object?>
             {
                 {"foo", "bar"},
                 {"bar", "foo"},

@@ -6,14 +6,14 @@ public class FieldErrorTests
     public void Constructor_SingleError_Null_ThrowsArgumentNullException()
     {
         // Arrange & Act & Assert
-        Assert.Throws<ArgumentNullException>(() => new FieldError(((object)null)!));
+        Assert.Throws<ArgumentNullException>(() => new FieldError(((object?)null)!));
     }
 
     [Fact]
     public void Constructor_ErrorList_Null_ThrowsArgumentNullException()
     {
         // Arrange & Act & Assert
-        Assert.Throws<ArgumentNullException>(() => new FieldError(((IReadOnlyList<object>)null)!));
+        Assert.Throws<ArgumentNullException>(() => new FieldError(null!));
     }
 
     [Fact]
