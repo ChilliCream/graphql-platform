@@ -61,6 +61,33 @@ namespace HotChocolate.Types {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The CharType scalar type represents a single character value..
+        /// </summary>
+        internal static string CharType_Description {
+            get {
+                return ResourceManager.GetString("CharType_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CharType cannot parse the provided literal. The provided value is not a valid single character..
+        /// </summary>
+        internal static string CharType_IsInvalid_ParseLiteral {
+            get {
+                return ResourceManager.GetString("CharType_IsInvalid_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CharType cannot parse the provided value. The provided value is not a valid single character..
+        /// </summary>
+        internal static string CharType_IsInvalid_ParseValue {
+            get {
+                return ResourceManager.GetString("CharType_IsInvalid_ParseValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The EmailAddress scalar type constitutes a valid email address, represented as a UTF-8 character sequence. The scalar follows the specification defined by the HTML Spec https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address..
         /// </summary>
         internal static string EmailAddressType_Description {
