@@ -1,16 +1,12 @@
-using System.Collections.Immutable;
-using HotChocolate.Language;
+using HotChocolate.Fusion.Planning.Collections;
 
 namespace HotChocolate.Fusion.Planning.Completion;
 
 internal ref struct CompositeInputFieldCompletionContext(
-    ICompositeSchemaContext context,
-    IImmutableList<DirectiveNode> directives,
-    ITypeNode type)
+    DirectiveCollection directives,
+    ICompositeType type)
 {
-    public ICompositeSchemaContext Context { get; } = context;
+    public DirectiveCollection Directives { get; } = directives;
 
-    public IImmutableList<DirectiveNode> Directives { get; } = directives;
-
-    public ITypeNode Type { get; } = type;
+    public ICompositeType Type { get; } = type;
 }

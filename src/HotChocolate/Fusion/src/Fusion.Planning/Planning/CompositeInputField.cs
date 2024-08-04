@@ -28,6 +28,7 @@ public sealed class CompositeInputField(
 
     internal void Complete(CompositeInputFieldCompletionContext context)
     {
-        Directives = CompletionTools.CreateDirectiveCollection(context.Context, context.Directives);
+        Directives = context.Directives;
+        Type = context.Type;
     }
 }

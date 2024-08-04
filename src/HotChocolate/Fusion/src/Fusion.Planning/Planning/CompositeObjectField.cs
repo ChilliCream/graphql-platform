@@ -7,10 +7,7 @@ public sealed class CompositeObjectField(
     string? description,
     bool isDeprecated,
     string? deprecationReason,
-    DirectiveCollection directives,
-    CompositeInputFieldCollection arguments,
-    ICompositeType type,
-    SourceObjectFieldCollection sources)
+    CompositeInputFieldCollection arguments)
     : ICompositeField
 {
     public string Name { get; } = name;
@@ -21,16 +18,13 @@ public sealed class CompositeObjectField(
 
     public string? DeprecationReason { get; } = deprecationReason;
 
-    public DirectiveCollection Directives { get; } = directives;
+    public DirectiveCollection Directives { get; } = default!;
 
     public CompositeInputFieldCollection Arguments { get; } = arguments;
 
-    public ICompositeType Type { get; } = type;
+    public ICompositeType Type { get; private set; } = default!;
 
-    public SourceObjectFieldCollection Sources { get; } = sources;
+    public SourceObjectFieldCollection Sources { get; } = default!;
 
-    internal void Complete()
-    {
 
-    }
 }
