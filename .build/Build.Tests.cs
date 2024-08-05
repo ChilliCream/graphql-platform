@@ -27,8 +27,6 @@ partial class Build
     {
         "HotChocolate.Types.Selections.PostgreSql.Tests",
         "HotChocolate.Configuration.Analyzers.Tests",
-        "HotChocolate.Data.Neo4J.Integration.Tests",
-        "HotChocolate.CodeGeneration.Neo4J.Tests",
         "HotChocolate.Analyzers.Tests",
         "dotnet-graphql",
         "CodeGeneration.CSharp.Analyzers",
