@@ -3,7 +3,6 @@ type Query {
         @fusion__field(schema: PRODUCTS)
 }
 
-
 type Product
     @fusion__type(schema: PRODUCTS)
     @fusion__type(schema: SHIPPING)

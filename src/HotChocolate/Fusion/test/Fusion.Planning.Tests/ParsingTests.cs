@@ -1,5 +1,5 @@
 using CookieCrumble;
-using HotChocolate.Fusion.Planning.Completion;
+using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planing;
@@ -7,12 +7,10 @@ namespace HotChocolate.Fusion.Planing;
 public class ParsingTests
 {
     [Fact]
-    public async Task Test()
+    public void Test()
     {
-        var compositeSchema = FileResource.Open("fusion1.graphql");
-        var builder = new CompositeSchemaBuilder();
-        builder.Test(Utf8GraphQLParser.Parse(compositeSchema));
-
-
+        var compositeSchemaDoc = Utf8GraphQLParser.Parse(FileResource.Open("fusion1.graphql"));
+        var compositeSchema = CompositeSchemaBuilder.Create(compositeSchemaDoc);
+        Assert.Equal("Query", compositeSchema.QueryType.Name);
     }
 }
