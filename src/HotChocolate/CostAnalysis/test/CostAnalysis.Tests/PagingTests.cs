@@ -6,7 +6,6 @@ using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.CostAnalysis;
@@ -55,7 +54,7 @@ public class PagingTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
-                .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = false })
+                .ModifyPagingOptions(o => o.RequirePagingBoundaries = false)
                 .AddFiltering()
                 .AddSorting()
                 .BuildRequestExecutorAsync();
@@ -337,7 +336,6 @@ public class PagingTests
             .MatchMarkdownAsync();
     }
 
-
     [Fact]
     public async Task Filtering_Specific_Filter_Used()
     {
@@ -366,7 +364,7 @@ public class PagingTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
-                .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = false })
+                .ModifyPagingOptions(o => o.RequirePagingBoundaries = false)
                 .AddFiltering()
                 .AddSorting()
                 .BuildRequestExecutorAsync();
@@ -419,7 +417,7 @@ public class PagingTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
-                .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = false })
+                .ModifyPagingOptions(o => o.RequirePagingBoundaries = false)
                 .AddFiltering()
                 .AddSorting()
                 .BuildRequestExecutorAsync();
@@ -472,7 +470,7 @@ public class PagingTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
-                .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = false })
+                .ModifyPagingOptions(o => o.RequirePagingBoundaries = false)
                 .AddFiltering()
                 .AddSorting()
                 .BuildRequestExecutorAsync();

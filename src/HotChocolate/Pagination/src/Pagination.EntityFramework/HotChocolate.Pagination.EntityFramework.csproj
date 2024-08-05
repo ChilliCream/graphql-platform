@@ -8,15 +8,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Using Include="Microsoft.EntityFrameworkCore" />
+    <Using Include="Microsoft.EntityFrameworkCore"/>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Pagination.Core\HotChocolate.Pagination.Core.csproj" />
+    <ProjectReference Include="..\Pagination.Core\HotChocolate.Pagination.Core.csproj"/>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore"/>
   </ItemGroup>
 
 </Project>

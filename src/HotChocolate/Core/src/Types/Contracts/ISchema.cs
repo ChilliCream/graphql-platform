@@ -1,6 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Relay;
@@ -23,6 +22,7 @@ public interface ISchema
     , IHasReadOnlyContextData
     , ITypeSystemMember
     , INodeIdRuntimeTypeLookup
+    , IFeatureProvider
 {
     /// <summary>
     /// Gets the global schema services.

@@ -164,7 +164,6 @@ public class QueryableFilterVisitorComparableTests
             .MatchAsync();
     }
 
-
     [Fact]
     public async Task Create_ShortGreaterThanOrEquals_Expression()
     {
@@ -312,7 +311,6 @@ public class QueryableFilterVisitorComparableTests
             .AddResult(res4, "null")
             .MatchAsync();
     }
-
 
     [Fact]
     public async Task Create_ShortLowerThanOrEquals_Expression()
@@ -512,7 +510,6 @@ public class QueryableFilterVisitorComparableTests
             .MatchAsync();
     }
 
-
     [Fact]
     public async Task Create_ShortNullableGreaterThan_Expression()
     {
@@ -586,7 +583,6 @@ public class QueryableFilterVisitorComparableTests
             .AddResult(res4, "null")
             .MatchAsync();
     }
-
 
     [Fact]
     public async Task Create_ShortNullableGreaterThanOrEquals_Expression()
@@ -735,7 +731,6 @@ public class QueryableFilterVisitorComparableTests
             .AddResult(res4, "null")
             .MatchAsync();
     }
-
 
     [Fact]
     public async Task Create_ShortNullableLowerThanOrEquals_Expression()

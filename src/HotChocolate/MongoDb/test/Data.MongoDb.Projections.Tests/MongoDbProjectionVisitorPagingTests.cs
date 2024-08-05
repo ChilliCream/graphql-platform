@@ -332,7 +332,6 @@ public class MongoDbProjectionVisitorPagingTests : IClassFixture<MongoResource>
             .MatchAsync();
     }
 
-
     [Fact]
     public async Task CreateOffsetPagingNullable_ProjectsTwoProperties_Items()
     {

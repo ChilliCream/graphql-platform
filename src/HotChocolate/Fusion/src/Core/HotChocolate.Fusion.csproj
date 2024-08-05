@@ -3,13 +3,10 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Fusion</AssemblyName>
     <RootNamespace>HotChocolate.Fusion</RootNamespace>
-    <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
-    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
     <!--EnableTrimAnalyzer>true</EnableTrimAnalyzer-->
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>
@@ -57,6 +54,5 @@
       <DependentUpon>ResolverNodeBase.cs</DependentUpon>
     </Compile>
   </ItemGroup>
-
 
 </Project>

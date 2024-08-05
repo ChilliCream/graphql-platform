@@ -10,7 +10,6 @@ internal sealed class NodeEntityExecutionStep(
     SelectionExecutionStep selectEntityStep)
     : ExecutionStep(id, null, entityType, entityTypeMetadata)
 {
-
     /// <summary>
     /// Gets the name of the entity type.
     /// </summary>

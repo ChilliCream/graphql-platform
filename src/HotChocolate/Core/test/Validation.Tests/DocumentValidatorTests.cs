@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,7 +9,7 @@ namespace HotChocolate.Validation;
 public class DocumentValidatorTests
 {
     [Fact]
-    public void DocumentIsNull()
+    public async Task DocumentIsNull()
     {
         // arrange
         var schema = ValidationUtils.CreateSchema();
@@ -29,11 +25,11 @@ public class DocumentValidatorTests
                 false);
 
         // assert
-        Assert.ThrowsAsync<ArgumentNullException>(Error);
+        await Assert.ThrowsAsync<ArgumentNullException>(Error);
     }
 
     [Fact]
-    public void SchemaIsNull()
+    public async Task SchemaIsNull()
     {
         // arrange
         var queryValidator = CreateValidator();
@@ -48,7 +44,7 @@ public class DocumentValidatorTests
                 false);
 
         // assert
-        Assert.ThrowsAsync<ArgumentNullException>(Error);
+        await Assert.ThrowsAsync<ArgumentNullException>(Error);
     }
 
     [Fact]
@@ -468,9 +464,8 @@ public class DocumentValidatorTests
                 }
             ",
             t => Assert.Equal(
-                t.Message,
-                "Fragments can only be declared on unions, interfaces, " +
-                "and objects."));
+                "Fragments can only be declared on unions, interfaces, and objects.",
+                t.Message));
     }
 
     [Fact]
@@ -495,11 +490,11 @@ public class DocumentValidatorTests
                 }
             ",
             t => Assert.Equal(
-                t.Message,
                 "The graph of fragment spreads must not form any " +
                 "cycles including spreading itself. Otherwise an " +
                 "operation could infinitely spread or infinitely " +
-                "execute on cycles in the underlying data."));
+                "execute on cycles in the underlying data.",
+                t.Message));
     }
 
     [Fact]

@@ -1,6 +1,5 @@
 #nullable enable
 
-using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -91,12 +90,6 @@ public interface ISelection : IOptionalSelection
     /// The arguments that have been pre-coerced for this field selection.
     /// </summary>
     ArgumentMap Arguments { get; }
-
-    /// <summary>
-    /// Defines that the resolver pipeline returns an
-    /// <see cref="IAsyncEnumerable{T}"/> as its result.
-    /// </summary>
-    bool HasStreamResult { get; }
 
     /// <summary>
     /// Defines if this selection is annotated with the stream directive.

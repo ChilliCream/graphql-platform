@@ -1,7 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
 
 #nullable enable
@@ -11,7 +8,7 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 public sealed class BindableList<T> : IBindableList<T>
 {
 #if NET6_0_OR_GREATER
-    private static readonly T[] _empty = new T[0];
+    private static readonly T[] _empty = [];
 #endif
 
     private List<T>? _list;

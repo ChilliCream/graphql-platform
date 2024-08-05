@@ -1,7 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace HotChocolate.Subscriptions.Postgres;
 
 public class AsyncAutoResetEventTests
@@ -33,14 +29,14 @@ public class AsyncAutoResetEventTests
     }
 
     [Fact]
-    public void WaitAsync_Should_Throw_When_Disposed()
+    public async Task WaitAsync_Should_Throw_When_Disposed()
     {
         // Arrange
         var autoResetEvent = new AsyncAutoResetEvent();
         autoResetEvent.Dispose();
 
         // Act & Assert
-        Assert.ThrowsAsync<ObjectDisposedException>(()
+        await Assert.ThrowsAsync<ObjectDisposedException>(()
             => autoResetEvent.WaitAsync(CancellationToken.None));
     }
 

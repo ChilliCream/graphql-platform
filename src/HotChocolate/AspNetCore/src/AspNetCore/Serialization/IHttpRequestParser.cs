@@ -65,7 +65,7 @@ public interface IHttpRequestParser
     /// Returns the parsed GraphQL request.
     /// </returns>
     GraphQLRequest ParseRequestFromParams(IQueryCollection parameters);
-    
+
     /// <summary>
     /// Parses the variables and extensions from the HTTP query parameters.
     /// </summary>
@@ -79,6 +79,6 @@ public interface IHttpRequestParser
     /// Returns the parsed variables and extensions.
     /// </returns>
     GraphQLRequest ParsePersistedOperationRequestFromParams(
-        string operationId, 
+        string operationId,
         IQueryCollection parameters);
 }

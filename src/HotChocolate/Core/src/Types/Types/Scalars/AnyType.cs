@@ -1,6 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Globalization;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -261,7 +259,6 @@ public class AnyType : ScalarType
                         {
                             return false;
                         }
-
                     }
 
                     runtimeValue = result;

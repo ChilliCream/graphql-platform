@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -186,7 +184,7 @@ internal static class InputObjectCompiler
 
         if (parameters.Length == 0)
         {
-            return Array.Empty<Expression>();
+            return [];
         }
 
         var expressions = new Expression[parameters.Length];

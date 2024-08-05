@@ -1,8 +1,5 @@
 #nullable enable
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Configuration.Validation;
 using HotChocolate.Language;
@@ -12,6 +9,7 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Factories;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Types.Interceptors;
+using HotChocolate.Types.Pagination;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
@@ -61,6 +59,8 @@ public partial class SchemaBuilder
                 {
                     typeInterceptors.Add(builder._schemaFirstTypeInterceptor);
                 }
+
+                context.ContextData[typeof(PagingOptions).FullName!] = builder._pagingOptions;
 
                 InitializeInterceptors(
                     context.Services,

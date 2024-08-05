@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Internal;
@@ -23,6 +18,26 @@ public class IntegrationTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryType>()
+                .Services
+                .BuildServiceProvider()
+                .GetRequestExecutorAsync();
+
+        executor.Schema.Print().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task SetPagingOptionsIsStillApplied()
+    {
+        var executor =
+#pragma warning disable CS0618 // Type or member is obsolete
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .SetPagingOptions(new PagingOptions
+                {
+                    IncludeTotalCount = true
+                })
+#pragma warning restore CS0618 // Type or member is obsolete
                 .Services
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
@@ -86,7 +101,7 @@ public class IntegrationTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryType>()
-                .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = true, })
+                .ModifyPagingOptions(o => o.RequirePagingBoundaries = true)
                 .Services
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
@@ -219,7 +234,7 @@ public class IntegrationTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryType>()
-                .SetPagingOptions(new PagingOptions { MaxPageSize = 2, })
+                .ModifyPagingOptions(o => o.MaxPageSize = 2)
                 .Services
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
@@ -286,7 +301,7 @@ public class IntegrationTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryType>()
-                .SetPagingOptions(new PagingOptions { MaxPageSize = 2, })
+                .ModifyPagingOptions(o => o.MaxPageSize = 2)
                 .Services
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
@@ -419,7 +434,7 @@ public class IntegrationTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryType>()
-                .SetPagingOptions(new PagingOptions { DefaultPageSize = 2, })
+                .ModifyPagingOptions(o => o.DefaultPageSize = 2)
                 .Services
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
@@ -453,7 +468,7 @@ public class IntegrationTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryAttr>()
-                .SetPagingOptions(new PagingOptions { DefaultPageSize = 2, })
+                .ModifyPagingOptions(o => o.DefaultPageSize = 2)
                 .Services
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
@@ -787,7 +802,7 @@ public class IntegrationTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryType>()
-                .SetPagingOptions(new PagingOptions { AllowBackwardPagination = false, })
+                .ModifyPagingOptions(o => o.AllowBackwardPagination = false)
                 .Services
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
@@ -804,7 +819,7 @@ public class IntegrationTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryAttr>()
-                .SetPagingOptions(new PagingOptions { AllowBackwardPagination = false, })
+                .ModifyPagingOptions(o => o.AllowBackwardPagination = false)
                 .AddInterfaceType<ISome>(d => d.Field(t => t.ExplicitType()).UsePaging())
                 .Services
                 .BuildServiceProvider()
@@ -855,7 +870,7 @@ public class IntegrationTests
                 .AddGraphQL()
                 .AddQueryType<ProviderByName>()
                 .AddCursorPagingProvider<DummyProvider>(providerName: "Abc")
-                .SetPagingOptions(new PagingOptions { InferConnectionNameFromField = false, })
+                .ModifyPagingOptions(o => o.InferConnectionNameFromField = false)
                 .Services
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
@@ -963,7 +978,7 @@ public class IntegrationTests
         // assert
         result.ToJson().MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Invalid_After_Index_Cursor()
     {
@@ -987,10 +1002,10 @@ public class IntegrationTests
               }
             }
             """);
-        
+
         await result.MatchSnapshotAsync();
     }
-    
+
     [Fact]
     public async Task Invalid_Before_Index_Cursor()
     {
@@ -1014,7 +1029,7 @@ public class IntegrationTests
               }
             }
             """);
-        
+
         await result.MatchSnapshotAsync();
     }
 
@@ -1161,7 +1176,6 @@ public class IntegrationTests
             descriptor
                 .Field(t => t.Names())
                 .UsePaging(options: new() { InferConnectionNameFromField = true, });
-
         }
     }
 
@@ -1185,7 +1199,7 @@ public class IntegrationTests
     public class ProviderByName
     {
         [UsePaging(ProviderName = "Abc")]
-        public string[] Abc => Array.Empty<string>();
+        public string[] Abc => [];
     }
 
     public class FluentPaging

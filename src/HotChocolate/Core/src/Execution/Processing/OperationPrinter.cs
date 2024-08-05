@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -141,7 +138,6 @@ internal static class OperationPrinter
             null,
             selection.SyntaxNode.Name,
             selection.SyntaxNode.Alias,
-            null,
             directives,
             selection.SyntaxNode.Arguments,
             selectionSet);

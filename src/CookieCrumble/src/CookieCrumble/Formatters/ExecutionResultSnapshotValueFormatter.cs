@@ -20,7 +20,7 @@ internal sealed class ExecutionResultSnapshotValueFormatter
             FormatStreamAsync(snapshot, (IResponseStream)value).Wait();
         }
     }
-    
+
     protected override void FormatMarkdown(IBufferWriter<byte> snapshot, IExecutionResult value)
     {
         if (value.Kind is ExecutionResultKind.SingleResult)
@@ -35,7 +35,7 @@ internal sealed class ExecutionResultSnapshotValueFormatter
             snapshot.AppendLine();
             FormatStreamAsync(snapshot, (IResponseStream)value).Wait();
         }
-        
+
         snapshot.AppendLine();
         snapshot.Append("```");
         snapshot.AppendLine();

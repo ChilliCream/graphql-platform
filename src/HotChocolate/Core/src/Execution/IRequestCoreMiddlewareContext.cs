@@ -1,5 +1,3 @@
-
-using System;
 using HotChocolate.Execution.Options;
 
 namespace HotChocolate.Execution;

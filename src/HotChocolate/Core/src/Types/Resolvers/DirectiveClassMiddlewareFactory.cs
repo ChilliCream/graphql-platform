@@ -1,8 +1,5 @@
 #nullable enable
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
@@ -79,7 +76,7 @@ internal static class DirectiveClassMiddlewareFactory
     internal static DirectiveMiddleware Create(Type middlewareType)
         => (DirectiveMiddleware)_createGeneric
             .MakeGenericMethod(middlewareType)
-            .Invoke(null, Array.Empty<object>())!;
+            .Invoke(null, [])!;
 
     internal static DirectiveMiddleware Create<TMiddleware>(
         Func<IServiceProvider, FieldDelegate, TMiddleware> activate)

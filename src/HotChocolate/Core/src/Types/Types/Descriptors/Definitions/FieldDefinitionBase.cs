@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 #nullable enable
 
 namespace HotChocolate.Types.Descriptors.Definitions;
@@ -109,6 +106,11 @@ public abstract class FieldDefinitionBase
 
         target.Type = Type;
         target.Ignore = Ignore;
+
+        if (IsDeprecated)
+        {
+            target.DeprecationReason = DeprecationReason;
+        }
     }
 
     protected void MergeInto(FieldDefinitionBase target)
@@ -127,5 +129,10 @@ public abstract class FieldDefinitionBase
         }
 
         target.Ignore = Ignore;
+
+        if (IsDeprecated)
+        {
+            target.DeprecationReason = DeprecationReason;
+        }
     }
 }

@@ -1,9 +1,7 @@
 // ReSharper disable RedundantSuppressNullableWarningExpression
 
-using System;
 using System.Buffers;
 using System.Collections;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using HotChocolate.Resolvers;
@@ -31,7 +29,7 @@ internal sealed class SelectionCollection(
     {
         if (!CollectSelections(fieldName, out var buffer, out var size))
         {
-            return new SelectionCollection(_schema, _operation, Array.Empty<ISelection>(), includeFlags);
+            return new SelectionCollection(_schema, _operation, [], includeFlags);
         }
 
         var selections = new ISelection[size];
@@ -44,7 +42,7 @@ internal sealed class SelectionCollection(
     {
         if (!CollectSelections(fieldNames, out var buffer, out var size))
         {
-            return new SelectionCollection(_schema, _operation, Array.Empty<ISelection>(), includeFlags);
+            return new SelectionCollection(_schema, _operation, [], includeFlags);
         }
 
         var selections = new ISelection[size];
@@ -57,7 +55,7 @@ internal sealed class SelectionCollection(
     {
         if (!CollectSelections(typeContext, out var buffer, out var size))
         {
-            return new SelectionCollection(_schema, _operation, Array.Empty<ISelection>(), includeFlags);
+            return new SelectionCollection(_schema, _operation, [], includeFlags);
         }
 
         var selections = new ISelection[size];
@@ -460,7 +458,7 @@ internal sealed class SelectionCollection(
         if (size == 0)
         {
             ArrayPool<ISelection>.Shared.Return(buffer);
-            buffer = Array.Empty<ISelection>();
+            buffer = [];
         }
 
         return size > 0;
@@ -490,7 +488,7 @@ internal sealed class SelectionCollection(
         if (size == 0)
         {
             ArrayPool<ISelection>.Shared.Return(buffer);
-            buffer = Array.Empty<ISelection>();
+            buffer = [];
         }
 
         return size > 0;

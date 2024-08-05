@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.WellKnownContextData;
@@ -9,7 +8,7 @@ internal sealed class QueryCacheMiddleware
 {
     private readonly ICacheControlOptions _options;
     private readonly RequestDelegate _next;
-    
+
     private QueryCacheMiddleware(
         RequestDelegate next,
         [SchemaService] ICacheControlOptionsAccessor optionsAccessor)
@@ -38,7 +37,7 @@ internal sealed class QueryCacheMiddleware
 
         var queryResult = context.Result?.ExpectQueryResult();
 
-        if (queryResult is not null)
+        if (queryResult is { Errors: null })
         {
             var contextData =
                 queryResult.ContextData is not null

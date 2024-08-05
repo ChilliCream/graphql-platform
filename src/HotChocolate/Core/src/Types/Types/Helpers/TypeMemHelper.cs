@@ -1,9 +1,6 @@
 #nullable enable
 
-using System;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Threading;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Helpers;

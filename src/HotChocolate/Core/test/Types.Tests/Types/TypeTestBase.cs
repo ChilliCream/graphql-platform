@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Types;
 
 public class TypeTestBase

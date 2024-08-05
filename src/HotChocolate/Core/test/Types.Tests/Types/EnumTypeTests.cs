@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -352,7 +349,7 @@ public class EnumTypeTests : TypeTestBase
             .AddEnumType(d => d
                 .Name("Foo")
                 .Value("baz")
-                .Directive("bar", Array.Empty<ArgumentNode>()))
+                .Directive("bar", []))
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 

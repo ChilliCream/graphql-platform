@@ -1,12 +1,7 @@
-﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
@@ -27,7 +22,7 @@ public class QueryableCursorPagingProviderTests
         var sourceType = typeInspector.GetType(typeof(List<string>));
 
         IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
-        var pagingHandler = pagingProvider.CreateHandler(sourceType, default);
+        var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
         var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
 
@@ -60,7 +55,6 @@ public class QueryableCursorPagingProviderTests
             "HasNextPage");
     }
 
-
     [Fact]
     public async Task TakeLastSingle()
     {
@@ -69,7 +63,7 @@ public class QueryableCursorPagingProviderTests
         var sourceType = typeInspector.GetType(typeof(List<string>));
 
         IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
-        var pagingHandler = pagingProvider.CreateHandler(sourceType, default);
+        var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
         var list = new List<string> { "f", "g", };
 
@@ -105,7 +99,7 @@ public class QueryableCursorPagingProviderTests
         var sourceType = typeInspector.GetType(typeof(List<string>));
 
         IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
-        var pagingHandler = pagingProvider.CreateHandler(sourceType, default);
+        var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
         var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
 
@@ -146,7 +140,7 @@ public class QueryableCursorPagingProviderTests
         var sourceType = typeInspector.GetType(typeof(List<string>));
 
         IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
-        var pagingHandler = pagingProvider.CreateHandler(sourceType, default);
+        var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
         var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
 
@@ -192,7 +186,7 @@ public class QueryableCursorPagingProviderTests
         var sourceType = typeInspector.GetType(typeof(List<string>));
 
         IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
-        var pagingHandler = pagingProvider.CreateHandler(sourceType, default);
+        var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
         var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
 
@@ -238,7 +232,7 @@ public class QueryableCursorPagingProviderTests
         var sourceType = typeInspector.GetType(typeof(List<string>));
 
         IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
-        var pagingHandler = pagingProvider.CreateHandler(sourceType, default);
+        var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
         var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
 
@@ -261,7 +255,7 @@ public class QueryableCursorPagingProviderTests
         var sourceType = typeInspector.GetType(typeof(List<string>));
 
         IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
-        var pagingHandler = pagingProvider.CreateHandler(sourceType, default);
+        var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
         var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
 
@@ -284,7 +278,7 @@ public class QueryableCursorPagingProviderTests
         var sourceType = typeInspector.GetType(typeof(List<string>));
 
         IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
-        var pagingHandler = pagingProvider.CreateHandler(sourceType, default);
+        var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
         var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
 
@@ -313,7 +307,7 @@ public class QueryableCursorPagingProviderTests
         var sourceType = typeInspector.GetType(typeof(List<string>));
 
         IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
-        var pagingHandler = pagingProvider.CreateHandler(sourceType, default);
+        var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
         var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
 
@@ -336,7 +330,7 @@ public class QueryableCursorPagingProviderTests
         var sourceType = typeInspector.GetType(typeof(List<string>));
 
         IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
-        var pagingHandler = pagingProvider.CreateHandler(sourceType, default);
+        var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
         var list = new MockExecutable<string>(new []
         {
@@ -386,7 +380,7 @@ public class QueryableCursorPagingProviderTests
         var sourceType = typeInspector.GetType(typeof(List<string>));
 
         IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
-        var pagingHandler = pagingProvider.CreateHandler(sourceType, default);
+        var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
         var list = new MockExecutable<string>(new []
         {

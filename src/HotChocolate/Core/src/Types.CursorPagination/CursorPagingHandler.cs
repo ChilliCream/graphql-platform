@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
 
@@ -124,7 +123,7 @@ public abstract class CursorPagingHandler : IPagingHandler
             AllowBackwardPagination
                 ? context.ArgumentValue<string?>(CursorPagingArgumentNames.Before)
                 : null);
-        
+
         context.SetLocalState(WellKnownContextData.PagingArguments, arguments);
     }
 
@@ -132,7 +131,7 @@ public abstract class CursorPagingHandler : IPagingHandler
         IResolverContext context,
         object source)
     {
-        var arguments = context.GetLocalState<CursorPagingArguments>(WellKnownContextData.PagingArguments);   
+        var arguments = context.GetLocalState<CursorPagingArguments>(WellKnownContextData.PagingArguments);
         return await SliceAsync(context, source, arguments).ConfigureAwait(false);
     }
 

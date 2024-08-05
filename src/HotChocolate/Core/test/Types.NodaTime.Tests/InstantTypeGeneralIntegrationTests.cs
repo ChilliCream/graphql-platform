@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Execution;
 using NodaTime.Text;
 
@@ -46,7 +44,7 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .Build());
 
             Assert.Null(result.ExpectQueryResult().Data);
-            Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
+            Assert.Single(result.ExpectQueryResult().Errors!);
         }
 
         [Fact]
@@ -69,7 +67,7 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .Build());
 
             Assert.Null(result.ExpectQueryResult().Data);
-            Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
+            Assert.Single(result.ExpectQueryResult().Errors!);
             Assert.Null(result.ExpectQueryResult().Errors!.First().Code);
             Assert.Equal(
                 "Unable to deserialize string to Instant",

@@ -2,7 +2,6 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
 using Raven.Client.Documents;
 using Raven.Client.Documents.Linq;
@@ -39,7 +38,7 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
             .AddGraphQLServer()
             .AddRavenFiltering()
             .AddRavenPagingProviders()
-            .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = false})
+            .ModifyPagingOptions(o => o.RequirePagingBoundaries = false)
             .AddQueryType(
                 c =>
                 {

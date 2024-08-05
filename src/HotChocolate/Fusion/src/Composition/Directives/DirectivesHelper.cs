@@ -16,7 +16,6 @@ internal static class DirectivesHelper
     public const string NewNameArg = "newName";
     public const string FieldArg = "field";
 
-
     public static bool ContainsIsDirective(this IDirectivesProvider member)
         => member.Directives.ContainsName(IsDirectiveName);
 

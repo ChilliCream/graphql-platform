@@ -1,4 +1,4 @@
-﻿namespace HotChocolate.Template.AzureFunctions;
+namespace HotChocolate.Template.AzureFunctions;
 
 public class Query
 {

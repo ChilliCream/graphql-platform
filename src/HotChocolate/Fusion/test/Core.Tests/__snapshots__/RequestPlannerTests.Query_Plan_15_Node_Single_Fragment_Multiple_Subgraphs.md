@@ -30,11 +30,11 @@ query FetchNode($id: ID!) {
         "responseName": "node",
         "branches": [
           {
-            "type": "Review",
+            "type": "User",
             "node": {
               "type": "Resolve",
               "subgraph": "Reviews2",
-              "document": "query FetchNode_1($id: ID!) { node(id: $id) { ... on Review { __typename } } }",
+              "document": "query FetchNode_1($id: ID!) { node(id: $id) { ... on User { reviews { body } __fusion_exports__1: id __typename } } }",
               "selectionSetId": 0,
               "forwardedVariables": [
                 {
@@ -44,11 +44,11 @@ query FetchNode($id: ID!) {
             }
           },
           {
-            "type": "User",
+            "type": "Review",
             "node": {
               "type": "Resolve",
               "subgraph": "Reviews2",
-              "document": "query FetchNode_2($id: ID!) { node(id: $id) { ... on User { reviews { body } __fusion_exports__1: id __typename } } }",
+              "document": "query FetchNode_2($id: ID!) { node(id: $id) { ... on Review { __typename } } }",
               "selectionSetId": 0,
               "forwardedVariables": [
                 {
@@ -69,7 +69,7 @@ query FetchNode($id: ID!) {
         "type": "Resolve",
         "subgraph": "Accounts",
         "document": "query FetchNode_3($__fusion_exports__1: ID!) { userById(id: $__fusion_exports__1) { birthdate } }",
-        "selectionSetId": 2,
+        "selectionSetId": 1,
         "path": [
           "userById"
         ],
@@ -82,7 +82,7 @@ query FetchNode($id: ID!) {
       {
         "type": "Compose",
         "selectionSetIds": [
-          2
+          1
         ]
       }
     ]

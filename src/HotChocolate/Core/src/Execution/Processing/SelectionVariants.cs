@@ -1,12 +1,10 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Types;
 using static HotChocolate.Execution.Properties.Resources;
 using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Processing;
 
-internal sealed class SelectionVariants : ISelectionVariants
+internal sealed class SelectionVariants(int id) : ISelectionVariants
 {
     private IObjectType? _firstType;
     private SelectionSet? _firstSelectionSet;
@@ -15,12 +13,7 @@ internal sealed class SelectionVariants : ISelectionVariants
     private Dictionary<IObjectType, SelectionSet>? _map;
     private bool _readOnly;
 
-    public SelectionVariants(int id)
-    {
-        Id = id;
-    }
-
-    public int Id { get; }
+    public int Id { get; } = id;
 
     public IEnumerable<IObjectType> GetPossibleTypes()
         => _map?.Keys ?? GetPossibleTypesLazy();
@@ -59,9 +52,14 @@ internal sealed class SelectionVariants : ISelectionVariants
     {
         if (_map is not null)
         {
-            return _map.TryGetValue(typeContext, out var selections)
-                ? selections
-                : throw SelectionSet_TypeContextInvalid(typeContext);
+            if (_map.TryGetValue(typeContext, out var selections))
+            {
+                return selections;
+            }
+            else
+            {
+                throw SelectionSet_TypeContextInvalid(typeContext);
+            }
         }
 
         if (ReferenceEquals(_firstType, typeContext))

@@ -1,6 +1,4 @@
-using System;
 using System.Globalization;
-using System.Threading;
 using HotChocolate.Language;
 using Snapshooter.Xunit;
 
@@ -242,7 +240,6 @@ public class LocalTimeTypeTests : ScalarTypeTestBase
         // arrange
         var scalar = CreateType<LocalTimeType>();
         object resultValue = new DateTime( 2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
-
 
         // act
         var result = scalar.Deserialize(resultValue);

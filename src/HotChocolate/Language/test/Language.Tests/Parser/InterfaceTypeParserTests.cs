@@ -212,7 +212,6 @@ public class InterfaceTypeParserTests
         Assert.Equal(SyntaxKind.InterfaceTypeDefinition, def.Kind);
     }
 
-
     [Fact]
     public void Parser__Should_Fail_WhenDirectivesBeforeInterface()
     {

@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Features;
 using HotChocolate.Types;
 
@@ -152,7 +152,7 @@ public sealed class SchemaDefinition
 
         _features = _features is null
             ? EmptyFeatureCollection.Default
-            : new ReadOnlyFeatureCollection(_features);
+            : _features.ToReadOnly();
 
         foreach (var typeDefinition in _typeDefinitions)
         {
@@ -162,14 +162,6 @@ public sealed class SchemaDefinition
         foreach (var directiveDefinition in _directiveDefinitions)
         {
             ((ISealable)directiveDefinition).Seal();
-        }
-
-        foreach (var feature in _features)
-        {
-            if(feature.Value is ISealable sealable)
-            {
-                sealable.Seal();
-            }
         }
 
         _isReadOnly = true;

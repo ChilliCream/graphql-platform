@@ -12,10 +12,11 @@
     <PackageVersion Include="Aspire.Hosting.Redis" Version="8.0.0" />
     <PackageVersion Include="AutoMapper" Version="10.1.1" />
     <PackageVersion Include="BananaCakePop.Middleware" Version="$(BananaCakePopVersion)" />
+    <PackageVersion Include="Basic.Reference.Assemblies" Version="1.6.0" />
     <PackageVersion Include="ChilliCream.Testing.Utilities" Version="0.2.0" />
     <PackageVersion Include="coverlet.msbuild" Version="3.1.2" />
     <PackageVersion Include="DiffPlex" Version="1.7.1" />
-    <PackageVersion Include="FsCheck.Xunit" Version="3.0.0-beta2" />
+    <PackageVersion Include="FsCheck.Xunit" Version="3.0.0-rc3" />
     <PackageVersion Include="FSharp.Core" Version="8.0.100" />
     <PackageVersion Include="Glob" Version="1.1.9" />
     <PackageVersion Include="IdentityModel" Version="4.1.1" />
@@ -61,8 +62,8 @@
     <PackageVersion Include="System.ComponentModel.Annotations" Version="5.0.0" />
     <PackageVersion Include="System.Reactive" Version="6.0.0" />
     <PackageVersion Include="Unquote" Version="6.1.0" />
-    <PackageVersion Include="Xunit" Version="2.4.1" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="2.4.3" />
+    <PackageVersion Include="Xunit" Version="2.9.0" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">

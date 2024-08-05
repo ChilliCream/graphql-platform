@@ -1,4 +1,4 @@
-﻿using HotChocolate.StarWars.Models;
+using HotChocolate.StarWars.Models;
 using HotChocolate.Types;
 using static HotChocolate.StarWars.Types.Subscriptions;
 

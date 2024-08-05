@@ -29,7 +29,7 @@ query ProductReviews($id: ID!, $first: Int!) {
 ## QueryPlan Hash
 
 ```text
-934EF521F28696C6C6BD91A930219DA09867A536
+3EB74A019DB95A4FA68CF9569951EA91659E7186
 ```
 
 ## QueryPlan
@@ -47,16 +47,13 @@ query ProductReviews($id: ID!, $first: Int!) {
         "responseName": "node",
         "branches": [
           {
-            "type": "Product",
+            "type": "User",
             "node": {
               "type": "Resolve",
-              "subgraph": "Products",
-              "document": "query ProductReviews_1($first: Int!, $id: ID!) { node(id: $id) { ... on Product { id repeat(num: $first) __typename } } }",
+              "subgraph": "Accounts",
+              "document": "query ProductReviews_1($id: ID!) { node(id: $id) { ... on User { __typename } } }",
               "selectionSetId": 0,
               "forwardedVariables": [
-                {
-                  "variable": "first"
-                },
                 {
                   "variable": "id"
                 }
@@ -64,11 +61,11 @@ query ProductReviews($id: ID!, $first: Int!) {
             }
           },
           {
-            "type": "ProductBookmark",
+            "type": "Review",
             "node": {
               "type": "Resolve",
-              "subgraph": "Products",
-              "document": "query ProductReviews_2($id: ID!) { node(id: $id) { ... on ProductBookmark { __typename } } }",
+              "subgraph": "Reviews2",
+              "document": "query ProductReviews_2($id: ID!) { node(id: $id) { ... on Review { __typename } } }",
               "selectionSetId": 0,
               "forwardedVariables": [
                 {
@@ -92,11 +89,11 @@ query ProductReviews($id: ID!, $first: Int!) {
             }
           },
           {
-            "type": "Review",
+            "type": "ProductBookmark",
             "node": {
               "type": "Resolve",
-              "subgraph": "Reviews2",
-              "document": "query ProductReviews_4($id: ID!) { node(id: $id) { ... on Review { __typename } } }",
+              "subgraph": "Products",
+              "document": "query ProductReviews_4($id: ID!) { node(id: $id) { ... on ProductBookmark { __typename } } }",
               "selectionSetId": 0,
               "forwardedVariables": [
                 {
@@ -106,13 +103,16 @@ query ProductReviews($id: ID!, $first: Int!) {
             }
           },
           {
-            "type": "User",
+            "type": "Product",
             "node": {
               "type": "Resolve",
-              "subgraph": "Accounts",
-              "document": "query ProductReviews_5($id: ID!) { node(id: $id) { ... on User { __typename } } }",
+              "subgraph": "Products",
+              "document": "query ProductReviews_5($first: Int!, $id: ID!) { node(id: $id) { ... on Product { id repeat(num: $first) __typename } } }",
               "selectionSetId": 0,
               "forwardedVariables": [
+                {
+                  "variable": "first"
+                },
                 {
                   "variable": "id"
                 }

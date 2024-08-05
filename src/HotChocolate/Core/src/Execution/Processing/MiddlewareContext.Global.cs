@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution.Properties;
 using HotChocolate.Execution.Serialization;
 using HotChocolate.Language;
@@ -228,7 +224,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
         {
             await _cleanupTasks[0].Invoke().ConfigureAwait(false);
             await _cleanupTasks[1].Invoke().ConfigureAwait(false);
-            await _cleanupTasks[3].Invoke().ConfigureAwait(false);
+            await _cleanupTasks[2].Invoke().ConfigureAwait(false);
             return;
         }
 

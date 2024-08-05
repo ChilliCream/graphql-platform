@@ -1,6 +1,3 @@
-using System;
-using System.Linq;
-
 namespace StrawberryShake.Serialization;
 
 public class DateSerializerTests

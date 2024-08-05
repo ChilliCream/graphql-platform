@@ -88,7 +88,7 @@ public class QueryableSortVisitorAscTests
     [Theory]
     [InlineData(null, "2018-01-01", "2019-01-01", "2020-01-01")]
     [InlineData("2020-01-01", "2019-01-01", "2018-01-01", null)]
-    public void Sort_NullableDateTimeAsc(params string[] dataObject)
+    public void Sort_NullableDateTimeAsc(params string?[] dataObject)
     {
         Test_Asc(
             dataObject.Select(x => x is null ? default : (DateTime?)DateTime.Parse(x))

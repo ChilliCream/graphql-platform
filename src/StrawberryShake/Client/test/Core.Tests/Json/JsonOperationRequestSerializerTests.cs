@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Text;
 using System.Text.Json;
 using CookieCrumble;
@@ -152,7 +149,7 @@ public class JsonOperationRequestSerializerTests
     {
         public OperationKind Kind => OperationKind.Query;
 
-        public ReadOnlySpan<byte> Body => Array.Empty<byte>();
+        public ReadOnlySpan<byte> Body => [];
 
         public DocumentHash Hash { get; } = new("MD5", "ABCDEF");
     }

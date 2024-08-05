@@ -10,7 +10,6 @@ internal class NodeEntityEnricher : IEntityEnricher
             null,
             new NameNode("id"),
             null,
-            null,
             Array.Empty<DirectiveNode>(),
             Array.Empty<ArgumentNode>(),
             null);
@@ -78,7 +77,6 @@ internal class NodeEntityEnricher : IEntityEnricher
             null,
             new NameNode("node"),
             null,
-            null,
             Array.Empty<DirectiveNode>(),
             arguments,
             new SelectionSetNode(new[] { inlineFragment, }));
@@ -131,7 +129,6 @@ internal class NodeEntityEnricher : IEntityEnricher
         var selection = new FieldNode(
             null,
             new NameNode("nodes"),
-            null,
             null,
             Array.Empty<DirectiveNode>(),
             arguments,

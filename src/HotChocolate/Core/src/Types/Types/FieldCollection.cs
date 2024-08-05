@@ -1,9 +1,7 @@
-using System;
 using System.Collections;
 #if NET8_0_OR_GREATER
 using System.Collections.Frozen;
 #endif
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
@@ -94,7 +92,7 @@ public sealed class FieldCollection<T> : IFieldCollection<T> where T : class, IF
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    public static FieldCollection<T> Empty { get; } = new(Array.Empty<T>());
+    public static FieldCollection<T> Empty { get; } = new([]);
 
     internal static FieldCollection<T> TryCreate(T[] fields, out IReadOnlyCollection<string>? duplicateFieldNames)
     {

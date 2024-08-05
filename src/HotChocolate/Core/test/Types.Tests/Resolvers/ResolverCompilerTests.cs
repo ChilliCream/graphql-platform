@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Reflection;
 using System.Security.Claims;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
@@ -24,8 +19,7 @@ namespace HotChocolate.Resolvers;
 
 public class ResolverCompilerTests
 {
-    private readonly IParameterExpressionBuilder[] _empty =
-        Array.Empty<IParameterExpressionBuilder>();
+    private readonly IParameterExpressionBuilder[] _empty = [];
 
     [Fact]
     public async Task Compile_TaskObjMethod_NoParams_SourceResolver()
@@ -505,7 +499,6 @@ public class ResolverCompilerTests
         var fieldSyntax = new FieldNode(
             null,
             new NameNode("foo"),
-            null,
             null,
             Array.Empty<DirectiveNode>(),
             Array.Empty<ArgumentNode>(),

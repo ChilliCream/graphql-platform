@@ -1,6 +1,5 @@
 #nullable enable
 
-using System;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using static HotChocolate.Language.SyntaxComparison;

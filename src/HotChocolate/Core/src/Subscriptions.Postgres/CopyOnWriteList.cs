@@ -4,7 +4,7 @@ internal sealed class CopyOnWriteList<T> where T : class
 {
     private readonly object _sync = new();
 
-    private T[] _items = Array.Empty<T>();
+    private T[] _items = [];
 
     public void Add(T item)
     {

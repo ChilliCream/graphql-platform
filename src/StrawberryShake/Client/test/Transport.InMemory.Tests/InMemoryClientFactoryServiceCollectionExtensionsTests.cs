@@ -1,7 +1,3 @@
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -125,7 +121,6 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
         // assert
         Assert.Equal("Bar", stubClient.SchemaName);
     }
-
 
     [Fact]
     public void AddInMemoryClientActionServiceProvider_NoServices_ThrowException()
@@ -273,7 +268,6 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
         // assert
         Assert.Equal("Bar", stubClient.SchemaName);
     }
-
 
     [Fact]
     public void AddInMemoryClientAsyncActionServiceProvider_NoServices_ThrowException()

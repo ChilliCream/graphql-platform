@@ -1,18 +1,16 @@
 using System.Runtime.CompilerServices;
-using System.Threading;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Fetching;
 using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Processing;
 
-internal sealed partial class WorkScheduler
+internal sealed partial class WorkScheduler(OperationContext operationContext)
 {
     private readonly object _sync = new();
     private readonly WorkQueue _work = new();
     private readonly WorkQueue _serial = new();
     private readonly ProcessingPause _pause = new();
-    private readonly OperationContext _operationContext;
 
     private IRequestContext _requestContext = default!;
     private IBatchDispatcher _batchDispatcher = default!;
@@ -25,24 +23,26 @@ internal sealed partial class WorkScheduler
     private bool _isCompleted;
     private bool _isInitialized;
 
-    public WorkScheduler(OperationContext operationContext)
-    {
-        _operationContext = operationContext;
-    }
-
     public void Initialize(IBatchDispatcher batchDispatcher)
     {
         _batchDispatcher = batchDispatcher;
         _batchDispatcher.TaskEnqueued += BatchDispatcherEventHandler;
 
-        _errorHandler = _operationContext.ErrorHandler;
-        _result = _operationContext.Result;
-        _diagnosticEvents = _operationContext.DiagnosticEvents;
-        _ct = _operationContext.RequestAborted;
+        _errorHandler = operationContext.ErrorHandler;
+        _result = operationContext.Result;
+        _diagnosticEvents = operationContext.DiagnosticEvents;
+        _ct = operationContext.RequestAborted;
 
         _hasBatches = false;
         _isCompleted = false;
         _isInitialized = true;
+    }
+
+    public void Reset()
+    {
+        var batchDispatcher = _batchDispatcher;
+        Clear();
+        Initialize(batchDispatcher);
     }
 
     public void Clear()

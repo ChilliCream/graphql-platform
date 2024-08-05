@@ -60,7 +60,6 @@ public class QueryableFilterVisitorInterfacesTests : IClassFixture<SchemaCache>
             .AddResult(res2, "ba")
             .AddResult(res3, "null")
             .MatchAsync();
-
     }
 
     private static void Configure(ISchemaBuilder builder)

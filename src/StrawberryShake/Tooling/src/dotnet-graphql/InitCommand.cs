@@ -39,7 +39,7 @@ public static class InitCommand
             "-f|--FromFile",
             "Import schema from schema file.",
             CommandOptionType.NoValue);
-        
+
         var depthArg = init.Option(
             "-d|--typeDepth",
             "The type depth used for the introspection request.",

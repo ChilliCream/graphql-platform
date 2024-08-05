@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using StrawberryShake.Transport.WebSockets.Messages;
 using static StrawberryShake.ResultFields;
 using static StrawberryShake.Transport.WebSockets.ResponseHelper;
@@ -37,27 +33,19 @@ public class WebSocketConnection : IWebSocketConnection
         return new ResponseStream(_sessionFactory, request);
     }
 
-    private sealed class ResponseStream : IAsyncEnumerable<Response<JsonDocument>>
+    private sealed class ResponseStream(
+        Func<CancellationToken, ValueTask<ISession>> sessionFactory,
+        OperationRequest request)
+        : IAsyncEnumerable<Response<JsonDocument>>
     {
-        private readonly Func<CancellationToken, ValueTask<ISession>> _sessionFactory;
-        private readonly OperationRequest _request;
-
-        public ResponseStream(
-            Func<CancellationToken, ValueTask<ISession>> sessionFactory,
-            OperationRequest request)
-        {
-            _sessionFactory = sessionFactory;
-            _request = request;
-        }
-
         public async IAsyncEnumerator<Response<JsonDocument>> GetAsyncEnumerator(
             CancellationToken cancellationToken = default)
         {
             await using var session =
-                await _sessionFactory(cancellationToken).ConfigureAwait(false);
+                await sessionFactory(cancellationToken).ConfigureAwait(false);
 
             await using var operation =
-                await session.StartOperationAsync(_request, cancellationToken)
+                await session.StartOperationAsync(request, cancellationToken)
                     .ConfigureAwait(false);
 
             await foreach (var message in

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
@@ -26,12 +25,6 @@ public interface IObjectField : IOutputField
     /// Defines in which DI scope this field is executed.
     /// </summary>
     DependencyInjectionScope DependencyInjectionScope { get; }
-
-    /// <summary>
-    /// Defines that the resolver pipeline returns an
-    /// <see cref="IAsyncEnumerable{T}"/> as its result.
-    /// </summary>
-    bool HasStreamResult { get; }
 
     /// <summary>
     /// Gets the field resolver middleware.

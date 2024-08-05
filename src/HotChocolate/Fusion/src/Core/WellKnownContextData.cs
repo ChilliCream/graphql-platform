@@ -9,7 +9,7 @@ internal static class FusionContextDataKeys
     /// The response state key that is used to store the query plan.
     /// </summary>
     public const string QueryPlanProp = "queryPlan";
-    
+
     /// <summary>
     /// The response state key that is used to store the query plan hash.
     /// </summary>

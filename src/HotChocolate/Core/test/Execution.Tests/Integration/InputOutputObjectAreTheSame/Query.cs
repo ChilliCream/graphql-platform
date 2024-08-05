@@ -1,4 +1,4 @@
-﻿namespace HotChocolate.Execution.Integration.InputOutputObjectAreTheSame;
+namespace HotChocolate.Execution.Integration.InputOutputObjectAreTheSame;
 
 public class Query
 {

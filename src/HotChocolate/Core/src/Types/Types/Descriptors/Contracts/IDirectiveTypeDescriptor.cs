@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 

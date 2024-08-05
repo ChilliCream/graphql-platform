@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Configuration;
@@ -9,7 +6,6 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
-using HotChocolate.Utilities;
 using static HotChocolate.Utilities.ErrorHelper;
 
 #nullable enable
@@ -64,13 +60,6 @@ public sealed class ObjectField : OutputFieldBase, IObjectField
     /// Defines in which DI scope this field is executed.
     /// </summary>
     public DependencyInjectionScope DependencyInjectionScope { get; private set; }
-
-    /// <summary>
-    /// Defines that the resolver pipeline returns an
-    /// <see cref="IAsyncEnumerable{T}"/> as its result.
-    /// </summary>
-    public bool HasStreamResult
-        => (Flags & FieldFlags.Stream) == FieldFlags.Stream;
 
     /// <summary>
     /// Gets the field resolver middleware.
@@ -269,7 +258,6 @@ file static class ResolverHelpers
 
         return null;
     }
-
 
     private static IResolverResultPostProcessor CreateListPostProcessor<T>()
         => new ListPostProcessor<T>();

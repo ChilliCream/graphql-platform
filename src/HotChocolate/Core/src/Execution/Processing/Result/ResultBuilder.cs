@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using HotChocolate.Execution.Properties;
 using HotChocolate.Resolvers;
 
@@ -10,7 +6,7 @@ namespace HotChocolate.Execution.Processing;
 
 internal sealed partial class ResultBuilder
 {
-    private static readonly Func<ValueTask>[] _emptyCleanupTasks = Array.Empty<Func<ValueTask>>();
+    private static readonly Func<ValueTask>[] _emptyCleanupTasks = [];
     private readonly List<IError> _errors = [];
     private readonly HashSet<Path> _errorPaths = [];
     private readonly HashSet<ISelection> _fieldErrors = [];

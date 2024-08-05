@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Execution;
 using NodaTime;
 using NodaTime.Text;
@@ -141,7 +139,7 @@ public class DurationTypeJsonRoundtripIntegrationTests
                 .SetVariableValues(new Dictionary<string, object?> { {"arg", "+09:22:01:00" }, })
                 .Build());
         Assert.Null(Assert.IsType<OperationResult>(result).Data);
-        Assert.Equal(1, Assert.IsType<OperationResult>(result).Errors!.Count);
+        Assert.Single(Assert.IsType<OperationResult>(result).Errors!);
     }
 
     [Fact]
@@ -192,6 +190,6 @@ public class DurationTypeJsonRoundtripIntegrationTests
                 .SetDocument("mutation { test(arg: \"+238:01:00\") }")
                 .Build());
         Assert.Null(Assert.IsType<OperationResult>(result).Data);
-        Assert.Equal(1, Assert.IsType<OperationResult>(result).Errors!.Count);
+        Assert.Single(Assert.IsType<OperationResult>(result).Errors!);
     }
 }

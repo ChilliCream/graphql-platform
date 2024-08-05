@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Utilities;
 
@@ -35,7 +33,6 @@ public class DescriptorContextTests
         Assert.NotNull(context.TypeInspector);
         Assert.Equal(options, context.Options);
     }
-
 
     [Fact]
     public void Create_With_Custom_NamingConventions_AsIConvention()

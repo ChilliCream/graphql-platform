@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Configuration;
 
 #nullable enable
@@ -84,7 +82,7 @@ public class CompleteConfiguration : ITypeSystemMemberConfiguration
     public ApplyConfigurationOn On { get; }
 
     public IReadOnlyList<TypeDependency> Dependencies =>
-        _dependencies ?? (IReadOnlyList<TypeDependency>)Array.Empty<TypeDependency>();
+        _dependencies ?? (IReadOnlyList<TypeDependency>)[];
 
     public void AddDependency(TypeDependency dependency)
     {

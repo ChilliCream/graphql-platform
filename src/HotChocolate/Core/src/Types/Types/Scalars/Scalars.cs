@@ -1,6 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
@@ -59,7 +57,7 @@ public static class Scalars
         { ScalarNames.Date, typeof(DateType) },
         { ScalarNames.TimeSpan, typeof(TimeSpanType) },
         { ScalarNames.Any, typeof(AnyType) },
-        
+
         { ScalarNames.ByteArray, typeof(ByteArrayType) },
         { ScalarNames.JSON, typeof(JsonType) }
     };

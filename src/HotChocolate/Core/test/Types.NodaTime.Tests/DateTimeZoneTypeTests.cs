@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Execution;
 using NodaTime;
 
@@ -73,7 +71,7 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", "Europe/Hamster" }, })
                     .Build());
             Assert.Null(Assert.IsType<OperationResult>(result).Data);
-            Assert.Equal(1, Assert.IsType<OperationResult>(result).Errors!.Count);
+            Assert.Single(Assert.IsType<OperationResult>(result).Errors!);
         }
 
         [Fact]
@@ -94,7 +92,7 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetDocument("mutation { test(arg: \"Europe/Hamster\") }")
                     .Build());
             Assert.Null(Assert.IsType<OperationResult>(result).Data);
-            Assert.Equal(1, Assert.IsType<OperationResult>(result).Errors!.Count);
+            Assert.Single(Assert.IsType<OperationResult>(result).Errors!);
             Assert.Null(Assert.IsType<OperationResult>(result).Errors!.First().Code);
             Assert.Equal(
                 "Unable to deserialize string to DateTimeZone",

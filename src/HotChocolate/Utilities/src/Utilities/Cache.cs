@@ -1,4 +1,3 @@
-﻿using System;
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 
@@ -82,7 +81,7 @@ public sealed class Cache<TValue>(int size)
         {
             if (_head is null)
             {
-                return Array.Empty<string>();
+                return [];
             }
 
             var index = 0;
@@ -93,7 +92,6 @@ public sealed class Cache<TValue>(int size)
             {
                 keys[index++] = current.Key;
                 current = current.Next!;
-
             } while (current != _head);
 
             return keys;

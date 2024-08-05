@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-
 #nullable enable
 
 namespace HotChocolate.Resolvers;
@@ -10,4 +8,3 @@ namespace HotChocolate.Resolvers;
 /// </summary>
 /// <param name="context">The middleware context.</param>
 public delegate ValueTask FieldDelegate(IMiddlewareContext context);
-

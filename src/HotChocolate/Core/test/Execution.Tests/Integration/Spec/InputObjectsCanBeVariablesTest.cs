@@ -27,8 +27,8 @@ public class InputObjectsCanBeVariablesTest
                 """,
             r => r.AddQueryType<Query>(),
             r => r.SetVariableValues(
-                    new Dictionary<string, object> 
-                    { 
+                    new Dictionary<string, object>
+                    {
                         { "a", "a" },
                         { "b", "b" },
                     }))

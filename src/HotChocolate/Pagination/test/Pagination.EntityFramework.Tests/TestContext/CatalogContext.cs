@@ -1,4 +1,4 @@
-﻿using HotChocolate.Data.TestContext.EntityConfigurations;
+using HotChocolate.Data.TestContext.EntityConfigurations;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotChocolate.Data.TestContext;
@@ -20,6 +20,8 @@ public class CatalogContext(string connectionString) : DbContext
     public DbSet<ProductType> ProductTypes { get; set; } = default!;
 
     public DbSet<Brand> Brands { get; set; } = default!;
+
+    public DbSet<Test> Tests { get; set; } = default!;
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

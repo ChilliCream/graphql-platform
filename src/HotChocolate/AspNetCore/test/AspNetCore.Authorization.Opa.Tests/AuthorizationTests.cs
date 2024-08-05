@@ -41,7 +41,6 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
             {
                 configure(builder);
                 builder.Services.AddAuthorization();
-
             },
             SetUpHttpContext);
 
@@ -64,7 +63,6 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
             {
                 configure(builder);
                 builder.Services.AddAuthorization();
-
             },
             SetUpHttpContext + (Action<HttpContext>)(c =>
             {
@@ -100,7 +98,6 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
             {
                 configure(builder);
                 builder.Services.AddAuthorization();
-
             },
             SetUpHttpContext + (Action<HttpContext>)(c =>
             {

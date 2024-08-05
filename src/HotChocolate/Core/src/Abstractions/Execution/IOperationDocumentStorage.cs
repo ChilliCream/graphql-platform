@@ -1,6 +1,3 @@
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace HotChocolate.Execution;
 
 /// <summary>
@@ -24,7 +21,7 @@ public interface IOperationDocumentStorage
     ValueTask<IOperationDocument?> TryReadAsync(
         OperationDocumentId documentId,
         CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Saves an operation document to the storage.
     /// </summary>

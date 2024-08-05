@@ -1,13 +1,9 @@
 #nullable enable
-using System;
 using System.Buffers;
 using System.Buffers.Text;
 #if NET8_0_OR_GREATER
 using System.Collections.Frozen;
-#else
-using System.Linq;
 #endif
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -97,20 +93,20 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
         Base64.DecodeFromUtf8InPlace(span, out var written);
         span = span.Slice(0, written);
 
-        var index = span.IndexOf(_delimiter);
-        if (index == -1)
+        var delimiterIndex = FindDelimiterIndex(span);
+        if (delimiterIndex == -1)
         {
-            if (TryParseLegacyFormat(span, out var nodeId))
-            {
-                Clear(rentedBuffer);
-                return nodeId;
-            }
-
             Clear(rentedBuffer);
             throw new NodeIdInvalidFormatException(formattedId);
         }
 
-        var typeName = span.Slice(0, index);
+        var delimiterOffset = 1;
+        if (span[delimiterIndex] == _legacyDelimiter)
+        {
+            delimiterOffset = 2;
+        }
+
+        var typeName = span.Slice(0, delimiterIndex);
         if (!_spanSerializerMap.TryGetValue(typeName, out var serializer))
         {
             var typeNameString = ToString(typeName);
@@ -118,32 +114,9 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
             throw new NodeIdMissingSerializerException(typeNameString);
         }
 
-        var value = serializer.Parse(span.Slice(index + 1));
+        var value = serializer.Parse(span.Slice(delimiterIndex + delimiterOffset));
         Clear(rentedBuffer);
         return value;
-    }
-
-    private bool TryParseLegacyFormat(ReadOnlySpan<byte> span, out NodeId nodeId)
-    {
-        var index = span.IndexOf(_legacyDelimiter);
-        if (index > -1 && _spanSerializerMap.TryGetValue(span.Slice(0, index), out var serializer))
-        {
-            var legacyFormattedIdValue = span.Slice(index + 1);
-            if (legacyFormattedIdValue[0] is
-                LegacyNodeIdSerializer.Default or
-                LegacyNodeIdSerializer.Guid or
-                LegacyNodeIdSerializer.Int or
-                LegacyNodeIdSerializer.Long or
-                LegacyNodeIdSerializer.Short)
-            {
-                var internalId = LegacyNodeIdSerializer.ParseValueInternal(legacyFormattedIdValue);
-                nodeId = new NodeId(serializer.TypeName, internalId);
-                return true;
-            }
-        }
-
-        nodeId = default;
-        return false;
     }
 
     public unsafe NodeId Parse(string formattedId, Type runtimeType)
@@ -174,14 +147,20 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
         Base64.DecodeFromUtf8InPlace(span, out var written);
         span = span.Slice(0, written);
 
-        var index = span.IndexOf(_delimiter);
-        if (index == -1)
+        var delimiterIndex = FindDelimiterIndex(span);
+        if (delimiterIndex == -1)
         {
             Clear(rentedBuffer);
             throw new NodeIdInvalidFormatException(formattedId);
         }
 
-        var typeName = span.Slice(0, index);
+        var delimiterOffset = 1;
+        if (span[delimiterIndex] == _legacyDelimiter)
+        {
+            delimiterOffset = 2;
+        }
+
+        var typeName = span.Slice(0, delimiterIndex);
         INodeIdValueSerializer? valueSerializer = null;
         if (!_spanSerializerMap.TryGetValue(typeName, out var serializer))
         {
@@ -216,7 +195,7 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
             throw SerializerMissing(typeName, rentedBuffer);
         }
 
-        var value = ParseValue(valueSerializer, serializer.TypeName, span.Slice(index + 1));
+        var value = ParseValue(valueSerializer, serializer.TypeName, span.Slice(delimiterIndex + delimiterOffset));
         Clear(rentedBuffer);
         return value;
     }
@@ -250,6 +229,21 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
         }
 
         throw new NodeIdInvalidFormatException(ToString(formattedValue));
+    }
+
+#if NET8_0_OR_GREATER
+    private static readonly SearchValues<byte>
+        _delimiterSearchValues = SearchValues.Create([_delimiter, _legacyDelimiter]);
+#endif
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int FindDelimiterIndex(ReadOnlySpan<byte> span)
+    {
+#if NET8_0_OR_GREATER
+        return span.IndexOfAny(_delimiterSearchValues);
+#else
+        return span.IndexOfAny([_delimiter, _legacyDelimiter]);
+#endif
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

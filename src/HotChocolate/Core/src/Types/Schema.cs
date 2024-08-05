@@ -1,9 +1,8 @@
-using System;
 #if NET8_0_OR_GREATER
 using System.Collections.Frozen;
 #endif
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types;
@@ -68,6 +67,11 @@ public partial class Schema
     /// Gets all the directives that are supported by this schema.
     /// </summary>
     public IReadOnlyCollection<DirectiveType> DirectiveTypes { get; private set; } = default!;
+
+    /// <summary>
+    /// Gets the schema features.
+    /// </summary>
+    public IFeatureCollection Features { get; private set; } = default!;
 
     /// <summary>
     /// Specifies the time the schema was created.

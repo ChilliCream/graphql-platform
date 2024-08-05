@@ -21,7 +21,7 @@ public class CSharpSyntaxGeneratorSettings
         EntityRecords = entityRecords;
         RazorComponents = razorComponents;
     }
-    
+
     /// <summary>
     /// Generates the client with specified access modifier.
     /// </summary>

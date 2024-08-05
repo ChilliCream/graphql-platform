@@ -1,8 +1,5 @@
-using System.Linq;
-using System;
 using System.Collections;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Reflection;
 
 namespace HotChocolate.Utilities;
@@ -16,7 +13,7 @@ internal class ObjectToDictionaryConverter
     {
         _converter = converter ?? throw new ArgumentNullException(nameof(converter));
     }
-    
+
     public object Convert(object obj)
     {
         if(obj is null)

@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-
 namespace GreenDonut;
 
 /// <summary>
@@ -11,7 +9,7 @@ public interface IPromise
     /// Gets the task that represents the async work for this promise.
     /// </summary>
     Task Task { get; }
-    
+
     /// <summary>
     /// Tries to cancel the async work for this promise.
     /// </summary>

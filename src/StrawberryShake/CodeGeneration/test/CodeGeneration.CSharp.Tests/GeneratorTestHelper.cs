@@ -105,7 +105,7 @@ public static class GeneratorTestHelper
         {
             if (!documentNames.Add(document.Name))
             {
-                Assert.True(false, $"Document name duplicated {document.Name}");
+                Assert.Fail($"Document name duplicated {document.Name}");
             }
 
             if (document.Kind == SourceDocumentKind.CSharp)
@@ -161,8 +161,7 @@ public static class GeneratorTestHelper
 
         if (diagnostics.Any())
         {
-            Assert.True(false,
-                "Diagnostic Errors: \n" +
+            Assert.Fail("Diagnostic Errors: \n" +
                 diagnostics
                     .Select(x =>
                         $"{x.GetMessage()}" +
@@ -175,7 +174,6 @@ public static class GeneratorTestHelper
         AssertStarWarsResult(
             new AssertSettings { StrictValidation = true, },
             sourceTexts);
-
 
     public static void AssertStarWarsResult(
         AssertSettings settings,

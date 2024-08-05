@@ -1,4 +1,4 @@
-﻿using HotChocolate.Data.TestContext.EntityConfigurations;
+using HotChocolate.Data.TestContext.EntityConfigurations;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotChocolate.Data.TestContext;

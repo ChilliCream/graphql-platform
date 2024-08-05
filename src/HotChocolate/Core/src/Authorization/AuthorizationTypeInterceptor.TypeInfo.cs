@@ -1,4 +1,3 @@
-using System;
 #if NET6_0_OR_GREATER
 #endif
 using HotChocolate.Configuration;
