@@ -158,6 +158,9 @@ public class AnyType : ScalarType
                         field.Key,
                         ParseValue(field.Value, set)));
                 }
+
+                set.Remove(value);
+
                 return new ObjectValueNode(fields);
             }
 
@@ -168,6 +171,9 @@ public class AnyType : ScalarType
                 {
                     valueList.Add(ParseValue(element, set));
                 }
+
+                set.Remove(value);
+
                 return new ListValueNode(valueList);
             }
 

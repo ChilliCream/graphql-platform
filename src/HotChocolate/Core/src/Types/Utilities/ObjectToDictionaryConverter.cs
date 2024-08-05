@@ -140,12 +140,15 @@ internal class ObjectToDictionaryConverter
                     void SetField(object v) => current[name] = v;
                     VisitValue(value, SetField, processed);
                 }
-
-                processed.Remove(obj);
             }
-        }
 
-        throw new GraphQLException(TypeResources.ObjectToDictionaryConverter_CycleInObjectGraph);
+            processed.Remove(obj);
+        }
+        else
+        {
+            throw new GraphQLException(
+                TypeResources.ObjectToDictionaryConverter_CycleInObjectGraph);
+        }
     }
 
     private void VisitList(
