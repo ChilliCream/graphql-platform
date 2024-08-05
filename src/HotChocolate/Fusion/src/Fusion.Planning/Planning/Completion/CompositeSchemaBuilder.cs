@@ -18,8 +18,14 @@ public class CompositeSchemaBuilder
         var types = ImmutableArray.CreateBuilder<ICompositeNamedType>();
         var typeDefinitions = ImmutableDictionary.CreateBuilder<string, ITypeDefinitionNode>();
 
-        foreach (var definition in schema.Definitions)
+        foreach (var definition in schema.Definitions.OfType<INamedSyntaxNode>())
         {
+            if (FusionTypes.IsBuiltInType(definition.Name.Value)
+                || FusionTypes.IsBuiltInDirective(definition.Name.Value))
+            {
+                continue;
+            }
+
             switch (definition)
             {
                 case ObjectTypeDefinitionNode objectType:
@@ -135,7 +141,8 @@ public class CompositeSchemaBuilder
 
         var directives = CompletionTools.CreateDirectiveCollection(typeDef.Directives, schemaContext);
         var interfaces = CompletionTools.CreateInterfaceTypeCollection(typeDef.Interfaces, schemaContext);
-        type.Complete(new CompositeObjectTypeCompletionContext(directives, interfaces));
+        var sources = CompletionTools.CreateSourceObjectTypeCollection(typeDef, schemaContext);
+        type.Complete(new CompositeObjectTypeCompletionContext(directives, interfaces, sources));
     }
 
     private static void CompleteObjectField(
@@ -190,11 +197,11 @@ public class CompositeSchemaBuilder
                     arguments.Add(new RequiredArgument(argument.Name.Value, argument.Type));
                 }
 
-                var fields = ImmutableArray.CreateBuilder<RequiredField>();
+                var fields = ImmutableArray.CreateBuilder<FieldPath>();
 
                 foreach (var field in requireDirective.Map)
                 {
-                    fields.Add(RequiredField.Parse(field));
+                    fields.Add(FieldPath.Parse(field));
                 }
 
                 return new FieldRequirements(schemaName, arguments.ToImmutable(), fields.ToImmutable());
@@ -222,6 +229,9 @@ public class CompositeSchemaBuilder
         InputValueDefinitionNode argumentDef,
         CompositeSchemaContext completionContext)
     {
+        var directives = CompletionTools.CreateDirectiveCollection(argumentDef.Directives, completionContext);
+        var type = completionContext.GetType(argumentDef.Type);
+        argument.Complete(new CompositeInputFieldCompletionContext(directives, type));
     }
 
     private static void CompleteScalarType(

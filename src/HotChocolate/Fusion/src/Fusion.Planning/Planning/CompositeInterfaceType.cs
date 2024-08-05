@@ -12,6 +12,21 @@ public sealed class CompositeInterfaceType(
 {
     public override TypeKind Kind => TypeKind.Object;
 
+    public bool IsAssignableFrom(ICompositeNamedType type)
+    {
+        switch (type.Kind)
+        {
+            case TypeKind.Interface:
+                return ReferenceEquals(type, this) || ((CompositeInterfaceType)type).Implements.ContainsName(Name);
+
+            case TypeKind.Object:
+                return ((CompositeObjectType)type).Implements.ContainsName(Name);
+
+            default:
+                return false;
+        }
+    }
+
     internal void Complete(CompositeInterfaceTypeCompletionContext context)
     {
         Directives = context.Directives;

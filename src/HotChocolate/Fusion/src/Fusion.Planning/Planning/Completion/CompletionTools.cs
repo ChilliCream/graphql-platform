@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Fusion.Planning.Collections;
 using HotChocolate.Fusion.Planning.Directives;
 using HotChocolate.Language;
@@ -69,5 +70,61 @@ internal static class CompletionTools
         }
 
         return new CompositeInterfaceTypeCollection(temp);
+    }
+
+    public static SourceObjectTypeCollection CreateSourceObjectTypeCollection(
+        ObjectTypeDefinitionNode typeDef,
+        CompositeSchemaContext context)
+    {
+        var types = TypeDirectiveParser.Parse(typeDef.Directives);
+        var lookups = LookupDirectiveParser.Parse(typeDef.Directives);
+        var temp = new SourceObjectType[types.Length];
+
+        for (var i = 0; i < types.Length; i++)
+        {
+            var type = types[i];
+            temp[i] = new SourceObjectType(
+                typeDef.Name.Value,
+                type.SchemaName,
+                GetLookupBySchema(lookups, type.SchemaName));
+        }
+
+        return new SourceObjectTypeCollection(temp);
+    }
+
+    private static ImmutableArray<Lookup> GetLookupBySchema(
+        ImmutableArray<LookupDirective> allLookups,
+        string schemaName)
+    {
+        var lookups = ImmutableArray.CreateBuilder<Lookup>();
+
+        foreach (var lookup in allLookups)
+        {
+            if (lookup.SchemaName.Equals(schemaName, StringComparison.Ordinal))
+            {
+                var arguments = ImmutableArray.CreateBuilder<LookupArgument>(lookup.Field.Arguments.Count);
+
+                foreach (var argument in lookup.Field.Arguments)
+                {
+                    arguments.Add(new LookupArgument(argument.Name.Value, argument.Type));
+                }
+
+                var fields = ImmutableArray.CreateBuilder<FieldPath>();
+
+                foreach (var field in lookup.Map)
+                {
+                    fields.Add(FieldPath.Parse(field));
+                }
+
+                lookups.Add(
+                    new Lookup(
+                        lookup.SchemaName,
+                        LookupKind.Default,
+                        arguments.ToImmutable(),
+                        fields.ToImmutable()));
+            }
+        }
+
+        return lookups.ToImmutable();
     }
 }

@@ -11,22 +11,22 @@ public sealed class CompositeScalarType : ICompositeNamedType
 
     public CompositeScalarType(string name,
         string? description,
-        ResultType resultType = ResultType.Unknown)
+        ScalarResultType scalarResultType = ScalarResultType.Unknown)
     {
         Name = name;
         Description = description;
-        ResultType = resultType;
+        ScalarResultType = scalarResultType;
 
-        if(resultType is ResultType.Unknown)
+        if(scalarResultType is ScalarResultType.Unknown)
         {
-            ResultType = name switch
+            ScalarResultType = name switch
             {
-                "ID" => ResultType.String,
-                "String" => ResultType.String,
-                "Int" => ResultType.Int,
-                "Float" => ResultType.Float,
-                "Boolean" => ResultType.Boolean,
-                _ => ResultType.Unknown
+                "ID" => ScalarResultType.String,
+                "String" => ScalarResultType.String,
+                "Int" => ScalarResultType.Int,
+                "Float" => ScalarResultType.Float,
+                "Boolean" => ScalarResultType.Boolean,
+                _ => ScalarResultType.Unknown
             };
         }
     }
@@ -52,7 +52,7 @@ public sealed class CompositeScalarType : ICompositeNamedType
         }
     }
 
-    public ResultType ResultType { get; }
+    public ScalarResultType ScalarResultType { get; }
 
     internal void Complete(CompositeScalarTypeCompletionContext context)
     {
@@ -65,13 +65,6 @@ public sealed class CompositeScalarType : ICompositeNamedType
         Directives = context.Directives;
         _completed = true;
     }
-}
 
-public enum ResultType
-{
-    String,
-    Int,
-    Float,
-    Boolean,
-    Unknown
+    public override string ToString() => Name;
 }

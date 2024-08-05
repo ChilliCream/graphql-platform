@@ -1,6 +1,6 @@
 namespace HotChocolate.Fusion.Planning;
 
-public interface ISourceField
+public interface ISourceMember
 {
     string Name { get; }
 

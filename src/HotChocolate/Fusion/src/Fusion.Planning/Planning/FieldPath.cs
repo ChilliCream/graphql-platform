@@ -5,9 +5,9 @@ namespace HotChocolate.Fusion.Planning;
 /// <summary>
 /// Represents GraphQL selection path which is used in the operation compiler.
 /// </summary>
-public sealed class RequiredField : IEquatable<RequiredField>
+public sealed class FieldPath : IEquatable<FieldPath>
 {
-    private RequiredField(string name, RequiredField? parent = null)
+    private FieldPath(string name, FieldPath? parent = null)
     {
         Name = name;
         Parent = parent;
@@ -21,12 +21,12 @@ public sealed class RequiredField : IEquatable<RequiredField>
     /// <summary>
     /// Gets the parent path segment.
     /// </summary>
-    public RequiredField? Parent { get; }
+    public FieldPath? Parent { get; }
 
     /// <summary>
     /// Gets the root path segment.
     /// </summary>
-    public static RequiredField Root { get; } = new("$root");
+    public static FieldPath Root { get; } = new("$root");
 
     /// <summary>
     /// Creates a new path segment.
@@ -37,7 +37,7 @@ public sealed class RequiredField : IEquatable<RequiredField>
     /// <returns>
     /// Returns a new path segment.
     /// </returns>
-    public RequiredField Append(string name) => new(name, this);
+    public FieldPath Append(string name) => new(name, this);
 
     /// <summary>
     /// Indicates whether the current path is equal to another path.
@@ -47,7 +47,7 @@ public sealed class RequiredField : IEquatable<RequiredField>
     /// <see langword="true" /> if the current path is equal to the
     /// <paramref name="other" /> parameter; otherwise, <see langword="false" />.
     /// </returns>
-    public bool Equals(RequiredField? other)
+    public bool Equals(FieldPath? other)
     {
         if (other is null)
         {
@@ -88,7 +88,7 @@ public sealed class RequiredField : IEquatable<RequiredField>
     /// <paramref name="obj" /> parameter; otherwise, <see langword="false" />.
     /// </returns>
     public override bool Equals(object? obj)
-        => Equals(obj as RequiredField);
+        => Equals(obj as FieldPath);
 
     /// <summary>
     /// Returns the hash code for this path.
@@ -133,7 +133,7 @@ public sealed class RequiredField : IEquatable<RequiredField>
     /// <returns>
     /// Returns a new path segment.
     /// </returns>
-    public static RequiredField Parse(string s)
+    public static FieldPath Parse(string s)
     {
         var path = Root;
 

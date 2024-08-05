@@ -1,14 +1,16 @@
+using System.Collections.Immutable;
+
 namespace HotChocolate.Fusion.Planning;
 
-public class SourceInterfaceField(
+public sealed class SourceObjectType(
     string name,
     string schemaName,
-    ICompositeType type)
+    ImmutableArray<Lookup> lookups)
     : ISourceMember
 {
     public string Name { get; } = name;
 
     public string SchemaName { get; } = schemaName;
 
-    public ICompositeType Type { get; } = type;
+    public ImmutableArray<Lookup> Lookups { get; } = lookups;
 }

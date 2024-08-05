@@ -2,9 +2,10 @@ using System.Collections.Immutable;
 
 namespace HotChocolate.Fusion.Planning;
 
-public sealed class FieldRequirements(
+public sealed class Lookup(
     string schemaName,
-    ImmutableArray<RequiredArgument> arguments,
+    LookupKind kind,
+    ImmutableArray<LookupArgument> arguments,
     ImmutableArray<FieldPath> fields)
 {
     /// <summary>
@@ -12,10 +13,12 @@ public sealed class FieldRequirements(
     /// </summary>
     public string SchemaName { get; } = schemaName;
 
+    public LookupKind Kind { get; } = kind;
+
     /// <summary>
     /// Gets the arguments that represent field requirements.
     /// </summary>
-    public ImmutableArray<RequiredArgument> Arguments { get; } = arguments;
+    public ImmutableArray<LookupArgument> Arguments { get; } = arguments;
 
     /// <summary>
     /// Gets the paths to the field that are required.

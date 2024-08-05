@@ -1,6 +1,7 @@
 using HotChocolate.Fusion.Planning.Collections;
 using HotChocolate.Fusion.Planning.Completion;
 using HotChocolate.Types;
+using Microsoft.VisualBasic.CompilerServices;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -12,10 +13,13 @@ public sealed class CompositeObjectType(
 {
     public override TypeKind Kind => TypeKind.Object;
 
+    public SourceObjectTypeCollection Sources { get; private set; } = default!;
+
     internal void Complete(CompositeObjectTypeCompletionContext context)
     {
         Directives = context.Directives;
         Implements = context.Interfaces;
+        Sources = context.Sources;
         base.Complete();
     }
 

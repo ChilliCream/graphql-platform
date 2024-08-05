@@ -1,11 +1,11 @@
 namespace HotChocolate.Fusion.Planning;
 
-public class SourceObjectField(
+public sealed class SourceObjectField(
     string name,
     string schemaName,
     FieldRequirements? requirements,
     ICompositeType type)
-    : ISourceField
+    : ISourceMember
 {
     public string Name { get; } = name;
 

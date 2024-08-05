@@ -10,7 +10,7 @@ public sealed class CompositeInterfaceField(
     DirectiveCollection directives,
     CompositeInputFieldCollection arguments,
     ICompositeType type,
-    SourceInterfaceFieldCollection sources)
+    SourceInterfaceMemberCollection sources)
     : ICompositeField
 {
     public string Name { get; } = name;
@@ -27,5 +27,5 @@ public sealed class CompositeInterfaceField(
 
     public ICompositeType Type { get; } = type;
 
-    public SourceInterfaceFieldCollection Sources { get; } = sources;
+    public SourceInterfaceMemberCollection Sources { get; } = sources;
 }

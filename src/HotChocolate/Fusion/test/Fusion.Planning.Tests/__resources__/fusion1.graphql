@@ -3,6 +3,7 @@ type Query {
         @fusion__field(schema: PRODUCTS)
 }
 
+
 type Product
     @fusion__type(schema: PRODUCTS)
     @fusion__type(schema: SHIPPING)
@@ -54,7 +55,6 @@ enum fusion__Schema {
 scalar fusion__FieldDefinition
 scalar fusion__FieldSelectionMap
 scalar fusion__FieldSelectionSet
-scalar fusion__Type
 
 directive @fusion__type(
   schema: fusion__Schema!
@@ -62,16 +62,16 @@ directive @fusion__type(
 
 directive @fusion__field(
   schema: fusion__Schema!
-  provides: FieldSelectionSet
   sourceName: String
-  sourceType: Type
+  sourceType: String
+  provides: fusion__FieldSelectionSet
   external: Boolean! = false
 ) repeatable on FIELD_DEFINITION
 
 directive @fusion__inputField(
   schema: fusion__Schema!
   sourceName: String
-  sourceType: Type
+  sourceType: String
 ) repeatable on INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
 
 directive @fusion__requires(
