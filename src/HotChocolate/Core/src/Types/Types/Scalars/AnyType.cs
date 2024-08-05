@@ -171,7 +171,11 @@ public class AnyType : ScalarType
                 return new ListValueNode(valueList);
             }
 
-            return ParseValue(_objectToDictConverter.Convert(value), set);
+            var valueNode = ParseValue(_objectToDictConverter.Convert(value), set);
+
+            set.Remove(value);
+
+            return valueNode;
         }
 
         throw new SerializationException(

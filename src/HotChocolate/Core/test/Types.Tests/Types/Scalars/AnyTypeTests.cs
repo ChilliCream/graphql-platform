@@ -15,13 +15,18 @@ public class AnyTypeTests
     public async Task Output_Return_Object()
     {
         // arrange
+        var foo = new Foo();
+        var bar = new Bar();
+        foo.Bar1 = bar;
+        foo.Bar2 = bar;
+
         var schema = SchemaBuilder.New()
             .AddQueryType(
                 d => d
                     .Name("Query")
                     .Field("foo")
                     .Type<AnyType>()
-                    .Resolve(_ => new Foo()))
+                    .Resolve(_ => foo))
             .Create();
 
         var executor = schema.MakeExecutable();
@@ -34,16 +39,48 @@ public class AnyTypeTests
     }
 
     [Fact]
+    public async Task Output_Return_ObjectCyclic()
+    {
+        // arrange
+        var fooCyclic = new FooCyclic();
+        var barCyclic = new BarCyclic();
+        fooCyclic.BarCyclic = barCyclic;
+        barCyclic.FooCyclic = fooCyclic;
+
+        var schema = SchemaBuilder.New()
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("fooCyclic")
+                    .Type<AnyType>()
+                    .Resolve(_ => fooCyclic))
+            .Create();
+
+        var executor = schema.MakeExecutable();
+
+        // act
+        var result = (await executor.ExecuteAsync("{ fooCyclic }")).ExpectQueryResult();
+
+        // assert
+        Assert.Equal("Cycle in object graph detected.", result.Errors?.Single().Exception?.Message);
+    }
+
+    [Fact]
     public async Task Output_Return_List()
     {
         // arrange
+        var foo = new Foo();
+        var bar = new Bar();
+        foo.Bar1 = bar;
+        foo.Bar2 = bar;
+
         var schema = SchemaBuilder.New()
             .AddQueryType(
                 d => d
                     .Name("Query")
                     .Field("foo")
                     .Type<AnyType>()
-                    .Resolve(_ => new List<Foo> { new(), new() }))
+                    .Resolve(_ => new List<Foo> { foo, foo }))
             .Create();
 
         var executor = schema.MakeExecutable();
@@ -53,6 +90,33 @@ public class AnyTypeTests
 
         // assert
         result.ToJson().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Output_Return_ListCyclic()
+    {
+        // arrange
+        var fooCyclic = new FooCyclic();
+        var barCyclic = new BarCyclic();
+        fooCyclic.BarCyclic = barCyclic;
+        barCyclic.FooCyclic = fooCyclic;
+
+        var schema = SchemaBuilder.New()
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("fooCyclic")
+                    .Type<AnyType>()
+                    .Resolve(_ => new List<FooCyclic> { fooCyclic, fooCyclic }))
+            .Create();
+
+        var executor = schema.MakeExecutable();
+
+        // act
+        var result = (await executor.ExecuteAsync("{ fooCyclic }")).ExpectQueryResult();
+
+        // assert
+        Assert.Equal("Cycle in object graph detected.", result.Errors?.Single().Exception?.Message);
     }
 
     [Fact]
@@ -1018,12 +1082,45 @@ public class AnyTypeTests
             .Create();
 
         var type = schema.GetType<AnyType>("Any");
+        var foo = new Foo();
+        var bar = new Bar();
+        foo.Bar1 = bar;
+        foo.Bar2 = bar;
 
         // act
-        var literal = type.ParseValue(new List<Foo> { new(), new() });
+        var literal = type.ParseValue(new List<Foo> { foo, foo });
 
         // assert
         Assert.IsType<ListValueNode>(literal);
+    }
+
+    [Fact]
+    public void ParseValue_List_Of_FooCyclic()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .Create();
+
+        var type = schema.GetType<AnyType>("Any");
+        var fooCyclic = new FooCyclic();
+        var barCyclic = new BarCyclic();
+        fooCyclic.BarCyclic = barCyclic;
+        barCyclic.FooCyclic = fooCyclic;
+
+        // act
+        void Act() => type.ParseValue(new List<FooCyclic> { fooCyclic, fooCyclic });
+
+        // assert
+        Assert.Equal(
+            "Cycle in object graph detected.",
+            Assert.Throws<GraphQLException>(Act).Message);
     }
 
     [Fact]
@@ -1070,6 +1167,35 @@ public class AnyTypeTests
 
         // assert
         Assert.IsType<ObjectValueNode>(literal);
+    }
+
+    [Fact]
+    public void ParseValue_FooCyclic()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .Create();
+
+        var type = schema.GetType<AnyType>("Any");
+        var fooCyclic = new FooCyclic();
+        var barCyclic = new BarCyclic();
+        fooCyclic.BarCyclic = barCyclic;
+        barCyclic.FooCyclic = fooCyclic;
+
+        // act
+        void Act() => type.ParseValue(fooCyclic);
+
+        // assert
+        Assert.Equal(
+            "Cycle in object graph detected.",
+            Assert.Throws<GraphQLException>(Act).Message);
     }
 
     [Fact]
@@ -1253,12 +1379,24 @@ public class AnyTypeTests
 
     public class Foo
     {
-        public Bar Bar { get; set; } = new Bar();
+        public Bar Bar1 { get; set; } = new Bar();
+
+        public Bar Bar2 { get; set; } = new Bar();
     }
 
     public class Bar
     {
         public string Baz { get; set; } = "Baz";
+    }
+
+    public class FooCyclic
+    {
+        public BarCyclic BarCyclic { get; set; }
+    }
+
+    public class BarCyclic
+    {
+        public FooCyclic FooCyclic { get; set; }
     }
 
     public record FooRecord

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Reflection;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Utilities;
 
@@ -139,8 +140,12 @@ internal class ObjectToDictionaryConverter
                     void SetField(object v) => current[name] = v;
                     VisitValue(value, SetField, processed);
                 }
+
+                processed.Remove(obj);
             }
         }
+
+        throw new GraphQLException(TypeResources.ObjectToDictionaryConverter_CycleInObjectGraph);
     }
 
     private void VisitList(
