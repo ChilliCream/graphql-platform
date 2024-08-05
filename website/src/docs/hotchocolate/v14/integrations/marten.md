@@ -27,7 +27,7 @@ services
     .AddMartenFiltering();
 ```
 
-[Learn more about filtering](/docs/hotchocolate/v13/fetching-data/filtering).
+[Learn more about filtering](/docs/hotchocolate/v14/fetching-data/filtering).
 
 # Sorting
 
@@ -40,14 +40,14 @@ services
     .AddMartenSorting();
 ```
 
-[Learn more about sorting](/docs/hotchocolate/v13/fetching-data/sorting).
+[Learn more about sorting](/docs/hotchocolate/v14/fetching-data/sorting).
 
 # Projections
 
 Projections work out of the box as expected with Marten. No custom configuration is needed.
-[Learn more about projections](/docs/hotchocolate/v13/fetching-data/projections).
+[Learn more about projections](/docs/hotchocolate/v14/fetching-data/projections).
 
 # Paging
 
 Pagination works out of the box as expected with Marten. No custom configuration is needed.
-[Learn more about pagination](/docs/hotchocolate/v13/fetching-data/pagination).
+[Learn more about pagination](/docs/hotchocolate/v14/fetching-data/pagination).

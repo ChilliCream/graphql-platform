@@ -152,7 +152,7 @@ services
     .AddNeo4JPagingProviders();
 ```
 
-[Learn more about pagination providers](/docs/hotchocolate/v13/fetching-data/pagination#providers)
+[Learn more about pagination providers](/docs/hotchocolate/v14/fetching-data/pagination#providers)
 
 ## Cursor Pagination
 

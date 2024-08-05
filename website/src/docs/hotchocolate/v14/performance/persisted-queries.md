@@ -18,7 +18,7 @@ Extracting queries is supported by client libraries like [Relay](https://relay.d
 - After the server has been deployed, clients can execute persisted queries, by specifying the query id (hash) in their requests.
 - If Hot Chocolate can find a query that matches the specified hash in the query storage it will execute it and return the result to the client.
 
-> Note: There are also [automatic persisted queries](/docs/hotchocolate/v13/performance/automatic-persisted-queries), which allow clients to persist queries at runtime. They might be a better fit, if our API is used by many clients with different requirements.
+> Note: There are also [automatic persisted queries](/docs/hotchocolate/v14/performance/automatic-persisted-queries), which allow clients to persist queries at runtime. They might be a better fit, if our API is used by many clients with different requirements.
 
 # Benefits
 
@@ -160,7 +160,7 @@ builder.Services
 
 This will block any dynamic queries that do not contain the `id` of a persisted query.
 
-You might still want to allow the execution of dynamic queries in certain circumstances. You can override the `OnlyAllowPersistedQueries` rule on a per-request basis, using the `AllowNonPersistedQuery` method on the `OperationRequestBuilder`. Simply implement a custom [IHttpRequestInterceptor](/docs/hotchocolate/v13/server/interceptors#ihttprequestinterceptor) and call `AllowNonPersistedQuery` if a certain condition is met:
+You might still want to allow the execution of dynamic queries in certain circumstances. You can override the `OnlyAllowPersistedQueries` rule on a per-request basis, using the `AllowNonPersistedQuery` method on the `OperationRequestBuilder`. Simply implement a custom [IHttpRequestInterceptor](/docs/hotchocolate/v14/server/interceptors#ihttprequestinterceptor) and call `AllowNonPersistedQuery` if a certain condition is met:
 
 ```csharp
 builder.Services
