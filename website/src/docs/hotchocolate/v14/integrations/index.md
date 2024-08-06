@@ -16,12 +16,6 @@ You will learn how to access MongoDB from within your resolvers and how to trans
 
 [Learn more about our MongoDB integration](/docs/hotchocolate/v14/integrations/mongodb)
 
-# Neo4J
-
-You will learn how to access Neo4J from within your resolvers and how to translate our pagination, projection, filtering and sorting capabilities to native Neo4J queries.
-
-[Learn more about our Neo4J integration](/docs/hotchocolate/v14/integrations/neo4j)
-
 # Spatial Data
 
 You will learn how you can expose [NetTopologySuite types](https://github.com/NetTopologySuite/NetTopologySuite) in form of [GeoJSON](https://geojson.org/) and how to integrate it with our data APIs.
