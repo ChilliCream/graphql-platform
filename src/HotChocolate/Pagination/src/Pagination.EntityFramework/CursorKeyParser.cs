@@ -57,37 +57,30 @@ internal sealed class CursorKeyParser : ExpressionVisitor
 
     private void PushProperty(MethodCallExpression node, bool ascending = true)
     {
-        if (TryExtractProperty(node, out var property))
+        if (TryExtractProperty(node, out var expression))
         {
-            var serializer = CursorKeySerializerRegistration.Find(property.PropertyType);
-            _keys.Insert(0, new CursorKey(property, serializer, ascending));
+            var serializer = CursorKeySerializerRegistration.Find(expression.ReturnType);
+            _keys.Insert(0, new CursorKey(expression, serializer, ascending));
         }
     }
 
     private static bool TryExtractProperty(
         MethodCallExpression node,
-        [NotNullWhen(true)] out PropertyInfo? property)
+        [NotNullWhen(true)] out LambdaExpression? expression)
     {
-        if (node.Arguments.Count == 2
-            && node.Arguments[1] is UnaryExpression u
-            && u.Operand is LambdaExpression l
-            && l.Body is MemberExpression m
-            && m.Member is PropertyInfo p)
+        if (node.Arguments is [_, UnaryExpression { Operand: LambdaExpression l }])
         {
-            property = p;
+            expression = l;
             return true;
         }
 
-        if (node.Arguments.Count == 2
-            && node.Arguments[1] is LambdaExpression l1
-            && l1.Body is MemberExpression m1
-            && m1.Member is PropertyInfo p1)
+        if (node.Arguments is [_, LambdaExpression l1])
         {
-            property = p1;
+            expression = l1;
             return true;
         }
 
-        property = null;
+        expression = null;
         return false;
     }
 }

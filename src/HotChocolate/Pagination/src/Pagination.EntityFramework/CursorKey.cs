@@ -1,25 +1,32 @@
+using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Pagination.Serialization;
 
 namespace HotChocolate.Pagination;
 
 internal sealed class CursorKey(
-    PropertyInfo property,
+    LambdaExpression expression,
     ICursorKeySerializer serializer,
     bool ascending = true)
 {
-    public PropertyInfo Property { get; } = property;
+    public LambdaExpression Expression { get; } = expression;
 
-    public MethodInfo CompareMethod { get; } = serializer.GetCompareToMethod(property.PropertyType);
+    public MethodInfo CompareMethod { get; } = serializer.GetCompareToMethod(expression.ReturnType);
 
     public bool Ascending { get; set; } = ascending;
 
-    public object Parse(ReadOnlySpan<byte> cursorValue)
-        => serializer.Parse(cursorValue);
+    public object? Parse(ReadOnlySpan<byte> cursorValue)
+        => CursorKeySerializerHelper.Parse(cursorValue, serializer);
 
     public bool TryFormat(object entity, Span<byte> buffer, out int written)
+        => CursorKeySerializerHelper.TryFormat(GetValue(entity), serializer, buffer, out written);
+
+    private Delegate? _compiled;
+
+    private object? GetValue(object entity)
     {
-        var key = Property.GetValue(entity)!;
-        return serializer.TryFormat(key, buffer, out written);
+        _compiled ??= Expression.Compile();
+
+        return _compiled.DynamicInvoke(entity);
     }
 }

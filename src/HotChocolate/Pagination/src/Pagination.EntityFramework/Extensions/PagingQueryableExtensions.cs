@@ -179,7 +179,7 @@ public static class PagingQueryableExtensions
 
     internal static Expression<Func<T, bool>> BuildWhereExpression<T>(
         CursorKey[] keys,
-        object[] cursor,
+        object?[] cursor,
         bool forward)
     {
         if (keys == null)
@@ -205,13 +205,13 @@ public static class PagingQueryableExtensions
         var cursorExpr = new Expression[cursor.Length];
         for (var i = 0; i < cursor.Length; i++)
         {
-            cursorExpr[i] = CreateParameter(cursor[i], keys[i].Property.PropertyType);
+            cursorExpr[i] = CreateParameter(cursor[i], keys[i].Expression.ReturnType);
         }
 
         var handled = new List<CursorKey>();
         Expression? expression = null;
 
-        var entity = Expression.Parameter(typeof(T), "t");
+        var parameter = Expression.Parameter(typeof(T), "t");
         var zero = Expression.Constant(0);
 
         for (var i = 0; i < keys.Length; i++)
@@ -227,7 +227,7 @@ public static class PagingQueryableExtensions
                 keyExpr =
                     Expression.Equal(
                         Expression.Call(
-                            Expression.Property(entity, handledKey.Property),
+                            ReplaceParameter(handledKey.Expression, parameter),
                             handledKey.CompareMethod,
                             cursorExpr[j]),
                         zero);
@@ -245,13 +245,13 @@ public static class PagingQueryableExtensions
                 greaterThan
                     ? Expression.GreaterThan(
                         Expression.Call(
-                            Expression.Property(entity, key.Property),
+                            ReplaceParameter(key.Expression, parameter),
                             key.CompareMethod,
                             cursorExpr[i]),
                         zero)
                     : Expression.LessThan(
                         Expression.Call(
-                            Expression.Property(entity, key.Property),
+                            ReplaceParameter(key.Expression, parameter),
                             key.CompareMethod,
                             cursorExpr[i]),
                         zero);
@@ -265,7 +265,7 @@ public static class PagingQueryableExtensions
             handled.Add(key);
         }
 
-        return Expression.Lambda<Func<T, bool>>(expression!, entity);
+        return Expression.Lambda<Func<T, bool>>(expression!, parameter);
     }
 
     private static Expression CreateParameter(object? value, Type type)
@@ -275,7 +275,7 @@ public static class PagingQueryableExtensions
             t =>
             {
                 var method = _createAndConvert.MakeGenericMethod(t);
-                return v => (Expression)method.Invoke(null, [v,])!;
+                return v => (Expression)method.Invoke(null, [v])!;
             });
 
         return converter(value);
@@ -285,5 +285,23 @@ public static class PagingQueryableExtensions
     {
         Expression<Func<T>> lambda = () => (T)value;
         return lambda.Body;
+    }
+
+    private static Expression ReplaceParameter(
+        LambdaExpression expression,
+        ParameterExpression replacement)
+    {
+        var visitor = new ReplaceParameterVisitor(expression.Parameters[0], replacement);
+        return visitor.Visit(expression.Body);
+    }
+
+
+    private class ReplaceParameterVisitor(ParameterExpression parameter, Expression replacement)
+        : ExpressionVisitor
+    {
+        protected override Expression VisitParameter(ParameterExpression node)
+        {
+            return node == parameter ? replacement : base.VisitParameter(node);
+        }
     }
 }

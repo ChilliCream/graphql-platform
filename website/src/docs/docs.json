@@ -278,10 +278,6 @@
                 "title": "MongoDB"
               },
               {
-                "path": "neo4j",
-                "title": "Neo4J"
-              },
-              {
                 "path": "spatial-data",
                 "title": "Spatial Data"
               },
