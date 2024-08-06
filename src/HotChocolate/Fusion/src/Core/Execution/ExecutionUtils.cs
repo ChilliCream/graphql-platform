@@ -121,6 +121,10 @@ internal static class ExecutionUtils
                 {
                     if (!result.IsInitialized)
                     {
+                        // we add a placeholder here so if the ComposeObject propagates an error
+                        // there is a value here.
+                        result.Set(responseName, null, nullable);
+
                         var value = ComposeObject(
                             context,
                             selectionSetResult,
