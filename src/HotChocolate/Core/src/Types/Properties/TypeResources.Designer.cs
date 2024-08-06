@@ -1448,6 +1448,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cycle in object graph detected..
+        /// </summary>
+        internal static string ObjectToDictionaryConverter_CycleInObjectGraph {
+            get {
+                return ResourceManager.GetString("ObjectToDictionaryConverter_CycleInObjectGraph", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The interface base class cannot be used as interface implementation declaration..
         /// </summary>
         internal static string ObjectTypeDescriptor_InterfaceBaseClass {

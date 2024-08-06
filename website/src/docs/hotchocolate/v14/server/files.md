@@ -95,7 +95,7 @@ Take a look at the Annotation-based or Code-first example.
 </Schema>
 </ExampleTabs>
 
-[Learn more about arguments](/docs/hotchocolate/v13/defining-a-schema/arguments)
+[Learn more about arguments](/docs/hotchocolate/v14/defining-a-schema/arguments)
 
 In input object types it can be used like the following.
 
@@ -136,11 +136,11 @@ Take a look at the Annotation-based or Code-first example.
 </Schema>
 </ExampleTabs>
 
-[Learn more about input object types](/docs/hotchocolate/v13/defining-a-schema/input-object-types)
+[Learn more about input object types](/docs/hotchocolate/v14/defining-a-schema/input-object-types)
 
 If you need to upload a list of files, it works exactly as you would expect. You just use a `List<IFile>` or `ListType<UploadType>`.
 
-[Learn more about lists](/docs/hotchocolate/v13/defining-a-schema/lists)
+[Learn more about lists](/docs/hotchocolate/v14/defining-a-schema/lists)
 
 ### Client usage
 
