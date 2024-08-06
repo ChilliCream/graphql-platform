@@ -65,7 +65,7 @@ descriptor
     });
 ```
 
-If you are trying to inject a Entity Framework Core `DbContext`, be sure to checkout our [guidance on working with Entity Framework Core](/docs/hotchocolate/v13/integrations/entity-framework).
+If you are trying to inject a Entity Framework Core `DbContext`, be sure to checkout our [guidance on working with Entity Framework Core](/docs/hotchocolate/v14/integrations/entity-framework).
 
 # Constructor injection
 
@@ -229,7 +229,7 @@ While Hot Chocolate's internals rely heavily on Microsoft's dependency injection
 
 You can switch out the service provider used for GraphQL requests, as long as your dependency injection container implements the [`IServiceProvider`](https://docs.microsoft.com/dotnet/api/system.iserviceprovider) interface.
 
-To switch out the service provider you need to call [`SetServices`](/docs/hotchocolate/v13/server/interceptors#setservices) on the [`OperationRequestBuilder`](/docs/hotchocolate/v13/server/interceptors#operationrequestbuilder) in both the [`IHttpRequestInterceptor`](/docs/hotchocolate/v13/server/interceptors#ihttprequestinterceptor) and the [`ISocketSessionInterceptor`](/docs/hotchocolate/v13/server/interceptors#isocketsessioninterceptor).
+To switch out the service provider you need to call [`SetServices`](/docs/hotchocolate/v14/server/interceptors#setservices) on the [`OperationRequestBuilder`](/docs/hotchocolate/v14/server/interceptors#operationrequestbuilder) in both the [`IHttpRequestInterceptor`](/docs/hotchocolate/v14/server/interceptors#ihttprequestinterceptor) and the [`ISocketSessionInterceptor`](/docs/hotchocolate/v14/server/interceptors#isocketsessioninterceptor).
 
 ```csharp
 public class HttpRequestInterceptor : DefaultHttpRequestInterceptor
@@ -270,4 +270,4 @@ services
     .AddSocketSessionInterceptor<SocketSessionInterceptor>();
 ```
 
-[Learn more about interceptors](/docs/hotchocolate/v13/server/interceptors)
+[Learn more about interceptors](/docs/hotchocolate/v14/server/interceptors)
