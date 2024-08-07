@@ -19,9 +19,6 @@
       "extensions": {
         "code": "HC0018"
       }
-    },
-    {
-      "message": "Internal Execution Error"
     }
   ],
   "data": null
