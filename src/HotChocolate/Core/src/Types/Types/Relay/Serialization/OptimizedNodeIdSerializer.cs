@@ -27,11 +27,13 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
     private readonly SpanSerializerMap _spanSerializerMap;
     private readonly INodeIdValueSerializer[] _serializers;
     private readonly int _maxIdLength;
+    private readonly bool _outputNewIdFormat;
 
     internal OptimizedNodeIdSerializer(
         IEnumerable<BoundNodeIdValueSerializer> boundSerializers,
         INodeIdValueSerializer[] allSerializers,
-        int maxIdLength = 1024)
+        int maxIdLength = 1024,
+        bool outputNewIdFormat = true)
     {
 #if NET8_0_OR_GREATER
         _stringSerializerMap =
@@ -48,18 +50,26 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
         }
 
         _maxIdLength = maxIdLength;
+        _outputNewIdFormat = outputNewIdFormat;
     }
 
     public string Format(string typeName, object internalId)
     {
-        if (typeName is null)
+        if (string.IsNullOrEmpty(typeName))
         {
-            throw new ArgumentNullException(nameof(typeName));
+            throw new ArgumentException(
+                "Value cannot be null or empty.",
+                nameof(typeName));
         }
 
         if (internalId is null)
         {
             throw new ArgumentNullException(nameof(internalId));
+        }
+
+        if (!_outputNewIdFormat)
+        {
+            return LegacyNodeIdSerializer.FormatInternal(typeName, internalId);
         }
 
         if (!_stringSerializerMap.TryGetValue(typeName, out var serializer))
