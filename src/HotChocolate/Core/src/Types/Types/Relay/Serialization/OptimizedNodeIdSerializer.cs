@@ -231,9 +231,10 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
         throw new NodeIdInvalidFormatException(ToString(formattedValue));
     }
 
+    private static readonly byte[] _delimiters = [_delimiter, _legacyDelimiter];
 #if NET8_0_OR_GREATER
     private static readonly SearchValues<byte>
-        _delimiterSearchValues = SearchValues.Create([_delimiter, _legacyDelimiter]);
+        _delimiterSearchValues = SearchValues.Create(_delimiters);
 #endif
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -242,7 +243,7 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
 #if NET8_0_OR_GREATER
         return span.IndexOfAny(_delimiterSearchValues);
 #else
-        return span.IndexOfAny([_delimiter, _legacyDelimiter]);
+        return span.IndexOfAny(_delimiters);
 #endif
     }
 
