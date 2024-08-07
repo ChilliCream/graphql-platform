@@ -6,16 +6,7 @@
 {
   "errors": [
     {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 2,
-          "column": 3
-        }
-      ],
-      "path": [
-        "productById"
-      ]
+      "message": "Internal Execution Error"
     }
   ],
   "data": {
