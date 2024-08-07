@@ -11,7 +11,8 @@ namespace HotChocolate.Types.Relay;
 
 public sealed class DefaultNodeIdSerializer(
     INodeIdValueSerializer[]? serializers = null,
-    int maxIdLength = 1024)
+    int maxIdLength = 1024,
+    bool outputNewIdFormat = true)
     : INodeIdSerializer
 {
     private const byte _delimiter = (byte)':';
@@ -40,6 +41,11 @@ public sealed class DefaultNodeIdSerializer(
         if (internalId == null)
         {
             throw new ArgumentNullException(nameof(internalId));
+        }
+
+        if (!outputNewIdFormat)
+        {
+            return LegacyNodeIdSerializer.FormatInternal(typeName, internalId);
         }
 
         var runtimeType = internalId.GetType();

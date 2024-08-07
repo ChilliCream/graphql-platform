@@ -28,6 +28,18 @@ public class DefaultNodeIdSerializerTests
     }
 
     [Fact]
+    public void Format_Small_StringId_Without_Outputting_New_Format()
+    {
+        var serializer = new DefaultNodeIdSerializer(
+            serializers: [new StringNodeIdValueSerializer()],
+            outputNewIdFormat: false);
+
+        var id = serializer.Format("Foo", "abc");
+
+        Assert.Equal("Rm9vCmRhYmM=", id);
+    }
+
+    [Fact]
     public void Parse_Small_StringId()
     {
         var lookup = new Mock<INodeIdRuntimeTypeLookup>();

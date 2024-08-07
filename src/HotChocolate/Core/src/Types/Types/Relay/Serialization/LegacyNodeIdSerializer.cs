@@ -21,6 +21,9 @@ internal sealed class LegacyNodeIdSerializer : INodeIdSerializer
     private static readonly Encoding _utf8 = Encoding.UTF8;
 
     public string Format(string typeName, object internalId)
+        => FormatInternal(typeName, internalId);
+
+    internal static string FormatInternal(string typeName, object internalId)
     {
         if (string.IsNullOrEmpty(typeName))
         {
@@ -186,7 +189,7 @@ internal sealed class LegacyNodeIdSerializer : INodeIdSerializer
         }
     }
 
-    internal static object ParseValueInternal(ReadOnlySpan<byte> formattedId)
+    private static object ParseValueInternal(ReadOnlySpan<byte> formattedId)
     {
         object value;
 
