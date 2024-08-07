@@ -5,7 +5,9 @@ using System.Threading.Tasks;
 using GreenDonut;
 using HotChocolate.ApolloFederation.Resolvers;
 using HotChocolate.ApolloFederation.Types;
+using HotChocolate.Execution;
 using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.ApolloFederation.TestHelper;
 
 namespace HotChocolate.ApolloFederation;
@@ -16,10 +18,11 @@ public class EntitiesResolverTests
     public async Task TestResolveViaForeignServiceType()
     {
         // arrange
-        var schema = SchemaBuilder.New()
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query>()
-            .Create();
+            .BuildSchemaAsync();
 
         var context = CreateResolverContext(schema);
 
@@ -42,13 +45,14 @@ public class EntitiesResolverTests
     }
 
     [Fact]
-    public async void TestResolveViaForeignServiceType_MixedTypes()
+    public async Task TestResolveViaForeignServiceType_MixedTypes()
     {
         // arrange
-        var schema = SchemaBuilder.New()
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query>()
-            .Create();
+            .BuildSchemaAsync();
 
         var context = CreateResolverContext(schema);
 
@@ -71,12 +75,13 @@ public class EntitiesResolverTests
     }
 
     [Fact]
-    public async void TestResolveViaEntityResolver()
+    public async Task TestResolveViaEntityResolver()
     {
-        var schema = SchemaBuilder.New()
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query>()
-            .Create();
+            .BuildSchemaAsync();
 
         var context = CreateResolverContext(schema);
 
@@ -95,16 +100,17 @@ public class EntitiesResolverTests
     }
 
     [Fact]
-    public async void TestResolveViaEntityResolver_WithDataLoader()
+    public async Task TestResolveViaEntityResolver_WithDataLoader()
     {
         // arrange
-        var schema = SchemaBuilder.New()
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query>()
-            .Create();
+            .BuildSchemaAsync();
 
         var batchScheduler = new ManualBatchScheduler();
-        var dataLoader = new FederatedTypeDataLoader(batchScheduler);
+        var dataLoader = new FederatedTypeDataLoader(batchScheduler, new DataLoaderOptions());
 
         var context = CreateResolverContext(schema,
             null,
@@ -130,12 +136,13 @@ public class EntitiesResolverTests
     }
 
     [Fact]
-    public async void TestResolveViaEntityResolver_NoTypeFound()
+    public async Task TestResolveViaEntityResolver_NoTypeFound()
     {
-        var schema = SchemaBuilder.New()
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query>()
-            .Create();
+            .BuildSchemaAsync();
 
         var context = CreateResolverContext(schema);
 
@@ -151,12 +158,13 @@ public class EntitiesResolverTests
     }
 
     [Fact]
-    public async void TestResolveViaEntityResolver_NoResolverFound()
+    public async Task TestResolveViaEntityResolver_NoResolverFound()
     {
-        var schema = SchemaBuilder.New()
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query>()
-            .Create();
+            .BuildSchemaAsync();
 
         var context = CreateResolverContext(schema);
 
@@ -174,11 +182,12 @@ public class EntitiesResolverTests
     [Fact]
     public async Task TestDetailFieldResolver_Required()
     {
-        var schema = SchemaBuilder.New()
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query>()
             .AddType<FederatedTypeWithRequiredDetail>()
-            .Create();
+            .BuildSchemaAsync();
 
         var context = CreateResolverContext(schema);
 
@@ -204,11 +213,12 @@ public class EntitiesResolverTests
     [Fact]
     public async Task TestDetailFieldResolver_Optional()
     {
-        var schema = SchemaBuilder.New()
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query>()
             .AddType<FederatedTypeWithOptionalDetail>()
-            .Create();
+            .BuildSchemaAsync();
 
         var context = CreateResolverContext(schema);
 
@@ -333,7 +343,7 @@ public class EntitiesResolverTests
 
         public FederatedTypeDataLoader(
             IBatchScheduler batchScheduler,
-            DataLoaderOptions? options = null) : base(batchScheduler, options)
+            DataLoaderOptions options) : base(batchScheduler, options)
         {
         }
 

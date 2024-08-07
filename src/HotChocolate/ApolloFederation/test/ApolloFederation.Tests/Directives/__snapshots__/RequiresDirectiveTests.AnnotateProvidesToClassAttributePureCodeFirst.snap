@@ -1,4 +1,4 @@
-﻿schema @link(url: "https:\/\/specs.apollo.dev\/federation\/v2.5", import: [ "@extends", "@external", "@key", "@inaccessible", "@override", "@provides", "@requires", "@shareable", "@tag", "FieldSet", "@composeDirective", "@interfaceObject", "@authenticated", "@requiresPolicy" ]) {
+﻿schema @link(url: "https:\/\/specs.apollo.dev\/federation\/v2.6", import: [ "@key", "@requires", "FieldSet" ]) {
   query: Query
 }
 
@@ -26,18 +26,16 @@ type _Service {
 union _Entity = Review
 
 "Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface."
-directive @key(fields: _FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
 
-directive @link(url: String! import: [String!]) repeatable on SCHEMA
-
-"Overrides fields resolution logic from other subgraph. Used for migrating fields from one subgraph to another."
-directive @override(from: String!) on FIELD_DEFINITION
+"Links definitions within the document to external schemas."
+directive @link("Gets imported specification url." url: String! "Gets optional list of imported element names." import: [String!]) repeatable on SCHEMA
 
 "Used to annotate the required input fieldset from a base type for a resolver."
-directive @requires(fields: _FieldSet!) on FIELD_DEFINITION
+directive @requires(fields: FieldSet!) on FIELD_DEFINITION
+
+"Scalar representing a set of fields."
+scalar FieldSet
 
 "The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema."
 scalar _Any
-
-"Scalar representing a set of fields."
-scalar _FieldSet

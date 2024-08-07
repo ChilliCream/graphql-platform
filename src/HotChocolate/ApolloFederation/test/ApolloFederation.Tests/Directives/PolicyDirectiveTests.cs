@@ -1,7 +1,8 @@
-using System.Linq;
-using HotChocolate.ApolloFederation.Constants;
+using HotChocolate.ApolloFederation.Support;
 using HotChocolate.ApolloFederation.Types;
+using HotChocolate.Execution;
 using HotChocolate.Types;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 
 namespace HotChocolate.ApolloFederation.Directives;
@@ -9,42 +10,16 @@ namespace HotChocolate.ApolloFederation.Directives;
 public class PolicyDirectiveTests : FederationTypesTestBase
 {
     [Fact]
-    public void PolicyDirectives_GetParsedCorrectly_SchemaFirst()
+    public async Task PolicyDirectives_GetAddedCorrectly_Annotations()
     {
         // arrange
         Snapshot.FullName();
 
-        var schema = SchemaBuilder.New()
-            .AddDocumentFromString(
-                """
-                    type Review @policy(policies: "p3") {
-                        id: Int!
-                    }
-
-                    type Query {
-                        someField(a: Int): Review @policy(policies: [["p1", "p1_1"], ["p2"]])
-                    }
-                """)
-            .AddDirectiveType<PolicyDirectiveType>()
-            .Use(_ => _ => default)
-            .Create();
-
-        CheckReviewType(schema);
-        CheckQueryType(schema);
-
-        schema.ToString().MatchSnapshot();
-    }
-
-    [Fact]
-    public void PolicyDirectives_GetAddedCorrectly_Annotations()
-    {
-        // arrange
-        Snapshot.FullName();
-
-        var schema = SchemaBuilder.New()
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query>()
-            .Create();
+            .BuildSchemaAsync();
 
         CheckReviewType(schema);
         CheckQueryType(schema);
@@ -53,7 +28,7 @@ public class PolicyDirectiveTests : FederationTypesTestBase
     }
 
     [Fact]
-    public void PolicyDirectives_GetAddedCorrectly_CodeFirst()
+    public async Task PolicyDirectives_GetAddedCorrectly_CodeFirst()
     {
         // arrange
         Snapshot.FullName();
@@ -73,15 +48,16 @@ public class PolicyDirectiveTests : FederationTypesTestBase
             d.Name(nameof(Query));
             d.Field("someField")
                 .Type(new NonNullType(reviewType))
-                .Policy([["p1", "p1_1"], ["p2"]])
+                .Policy(["p1,p1_1", "p2"])
                 .Resolve(_ => default);
         });
 
-        var schema = SchemaBuilder.New()
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
             .AddApolloFederation()
             .AddType(reviewType)
             .AddQueryType(queryType)
-            .Create();
+            .BuildSchemaAsync();
 
         CheckReviewType(schema);
         CheckQueryType(schema);
@@ -93,7 +69,7 @@ public class PolicyDirectiveTests : FederationTypesTestBase
     {
         foreach (var directive in directives)
         {
-            if (directive.Type.Name != WellKnownTypeNames.PolicyDirective)
+            if (directive.Type.Name != FederationTypeNames.PolicyDirective_Name)
             {
                 continue;
             }
@@ -102,7 +78,7 @@ public class PolicyDirectiveTests : FederationTypesTestBase
             return PolicyParsingHelper.ParseNode(argument.Value);
         }
 
-        Assert.True(false, "No policy directive found.");
+        Assert.Fail("No policy directive found.");
         return null!;
     }
 
@@ -139,15 +115,16 @@ public class PolicyDirectiveTests : FederationTypesTestBase
     }
 
     [Fact]
-    public void PolicyDirective_GetsAddedCorrectly_Annotations()
+    public async Task PolicyDirective_GetsAddedCorrectly_Annotations()
     {
         // arrange
         Snapshot.FullName();
 
-        var schema = SchemaBuilder.New()
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query>()
-            .Create();
+            .BuildSchemaAsync();
 
         // act
         CheckQueryType(schema);
@@ -157,12 +134,12 @@ public class PolicyDirectiveTests : FederationTypesTestBase
 
     public class Query
     {
-        [Policy("p1,p1_1", "p2")]
+        [Policy(["p1,p1_1", "p2"])]
         public Review SomeField(int id) => default!;
     }
 
     [Key("id")]
-    [Policy("p3")]
+    [Policy(["p3"])]
     public class Review
     {
         public int Id { get; set; }

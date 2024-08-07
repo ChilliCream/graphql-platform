@@ -38,4 +38,23 @@ public sealed class PolicyType : ScalarType<Policy, StringValueNode>
 
     protected override StringValueNode ParseValue(Policy runtimeValue)
         => new(runtimeValue.Value);
+
+    /// <inheritdoc />
+    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+    {
+        if (runtimeValue is null)
+        {
+            resultValue = null;
+            return true;
+        }
+
+        if (runtimeValue is Policy policy)
+        {
+            resultValue = policy.Value;
+            return true;
+        }
+
+        resultValue = null;
+        return false;
+    }
 }

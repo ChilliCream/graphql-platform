@@ -1,11 +1,10 @@
-using HotChocolate.ApolloFederation.Constants;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using AnyType = HotChocolate.ApolloFederation.Types.AnyType;
+using AnyType = HotChocolate.ApolloFederation.Types._AnyType;
 
 namespace HotChocolate.ApolloFederation;
 
-public class AnyTypeTests
+public class _AnyTypeTests
 {
     [Fact]
     public void Ensure_Type_Name_Is_Correct()
@@ -15,7 +14,7 @@ public class AnyTypeTests
         var type = new AnyType();
 
         // assert
-        Assert.Equal(WellKnownTypeNames.Any, type.Name);
+        Assert.Equal(FederationTypeNames.AnyType_Name, type.Name);
     }
 
     [Fact]
