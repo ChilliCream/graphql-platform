@@ -13,7 +13,6 @@ internal partial class MiddlewareContext
 {
     private sealed class PureResolverContext(MiddlewareContext parentContext) : IResolverContext
     {
-        private ITypeConverter? _typeConverter;
         private IReadOnlyDictionary<string, ArgumentValue> _argumentValues = default!;
         private ISelection _selection = default!;
         private ObjectType _parentType = default!;
@@ -66,6 +65,10 @@ internal partial class MiddlewareContext
         public Path Path => PathHelper.CreatePathFromContext(_selection, _parentResult, -1);
 
         public CancellationToken RequestAborted => parentContext.RequestAborted;
+
+        public InputParser Parser => parentContext.Parser;
+
+        public ITypeConverter Converter => parentContext.Converter;
 
         public void ReportError(string errorMessage)
             => throw new NotSupportedException();
@@ -238,12 +241,7 @@ internal partial class MiddlewareContext
                 return default!;
             }
 
-            _typeConverter ??=
-                parentContext.Services.GetService<ITypeConverter>() ??
-                DefaultTypeConverter.Default;
-
-            if (value is T castedValue ||
-                _typeConverter.TryConvert(value, out castedValue))
+            if (value is T castedValue || Converter.TryConvert(value, out castedValue))
             {
                 return castedValue;
             }
@@ -261,7 +259,7 @@ internal partial class MiddlewareContext
             // and creating from this the object.
             if (value is IReadOnlyDictionary<string, object> || value is IReadOnlyList<object>)
             {
-                var dictToObjConverter = new DictionaryToObjectConverter(_typeConverter);
+                var dictToObjConverter = new DictionaryToObjectConverter(Converter);
 
                 if (typeof(T).IsInterface)
                 {

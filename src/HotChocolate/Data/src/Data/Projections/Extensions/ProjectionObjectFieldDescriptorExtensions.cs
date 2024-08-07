@@ -9,6 +9,7 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 using static HotChocolate.Data.DataResources;
 using static HotChocolate.Data.Projections.ProjectionProvider;
 using static HotChocolate.Execution.Processing.OperationCompilerOptimizerHelper;
@@ -307,6 +308,10 @@ public static class ProjectionObjectFieldDescriptorExtensions
         public bool IsResultModified => _context.IsResultModified;
 
         public CancellationToken RequestAborted => _context.RequestAborted;
+
+        public InputParser Parser => _context.Parser;
+
+        public ITypeConverter Converter => _context.Converter;
 
         public T Parent<T>() => _context.Parent<T>();
 
