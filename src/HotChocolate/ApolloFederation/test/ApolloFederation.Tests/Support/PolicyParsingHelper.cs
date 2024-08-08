@@ -20,10 +20,8 @@ internal static class PolicyParsingHelper
         }
 
         return innerList.Items
-                .OfType<ObjectValueNode>()
-                .SelectMany(
-                    i => i.Fields,
-                    (_, f) => ((StringValueNode)f.Value).Value.Split(","))
-                .ToArray();
+            .OfType<StringValueNode>()
+            .Select(t => t.Value.Split(',').Select(a => a.Trim()).ToArray())
+            .ToArray();
     }
 }

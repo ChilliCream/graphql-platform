@@ -39,5 +39,7 @@ public sealed class PolicyDirective(List<IReadOnlySet<Policy>> policies)
     /// <summary>
     /// Retrieves list of a list of authorization policies to evaluate.
     /// </summary>
+    [GraphQLType("[[String!]!]!")]
     public List<IReadOnlySet<Policy>> Policies { get; } = policies;
 }
+
