@@ -160,7 +160,9 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
                     context.Result,
                     context.ErrorHandler,
                     response.Errors,
+                    response.TransportException,
                     batchState.SelectionSetResult,
+                    SelectionSet,
                     pathLength + 1,
                     context.ShowDebugInfo);
                 first = false;

@@ -6,6 +6,48 @@
 {
   "errors": [
     {
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 3,
+          "column": 5
+        }
+      ],
+      "path": [
+        "products",
+        0,
+        "id"
+      ]
+    },
+    {
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 4,
+          "column": 5
+        }
+      ],
+      "path": [
+        "products",
+        0,
+        "name"
+      ]
+    },
+    {
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 5,
+          "column": 5
+        }
+      ],
+      "path": [
+        "products",
+        0,
+        "price"
+      ]
+    },
+    {
       "message": "Cannot return null for non-nullable field.",
       "locations": [
         {
@@ -38,26 +80,6 @@
       "extensions": {
         "code": "HC0018"
       }
-    },
-    {
-      "message": "Cannot return null for non-nullable field.",
-      "locations": [
-        {
-          "line": 5,
-          "column": 5
-        }
-      ],
-      "path": [
-        "products",
-        0,
-        "price"
-      ],
-      "extensions": {
-        "code": "HC0018"
-      }
-    },
-    {
-      "message": "Internal Execution Error"
     }
   ],
   "data": {

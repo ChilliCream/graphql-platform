@@ -135,7 +135,8 @@ public sealed class GraphQLHttpResponse : IDisposable
         }
 
         // if the media type is anything else we will return a transport error.
-        return new ValueTask<OperationResult>(_transportError);
+        // return new ValueTask<OperationResult>(_transportError);
+        throw new Exception("TODO: Invalid content type");
     }
 
 #if NET6_0_OR_GREATER

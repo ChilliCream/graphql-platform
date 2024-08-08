@@ -96,8 +96,8 @@ internal static class ExecutionUtils
 
                     result.Set(responseName, value, nullable);
 
-                    if (value.ValueKind is JsonValueKind.String
-                        && (selection.CustomOptions & _reEncodeIdFlag) == _reEncodeIdFlag)
+                    if (value.ValueKind is JsonValueKind.String &&
+                        (selection.CustomOptions & _reEncodeIdFlag) == _reEncodeIdFlag)
                     {
                         var subgraphName = data.Single.SubgraphName;
                         var reformattedId = context.ReformatId(value.GetString()!, subgraphName);
@@ -267,8 +267,8 @@ internal static class ExecutionUtils
                 return null;
             }
 
-            if (value.ValueKind is JsonValueKind.String
-                && (selection.CustomOptions & _reEncodeIdFlag) == _reEncodeIdFlag)
+            if (value.ValueKind is JsonValueKind.String &&
+                (selection.CustomOptions & _reEncodeIdFlag) == _reEncodeIdFlag)
             {
                 var subgraphName = selectionData.Single.SubgraphName;
                 return context.ReformatId(value.GetString()!, subgraphName);
@@ -500,19 +500,34 @@ internal static class ExecutionUtils
         ResultBuilder resultBuilder,
         IErrorHandler errorHandler,
         JsonElement errors,
+        Exception? transportException,
         ObjectResult selectionSetResult,
+        SelectionSet selectionSet,
         int pathDepth,
         bool addDebugInfo)
     {
-        if (errors.ValueKind is not JsonValueKind.Array)
+        if (transportException is not null)
         {
-            return;
-        }
+            foreach (var selection in selectionSet.Selections)
+            {
+                var errorBuilder = errorHandler.CreateUnexpectedError(transportException);
+                
+                var error = errorHandler.Handle(errorBuilder
+                    .AddLocation(selection.SyntaxNode)
+                    .SetPath(PathHelper.CreatePathFromContext(selection, selectionSetResult, 0))
+                    .Build());
 
-        var path = PathHelper.CreatePathFromContext(selectionSetResult);
-        foreach (var error in errors.EnumerateArray())
+                resultBuilder.AddError(error);
+            }
+        }
+        else if (errors.ValueKind is JsonValueKind.Array)
         {
-            ExtractError(document, operation, resultBuilder, errorHandler, error, path, pathDepth, addDebugInfo);
+            var parentPath = PathHelper.CreatePathFromContext(selectionSetResult);
+
+            foreach (var error in errors.EnumerateArray())
+            {
+                ExtractError(document, operation, resultBuilder, errorHandler, error, parentPath, pathDepth, addDebugInfo);
+            }
         }
     }
 
@@ -564,16 +579,16 @@ internal static class ExecutionUtils
                 }
             }
 
-            if (field is null
-                && error.TryGetProperty("locations", out var locations)
-                && locations.ValueKind is JsonValueKind.Array)
+            if (field is null &&
+                error.TryGetProperty("locations", out var locations) &&
+                locations.ValueKind is JsonValueKind.Array)
             {
                 foreach (var location in locations.EnumerateArray())
                 {
-                    if (location.TryGetProperty("line", out var lineValue)
-                        && location.TryGetProperty("column", out var columnValue)
-                        && lineValue.TryGetInt32(out var line)
-                        && columnValue.TryGetInt32(out var column))
+                    if (location.TryGetProperty("line", out var lineValue) &&
+                        location.TryGetProperty("column", out var columnValue) &&
+                        lineValue.TryGetInt32(out var line) &&
+                        columnValue.TryGetInt32(out var column))
                     {
                         errorBuilder.AddLocation(line, column);
                     }
@@ -724,7 +739,7 @@ internal static class ExecutionUtils
 
             Visit(operation, context);
 
-            var field =  context.Field;
+            var field = context.Field;
 
             context.Reset();
             Interlocked.Exchange(ref _errorPathContext, context);
