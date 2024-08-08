@@ -1,5 +1,13 @@
-﻿var builder = App.CreateBuilder();
+namespace HotChocolate.Fusion.CommandLine;
 
-var app = builder.Build();
+public static class Program
+{
+    public static async Task<int> Main(string[] args)
+    {
+        var builder = App.CreateBuilder();
 
-await app.InvokeAsync(args);
+        var app = builder.Build();
+
+        return await app.InvokeAsync(args);
+    }
+}
