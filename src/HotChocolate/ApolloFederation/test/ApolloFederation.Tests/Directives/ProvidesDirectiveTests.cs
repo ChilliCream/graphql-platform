@@ -1,8 +1,8 @@
+using CookieCrumble;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.ApolloFederation.Directives;
 
@@ -12,8 +12,6 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
     public async Task AnnotateProvidesToFieldCodeFirst()
     {
         // arrange
-        Snapshot.FullName();
-
         var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddApolloFederation()
@@ -64,15 +62,13 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
                     providesDirective.AsSyntaxNode().Arguments[0].Value.ToString());
             });
 
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task AnnotateProvidesToClassAttributePureCodeFirst()
     {
         // arrange
-        Snapshot.FullName();
-
         var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddApolloFederation()
@@ -98,7 +94,7 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
                     providesDirective.AsSyntaxNode().Arguments[0].Value.ToString());
             });
 
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     public class Query

@@ -1,20 +1,20 @@
-﻿schema @link(url: "https:\/\/specs.apollo.dev\/federation\/v2.6", import: [ "@provides", "@key", "FieldSet" ]) {
+schema @link(url: "https:\/\/specs.apollo.dev\/federation\/v2.6", import: [ "@key", "@requires", "FieldSet" ]) {
   query: Query
 }
 
 type Product {
-  name: String
+  name: String!
 }
 
 type Query {
-  someField(a: Int): Review
+  someField(id: Int!): Review!
   _service: _Service!
   _entities(representations: [_Any!]!): [_Entity]!
 }
 
 type Review @key(fields: "id") {
-  id: Int
-  product: Product @provides(fields: "name")
+  id: Int!
+  product: Product! @requires(fields: "id")
 }
 
 "This type provides a field named sdl: String! which exposes the SDL of the service's schema. This SDL (schema definition language) is a printed version of the service's schema including the annotations of federation directives. This SDL does not include the additions of the federation spec."
@@ -31,8 +31,8 @@ directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJEC
 "Links definitions within the document to external schemas."
 directive @link("Gets imported specification url." url: String! "Gets optional list of imported element names." import: [String!]) repeatable on SCHEMA
 
-"Used to annotate the expected returned fieldset from a field on a base type that is guaranteed to be selectable by the federation gateway."
-directive @provides(fields: FieldSet!) on FIELD_DEFINITION
+"Used to annotate the required input fieldset from a base type for a resolver."
+directive @requires(fields: FieldSet!) on FIELD_DEFINITION
 
 "Scalar representing a set of fields."
 scalar FieldSet

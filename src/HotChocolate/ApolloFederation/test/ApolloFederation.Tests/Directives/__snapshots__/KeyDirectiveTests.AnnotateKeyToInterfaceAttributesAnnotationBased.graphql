@@ -1,5 +1,9 @@
-﻿schema @link(url: "https:\/\/specs.apollo.dev\/federation\/v2.6", import: [ "@key", "FieldSet" ]) {
+schema @link(url: "https:\/\/specs.apollo.dev\/federation\/v2.6", import: [ "@key", "FieldSet" ]) {
   query: QueryOfTestTypeClassDirective
+}
+
+interface ITestTypeInterfaceDirective @key(fields: "id") {
+  id: Int!
 }
 
 type QueryOfTestTypeClassDirective {
@@ -8,7 +12,7 @@ type QueryOfTestTypeClassDirective {
   _entities(representations: [_Any!]!): [_Entity]!
 }
 
-type TestTypeClassDirective @key(fields: "id") {
+type TestTypeClassDirective implements ITestTypeInterfaceDirective @key(fields: "id") {
   id: Int!
 }
 

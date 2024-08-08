@@ -1,22 +1,20 @@
-﻿schema @link(url: "https:\/\/specs.apollo.dev\/federation\/v2.6", import: [ "@external", "@key", "FieldSet" ]) {
+schema @link(url: "https:\/\/specs.apollo.dev\/federation\/v2.6", import: [ "@provides", "@key", "FieldSet" ]) {
   query: Query
 }
 
-type Address @external {
-  street: String
-  city: String
+type Product {
+  name: String
 }
 
 type Query {
-  entity(id: Int): User
+  someField(a: Int): Review
   _service: _Service!
   _entities(representations: [_Any!]!): [_Entity]!
 }
 
-type User @key(fields: "id") {
+type Review @key(fields: "id") {
   id: Int
-  idCode: String @external
-  address: Address @external
+  product: Product @provides(fields: "name")
 }
 
 "This type provides a field named sdl: String! which exposes the SDL of the service's schema. This SDL (schema definition language) is a printed version of the service's schema including the annotations of federation directives. This SDL does not include the additions of the federation spec."
@@ -25,16 +23,16 @@ type _Service {
 }
 
 "Union of all types that key directive applied. This information is needed by the Apollo federation gateway."
-union _Entity = User
-
-"Directive to indicate that a field is owned by another service, for example via Apollo federation."
-directive @external on OBJECT | FIELD_DEFINITION
+union _Entity = Review
 
 "Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface."
 directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
 
 "Links definitions within the document to external schemas."
 directive @link("Gets imported specification url." url: String! "Gets optional list of imported element names." import: [String!]) repeatable on SCHEMA
+
+"Used to annotate the expected returned fieldset from a field on a base type that is guaranteed to be selectable by the federation gateway."
+directive @provides(fields: FieldSet!) on FIELD_DEFINITION
 
 "Scalar representing a set of fields."
 scalar FieldSet
