@@ -7,10 +7,10 @@ using HotChocolate.Types;
 
 namespace HotChocolate.ApolloFederation.Directives;
 
-public class PolicyDirectiveTests : FederationTypesTestBase
+public class RequiresScopesDirectiveTests : FederationTypesTestBase
 {
     [Fact]
-    public async Task PolicyDirectives_GetAddedCorrectly_Annotations()
+    public async Task RequiresScopesDirectives_GetAddedCorrectly_Annotations()
     {
         // arrange
         var schema = await new ServiceCollection()
@@ -26,7 +26,7 @@ public class PolicyDirectiveTests : FederationTypesTestBase
     }
 
     [Fact]
-    public async Task PolicyDirectives_GetAddedCorrectly_CodeFirst()
+    public async Task RequiresScopesDirectives_GetAddedCorrectly_CodeFirst()
     {
         // arrange
         var reviewType = new ObjectType<Review>(d =>
@@ -44,7 +44,7 @@ public class PolicyDirectiveTests : FederationTypesTestBase
             d.Name(nameof(Query));
             d.Field("someField")
                 .Type(new NonNullType(reviewType))
-                .Policy(["p1,p1_1", "p2"])
+                .RequiresScopes(["s1,s1_1", "s2"])
                 .Resolve(_ => default);
         });
 
@@ -61,20 +61,20 @@ public class PolicyDirectiveTests : FederationTypesTestBase
         schema.MatchSnapshot();
     }
 
-    private static string[][] GetSinglePoliciesArgument(IDirectiveCollection directives)
+    private static string[][] GetSingleRequiresScopesArgument(IDirectiveCollection directives)
     {
         foreach (var directive in directives)
         {
-            if (directive.Type.Name != FederationTypeNames.PolicyDirective_Name)
+            if (directive.Type.Name != FederationTypeNames.RequiresScopesDirective_Name)
             {
                 continue;
             }
 
             var argument = directive.AsSyntaxNode().Arguments.Single();
-            return ParsingHelper.ParsePolicyDirectiveNode(argument.Value);
+            return ParsingHelper.ParseRequiresScopesDirectiveNode(argument.Value);
         }
 
-        Assert.Fail("No policy directive found.");
+        Assert.Fail("No requires scopes directive found.");
         return null!;
     }
 
@@ -85,29 +85,29 @@ public class PolicyDirectiveTests : FederationTypesTestBase
             .Fields
             .Single(f => f.Name == "someField")
             .Directives;
-        var policyCollection = GetSinglePoliciesArgument(directives);
+        var requiresCollection = GetSingleRequiresScopesArgument(directives);
 
         Assert.Collection(
-            policyCollection,
+            requiresCollection,
             t1 =>
             {
-                Assert.Equal("p1", t1[0]);
-                Assert.Equal("p1_1", t1[1]);
+                Assert.Equal("s1", t1[0]);
+                Assert.Equal("s1_1", t1[1]);
             },
-            t2 => Assert.Equal("p2", t2[0]));
+            t2 => Assert.Equal("s2", t2[0]));
     }
 
     private static void CheckReviewType(ISchema schema)
     {
         var testType = schema.GetType<ObjectType>(nameof(Review));
         var directives = testType.Directives;
-        var policyCollection = GetSinglePoliciesArgument(directives);
-        var t1 = Assert.Single(policyCollection);
-        Assert.Equal("p3", t1[0]);
+        var requiresCollection = GetSingleRequiresScopesArgument(directives);
+        var t1 = Assert.Single(requiresCollection);
+        Assert.Equal("s3", t1[0]);
     }
 
     [Fact]
-    public async Task PolicyDirective_GetsAddedCorrectly_Annotations()
+    public async Task RequiresScopesDirective_GetsAddedCorrectly_Annotations()
     {
         // arrange
         var schema = await new ServiceCollection()
@@ -123,12 +123,12 @@ public class PolicyDirectiveTests : FederationTypesTestBase
 
     public class Query
     {
-        [Policy(["p1, p1_1", "p2"])]
+        [RequiresScopes(["s1, s1_1", "s2"])]
         public Review SomeField(int id) => default!;
     }
 
     [Key("id")]
-    [Policy(["p3"])]
+    [RequiresScopes(["s3"])]
     public class Review
     {
         public int Id { get; set; }

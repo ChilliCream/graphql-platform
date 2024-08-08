@@ -35,6 +35,9 @@ public static class ApolloFederationRequestExecutorBuilderExtensions
         builder.BindRuntimeType<Policy, StringType>();
         builder.AddTypeConverter<Policy, string>(from => from.Value);
         builder.AddTypeConverter<string, Policy>(from => new Policy(from));
+        builder.BindRuntimeType<Scope, StringType>();
+        builder.AddTypeConverter<Scope, string>(from => from.Value);
+        builder.AddTypeConverter<string, Scope>(from => new Scope(from));
         return builder;
     }
 }

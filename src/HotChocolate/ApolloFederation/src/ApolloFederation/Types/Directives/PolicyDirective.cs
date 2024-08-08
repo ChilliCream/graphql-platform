@@ -23,7 +23,7 @@ namespace HotChocolate.ApolloFederation.Types;
 /// </example>
 /// </summary>
 /// <param name="policies">
-/// List of a list of of authorization policies to evaluate.
+/// List of a list of authorization policies to evaluate.
 /// </param>
 [Package(FederationVersionUrls.Federation26)]
 [DirectiveType(
@@ -42,4 +42,3 @@ public sealed class PolicyDirective(List<IReadOnlySet<Policy>> policies)
     [GraphQLType("[[String!]!]!")]
     public List<IReadOnlySet<Policy>> Policies { get; } = policies;
 }
-
