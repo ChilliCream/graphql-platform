@@ -1,9 +1,9 @@
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.ApolloFederation.Support;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Execution;
 using HotChocolate.Types;
-using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
+using CookieCrumble;
 
 namespace HotChocolate.ApolloFederation.Directives;
 
@@ -13,8 +13,6 @@ public class PolicyDirectiveTests : FederationTypesTestBase
     public async Task PolicyDirectives_GetAddedCorrectly_Annotations()
     {
         // arrange
-        Snapshot.FullName();
-
         var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddApolloFederation()
@@ -24,15 +22,13 @@ public class PolicyDirectiveTests : FederationTypesTestBase
         CheckReviewType(schema);
         CheckQueryType(schema);
 
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task PolicyDirectives_GetAddedCorrectly_CodeFirst()
     {
         // arrange
-        Snapshot.FullName();
-
         var reviewType = new ObjectType<Review>(d =>
         {
             d.Name(nameof(Review));
@@ -62,7 +58,7 @@ public class PolicyDirectiveTests : FederationTypesTestBase
         CheckReviewType(schema);
         CheckQueryType(schema);
 
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     private static string[][] GetSinglePoliciesArgument(IDirectiveCollection directives)
@@ -90,16 +86,15 @@ public class PolicyDirectiveTests : FederationTypesTestBase
             .Single(f => f.Name == "someField")
             .Directives;
         var policyCollection = GetSinglePoliciesArgument(directives);
-        Assert.Collection(policyCollection,
+
+        Assert.Collection(
+            policyCollection,
             t1 =>
             {
                 Assert.Equal("p1", t1[0]);
                 Assert.Equal("p1_1", t1[1]);
             },
-            t2 =>
-            {
-                Assert.Equal("p2", t2[0]);
-            });
+            t2 => Assert.Equal("p2", t2[0]));
     }
 
     private static void CheckReviewType(ISchema schema)
@@ -107,19 +102,14 @@ public class PolicyDirectiveTests : FederationTypesTestBase
         var testType = schema.GetType<ObjectType>(nameof(Review));
         var directives = testType.Directives;
         var policyCollection = GetSinglePoliciesArgument(directives);
-        Assert.Collection(policyCollection,
-            t1 =>
-            {
-                Assert.Equal("p3", t1[0]);
-            });
+        var t1 = Assert.Single(policyCollection);
+        Assert.Equal("p3", t1[0]);
     }
 
     [Fact]
     public async Task PolicyDirective_GetsAddedCorrectly_Annotations()
     {
         // arrange
-        Snapshot.FullName();
-
         var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddApolloFederation()
@@ -128,8 +118,7 @@ public class PolicyDirectiveTests : FederationTypesTestBase
 
         // act
         CheckQueryType(schema);
-
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     public class Query
