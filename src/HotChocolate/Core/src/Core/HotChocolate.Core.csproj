@@ -6,7 +6,6 @@
     <RootNamespace>HotChocolate</RootNamespace>
     <Description>Contains the Hot Chocolate GraphQL query execution engine and query validation.</Description>
     <NoWarn>$(NoWarn);NU5128</NoWarn>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

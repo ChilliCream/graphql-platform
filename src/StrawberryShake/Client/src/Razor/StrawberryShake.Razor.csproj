@@ -4,7 +4,6 @@
     <PackageId>StrawberryShake.Razor</PackageId>
     <AssemblyName>StrawberryShake.Razor</AssemblyName>
     <RootNamespace>StrawberryShake.Razor</RootNamespace>
-    <Nullable>enable</Nullable>
     <Description>Provides razor components for using StrawberryShake.</Description>
     <TargetFrameworks>net8.0; net7.0; net6.0</TargetFrameworks>
   </PropertyGroup>

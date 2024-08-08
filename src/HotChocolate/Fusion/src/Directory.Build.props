@@ -4,7 +4,6 @@
 
   <PropertyGroup>
     <NoWarn>$(NoWarn);CA1812</NoWarn>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
 </Project>

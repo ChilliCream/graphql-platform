@@ -3,7 +3,6 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Fusion.Composition</AssemblyName>
     <RootNamespace>HotChocolate.Fusion.Composition</RootNamespace>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup>

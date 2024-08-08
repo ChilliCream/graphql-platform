@@ -12,8 +12,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 using static System.Net.WebSockets.WebSocketCloseStatus;
 
-#nullable enable
-
 namespace HotChocolate.AspNetCore.Subscriptions.GraphQLOverWebSocket;
 
 public class WebSocketProtocolTests : SubscriptionTestBase

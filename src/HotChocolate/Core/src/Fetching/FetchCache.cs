@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace HotChocolate.Fetching;
 
 public delegate Task<TValue> FetchCache<in TKey, TValue>(

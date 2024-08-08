@@ -5,7 +5,6 @@
     <AssemblyName>HotChocolate.AzureFunctions</AssemblyName>
     <RootNamespace>HotChocolate.AzureFunctions</RootNamespace>
     <Description>This package contains the GraphQL AzureFunctions integration for Hot Chocolate.</Description>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

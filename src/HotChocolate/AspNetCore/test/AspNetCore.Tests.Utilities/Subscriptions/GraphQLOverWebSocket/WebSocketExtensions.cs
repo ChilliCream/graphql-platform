@@ -6,8 +6,6 @@ using HotChocolate.Transport.Sockets;
 using HotChocolate.Utilities;
 using static HotChocolate.Language.Utf8GraphQLRequestParser;
 
-#nullable enable
-
 namespace HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.GraphQLOverWebSocket;
 
 public static class WebSocketExtensions

@@ -414,8 +414,6 @@ public class ExtendedTypeTests
         public TK Foo { get; set; } = default!;
     }
 
-#nullable enable
-
     public class Nullability
     {
         public Nullable<Optional<string?>> NullableOptionalNullableString() =>
@@ -431,6 +429,4 @@ public class ExtendedTypeTests
             public string? Value { get; set; }
         }
     }
-
-#nullable disable
 }

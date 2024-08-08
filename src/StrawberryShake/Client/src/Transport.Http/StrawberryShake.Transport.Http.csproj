@@ -4,7 +4,6 @@
     <PackageId>StrawberryShake.Transport.Http</PackageId>
     <AssemblyName>StrawberryShake.Transport.Http</AssemblyName>
     <RootNamespace>StrawberryShake.Transport.Http</RootNamespace>
-    <Nullable>enable</Nullable>
     <Description>GraphQL over HTTP transport implementation for StrawberryShake GraphQL clients.</Description>
   </PropertyGroup>
 

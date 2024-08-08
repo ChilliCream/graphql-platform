@@ -6,10 +6,6 @@
     <RootNamespace>HotChocolate.Execution</RootNamespace>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Abstractions\HotChocolate.Abstractions.csproj" />
   </ItemGroup>

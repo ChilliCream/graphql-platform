@@ -1,5 +1,3 @@
-#nullable enable
-
 using HotChocolate.ApolloFederation.Resolvers;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;

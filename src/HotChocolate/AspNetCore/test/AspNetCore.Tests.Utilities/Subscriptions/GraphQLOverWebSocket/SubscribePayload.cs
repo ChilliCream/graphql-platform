@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.GraphQLOverWebSocket;
 
 public sealed class SubscribePayload

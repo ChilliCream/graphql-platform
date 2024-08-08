@@ -1,10 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <PackageId>HotChocolate.Types.Queries</PackageId>
   <AssemblyName>HotChocolate.Types.Queries</AssemblyName>
     <RootNamespace>HotChocolate.Types</RootNamespace>

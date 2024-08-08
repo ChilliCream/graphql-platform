@@ -3,6 +3,7 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Utilities.Introspection.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Utilities.Introspection</RootNamespace>
+    <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

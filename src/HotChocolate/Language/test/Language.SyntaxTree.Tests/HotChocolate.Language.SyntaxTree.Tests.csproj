@@ -3,7 +3,6 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Language.SyntaxTree.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Language.SyntaxTree</RootNamespace>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

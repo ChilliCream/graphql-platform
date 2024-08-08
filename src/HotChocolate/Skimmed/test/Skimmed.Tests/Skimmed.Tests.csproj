@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Nullable>enable</Nullable>
     <AssemblyName>HotChocolate.Skimmed.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Skimmed</RootNamespace>
   </PropertyGroup>

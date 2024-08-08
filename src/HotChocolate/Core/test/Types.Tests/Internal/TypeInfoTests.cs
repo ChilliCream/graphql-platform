@@ -612,7 +612,5 @@ public class TypeInfoTests
         public Nullable<Optional<string?>> NullableOptionalNullableString() => default;
     }
 
-#nullable disable
-
     public class Foo;
 }
