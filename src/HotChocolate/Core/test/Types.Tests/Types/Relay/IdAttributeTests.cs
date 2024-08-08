@@ -506,6 +506,31 @@ public class IdAttributeTests
                                    """);
     }
 
+    [Fact]
+    public async Task InvalidId_ShouldNotEraseRestOfResponse_IfSkipped()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<InvalidIdQuery>()
+                .AddGlobalObjectIdentification(false)
+                .ExecuteRequestAsync("""
+                                     {
+                                       byId(id: "invalid") @skip(if: true)
+                                       unrelated
+                                     }
+                                     """);
+
+        CookieCrumble.SnapshotExtensions
+            .MatchInlineSnapshot(result, """
+                                         {
+                                           "data": {
+                                             "unrelated": "value"
+                                           }
+                                         }
+                                         """);
+    }
+
     public class InvalidIdQuery
     {
         public int? GetById([ID] int id, IResolverContext context) => id;
