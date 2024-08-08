@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Text;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
+using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
@@ -460,6 +461,56 @@ public class IdAttributeTests
             .BuildSchemaAsync();
 
         Assert.Equal(1, inspector.Count);
+    }
+
+    [Fact]
+    public async Task InvalidId_ShouldNotEraseRestOfResponse()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<InvalidIdQuery>()
+                .AddGlobalObjectIdentification(false)
+                .ExecuteRequestAsync("""
+                                     {
+                                       byId(id: "invalid")
+                                       unrelated
+                                     }
+                                     """);
+
+        CookieCrumble.SnapshotExtensions
+            .MatchInlineSnapshot(result, """
+                                   {
+                                     "errors": [
+                                       {
+                                         "message": "The node ID string has an invalid format.",
+                                         "locations": [
+                                           {
+                                             "line": 2,
+                                             "column": 8
+                                           }
+                                         ],
+                                         "path": [
+                                           "byId"
+                                         ],
+                                         "extensions": {
+                                           "originalValue": "invalid"
+                                         }
+                                       }
+                                     ],
+                                     "data": {
+                                       "byId": null,
+                                       "unrelated": "value"
+                                     }
+                                   }
+                                   """);
+    }
+
+    public class InvalidIdQuery
+    {
+        public int? GetById([ID] int id, IResolverContext context) => id;
+
+        public string Unrelated() => "value";
     }
 
     [SuppressMessage("Performance", "CA1822:Mark members as static")]
