@@ -1,4 +1,5 @@
 using HotChocolate.ApolloFederation;
+using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Execution.Configuration;
 using FederationVersion = HotChocolate.ApolloFederation.FederationVersion;
 
@@ -31,6 +32,12 @@ public static class ApolloFederationRequestExecutorBuilderExtensions
         ArgumentNullException.ThrowIfNull(builder);
         builder.SetContextData(FederationContextData.FederationVersion, version);
         builder.TryAddTypeInterceptor<FederationTypeInterceptor>();
+        builder.BindRuntimeType<Policy, StringType>();
+        builder.AddTypeConverter<Policy, string>(from => from.Value);
+        builder.AddTypeConverter<string, Policy>(from => new Policy(from));
+        builder.BindRuntimeType<Scope, StringType>();
+        builder.AddTypeConverter<Scope, string>(from => from.Value);
+        builder.AddTypeConverter<string, Scope>(from => new Scope(from));
         return builder;
     }
 }

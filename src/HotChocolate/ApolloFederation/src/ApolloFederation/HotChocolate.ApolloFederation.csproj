@@ -23,6 +23,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Types\Directives\PolicyAttribute.cs">
+      <DependentUpon>PolicyDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\PolicyDescriptorExtensions.cs">
+      <DependentUpon>PolicyDirective.cs</DependentUpon>
+    </Compile>
     <Compile Update="Types\Directives\ProvidesAttribute.cs">
       <DependentUpon>ProvidesDirective.cs</DependentUpon>
     </Compile>

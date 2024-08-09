@@ -13,6 +13,7 @@ public readonly record struct Policy
     /// </param>
     public Policy(string value)
     {
+        ArgumentException.ThrowIfNullOrEmpty(value);
         Value = value;
     }
 
