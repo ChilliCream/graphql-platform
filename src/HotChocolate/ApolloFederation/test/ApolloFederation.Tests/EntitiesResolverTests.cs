@@ -199,8 +199,8 @@ public class EntitiesResolverTests
 
         var result = await EntitiesResolver.ResolveAsync(schema, representations, context);
 
-        Assert.Equal(1, result.Count);
-        var obj = Assert.IsType<FederatedTypeWithRequiredDetail>(result[0]);
+        var single = Assert.Single(result);
+        var obj = Assert.IsType<FederatedTypeWithRequiredDetail>(single);
 
         Assert.Equal("testId", obj.Id);
         Assert.Equal("testId", obj.Detail.Id);
@@ -233,8 +233,8 @@ public class EntitiesResolverTests
 
         var result = await EntitiesResolver.ResolveAsync(schema, representations, context);
 
-        Assert.Equal(1, result.Count);
-        var obj = Assert.IsType<FederatedTypeWithOptionalDetail>(result[0]);
+        var single = Assert.Single(result);
+        var obj = Assert.IsType<FederatedTypeWithOptionalDetail>(single);
 
         Assert.Equal("testId", obj.Id);
         Assert.Equal("testId", obj.Detail!.Id);
