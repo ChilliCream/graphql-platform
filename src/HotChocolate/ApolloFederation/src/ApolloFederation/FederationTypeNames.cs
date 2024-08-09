@@ -18,6 +18,7 @@ internal static class FederationTypeNames
     public const string RequiresScopesDirective_Name = "requiresScopes";
     public const string ShareableDirective_Name = "shareable";
     public const string FieldSetType_Name = "FieldSet";
+    public const string LegacyFieldSetType_Name = "_FieldSet";
     public const string ScopeType_Name = "Scope";
     public const string PolicyType_Name = "Policy";
     public const string AnyType_Name = "_Any";
