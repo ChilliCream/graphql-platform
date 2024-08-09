@@ -419,7 +419,7 @@ public class VariableCoercionHelperTests
 
         var variableValues = new Dictionary<string, object?>
         {
-            { "abc", new Review { Stars = 5, } },
+            { "abc", new Review(stars: 5) },
         };
 
         var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
