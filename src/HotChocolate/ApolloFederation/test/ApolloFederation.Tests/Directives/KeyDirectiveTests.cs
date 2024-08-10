@@ -1,8 +1,8 @@
+using CookieCrumble;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.ApolloFederation.Directives;
 
@@ -12,8 +12,6 @@ public class KeyDirectiveTests : FederationTypesTestBase
     public async Task AnnotateKeyToObjectTypeCodeFirst()
     {
         // arrange
-        Snapshot.FullName();
-
         var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddApolloFederation()
@@ -51,15 +49,13 @@ public class KeyDirectiveTests : FederationTypesTestBase
                 Assert.Equal("\"id\"", item.AsSyntaxNode().Arguments[0].Value.ToString());
             });
 
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task AnnotateKeyToInterfaceTypeCodeFirst()
     {
         // arrange
-        Snapshot.FullName();
-
         var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddApolloFederation()
@@ -108,15 +104,13 @@ public class KeyDirectiveTests : FederationTypesTestBase
                 Assert.Equal("\"id\"", item.AsSyntaxNode().Arguments[0].Value.ToString());
             });
 
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task AnnotateKeyToObjectTypeAnnotationBased()
     {
         // arrange
-        Snapshot.FullName();
-
         var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddApolloFederation()
@@ -135,15 +129,13 @@ public class KeyDirectiveTests : FederationTypesTestBase
                 Assert.Equal("\"id\"", item.AsSyntaxNode().Arguments[0].Value.ToString());
             });
 
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task AnnotateKeyToClassAttributeAnnotationBased()
     {
         // arrange
-        Snapshot.FullName();
-
         var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddApolloFederation()
@@ -162,15 +154,13 @@ public class KeyDirectiveTests : FederationTypesTestBase
                 Assert.Equal("\"id\"", item.AsSyntaxNode().Arguments[0].Value.ToString());
             });
 
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task AnnotateKeyToClassAttributesAnnotationBased()
     {
         // arrange
-        Snapshot.FullName();
-
         var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddApolloFederation()
@@ -189,15 +179,13 @@ public class KeyDirectiveTests : FederationTypesTestBase
                 Assert.Equal("\"id name\"", item.AsSyntaxNode().Arguments[0].Value.ToString());
             });
 
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task AnnotateKeyToInterfaceAttributesAnnotationBased()
     {
         // arrange
-        Snapshot.FullName();
-
         var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddApolloFederation()
@@ -217,7 +205,7 @@ public class KeyDirectiveTests : FederationTypesTestBase
                 Assert.Equal("\"id\"", item.AsSyntaxNode().Arguments[0].Value.ToString());
             });
 
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     public class Query<T>
