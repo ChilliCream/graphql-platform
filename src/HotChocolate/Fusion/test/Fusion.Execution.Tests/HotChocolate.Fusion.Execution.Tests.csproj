@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AssemblyName>HotChocolate.Fusion.Planning.Tests</AssemblyName>
-    <RootNamespace>HotChocolate.Fusion.Planing</RootNamespace>
+    <AssemblyName>HotChocolate.Fusion.Execution.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Fusion.Execution</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,7 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\CookieCrumble\test\CookieCrumble.Tests\CookieCrumble.Tests.csproj" />
-    <ProjectReference Include="..\..\src\Fusion.Planning\HotChocolate.Fusion.Planning.csproj" />
+    <ProjectReference Include="..\..\src\Fusion.Execution\HotChocolate.Fusion.Execution.csproj" />
   </ItemGroup>
 
 </Project>

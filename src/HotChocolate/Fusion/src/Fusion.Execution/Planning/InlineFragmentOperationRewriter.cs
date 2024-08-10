@@ -4,7 +4,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning;
 
-public sealed class InlineFragmentDefinitionsQueryRewriter(CompositeSchema schema)
+public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
 {
     public DocumentNode RewriteDocument(DocumentNode document, string? operationName)
     {
@@ -82,6 +82,14 @@ public sealed class InlineFragmentDefinitionsQueryRewriter(CompositeSchema schem
 
     private void RewriteInlineFragment(InlineFragmentNode inlineFragment, Context context)
     {
+        if ((inlineFragment.TypeCondition is  null
+            || inlineFragment.TypeCondition.Name.Value.Equals(context.Type.Name, StringComparison.Ordinal))
+            && inlineFragment.Directives.Count == 0)
+        {
+            RewriteFields(inlineFragment.SelectionSet, context);
+            return;
+        }
+
         var typeCondition = inlineFragment.TypeCondition is null
             ? context.Type
             : schema.GetType(inlineFragment.TypeCondition.Name.Value);
@@ -206,6 +214,6 @@ public sealed class InlineFragmentDefinitionsQueryRewriter(CompositeSchema schem
             => fragments[name];
 
         public Context Branch(ICompositeNamedType type)
-            => default!;
+            => new(type, fragments);
     }
 }
