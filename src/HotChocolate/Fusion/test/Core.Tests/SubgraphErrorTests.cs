@@ -893,10 +893,14 @@ public class SubgraphErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product
             }
 
-            type Product {
-              id: ID
+            type Product implements Node {
+              id: ID!
               name: String @error
               price: Float
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -906,9 +910,13 @@ public class SubgraphErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product
             }
 
-            type Product {
-              id: ID
+            type Product implements Node {
+              id: ID!
               score: Int
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -942,10 +950,14 @@ public class SubgraphErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               name: String! @error
               price: Float!
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -955,9 +967,13 @@ public class SubgraphErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               score: Int!
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -991,10 +1007,14 @@ public class SubgraphErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product!
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               name: String! @error
               price: Float!
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -1004,9 +1024,13 @@ public class SubgraphErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product!
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               score: Int!
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -1040,8 +1064,8 @@ public class SubgraphErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product
             }
 
-            type Product {
-              id: ID
+            type Product implements Node {
+              id: ID!
               name: String
               price: Float
             }
@@ -1053,9 +1077,13 @@ public class SubgraphErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product
             }
 
-            type Product {
-              id: ID
+            type Product implements Node {
+              id: ID!
               score: Int @error
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -1089,10 +1117,14 @@ public class SubgraphErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               name: String!
               price: Float!
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -1102,9 +1134,13 @@ public class SubgraphErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               score: Int! @error
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -1138,10 +1174,14 @@ public class SubgraphErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product!
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               name: String!
               price: Float!
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -1151,9 +1191,13 @@ public class SubgraphErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product!
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               score: Int! @error
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -1187,10 +1231,14 @@ public class SubgraphErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product @error
             }
 
-            type Product {
-              id: ID
+            type Product implements Node {
+              id: ID!
               name: String
               price: Float
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -1200,9 +1248,13 @@ public class SubgraphErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product
             }
 
-            type Product {
-              id: ID
+            type Product implements Node {
+              id: ID!
               score: Int
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -1236,10 +1288,14 @@ public class SubgraphErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product @error
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               name: String!
               price: Float!
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -1249,9 +1305,13 @@ public class SubgraphErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               score: Int!
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -1285,10 +1345,14 @@ public class SubgraphErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product! @error
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               name: String!
               price: Float!
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -1298,9 +1362,13 @@ public class SubgraphErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product!
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               score: Int!
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -1334,10 +1402,14 @@ public class SubgraphErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product
             }
 
-            type Product {
-              id: ID
+            type Product implements Node {
+              id: ID!
               name: String
               price: Float
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -1347,9 +1419,13 @@ public class SubgraphErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product @error
             }
 
-            type Product {
-              id: ID
+            type Product implements Node {
+              id: ID!
               score: Int
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -1383,10 +1459,14 @@ public class SubgraphErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               name: String!
               price: Float!
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -1396,9 +1476,13 @@ public class SubgraphErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product @error
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               score: Int!
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -1432,10 +1516,14 @@ public class SubgraphErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product!
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               name: String!
               price: Float!
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -1445,9 +1533,13 @@ public class SubgraphErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product! @error
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               score: Int!
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -1481,10 +1573,14 @@ public class SubgraphErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product @error
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               name: String!
               price: Float!
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -1494,9 +1590,13 @@ public class SubgraphErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product @error
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               score: Int!
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -1530,10 +1630,14 @@ public class SubgraphErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product! @error
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               name: String!
               price: Float!
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -1543,9 +1647,13 @@ public class SubgraphErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product! @error
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               score: Int!
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -1580,10 +1688,14 @@ public class SubgraphErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               name: String
               price: Float
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -1595,9 +1707,13 @@ public class SubgraphErrorTests(ITestOutputHelper output)
                       productById(id: ID!): Product
                     }
 
-                    type Product {
+                    type Product implements Node {
                       id: ID!
                       score: Int
+                    }
+
+                    interface Node {
+                      id: ID!
                     }
                     """)
                 .AddResolverMocking()
@@ -1641,10 +1757,14 @@ public class SubgraphErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               name: String!
               price: Float!
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -1656,9 +1776,13 @@ public class SubgraphErrorTests(ITestOutputHelper output)
                       productById(id: ID!): Product
                     }
 
-                    type Product {
+                    type Product implements Node {
                       id: ID!
                       score: Int!
+                    }
+
+                    interface Node {
+                      id: ID!
                     }
                     """)
                 .AddResolverMocking()
@@ -1702,10 +1826,14 @@ public class SubgraphErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product!
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               name: String!
               price: Float!
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -1717,9 +1845,13 @@ public class SubgraphErrorTests(ITestOutputHelper output)
                       productById(id: ID!): Product!
                     }
 
-                    type Product {
+                    type Product implements Node {
                       id: ID!
                       score: Int!
+                    }
+
+                    interface Node {
+                      id: ID!
                     }
                     """)
                 .AddResolverMocking()
@@ -1765,10 +1897,14 @@ public class SubgraphErrorTests(ITestOutputHelper output)
                       productById(id: ID!): Product
                     }
 
-                    type Product {
-                      id: ID
+                    type Product implements Node {
+                      id: ID!
                       name: String
                       price: Float
+                    }
+
+                    interface Node {
+                      id: ID!
                     }
                     """)
                 .AddResolverMocking()
@@ -1787,9 +1923,13 @@ public class SubgraphErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product
             }
 
-            type Product {
-              id: ID
+            type Product implements Node {
+              id: ID!
               score: Int
+            }
+
+            interface Node {
+              id: ID!
             }
             """
         );
@@ -1827,10 +1967,14 @@ public class SubgraphErrorTests(ITestOutputHelper output)
                       productById(id: ID!): Product
                     }
 
-                    type Product {
+                    type Product implements Node {
                       id: ID!
                       name: String!
                       price: Float!
+                    }
+
+                    interface Node {
+                      id: ID!
                     }
                     """)
                 .AddResolverMocking()
@@ -1849,9 +1993,13 @@ public class SubgraphErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               score: Int!
+            }
+
+            interface Node {
+              id: ID!
             }
             """
         );
@@ -1889,10 +2037,14 @@ public class SubgraphErrorTests(ITestOutputHelper output)
                       productById(id: ID!): Product!
                     }
 
-                    type Product {
+                    type Product implements Node {
                       id: ID!
                       name: String!
                       price: Float!
+                    }
+
+                    interface Node {
+                      id: ID!
                     }
                     """)
                 .AddResolverMocking()
@@ -1911,9 +2063,13 @@ public class SubgraphErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product!
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               score: Int!
+            }
+
+            interface Node {
+              id: ID!
             }
             """
         );
