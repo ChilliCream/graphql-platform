@@ -145,6 +145,11 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
         void RegisterImport(MemberInfo element)
         {
+            if (_context.GetFederationVersion() == FederationVersion.Federation10)
+            {
+                return;
+            }
+
             var package = element.GetCustomAttribute<PackageAttribute>();
 
             if (package is null)

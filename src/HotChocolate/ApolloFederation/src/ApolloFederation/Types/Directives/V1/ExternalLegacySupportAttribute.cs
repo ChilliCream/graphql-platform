@@ -13,7 +13,7 @@ internal sealed class ExternalLegacySupportAttribute : DirectiveTypeDescriptorAt
         if (descriptor.GetFederationVersion() == FederationVersion.Federation10)
         {
             var desc = (IDirectiveTypeDescriptor<ExternalDirective>)descriptor;
-            desc.Location(DirectiveLocation.Field);
+            desc.Extend().Definition.Locations = DirectiveLocation.FieldDefinition;
         }
     }
 }
