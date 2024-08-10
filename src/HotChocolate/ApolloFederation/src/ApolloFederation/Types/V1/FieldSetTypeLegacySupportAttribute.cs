@@ -1,6 +1,6 @@
 using HotChocolate.Types.Descriptors;
 
-namespace HotChocolate.ApolloFederation.Types.v1;
+namespace HotChocolate.ApolloFederation.Types;
 
 internal sealed class FieldSetTypeLegacySupportAttribute : ScalarTypeDescriptorAttribute
 {
