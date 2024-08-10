@@ -414,10 +414,14 @@ public class TransportErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product
             }
 
-            type Product {
-              id: ID
+            type Product implements Node {
+              id: ID!
               name: String
               price: Float
+            }
+
+            interface Node {
+              id: ID!
             }
             """,
             isOffline: true);
@@ -451,10 +455,14 @@ public class TransportErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product!
             }
 
-            type Product {
-              id: ID
+            type Product implements Node {
+              id: ID!
               name: String
               price: Float
+            }
+
+            interface Node {
+              id: ID!
             }
             """,
             isOffline: true);
@@ -488,10 +496,14 @@ public class TransportErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product
             }
 
-            type Product {
-              id: ID
+            type Product implements Node {
+              id: ID!
               name: String
               price: Float
+            }
+
+            interface Node {
+              id: ID!
             }
             """,
             isOffline: true);
@@ -502,9 +514,13 @@ public class TransportErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product
             }
 
-            type Product {
-              id: ID
+            type Product implements Node {
+              id: ID!
               score: Int
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -538,10 +554,14 @@ public class TransportErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               name: String!
               price: Float!
+            }
+
+            interface Node {
+              id: ID!
             }
             """,
             isOffline: true);
@@ -552,9 +572,13 @@ public class TransportErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               score: Int!
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -588,10 +612,14 @@ public class TransportErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product!
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               name: String!
               price: Float!
+            }
+
+            interface Node {
+              id: ID!
             }
             """,
             isOffline: true);
@@ -602,9 +630,13 @@ public class TransportErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product!
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               score: Int!
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -638,10 +670,14 @@ public class TransportErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product
             }
 
-            type Product {
-              id: ID
+            type Product implements Node {
+              id: ID!
               name: String
               price: Float
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -651,9 +687,13 @@ public class TransportErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product
             }
 
-            type Product {
-              id: ID
+            type Product implements Node {
+              id: ID!
               score: Int
+            }
+
+            interface Node {
+              id: ID!
             }
             """,
             isOffline: true);
@@ -688,10 +728,14 @@ public class TransportErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               name: String!
               price: Float!
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -701,9 +745,13 @@ public class TransportErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               score: Int!
+            }
+
+            interface Node {
+              id: ID!
             }
             """,
             isOffline: true);
@@ -738,10 +786,14 @@ public class TransportErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product!
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               name: String!
               price: Float!
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -751,9 +803,13 @@ public class TransportErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product!
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               score: Int!
+            }
+
+            interface Node {
+              id: ID!
             }
             """,
             isOffline: true);
@@ -788,10 +844,14 @@ public class TransportErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               name: String!
               price: Float!
+            }
+
+            interface Node {
+              id: ID!
             }
             """,
             isOffline: true);
@@ -802,9 +862,13 @@ public class TransportErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               score: Int!
+            }
+
+            interface Node {
+              id: ID!
             }
             """,
             isOffline: true);
@@ -839,10 +903,14 @@ public class TransportErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product!
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               name: String!
               price: Float!
+            }
+
+            interface Node {
+              id: ID!
             }
             """,
             isOffline: true);
@@ -853,9 +921,13 @@ public class TransportErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product!
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               score: Int!
+            }
+
+            interface Node {
+              id: ID!
             }
             """,
             isOffline: true);

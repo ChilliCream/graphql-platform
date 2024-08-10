@@ -7,10 +7,6 @@
     <Description></Description>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
   </ItemGroup>
