@@ -3,7 +3,6 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Types.NodaTime.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Types.NodaTime</RootNamespace>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

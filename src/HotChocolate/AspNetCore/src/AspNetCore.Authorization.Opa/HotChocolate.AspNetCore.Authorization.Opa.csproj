@@ -1,10 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <PackageId>HotChocolate.AspNetCore.Authorization.Opa</PackageId>
     <AssemblyName>HotChocolate.AspNetCore.Authorization.Opa</AssemblyName>
     <RootNamespace>HotChocolate.AspNetCore.Authorization</RootNamespace>

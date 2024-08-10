@@ -5,8 +5,6 @@ using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using Path = HotChocolate.Path;
 
-#nullable enable
-
 namespace StrawberryShake.CodeGeneration.Analyzers;
 
 public interface IDocumentAnalyzerContext

@@ -10,8 +10,6 @@ using HotChocolate.Transport.Sockets.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
-#nullable enable
-
 namespace HotChocolate.Transport.Sockets.GraphQLOverWebSocket;
 
 public class WebSocketClientProtocolTests(TestServerFactory serverFactory, ITestOutputHelper output)

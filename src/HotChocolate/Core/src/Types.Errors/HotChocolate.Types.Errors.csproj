@@ -1,10 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <PackageId>HotChocolate.Types.Errors</PackageId>
     <AssemblyName>HotChocolate.Types.Errors</AssemblyName>
     <RootNamespace>HotChocolate.Types</RootNamespace>
