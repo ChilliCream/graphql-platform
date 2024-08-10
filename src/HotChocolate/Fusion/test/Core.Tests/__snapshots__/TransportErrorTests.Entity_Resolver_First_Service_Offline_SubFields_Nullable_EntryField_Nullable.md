@@ -10,12 +10,7 @@
     }
   ],
   "data": {
-    "productById": {
-      "id": null,
-      "name": null,
-      "price": null,
-      "score": 123
-    }
+    "productById": null
   }
 }
 ```
@@ -36,7 +31,7 @@
 ## QueryPlan Hash
 
 ```text
-1187C75DB20A2D54D1EDC1F31D46DA85C597E294
+A5FE502D9F6F0548B898BC17A33BC0F2A2A13AE6
 ```
 
 ## QueryPlan
@@ -48,19 +43,13 @@
     "type": "Sequence",
     "nodes": [
       {
-        "type": "Parallel",
-        "nodes": [
+        "type": "Resolve",
+        "subgraph": "Subgraph_1",
+        "document": "query fetch_productById_1 { productById(id: \u00221\u0022) { id name price __fusion_exports__1: id } }",
+        "selectionSetId": 0,
+        "provides": [
           {
-            "type": "Resolve",
-            "subgraph": "Subgraph_1",
-            "document": "query fetch_productById_1 { productById(id: \u00221\u0022) { id name price } }",
-            "selectionSetId": 0
-          },
-          {
-            "type": "Resolve",
-            "subgraph": "Subgraph_2",
-            "document": "query fetch_productById_2 { productById(id: \u00221\u0022) { score } }",
-            "selectionSetId": 0
+            "variable": "__fusion_exports__1"
           }
         ]
       },
@@ -69,8 +58,31 @@
         "selectionSetIds": [
           0
         ]
+      },
+      {
+        "type": "Resolve",
+        "subgraph": "Subgraph_2",
+        "document": "query fetch_productById_2($__fusion_exports__1: ID!) { productById(id: $__fusion_exports__1) { score } }",
+        "selectionSetId": 1,
+        "path": [
+          "productById"
+        ],
+        "requires": [
+          {
+            "variable": "__fusion_exports__1"
+          }
+        ]
+      },
+      {
+        "type": "Compose",
+        "selectionSetIds": [
+          1
+        ]
       }
     ]
+  },
+  "state": {
+    "__fusion_exports__1": "Product_id"
   }
 }
 ```
