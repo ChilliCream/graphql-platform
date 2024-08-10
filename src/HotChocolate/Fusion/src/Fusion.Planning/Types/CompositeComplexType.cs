@@ -15,7 +15,7 @@ public abstract class CompositeComplexType : ICompositeNamedType
     protected CompositeComplexType(
         string name,
         string? description,
-        CompositeObjectFieldCollection fields)
+        CompositeOutputFieldCollection fields)
     {
         Name = name;
         Description = description;
@@ -67,7 +67,7 @@ public abstract class CompositeComplexType : ICompositeNamedType
     /// <value>
     /// The fields of this type.
     /// </value>
-    public CompositeObjectFieldCollection Fields { get; }
+    public CompositeOutputFieldCollection Fields { get; }
 
     private protected void Complete()
     {

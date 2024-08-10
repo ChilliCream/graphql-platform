@@ -3,7 +3,7 @@ using HotChocolate.Fusion.Types.Completion;
 
 namespace HotChocolate.Fusion.Types;
 
-public sealed class CompositeObjectField(
+public sealed class CompositeOutputField(
     string name,
     string? description,
     bool isDeprecated,

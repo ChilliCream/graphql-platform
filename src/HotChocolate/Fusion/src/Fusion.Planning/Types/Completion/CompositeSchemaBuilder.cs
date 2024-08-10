@@ -87,17 +87,17 @@ public static class CompositeSchemaBuilder
             CreateObjectFields(definition.Fields));
     }
 
-    private static CompositeObjectFieldCollection CreateObjectFields(
+    private static CompositeOutputFieldCollection CreateObjectFields(
         IReadOnlyList<FieldDefinitionNode> fields)
     {
-        var sourceFields = new CompositeObjectField[fields.Count];
+        var sourceFields = new CompositeOutputField[fields.Count];
 
         for (var i = 0; i < fields.Count; i++)
         {
             var field = fields[i];
             var isDeprecated = DeprecatedDirectiveParser.TryParse(field.Directives, out var deprecated);
 
-            sourceFields[i] = new CompositeObjectField(
+            sourceFields[i] = new CompositeOutputField(
                 field.Name.Value,
                 field.Description?.Value,
                 isDeprecated,
@@ -105,7 +105,7 @@ public static class CompositeSchemaBuilder
                 CreateOutputFieldArguments(field.Arguments));
         }
 
-        return new CompositeObjectFieldCollection(sourceFields);
+        return new CompositeOutputFieldCollection(sourceFields);
     }
 
     private static CompositeInputFieldCollection CreateOutputFieldArguments(
@@ -196,7 +196,7 @@ public static class CompositeSchemaBuilder
     }
 
     private static void CompleteObjectField(
-        CompositeObjectField field,
+        CompositeOutputField field,
         FieldDefinitionNode fieldDef,
         CompositeSchemaContext compositeSchemaContext)
     {
@@ -212,7 +212,7 @@ public static class CompositeSchemaBuilder
     }
 
     private static SourceObjectFieldCollection BuildSourceObjectFieldCollection(
-        CompositeObjectField field,
+        CompositeOutputField field,
         FieldDefinitionNode fieldDef,
         CompositeSchemaContext compositeSchemaContext)
     {

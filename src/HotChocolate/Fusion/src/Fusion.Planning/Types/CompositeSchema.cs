@@ -2,6 +2,7 @@ using System.Collections.Frozen;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Fusion.Types.Collections;
+using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Types;
@@ -71,6 +72,20 @@ public sealed class CompositeSchema
     /// specified type kind.
     /// </exception>
     [return: NotNull]
+    public ICompositeNamedType GetType(string typeName)
+        => GetType<ICompositeNamedType>(typeName);
+
+    /// <summary>
+    /// Gets a type by its name and kind.
+    /// </summary>
+    /// <typeparam name="T">The expected type kind.</typeparam>
+    /// <param name="typeName">The name of the type.</param>
+    /// <returns>The type.</returns>
+    /// <exception cref="ArgumentException">
+    /// The specified type does not exist or is not of the
+    /// specified type kind.
+    /// </exception>
+    [return: NotNull]
     public T GetType<T>(string typeName)
         where T : ICompositeNamedType
     {
@@ -83,6 +98,24 @@ public sealed class CompositeSchema
         throw new ArgumentException(
             $"The specified type `{typeName}` does not exist or is not of the specified type kind.",
             nameof(typeName));
+    }
+
+    public CompositeObjectType GetOperationType(OperationType operation)
+    {
+        var operationType = operation switch
+        {
+            OperationType.Query => QueryType,
+            OperationType.Mutation => MutationType,
+            OperationType.Subscription => SubscriptionType,
+            _ => null
+        };
+
+        if (operationType is null)
+        {
+            throw new InvalidOperationException();
+        }
+
+        return operationType;
     }
 
     /// <summary>

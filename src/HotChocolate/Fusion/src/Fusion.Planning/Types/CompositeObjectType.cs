@@ -7,7 +7,7 @@ namespace HotChocolate.Fusion.Types;
 public sealed class CompositeObjectType(
     string name,
     string? description,
-    CompositeObjectFieldCollection fields)
+    CompositeOutputFieldCollection fields)
     : CompositeComplexType(name, description, fields)
 {
     public override TypeKind Kind => TypeKind.Object;

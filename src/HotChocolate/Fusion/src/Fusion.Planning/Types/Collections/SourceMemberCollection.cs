@@ -16,6 +16,9 @@ public class SourceMemberCollection<TMember> : IEnumerable<TMember> where TMembe
 
     public TMember this[string schemaName] => _members[schemaName];
 
+    public bool ContainsSchema(string schemaName)
+        => _members.ContainsKey(schemaName);
+
     public IEnumerator<TMember> GetEnumerator()
         => ((IEnumerable<TMember>)_members.Values).GetEnumerator();
 

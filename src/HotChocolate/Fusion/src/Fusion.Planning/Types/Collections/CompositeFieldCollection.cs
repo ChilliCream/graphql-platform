@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Frozen;
+using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Fusion.Types.Collections;
 
@@ -15,6 +16,9 @@ public abstract class CompositeFieldCollection<TField> : IEnumerable<TField> whe
     public int Count => _fields.Count;
 
     public TField this[string name] => _fields[name];
+
+    public bool TryGetField(string name, [NotNullWhen(true)] out TField? field)
+        => _fields.TryGetValue(name, out field);
 
     public IEnumerator<TField> GetEnumerator()
         => ((IEnumerable<TField>)_fields.Values).GetEnumerator();
