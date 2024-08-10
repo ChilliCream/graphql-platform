@@ -1,5 +1,4 @@
 using HotChocolate.ApolloFederation.Properties;
-using HotChocolate.ApolloFederation.Types.v1;
 using HotChocolate.Language;
 using static HotChocolate.ApolloFederation.ThrowHelper;
 
