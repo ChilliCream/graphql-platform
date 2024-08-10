@@ -9,7 +9,7 @@ public class TransportErrorTests(ITestOutputHelper output)
 {
     #region Parallel, Shared Entry Field
 
-    [Fact(Skip = "errors are wrong")]
+    [Fact]
     public async Task Resolve_Parallel_One_Service_Offline_SubField_Nullable_SharedEntryField_Nullable()
     {
         // arrange
@@ -54,7 +54,7 @@ public class TransportErrorTests(ITestOutputHelper output)
         MatchMarkdownSnapshot(request, result);
     }
 
-    [Fact(Skip = "errors are wrong")]
+    [Fact]
     public async Task Resolve_Parallel_One_Service_Offline_SubField_NonNull_SharedEntryField_Nullable()
     {
         // arrange
@@ -99,7 +99,7 @@ public class TransportErrorTests(ITestOutputHelper output)
         MatchMarkdownSnapshot(request, result);
     }
 
-    [Fact(Skip = "errors are wrong")]
+    [Fact]
     public async Task Resolve_Parallel_One_Service_Offline_SubField_NonNull_SharedEntryField_NonNull()
     {
         // arrange
@@ -144,7 +144,7 @@ public class TransportErrorTests(ITestOutputHelper output)
         MatchMarkdownSnapshot(request, result);
     }
 
-    [Fact(Skip = "errors are wrong")]
+    [Fact]
     public async Task Resolve_Parallel_Both_Services_Offline_SharedEntryField_Nullable()
     {
         // arrange
@@ -190,7 +190,7 @@ public class TransportErrorTests(ITestOutputHelper output)
         MatchMarkdownSnapshot(request, result);
     }
 
-    [Fact(Skip = "errors are wrong")]
+    [Fact]
     public async Task Resolve_Parallel_Both_Services_Offline_SharedEntryField_NonNull()
     {
         // arrange
@@ -240,7 +240,7 @@ public class TransportErrorTests(ITestOutputHelper output)
 
     #region Parallel, No Shared Entry Field
 
-    [Fact(Skip = "errors are wrong")]
+    [Fact]
     public async Task Resolve_Parallel_Single_Service_Offline_EntryField_Nullable()
     {
         // arrange
@@ -273,7 +273,7 @@ public class TransportErrorTests(ITestOutputHelper output)
         MatchMarkdownSnapshot(request, result);
     }
 
-    [Fact(Skip = "errors are wrong")]
+    [Fact]
     public async Task Resolve_Parallel_Single_Service_Offline_EntryField_NonNull()
     {
         // arrange
@@ -306,7 +306,7 @@ public class TransportErrorTests(ITestOutputHelper output)
         MatchMarkdownSnapshot(request, result);
     }
 
-    [Fact(Skip = "errors are wrong")]
+    [Fact]
     public async Task Resolve_Parallel_One_Service_Offline_EntryFields_Nullable()
     {
         // arrange
@@ -353,7 +353,7 @@ public class TransportErrorTests(ITestOutputHelper output)
         MatchMarkdownSnapshot(request, result);
     }
 
-    [Fact(Skip = "errors are wrong")]
+    [Fact]
     public async Task Resolve_Parallel_One_Service_Offline_EntryFields_NonNull()
     {
         // arrange
@@ -404,7 +404,7 @@ public class TransportErrorTests(ITestOutputHelper output)
 
     #region Entity Resolver
 
-    [Fact(Skip = "errors are wrong")]
+    [Fact]
     public async Task Entity_Resolver_Single_Service_Offline_EntryField_Nullable()
     {
         // arrange
@@ -414,10 +414,14 @@ public class TransportErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product
             }
 
-            type Product {
-              id: ID
+            type Product implements Node {
+              id: ID!
               name: String
               price: Float
+            }
+
+            interface Node {
+              id: ID!
             }
             """,
             isOffline: true);
@@ -441,7 +445,7 @@ public class TransportErrorTests(ITestOutputHelper output)
         MatchMarkdownSnapshot(request, result);
     }
 
-    [Fact(Skip = "errors are wrong")]
+    [Fact]
     public async Task Entity_Resolver_Single_Service_Offline_EntryField_NonNull()
     {
         // arrange
@@ -451,10 +455,14 @@ public class TransportErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product!
             }
 
-            type Product {
-              id: ID
+            type Product implements Node {
+              id: ID!
               name: String
               price: Float
+            }
+
+            interface Node {
+              id: ID!
             }
             """,
             isOffline: true);
@@ -478,7 +486,7 @@ public class TransportErrorTests(ITestOutputHelper output)
         MatchMarkdownSnapshot(request, result);
     }
 
-    [Fact(Skip = "errors are wrong")]
+    [Fact]
     public async Task Entity_Resolver_First_Service_Offline_SubFields_Nullable_EntryField_Nullable()
     {
         // arrange
@@ -488,10 +496,14 @@ public class TransportErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product
             }
 
-            type Product {
-              id: ID
+            type Product implements Node {
+              id: ID!
               name: String
               price: Float
+            }
+
+            interface Node {
+              id: ID!
             }
             """,
             isOffline: true);
@@ -502,9 +514,13 @@ public class TransportErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product
             }
 
-            type Product {
-              id: ID
+            type Product implements Node {
+              id: ID!
               score: Int
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -528,7 +544,7 @@ public class TransportErrorTests(ITestOutputHelper output)
         MatchMarkdownSnapshot(request, result);
     }
 
-    [Fact(Skip = "errors are wrong")]
+    [Fact]
     public async Task Entity_Resolver_First_Service_Offline_SubFields_NonNull_EntryField_Nullable()
     {
         // arrange
@@ -538,10 +554,14 @@ public class TransportErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               name: String!
               price: Float!
+            }
+
+            interface Node {
+              id: ID!
             }
             """,
             isOffline: true);
@@ -552,9 +572,13 @@ public class TransportErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               score: Int!
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -578,7 +602,7 @@ public class TransportErrorTests(ITestOutputHelper output)
         MatchMarkdownSnapshot(request, result);
     }
 
-    [Fact(Skip = "errors are wrong")]
+    [Fact]
     public async Task Entity_Resolver_First_Service_Offline_SubFields_NonNull_EntryField_NonNull()
     {
         // arrange
@@ -588,10 +612,14 @@ public class TransportErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product!
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               name: String!
               price: Float!
+            }
+
+            interface Node {
+              id: ID!
             }
             """,
             isOffline: true);
@@ -602,9 +630,13 @@ public class TransportErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product!
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               score: Int!
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -628,7 +660,7 @@ public class TransportErrorTests(ITestOutputHelper output)
         MatchMarkdownSnapshot(request, result);
     }
 
-    [Fact(Skip = "errors are wrong")]
+    [Fact]
     public async Task Entity_Resolver_Second_Service_Offline_SubFields_Nullable_EntryField_Nullable()
     {
         // arrange
@@ -638,10 +670,14 @@ public class TransportErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product
             }
 
-            type Product {
-              id: ID
+            type Product implements Node {
+              id: ID!
               name: String
               price: Float
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -651,9 +687,13 @@ public class TransportErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product
             }
 
-            type Product {
-              id: ID
+            type Product implements Node {
+              id: ID!
               score: Int
+            }
+
+            interface Node {
+              id: ID!
             }
             """,
             isOffline: true);
@@ -678,7 +718,7 @@ public class TransportErrorTests(ITestOutputHelper output)
         MatchMarkdownSnapshot(request, result);
     }
 
-    [Fact(Skip = "errors are wrong")]
+    [Fact]
     public async Task Entity_Resolver_Second_Service_Offline_SubFields_NonNull_EntryField_Nullable()
     {
         // arrange
@@ -688,10 +728,14 @@ public class TransportErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               name: String!
               price: Float!
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -701,9 +745,13 @@ public class TransportErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               score: Int!
+            }
+
+            interface Node {
+              id: ID!
             }
             """,
             isOffline: true);
@@ -728,7 +776,7 @@ public class TransportErrorTests(ITestOutputHelper output)
         MatchMarkdownSnapshot(request, result);
     }
 
-    [Fact(Skip = "errors are wrong")]
+    [Fact]
     public async Task Entity_Resolver_Second_Service_Offline_SubFields_NonNull_EntryField_NonNull()
     {
         // arrange
@@ -738,10 +786,14 @@ public class TransportErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product!
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               name: String!
               price: Float!
+            }
+
+            interface Node {
+              id: ID!
             }
             """);
 
@@ -751,9 +803,13 @@ public class TransportErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product!
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               score: Int!
+            }
+
+            interface Node {
+              id: ID!
             }
             """,
             isOffline: true);
@@ -778,7 +834,7 @@ public class TransportErrorTests(ITestOutputHelper output)
         MatchMarkdownSnapshot(request, result);
     }
 
-    [Fact(Skip = "errors are wrong")]
+    [Fact]
     public async Task Entity_Resolver_Both_Services_Offline_EntryField_Nullable()
     {
         // arrange
@@ -788,10 +844,14 @@ public class TransportErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               name: String!
               price: Float!
+            }
+
+            interface Node {
+              id: ID!
             }
             """,
             isOffline: true);
@@ -802,9 +862,13 @@ public class TransportErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               score: Int!
+            }
+
+            interface Node {
+              id: ID!
             }
             """,
             isOffline: true);
@@ -829,7 +893,7 @@ public class TransportErrorTests(ITestOutputHelper output)
         MatchMarkdownSnapshot(request, result);
     }
 
-    [Fact(Skip = "errors are wrong")]
+    [Fact]
     public async Task Entity_Resolver_Both_Services_Offline_EntryField_NonNull()
     {
         // arrange
@@ -839,10 +903,14 @@ public class TransportErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product!
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               name: String!
               price: Float!
+            }
+
+            interface Node {
+              id: ID!
             }
             """,
             isOffline: true);
@@ -853,9 +921,13 @@ public class TransportErrorTests(ITestOutputHelper output)
               productById(id: ID!): Product!
             }
 
-            type Product {
+            type Product implements Node {
               id: ID!
               score: Int!
+            }
+
+            interface Node {
+              id: ID!
             }
             """,
             isOffline: true);
@@ -884,7 +956,7 @@ public class TransportErrorTests(ITestOutputHelper output)
 
     #region Resolve Sequence
 
-    [Fact(Skip = "errors are wrong")]
+    [Fact]
     public async Task Resolve_Sequence_First_Service_Offline_EntryField_Nullable()
     {
         // arrange
@@ -938,7 +1010,7 @@ public class TransportErrorTests(ITestOutputHelper output)
         MatchMarkdownSnapshot(request, result);
     }
 
-    [Fact(Skip = "errors are wrong")]
+    [Fact]
     public async Task Resolve_Sequence_First_Service_Offline_EntryField_NonNull()
     {
         // arrange
@@ -992,7 +1064,7 @@ public class TransportErrorTests(ITestOutputHelper output)
         MatchMarkdownSnapshot(request, result);
     }
 
-    [Fact(Skip = "errors are wrong")]
+    [Fact]
     public async Task Resolve_Sequence_Second_Service_Offline_SubField_Nullable_Parent_Nullable()
     {
         // arrange
@@ -1046,7 +1118,7 @@ public class TransportErrorTests(ITestOutputHelper output)
         MatchMarkdownSnapshot(request, result);
     }
 
-    [Fact(Skip = "errors are wrong")]
+    [Fact]
     public async Task Resolve_Sequence_Second_Service_Offline_SubField_NonNull_Parent_Nullable()
     {
         // arrange
@@ -1100,7 +1172,7 @@ public class TransportErrorTests(ITestOutputHelper output)
         MatchMarkdownSnapshot(request, result);
     }
 
-    [Fact(Skip = "errors are wrong")]
+    [Fact]
     public async Task Resolve_Sequence_Second_Service_Offline_SubField_NonNull_Parent_NonNull()
     {
         // arrange
@@ -1158,7 +1230,7 @@ public class TransportErrorTests(ITestOutputHelper output)
 
     #region ResolveByKey
 
-    [Fact(Skip = "errors are wrong")]
+    [Fact]
     public async Task ResolveByKey_Second_Service_Offline_SubField_Nullable()
     {
         // arrange
@@ -1206,7 +1278,7 @@ public class TransportErrorTests(ITestOutputHelper output)
         MatchMarkdownSnapshot(request, result);
     }
 
-    [Fact(Skip = "errors are wrong")]
+    [Fact]
     public async Task ResolveByKey_Second_Service_Offline_SubField_NonNull_ListItem_NonNull()
     {
         // arrange
@@ -1254,7 +1326,7 @@ public class TransportErrorTests(ITestOutputHelper output)
         MatchMarkdownSnapshot(request, result);
     }
 
-    [Fact(Skip = "errors are wrong")]
+    [Fact]
     public async Task ResolveByKey_Second_Service_Offline_SubField_NonNull_ListItem_Nullable()
     {
         // arrange
