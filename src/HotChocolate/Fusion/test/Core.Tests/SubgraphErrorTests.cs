@@ -1069,6 +1069,10 @@ public class SubgraphErrorTests(ITestOutputHelper output)
               name: String
               price: Float
             }
+
+            interface Node {
+              id: ID!
+            }
             """);
 
         var subgraphB = await TestSubgraph.CreateAsync(
