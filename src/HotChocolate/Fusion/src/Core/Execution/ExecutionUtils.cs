@@ -121,6 +121,10 @@ internal static class ExecutionUtils
                 {
                     if (!result.IsInitialized)
                     {
+                        // we add a placeholder here so if the ComposeObject propagates an error
+                        // there is a value here.
+                        result.Set(responseName, null, nullable);
+
                         var value = ComposeObject(
                             context,
                             selectionSetResult,
@@ -390,7 +394,8 @@ internal static class ExecutionUtils
 
             while (Unsafe.IsAddressLessThan(ref selection, ref endSelection))
             {
-                if (data.TryGetProperty(selection.ResponseName, out var value))
+                if (data.ValueKind is not JsonValueKind.Null &&
+                    data.TryGetProperty(selection.ResponseName, out var value))
                 {
                     selectionData = selectionData.AddResult(new JsonResult(schemaName, value));
                 }
@@ -412,7 +417,8 @@ internal static class ExecutionUtils
 
                 while (Unsafe.IsAddressLessThan(ref selection, ref endSelection))
                 {
-                    if (element.TryGetProperty(selection.ResponseName, out var value))
+                    if (element.ValueKind is not JsonValueKind.Null &&
+                        element.TryGetProperty(selection.ResponseName, out var value))
                     {
                         selectionData = selectionData.AddResult(new JsonResult(schemaName, value));
                     }

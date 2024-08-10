@@ -1,8 +1,8 @@
+using CookieCrumble;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.ApolloFederation.Directives;
 
@@ -12,8 +12,6 @@ public class NonResolvableKeyDirectiveTests : FederationTypesTestBase
     public async Task AnnotateKeyToObjectTypeCodeFirst()
     {
         // arrange
-        Snapshot.FullName();
-
         var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddApolloFederation()
@@ -66,15 +64,13 @@ public class NonResolvableKeyDirectiveTests : FederationTypesTestBase
                 Assert.Equal("false", syntaxNode.Arguments[1].Value.ToString());
             });
 
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task AnnotateKeyToObjectTypeAnnotationBased()
     {
         // arrange
-        Snapshot.FullName();
-
         var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddApolloFederation()
@@ -96,15 +92,13 @@ public class NonResolvableKeyDirectiveTests : FederationTypesTestBase
                 Assert.Equal("false", syntaxNode.Arguments[1].Value.ToString());
             });
 
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task AnnotateKeyToClassAttributeAnnotationBased()
     {
         // arrange
-        Snapshot.FullName();
-
         var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddApolloFederation()
@@ -126,15 +120,13 @@ public class NonResolvableKeyDirectiveTests : FederationTypesTestBase
                 Assert.Equal("false", syntaxNode.Arguments[1].Value.ToString());
             });
 
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task AnnotateKeyToClassAttributesAnnotationBased()
     {
         // arrange
-        Snapshot.FullName();
-
         var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddApolloFederation()
@@ -156,7 +148,7 @@ public class NonResolvableKeyDirectiveTests : FederationTypesTestBase
                 Assert.Equal("false", syntaxNode.Arguments[1].Value.ToString());
             });
 
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -181,8 +173,6 @@ public class NonResolvableKeyDirectiveTests : FederationTypesTestBase
     public async Task AnnotateKeyToInterfaceAttributesAnnotationBased()
     {
         // arrange
-        Snapshot.FullName();
-
         var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddApolloFederation()
@@ -205,15 +195,13 @@ public class NonResolvableKeyDirectiveTests : FederationTypesTestBase
                 Assert.Equal("false", syntaxNode.Arguments[1].Value.ToString());
             });
 
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task AnnotateKeyToInterfaceTypeCodeFirst()
     {
         // arrange
-        Snapshot.FullName();
-
         var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddApolloFederation()
@@ -278,7 +266,7 @@ public class NonResolvableKeyDirectiveTests : FederationTypesTestBase
                 Assert.Equal("false", syntaxNode.Arguments[1].Value.ToString());
             });
 
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     public class Query<T>
