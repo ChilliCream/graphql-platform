@@ -20,7 +20,7 @@ We have aligned all builder APIs to be more consistent and easier to use. Builde
 
 The interface `IQueryRequestBuilder` and its implementations were replaced with `OperationRequestBuilder` which now supports building standard GraphQL operation requests as well as variable batch requests.
 
-The `Build()` method returns now a `IOperationRequest` which is implemented by `OperatuionRequest` and `VariableBatchRequest`.
+The `Build()` method returns now a `IOperationRequest` which is implemented by `OperationRequest` and `VariableBatchRequest`.
 
 We have also simplified what the builder does and removed a lot of the convenience methods that allowed to add single variables to it. This has todo with the support of variable batching. Now, you have to provide the variable map directly.
 
