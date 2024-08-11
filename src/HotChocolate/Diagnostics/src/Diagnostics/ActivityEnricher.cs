@@ -126,8 +126,8 @@ public class ActivityEnricher
         if (request.Variables is not null &&
             (_options.RequestDetails & RequestDetails.Variables) == RequestDetails.Variables)
         {
-            EnrichRequestVariables(context, request, CreateVariablesNode(request.Variables),
-                activity);
+            var node = CreateVariablesNode(request.Variables);
+            EnrichRequestVariables(context, request, node, activity);
         }
 
         if (request.Extensions is not null &&
@@ -175,8 +175,8 @@ public class ActivityEnricher
             if (request.Variables is not null &&
                 (_options.RequestDetails & RequestDetails.Variables) == RequestDetails.Variables)
             {
-                EnrichBatchVariables(context, request, CreateVariablesNode(request.Variables), i,
-                    activity);
+                var node = CreateVariablesNode(request.Variables);
+                EnrichBatchVariables(context, request, node, i, activity);
             }
 
             if (request.Extensions is not null &&
@@ -222,8 +222,8 @@ public class ActivityEnricher
         if (request.Variables is not null &&
             (_options.RequestDetails & RequestDetails.Variables) == RequestDetails.Variables)
         {
-            EnrichRequestVariables(context, request, CreateVariablesNode(request.Variables),
-                activity);
+            var node = CreateVariablesNode(request.Variables);
+            EnrichRequestVariables(context, request, node, activity);
         }
 
         if (request.Extensions is not null &&
