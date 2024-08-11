@@ -595,23 +595,21 @@ public class ActivityEnricher
         var tags = new ActivityTagsCollection
         {
             new(AttributeExceptionMessage, error.Message),
-            new(AttributeExceptionType, error.Code)
+            new(AttributeExceptionType, error.Code ?? "GRAPHQL_ERROR"),
         };
 
-        if (error.Locations is { Count: > 0, })
+        if (error.Path is not null)
         {
-            for (var i = 0; i < error.Locations.Count; i++)
-            {
-                tags["graphql.error.location.column"] = error.Locations[i].Column;
-                tags["graphql.error.location.line"] = error.Locations[i].Line;
+            tags["graphql.error.path"] = error.Path.ToString();
+        }
 
-                activity.AddEvent(new ActivityEvent(AttributeExceptionEventName, default, tags));
-            }
-        }
-        else
+        if (error.Locations is { Count: > 0 })
         {
-            activity.AddEvent(new ActivityEvent(AttributeExceptionEventName, default, tags));
+            tags["graphql.error.location.column"] = error.Locations[0].Column;
+            tags["graphql.error.location.line"] = error.Locations[0].Line;
         }
+
+        activity.AddEvent(new ActivityEvent(AttributeExceptionEventName, default, tags));
     }
 
     private static ISyntaxNode CreateVariablesNode(

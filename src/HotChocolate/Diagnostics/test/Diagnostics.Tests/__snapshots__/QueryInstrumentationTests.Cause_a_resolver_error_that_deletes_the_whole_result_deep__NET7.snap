@@ -7,15 +7,15 @@
       "tags": [
         {
           "Key": "graphql.document.id",
-          "Value": "bb1d246465341a97bdc727d6cd8ead5c"
+          "Value": "803df9346db185e9dc0b22dd3909aa70"
         },
         {
           "Key": "graphql.document.hash",
-          "Value": "bb1d246465341a97bdc727d6cd8ead5c"
+          "Value": "803df9346db185e9dc0b22dd3909aa70"
         },
         {
           "Key": "graphql.document.body",
-          "Value": "query SayHelloOperation {\n  sayHello_\n}"
+          "Value": "query SayHelloOperation {\n  deep {\n    deeper {\n      deeps {\n        deeper {\n          causeFatalError\n        }\n      }\n    }\n  }\n}"
         },
         {
           "Key": "otel.status_code",
@@ -47,22 +47,38 @@
             },
             {
               "Key": "graphql.document.id",
-              "Value": "bb1d246465341a97bdc727d6cd8ead5c"
+              "Value": "803df9346db185e9dc0b22dd3909aa70"
             },
             {
               "Key": "graphql.document.hash",
-              "Value": "bb1d246465341a97bdc727d6cd8ead5c"
+              "Value": "803df9346db185e9dc0b22dd3909aa70"
             }
           ],
           "event": [
             {
               "Name": "exception",
-              "Tags": {
-                "exception.message": "The field `sayHello_` does not exist on the type `SimpleQuery`.",
-                "exception.type": "GRAPHQL_ERROR",
-                "graphql.error.location.column": 27,
-                "graphql.error.location.line": 1
-              }
+              "Tags": [
+                {
+                  "Key": "exception.message",
+                  "Value": "The field `causeFatalError` does not exist on the type `Deeper`."
+                },
+                {
+                  "Key": "exception.type",
+                  "Value": "GRAPHQL_ERROR"
+                },
+                {
+                  "Key": "graphql.error.path",
+                  "Value": "/deep/deeper/deeps/deeper"
+                },
+                {
+                  "Key": "graphql.error.location.column",
+                  "Value": 21
+                },
+                {
+                  "Key": "graphql.error.location.line",
+                  "Value": 6
+                }
+              ]
             }
           ]
         }
