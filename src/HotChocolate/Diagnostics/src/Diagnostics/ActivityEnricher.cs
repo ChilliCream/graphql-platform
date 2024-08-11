@@ -602,8 +602,8 @@ public class ActivityEnricher
         {
             for (var i = 0; i < error.Locations.Count; i++)
             {
-                tags.Add(new("graphql.error.location.column", error.Locations[i].Column));
-                tags.Add(new("graphql.error.location.line", error.Locations[i].Line));
+                tags["graphql.error.location.column"] = error.Locations[i].Column;
+                tags["graphql.error.location.line"] = error.Locations[i].Line;
 
                 activity.AddEvent(new ActivityEvent(AttributeExceptionEventName, default, tags));
             }
