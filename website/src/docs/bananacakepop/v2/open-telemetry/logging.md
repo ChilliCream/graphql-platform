@@ -2,13 +2,13 @@
 title: "Logging"
 ---
 
-Banana Cake Pop includes open telemetry logging, allowing seamless log collection and analysis directly within the app. 
+Banana Cake Pop includes open telemetry logging, allowing seamless log collection and analysis directly within the app.
 This documentation provides guidance on setting up and utilizing logging features in Banana Cake Pop for enhanced monitoring, debugging, and performance analysis of your APIs.
 
 ## API Logs
 
 ![Api Logs](images/logs-1.png)
-Each API in Banana Cake Pop features a **Logs** tab, providing a centralized interface for viewing and managing logs associated with your API. 
+Each API in Banana Cake Pop features a **Logs** tab, providing a centralized interface for viewing and managing logs associated with your API.
 This unified log view offers insights into your system’s activities, enabling you to monitor and troubleshoot in real-time.
 
 ### Detailed Log Inspection
@@ -21,7 +21,7 @@ Within the Logs tab, individual log entries can be expanded to reveal additional
 
 ![Trace Logs](images/logs-3.png)
 
-Logs can also be inspected within individual traces, providing detailed insights into the correlation between specific traces and their corresponding logs. 
+Logs can also be inspected within individual traces, providing detailed insights into the correlation between specific traces and their corresponding logs.
 
 ## Log Retention
 
@@ -32,8 +32,8 @@ Log retention in Banana Cake Pop is configured as follows:
 
 ## Connect your service
 
-All the logging is done on a per API basis. 
-An api represents one of your deployments. 
+All the logging is done on a per API basis.
+An api represents one of your deployments.
 To monitor you services you need to create an API in banana cake pop.
 The api needs to be from type "Api Service" or "Api Gateway".
 
@@ -45,7 +45,7 @@ dotnet add package OpenTelemetry.Extensions.Hosting
 dotnet add package OpenTelemetry.Instrumentation.AspNetCore
 ```
 
-After installing the package, you need to configure the services in your startup class. 
+After installing the package, you need to configure the services in your startup class.
 Below is a sample implementation in C#:
 
 ```csharp
@@ -106,4 +106,3 @@ public void ConfigureServices(IServiceCollection services)
 ## Full Example
 
 For a complete implementation example, visit the [example repository](https://link.chillicream.com/docs/logging-example).
-
