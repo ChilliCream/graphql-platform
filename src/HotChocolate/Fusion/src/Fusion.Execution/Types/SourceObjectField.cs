@@ -1,3 +1,5 @@
+using HotChocolate.Language;
+
 namespace HotChocolate.Fusion.Types;
 
 public sealed class SourceObjectField(
@@ -14,4 +16,6 @@ public sealed class SourceObjectField(
     public FieldRequirements? Requirements { get; } = requirements;
 
     public ICompositeType Type { get; } = type;
+
+    public int BaseCost => 1;
 }

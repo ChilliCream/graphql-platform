@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Frozen;
+using System.Collections.Immutable;
 
 namespace HotChocolate.Fusion.Types.Collections;
 
@@ -18,6 +19,8 @@ public class SourceMemberCollection<TMember> : IEnumerable<TMember> where TMembe
 
     public bool ContainsSchema(string schemaName)
         => _members.ContainsKey(schemaName);
+
+    protected ImmutableArray<TMember> Members => _members.Values;
 
     public IEnumerator<TMember> GetEnumerator()
         => ((IEnumerable<TMember>)_members.Values).GetEnumerator();
