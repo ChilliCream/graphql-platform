@@ -587,10 +587,15 @@ public class ActivityEnricher
 
     protected virtual void EnrichError(IError error, Activity activity)
     {
-        var tags = new ActivityTagsCollection()
+        if (error.Exception is { } exception)
+        {
+            activity.RecordException(exception);
+        }
+
+        var tags = new ActivityTagsCollection
         {
             new(AttributeExceptionMessage, error.Message),
-            new(AttributeExceptionType, error.Code),
+            new(AttributeExceptionType, error.Code)
         };
 
         if (error.Locations is { Count: > 0, })
