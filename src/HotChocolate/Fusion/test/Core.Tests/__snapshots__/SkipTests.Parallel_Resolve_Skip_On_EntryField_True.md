@@ -28,7 +28,7 @@ query Test($skip: Boolean!) {
 ## QueryPlan Hash
 
 ```text
-C68ECB4ECD7513E1EB4BBC1EF82D212335091BE6
+EBF12464BEA547C7E5B76B77619C730E63F9BB78
 ```
 
 ## QueryPlan
@@ -52,8 +52,13 @@ C68ECB4ECD7513E1EB4BBC1EF82D212335091BE6
           {
             "type": "Resolve",
             "subgraph": "Subgraph_2",
-            "document": "query Test_2 { other { userId } }",
-            "selectionSetId": 0
+            "document": "query Test_2($skip: Boolean!) { other @skip(if: $skip) { userId } }",
+            "selectionSetId": 0,
+            "forwardedVariables": [
+              {
+                "variable": "skip"
+              }
+            ]
           }
         ]
       },

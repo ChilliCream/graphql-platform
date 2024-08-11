@@ -33,7 +33,7 @@ query Test($skip: Boolean!) {
 ## QueryPlan Hash
 
 ```text
-D167607A2D21385828EFFCF88ED8194F8B142ECA
+BC8B783BA7D23AED2207786ABCBE977B2138450C
 ```
 
 ## QueryPlan
@@ -48,11 +48,16 @@ D167607A2D21385828EFFCF88ED8194F8B142ECA
       {
         "type": "Resolve",
         "subgraph": "Subgraph_1",
-        "document": "query Test_1 { product { id brand { id __fusion_exports__1: id } } }",
+        "document": "query Test_1($skip: Boolean!) { product @skip(if: $skip) { id brand { id __fusion_exports__1: id } } }",
         "selectionSetId": 0,
         "provides": [
           {
             "variable": "__fusion_exports__1"
+          }
+        ],
+        "forwardedVariables": [
+          {
+            "variable": "skip"
           }
         ]
       },

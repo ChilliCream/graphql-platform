@@ -25,7 +25,7 @@ query Test($skip: Boolean!) {
 ## QueryPlan Hash
 
 ```text
-C45FAA47967851A4B12625CDD756A1C323C162CE
+16940BE29715988F4EFF523764D3BB5B7EFD976E
 ```
 
 ## QueryPlan
@@ -43,14 +43,24 @@ C45FAA47967851A4B12625CDD756A1C323C162CE
           {
             "type": "Resolve",
             "subgraph": "Subgraph_2",
-            "document": "query Test_1 { viewer { userId } other }",
-            "selectionSetId": 0
+            "document": "query Test_1($skip: Boolean!) { viewer @skip(if: $skip) { userId } other }",
+            "selectionSetId": 0,
+            "forwardedVariables": [
+              {
+                "variable": "skip"
+              }
+            ]
           },
           {
             "type": "Resolve",
             "subgraph": "Subgraph_1",
-            "document": "query Test_2 { viewer @skip(if: $skip) { name } }",
-            "selectionSetId": 0
+            "document": "query Test_2($skip: Boolean!) { viewer @skip(if: $skip) { name } }",
+            "selectionSetId": 0,
+            "forwardedVariables": [
+              {
+                "variable": "skip"
+              }
+            ]
           }
         ]
       },

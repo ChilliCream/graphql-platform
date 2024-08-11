@@ -22,7 +22,7 @@ query Test($skip: Boolean!) {
 ## QueryPlan Hash
 
 ```text
-120894E3876F3FBD797F056121AA37C7EB234DA8
+349C194994A0E867AC52596C3042DCA90B529A8B
 ```
 
 ## QueryPlan
@@ -37,8 +37,13 @@ query Test($skip: Boolean!) {
       {
         "type": "Resolve",
         "subgraph": "Subgraph_1",
-        "document": "query Test_1 { productById(id: \u00221\u0022) { id name } }",
-        "selectionSetId": 0
+        "document": "query Test_1($skip: Boolean!) { productById(id: \u00221\u0022) @skip(if: $skip) { id name } }",
+        "selectionSetId": 0,
+        "forwardedVariables": [
+          {
+            "variable": "skip"
+          }
+        ]
       },
       {
         "type": "Compose",
