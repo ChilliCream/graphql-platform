@@ -1,4 +1,0 @@
-﻿type Foo implements X & Y & Z {
-  bar: String
-  baz: [Int]
-}

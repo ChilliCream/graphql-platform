@@ -1,4 +1,3 @@
-using System;
 using System.Buffers;
 using static HotChocolate.Utilities.Properties.UtilityResources;
 
@@ -216,7 +215,7 @@ internal sealed class ArrayWriter : IBufferWriter<byte>, IDisposable
         if (!_disposed)
         {
             ArrayPool<byte>.Shared.Return(_buffer);
-            _buffer = Array.Empty<byte>();
+            _buffer = [];
             _capacity = 0;
             _start = 0;
             _disposed = true;

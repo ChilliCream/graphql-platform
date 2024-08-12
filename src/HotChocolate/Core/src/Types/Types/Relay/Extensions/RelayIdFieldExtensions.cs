@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Types.Relay;
 
 #nullable enable

@@ -8,8 +8,6 @@ using HotChocolate.Language;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
-#nullable enable
-
 namespace HotChocolate.AspNetCore.Subscriptions.Apollo;
 
 public class WebSocketProtocolTests : SubscriptionTestBase
@@ -319,6 +317,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             async ct =>
             {
                 // arrange
+                snapshot.Clear();
                 using var testServer = CreateStarWarsServer();
                 var client = CreateWebSocketClient(testServer);
                 using var webSocket = await ConnectToServerAsync(client, ct);

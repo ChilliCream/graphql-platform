@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace GreenDonut;
@@ -216,7 +214,7 @@ public class TaskCacheTests
     }
 
     [Fact(DisplayName = "GetOrAddTask: Should return new item if nothing is cached")]
-    public void GetOrAddTaskWhenNothingIsCached()
+    public async Task GetOrAddTaskWhenNothingIsCached()
     {
         // arrange
         var cacheSize = 10;
@@ -227,11 +225,11 @@ public class TaskCacheTests
         var resolved = cache.GetOrAddTask(key, _ => new Promise<string>(Task.FromResult("Quox")));
 
         // assert
-        Assert.Equal("Quox", resolved.Result);
+        Assert.Equal("Quox", await resolved);
     }
 
     [Fact(DisplayName = "TryGetValue (String): Should return one result")]
-    public void GetOrAddTaskWhenNothingIsCached_IntegerKey()
+    public async Task GetOrAddTaskWhenNothingIsCached_IntegerKey()
     {
         // arrange
         var cacheSize = 10;
@@ -242,6 +240,6 @@ public class TaskCacheTests
         var resolved = cache.GetOrAddTask(key, _ => new Promise<string>(Task.FromResult("Quox")));
 
         // assert
-        Assert.Equal("Quox", resolved.Result);
+        Assert.Equal("Quox", await resolved);
     }
 }

@@ -36,7 +36,7 @@ public class AuthorizeDirectiveTests
 
         // assert
         Assert.Equal("abc", authorizeDirective.Policy);
-        Assert.Empty(authorizeDirective.Roles);
+        Assert.Empty(authorizeDirective.Roles!);
     }
 
     [Fact]
@@ -76,7 +76,7 @@ public class AuthorizeDirectiveTests
         // assert
         Assert.Null(authorizeDirective.Policy);
         Assert.Collection(
-            authorizeDirective.Roles,
+            authorizeDirective.Roles!,
             t => Assert.Equal("a", t),
             t => Assert.Equal("b", t));
     }

@@ -44,6 +44,8 @@ graphyne
 greendonut
 Hasura
 HCXXXX
+hhmm
+HHmmssfffffff
 hotchocolate
 Includable
 inheritdocs
@@ -57,8 +59,10 @@ mercurius
 mergeable
 meros
 Misordered
+msbuild
 msdata
 namespacing
+Nats
 ncontains
 nendsWith
 NEOSW
@@ -102,6 +106,7 @@ resx
 Retval
 Rgba
 Rhai
+Roslynator
 runbooks
 shoooe
 snapshooter

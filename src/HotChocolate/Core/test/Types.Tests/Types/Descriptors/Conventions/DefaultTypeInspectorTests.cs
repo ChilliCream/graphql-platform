@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -290,9 +286,6 @@ public class DefaultTypeInspectorTests
         Assert.Equal(TypeContext.None, typeReference.Context);
         Assert.Null(typeReference.Scope);
     }
-
-
-
 
     [Fact]
     public void GetArgumentTypeRef_Parameter_Is_Null()
@@ -687,7 +680,6 @@ public class DefaultTypeInspectorTests
         public string ShouldNotBeFound(
             object o) => null;
 
-
         public string ShouldBeFound(
             [GraphQLType(typeof(StringType))]
             object o) => null;
@@ -697,7 +689,6 @@ public class DefaultTypeInspectorTests
     {
         public string ShouldNotBeFound(
             object o) => null;
-
 
         public string ShouldBeFound(
             [Some]
@@ -744,7 +735,7 @@ public class DefaultTypeInspectorTests
             IDescriptor descriptor,
             ICustomAttributeProvider element)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
     }
 

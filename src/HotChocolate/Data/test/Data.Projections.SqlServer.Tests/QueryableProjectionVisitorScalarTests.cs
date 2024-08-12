@@ -21,7 +21,7 @@ public class QueryableProjectionVisitorScalarTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ notSettable }}")
                 .Build());
 
@@ -40,7 +40,7 @@ public class QueryableProjectionVisitorScalarTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ computed }}")
                 .Build());
 
@@ -59,7 +59,7 @@ public class QueryableProjectionVisitorScalarTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ bar baz }}")
                 .Build());
 
@@ -78,7 +78,7 @@ public class QueryableProjectionVisitorScalarTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ baz }}")
                 .Build());
 
@@ -103,7 +103,7 @@ public class QueryableProjectionVisitorScalarTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ baz foo }}")
                 .Build());
 

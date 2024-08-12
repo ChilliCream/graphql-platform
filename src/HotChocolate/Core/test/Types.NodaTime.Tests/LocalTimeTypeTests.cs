@@ -1,8 +1,5 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Execution;
 using NodaTime;
-using NodaTime.Text;
 
 namespace HotChocolate.Types.NodaTime.Tests
 {
@@ -47,7 +44,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             var result = _testExecutor
                 .Execute(
-                    OperationRequestBuilder.Create()
+                    OperationRequestBuilder.New()
                         .SetDocument("mutation($arg: LocalTime!) { test(arg: $arg) }")
                         .SetVariableValues(new Dictionary<string, object?> { { "arg", "12:42:13.031011234" }, })
                         .Build());
@@ -60,7 +57,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             var result = _testExecutor
                 .Execute(
-                    OperationRequestBuilder.Create()
+                    OperationRequestBuilder.New()
                         .SetDocument("mutation($arg: LocalTime!) { test(arg: $arg) }")
                         .SetVariableValues(new Dictionary<string, object?> { { "arg", "12:42:13" }, })
                         .Build());
@@ -73,13 +70,13 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             var result = _testExecutor
                 .Execute(
-                    OperationRequestBuilder.Create()
+                    OperationRequestBuilder.New()
                         .SetDocument("mutation($arg: LocalTime!) { test(arg: $arg) }")
                         .SetVariableValues(new Dictionary<string, object?> { { "arg", "12:42" }, })
                         .Build());
 
             Assert.Null(result.ExpectQueryResult().Data);
-            Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
+            Assert.Single(result.ExpectQueryResult().Errors!);
         }
 
         [Fact]
@@ -87,7 +84,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             var result = _testExecutor
                 .Execute(
-                    OperationRequestBuilder.Create()
+                    OperationRequestBuilder.New()
                         .SetDocument("mutation { test(arg: \"12:42:13.031011234\") }")
                         .Build());
 
@@ -99,7 +96,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             var result = _testExecutor
                 .Execute(
-                    OperationRequestBuilder.Create()
+                    OperationRequestBuilder.New()
                         .SetDocument("mutation { test(arg: \"12:42:13\") }")
                         .Build());
 
@@ -111,12 +108,12 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             var result = _testExecutor
                 .Execute(
-                    OperationRequestBuilder.Create()
+                    OperationRequestBuilder.New()
                         .SetDocument("mutation { test(arg: \"12:42\") }")
                         .Build());
 
             Assert.Null(result.ExpectQueryResult().Data);
-            Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
+            Assert.Single(result.ExpectQueryResult().Errors!);
             Assert.Null(result.ExpectQueryResult().Errors![0].Code);
             Assert.Equal(
                 "Unable to deserialize string to LocalTime",
@@ -126,7 +123,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void PatternEmptyThrowSchemaException()
         {
-            static object Call() => new LocalTimeType(Array.Empty<IPattern<LocalTime>>());
+            static object Call() => new LocalTimeType([]);
             Assert.Throws<SchemaException>(Call);
         }
     }

@@ -1,4 +1,4 @@
-﻿namespace HotChocolate.PersistedQueries.InMemory;
+namespace HotChocolate.PersistedQueries.InMemory;
 
 public class ServiceCollectionTests
 {
@@ -15,4 +15,3 @@ public class ServiceCollectionTests
         Assert.Throws<ArgumentNullException>((Action)Action);
     }
 }
-    

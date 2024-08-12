@@ -27,7 +27,9 @@ internal sealed class Compose : QueryPlanNode
     /// The selection set for which the results shall be composed.
     /// </param>
     public Compose(int id, SelectionSet selectionSet)
-        : this(id, new[] { selectionSet, }) { }
+        : this(id, [selectionSet])
+    {
+    }
 
     /// <summary>
     /// Initializes a new instance of <see cref="Compose"/>.

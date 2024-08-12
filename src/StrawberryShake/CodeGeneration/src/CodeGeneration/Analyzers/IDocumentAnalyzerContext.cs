@@ -1,11 +1,9 @@
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
-
-#nullable enable
+using Path = HotChocolate.Path;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;
 

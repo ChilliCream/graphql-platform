@@ -9,4 +9,5 @@ type Query {
   time: Long!
   evict: Boolean!
   wait(m: Int!): Boolean! @cost(weight: "10")
+  someDeprecatedField(deprecatedArg: String! = "foo" @deprecated(reason: "use something else")): String! @deprecated(reason: "use something else")
 }

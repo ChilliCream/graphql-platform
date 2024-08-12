@@ -1,7 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
@@ -9,7 +6,7 @@ namespace HotChocolate.Execution.Processing;
 
 internal sealed class EmptySelectionCollection : ISelectionCollection
 {
-    private static readonly ISelection[] _empty = Array.Empty<ISelection>();
+    private static readonly ISelection[] _empty = [];
 
     public static EmptySelectionCollection Instance { get; } = new();
 

@@ -92,7 +92,7 @@ public class DeferTests
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(
                     @"query($defer: Boolean!) {
                         ... @defer(if: $defer) {
@@ -205,7 +205,7 @@ public class DeferTests
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(
                     @"query ($defer: Boolean!) {
                         ... Foo @defer(if: $defer)

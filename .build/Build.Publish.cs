@@ -41,7 +41,6 @@ partial class Build
             */
         });
 
-
     Target PackLocal => _ => _
         .Produces(PackageDirectory / "*.nupkg")
         .Produces(PackageDirectory / "*.snupkg")

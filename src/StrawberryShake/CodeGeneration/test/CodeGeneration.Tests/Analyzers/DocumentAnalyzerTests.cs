@@ -39,12 +39,11 @@ public class DocumentAnalyzerTests
 
         // act
         var clientModel =
-            DocumentAnalyzer
+            await DocumentAnalyzer
                 .New()
                 .SetSchema(schema)
                 .AddDocument(document)
-                .AnalyzeAsync()
-                .Result;
+                .AnalyzeAsync();
 
         // assert
         Assert.Empty(clientModel.InputObjectTypes);
@@ -72,7 +71,6 @@ public class DocumentAnalyzerTests
                 Assert.Equal("IGetHero_Hero", fieldResultType.Name);
             });
     }
-
 
     [Fact]
     public async Task One_Fragment_One_Deferred_Fragment()
@@ -115,16 +113,15 @@ public class DocumentAnalyzerTests
 
         // act
         var clientModel =
-            DocumentAnalyzer
+            await DocumentAnalyzer
                 .New()
                 .SetSchema(schema)
                 .AddDocument(document)
-                .AnalyzeAsync()
-                .Result;
+                .AnalyzeAsync();
 
         // assert
         var human = clientModel.OutputTypes.First(t => t.Name.EqualsOrdinal("GetHero_Hero_Human"));
-        Assert.Equal(1, human.Fields.Count);
+        Assert.Single(human.Fields);
 
         Assert.True(
             human.Deferred.ContainsKey("HeroAppearsIn"),

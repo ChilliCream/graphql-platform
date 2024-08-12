@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
@@ -105,6 +103,29 @@ public class IntegrationTests
             {
                 node(id: "QXV0aG9yOjE=") {
                     __typename
+                }
+            }
+            """);
+
+        // assert
+        result.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Inherit_Interface_Fields()
+    {
+        // arrange
+        var services = CreateApplicationServices();
+        var executor = await services.GetRequiredService<IRequestExecutorResolver>().GetRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                books {
+                    nodes {
+                        idString
+                    }
                 }
             }
             """);

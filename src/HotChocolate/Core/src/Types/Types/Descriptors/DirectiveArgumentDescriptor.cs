@@ -1,4 +1,3 @@
-using System;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -66,7 +65,7 @@ public class DirectiveArgumentDescriptor
     protected override void OnCreateDefinition(DirectiveArgumentDefinition definition)
     {
         Context.Descriptors.Push(this);
-            
+
         if (Definition is { AttributesAreApplied: false, Property: not null, })
         {
             Context.TypeInspector.ApplyAttributes(Context, this, Definition.Property);

@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Threading.Tasks;
 using HotChocolate.Tests;
 using HotChocolate.Types.Descriptors;
 using Snapshooter.Xunit;
@@ -87,12 +84,11 @@ public class InputObjectTypeAttributeTests
             .Create()
             .MakeExecutable()
             .ExecuteAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument("{ foo(a: { }) { foo bar baz qux quux } }")
                     .Build())
             .MatchSnapshotAsync();
     }
-
 
     [Fact]
     public async Task Infer_Default_Values_From_Attribute_Execute_With_Variables()
@@ -111,7 +107,7 @@ public class InputObjectTypeAttributeTests
             .Create()
             .MakeExecutable()
             .ExecuteAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument(@"
                             query($q: InputWithDefaultsInput) {
                                 foo(a: $q) {

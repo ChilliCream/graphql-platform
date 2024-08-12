@@ -1,15 +1,11 @@
 #nullable enable
 
-using System;
 using System.Buffers;
 using System.Collections;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 using HotChocolate.Internal;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
@@ -259,7 +255,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
             return Enum.GetValues(enumType).Cast<object>();
         }
 
-        return Enumerable.Empty<object>();
+        return [];
     }
 
     /// <inheritdoc />
@@ -312,6 +308,19 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
         if (resolverType is null)
         {
             foreach (var member in nodeType.GetMembers(Static | Public | FlattenHierarchy))
+            {
+                if (member is MethodInfo m && IsPossibleNodeResolver(m, nodeType))
+                {
+                    return m;
+                }
+            }
+
+            // check interfaces
+            var interfaceMembers = nodeType
+                .GetInterfaces()
+                .SelectMany(i => i.GetMembers(Static | Public | FlattenHierarchy));
+
+            foreach (var member in interfaceMembers)
             {
                 if (member is MethodInfo m && IsPossibleNodeResolver(m, nodeType))
                 {

@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
@@ -11,6 +10,11 @@
     <RootNamespace>HotChocolate.Types.Pagination</RootNamespace>
     <Description>Contains middleware and types for cursor based pagination.</Description>
   </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Types.CursorPagination.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Types.Tests" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />

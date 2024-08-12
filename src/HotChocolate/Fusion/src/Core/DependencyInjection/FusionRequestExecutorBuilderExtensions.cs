@@ -1,6 +1,7 @@
 using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Execution.Errors;
 using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Pipeline;
 using HotChocolate.Fusion;
@@ -343,6 +344,66 @@ public static class FusionRequestExecutorBuilderExtensions
         return builder;
     }
 
+    public static FusionGatewayBuilder AddErrorFilter(
+        this FusionGatewayBuilder builder,
+        Func<IError, IError> errorFilter)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (errorFilter is null)
+        {
+            throw new ArgumentNullException(nameof(errorFilter));
+        }
+
+        builder.CoreBuilder.ConfigureSchemaServices(
+            s => s.AddSingleton<IErrorFilter>(
+                new FuncErrorFilterWrapper(errorFilter)));
+
+        return builder;
+    }
+
+    public static FusionGatewayBuilder AddErrorFilter<T>(
+        this FusionGatewayBuilder builder,
+        Func<IServiceProvider, T> factory)
+        where T : class, IErrorFilter
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (factory is null)
+        {
+            throw new ArgumentNullException(nameof(factory));
+        }
+
+        builder.CoreBuilder.ConfigureSchemaServices(
+            s => s.AddSingleton<IErrorFilter, T>(
+                sp => factory(sp.GetCombinedServices())));
+
+        return builder;
+    }
+
+    public static FusionGatewayBuilder AddErrorFilter<T>(
+        this FusionGatewayBuilder builder)
+        where T : class, IErrorFilter
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        builder.Services.TryAddSingleton<T>();
+        builder.CoreBuilder.ConfigureSchemaServices(
+            s => s.AddSingleton<IErrorFilter, T>(
+                sp => sp.GetApplicationService<T>()));
+
+        return builder;
+    }
+
     /// <summary>
     /// Uses the default fusion gateway pipeline.
     /// </summary>
@@ -406,6 +467,88 @@ public static class FusionRequestExecutorBuilderExtensions
         }
 
         builder.CoreBuilder.UseFusionAutomaticPersistedQueryPipeline();
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds a type that will be used to create a middleware for the execution pipeline.
+    /// </summary>
+    /// <param name="builder">
+    /// The gateway builder.
+    /// </param>
+    /// <returns>
+    /// Returns the gateway builder for configuration chaining.
+    /// </returns>
+    public static FusionGatewayBuilder UseRequest<TMiddleware>(
+        this FusionGatewayBuilder builder)
+        where TMiddleware : class
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        builder.CoreBuilder.UseRequest<TMiddleware>();
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds a delegate that will be used to create a middleware for the execution pipeline.
+    /// </summary>
+    /// <param name="builder">
+    /// The gateway builder.
+    /// </param>
+    /// <param name="middleware">
+    /// A delegate that is used to create a middleware for the execution pipeline.
+    /// </param>
+    /// <returns>
+    /// Returns the gateway builder for configuration chaining.
+    /// </returns>
+    public static FusionGatewayBuilder UseRequest(
+        this FusionGatewayBuilder builder,
+        RequestCoreMiddleware middleware)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (middleware is null)
+        {
+            throw new ArgumentNullException(nameof(middleware));
+        }
+
+        builder.CoreBuilder.UseRequest(middleware);
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds a delegate that will be used to create a middleware for the execution pipeline.
+    /// </summary>
+    /// <param name="builder">
+    /// The gateway builder.
+    /// </param>
+    /// <param name="middleware">
+    /// A delegate that is used to create a middleware for the execution pipeline.
+    /// </param>
+    /// <returns>
+    /// Returns the gateway builder for configuration chaining.
+    /// </returns>
+    public static FusionGatewayBuilder UseRequest(
+        this FusionGatewayBuilder builder,
+        RequestMiddleware middleware)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (middleware is null)
+        {
+            throw new ArgumentNullException(nameof(middleware));
+        }
+
+        builder.CoreBuilder.UseRequest(middleware);
         return builder;
     }
 
@@ -481,7 +624,7 @@ public static class FusionRequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        return builder.UseRequest<DistributedOperationExecutionMiddleware>();
+        return builder.UseRequest(DistributedOperationExecutionMiddleware.Create());
     }
 
     internal static void AddDefaultPipeline(this IList<RequestCoreMiddleware> pipeline)

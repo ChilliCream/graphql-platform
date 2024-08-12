@@ -3,11 +3,10 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Types.Scalars.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Types</RootNamespace>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+    <PackageReference Include="System.ComponentModel.Annotations" />
   </ItemGroup>
 
   <ItemGroup>

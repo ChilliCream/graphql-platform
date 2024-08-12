@@ -28,7 +28,7 @@ public static class InterfaceObjectDescriptorExtensions
 
         return descriptor.Directive(InterfaceObjectDirective.Default);
     }
-    
+
     /// <summary>
     /// Applies the @interfaceObject directive which provides meta information to the router that this entity
     /// type defined within this subgraph is an interface in the supergraph. This allows you to extend functionality

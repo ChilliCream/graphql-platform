@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Authorization;
 using HotChocolate.Resolvers;
 using Microsoft.AspNetCore.Authorization;
@@ -151,7 +146,7 @@ internal sealed class DefaultAuthorizationHandler : IAuthorizationHandler
             var result = await _authSvc.AuthorizeAsync(user, context, policy).ConfigureAwait(false);
             return result.Succeeded
                 ? AuthorizeResult.Allowed
-                : AuthorizeResult.NotAllowed;
+                : authenticated ? AuthorizeResult.NotAllowed : AuthorizeResult.NotAuthenticated;
         }
 
         // We first check if the user fulfills any of the specified roles.
@@ -176,10 +171,10 @@ internal sealed class DefaultAuthorizationHandler : IAuthorizationHandler
             var result = await _authSvc.AuthorizeAsync(user, context, policy).ConfigureAwait(false);
             return result.Succeeded
                 ? AuthorizeResult.Allowed
-                : AuthorizeResult.NotAllowed;
+                : authenticated ? AuthorizeResult.NotAllowed : AuthorizeResult.NotAuthenticated;
         }
 
-        return AuthorizeResult.NotAllowed;
+        return authenticated ? AuthorizeResult.NotAllowed : AuthorizeResult.NotAuthenticated;
     }
 
     private static UserState GetUserState(IDictionary<string, object?> contextData)

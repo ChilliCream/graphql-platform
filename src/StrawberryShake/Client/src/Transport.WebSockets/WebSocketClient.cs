@@ -1,10 +1,6 @@
-using System;
-using System.Collections.Generic;
 using System.IO.Pipelines;
 using System.Net.WebSockets;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
 using StrawberryShake.Properties;
 
 namespace StrawberryShake.Transport.WebSockets;
@@ -21,9 +17,6 @@ public sealed class WebSocketClient : IWebSocketClient
     private ISocketProtocol? _activeProtocol;
     private bool _receiveFinishEventTriggered = false;
     private bool _disposed;
-
-    /// <inheritdoc />
-    public event EventHandler ReceiveFinished = default!;
 
     /// <summary>
     /// Creates a new instance of <see cref="WebSocketClient"/>
@@ -44,6 +37,8 @@ public sealed class WebSocketClient : IWebSocketClient
             _socket.Options.AddSubProtocol(_protocolFactories[i].ProtocolName);
         }
     }
+
+    public event EventHandler? OnConnectionClosed;
 
     /// <inheritdoc />
     public Uri? Uri { get; set; }
@@ -67,7 +62,8 @@ public sealed class WebSocketClient : IWebSocketClient
             if (closed && !_receiveFinishEventTriggered)
             {
                 _receiveFinishEventTriggered = true;
-                ReceiveFinished?.Invoke(this, EventArgs.Empty);
+                OnConnectionClosed?.Invoke(this, EventArgs.Empty);
+                ConnectionInterceptor.OnConnectionClosed(this);
             }
             return closed;
         }
@@ -110,6 +106,8 @@ public sealed class WebSocketClient : IWebSocketClient
 
             throw ThrowHelper.SocketClient_ProtocolNotFound(_socket.SubProtocol ?? "null");
         }
+
+        ConnectionInterceptor.OnConnectionOpened(this);
 
         await _activeProtocol.InitializeAsync(cancellationToken).ConfigureAwait(false);
 

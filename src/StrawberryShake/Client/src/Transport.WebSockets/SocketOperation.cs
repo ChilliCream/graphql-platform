@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Channels;
-using System.Threading.Tasks;
 using StrawberryShake.Transport.WebSockets.Messages;
 
 namespace StrawberryShake.Transport.WebSockets;
@@ -61,7 +57,9 @@ public sealed class SocketOperation : ISocketOperation
         {
             try
             {
-                await _channel.Writer.WriteAsync(CompleteOperationMessage.Default, cancellationToken).ConfigureAwait(false);
+                await _channel.Writer
+                    .WriteAsync(CompleteOperationMessage.Default, cancellationToken)
+                    .ConfigureAwait(false);
             }
             catch (ChannelClosedException)
             {
@@ -70,31 +68,22 @@ public sealed class SocketOperation : ISocketOperation
         }
     }
 
-    private sealed class MessageStream : IAsyncEnumerable<OperationMessage>
+    private sealed class MessageStream(SocketOperation operation, Channel<OperationMessage> channel)
+        : IAsyncEnumerable<OperationMessage>
     {
-        private readonly SocketOperation _operation;
-        private readonly Channel<OperationMessage> _channel;
-
-        public MessageStream(SocketOperation operation, Channel<OperationMessage> channel)
-        {
-            _operation = operation;
-            _channel = channel;
-        }
-
         public async IAsyncEnumerator<OperationMessage> GetAsyncEnumerator(
             CancellationToken cancellationToken = default)
         {
-            if (_operation._disposed)
+            if (operation._disposed)
             {
                 yield break;
             }
 
-            ChannelReader<OperationMessage> reader = _channel.Reader;
-
-            while (!_operation._disposed && !reader.Completion.IsCompleted)
+            var reader = channel.Reader;
+            while (!operation._disposed && !reader.Completion.IsCompleted)
             {
-                if (await reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false) &&
-                    reader.TryRead(out var message))
+                if (await reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false)
+                    && reader.TryRead(out var message))
                 {
                     yield return message;
                 }

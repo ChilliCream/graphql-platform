@@ -1,8 +1,5 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using HotChocolate.Configuration;
@@ -35,9 +32,7 @@ public sealed class DirectiveCollection : IDirectiveCollection
         get
         {
             var directives = _directives;
-            return directives.Length == 0
-                ? Enumerable.Empty<Directive>()
-                : FindDirectives(directives, directiveName);
+            return directives.Length == 0 ? [] : FindDirectives(directives, directiveName);
         }
     }
 

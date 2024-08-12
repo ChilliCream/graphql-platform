@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Validation;
 
@@ -299,7 +299,6 @@ public class FieldsOnCorrectTypeRuleTests
             .AddResolver("Bar", "baz", ctx => null!)
             .AddResolver("Baz", "baz", ctx => null!)
             .Create();
-
 
         ExpectErrors(
             schema,

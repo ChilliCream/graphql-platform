@@ -1,5 +1,3 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
@@ -20,7 +18,6 @@ public class ListTypeTests
         // assert
         Assert.Equal(innerType, type.ElementType);
     }
-
 
     [Fact]
     public void EnsureNonNullElementTypeIsCorrectlySet()
@@ -61,7 +58,7 @@ public class ListTypeTests
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument("{ scalars(values: [1,2]) }")
                 .Build());
 
@@ -81,7 +78,7 @@ public class ListTypeTests
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument("{ scalars(values: 1) }")
                 .Build());
 
@@ -101,7 +98,7 @@ public class ListTypeTests
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument("{ objects(values: [{ bar: 1 }, { bar: 2 }]) { bar } }")
                 .Build());
 
@@ -121,7 +118,7 @@ public class ListTypeTests
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument("{ objects(values: { bar: 1 }) { bar } }")
                 .Build());
 

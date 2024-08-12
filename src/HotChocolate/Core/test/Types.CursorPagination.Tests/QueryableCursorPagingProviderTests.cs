@@ -1,11 +1,7 @@
-﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
@@ -26,7 +22,7 @@ public class QueryableCursorPagingProviderTests
         var sourceType = typeInspector.GetType(typeof(List<string>));
 
         IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
-        var pagingHandler = pagingProvider.CreateHandler(sourceType, default);
+        var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
         var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
 
@@ -59,7 +55,6 @@ public class QueryableCursorPagingProviderTests
             "HasNextPage");
     }
 
-
     [Fact]
     public async Task TakeLastSingle()
     {
@@ -68,7 +63,7 @@ public class QueryableCursorPagingProviderTests
         var sourceType = typeInspector.GetType(typeof(List<string>));
 
         IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
-        var pagingHandler = pagingProvider.CreateHandler(sourceType, default);
+        var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
         var list = new List<string> { "f", "g", };
 
@@ -104,7 +99,7 @@ public class QueryableCursorPagingProviderTests
         var sourceType = typeInspector.GetType(typeof(List<string>));
 
         IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
-        var pagingHandler = pagingProvider.CreateHandler(sourceType, default);
+        var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
         var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
 
@@ -145,7 +140,7 @@ public class QueryableCursorPagingProviderTests
         var sourceType = typeInspector.GetType(typeof(List<string>));
 
         IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
-        var pagingHandler = pagingProvider.CreateHandler(sourceType, default);
+        var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
         var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
 
@@ -191,7 +186,7 @@ public class QueryableCursorPagingProviderTests
         var sourceType = typeInspector.GetType(typeof(List<string>));
 
         IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
-        var pagingHandler = pagingProvider.CreateHandler(sourceType, default);
+        var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
         var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
 
@@ -237,7 +232,7 @@ public class QueryableCursorPagingProviderTests
         var sourceType = typeInspector.GetType(typeof(List<string>));
 
         IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
-        var pagingHandler = pagingProvider.CreateHandler(sourceType, default);
+        var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
         var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
 
@@ -260,7 +255,7 @@ public class QueryableCursorPagingProviderTests
         var sourceType = typeInspector.GetType(typeof(List<string>));
 
         IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
-        var pagingHandler = pagingProvider.CreateHandler(sourceType, default);
+        var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
         var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
 
@@ -283,7 +278,7 @@ public class QueryableCursorPagingProviderTests
         var sourceType = typeInspector.GetType(typeof(List<string>));
 
         IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
-        var pagingHandler = pagingProvider.CreateHandler(sourceType, default);
+        var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
         var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
 
@@ -312,7 +307,7 @@ public class QueryableCursorPagingProviderTests
         var sourceType = typeInspector.GetType(typeof(List<string>));
 
         IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
-        var pagingHandler = pagingProvider.CreateHandler(sourceType, default);
+        var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
         var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
 
@@ -335,7 +330,7 @@ public class QueryableCursorPagingProviderTests
         var sourceType = typeInspector.GetType(typeof(List<string>));
 
         IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
-        var pagingHandler = pagingProvider.CreateHandler(sourceType, default);
+        var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
         var list = new MockExecutable<string>(new []
         {
@@ -385,7 +380,7 @@ public class QueryableCursorPagingProviderTests
         var sourceType = typeInspector.GetType(typeof(List<string>));
 
         IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
-        var pagingHandler = pagingProvider.CreateHandler(sourceType, default);
+        var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
         var list = new MockExecutable<string>(new []
         {
@@ -620,6 +615,28 @@ public class QueryableCursorPagingProviderTests
 
         public ValueTask<List<T>> ToListAsync(CancellationToken cancellationToken)
             => new(source.ToList());
+
+        public async IAsyncEnumerable<T> ToAsyncEnumerable(
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            var queryable = await new ValueTask<IEnumerable<T>>(source);
+
+            foreach (var item in queryable)
+            {
+                yield return item;
+            }
+        }
+
+        async IAsyncEnumerable<object?> IExecutable.ToAsyncEnumerable(
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            var queryable = await new ValueTask<IEnumerable<T>>(source);
+
+            foreach (var item in queryable)
+            {
+                yield return item;
+            }
+        }
 
         ValueTask<object?> IExecutable.FirstOrDefaultAsync(CancellationToken cancellationToken)
             => new(source.FirstOrDefault());

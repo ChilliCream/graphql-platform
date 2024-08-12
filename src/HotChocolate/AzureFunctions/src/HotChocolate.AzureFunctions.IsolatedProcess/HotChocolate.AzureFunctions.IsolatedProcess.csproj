@@ -5,13 +5,11 @@
     <AssemblyName>HotChocolate.AzureFunctions.IsolatedProcess</AssemblyName>
     <RootNamespace>HotChocolate.AzureFunctions.IsolatedProcess</RootNamespace>
     <Description>This package contains the GraphQL AzureFunctions Isolated Process integration for Hot Chocolate.</Description>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Abstractions" Version="1.1.0" />
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.Core" Version="1.4.0" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Core" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Abstractions" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,8 +1,6 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Threading;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing;
@@ -74,10 +72,10 @@ internal sealed class ResultBucket<T> where T : class
             {
                 mem = default;
             }
-            
+
             mem = ref Unsafe.Add(ref mem, 1);
         }
-        
+
         _index = 0;
     }
 }

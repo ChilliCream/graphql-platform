@@ -1,6 +1,3 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
@@ -99,7 +96,6 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
             t => Assert.Equal("a", t),
             t => Assert.Equal("c", t));
     }
-
 
     [Fact]
     public void UnignoreOverriddenPropertyField()

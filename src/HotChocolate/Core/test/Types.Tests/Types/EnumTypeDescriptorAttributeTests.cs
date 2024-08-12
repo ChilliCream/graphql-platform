@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
 
@@ -49,7 +47,6 @@ public class EnumTypeDescriptorAttributeTests
 
     public enum Enum1
     {
-
         [RenameValue]
         Value1,
         Value2,
@@ -70,7 +67,6 @@ public class EnumTypeDescriptorAttributeTests
     [RenameType]
     public enum Enum2
     {
-
         Value1,
         Value2,
     }
@@ -78,7 +74,6 @@ public class EnumTypeDescriptorAttributeTests
     [EnumType(Name = "Foo")]
     public enum Enum3
     {
-
         Value1,
         Value2,
     }

@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 
 #nullable enable

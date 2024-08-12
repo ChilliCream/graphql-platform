@@ -1,8 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Execution;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -10,7 +8,6 @@ using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static System.Reflection.BindingFlags;
-using static HotChocolate.Execution.ExecutionStrategy;
 using static HotChocolate.Properties.TypeResources;
 
 #nullable enable
@@ -22,7 +19,7 @@ public class ObjectFieldDescriptor
     , IObjectFieldDescriptor
 {
     private bool _argumentsInitialized;
-    private ParameterInfo[] _parameterInfos = Array.Empty<ParameterInfo>();
+    private ParameterInfo[] _parameterInfos = [];
 
     /// <summary>
     /// Creates a new instance of <see cref="ObjectFieldDescriptor"/>
@@ -34,7 +31,8 @@ public class ObjectFieldDescriptor
     {
         Definition.Name = fieldName;
         Definition.ResultType = typeof(object);
-        Definition.IsParallelExecutable = context.Options.DefaultResolverStrategy is Parallel;
+        Definition.IsParallelExecutable =
+            context.Options.DefaultResolverStrategy is ExecutionStrategy.Parallel;
     }
 
     /// <summary>
@@ -56,7 +54,8 @@ public class ObjectFieldDescriptor
         Definition.ResolverType = resolverType == sourceType
             ? null
             : resolverType;
-        Definition.IsParallelExecutable = context.Options.DefaultResolverStrategy is Parallel;
+        Definition.IsParallelExecutable =
+            context.Options.DefaultResolverStrategy is ExecutionStrategy.Parallel;
 
         if (naming.IsDeprecated(member, out var reason))
         {
@@ -88,7 +87,8 @@ public class ObjectFieldDescriptor
         Definition.Expression = expression ?? throw new ArgumentNullException(nameof(expression));
         Definition.SourceType = sourceType;
         Definition.ResolverType = resolverType;
-        Definition.IsParallelExecutable = context.Options.DefaultResolverStrategy is Parallel;
+        Definition.IsParallelExecutable =
+            context.Options.DefaultResolverStrategy is ExecutionStrategy.Parallel;
 
         var member = expression.TryExtractCallMember();
 
@@ -137,7 +137,7 @@ public class ObjectFieldDescriptor
     protected override void OnCreateDefinition(ObjectFieldDefinition definition)
     {
         Context.Descriptors.Push(this);
-        
+
         var member = definition.ResolverMember ?? definition.Member;
 
         if (!Definition.AttributesAreApplied && member is not null)

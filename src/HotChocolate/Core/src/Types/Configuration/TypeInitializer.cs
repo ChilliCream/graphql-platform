@@ -1,8 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
@@ -108,8 +105,8 @@ internal sealed class TypeInitializer
         // the fields resolving all missing parts and then making the types immutable.
         CompleteTypes();
 
-        // at this point everything is completely initialized and we just trigger a type
-        // finalize to allow the type to cleanup any initialization data structures.
+        // at this point everything is completely initialized, and we just trigger a type
+        // finalize to allow the type to clean up any initialization data structures.
         FinalizeTypes();
 
         // if we do not have any errors we will validate the types for spec violations.
@@ -439,6 +436,16 @@ internal sealed class TypeInitializer
                 }
             }
         }
+        else if(registeredType.Type is InterfaceType interfaceType)
+        {
+            foreach (var field in interfaceType.Definition!.Fields)
+            {
+                if (!field.Resolvers.HasResolvers)
+                {
+                    field.Resolvers = CompileResolver(field, _context.ResolverCompiler);
+                }
+            }
+        }
     }
 
     private static FieldResolverDelegates CompileResolver(
@@ -494,6 +501,63 @@ internal sealed class TypeInitializer
 
         static void BuildArgumentLookup(
             ObjectFieldDefinition definition,
+            Dictionary<ParameterInfo, string> argumentNames)
+        {
+            foreach (var argument in definition.Arguments)
+            {
+                if (argument.Parameter is not null)
+                {
+                    argumentNames[argument.Parameter] = argument.Name;
+                }
+            }
+        }
+    }
+
+    private static FieldResolverDelegates CompileResolver(
+        InterfaceFieldDefinition definition,
+        IResolverCompiler resolverCompiler)
+    {
+        var resolvers = definition.Resolvers;
+
+        if (resolvers.HasResolvers)
+        {
+            return resolvers;
+        }
+
+        if (definition.ResolverMember is not null)
+        {
+            var map = TypeMemHelper.RentArgumentNameMap();
+            BuildArgumentLookup(definition, map);
+
+            resolvers = resolverCompiler.CompileResolve(
+                definition.ResolverMember,
+                definition.SourceType
+                ?? definition.Member?.ReflectedType ?? definition.Member?.DeclaringType ?? typeof(object),
+                definition.ResolverType,
+                map,
+                definition.GetParameterExpressionBuilders());
+
+            TypeMemHelper.Return(map);
+        }
+        else if (definition.Member is not null)
+        {
+            var map = TypeMemHelper.RentArgumentNameMap();
+            BuildArgumentLookup(definition, map);
+
+            resolvers = resolverCompiler.CompileResolve(
+                definition.Member,
+                definition.SourceType ?? definition.Member.ReflectedType ?? definition.Member.DeclaringType,
+                definition.ResolverType,
+                map,
+                definition.GetParameterExpressionBuilders());
+
+            TypeMemHelper.Return(map);
+        }
+
+        return resolvers;
+
+        static void BuildArgumentLookup(
+            InterfaceFieldDefinition definition,
             Dictionary<ParameterInfo, string> argumentNames)
         {
             foreach (var argument in definition.Arguments)

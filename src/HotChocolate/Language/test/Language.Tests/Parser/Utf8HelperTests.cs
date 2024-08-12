@@ -1,4 +1,3 @@
-using System;
 using System.Text;
 using Xunit;
 
@@ -73,7 +72,6 @@ public class Utf8HelperTests
             Encoding.UTF8.GetString(output.ToArray()));
     }
 
-
     [InlineData("\\\"\"")]
     [InlineData("\\\"")]
     [Theory]
@@ -93,7 +91,7 @@ public class Utf8HelperTests
             Utf8Helper.Unescape(in input, ref output, true);
 
             // assert
-            Assert.True(false, "The unescape method should fail.");
+            Assert.Fail("The unescape method should fail.");
         }
         catch
         {

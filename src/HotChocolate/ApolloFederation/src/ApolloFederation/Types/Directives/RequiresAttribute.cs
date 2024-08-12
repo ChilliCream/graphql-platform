@@ -39,7 +39,6 @@ namespace HotChocolate.ApolloFederation.Types;
 /// </param>
 public sealed class RequiresAttribute(string fieldSet) : ObjectFieldDescriptorAttribute
 {
-
     /// <summary>
     /// Gets the fieldset which describes fields that may not be needed by the client,
     /// but are required by this service as additional information from other services.

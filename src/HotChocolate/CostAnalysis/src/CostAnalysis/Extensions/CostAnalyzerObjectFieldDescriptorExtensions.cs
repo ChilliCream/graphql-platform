@@ -2,7 +2,6 @@
 
 using System.Collections.Immutable;
 using HotChocolate.CostAnalysis.Types;
-using HotChocolate.Types;
 
 namespace HotChocolate.Types;
 

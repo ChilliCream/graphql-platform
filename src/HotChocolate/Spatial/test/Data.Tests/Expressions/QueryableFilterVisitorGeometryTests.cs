@@ -7,7 +7,7 @@ using static HotChocolate.Data.Spatial.Expressions.QueryableFilterVisitorGeometr
 
 namespace HotChocolate.Data.Spatial.Expressions;
 
-public class QueryableFilterVisitorGeometryTests
+public static class QueryableFilterVisitorGeometryTests
 {
     public class ContainsTests : FilterVisitorTestBase
     {
@@ -508,7 +508,7 @@ public class QueryableFilterVisitorGeometryTests
         }
     }
 
-    public class TestModels
+    public static class TestModels
     {
         public class Foo
         {

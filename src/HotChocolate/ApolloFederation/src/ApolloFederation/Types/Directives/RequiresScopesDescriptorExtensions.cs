@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
@@ -35,7 +33,7 @@ public static class RequiresScopesDescriptorExtensions
         IReadOnlyList<Scope> scopes)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        
+
         descriptor.Extend().OnBeforeCreate(
             (ctx, def) =>
             {
@@ -44,7 +42,7 @@ public static class RequiresScopesDescriptorExtensions
 
         return descriptor;
     }
-    
+
     /// <summary>
     /// Applies @requiresScopes directive to indicate that the target element is accessible only to the authenticated supergraph users with the appropriate JWT scopes.
     /// <example>
@@ -69,7 +67,7 @@ public static class RequiresScopesDescriptorExtensions
         IReadOnlyList<string> scopes)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        
+
         descriptor.Extend().OnBeforeCreate(
             (ctx, def) =>
             {
@@ -85,7 +83,7 @@ public static class RequiresScopesDescriptorExtensions
         IReadOnlyList<Scope> scopes)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        
+
         descriptor.Extend().OnBeforeCreate(
             (ctx, def) =>
             {
@@ -94,14 +92,14 @@ public static class RequiresScopesDescriptorExtensions
 
         return descriptor;
     }
-    
+
     /// <inheritdoc cref="RequiresScopes(IEnumTypeDescriptor, IReadOnlyList{string})"/>
     public static IInterfaceFieldDescriptor RequiresScopes(
         this IInterfaceFieldDescriptor descriptor,
         IReadOnlyList<string> scopes)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        
+
         descriptor.Extend().OnBeforeCreate(
             (ctx, def) =>
             {
@@ -117,7 +115,7 @@ public static class RequiresScopesDescriptorExtensions
         IReadOnlyList<Scope> scopes)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        
+
         descriptor.Extend().OnBeforeCreate(
             (ctx, def) =>
             {
@@ -126,14 +124,14 @@ public static class RequiresScopesDescriptorExtensions
 
         return descriptor;
     }
-    
+
     /// <inheritdoc cref="RequiresScopes(IEnumTypeDescriptor, IReadOnlyList{string})"/>
     public static IInterfaceTypeDescriptor RequiresScopes(
         this IInterfaceTypeDescriptor descriptor,
         IReadOnlyList<string> scopes)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        
+
         descriptor.Extend().OnBeforeCreate(
             (ctx, def) =>
             {
@@ -149,7 +147,7 @@ public static class RequiresScopesDescriptorExtensions
         IReadOnlyList<Scope> scopes)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        
+
         descriptor.Extend().OnBeforeCreate(
             (ctx, def) =>
             {
@@ -158,14 +156,14 @@ public static class RequiresScopesDescriptorExtensions
 
         return descriptor;
     }
-    
+
     /// <inheritdoc cref="RequiresScopes(IEnumTypeDescriptor, IReadOnlyList{string})"/>
     public static IObjectFieldDescriptor RequiresScopes(
         this IObjectFieldDescriptor descriptor,
         IReadOnlyList<string> scopes)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        
+
         descriptor.Extend().OnBeforeCreate(
             (ctx, def) =>
             {
@@ -181,7 +179,7 @@ public static class RequiresScopesDescriptorExtensions
         IReadOnlyList<Scope> scopes)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        
+
         descriptor.Extend().OnBeforeCreate(
             (ctx, def) =>
             {
@@ -190,14 +188,14 @@ public static class RequiresScopesDescriptorExtensions
 
         return descriptor;
     }
-    
+
     /// <inheritdoc cref="RequiresScopes(IEnumTypeDescriptor, IReadOnlyList{string})"/>
     public static IObjectTypeDescriptor RequiresScopes(
         this IObjectTypeDescriptor descriptor,
         IReadOnlyList<string> scopes)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        
+
         descriptor.Extend().OnBeforeCreate(
             (ctx, def) =>
             {
@@ -206,10 +204,10 @@ public static class RequiresScopesDescriptorExtensions
 
         return descriptor;
     }
-    
+
     private static void AddScopes(
         IReadOnlyList<Scope> scopes,
-        IHasDirectiveDefinition definition, 
+        IHasDirectiveDefinition definition,
         ITypeInspector typeInspector)
     {
         var directive = definition

@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Types;
 using static System.Reflection.BindingFlags;
@@ -122,7 +119,7 @@ internal static class InputObjectConstructorResolver
                     return false;
                 }
             }
-            else
+            else if (!parameter.HasDefaultValue)
             {
                 return false;
             }

@@ -1,6 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Globalization;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -106,7 +104,7 @@ public class AnyType : ScalarType
     {
         return value is null
             ? NullValueNode.Default
-            : ParseValue(value, new HashSet<object>());
+            : ParseValue(value, new HashSet<object>(ReferenceEqualityComparer.Instance));
     }
 
     private IValueNode ParseValue(object? value, ISet<object> set)
@@ -160,6 +158,9 @@ public class AnyType : ScalarType
                         field.Key,
                         ParseValue(field.Value, set)));
                 }
+
+                set.Remove(value);
+
                 return new ObjectValueNode(fields);
             }
 
@@ -170,10 +171,17 @@ public class AnyType : ScalarType
                 {
                     valueList.Add(ParseValue(element, set));
                 }
+
+                set.Remove(value);
+
                 return new ListValueNode(valueList);
             }
 
-            return ParseValue(_objectToDictConverter.Convert(value), set);
+            var valueNode = ParseValue(_objectToDictConverter.Convert(value), set);
+
+            set.Remove(value);
+
+            return valueNode;
         }
 
         throw new SerializationException(
@@ -261,7 +269,6 @@ public class AnyType : ScalarType
                         {
                             return false;
                         }
-
                     }
 
                     runtimeValue = result;

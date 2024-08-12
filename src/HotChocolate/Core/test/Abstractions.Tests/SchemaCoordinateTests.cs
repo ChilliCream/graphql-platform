@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Language;
 
 #nullable enable

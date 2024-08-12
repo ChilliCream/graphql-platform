@@ -53,7 +53,7 @@ public class DependencyInjectionTests
             result[0] = await executor
                 .ExecuteAsync(
                     OperationRequestBuilder
-                        .Create()
+                        .New()
                         .SetDocument("{ hello }")
                         .SetServices(scope.ServiceProvider)
                         .Build())
@@ -65,7 +65,7 @@ public class DependencyInjectionTests
             result[1] = await executor
                 .ExecuteAsync(
                     OperationRequestBuilder
-                        .Create()
+                        .New()
                         .SetDocument("{ hello }")
                         .SetServices(scope.ServiceProvider)
                         .Build())
@@ -119,7 +119,7 @@ public class DependencyInjectionTests
             result[0] = await executor
                 .ExecuteAsync(
                     OperationRequestBuilder
-                        .Create()
+                        .New()
                         .SetDocument("{ hello }")
                         .SetServices(scope.ServiceProvider)
                         .Build())
@@ -131,7 +131,7 @@ public class DependencyInjectionTests
             result[1] = await executor
                 .ExecuteAsync(
                     OperationRequestBuilder
-                        .Create()
+                        .New()
                         .SetDocument("{ hello }")
                         .SetServices(scope.ServiceProvider)
                         .Build())
@@ -162,7 +162,7 @@ public class DependencyInjectionTests
         await executor
             .ExecuteAsync(
                 OperationRequestBuilder
-                    .Create()
+                    .New()
                     .SetDocument("{ hello }")
                     .SetServices(scope.ServiceProvider)
                     .Build())
@@ -182,7 +182,6 @@ public class DependencyInjectionTests
 
     public class Query1
     {
-
     }
 
     [ExtendObjectType(typeof(Query1))]

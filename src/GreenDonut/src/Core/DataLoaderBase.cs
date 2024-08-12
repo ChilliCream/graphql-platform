@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using static GreenDonut.NoopDataLoaderDiagnosticEventListener;
 using static GreenDonut.Errors;
 
@@ -294,7 +290,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     // ReSharper disable InconsistentlySynchronizedField
     private Promise<TValue> GetOrCreatePromiseUnsafe(TKey key)
     {
-        if (_currentBatch is not null && _currentBatch.Size < _maxBatchSize)
+        if (_currentBatch is not null && (_currentBatch.Size < _maxBatchSize || _maxBatchSize == 0))
         {
             return _currentBatch.GetOrCreatePromise<TValue>(key);
         }

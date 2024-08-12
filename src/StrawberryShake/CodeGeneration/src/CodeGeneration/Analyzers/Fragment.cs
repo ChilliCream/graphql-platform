@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -31,7 +30,7 @@ public class Fragment
         if (string.IsNullOrEmpty(name))
         {
             throw new ArgumentException(
-                $"'{nameof(name)}' cannot be null or empty", 
+                $"'{nameof(name)}' cannot be null or empty",
                 nameof(name));
         }
 

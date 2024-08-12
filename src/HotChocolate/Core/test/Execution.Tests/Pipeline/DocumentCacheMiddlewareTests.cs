@@ -19,7 +19,7 @@ public class DocumentCacheMiddlewareTests
             cache,
             hashProvider);
 
-        var request = OperationRequestBuilder.Create()
+        var request = OperationRequestBuilder.New()
             .SetDocument("{ a }")
             .SetDocumentId("a")
             .Build();
@@ -57,7 +57,7 @@ public class DocumentCacheMiddlewareTests
             cache,
             hashProvider);
 
-        var request = OperationRequestBuilder.Create()
+        var request = OperationRequestBuilder.New()
             .SetDocument("{ a }")
             .SetDocumentHash("a")
             .Build();
@@ -95,7 +95,7 @@ public class DocumentCacheMiddlewareTests
             cache,
             hashProvider);
 
-        var request = OperationRequestBuilder.Create()
+        var request = OperationRequestBuilder.New()
             .SetDocument("{ a }")
             .SetDocumentId("a")
             .Build();
@@ -129,7 +129,7 @@ public class DocumentCacheMiddlewareTests
         var cache = new Caching.DefaultDocumentCache();
         var hashProvider = new MD5DocumentHashProvider();
 
-        var request = OperationRequestBuilder.Create()
+        var request = OperationRequestBuilder.New()
             .SetDocument("{ a }")
             .Build();
 
@@ -169,7 +169,7 @@ public class DocumentCacheMiddlewareTests
         var cache = new Caching.DefaultDocumentCache();
         var hashProvider = new MD5DocumentHashProvider();
 
-        var request = OperationRequestBuilder.Create()
+        var request = OperationRequestBuilder.New()
             .SetDocument("{ a }")
             .Build();
 

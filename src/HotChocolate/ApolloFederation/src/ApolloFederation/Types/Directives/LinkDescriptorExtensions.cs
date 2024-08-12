@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -19,7 +17,7 @@ public static class LinkDescriptorExtensions
     /// NOTE: We currently DO NOT support full @link directive capability as it requires support for
     /// namespacing and renaming imports. This functionality may be added in the future releases.
     /// See @link specification for details.
-    /// 
+    ///
     /// <example>
     /// extend schema @link(url: "https://specs.apollo.dev/federation/v2.5", import: ["@composeDirective"])
     ///
@@ -60,7 +58,7 @@ public static class LinkDescriptorExtensions
         ArgumentException.ThrowIfNullOrEmpty(url);
         return AddLink(builder, new Uri(url), imports);
     }
-    
+
     /// <summary>
     /// Applies @link directive definitions to link the document to external schemas.
     /// External schemas are identified by their url, which optionally ends with a name and version with
@@ -73,7 +71,7 @@ public static class LinkDescriptorExtensions
     /// NOTE: We currently DO NOT support full @link directive capability as it requires support for
     /// namespacing and renaming imports. This functionality may be added in the future releases.
     /// See @link specification for details.
-    /// 
+    ///
     /// <example>
     /// extend schema @link(url: "https://specs.apollo.dev/federation/v2.5", import: ["@composeDirective"])
     ///
@@ -112,7 +110,7 @@ public static class LinkDescriptorExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(url);
-        
+
         builder.ConfigureSchema(
             sb =>
             {

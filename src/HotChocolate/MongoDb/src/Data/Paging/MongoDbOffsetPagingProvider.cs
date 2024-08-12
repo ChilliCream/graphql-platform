@@ -41,5 +41,4 @@ public class MongoDbOffsetPagingProvider : OffsetPagingProvider
 
     private static MongoDbOffsetPagingHandler<TEntity> CreateHandlerInternal<TEntity>(
         PagingOptions options) => new(options);
-
 }

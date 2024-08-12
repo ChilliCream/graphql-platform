@@ -3,8 +3,6 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using static HotChocolate.Data.ThrowHelper;
 
-#nullable enable
-
 namespace HotChocolate.Data.Projections.Context;
 
 /// <inheritdoc />

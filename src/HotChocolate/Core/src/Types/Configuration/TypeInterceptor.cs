@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -120,7 +117,7 @@ public abstract class TypeInterceptor
     /// </returns>
     public virtual IEnumerable<TypeReference> RegisterMoreTypes(
         IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
-        => Enumerable.Empty<TypeReference>();
+        => [];
 
     public virtual void OnTypeRegistered(
         ITypeDiscoveryContext discoveryContext)
@@ -235,7 +232,7 @@ public abstract class TypeInterceptor
         ObjectFieldDefinition mutationField)
     {
     }
-    
+
     /// <summary>
     /// This method is called before the types are completed.
     /// </summary>

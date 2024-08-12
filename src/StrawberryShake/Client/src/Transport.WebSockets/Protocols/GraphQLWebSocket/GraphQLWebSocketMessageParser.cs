@@ -1,4 +1,3 @@
-using System;
 using System.Buffers;
 using System.Runtime.Serialization;
 using System.Text.Json;
@@ -23,22 +22,22 @@ internal ref struct GraphQLWebSocketMessageParser
     private const byte _s = (byte)'s';
     private const byte _t = (byte)'t';
 
-    private static ReadOnlySpan<byte> Type => new[]
-    {
+    private static ReadOnlySpan<byte> Type =>
+    [
         (byte)'t',
         (byte)'y',
         (byte)'p',
         (byte)'e',
-    };
+    ];
 
-    private static ReadOnlySpan<byte> Id => new[]
-    {
+    private static ReadOnlySpan<byte> Id =>
+    [
         (byte)'i',
         (byte)'d',
-    };
+    ];
 
-    private static ReadOnlySpan<byte> Payload => new[]
-    {
+    private static ReadOnlySpan<byte> Payload =>
+    [
         (byte)'p',
         (byte)'a',
         (byte)'y',
@@ -46,7 +45,7 @@ internal ref struct GraphQLWebSocketMessageParser
         (byte)'o',
         (byte)'a',
         (byte)'d',
-    };
+    ];
 
     private Utf8JsonReader _reader;
 

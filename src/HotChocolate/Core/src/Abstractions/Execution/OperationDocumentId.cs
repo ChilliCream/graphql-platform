@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -22,7 +21,7 @@ public readonly struct OperationDocumentId : IEquatable<OperationDocumentId>
         EnsureValidId(value);
         Value = value;
     }
-    
+
     private OperationDocumentId(string value, bool skipValidation)
     {
         if (!skipValidation)
@@ -31,17 +30,17 @@ public readonly struct OperationDocumentId : IEquatable<OperationDocumentId>
         }
         Value = value;
     }
-    
+
     /// <summary>
     /// Gets a value indicating whether the GraphQL operation document id is empty.
     /// </summary>
     public bool IsEmpty => string.IsNullOrEmpty(Value);
-    
+
     /// <summary>
     /// Gets the GraphQL operation document id.
     /// </summary>
     public string Value { get; }
-    
+
     /// <summary>
     /// Determines whether the specified <paramref name="other"/>
     /// is equal to the current <see cref="OperationDocumentId"/>.
@@ -78,7 +77,7 @@ public readonly struct OperationDocumentId : IEquatable<OperationDocumentId>
     /// </returns>
     public override int GetHashCode()
         => Value.GetHashCode();
-    
+
     /// <summary>
     /// Returns a string that represents the current <see cref="OperationDocumentId"/>.
     /// </summary>
@@ -115,7 +114,7 @@ public readonly struct OperationDocumentId : IEquatable<OperationDocumentId>
     /// </returns>
     public static bool operator !=(OperationDocumentId left, OperationDocumentId right)
         => !left.Equals(right);
-    
+
     /// <summary>
     /// Implicitly converts the specified <paramref name="value"/> to a <see cref="OperationDocumentId"/>.
     /// </summary>
@@ -142,11 +141,11 @@ public readonly struct OperationDocumentId : IEquatable<OperationDocumentId>
         if(!IsValidId(operationId))
         {
             throw new ArgumentException(
-                OperationDocumentId_InvalidOperationIdFormat, 
+                OperationDocumentId_InvalidOperationIdFormat,
                 nameof(operationId));
         }
     }
-    
+
     /// <summary>
     /// Determines whether the specified <paramref name="operationId"/>
     /// string is valid input for an <see cref="OperationDocumentId"/>.
@@ -164,7 +163,7 @@ public readonly struct OperationDocumentId : IEquatable<OperationDocumentId>
         {
             return false;
         }
-        
+
         var span = operationId.AsSpan();
         ref var start = ref MemoryMarshal.GetReference(span);
         ref var end = ref Unsafe.Add(ref start, span.Length);
@@ -178,15 +177,16 @@ public readonly struct OperationDocumentId : IEquatable<OperationDocumentId>
 
             start = ref Unsafe.Add(ref start, 1)!;
         }
-        
+
         return true;
     }
-    
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsAllowedCharacter(byte c)
     {
         switch (c)
         {
+            // a-z A-Z 0-9 - _
             case > 96 and < 123 or > 64 and < 91:
             case > 47 and < 58:
             case 45 or 95:
@@ -196,7 +196,7 @@ public readonly struct OperationDocumentId : IEquatable<OperationDocumentId>
                 return false;
         }
     }
-    
+
     /// <summary>
     /// Determines whether the specified <paramref name="id"/> is <c>null</c> or empty.
     /// </summary>
@@ -209,7 +209,7 @@ public readonly struct OperationDocumentId : IEquatable<OperationDocumentId>
     /// </returns>
     public static bool IsNullOrEmpty([NotNullWhen(false)] OperationDocumentId? id)
         => string.IsNullOrEmpty(id?.Value);
-    
+
     /// <summary>
     /// Tries to parse the specified <paramref name="value"/> to a <see cref="OperationDocumentId"/>.
     /// </summary>

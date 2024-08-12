@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using HotChocolate.Configuration;
 using HotChocolate.Properties;

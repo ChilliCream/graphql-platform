@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
@@ -13,27 +10,19 @@ public class IdDescriptorTests
     public async Task Id_On_Arguments()
     {
         // arrange
-        var executor = await new ServiceCollection()
-            .AddGraphQLServer()
-            .AddQueryType<QueryType>()
-            .AddType<FooPayloadType>()
-            .AddGlobalObjectIdentification(false)
-            .BuildRequestExecutorAsync();
-
         var intId = Convert.ToBase64String("Query:1"u8);
         var stringId = Convert.ToBase64String("Query:abc"u8);
         var guidId = Convert.ToBase64String(Combine("Query:"u8, Guid.Empty.ToByteArray()));
 
         // act
         var result =
-            await SchemaBuilder.New()
+            await new ServiceCollection()
+                .AddGraphQLServer()
                 .AddQueryType<QueryType>()
                 .AddType<FooPayloadType>()
                 .AddGlobalObjectIdentification(false)
-                .Create()
-                .MakeExecutable()
-                .ExecuteAsync(
-                    OperationRequestBuilder.Create()
+                .ExecuteRequestAsync(
+                    OperationRequestBuilder.New()
                         .SetDocument(
                             @"query foo ($intId: ID! $stringId: ID! $guidId: ID!) {
                                     intId(id: $intId)
@@ -57,25 +46,17 @@ public class IdDescriptorTests
     public async Task Id_On_Objects()
     {
         // arrange
-        var executor = await new ServiceCollection()
-            .AddGraphQLServer()
-            .AddQueryType<QueryType>()
-            .AddType<FooPayloadType>()
-            .AddGlobalObjectIdentification(false)
-            .BuildRequestExecutorAsync();
-
         var someId = Convert.ToBase64String("Some:1"u8);
 
         // act
         var result =
-            await SchemaBuilder.New()
+            await new ServiceCollection()
+                .AddGraphQLServer()
                 .AddQueryType<QueryType>()
                 .AddType<FooPayloadType>()
                 .AddGlobalObjectIdentification(false)
-                .Create()
-                .MakeExecutable()
-                .ExecuteAsync(
-                    OperationRequestBuilder.Create()
+                .ExecuteRequestAsync(
+                    OperationRequestBuilder.New()
                         .SetDocument(
                             @"query foo ($someId: ID!) {
                                 foo(input: { someId: $someId }) {

@@ -6,7 +6,6 @@ using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.CostAnalysis;
@@ -46,7 +45,7 @@ public class PagingTests
                 """);
 
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(operation)
                 .ReportCost()
                 .Build();
@@ -55,7 +54,7 @@ public class PagingTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
-                .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = false })
+                .ModifyPagingOptions(o => o.RequirePagingBoundaries = false)
                 .AddFiltering()
                 .AddSorting()
                 .BuildRequestExecutorAsync();
@@ -99,7 +98,175 @@ public class PagingTests
                 """);
 
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
+                .SetDocument(operation)
+                .ReportCost()
+                .Build();
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .AddFiltering()
+                .AddSorting()
+                .BuildRequestExecutorAsync();
+
+        // act
+        var response = await executor.ExecuteAsync(request);
+
+        // assert
+        await snapshot
+            .Add(operation, "Operation")
+            .Add(response, "Response")
+            .MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Require_Paging_Boundaries_Single_Boundary_With_Literal()
+    {
+        // arrange
+        var snapshot = new Snapshot();
+
+        var operation =
+            Utf8GraphQLParser.Parse(
+                """
+                {
+                    books(first: 1) {
+                        nodes {
+                            title
+                        }
+                    }
+                }
+                """);
+
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument(operation)
+                .ReportCost()
+                .Build();
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .AddFiltering()
+                .AddSorting()
+                .BuildRequestExecutorAsync();
+
+        // act
+        var response = await executor.ExecuteAsync(request);
+
+        // assert
+        await snapshot
+            .Add(operation, "Operation")
+            .Add(response, "Response")
+            .MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Require_Paging_Boundaries_Single_Boundary_With_Variable()
+    {
+        // arrange
+        var snapshot = new Snapshot();
+
+        var operation =
+            Utf8GraphQLParser.Parse(
+                """
+                query($first: Int) {
+                    books(first: $first) {
+                        nodes {
+                            title
+                        }
+                    }
+                }
+                """);
+
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument(operation)
+                .ReportCost()
+                .Build();
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .AddFiltering()
+                .AddSorting()
+                .BuildRequestExecutorAsync();
+
+        // act
+        var response = await executor.ExecuteAsync(request);
+
+        // assert
+        await snapshot
+            .Add(operation, "Operation")
+            .Add(response, "Response")
+            .MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Require_Paging_Boundaries_Two_Boundaries_With_Variable()
+    {
+        // arrange
+        var snapshot = new Snapshot();
+
+        var operation =
+            Utf8GraphQLParser.Parse(
+                """
+                query($first: Int, $last: Int) {
+                    books(first: $first, last: $last) {
+                        nodes {
+                            title
+                        }
+                    }
+                }
+                """);
+
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument(operation)
+                .ReportCost()
+                .Build();
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .AddFiltering()
+                .AddSorting()
+                .BuildRequestExecutorAsync();
+
+        // act
+        var response = await executor.ExecuteAsync(request);
+
+        // assert
+        await snapshot
+            .Add(operation, "Operation")
+            .Add(response, "Response")
+            .MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Require_Paging_Boundaries_Two_Boundaries_Mixed()
+    {
+        // arrange
+        var snapshot = new Snapshot();
+
+        var operation =
+            Utf8GraphQLParser.Parse(
+                """
+                query($first: Int) {
+                    books(first: $first, last: 1) {
+                        nodes {
+                            title
+                        }
+                    }
+                }
+                """);
+
+        var request =
+            OperationRequestBuilder.New()
                 .SetDocument(operation)
                 .ReportCost()
                 .Build();
@@ -146,7 +313,7 @@ public class PagingTests
                 """);
 
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(operation)
                 .ReportCost()
                 .Build();
@@ -169,7 +336,6 @@ public class PagingTests
             .MatchMarkdownAsync();
     }
 
-
     [Fact]
     public async Task Filtering_Specific_Filter_Used()
     {
@@ -189,7 +355,7 @@ public class PagingTests
                 """);
 
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(operation)
                 .ReportCost()
                 .Build();
@@ -198,7 +364,7 @@ public class PagingTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
-                .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = false })
+                .ModifyPagingOptions(o => o.RequirePagingBoundaries = false)
                 .AddFiltering()
                 .AddSorting()
                 .BuildRequestExecutorAsync();
@@ -242,7 +408,7 @@ public class PagingTests
                 """);
 
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(operation)
                 .ReportCost()
                 .Build();
@@ -251,7 +417,7 @@ public class PagingTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
-                .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = false })
+                .ModifyPagingOptions(o => o.RequirePagingBoundaries = false)
                 .AddFiltering()
                 .AddSorting()
                 .BuildRequestExecutorAsync();
@@ -295,7 +461,7 @@ public class PagingTests
                 """);
 
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(operation)
                 .ReportCost()
                 .Build();
@@ -304,7 +470,7 @@ public class PagingTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
-                .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = false })
+                .ModifyPagingOptions(o => o.RequirePagingBoundaries = false)
                 .AddFiltering()
                 .AddSorting()
                 .BuildRequestExecutorAsync();

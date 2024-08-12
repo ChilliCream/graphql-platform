@@ -165,15 +165,7 @@ public sealed class InputFieldDefinition(string name, ITypeDefinition? type = nu
 
         _features = _features is null
             ? EmptyFeatureCollection.Default
-            : new ReadOnlyFeatureCollection(_features);
-
-        foreach (var feature in _features)
-        {
-            if(feature.Value is ISealable sealable)
-            {
-                sealable.Seal();
-            }
-        }
+            : _features.ToReadOnly();
 
         _isReadOnly = true;
     }

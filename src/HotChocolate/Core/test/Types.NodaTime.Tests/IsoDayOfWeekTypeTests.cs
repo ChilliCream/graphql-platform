@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Execution;
 using NodaTime;
 
@@ -66,14 +64,14 @@ namespace HotChocolate.Types.NodaTime.Tests
             var result = _testExecutor.Execute("query { test: none }");
 
             Assert.Null(result.ExpectQueryResult().Data);
-            Assert.NotEmpty(result.ExpectQueryResult().Errors);
+            Assert.NotEmpty(result.ExpectQueryResult().Errors!);
         }
 
         [Fact]
         public void MutationParsesMonday()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation($arg: IsoDayOfWeek!) { test(arg: $arg) }")
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", 1 }, })
                     .Build());
@@ -85,7 +83,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void MutationParsesSunday()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation($arg: IsoDayOfWeek!) { test(arg: $arg) }")
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", 7 }, })
                     .Build());
@@ -97,39 +95,39 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void MutationDoesntParseZero()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation($arg: IsoDayOfWeek!) { test(arg: $arg) }")
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", 0 }, })
                     .Build());
 
             Assert.Null(result.ExpectQueryResult().Data);
-            Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
+            Assert.Single(result.ExpectQueryResult().Errors!);
         }
 
         [Fact]
         public void MutationDoesntParseEight()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation($arg: IsoDayOfWeek!) { test(arg: $arg) }")
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", 8 }, })
                     .Build());
 
             Assert.Null(result.ExpectQueryResult().Data);
-            Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
+            Assert.Single(result.ExpectQueryResult().Errors!);
         }
 
         [Fact]
         public void MutationDoesntParseNegativeNumbers()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation($arg: IsoDayOfWeek!) { test(arg: $arg) }")
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", -2 }, })
                     .Build());
 
             Assert.Null(result.ExpectQueryResult().Data);
-            Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
+            Assert.Single(result.ExpectQueryResult().Errors!);
         }
     }
 }

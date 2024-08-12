@@ -1,7 +1,7 @@
 namespace HotChocolate.Fusion.Composition.Features;
 
 /// <summary>
-/// Provides aggregations and helpers to inspect the <see cref="FusionFeatureCollection"/>. 
+/// Provides aggregations and helpers to inspect the <see cref="FusionFeatureCollection"/>.
 /// </summary>
 public static class FusionFeatureCollectionExtensions
 {
@@ -18,7 +18,7 @@ public static class FusionFeatureCollectionExtensions
     /// </returns>
     public static bool IsNodeFieldSupported(this FusionFeatureCollection features)
         => features.IsSupported<NodeFieldFeature>();
-    
+
     /// <summary>
     /// Specifies if the @tag directive shall be exposed publicly.
     /// </summary>
@@ -45,7 +45,7 @@ public static class FusionFeatureCollectionExtensions
         => features.TryGetFeature<TagDirectiveFeature>(out var feature)
             ? feature.Excluded
             : _empty;
-    
+
     /// <summary>
     /// Gets the default client configuration name that shall be used for
     /// transport clients if no client name was specified.

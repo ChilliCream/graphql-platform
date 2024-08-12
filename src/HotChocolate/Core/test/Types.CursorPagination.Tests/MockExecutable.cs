@@ -1,8 +1,5 @@
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Types.Pagination;
 
@@ -15,6 +12,28 @@ public class MockExecutable<T>(IQueryable<T> source) : IExecutable<T>
 
     ValueTask<List<T>> IExecutable<T>.ToListAsync(CancellationToken cancellationToken)
         => new(source.ToList());
+
+    public async IAsyncEnumerable<T> ToAsyncEnumerable(
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var queryable = await new ValueTask<IQueryable<T>>(source);
+
+        foreach (var item in queryable)
+        {
+            yield return item;
+        }
+    }
+
+    async IAsyncEnumerable<object?> IExecutable.ToAsyncEnumerable(
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var queryable = await new ValueTask<IQueryable<T>>(source);
+
+        foreach (var item in queryable)
+        {
+            yield return item;
+        }
+    }
 
     public ValueTask<object?> FirstOrDefaultAsync(CancellationToken cancellationToken)
         => new(source.FirstOrDefault());

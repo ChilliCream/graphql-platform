@@ -1,5 +1,3 @@
-using System.Data;
-
 namespace HotChocolate.Types.Analyzers;
 
 public static class WellKnownTypes
@@ -57,6 +55,8 @@ public static class WellKnownTypes
     public const string SchemaErrorBuilder = "HotChocolate.SchemaErrorBuilder";
     public const string InvalidOperationException = "System.InvalidOperationException";
     public const string FieldResolverDelegates = "HotChocolate.Resolvers.FieldResolverDelegates";
+    public const string ListPostProcessor = "HotChocolate.Execution.ListPostProcessor";
+    public const string EnumerableDefinition = "System.Collections.Generic.IEnumerable<>";
 
     public static HashSet<string> TypeClass { get; } =
     [
@@ -76,4 +76,37 @@ public static class WellKnownTypes
         InputObjectTypeExtension,
         EnumTypeExtension,
     ];
+
+    public static HashSet<string> SupportedListInterfaces { get; } =
+        new()
+        {
+            "System.Collections.Generic.IReadOnlyCollection<>",
+            "System.Collections.Generic.IReadOnlyList<>",
+            "System.Collections.Generic.ICollection<>",
+            "System.Collections.Generic.IList<>",
+            "System.Collections.Generic.ISet<>",
+            "System.Linq.IQueryable<>",
+            "System.Collections.Generic.IAsyncEnumerable<>",
+            "System.IObservable<>",
+            "System.Collections.Generic.List<>",
+            "System.Collections.ObjectModel.Collection<>",
+            "System.Collections.Generic.Stack<>",
+            "System.Collections.Generic.HashSet<>",
+            "System.Collections.Generic.Queue<>",
+            "System.Collections.Concurrent.ConcurrentBag<>",
+            "System.Collections.Immutable.ImmutableArray<>",
+            "System.Collections.Immutable.ImmutableList<>",
+            "System.Collections.Immutable.ImmutableQueue<>",
+            "System.Collections.Immutable.ImmutableStack<>",
+            "System.Collections.Immutable.ImmutableHashSet<>",
+            "HotChocolate.Execution.ISourceStream<>",
+            "HotChocolate.IExecutable<>"
+        };
+
+    public static HashSet<string> TaskWrapper { get; } =
+        new()
+        {
+            "System.Threading.Tasks.Task<>",
+            "System.Threading.Tasks.ValueTask<>"
+        };
 }

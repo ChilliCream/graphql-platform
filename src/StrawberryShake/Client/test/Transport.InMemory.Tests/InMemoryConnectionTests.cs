@@ -1,7 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace StrawberryShake.Transport.InMemory;
 
 public class InMemoryConnectionTests

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using HotChocolate.Types.Relay;
@@ -162,7 +159,7 @@ public class NodeTypeTests : TypeTestBase
         var id = serializer.Format("Bar", 123);
 
         await executor.ExecuteAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument(
                         @"query ($id: ID!) {
                             node(id: $id) {
@@ -203,7 +200,6 @@ public class NodeTypeTests : TypeTestBase
         schema.ToString().MatchSnapshot();
     }
 
-
     [Fact]
     public async Task Node_Attribute_Does_Not_Throw_Execute_Query()
     {
@@ -218,7 +214,7 @@ public class NodeTypeTests : TypeTestBase
         var id = serializer.Format("Foo1", "123");
 
         await executor.ExecuteAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument(
                         @"query ($id: ID!) {
                             node(id: $id) {

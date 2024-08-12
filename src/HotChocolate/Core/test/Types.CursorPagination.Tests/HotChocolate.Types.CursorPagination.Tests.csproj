@@ -3,10 +3,11 @@
   <PropertyGroup>
     <RootNamespace>HotChocolate.Types.Pagination</RootNamespace>
     <NoWarn>$(NoWarn);CS8632</NoWarn>
+    <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+    <PackageReference Include="System.ComponentModel.Annotations" />
   </ItemGroup>
 
   <ItemGroup>

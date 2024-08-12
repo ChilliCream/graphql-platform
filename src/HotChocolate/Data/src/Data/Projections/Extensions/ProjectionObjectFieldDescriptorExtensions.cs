@@ -415,8 +415,6 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
         public DependencyInjectionScope DependencyInjectionScope => _nodeField.DependencyInjectionScope;
 
-        public bool HasStreamResult => _nodeField.HasStreamResult;
-
         public FieldDelegate Middleware => _nodeField.Middleware;
 
         public FieldResolverDelegate? Resolver => _nodeField.Resolver;
@@ -424,6 +422,8 @@ public static class ProjectionObjectFieldDescriptorExtensions
         public PureFieldDelegate? PureResolver => _nodeField.PureResolver;
 
         public SubscribeResolverDelegate? SubscribeResolver => _nodeField.SubscribeResolver;
+
+        public IResolverResultPostProcessor? ResultPostProcessor => _nodeField.ResultPostProcessor;
 
         public MemberInfo? Member => _nodeField.Member;
 

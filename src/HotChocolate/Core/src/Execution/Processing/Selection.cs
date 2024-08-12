@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using HotChocolate.Execution.Properties;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -47,7 +44,7 @@ public class Selection : ISelection
         PureResolver = pureResolver;
         Strategy = InferStrategy(!isParallelExecutable, pureResolver is not null);
 
-        _includeConditions = includeConditions ?? Array.Empty<long>();
+        _includeConditions = includeConditions ?? [];
 
         _flags = isInternal
             ? Flags.Internal
@@ -56,11 +53,6 @@ public class Selection : ISelection
         if (Type.IsType(TypeKind.List))
         {
             _flags |= Flags.List;
-        }
-
-        if (Field.HasStreamResult)
-        {
-            _flags |= Flags.StreamResult;
         }
     }
 
@@ -86,7 +78,7 @@ public class Selection : ISelection
 
         _includeConditions =
             selection._includeConditions.Length == 0
-                ? Array.Empty<long>()
+                ? []
                 : selection._includeConditions.ToArray();
     }
 
@@ -140,9 +132,6 @@ public class Selection : ISelection
     public ArgumentMap Arguments { get; }
 
     /// <inheritdoc />
-    public bool HasStreamResult => (_flags & Flags.StreamResult) == Flags.StreamResult;
-
-    /// <inheritdoc />
     public bool HasStreamDirective(long includeFlags)
         => (_flags & Flags.Stream) == Flags.Stream &&
             (_streamIfCondition is 0 || (includeFlags & _streamIfCondition) != _streamIfCondition);
@@ -170,7 +159,7 @@ public class Selection : ISelection
             return !IsInternal || allowInternals;
         }
 
-        // if there are flags in most cases we just have one so we can
+        // if there are flags in most cases we just have one, so we can
         // check the first and optimize for this.
         var includeCondition = _includeConditions[0];
 
@@ -213,7 +202,7 @@ public class Selection : ISelection
         {
             if (_includeConditions.Length > 0)
             {
-                _includeConditions = Array.Empty<long>();
+                _includeConditions = [];
             }
         }
         else if (_includeConditions.Length > 0 &&
@@ -293,7 +282,6 @@ public class Selection : ISelection
             first.Location,
             first.Name,
             first.Alias,
-            first.Required,
             directives,
             first.Arguments,
             selectionSet);
@@ -399,8 +387,7 @@ public class Selection : ISelection
         Internal = 1,
         Sealed = 2,
         List = 4,
-        Stream = 8,
-        StreamResult = 16,
+        Stream = 8
     }
 
     [Flags]

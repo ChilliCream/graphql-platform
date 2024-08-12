@@ -2,7 +2,7 @@ using CookieCrumble;
 
 namespace HotChocolate.Data;
 
-public class EntityFrameworkExecutableTests(AuthorFixture authorFixture) 
+public class EntityFrameworkExecutableTests(AuthorFixture authorFixture)
     : IClassFixture<AuthorFixture>
 {
     private readonly BookContext _context = authorFixture.Context;
@@ -15,7 +15,7 @@ public class EntityFrameworkExecutableTests(AuthorFixture authorFixture)
         var executable = _context.Authors.AsExecutable();
 
         // assert
-        Assert.IsType<EntityFrameworkExecutable<Author>>(executable);
+        Assert.True(executable is IQueryableExecutable<Author>);
         executable.MatchSnapshot();
     }
 
@@ -29,9 +29,8 @@ public class EntityFrameworkExecutableTests(AuthorFixture authorFixture)
             .AsQueryable()
             .AsEntityFrameworkExecutable();
 
-
         // assert
-        Assert.IsType<EntityFrameworkExecutable<Author>>(executable);
+        Assert.True(executable is IQueryableExecutable<Author>);
         executable.MatchSnapshot();
     }
 

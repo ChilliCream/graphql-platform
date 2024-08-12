@@ -1,4 +1,3 @@
-using System;
 using HotChocolate;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
@@ -1538,6 +1537,62 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         }
 
         return builder.ConfigureSchema(b => b.AddType<TExtension>());
+    }
+
+    /// <summary>
+    /// Adds an object type extension and applies the <paramref name="configure"/> delegate.
+    /// </summary>
+    /// <param name="builder">The GraphQL configuration builder.</param>
+    /// <param name="configure">A delegate to configure the type.</param>
+    /// <typeparam name="TExtension">The extension type.</typeparam>
+    /// <returns>The GraphQL configuration builder.</returns>
+    public static IRequestExecutorBuilder AddObjectTypeExtension<TExtension>(
+        this IRequestExecutorBuilder builder,
+        Action<IObjectTypeDescriptor<TExtension>> configure)
+    {
+        return builder.ConfigureSchema(
+            b => b.AddType(new ObjectTypeExtension<TExtension>(configure)));
+    }
+
+    /// <summary>
+    /// Adds an object type extension and applies an optional <paramref name="configure"/> delegate.
+    /// </summary>
+    /// <param name="builder">The GraphQL configuration builder.</param>
+    /// <param name="configure">A delegate to configure the type.</param>
+    /// <typeparam name="TExtension">The extension type.</typeparam>
+    /// <typeparam name="TExtends">The type to extend.</typeparam>
+    /// <returns>The GraphQL configuration builder.</returns>
+    public static IRequestExecutorBuilder AddObjectTypeExtension<TExtension, TExtends>(
+        this IRequestExecutorBuilder builder,
+        Action<IObjectTypeDescriptor<TExtension>>? configure = null)
+    {
+        return builder.ConfigureSchema(
+            b => b.AddType(new ObjectTypeExtension<TExtension>(d =>
+            {
+                d.ExtendsType<TExtends>();
+                configure?.Invoke(d);
+            })));
+    }
+
+    /// <summary>
+    /// Adds an object type extension and applies an optional <paramref name="configure"/> delegate.
+    /// </summary>
+    /// <param name="builder">The GraphQL configuration builder.</param>
+    /// <param name="objectTypeName">The name of the object type to extend.</param>
+    /// <param name="configure">A delegate to configure the type.</param>
+    /// <typeparam name="TExtension">The extension type.</typeparam>
+    /// <returns>The GraphQL configuration builder.</returns>
+    public static IRequestExecutorBuilder AddObjectTypeExtension<TExtension>(
+        this IRequestExecutorBuilder builder,
+        string objectTypeName,
+        Action<IObjectTypeDescriptor<TExtension>>? configure = null)
+    {
+        return builder.ConfigureSchema(
+            b => b.AddType(new ObjectTypeExtension<TExtension>(d =>
+            {
+                d.Name(objectTypeName);
+                configure?.Invoke(d);
+            })));
     }
 
     public static IRequestExecutorBuilder BindRuntimeType<TRuntimeType, TSchemaType>(

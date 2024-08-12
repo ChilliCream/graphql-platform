@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.CostAnalysis.Caching;
 using HotChocolate.CostAnalysis.Utilities;
 using HotChocolate.Execution;
@@ -30,23 +31,54 @@ internal sealed class CostAnalyzerMiddleware(
         var operationId = context.OperationId;
         if (operationId is null)
         {
-            operationId = context.CreateCacheId(context.DocumentId.Value.Value, context.Request.OperationName);
+            operationId = context.CreateCacheId();
             context.OperationId = operationId;
         }
 
         var mode = context.GetCostAnalyzerMode(options);
+
+        if (mode == CostAnalyzerMode.Skip)
+        {
+            await next(context).ConfigureAwait(false);
+            return;
+        }
+
+        if (!TryAnalyze(context, mode, context.Document, operationId, out var costMetrics))
+        {
+            // a error happened during the analysis and the error is already set.
+            return;
+        }
+
+        if ((mode & CostAnalyzerMode.Execute) == CostAnalyzerMode.Execute)
+        {
+            await next(context).ConfigureAwait(false);
+        }
+
+        if ((mode & CostAnalyzerMode.Report) == CostAnalyzerMode.Report)
+        {
+            context.Result =
+                context.Result is null
+                    ? costMetrics.CreateResult()
+                    : context.Result.AddCostMetrics(costMetrics);
+        }
+    }
+
+    private bool TryAnalyze(
+        IRequestContext context,
+        CostAnalyzerMode mode,
+        DocumentNode document,
+        string operationId,
+        [NotNullWhen(true)] out CostMetrics? costMetrics)
+    {
+        using var scope = diagnosticEvents.AnalyzeOperationCost(context);
         DocumentValidatorContext? validatorContext = null;
-        CostMetrics? costMetrics;
 
         try
         {
-            using var scope = diagnosticEvents.AnalyzeOperationCost(context);
-
             if (!cache.TryGetCostMetrics(operationId, out costMetrics))
             {
                 // we check if the operation was already resolved by another middleware,
                 // if not we resolve the operation.
-                var document = context.Document;
                 var operationDefinition =
                     context.Operation?.Definition ?? document.GetOperation(context.Request.OperationName);
 
@@ -61,15 +93,15 @@ internal sealed class CostAnalyzerMiddleware(
             context.ContextData.Add(WellKnownContextData.CostMetrics, costMetrics);
             diagnosticEvents.OperationCost(context, costMetrics.FieldCost, costMetrics.TypeCost);
 
-            if (mode is CostAnalyzerMode.Enforce or CostAnalyzerMode.EnforceAndReport)
+            if ((mode & CostAnalyzerMode.Enforce) == CostAnalyzerMode.Enforce)
             {
                 if (costMetrics.FieldCost > options.MaxFieldCost)
                 {
                     context.Result = ErrorHelper.MaxFieldCostReached(
                         costMetrics,
                         options.MaxFieldCost,
-                        mode == CostAnalyzerMode.EnforceAndReport);
-                    return;
+                        (mode & CostAnalyzerMode.Report) == CostAnalyzerMode.Report);
+                    return false;
                 }
 
                 if (costMetrics.TypeCost > options.MaxTypeCost)
@@ -77,15 +109,18 @@ internal sealed class CostAnalyzerMiddleware(
                     context.Result = ErrorHelper.MaxTypeCostReached(
                         costMetrics,
                         options.MaxTypeCost,
-                        mode == CostAnalyzerMode.EnforceAndReport);
-                    return;
+                        (mode & CostAnalyzerMode.Report) == CostAnalyzerMode.Report);
+                    return false;
                 }
             }
+
+            return true;
         }
         catch (GraphQLException ex)
         {
             context.Result = ResultHelper.CreateError(ex.Errors, null);
-            return;
+            costMetrics = null;
+            return false;
         }
         finally
         {
@@ -94,26 +129,6 @@ internal sealed class CostAnalyzerMiddleware(
                 validatorContext.Clear();
                 contextPool.Return(validatorContext);
             }
-        }
-
-        switch (mode)
-        {
-            case CostAnalyzerMode.Analysis:
-            case CostAnalyzerMode.Enforce:
-                await next(context).ConfigureAwait(false);
-                break;
-
-            case CostAnalyzerMode.EnforceAndReport:
-                await next(context).ConfigureAwait(false);
-                context.Result = context.Result.AddCostMetrics(costMetrics);
-                break;
-
-            case CostAnalyzerMode.ValidateAndReport:
-                context.Result = costMetrics.CreateResult();
-                break;
-
-            default:
-                throw new NotSupportedException();
         }
     }
 

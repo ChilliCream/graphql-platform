@@ -13,7 +13,6 @@ jobs:
   check-changes:
     name: Check for Changes
     runs-on: ubuntu-latest
-    if: github.event.pull_request.draft == false
     outputs:
       website_changes: ${{ steps.check-website.outputs.website_changes }}
       library_changes: ${{ steps.check-library.outputs.library_changes }}
@@ -187,7 +186,7 @@ jobs:
 
       - name: Run Build
         id: run-build
-        run: dotnet build ${{ matrix.path }} --framework net8.0 --verbosity q --property WarningLevel=0
+        run: dotnet build ${{ matrix.path }} --framework net8.0 --verbosity q
         timeout-minutes: 5
 
       - name: Create directory for test results
@@ -258,7 +257,7 @@ jobs:
 
       - name: Run Build
         id: run-build
-        run: dotnet build ${{ matrix.path }} --framework net8.0 --verbosity q --property WarningLevel=0
+        run: dotnet build ${{ matrix.path }} --framework net8.0 --verbosity q
         timeout-minutes: 5
 
       - name: Create directory for test results

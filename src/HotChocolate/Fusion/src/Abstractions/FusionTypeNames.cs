@@ -100,7 +100,6 @@ public sealed class FusionTypeNames
     /// </summary>
     public string ReEncodeIdDirective { get; }
 
-
     /// <summary>
     /// Gets the name of the transport directive.
     /// </summary>

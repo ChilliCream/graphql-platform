@@ -1,7 +1,3 @@
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace HotChocolate.Types;
 
 [ObjectType<Author>]
@@ -31,6 +27,18 @@ public static partial class AuthorNode
         string someArg2)
         => someArg1 + someArg2;
 
+    public static IEnumerable<Author> GetAuthorsPure()
+        => throw new NotImplementedException();
+
+    public static IQueryable<Author> GetAuthorsQuery()
+        => throw new NotImplementedException();
+
+    public static Task<IEnumerable<Author>> GetAuthorsNeedsPostProcessor()
+        => throw new NotImplementedException();
+
+    [UseListPostProcessor<Author>]
+    public static Task<IEnumerable<Author>> GetAuthorsHasPostProcessor()
+        => throw new NotImplementedException();
 
     [Query]
     public static string QueryFieldCollocatedWithAuthor() => "hello";

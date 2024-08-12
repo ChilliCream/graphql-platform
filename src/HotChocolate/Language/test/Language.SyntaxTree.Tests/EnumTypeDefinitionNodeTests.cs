@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using Xunit;
 
 namespace HotChocolate.Language.SyntaxTree;
@@ -85,7 +83,6 @@ public class EnumTypeDefinitionNodeTests
         var description = new StringValueNode("bar");
         var values = new List<EnumValueDefinitionNode>();
 
-
         // act
         EnumTypeDefinitionNode Action()
             => new(location, name, description, null!, values);
@@ -135,7 +132,6 @@ public class EnumTypeDefinitionNodeTests
         // act
         type = type.WithName(new NameNode("baz"));
 
-
         // assert
         Assert.Equal("baz", type.Name.Value);
     }
@@ -159,7 +155,6 @@ public class EnumTypeDefinitionNodeTests
 
         // act
         type = type.WithDescription(new StringValueNode("baz"));
-
 
         // assert
         Assert.Equal("baz", type.Description!.Value);
@@ -185,7 +180,6 @@ public class EnumTypeDefinitionNodeTests
         // act
         type = type.WithDirectives(directives);
 
-
         // assert
         Assert.Equal(directives, type.Directives);
     }
@@ -210,7 +204,6 @@ public class EnumTypeDefinitionNodeTests
         // act
         type = type.WithValues(values);
 
-
         // assert
         Assert.Equal(values, type.Values);
     }
@@ -234,7 +227,6 @@ public class EnumTypeDefinitionNodeTests
 
         // act
         type = type.WithLocation(location);
-
 
         // assert
         Assert.Equal(location, type.Location);
@@ -314,7 +306,6 @@ public class EnumTypeDefinitionNodeTests
         var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
         var acResult = SyntaxComparer.BySyntax.Equals(a, c);
         var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
-
 
         // assert
         Assert.True(abResult);

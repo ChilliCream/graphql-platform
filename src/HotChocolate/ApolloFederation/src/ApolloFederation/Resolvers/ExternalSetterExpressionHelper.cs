@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.ApolloFederation.Types;
@@ -65,7 +64,6 @@ internal static class ExternalSetterExpressionHelper
         => (Expression)_createSetValueExpression
             .MakeGenericMethod(property.PropertyType)
             .Invoke(null, [runtimeType, property,])!;
-
 
     private static Expression CreateSetValueExpression<TValue>(
         Type runtimeType,

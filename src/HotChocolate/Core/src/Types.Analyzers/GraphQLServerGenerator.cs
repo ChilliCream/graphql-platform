@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
 using HotChocolate.Types.Analyzers.Filters;
 using HotChocolate.Types.Analyzers.Generators;
 using HotChocolate.Types.Analyzers.Inspectors;
@@ -19,7 +19,7 @@ public class GraphQLServerGenerator : IIncrementalGenerator
         new DataLoaderDefaultsInspector(),
         new OperationInspector(),
         new ObjectTypeExtensionInfoInspector(),
-        new ObjectTypeExtensionInfoInspector(),
+        new InterfaceTypeInfoInspector(),
         new RequestMiddlewareInspector(),
     ];
 

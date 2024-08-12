@@ -1,5 +1,4 @@
 #pragma warning disable IDE1006 // Naming Styles
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -176,7 +175,7 @@ internal sealed class __Type : ObjectType
         public static object AppliedDirectives(IResolverContext context) =>
             context.Parent<IType>() is IHasDirectives hasDirectives
                 ? hasDirectives.Directives.Where(t => t.Type.IsPublic).Select(d => d.AsSyntaxNode())
-                : Enumerable.Empty<DirectiveNode>();
+                : [];
     }
 
     public static class Names

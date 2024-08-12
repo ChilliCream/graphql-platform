@@ -44,7 +44,6 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
             InterfaceTypeDefinitionNode n => RewriteInterfaceTypeDefinition(n, context),
             InterfaceTypeExtensionNode n => RewriteInterfaceTypeExtension(n, context),
             IntValueNode n => RewriteIntValue(n, context),
-            ListNullabilityNode n => RewriteListNullability(n, context),
             ListTypeNode n => RewriteListType(n, context),
             ListValueNode n => RewriteListValue(n, context),
             NamedTypeNode n => RewriteNamedType(n, context),
@@ -57,8 +56,6 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
             ObjectValueNode n => RewriteObjectValue(n, context),
             OperationDefinitionNode n => RewriteOperationDefinition(n, context),
             OperationTypeDefinitionNode n => RewriteOperationTypeDefinition(n, context),
-            OptionalModifierNode n => RewriteOptionalModifier(n, context),
-            RequiredModifierNode n => RewriteRequiredModifier(n, context),
             ScalarTypeDefinitionNode n => RewriteScalarTypeDefinition(n, context),
             ScalarTypeExtensionNode n => RewriteScalarTypeExtension(n, context),
             SchemaCoordinateNode n => RewriteSchemaCoordinate(n, context),
@@ -254,14 +251,12 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
     {
         var name = RewriteNode(node.Name, context);
         var alias = RewriteNodeOrDefault(node.Alias, context);
-        var required = RewriteNodeOrDefault(node.Required, context);
         var directives = RewriteList(node.Directives, context);
         var arguments = RewriteList(node.Arguments, context);
         var selectionSet = RewriteNodeOrDefault(node.SelectionSet, context);
 
         if (!ReferenceEquals(name, node.Name) ||
             !ReferenceEquals(alias, node.Alias) ||
-            !ReferenceEquals(required, node.Required) ||
             !ReferenceEquals(directives, node.Directives) ||
             !ReferenceEquals(arguments, node.Arguments) ||
             !ReferenceEquals(selectionSet, node.SelectionSet))
@@ -270,7 +265,6 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
                 node.Location,
                 name,
                 alias,
-                required,
                 directives,
                 arguments,
                 selectionSet);
@@ -486,22 +480,6 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
         TContext context)
         => node;
 
-    protected virtual ListNullabilityNode? RewriteListNullability(
-        ListNullabilityNode node,
-        TContext context)
-    {
-        var element = RewriteNodeOrDefault(node.Element, context);
-
-        if (!ReferenceEquals(element, node.Element))
-        {
-            return new ListNullabilityNode(
-                node.Location,
-                element);
-        }
-
-        return node;
-    }
-
     protected virtual ListTypeNode? RewriteListType(
         ListTypeNode node,
         TContext context)
@@ -689,38 +667,6 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
                 node.Location,
                 node.Operation,
                 type);
-        }
-
-        return node;
-    }
-
-    protected virtual OptionalModifierNode? RewriteOptionalModifier(
-        OptionalModifierNode node,
-        TContext context)
-    {
-        var element = RewriteNodeOrDefault(node.Element, context);
-
-        if (!ReferenceEquals(element, node.Element))
-        {
-            return new OptionalModifierNode(
-                node.Location,
-                node.Element);
-        }
-
-        return node;
-    }
-
-    protected virtual RequiredModifierNode? RewriteRequiredModifier(
-        RequiredModifierNode node,
-        TContext context)
-    {
-        var element = RewriteNodeOrDefault(node.Element, context);
-
-        if (!ReferenceEquals(element, node.Element))
-        {
-            return new RequiredModifierNode(
-                node.Location,
-                node.Element);
         }
 
         return node;

@@ -35,7 +35,6 @@ public class QueryableFilterVisitorDateOnlyTests
         // act
         var func = tester.Build<Foo>(value);
 
-
         // assert
         var a = new Foo { Value = new DateOnly(2020,12,13), };
         Assert.True(func(a));

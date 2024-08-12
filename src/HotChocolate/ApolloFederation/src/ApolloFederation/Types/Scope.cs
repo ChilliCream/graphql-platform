@@ -13,6 +13,7 @@ public readonly record struct Scope
     /// </param>
     public Scope(string value)
     {
+        ArgumentException.ThrowIfNullOrEmpty(value);
         Value = value;
     }
 
