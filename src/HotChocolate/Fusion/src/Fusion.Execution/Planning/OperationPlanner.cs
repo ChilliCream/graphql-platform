@@ -4,7 +4,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning;
 
-public sealed class RequestPlanner(CompositeSchema schema)
+public sealed class OperationPlanner(CompositeSchema schema)
 {
     public DocumentNode RewriteDocument(DocumentNode document, string? operationName)
     {
@@ -30,25 +30,25 @@ public sealed class RequestPlanner(CompositeSchema schema)
         return new DocumentNode(ImmutableArray<IDefinitionNode>.Empty.Add(newOperation));
     }
 
-    private void PlanRootFields(
+    private void CollectRootFields(
         SelectionSetNode selectionSet,
         CompositeObjectType operationType,
         Queue<SelectionSet> backlog)
     {
-        foreach (var selection in GetRootFields())
+        foreach (var selection in selectionSet.Selections.OfType<FieldNode>())
         {
-            switch (selection)
+            var field = operationType.Fields[selection.Name.Value];
+
+            foreach (var source in field.Sources.OrderByDescending(
+                s => GetFieldCount(s.SchemaName, selection.SelectionSet!, field.Type.NamedType())))
             {
-                case FieldNode fieldSelection:
-                    operationType.Fields[fieldSelection.Name.Value].Sources.OrderBy(t => t.BaseCost)
-                    break;
+                var context = new Context(source.SchemaName, field.Type.NamedType(), backlog);
+                CollectFields(selection.SelectionSet!, context);
             }
         }
     }
 
-
-
-    private void RewriteFields(SelectionSetNode selectionSet, Context context)
+    private void CollectFields(SelectionSetNode selectionSet, Context context)
     {
         if (context.Type is CompositeComplexType complexType)
         {
@@ -57,17 +57,17 @@ public sealed class RequestPlanner(CompositeSchema schema)
                 switch (selection)
                 {
                     case FieldNode field:
-                        RewriteField(field, complexType, context);
+                        CollectField(field, complexType, context);
                         break;
                 }
             }
         }
     }
 
-    private void RewriteField(FieldNode selection, CompositeComplexType complexType, Context context)
+    private void CollectField(FieldNode selection, CompositeComplexType complexType, Context context)
     {
         if (!complexType.Fields.TryGetField(selection.Name.Value, out var field)
-            || !field.Sources.ContainsSchema(context.SchemaName))
+            || !field.Sources.TryGetMember(context.SchemaName, out var sourceField))
         {
             context.EnqueueToBacklog(selection);
             return;
@@ -81,7 +81,7 @@ public sealed class RequestPlanner(CompositeSchema schema)
         {
             var fieldContext = context.Branch(field.Type.NamedType());
 
-            RewriteFields(selection.SelectionSet, fieldContext);
+            CollectFields(selection.SelectionSet, fieldContext);
 
             var newSelectionSetNode = new SelectionSetNode(
                 null,
@@ -99,17 +99,32 @@ public sealed class RequestPlanner(CompositeSchema schema)
         }
     }
 
-    private IEnumerable<string> GetRootFields(SelectionSetNode selectionSet)
+    private static int GetFieldCount(string schemaName, SelectionSetNode selectionSet, ICompositeNamedType type)
     {
-        foreach (var selection in selectionSet.Selections)
+        if (type is CompositeComplexType complexType)
         {
-            switch (selection)
+            var count = 0;
+
+            foreach (var selection in selectionSet.Selections)
             {
-                case FieldNode field:
-                    yield return field.Name.Value;
-                    break;
+                if (selection is FieldNode fieldNode
+                    && complexType.Fields.TryGetField(fieldNode.Name.Value, out var field)
+                    && field.Sources.ContainsSchema(schemaName))
+                {
+                    count++;
+
+                    if (fieldNode.SelectionSet is not null)
+                    {
+                        count += GetFieldCount(schemaName, fieldNode.SelectionSet, field.Type.NamedType());
+                    }
+                }
             }
+
+            return count;
         }
+
+        // we will look at unions later
+        return 0;
     }
 
     private sealed class Context(
@@ -153,3 +168,4 @@ public sealed class RequestPlanner(CompositeSchema schema)
         public List<ISelectionNode> Selections { get; } = new();
     }
 }
+
