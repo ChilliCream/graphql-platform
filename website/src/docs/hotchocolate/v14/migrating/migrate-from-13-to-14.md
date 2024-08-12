@@ -1,5 +1,5 @@
 ---
-title: Migrate Hot Chocolate from 12 to 13
+title: Migrate Hot Chocolate from 13 to 14
 ---
 
 This guide will walk you through the manual migration steps to update your Hot Chocolate GraphQL server to version 14.
@@ -41,3 +41,31 @@ Please ensure that your clients are sending date/time strings in the correct for
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.
+
+## SetPagingOptions
+
+In an effort to align our configuration APIs, we're now also offering a delegate based configuration API for pagination options.
+
+**Before**
+
+```csharp
+services
+    .AddGraphQLServer()
+    .SetPagingOptions(new PagingOptions
+    {
+        MaxPageSize = 100,
+        DefaultPageSize = 25
+    });
+```
+
+**After**
+
+```csharp
+services
+    .AddGraphQLServer()
+    .ModifyPagingOptions(opt =>
+    {
+        opt.MaxPageSize = 100;
+        opt.DefaultPageSize = 25;
+    });
+```
