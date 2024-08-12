@@ -234,6 +234,37 @@ public interface IObjectFieldDescriptor
     IObjectFieldDescriptor ResolveWith(MemberInfo propertyOrMethod);
 
     /// <summary>
+    /// Adds a resolver based on a delegate to the field.
+    /// A resolver is a method that resolves the value for a
+    /// field. The resolver can access parent object, arguments, services and more through the
+    /// <see cref="IResolverContext"/>.
+    /// </summary>
+    /// <param name="delegate">The resolver of the field</param>
+    /// <example>
+    /// Given the following resolvers class
+    /// <code>
+    /// <![CDATA[
+    /// private static class Resolvers
+    /// {
+    ///    public static ValueTask<string> GetFoo(
+    ///        [Service] IFooService service,
+    ///        CancellationToken cancellationToken) =>
+    ///        service.GetFooAsync(cancellationToken);
+    /// }
+    /// ]]>
+    /// </code>
+    /// The GetFoo method can be mapped like:
+    /// <code>
+    /// <![CDATA[
+    /// descriptor
+    ///     .Field(x => x.Foo)
+    ///     .ResolveWith(Resolvers.GetFoo);
+    /// ]]>
+    /// </code>
+    /// </example>
+    IObjectFieldDescriptor ResolveWith(Delegate @delegate);
+
+    /// <summary>
     /// Adds a subscription resolver to to the field
     /// </summary>
     /// <param name="subscribeResolver">The subscription resolver</param>
