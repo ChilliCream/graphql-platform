@@ -17,6 +17,11 @@ internal sealed partial class ResolverDefinition
                 return null;
             }
 
+            if (context.Directives?.Count > 0)
+            {
+                result = result.WithDirectives(context.Directives);
+            }
+
             if (context.UnspecifiedArguments?.Count > 0)
             {
                 var explicitlyDefinedArguments = result.Arguments
