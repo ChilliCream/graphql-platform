@@ -32,6 +32,12 @@ The interface `IQueryResultBuilder` and its implementations were replaced with `
 
 The interface `IQueryResultBuilder` and its implementations were replaced with `OperationResultBuilder` which produces an `OperationResult` on `Build()`.
 
+## DateTime scalar enforces a specific format
+
+The `DateTime` scalar will now enforce a specific format. The time and offset are now required, and fractional seconds are limited to 7. This aligns it with the DateTime Scalar spec (<https://www.graphql-scalars.com/date-time/>), with the one difference being that fractions of a second are optional, and 0-7 digits may be specified.
+
+Please ensure that your clients are sending date/time strings in the correct format to avoid errors.
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.
