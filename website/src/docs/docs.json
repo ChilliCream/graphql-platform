@@ -432,6 +432,10 @@
             "title": "Migrating",
             "items": [
               {
+                "path": "migrate-from-13-to-14",
+                "title": "Migrate from 13 to 14"
+              },
+              {
                 "path": "migrate-from-12-to-13",
                 "title": "Migrate from 12 to 13"
               },

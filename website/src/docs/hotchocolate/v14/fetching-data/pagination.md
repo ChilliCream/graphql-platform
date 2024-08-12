@@ -834,7 +834,7 @@ The following options can be configured.
 
 # Pagination defaults
 
-If we want to enforce consistent pagination defaults throughout our app, we can do so by setting the global `PagingOptions`.
+If we want to enforce consistent pagination defaults throughout our app, we can do so by modifying the global `PagingOptions`.
 
 ```csharp
 public class Startup
@@ -843,10 +843,7 @@ public class Startup
     {
         services
             .AddGraphQLServer()
-            .SetPagingOptions(new PagingOptions
-            {
-                MaxPageSize = 100
-            });
+            .ModifyPagingOptions(opt => opt.MaxPageSize = 100);
     }
 }
 ```
