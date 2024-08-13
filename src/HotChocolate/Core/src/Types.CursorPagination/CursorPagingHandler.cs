@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
 
@@ -8,20 +9,15 @@ public abstract class CursorPagingHandler : IPagingHandler
     protected CursorPagingHandler(PagingOptions options)
     {
         DefaultPageSize =
-            options.DefaultPageSize ??
-                PagingDefaults.DefaultPageSize;
+            options.DefaultPageSize ?? PagingDefaults.DefaultPageSize;
         MaxPageSize =
-            options.MaxPageSize ??
-                PagingDefaults.MaxPageSize;
+            options.MaxPageSize ?? PagingDefaults.MaxPageSize;
         IncludeTotalCount =
-            options.IncludeTotalCount ??
-                PagingDefaults.IncludeTotalCount;
+            options.IncludeTotalCount ?? PagingDefaults.IncludeTotalCount;
         RequirePagingBoundaries =
-            options.RequirePagingBoundaries ??
-                PagingDefaults.RequirePagingBoundaries;
+            options.RequirePagingBoundaries ?? PagingDefaults.RequirePagingBoundaries;
         AllowBackwardPagination =
-            options.AllowBackwardPagination ??
-                PagingDefaults.AllowBackwardPagination;
+            options.AllowBackwardPagination ?? PagingDefaults.AllowBackwardPagination;
 
         if (MaxPageSize < DefaultPageSize)
         {
@@ -139,4 +135,95 @@ public abstract class CursorPagingHandler : IPagingHandler
         IResolverContext context,
         object source,
         CursorPagingArguments arguments);
+}
+
+public abstract class CursorPagingHandler<TQuery, TEntity>(PagingOptions options)
+    : CursorPagingHandler(options)
+    where TQuery : notnull
+{
+    protected async ValueTask<Connection<TEntity>> SliceAsync(
+        IResolverContext context,
+        TQuery originalQuery,
+        CursorPagingArguments arguments,
+        CursorPaginationAlgorithm<TQuery, TEntity> algorithm,
+        ICursorPaginationQueryExecutor<TQuery, TEntity> executor,
+        CancellationToken cancellationToken)
+    {
+        // TotalCount is one of the heaviest operations. It is only necessary to load totalCount
+        // when it is enabled (IncludeTotalCount) and when it is contained in the selection set.
+        var totalCountRequired = IncludeTotalCount && context.IsSelected(ConnectionType.Names.TotalCount);
+
+        // If nodes, edges, or pageInfo are selected, fetch the actual data.
+        var selectionsRequired =
+            context.IsSelected(ConnectionType.Names.Nodes)
+            || context.IsSelected(ConnectionType.Names.Edges)
+            || context.IsSelected(ConnectionType.Names.PageInfo);
+
+        // If selections are required we're going to slice the query and fetch some data.
+        if (selectionsRequired)
+        {
+            var (slicedQuery, offset, length) = algorithm.ApplyPagination(originalQuery, arguments);
+            var data = await executor.QueryAsync(slicedQuery, offset, totalCountRequired, cancellationToken).ConfigureAwait(false);
+            var moreItemsReturnedThanRequested = data.Edges.Length > length;
+            var isSequenceFromStart = offset == 0;
+            var edges = data.Edges;
+
+            if (moreItemsReturnedThanRequested)
+            {
+#if NET7_OR_GREATER
+                edges = edges.Slice(0, length);
+#else
+                var builder = ImmutableArray.CreateBuilder<Edge<TEntity>>(length);
+                for (var i = 0; i < length; i++)
+                {
+                    builder.Add(edges[i]);
+                }
+
+                edges = builder.MoveToImmutable();
+#endif
+            }
+
+            var pageInfo = CreatePageInfo(isSequenceFromStart, moreItemsReturnedThanRequested, edges);
+
+            return new Connection<TEntity>(edges, pageInfo, data.TotalCount ?? -1);
+        }
+
+        // if we require a count but no data we will just run the count on the query.
+        if (totalCountRequired)
+        {
+            var count = await executor.CountAsync(originalQuery, cancellationToken).ConfigureAwait(false);
+            return new Connection<TEntity>(ImmutableArray<Edge<TEntity>>.Empty, ConnectionPageInfo.Empty, count);
+        }
+
+        // neither data nor totalCount is selected, so we return a dummy instance with no data for extensibility.
+        return new Connection<TEntity>(ImmutableArray<Edge<TEntity>>.Empty, ConnectionPageInfo.Empty, -1);
+    }
+
+    private static ConnectionPageInfo CreatePageInfo(
+        bool isSequenceFromStart,
+        bool moreItemsReturnedThanRequested,
+        IReadOnlyList<Edge<TEntity>> selectedEdges)
+    {
+        // We know that there is a next page if more items than requested are returned
+        var hasNextPage = moreItemsReturnedThanRequested;
+
+        // There is a previous page if the sequence start is not 0.
+        // If you point to index 2 of an empty list, we assume that there is a previous page
+        var hasPreviousPage = !isSequenceFromStart;
+
+        Edge<TEntity>? firstEdge = null;
+        Edge<TEntity>? lastEdge = null;
+
+        if (selectedEdges.Count > 0)
+        {
+            firstEdge = selectedEdges[0];
+            lastEdge = selectedEdges[selectedEdges.Count - 1];
+        }
+
+        return new ConnectionPageInfo(
+            hasNextPage,
+            hasPreviousPage,
+            firstEdge?.Cursor,
+            lastEdge?.Cursor);
+    }
 }

@@ -32,6 +32,21 @@ internal sealed class DefaultAsyncEnumerableExecutable<T>(IAsyncEnumerable<T> so
         return default;
     }
 
+    public override async ValueTask<int> CountAsync(CancellationToken cancellationToken = default)
+    {
+        var count = 0;
+
+        await foreach (var _ in source.WithCancellation(cancellationToken).ConfigureAwait(false))
+        {
+            checked
+            {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
     public override async ValueTask<List<T>> ToListAsync(CancellationToken cancellationToken = default)
     {
         var result = new List<T>();

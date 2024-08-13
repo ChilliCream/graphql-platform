@@ -87,6 +87,21 @@ internal sealed class DefaultEnumerableExecutable(IEnumerable source) : IExecuta
         }
     }
 
+    public ValueTask<int> CountAsync(CancellationToken cancellationToken = default)
+    {
+        var count = 0;
+
+        foreach (var _ in source)
+        {
+            checked
+            {
+                count++;
+            }
+        }
+
+        return new ValueTask<int>(count);
+    }
+
     public string Print() => Source.ToString() ?? Source.GetType().FullName ?? Source.GetType().Name;
 
     public override string ToString() => Print();

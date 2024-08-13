@@ -18,6 +18,9 @@ internal sealed class DefaultQueryableExecutable<T>(IQueryable<T> source, Func<I
     public IQueryableExecutable<T> WithSource(IQueryable<T> src)
         => new DefaultQueryableExecutable<T>(src);
 
+    public IQueryableExecutable<TQuery> WithSource<TQuery>(IQueryable<TQuery> src)
+        => new DefaultQueryableExecutable<TQuery>(src);
+
     public override ValueTask<T?> FirstOrDefaultAsync(CancellationToken cancellationToken = default)
     {
         if (source is EnumerableQuery)
@@ -170,6 +173,25 @@ internal sealed class DefaultQueryableExecutable<T>(IQueryable<T> source, Func<I
                 yield return element;
             }
         }
+    }
+
+    public override ValueTask<int> CountAsync(CancellationToken cancellationToken = default)
+    {
+        if (source is EnumerableQuery)
+        {
+            return new ValueTask<int>(source.Count());
+        }
+
+        return CountFromDataSourceAsync(cancellationToken);
+    }
+
+    private async ValueTask<int> CountFromDataSourceAsync(CancellationToken cancellationToken = default)
+    {
+#if NET6_0_OR_GREATER
+        return await Task.Run(source.Count, cancellationToken).WaitAsync(cancellationToken);
+#else
+        return await Task.Run(source.Count, cancellationToken);
+#endif
     }
 
     public override string Print() => _printer(source);

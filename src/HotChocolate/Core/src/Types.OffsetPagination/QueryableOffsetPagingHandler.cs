@@ -3,7 +3,7 @@ using HotChocolate.Resolvers;
 namespace HotChocolate.Types.Pagination;
 
 /// <summary>
-/// Represents the default paging handler for in-memory collections and queryables.
+/// Represents the default paging handler for in-memory collections and queryable.
 /// </summary>
 /// <typeparam name="TEntity">
 /// The entity type.
@@ -14,7 +14,9 @@ public class QueryableOffsetPagingHandler<TEntity>
     private readonly QueryableOffsetPagination<TEntity> _pagination = new();
 
     public QueryableOffsetPagingHandler(PagingOptions options)
-        : base(options) { }
+        : base(options)
+    {
+    }
 
     protected override ValueTask<CollectionSegment> SliceAsync(
         IResolverContext context,
@@ -37,14 +39,11 @@ public class QueryableOffsetPagingHandler<TEntity>
         OffsetPagingArguments arguments = default,
         CancellationToken cancellationToken = default)
     {
-        // When totalCount is included in the selection set we prefetch it, then capture the
-        // count in a variable, to pass it into the handler
-        int? totalCount = null;
-
         // TotalCount is one of the heaviest operations. It is only necessary to load totalCount
         // when it is enabled (IncludeTotalCount) and when it is contained in the selection set.
-        if (IncludeTotalCount &&
-            context.Selection is { Type: ObjectType objectType, SyntaxNode.SelectionSet: not null, })
+        var requireTotalCount = false;
+        if (IncludeTotalCount
+            && context.Selection is { Type: ObjectType objectType, SyntaxNode.SelectionSet: not null, })
         {
             var selections = context.GetSelections(objectType, null, true);
 
@@ -52,17 +51,14 @@ public class QueryableOffsetPagingHandler<TEntity>
             {
                 if (selections[i].Field.Name is "totalCount")
                 {
-                    totalCount = await Task.Run(
-                            () => source.Count(),
-                            cancellationToken)
-                        .ConfigureAwait(false);
+                    requireTotalCount = true;
                     break;
                 }
             }
         }
 
         return await _pagination
-            .ApplyPaginationAsync(source, arguments, totalCount, cancellationToken)
+            .ApplyPaginationAsync(source, arguments, null, requireTotalCount, cancellationToken)
             .ConfigureAwait(false);
     }
 }

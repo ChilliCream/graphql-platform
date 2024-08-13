@@ -7,33 +7,6 @@ namespace HotChocolate.Types.Pagination;
 /// </summary>
 public class Connection : IPage
 {
-    private readonly Func<CancellationToken, ValueTask<int>> _getTotalCount;
-
-    /// <summary>
-    /// Initializes <see cref="Connection" />.
-    /// </summary>
-    /// <param name="edges">
-    /// The edges that belong to this connection.
-    /// </param>
-    /// <param name="info">
-    /// Additional information about this connection.
-    /// </param>
-    /// <param name="getTotalCount">
-    /// A delegate to request the the total count.
-    /// </param>
-    public Connection(
-        IReadOnlyCollection<IEdge> edges,
-        ConnectionPageInfo info,
-        Func<CancellationToken, ValueTask<int>> getTotalCount)
-    {
-        _getTotalCount = getTotalCount ??
-            throw new ArgumentNullException(nameof(getTotalCount));
-        Edges = edges ??
-            throw new ArgumentNullException(nameof(edges));
-        Info = info ??
-            throw new ArgumentNullException(nameof(info));
-    }
-
     /// <summary>
     /// Initializes <see cref="Connection" />.
     /// </summary>
@@ -51,11 +24,9 @@ public class Connection : IPage
         ConnectionPageInfo info,
         int totalCount = 0)
     {
-        _getTotalCount = _ => new(totalCount);
-        Edges = edges ??
-            throw new ArgumentNullException(nameof(edges));
-        Info = info ??
-            throw new ArgumentNullException(nameof(info));
+        Edges = edges ?? throw new ArgumentNullException(nameof(edges));
+        Info = info ?? throw new ArgumentNullException(nameof(info));
+        TotalCount = totalCount;
     }
 
     /// <summary>
@@ -87,8 +58,7 @@ public class Connection : IPage
     /// <returns>
     /// The total count of the data set / collection.
     /// </returns>
-    public ValueTask<int> GetTotalCountAsync(CancellationToken cancellationToken) =>
-        _getTotalCount(cancellationToken);
+    public int TotalCount { get; }
 
     /// <summary>
     /// Gets an cashed empty connection object.
