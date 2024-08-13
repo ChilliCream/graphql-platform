@@ -3,6 +3,7 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -188,6 +189,16 @@ public interface IResolverContext : IHasContextData
     /// and thus request operations should be cancelled.
     /// </summary>
     CancellationToken RequestAborted { get; }
+
+    /// <summary>
+    /// The parser used for parsing input values.
+    /// </summary>
+    InputParser Parser { get; }
+
+    /// <summary>
+    /// The <see cref="ITypeConverter"/> used to convert between types.
+    /// </summary>
+    ITypeConverter Converter { get; }
 
     /// <summary>
     /// Gets as required service from the dependency injection container.
