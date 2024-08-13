@@ -1,3 +1,4 @@
+using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using static HotChocolate.Fusion.FusionResources;
 
@@ -48,15 +49,17 @@ internal sealed partial class ResolverDefinition
     /// <summary>
     /// Gets the argument target types of this resolver.
     /// </summary>
-    public IReadOnlyDictionary<string, ITypeNode> ArgumentTypes { get;  }
+    public IReadOnlyDictionary<string, ITypeNode> ArgumentTypes { get; }
 
     public (ISelectionNode selectionNode, IReadOnlyList<string> Path) CreateSelection(
         IReadOnlyDictionary<string, IValueNode> variables,
         SelectionSetNode? selectionSet,
         string? responseName,
-        IReadOnlyList<string>? unspecifiedArguments)
+        IReadOnlyList<string>? unspecifiedArguments,
+        IReadOnlyList<DirectiveNode>? directives)
     {
-        var context = new FetchRewriterContext(Placeholder, variables, selectionSet, responseName, unspecifiedArguments);
+        var context = new FetchRewriterContext(Placeholder, variables, selectionSet, responseName, unspecifiedArguments,
+            directives);
         var selection = _rewriter.Rewrite(_field ?? (ISyntaxNode)Select, context);
 
         if (Placeholder is null && selectionSet is not null)

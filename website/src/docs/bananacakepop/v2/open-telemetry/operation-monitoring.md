@@ -1,5 +1,5 @@
 ---
-title: "Open Telemetry"
+title: "Operation Monitoring"
 ---
 
 ![Image](images/telemetry-0.png)
