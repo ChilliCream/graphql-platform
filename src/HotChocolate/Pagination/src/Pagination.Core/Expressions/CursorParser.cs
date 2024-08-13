@@ -2,9 +2,9 @@ using System.Buffers;
 using System.Buffers.Text;
 using System.Text;
 
-namespace HotChocolate.Pagination;
+namespace HotChocolate.Pagination.Expressions;
 
-internal static class CursorParser
+public static class CursorParser
 {
     private const byte _escape = (byte)':';
     private const byte _separator = (byte)':';

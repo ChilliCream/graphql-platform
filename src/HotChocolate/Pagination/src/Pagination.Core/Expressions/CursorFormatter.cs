@@ -2,9 +2,9 @@ using System.Buffers;
 using System.Buffers.Text;
 using System.Text;
 
-namespace HotChocolate.Pagination;
+namespace HotChocolate.Pagination.Expressions;
 
-internal static class CursorFormatter
+public static class CursorFormatter
 {
     public static string Format<T>(T item, CursorKey[] keys)
     {

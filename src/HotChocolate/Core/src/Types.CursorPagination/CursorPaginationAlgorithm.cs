@@ -19,25 +19,28 @@ public abstract class CursorPaginationAlgorithm<TQuery, TEntity> where TQuery : 
     /// </summary>
     /// <param name="query">The query builder.</param>
     /// <param name="arguments">The paging arguments.</param>
+    /// <param name="totalCount"></param>
     /// <returns>
     /// Returns the connection.
     /// </returns>
     public CursorPaginationAlgorithmResult<TQuery> ApplyPagination(
         TQuery query,
-        CursorPagingArguments arguments)
+        CursorPagingArguments arguments,
+        int? totalCount)
     {
         if (query is null)
         {
             throw new ArgumentNullException(nameof(query));
         }
 
-        var range = SliceRange(arguments);
+        totalCount ??= int.MaxValue;
+        var range = SliceRange(arguments, totalCount.Value);
 
         var skip = range.Start;
         var take = range.Count();
 
         // we fetch one element more than we requested
-        if (take != int.MaxValue)
+        if (take != totalCount.Value)
         {
             take++;
         }
@@ -49,7 +52,7 @@ public abstract class CursorPaginationAlgorithm<TQuery, TEntity> where TQuery : 
             slicedSource = ApplySkip(slicedSource, skip);
         }
 
-        if (take != int.MaxValue)
+        if (take != totalCount.Value)
         {
             slicedSource = ApplyTake(slicedSource, take);
         }
@@ -69,7 +72,8 @@ public abstract class CursorPaginationAlgorithm<TQuery, TEntity> where TQuery : 
 
 
     private static CursorPagingRange SliceRange(
-        CursorPagingArguments arguments)
+        CursorPagingArguments arguments,
+        int totalCount)
     {
         // [SPEC] if after is set then remove all elements of edges before and including
         // afterEdge.
@@ -88,7 +92,7 @@ public abstract class CursorPaginationAlgorithm<TQuery, TEntity> where TQuery : 
 
         // [SPEC] if before is set then remove all elements of edges before and including
         // beforeEdge.
-        var before = int.MaxValue;
+        var before = totalCount;
         if (arguments.Before is not null)
         {
             if (!IndexCursor.TryParse(arguments.Before, out var index))

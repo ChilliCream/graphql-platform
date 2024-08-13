@@ -162,7 +162,14 @@ public abstract class CursorPagingHandler<TQuery, TEntity>(PagingOptions options
         // If selections are required we're going to slice the query and fetch some data.
         if (selectionsRequired)
         {
-            var (slicedQuery, offset, length) = algorithm.ApplyPagination(originalQuery, arguments);
+            int? totalCount = null;
+            if (arguments.Before is null && arguments.First is null)
+            {
+                totalCount = await executor.CountAsync(originalQuery, cancellationToken).ConfigureAwait(false);
+                totalCountRequired = false;
+            }
+
+            var (slicedQuery, offset, length) = algorithm.ApplyPagination(originalQuery, arguments, totalCount);
             var data = await executor.QueryAsync(slicedQuery, offset, totalCountRequired, cancellationToken).ConfigureAwait(false);
             var moreItemsReturnedThanRequested = data.Edges.Length > length;
             var isSequenceFromStart = offset == 0;

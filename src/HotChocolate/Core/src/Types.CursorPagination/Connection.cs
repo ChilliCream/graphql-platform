@@ -52,9 +52,6 @@ public class Connection : IPage
     /// <summary>
     /// Requests the total count of the data set / collection that is being paged.
     /// </summary>
-    /// <param name="cancellationToken">
-    /// The cancellation token.
-    /// </param>
     /// <returns>
     /// The total count of the data set / collection.
     /// </returns>

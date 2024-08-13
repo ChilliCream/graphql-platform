@@ -1,11 +1,10 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
-using System.Reflection;
 using HotChocolate.Pagination.Serialization;
 
-namespace HotChocolate.Pagination;
+namespace HotChocolate.Pagination.Expressions;
 
-internal sealed class CursorKeyParser : ExpressionVisitor
+public sealed class CursorKeyParser : ExpressionVisitor
 {
     private readonly List<CursorKey> _keys = new();
 

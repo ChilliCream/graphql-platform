@@ -2,9 +2,9 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Pagination.Serialization;
 
-namespace HotChocolate.Pagination;
+namespace HotChocolate.Pagination.Expressions;
 
-internal sealed class CursorKey(
+public sealed class CursorKey(
     LambdaExpression expression,
     ICursorKeySerializer serializer,
     bool ascending = true)
