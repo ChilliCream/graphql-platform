@@ -137,11 +137,19 @@
               ],
               "event": [
                 {
-                  "Name": "Error",
+                  "Name": "exception",
                   "Tags": [
                     {
-                      "Key": "graphql.error.message",
+                      "Key": "exception.message",
                       "Value": "fail"
+                    },
+                    {
+                      "Key": "exception.type",
+                      "Value": "GRAPHQL_ERROR"
+                    },
+                    {
+                      "Key": "graphql.error.path",
+                      "Value": "/causeFatalError"
                     },
                     {
                       "Key": "graphql.error.location.column",

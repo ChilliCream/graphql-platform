@@ -59,8 +59,18 @@
               {
                 "path": "operation-reporting",
                 "title": "Operation Reporting"
+              }
+            ]
+          },
+          {
+            "path": "open-telemetry",
+            "title": "Open Telemetry",
+            "items": [
+              {
+                "path": "operation-monitoring",
+                "title": "Operation Monitoring"
               },
-              { "path": "open-telemetry", "title": "Open Telemetry" }
+              { "path": "logging", "title": "Logging" }
             ]
           },
           {
@@ -421,6 +431,10 @@
             "path": "migrating",
             "title": "Migrating",
             "items": [
+              {
+                "path": "migrate-from-13-to-14",
+                "title": "Migrate from 13 to 14"
+              },
               {
                 "path": "migrate-from-12-to-13",
                 "title": "Migrate from 12 to 13"
