@@ -71,6 +71,8 @@ internal sealed class QueryableCursorPagingHandler2<TEntity>(PagingOptions optio
             builder.Add(new Edge<TEntity>(item, CursorFormatter.Format(item, keys)));
         }
 
+        /*
+
 #if NET7_0_OR_GREATER
 
 #else
@@ -86,6 +88,10 @@ internal sealed class QueryableCursorPagingHandler2<TEntity>(PagingOptions optio
         {
             result.Reverse();
         }
+
+        */
+
+        throw new Exception();
     }
 
     private IQueryableExecutable<TEntity> CreateExecutable(object source)
