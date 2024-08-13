@@ -15,12 +15,12 @@ public class ListTypeTests
 
         await ExpectValid(
                 """
-                query ($a: String $b: String) {
+                query ($a: String! $b: String!) {
                     list(items: [$a $b])
                 }
                 """,
                 b => b.AddQueryType<Query>(),
-                r => r.SetVariableValues(new Dictionary<string, object> { {"a", "a" }, {"b", "b" }, }))
+                r => r.SetVariableValues(new Dictionary<string, object?> { {"a", "a" }, {"b", "b" }, }))
             .MatchSnapshotAsync();
     }
 

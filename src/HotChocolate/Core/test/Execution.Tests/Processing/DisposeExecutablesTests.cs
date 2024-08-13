@@ -65,11 +65,11 @@ public static class DisposeExecutablesTests
             CancellationToken cancellationToken = default)
             => throw new NotImplementedException();
 
-        public override ValueTask<string> FirstOrDefaultAsync(
+        public override ValueTask<string?> FirstOrDefaultAsync(
             CancellationToken cancellationToken = default)
             => throw new NotImplementedException();
 
-        public override ValueTask<string> SingleOrDefaultAsync(
+        public override ValueTask<string?> SingleOrDefaultAsync(
             CancellationToken cancellationToken = default)
             => throw new NotImplementedException();
 
@@ -97,11 +97,11 @@ public static class DisposeExecutablesTests
             CancellationToken cancellationToken = default)
             => throw new NotImplementedException();
 
-        public override ValueTask<string> FirstOrDefaultAsync(
+        public override ValueTask<string?> FirstOrDefaultAsync(
             CancellationToken cancellationToken = default)
             => throw new NotImplementedException();
 
-        public override ValueTask<string> SingleOrDefaultAsync(
+        public override ValueTask<string?> SingleOrDefaultAsync(
             CancellationToken cancellationToken = default)
             => throw new NotImplementedException();
 

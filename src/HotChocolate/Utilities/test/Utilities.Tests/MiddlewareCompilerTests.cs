@@ -71,7 +71,7 @@ public class MiddlewareCompilerTests
     {
         public IServiceProvider Services { get; } = services;
 
-        public string Result { get; set; }
+        public string? Result { get; set; }
     }
 
     public delegate ValueTask CustomDelegate(CustomContext context);

@@ -110,10 +110,10 @@ public class CursorPagingQueryableExtensionsTests
         {
             var list = new Person[]
             {
-                new() { Name = "Foo", },
-                new() { Name = "Bar", },
-                new() { Name = "Baz", },
-                new() { Name = "Qux", },
+                new(name: "Foo"),
+                new(name: "Bar"),
+                new(name: "Baz"),
+                new(name: "Qux"),
             };
 
             return await list.AsQueryable().ApplyCursorPaginationAsync(
@@ -133,10 +133,10 @@ public class CursorPagingQueryableExtensionsTests
         {
             var list = new Person[]
             {
-                new() { Name = "Foo", },
-                new() { Name = "Bar", },
-                new() { Name = "Baz", },
-                new() { Name = "Qux", },
+                new(name: "Foo"),
+                new(name: "Bar"),
+                new(name: "Baz"),
+                new(name: "Qux"),
             };
 
             return await list.ApplyCursorPaginationAsync(
@@ -147,8 +147,8 @@ public class CursorPagingQueryableExtensionsTests
         }
     }
 
-    public class Person
+    public class Person(string name)
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = name;
     }
 }

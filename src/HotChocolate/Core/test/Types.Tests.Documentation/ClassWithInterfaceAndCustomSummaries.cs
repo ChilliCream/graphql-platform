@@ -1,12 +1,12 @@
 namespace HotChocolate.Types.Descriptors
 {
 #pragma warning disable 1591
-    public class ClassWithInterfaceAndCustomSummaries : IBaseInterface
+    public class ClassWithInterfaceAndCustomSummaries(string foo) : IBaseInterface
     {
         /// <summary>
         /// I am my own property.
         /// </summary>
-        public string Foo { get; }
+        public string Foo { get; } = foo;
 
         /// <summary>
         /// I am my own method.

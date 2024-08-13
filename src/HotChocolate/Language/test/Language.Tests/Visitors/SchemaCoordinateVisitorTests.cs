@@ -77,7 +77,7 @@ public static class SchemaCoordinateVisitorTests
     public class CustomSyntaxWalker(List<string> list)
         : SyntaxWalker(new() { VisitNames = true, })
     {
-        protected override ISyntaxVisitorAction Enter(NameNode node, object context)
+        protected override ISyntaxVisitorAction Enter(NameNode node, object? context)
         {
             list.Add(node.Value);
             return DefaultAction;

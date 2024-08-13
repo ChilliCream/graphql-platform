@@ -38,7 +38,7 @@ public class MockExecutable<T>(IQueryable<T> source) : IExecutable<T>
     public ValueTask<object?> FirstOrDefaultAsync(CancellationToken cancellationToken)
         => new(source.FirstOrDefault());
 
-    ValueTask<T> IExecutable<T>.FirstOrDefaultAsync(CancellationToken cancellationToken)
+    ValueTask<T?> IExecutable<T>.FirstOrDefaultAsync(CancellationToken cancellationToken)
         => new(source.FirstOrDefault());
 
     public ValueTask<object?> SingleOrDefaultAsync(CancellationToken cancellationToken)
@@ -47,7 +47,7 @@ public class MockExecutable<T>(IQueryable<T> source) : IExecutable<T>
     public ValueTask<int> CountAsync(CancellationToken cancellationToken = default)
         => new(source.Count());
 
-    ValueTask<T> IExecutable<T>.SingleOrDefaultAsync(CancellationToken cancellationToken)
+    ValueTask<T?> IExecutable<T>.SingleOrDefaultAsync(CancellationToken cancellationToken)
         => new(source.SingleOrDefault());
 
     public string Print()
