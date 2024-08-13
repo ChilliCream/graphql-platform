@@ -46,6 +46,10 @@ public class MongoDbFindFluentExecutable<T>(IFindFluent<T, T> findFluent) : Mong
             .SingleOrDefaultAsync(cancellationToken)
             .ConfigureAwait(false);
 
+    public override async ValueTask<int> CountAsync(
+        CancellationToken cancellationToken) =>
+        (int)await findFluent.CountDocumentsAsync(cancellationToken);
+
     /// <inheritdoc />
     public override string Print() => BuildPipeline().ToString() ?? "";
 

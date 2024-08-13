@@ -8,15 +8,10 @@ namespace HotChocolate.Types.Pagination;
 /// <typeparam name="TEntity">
 /// The entity type.
 /// </typeparam>
-public class QueryableOffsetPagingHandler<TEntity>
-    : OffsetPagingHandler
+public class QueryableOffsetPagingHandler<TEntity>(PagingOptions options)
+    : OffsetPagingHandler(options)
 {
     private readonly QueryableOffsetPagination<TEntity> _pagination = new();
-
-    public QueryableOffsetPagingHandler(PagingOptions options)
-        : base(options)
-    {
-    }
 
     protected override ValueTask<CollectionSegment> SliceAsync(
         IResolverContext context,
@@ -41,21 +36,7 @@ public class QueryableOffsetPagingHandler<TEntity>
     {
         // TotalCount is one of the heaviest operations. It is only necessary to load totalCount
         // when it is enabled (IncludeTotalCount) and when it is contained in the selection set.
-        var requireTotalCount = false;
-        if (IncludeTotalCount
-            && context.Selection is { Type: ObjectType objectType, SyntaxNode.SelectionSet: not null, })
-        {
-            var selections = context.GetSelections(objectType, null, true);
-
-            for (var i = 0; i < selections.Count; i++)
-            {
-                if (selections[i].Field.Name is "totalCount")
-                {
-                    requireTotalCount = true;
-                    break;
-                }
-            }
-        }
+        var requireTotalCount = IncludeTotalCount && context.IsSelected("totalCount");
 
         return await _pagination
             .ApplyPaginationAsync(source, arguments, null, requireTotalCount, cancellationToken)

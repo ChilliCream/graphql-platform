@@ -14,15 +14,4 @@ internal sealed class MongoCursorPagination<TEntity>
         IMongoPagingContainer<TEntity> query,
         int take)
         => query.Take(take);
-
-    protected override async ValueTask<int> CountAsync(
-        IMongoPagingContainer<TEntity> query,
-        CancellationToken cancellationToken)
-        => await query.CountAsync(cancellationToken).ConfigureAwait(false);
-
-    protected override ValueTask<IReadOnlyList<Edge<TEntity>>> ExecuteAsync(
-        IMongoPagingContainer<TEntity> query,
-        int offset,
-        CancellationToken cancellationToken)
-        => query.ExecuteQueryAsync(offset, cancellationToken);
 }

@@ -89,6 +89,16 @@ internal sealed class DefaultEnumerableExecutable(IEnumerable source) : IExecuta
 
     public ValueTask<int> CountAsync(CancellationToken cancellationToken = default)
     {
+        if (source is Array array)
+        {
+            return new ValueTask<int>(array.Length);
+        }
+
+        if(source is ICollection collection)
+        {
+            return new ValueTask<int>(collection.Count);
+        }
+
         var count = 0;
 
         foreach (var _ in source)

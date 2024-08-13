@@ -58,7 +58,7 @@ public static class RavenCursorPagingQueryableExtensions
     /// Returns a connection instance that represents the result of applying the
     /// cursor paging algorithm to the provided <paramref name="query"/>.
     /// </returns>
-    private static ValueTask<Connection<TEntity>> ApplyCursorPaginationAsync<TEntity>(
+    internal static ValueTask<Connection<TEntity>> ApplyCursorPaginationAsync<TEntity>(
         this RavenPagingContainer<TEntity> query,
         IResolverContext context,
         int? defaultPageSize)
