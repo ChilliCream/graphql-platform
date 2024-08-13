@@ -14,7 +14,7 @@ namespace HotChocolate.Types.Descriptors
         /// <returns>
         /// Bar Returns Documentation.
         /// </returns>
-        public string Foo(string bar) => default;
+        public string? Foo(string? bar) => bar;
 
         /// <summary>
         /// This is a
@@ -24,11 +24,11 @@ namespace HotChocolate.Types.Descriptors
         /// </summary>
         /// Note: The returns is left intentionally empty
         /// <returns></returns>
-        public string Baz() => default;
+        public string? Baz() => string.Empty;
 
         /// <summary>
         /// This is a single line summary.
         /// </summary>
-        public string Qux() => default;
+        public string? Qux() => string.Empty;
     }
 }

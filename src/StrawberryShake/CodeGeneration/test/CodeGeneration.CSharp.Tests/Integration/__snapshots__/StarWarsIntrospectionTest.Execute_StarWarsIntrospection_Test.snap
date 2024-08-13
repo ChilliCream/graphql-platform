@@ -1018,15 +1018,18 @@
                   "Name": "episodes",
                   "Description": null,
                   "Type": {
-                    "Kind": "List",
+                    "Kind": "NonNull",
                     "Name": null,
                     "OfType": {
-                      "Kind": "NonNull",
+                      "Kind": "List",
                       "Name": null,
                       "OfType": {
-                        "Kind": "Enum",
-                        "Name": "Episode",
-                        "OfType": null
+                        "Kind": "NonNull",
+                        "Name": null,
+                        "OfType": {
+                          "Kind": "Enum",
+                          "Name": "Episode"
+                        }
                       }
                     }
                   },
@@ -1057,12 +1060,19 @@
                   "Name": "characterIds",
                   "Description": null,
                   "Type": {
-                    "Kind": "List",
+                    "Kind": "NonNull",
                     "Name": null,
                     "OfType": {
-                      "Kind": "Scalar",
-                      "Name": "String",
-                      "OfType": null
+                      "Kind": "List",
+                      "Name": null,
+                      "OfType": {
+                        "Kind": "NonNull",
+                        "Name": null,
+                        "OfType": {
+                          "Kind": "Scalar",
+                          "Name": "String"
+                        }
+                      }
                     }
                   },
                   "DefaultValue": null
@@ -1095,9 +1105,13 @@
                   "Name": "text",
                   "Description": null,
                   "Type": {
-                    "Kind": "Scalar",
-                    "Name": "String",
-                    "OfType": null
+                    "Kind": "NonNull",
+                    "Name": null,
+                    "OfType": {
+                      "Kind": "Scalar",
+                      "Name": "String",
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": null
                 }
@@ -1122,9 +1136,13 @@
                   "Name": "id",
                   "Description": null,
                   "Type": {
-                    "Kind": "Scalar",
-                    "Name": "String",
-                    "OfType": null
+                    "Kind": "NonNull",
+                    "Name": null,
+                    "OfType": {
+                      "Kind": "Scalar",
+                      "Name": "String",
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": null
                 }
@@ -1145,9 +1163,13 @@
                   "Name": "id",
                   "Description": null,
                   "Type": {
-                    "Kind": "Scalar",
-                    "Name": "String",
-                    "OfType": null
+                    "Kind": "NonNull",
+                    "Name": null,
+                    "OfType": {
+                      "Kind": "Scalar",
+                      "Name": "String",
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": null
                 }
@@ -4266,7 +4288,7 @@
                   "Type": {
                     "__typename": "__Type",
                     "Name": null,
-                    "Kind": "List",
+                    "Kind": "NonNull",
                     "Description": null,
                     "Fields": null,
                     "InputFields": null,
@@ -4276,7 +4298,7 @@
                     "OfType": {
                       "__typename": "__Type",
                       "Name": null,
-                      "Kind": "NonNull",
+                      "Kind": "List",
                       "Description": null,
                       "Fields": null,
                       "InputFields": null,
@@ -4285,15 +4307,26 @@
                       "PossibleTypes": null,
                       "OfType": {
                         "__typename": "__Type",
-                        "Name": "Episode",
-                        "Kind": "Enum",
+                        "Name": null,
+                        "Kind": "NonNull",
                         "Description": null,
                         "Fields": null,
                         "InputFields": null,
                         "Interfaces": null,
                         "EnumValues": null,
                         "PossibleTypes": null,
-                        "OfType": null
+                        "OfType": {
+                          "__typename": "__Type",
+                          "Name": "Episode",
+                          "Kind": "Enum",
+                          "Description": null,
+                          "Fields": null,
+                          "InputFields": null,
+                          "Interfaces": null,
+                          "EnumValues": null,
+                          "PossibleTypes": null,
+                          "OfType": null
+                        }
                       }
                     }
                   },
@@ -4349,7 +4382,7 @@
                   "Type": {
                     "__typename": "__Type",
                     "Name": null,
-                    "Kind": "List",
+                    "Kind": "NonNull",
                     "Description": null,
                     "Fields": null,
                     "InputFields": null,
@@ -4358,15 +4391,37 @@
                     "PossibleTypes": null,
                     "OfType": {
                       "__typename": "__Type",
-                      "Name": "String",
-                      "Kind": "Scalar",
+                      "Name": null,
+                      "Kind": "List",
                       "Description": null,
                       "Fields": null,
                       "InputFields": null,
                       "Interfaces": null,
                       "EnumValues": null,
                       "PossibleTypes": null,
-                      "OfType": null
+                      "OfType": {
+                        "__typename": "__Type",
+                        "Name": null,
+                        "Kind": "NonNull",
+                        "Description": null,
+                        "Fields": null,
+                        "InputFields": null,
+                        "Interfaces": null,
+                        "EnumValues": null,
+                        "PossibleTypes": null,
+                        "OfType": {
+                          "__typename": "__Type",
+                          "Name": "String",
+                          "Kind": "Scalar",
+                          "Description": null,
+                          "Fields": null,
+                          "InputFields": null,
+                          "Interfaces": null,
+                          "EnumValues": null,
+                          "PossibleTypes": null,
+                          "OfType": null
+                        }
+                      }
                     }
                   },
                   "DefaultValue": null
@@ -4431,15 +4486,26 @@
                   "Description": null,
                   "Type": {
                     "__typename": "__Type",
-                    "Name": "String",
-                    "Kind": "Scalar",
+                    "Name": null,
+                    "Kind": "NonNull",
                     "Description": null,
                     "Fields": null,
                     "InputFields": null,
                     "Interfaces": null,
                     "EnumValues": null,
                     "PossibleTypes": null,
-                    "OfType": null
+                    "OfType": {
+                      "__typename": "__Type",
+                      "Name": "String",
+                      "Kind": "Scalar",
+                      "Description": null,
+                      "Fields": null,
+                      "InputFields": null,
+                      "Interfaces": null,
+                      "EnumValues": null,
+                      "PossibleTypes": null,
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": null
                 }
@@ -4481,15 +4547,26 @@
                   "Description": null,
                   "Type": {
                     "__typename": "__Type",
-                    "Name": "String",
-                    "Kind": "Scalar",
+                    "Name": null,
+                    "Kind": "NonNull",
                     "Description": null,
                     "Fields": null,
                     "InputFields": null,
                     "Interfaces": null,
                     "EnumValues": null,
                     "PossibleTypes": null,
-                    "OfType": null
+                    "OfType": {
+                      "__typename": "__Type",
+                      "Name": "String",
+                      "Kind": "Scalar",
+                      "Description": null,
+                      "Fields": null,
+                      "InputFields": null,
+                      "Interfaces": null,
+                      "EnumValues": null,
+                      "PossibleTypes": null,
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": null
                 }
@@ -4520,15 +4597,26 @@
                   "Description": null,
                   "Type": {
                     "__typename": "__Type",
-                    "Name": "String",
-                    "Kind": "Scalar",
+                    "Name": null,
+                    "Kind": "NonNull",
                     "Description": null,
                     "Fields": null,
                     "InputFields": null,
                     "Interfaces": null,
                     "EnumValues": null,
                     "PossibleTypes": null,
-                    "OfType": null
+                    "OfType": {
+                      "__typename": "__Type",
+                      "Name": "String",
+                      "Kind": "Scalar",
+                      "Description": null,
+                      "Fields": null,
+                      "InputFields": null,
+                      "Interfaces": null,
+                      "EnumValues": null,
+                      "PossibleTypes": null,
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": null
                 }

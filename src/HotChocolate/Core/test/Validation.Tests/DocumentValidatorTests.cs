@@ -21,7 +21,7 @@ public class DocumentValidatorTests
                 schema,
                 null!,
                 new OperationDocumentId("abc"),
-                new Dictionary<string, object>(),
+                new Dictionary<string, object?>(),
                 false);
 
         // assert
@@ -40,7 +40,7 @@ public class DocumentValidatorTests
                 null!,
                 new DocumentNode(null, new List<IDefinitionNode>()),
                 new OperationDocumentId("abc"),
-                new Dictionary<string, object>(),
+                new Dictionary<string, object?>(),
                 false);
 
         // assert
@@ -742,7 +742,7 @@ public class DocumentValidatorTests
             schema,
             document,
             new OperationDocumentId("abc"),
-            new Dictionary<string, object>(),
+            new Dictionary<string, object?>(),
             false);
 
         // assert
@@ -863,7 +863,7 @@ public class DocumentValidatorTests
 
     private Task ExpectValid(string sourceText) => ExpectValid(null, null, sourceText);
 
-    private async Task ExpectValid(ISchema schema, IDocumentValidator validator, string sourceText)
+    private async Task ExpectValid(ISchema? schema, IDocumentValidator? validator, string sourceText)
     {
         // arrange
         schema ??= ValidationUtils.CreateSchema();
@@ -875,7 +875,7 @@ public class DocumentValidatorTests
             schema,
             query,
             new OperationDocumentId("abc"),
-            new Dictionary<string, object>(),
+            new Dictionary<string, object?>(),
             false);
 
         // assert
@@ -886,8 +886,8 @@ public class DocumentValidatorTests
         await ExpectErrors(null, null, sourceText, elementInspectors);
 
     private async Task ExpectErrors(
-        ISchema schema,
-        IDocumentValidator validator,
+        ISchema? schema,
+        IDocumentValidator? validator,
         string sourceText,
         params Action<IError>[] elementInspectors)
     {
@@ -901,7 +901,7 @@ public class DocumentValidatorTests
             schema,
             query,
             new OperationDocumentId("abc"),
-            new Dictionary<string, object>(),
+            new Dictionary<string, object?>(),
             false);
 
         // assert

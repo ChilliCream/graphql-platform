@@ -29,7 +29,7 @@ public class Query
     /// </summary>
     /// <param name="traits">The traits to look up by.</param>
     /// <returns>The character.</returns>
-    public ICharacter GetHeroByTraits(JsonElement traits)
+    public ICharacter? GetHeroByTraits(JsonElement traits)
     {
         return _repository.GetHeroByTraits(traits);
     }
@@ -56,7 +56,7 @@ public class Query
     /// </summary>
     /// <param name="id">The Id of the human to retrieve.</param>
     /// <returns>The human.</returns>
-    public Human GetHuman(string id)
+    public Human? GetHuman(string id)
     {
         return _repository.GetHuman(id);
     }
@@ -66,7 +66,7 @@ public class Query
     /// </summary>
     /// <param name="id">The Id of the droid.</param>
     /// <returns>The droid.</returns>
-    public Droid GetDroid(string id)
+    public Droid? GetDroid(string id)
     {
         return _repository.GetDroid(id);
     }

@@ -28,7 +28,7 @@ namespace HotChocolate.Types.Pagination
 
             // act
             Action a = () => new CollectionSegment<string>(
-                items, null, ct => throw new NotSupportedException());
+                items, null!, ct => throw new NotSupportedException());
 
             // assert
             Assert.Throws<ArgumentNullException>(a);

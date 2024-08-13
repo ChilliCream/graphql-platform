@@ -131,9 +131,9 @@ public class RequestExecutorTests
         }
     }
 
-    public class TestMutationPayload
+    public class TestMutationPayload(Test test)
     {
-        public Test Test { get; set; }
+        public Test Test { get; set; } = test;
     }
 
     public class Test
