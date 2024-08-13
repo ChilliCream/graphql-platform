@@ -5,6 +5,7 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types.Pagination;
 
@@ -20,10 +21,19 @@ public class QueryableCursorPagingProviderTests
         IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
         var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
-        var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
+        var list = new List<string>
+        {
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+        };
 
         var pagingDetails = new CursorPagingArguments(2);
-        var context = new MockContext(pagingDetails);
+        var context = await MockContext.CreateContextAsync(pagingDetails);
 
         // act
         pagingHandler.PublishPagingArguments(context);
@@ -64,7 +74,7 @@ public class QueryableCursorPagingProviderTests
         var list = new List<string> { "f", "g", };
 
         var pagingDetails = new CursorPagingArguments(last: 1);
-        var context = new MockContext(pagingDetails);
+        var context = await MockContext.CreateContextAsync(pagingDetails);
 
         // act
         pagingHandler.PublishPagingArguments(context);
@@ -97,10 +107,19 @@ public class QueryableCursorPagingProviderTests
         IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
         var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
-        var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
+        var list = new List<string>
+        {
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+        };
 
         var pagingDetails = new CursorPagingArguments(last: 2);
-        var context = new MockContext(pagingDetails);
+        var context = await MockContext.CreateContextAsync(pagingDetails);
 
         // act
         pagingHandler.PublishPagingArguments(context);
@@ -138,15 +157,24 @@ public class QueryableCursorPagingProviderTests
         IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
         var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
-        var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
+        var list = new List<string>
+        {
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+        };
 
         var pagingDetails = new CursorPagingArguments();
-        var context = new MockContext(pagingDetails);
+        var context = await MockContext.CreateContextAsync(pagingDetails);
         pagingHandler.PublishPagingArguments(context);
         var connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
         pagingDetails = new CursorPagingArguments(after: connection.Info.StartCursor, first: 2);
-        context = new MockContext(pagingDetails);
+        context = await MockContext.CreateContextAsync(pagingDetails);
 
         // act
         pagingHandler.PublishPagingArguments(context);
@@ -184,15 +212,24 @@ public class QueryableCursorPagingProviderTests
         IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
         var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
-        var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
+        var list = new List<string>
+        {
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+        };
 
         var pagingDetails = new CursorPagingArguments(first: 5);
-        var context = new MockContext(pagingDetails);
+        var context = await MockContext.CreateContextAsync(pagingDetails);
         pagingHandler.PublishPagingArguments(context);
         var connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
         pagingDetails = new CursorPagingArguments(before: connection.Info.EndCursor, last: 2);
-        context = new MockContext(pagingDetails);
+        context = await MockContext.CreateContextAsync(pagingDetails);
 
         // act
         pagingHandler.PublishPagingArguments(context);
@@ -230,10 +267,19 @@ public class QueryableCursorPagingProviderTests
         IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
         var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
-        var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
+        var list = new List<string>
+        {
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+        };
 
         var pagingDetails = new CursorPagingArguments(first: 5);
-        var context = new MockContext(pagingDetails);
+        var context = await MockContext.CreateContextAsync(pagingDetails);
 
         // act
         pagingHandler.PublishPagingArguments(context);
@@ -253,10 +299,19 @@ public class QueryableCursorPagingProviderTests
         IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
         var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
-        var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
+        var list = new List<string>
+        {
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+        };
 
         var pagingDetails = new CursorPagingArguments(first: 7);
-        var context = new MockContext(pagingDetails);
+        var context = await MockContext.CreateContextAsync(pagingDetails);
 
         // act
         pagingHandler.PublishPagingArguments(context);
@@ -276,16 +331,25 @@ public class QueryableCursorPagingProviderTests
         IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
         var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
-        var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
+        var list = new List<string>
+        {
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+        };
 
         var pagingDetails = new CursorPagingArguments(first: 1);
-        var context = new MockContext(pagingDetails);
+        var context = await MockContext.CreateContextAsync(pagingDetails);
 
         pagingHandler.PublishPagingArguments(context);
         var connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
         pagingDetails = new CursorPagingArguments(after: connection.Info.EndCursor, first: 2);
-        context = new MockContext(pagingDetails);
+        context = await MockContext.CreateContextAsync(pagingDetails);
 
         // act
         pagingHandler.PublishPagingArguments(context);
@@ -305,10 +369,19 @@ public class QueryableCursorPagingProviderTests
         IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
         var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
-        var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
+        var list = new List<string>
+        {
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+        };
 
         var pagingDetails = new CursorPagingArguments(first: 1);
-        var context = new MockContext(pagingDetails);
+        var context = await MockContext.CreateContextAsync(pagingDetails);
 
         // act
         pagingHandler.PublishPagingArguments(context);
@@ -329,19 +402,10 @@ public class QueryableCursorPagingProviderTests
         var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
         var list = HotChocolate.Executable.From(
-            new[]
-            {
-                "a",
-                "b",
-                "c",
-                "d",
-                "e",
-                "f",
-                "g",
-            }.AsQueryable());
+            new[] { "a", "b", "c", "d", "e", "f", "g", }.AsQueryable());
 
         var pagingDetails = new CursorPagingArguments(2);
-        var context = new MockContext(pagingDetails);
+        var context = await MockContext.CreateContextAsync(pagingDetails);
 
         // act
         pagingHandler.PublishPagingArguments(context);
@@ -380,19 +444,10 @@ public class QueryableCursorPagingProviderTests
         var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
         var list = HotChocolate.Executable.From(
-            new[]
-            {
-                "a",
-                "b",
-                "c",
-                "d",
-                "e",
-                "f",
-                "g",
-            }.AsQueryable());
+            new[] { "a", "b", "c", "d", "e", "f", "g", }.AsQueryable());
 
         var pagingDetails = new CursorPagingArguments(2);
-        var context = new MockContext(pagingDetails);
+        var context = await MockContext.CreateContextAsync(pagingDetails);
 
         // act
         pagingHandler.PublishPagingArguments(context);
@@ -420,7 +475,15 @@ public class QueryableCursorPagingProviderTests
             "HasNextPage");
     }
 
-    private int GetPositionFromCursor(string cursor)
+    public class Query
+    {
+        [UsePaging(IncludeTotalCount = true)]
+        public IExecutable<string> DemoList() =>
+            HotChocolate.Executable.From(
+                new[] { "a", "b", "c", "d", "e", "f", "g", }.AsQueryable());
+    }
+
+    private static int GetPositionFromCursor(string cursor)
     {
         return int.Parse(Encoding.UTF8.GetString(Convert.FromBase64String(cursor)));
     }
@@ -429,10 +492,44 @@ public class QueryableCursorPagingProviderTests
     {
         private readonly CursorPagingArguments _arguments;
 
-        public MockContext(CursorPagingArguments arguments)
+        private MockContext(CursorPagingArguments arguments, IOperation operation, ISelection selection)
         {
             _arguments = arguments;
+            Operation = operation;
+            Selection = selection;
         }
+
+        public static async Task<IResolverContext> CreateContextAsync(CursorPagingArguments arguments)
+        {
+            var schema = await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .BuildSchemaAsync();
+
+            var document = Utf8GraphQLParser.Parse(
+                """
+                {
+                    demoList {
+                        edges {
+                            node
+                        }
+                        totalCount
+                    }
+                }
+                """);
+
+            var compiler = new OperationCompiler(new InputParser());
+            var operation = compiler.Compile(
+                new OperationCompilerRequest(
+                    "abc",
+                    document,
+                    document.Definitions.OfType<OperationDefinitionNode>().First(),
+                    schema.QueryType,
+                    schema));
+
+            return new MockContext(arguments, operation, operation.RootSelectionSet.Selections[0]);
+        }
+
 
         public IServiceProvider Services
         {
@@ -482,7 +579,8 @@ public class QueryableCursorPagingProviderTests
             ISelection? selection = null,
             bool allowInternals = false)
         {
-            throw new NotImplementedException();
+            var selectionSet = Operation.GetSelectionSet(selection ?? Selection, typeContext);
+            return selectionSet.Selections;
         }
 
         public ISelectionCollection Select()
@@ -509,9 +607,9 @@ public class QueryableCursorPagingProviderTests
 
         public IObjectType ObjectType => throw new NotImplementedException();
 
-        public IOperation Operation => throw new NotImplementedException();
+        public IOperation Operation { get; }
 
-        public ISelection Selection => throw new NotImplementedException();
+        public ISelection Selection { get; }
 
         public IVariableValueCollection Variables => throw new NotImplementedException();
 
@@ -531,40 +629,48 @@ public class QueryableCursorPagingProviderTests
                     {
                         return default!;
                     }
+
                     if (_arguments.First is T first)
                     {
                         return first;
                     }
+
                     break;
                 case "last":
                     if (_arguments.Last is null)
                     {
                         return default!;
                     }
+
                     if (_arguments.Last is T last)
                     {
                         return last;
                     }
+
                     break;
                 case "after":
                     if (_arguments.After is null)
                     {
                         return default!;
                     }
+
                     if (_arguments.After is T after)
                     {
                         return after;
                     }
+
                     break;
                 case "before":
                     if (_arguments.Before is null)
                     {
                         return default!;
                     }
+
                     if (_arguments.Before is T before)
                     {
                         return before;
                     }
+
                     break;
             }
 
