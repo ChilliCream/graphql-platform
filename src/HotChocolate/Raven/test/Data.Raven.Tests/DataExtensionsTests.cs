@@ -146,7 +146,7 @@ public class DataExtensionsTests : IClassFixture<RavenDBResource<CustomRavenDBDe
                 .Filter(context)
                 .Sort(context)
                 .Project(context)
-                .ApplyCursorPaginationAsync(context, cancellationToken: cancellationToken);
+                .ApplyCursorPaginationAsync(context);
         }
 
         [UseProjection]

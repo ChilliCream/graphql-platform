@@ -44,6 +44,9 @@ public class MockExecutable<T>(IQueryable<T> source) : IExecutable<T>
     public ValueTask<object?> SingleOrDefaultAsync(CancellationToken cancellationToken)
         => new(source.SingleOrDefault());
 
+    public ValueTask<int> CountAsync(CancellationToken cancellationToken = default)
+        => new(source.Count());
+
     ValueTask<T> IExecutable<T>.SingleOrDefaultAsync(CancellationToken cancellationToken)
         => new(source.SingleOrDefault());
 
