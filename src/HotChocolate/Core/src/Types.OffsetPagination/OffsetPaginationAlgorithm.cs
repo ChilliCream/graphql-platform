@@ -45,11 +45,6 @@ public abstract class OffsetPaginationAlgorithm<TQuery, TEntity>
         bool requireTotalCount,
         CancellationToken cancellationToken)
     {
-        if (requireTotalCount)
-        {
-            totalCount = await CountAsync(query, cancellationToken);
-        }
-
         var sliced = query;
 
         if (arguments.Skip is { } skip)
@@ -63,6 +58,11 @@ public abstract class OffsetPaginationAlgorithm<TQuery, TEntity>
         }
 
         var items = await ExecuteAsync(sliced, cancellationToken).ConfigureAwait(false);
+
+        if (requireTotalCount)
+        {
+            totalCount = await CountAsync(query, cancellationToken);
+        }
 
         var hasNextPage = items.Count == arguments.Take + 1;
         var hasPreviousPage = (arguments.Skip ?? 0) > 0;

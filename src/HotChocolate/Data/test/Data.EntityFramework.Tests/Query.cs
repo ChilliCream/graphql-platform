@@ -49,9 +49,8 @@ public class Query
     [UsePaging(IncludeTotalCount = true)]
     public async Task<Connection<Author>> GetQueryableExtensionsCursor(
         BookContext context,
-        IResolverContext resolverContext,
-        CancellationToken ct)
-        => await context.Authors.ApplyCursorPaginationAsync(resolverContext, cancellationToken: ct);
+        IResolverContext resolverContext)
+        => await context.Authors.ApplyCursorPaginationAsync(resolverContext);
 
     [UseOffsetPaging(IncludeTotalCount = true)]
     [UseFiltering]

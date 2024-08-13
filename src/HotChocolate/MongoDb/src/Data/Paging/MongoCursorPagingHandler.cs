@@ -2,7 +2,7 @@ using HotChocolate.Types.Pagination;
 
 namespace HotChocolate.Data.MongoDb.Paging;
 
-internal sealed class MongoCursorPagination<TEntity>
+internal sealed class MongoCursorPaginationAlgorithm<TEntity>
     : CursorPaginationAlgorithm<IMongoPagingContainer<TEntity>, TEntity>
 {
     protected override IMongoPagingContainer<TEntity> ApplySkip(

@@ -46,20 +46,6 @@ namespace HotChocolate.Types.Pagination
         }
 
         [Fact]
-        public void GetTotalCountAsync_Delegate_ReturnsTotalCount()
-        {
-            // arrange
-            // act
-            var collection = new CollectionSegment(
-                [],
-                new CollectionSegmentInfo(true, true),
-                2);
-
-            // assert
-            Assert.Equal(2, collection.TotalCount);
-        }
-
-        [Fact]
         public void GetTotalCountAsync_Value_ReturnsTotalCount()
         {
             // arrange

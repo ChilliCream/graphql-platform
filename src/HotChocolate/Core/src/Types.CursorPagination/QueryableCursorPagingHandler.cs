@@ -94,5 +94,6 @@ internal sealed class QueryableCursorPagingHandler<TEntity>(PagingOptions option
         }
     }
 
-    public static QueryableCursorPagingHandler<TEntity> Default { get; } = new(new PagingOptions());
+    public static QueryableCursorPagingHandler<TEntity> Default { get; } =
+        new(new PagingOptions { IncludeTotalCount = true });
 }

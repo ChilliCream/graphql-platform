@@ -54,7 +54,7 @@ public abstract class CursorPaginationAlgorithm<TQuery, TEntity> where TQuery : 
             slicedSource = ApplyTake(slicedSource, take);
         }
 
-        return new(slicedSource, skip, take);
+        return new(slicedSource, skip, --take);
     }
 
     /// <summary>

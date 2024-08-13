@@ -1,14 +1,10 @@
-using System.Collections;
 using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
 using System.Text;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
-
-#nullable  enable
 
 namespace HotChocolate.Types.Pagination;
 
@@ -332,16 +328,17 @@ public class QueryableCursorPagingProviderTests
         IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
         var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
-        var list = new MockExecutable<string>(new []
-        {
-            "a",
-            "b",
-            "c",
-            "d",
-            "e",
-            "f",
-            "g",
-        });
+        var list = HotChocolate.Executable.From(
+            new[]
+            {
+                "a",
+                "b",
+                "c",
+                "d",
+                "e",
+                "f",
+                "g",
+            }.AsQueryable());
 
         var pagingDetails = new CursorPagingArguments(2);
         var context = new MockContext(pagingDetails);
@@ -382,16 +379,17 @@ public class QueryableCursorPagingProviderTests
         IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
         var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
-        var list = new MockExecutable<string>(new []
-        {
-            "a",
-            "b",
-            "c",
-            "d",
-            "e",
-            "f",
-            "g",
-        }.AsQueryable());
+        var list = HotChocolate.Executable.From(
+            new[]
+            {
+                "a",
+                "b",
+                "c",
+                "d",
+                "e",
+                "f",
+                "g",
+            }.AsQueryable());
 
         var pagingDetails = new CursorPagingArguments(2);
         var context = new MockContext(pagingDetails);
@@ -604,55 +602,5 @@ public class QueryableCursorPagingProviderTests
         }
 
         public IDictionary<string, object?> ContextData => throw new NotImplementedException();
-    }
-
-    private sealed class MockExecutable<T>(IEnumerable<T> source) : IExecutable<T> where T : class
-    {
-        public object Source => source;
-
-        ValueTask<IList> IExecutable.ToListAsync(CancellationToken cancellationToken)
-            => new(source.ToList());
-
-        public ValueTask<List<T>> ToListAsync(CancellationToken cancellationToken)
-            => new(source.ToList());
-
-        public async IAsyncEnumerable<T> ToAsyncEnumerable(
-            [EnumeratorCancellation] CancellationToken cancellationToken)
-        {
-            var queryable = await new ValueTask<IEnumerable<T>>(source);
-
-            foreach (var item in queryable)
-            {
-                yield return item;
-            }
-        }
-
-        async IAsyncEnumerable<object?> IExecutable.ToAsyncEnumerable(
-            [EnumeratorCancellation] CancellationToken cancellationToken)
-        {
-            var queryable = await new ValueTask<IEnumerable<T>>(source);
-
-            foreach (var item in queryable)
-            {
-                yield return item;
-            }
-        }
-
-        ValueTask<object?> IExecutable.FirstOrDefaultAsync(CancellationToken cancellationToken)
-            => new(source.FirstOrDefault());
-
-        public ValueTask<T?> FirstOrDefaultAsync(CancellationToken cancellationToken)
-            => new(source.FirstOrDefault());
-
-        ValueTask<object?> IExecutable.SingleOrDefaultAsync(CancellationToken cancellationToken)
-            => new(source.SingleOrDefault());
-
-        public ValueTask<int> CountAsync(CancellationToken cancellationToken = default)
-            => new(source.Count());
-
-        public ValueTask<T?> SingleOrDefaultAsync(CancellationToken cancellationToken)
-            => new(source.SingleOrDefault());
-
-        public string Print() => source.ToString()!;
     }
 }

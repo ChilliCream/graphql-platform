@@ -70,7 +70,7 @@ internal sealed class RavenCursorPagingHandler<TEntity>(PagingOptions options)
                 var itemsTask = slicedQuery.QueryAsync(offset, cancellationToken);
                 var countTask = slicedQuery.CountAsync(cancellationToken);
 
-                await Task.WhenAll(itemsTask, countTask);
+                await Task.WhenAll(itemsTask, countTask).ConfigureAwait(false);
 
                 if (itemsTask.IsCompletedSuccessfully && countTask.IsCompletedSuccessfully)
                 {
@@ -82,10 +82,11 @@ internal sealed class RavenCursorPagingHandler<TEntity>(PagingOptions options)
                 return new(await itemsTask, await countTask);
             }
 
-            var items = await slicedQuery.QueryAsync(offset, cancellationToken);
+            var items = await slicedQuery.QueryAsync(offset, cancellationToken).ConfigureAwait(false);
             return new(items, null);
         }
     }
 
-    internal static RavenCursorPagingHandler<TEntity> Default { get; } = new(new PagingOptions());
+    internal static RavenCursorPagingHandler<TEntity> Default { get; } =
+        new(new PagingOptions { IncludeTotalCount = true });
 }
