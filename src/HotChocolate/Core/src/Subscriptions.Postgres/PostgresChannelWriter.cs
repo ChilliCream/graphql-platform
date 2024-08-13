@@ -46,7 +46,7 @@ internal sealed class PostgresChannelWriter : IAsyncDisposable
             throw new InvalidOperationException("Connection was not yet initialized.");
 
         // on connection we start a task that will read from the channel and send the messages
-        _task = new ContinuousTask(ct => HandleMessage(connection, ct));
+        _task = new ContinuousTask(ct => HandleMessage(connection, ct), TimeProvider.System);
 
         _diagnosticEvents.ProviderInfo(ChannelWriter_ConnectionEstablished);
 
