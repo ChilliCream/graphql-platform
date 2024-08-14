@@ -86,13 +86,15 @@ internal sealed class BatchQueryRewriter<T>(PagingArguments arguments) : Express
 
         if (pagingArgs.First is not null)
         {
-            var first = Expression.Constant(pagingArgs.First.Value);
+            var firstValue = pagingArgs.First + 1;
+            var first = Expression.Constant(firstValue);
             enumerable = Expression.Call(null, Take(), enumerable, first);
         }
 
         if (pagingArgs.Last is not null)
         {
-            var last = Expression.Constant(pagingArgs.Last.Value);
+            var lastValue = pagingArgs.Last + 1;
+            var last = Expression.Constant(lastValue);
             enumerable = Expression.Call(null, Take(), enumerable, last);
         }
 

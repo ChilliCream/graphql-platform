@@ -139,8 +139,8 @@
         }
       ],
       "pageInfo": {
-        "hasNextPage": false,
-        "hasPreviousPage": true,
+        "hasNextPage": true,
+        "hasPreviousPage": false,
         "startCursor": "Q291bnRyeTA6MQ==",
         "endCursor": "Q291bnRyeTE3OjE4"
       }

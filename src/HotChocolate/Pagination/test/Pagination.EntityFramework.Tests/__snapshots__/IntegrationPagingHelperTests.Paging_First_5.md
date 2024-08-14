@@ -4,8 +4,8 @@
 
 ```json
 {
-  "HasNextPage": false,
-  "HasPreviousPage": true,
+  "HasNextPage": true,
+  "HasPreviousPage": false,
   "First": 1,
   "FirstCursor": "QnJhbmQwOjE=",
   "Last": 13,

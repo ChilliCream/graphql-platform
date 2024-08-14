@@ -139,8 +139,8 @@
         }
       ],
       "pageInfo": {
-        "hasNextPage": false,
-        "hasPreviousPage": true,
+        "hasNextPage": true,
+        "hasPreviousPage": false,
         "startCursor": "QnJhbmQwOlxudWxsOjE=",
         "endCursor": "QnJhbmQxNzpcbnVsbDoxOA=="
       }

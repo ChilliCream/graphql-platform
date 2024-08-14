@@ -6,7 +6,8 @@ using Squadron;
 
 namespace HotChocolate.Data;
 
-public class PagingHelperTests(PostgreSqlResource resource) : IClassFixture<PostgreSqlResource>
+[Collection(PostgresCacheCollectionFixture.DefinitionName)]
+public class PagingHelperTests(PostgreSqlResource resource)
 {
     public PostgreSqlResource Resource { get; } = resource;
 

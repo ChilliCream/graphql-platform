@@ -453,7 +453,63 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         // Act
         await using var context = new CatalogContext(connectionString);
 
-        var pagingArgs = new PagingArguments { First = 5, After = "QnJhbmQ5OToxMDA=" };
+        var pagingArgs = new PagingArguments { First = 5, After = "QnJhbmQxMjoxMw==" };
+        var result = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(pagingArgs);
+
+        // Assert
+        await Snapshot.Create()
+            .Add(new
+            {
+                result.HasNextPage,
+                result.HasPreviousPage,
+                First = result.First?.Id,
+                FirstCursor = result.First is not null ? result.CreateCursor(result.First) : null,
+                Last = result.Last?.Id,
+                LastCursor = result.Last is not null ? result.CreateCursor(result.Last) : null
+            })
+            .Add(result.Items)
+            .MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Paging_Last_5()
+    {
+        // Arrange
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        // Act
+        await using var context = new CatalogContext(connectionString);
+
+        var pagingArgs = new PagingArguments { Last = 5 };
+        var result = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(pagingArgs);
+
+        // Assert
+        await Snapshot.Create()
+            .Add(new
+            {
+                result.HasNextPage,
+                result.HasPreviousPage,
+                First = result.First?.Id,
+                FirstCursor = result.First is not null ? result.CreateCursor(result.First) : null,
+                Last = result.Last?.Id,
+                LastCursor = result.Last is not null ? result.CreateCursor(result.Last) : null
+            })
+            .Add(result.Items)
+            .MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Paging_First_5_Before_Id_96()
+    {
+        // Arrange
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        // Act
+        await using var context = new CatalogContext(connectionString);
+
+        var pagingArgs = new PagingArguments { Last = 5, Before = "QnJhbmQ5NTo5Ng==" };
         var result = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(pagingArgs);
 
         // Assert

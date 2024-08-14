@@ -1,6 +1,8 @@
 using System.Text;
 using HotChocolate.Pagination.Serialization;
 
+namespace HotChocolate.Data;
+
 public static class CursorKeySerializerHelperTests
 {
     private static readonly ICursorKeySerializer _serializer = new StringCursorKeySerializer();

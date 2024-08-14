@@ -68,16 +68,28 @@ public static class PagingQueryableExtensions
         bool includeTotalCount,
         CancellationToken cancellationToken = default)
     {
+        if (source == null)
+        {
+            throw new ArgumentNullException(nameof(source));
+        }
+
+        if (arguments.First is not null && arguments.Last is not null)
+        {
+            throw new ArgumentException(
+                "Either specify `first` or `last`, but not both at the same time.",
+                nameof(arguments));
+        }
+
         var keys = ParseDataSetKeys(source);
 
-        if(keys.Length == 0)
+        if (keys.Length == 0)
         {
             throw new ArgumentException(
                 "In order to use cursor pagination, you must specify at least on key using the `OrderBy` method.",
                 nameof(source));
         }
 
-        if(arguments.Last is not null && arguments.First is not null)
+        if (arguments.Last is not null && arguments.First is not null)
         {
             throw new ArgumentException(
                 "You can specify either `first` or `last`, but not both as this can lead to unpredictable results.",
@@ -86,6 +98,7 @@ public static class PagingQueryableExtensions
 
         var originalQuery = source;
         var forward = arguments.Last is null;
+        var requestedCount = int.MaxValue;
 
         if (arguments.After is not null)
         {
@@ -101,18 +114,21 @@ public static class PagingQueryableExtensions
 
         if (arguments.First is not null)
         {
-            source = source.Take(arguments.First.Value);
+            source = source.Take(arguments.First.Value + 1);
+            requestedCount = arguments.First.Value;
         }
 
         if (arguments.Last is not null)
         {
-            source = source.Reverse().Take(arguments.Last.Value);
+            source = source.Reverse().Take(arguments.Last.Value + 1);
+            requestedCount = arguments.Last.Value;
         }
 
         var builder = ImmutableArray.CreateBuilder<T>();
         int? totalCount = null;
+        var fetchCount = 0;
 
-        if(includeTotalCount)
+        if (includeTotalCount)
         {
             var combinedQuery = source.Select(t => new { TotalCount = originalQuery.Count(), Item = t });
 
@@ -120,6 +136,13 @@ public static class PagingQueryableExtensions
                 .WithCancellation(cancellationToken).ConfigureAwait(false))
             {
                 totalCount ??= item.TotalCount;
+                fetchCount++;
+
+                if (fetchCount > requestedCount)
+                {
+                    break;
+                }
+
                 builder.Add(item.Item);
             }
         }
@@ -128,11 +151,18 @@ public static class PagingQueryableExtensions
             await foreach (var item in source.AsAsyncEnumerable()
                 .WithCancellation(cancellationToken).ConfigureAwait(false))
             {
+                fetchCount++;
+
+                if (fetchCount > requestedCount)
+                {
+                    break;
+                }
+
                 builder.Add(item);
             }
         }
 
-        if(builder.Count == 0)
+        if (builder.Count == 0)
         {
             return Page<T>.Empty;
         }
@@ -142,7 +172,7 @@ public static class PagingQueryableExtensions
             builder.Reverse();
         }
 
-        return CreatePage(builder.ToImmutable(), arguments, keys, totalCount);
+        return CreatePage(builder.ToImmutable(), arguments, keys, fetchCount, totalCount);
     }
 
     /// <summary>
@@ -182,23 +212,69 @@ public static class PagingQueryableExtensions
         CancellationToken cancellationToken = default)
         where TKey : notnull
     {
+        if (source == null)
+        {
+            throw new ArgumentNullException(nameof(source));
+        }
+
+        if (keySelector == null)
+        {
+            throw new ArgumentNullException(nameof(keySelector));
+        }
+
+        if (arguments.First is not null && arguments.Last is not null)
+        {
+            throw new ArgumentException(
+                "Either specify `first` or `last`, but not both at the same time.",
+                nameof(arguments));
+        }
+
         var rewriter = new BatchQueryRewriter<TProperty>(arguments);
         var expression = rewriter.Visit(source.Expression);
         var list = await source.Provider.CreateQuery<T>(expression).ToListAsync(cancellationToken);
         var result = new Dictionary<PageKey<TKey>, Page<TProperty>>();
+        var requestedItems = int.MaxValue;
+
+        if (arguments.First.HasValue)
+        {
+            requestedItems = arguments.First.Value;
+        }
+
+        if (arguments.Last.HasValue)
+        {
+            requestedItems = arguments.Last.Value;
+        }
 
         foreach (var group in list)
         {
             var key = new PageKey<TKey>(keySelector(group), arguments);
+            var builder = ImmutableArray.CreateBuilder<TProperty>();
 
             switch (rewriter.ResultProperty.GetValue(group))
             {
                 case IReadOnlyList<TProperty> resultList:
-                    result.Add(key, CreatePage(resultList.ToImmutableArray(), arguments, rewriter.Keys));
+                    builder.AddRange(resultList);
+
+                    // if we over-fetched we remove the last item.
+                    if (requestedItems < builder.Count)
+                    {
+                        builder.RemoveAt(builder.Count - 1);
+                    }
+
+                    result.Add(key, CreatePage(builder.ToImmutable(), arguments, rewriter.Keys, resultList.Count));
                     break;
 
                 case IEnumerable<TProperty> resultEnumerable:
-                    result.Add(key, CreatePage(resultEnumerable.ToImmutableArray(), arguments, rewriter.Keys));
+                    builder.AddRange(resultEnumerable);
+                    var fetchCount = builder.Count;
+
+                    // if we over-fetched we remove the last item.
+                    if (requestedItems < fetchCount)
+                    {
+                        builder.RemoveAt(builder.Count - 1);
+                    }
+
+                    result.Add(key, CreatePage(builder.ToImmutable(), arguments, rewriter.Keys, fetchCount));
                     break;
 
                 default:
@@ -214,12 +290,39 @@ public static class PagingQueryableExtensions
         ImmutableArray<T> items,
         PagingArguments arguments,
         CursorKey[] keys,
+        int fetchCount,
         int? totalCount = null)
     {
-        var hasPrevious = arguments.First is not null && items.Length > 0 ||
-            (arguments.Last is not null && items.Length > arguments.Last);
-        var hasNext = arguments.First is not null && items.Length > arguments.First ||
-            (arguments.Last is not null && items.Length > 0);
+        var hasPrevious = false;
+        var hasNext = false;
+
+        // if we skipped over an item, and we have fetched some items
+        // than we have a previous page as we skipped over at least
+        // one item.
+        if (arguments.After is not null && fetchCount > 0)
+        {
+            hasPrevious = true;
+        }
+
+        // if we required the last 5 items of a dataset and overfetch by 1
+        // than we have a previous page.
+        if (arguments.Last is not null && fetchCount > arguments.Last)
+        {
+            hasPrevious = true;
+        }
+
+        // if we request the first 5 items of a dataset with or without cursor
+        // and we over-fetched by 1 item we have a next page.
+        if (arguments.First is not null && fetchCount > arguments.First)
+        {
+            hasNext = true;
+        }
+
+        // if we fetched anything before an item we know that here is at least one more item.
+        if (arguments.Before is not null)
+        {
+            hasNext = true;
+        }
 
         return new Page<T>(items, hasNext, hasPrevious, item => CursorFormatter.Format(item, keys), totalCount);
     }
