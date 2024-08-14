@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using Microsoft.EntityFrameworkCore;
 
-namespace HotChocolate.Data;
+namespace HotChocolate.Data.Pagination;
 
 internal sealed class EfQueryableExecutable<T>(IQueryable<T> source)
     : Executable<T>

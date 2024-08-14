@@ -47,5 +47,5 @@ public class ConnectionPageInfo : IPageInfo
     /// </summary>
     public string? EndCursor { get; }
 
-    internal static ConnectionPageInfo Empty { get; } = new(false, false, null, null);
+    public static ConnectionPageInfo Empty { get; } = new(false, false, null, null);
 }

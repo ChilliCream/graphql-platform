@@ -1,3 +1,5 @@
+using HotChocolate.Data.Pagination;
+
 namespace HotChocolate.Data;
 
 public static class EntityFrameworkQueryableExtensions

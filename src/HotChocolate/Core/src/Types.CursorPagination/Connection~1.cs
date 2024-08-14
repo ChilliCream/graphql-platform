@@ -26,6 +26,14 @@ public class Connection<T> : Connection
         Edges = edges;
     }
 
+    public Connection(
+        ConnectionPageInfo info,
+        int totalCount = 0)
+        : base(Array.Empty<Edge<T>>(), info, totalCount)
+    {
+        Edges = Array.Empty<Edge<T>>();
+    }
+
     /// <summary>
     /// The edges that belong to this connection.
     /// </summary>

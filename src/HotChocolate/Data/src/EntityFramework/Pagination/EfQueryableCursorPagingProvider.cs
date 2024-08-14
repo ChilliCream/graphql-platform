@@ -1,7 +1,8 @@
 using System.Reflection;
 using HotChocolate.Internal;
+using HotChocolate.Types.Pagination;
 
-namespace HotChocolate.Types.Pagination;
+namespace HotChocolate.Data.Pagination;
 
 public sealed class EfQueryableCursorPagingProvider : CursorPagingProvider
 {

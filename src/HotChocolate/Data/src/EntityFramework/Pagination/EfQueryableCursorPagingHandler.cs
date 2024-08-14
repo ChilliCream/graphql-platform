@@ -1,10 +1,11 @@
 using System.Collections.Immutable;
-using HotChocolate.Data;
 using HotChocolate.Pagination.Expressions;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Pagination;
+using HotChocolate.Types.Pagination.Utilities;
 using Microsoft.EntityFrameworkCore;
 
-namespace HotChocolate.Types.Pagination;
+namespace HotChocolate.Data.Pagination;
 
 internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions options)
     : CursorPagingHandler(options)
@@ -64,6 +65,24 @@ internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions opti
             requestedCount = arguments.Last.Value;
         }
 
+        context.SetOriginalQuery(executable.Source);
+        context.SetSlicedQuery(query);
+
+        var pagingFlags = context.GetPagingFlags(IncludeTotalCount);
+        var countRequired = (pagingFlags & PagingFlags.TotalCount) == PagingFlags.TotalCount;
+        var edgesRequired = (pagingFlags & PagingFlags.Edges) == PagingFlags.Edges;
+        int? totalCount = null;
+
+        if (!edgesRequired)
+        {
+            if(countRequired)
+            {
+                totalCount ??= await executable.CountAsync(context.RequestAborted);
+            }
+
+            return new Connection<TEntity>(ConnectionPageInfo.Empty, totalCount ?? -1);
+        }
+
         var builder = ImmutableArray.CreateBuilder<Edge<TEntity>>();
 
 #if DEBUG
@@ -73,17 +92,40 @@ internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions opti
         }
 
 #endif
-        await foreach (var item in executable
-            .WithSource(query)
-            .ToAsyncEnumerable(context.RequestAborted)
-            .ConfigureAwait(false))
+        if (countRequired)
         {
-            builder.Add(new Edge<TEntity>(item, CursorFormatter.Format(item, keys)));
-            fetchCount++;
+            var originalQuery = executable.Source;
+            var combinedQuery = query.Select(t => new { TotalCount = originalQuery.Count(), Item = t });
 
-            if (fetchCount >= requestedCount)
+            await foreach (var item in executable
+                .WithSource(combinedQuery)
+                .ToAsyncEnumerable(context.RequestAborted)
+                .ConfigureAwait(false))
             {
-                break;
+                builder.Add(new Edge<TEntity>(item.Item, CursorFormatter.Format(item.Item, keys)));
+                totalCount ??= item.TotalCount;
+                fetchCount++;
+
+                if (fetchCount >= requestedCount)
+                {
+                    break;
+                }
+            }
+        }
+        else
+        {
+            await foreach (var item in executable
+                .WithSource(query)
+                .ToAsyncEnumerable(context.RequestAborted)
+                .ConfigureAwait(false))
+            {
+                builder.Add(new Edge<TEntity>(item, CursorFormatter.Format(item, keys)));
+                fetchCount++;
+
+                if (fetchCount >= requestedCount)
+                {
+                    break;
+                }
             }
         }
 
@@ -100,14 +142,13 @@ internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions opti
         return CreatePage(
             builder.ToImmutable(),
             arguments,
-            keys,
-            fetchCount);
+            fetchCount,
+            totalCount);
     }
 
     private static Connection<T> CreatePage<T>(
         ImmutableArray<Edge<T>> items,
         CursorPagingArguments arguments,
-        CursorKey[] keys,
         int fetchCount,
         int? totalCount = null)
     {

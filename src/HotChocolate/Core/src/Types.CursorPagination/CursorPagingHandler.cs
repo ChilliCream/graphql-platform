@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Pagination.Utilities;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Pagination;
@@ -149,61 +150,58 @@ public abstract class CursorPagingHandler<TQuery, TEntity>(PagingOptions options
         ICursorPaginationQueryExecutor<TQuery, TEntity> executor,
         CancellationToken cancellationToken)
     {
-        // TotalCount is one of the heaviest operations. It is only necessary to load totalCount
-        // when it is enabled (IncludeTotalCount) and when it is contained in the selection set.
-        var totalCountRequired = IncludeTotalCount && context.IsSelected(ConnectionType.Names.TotalCount);
+        var pagingFlags = context.GetPagingFlags(IncludeTotalCount);
+        var countRequired = (pagingFlags & PagingFlags.TotalCount) == PagingFlags.TotalCount;
+        var edgesRequired = (pagingFlags & PagingFlags.Edges) == PagingFlags.Edges;
 
-        // If nodes, edges, or pageInfo are selected, fetch the actual data.
-        var selectionsRequired =
-            context.IsSelected(ConnectionType.Names.Nodes)
-            || context.IsSelected(ConnectionType.Names.Edges)
-            || context.IsSelected(ConnectionType.Names.PageInfo);
-
-        // If selections are required we're going to slice the query and fetch some data.
-        if (selectionsRequired)
+        int? totalCount = null;
+        if (arguments.Before is null && arguments.First is null)
         {
-            int? totalCount = null;
-            if (arguments.Before is null && arguments.First is null)
+            totalCount = await executor.CountAsync(originalQuery, cancellationToken).ConfigureAwait(false);
+            countRequired = false;
+        }
+
+        var (slicedQuery, offset, length) = algorithm.ApplyPagination(originalQuery, arguments, totalCount);
+
+        // we store the original query and the sliced query in the
+        // context for later use by customizations.
+        context.SetOriginalQuery(originalQuery);
+        context.SetSlicedQuery(originalQuery);
+
+        // if no edges are required we will return a connection without edges.
+        if (!edgesRequired)
+        {
+            if (countRequired)
             {
                 totalCount = await executor.CountAsync(originalQuery, cancellationToken).ConfigureAwait(false);
-                totalCountRequired = false;
             }
 
-            var (slicedQuery, offset, length) = algorithm.ApplyPagination(originalQuery, arguments, totalCount);
-            var data = await executor.QueryAsync(slicedQuery, offset, totalCountRequired, cancellationToken).ConfigureAwait(false);
-            var moreItemsReturnedThanRequested = data.Edges.Length > length;
-            var isSequenceFromStart = offset == 0;
-            var edges = data.Edges;
-
-            if (moreItemsReturnedThanRequested)
-            {
-#if NET7_OR_GREATER
-                edges = edges.Slice(0, length);
-#else
-                var builder = ImmutableArray.CreateBuilder<Edge<TEntity>>(length);
-                for (var i = 0; i < length; i++)
-                {
-                    builder.Add(edges[i]);
-                }
-
-                edges = builder.MoveToImmutable();
-#endif
-            }
-
-            var pageInfo = CreatePageInfo(isSequenceFromStart, moreItemsReturnedThanRequested, edges);
-
-            return new Connection<TEntity>(edges, pageInfo, totalCount ?? data.TotalCount ?? -1);
+            return new Connection<TEntity>(ConnectionPageInfo.Empty, totalCount ?? -1);
         }
 
-        // if we require a count but no data we will just run the count on the query.
-        if (totalCountRequired)
+        var data = await executor.QueryAsync(slicedQuery, offset, countRequired, cancellationToken).ConfigureAwait(false);
+        var moreItemsReturnedThanRequested = data.Edges.Length > length;
+        var isSequenceFromStart = offset == 0;
+        var edges = data.Edges;
+
+        if (moreItemsReturnedThanRequested)
         {
-            var count = await executor.CountAsync(originalQuery, cancellationToken).ConfigureAwait(false);
-            return new Connection<TEntity>(ImmutableArray<Edge<TEntity>>.Empty, ConnectionPageInfo.Empty, count);
+#if NET7_OR_GREATER
+            edges = edges.Slice(0, length);
+#else
+            var builder = ImmutableArray.CreateBuilder<Edge<TEntity>>(length);
+            for (var i = 0; i < length; i++)
+            {
+                builder.Add(edges[i]);
+            }
+
+            edges = builder.MoveToImmutable();
+#endif
         }
 
-        // neither data nor totalCount is selected, so we return a dummy instance with no data for extensibility.
-        return new Connection<TEntity>(ImmutableArray<Edge<TEntity>>.Empty, ConnectionPageInfo.Empty, -1);
+        var pageInfo = CreatePageInfo(isSequenceFromStart, moreItemsReturnedThanRequested, edges);
+
+        return new Connection<TEntity>(edges, pageInfo, totalCount ?? data.TotalCount ?? -1);
     }
 
     private static ConnectionPageInfo CreatePageInfo(
