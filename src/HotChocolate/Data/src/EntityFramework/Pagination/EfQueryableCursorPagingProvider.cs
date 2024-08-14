@@ -4,7 +4,7 @@ using HotChocolate.Types.Pagination;
 
 namespace HotChocolate.Data.Pagination;
 
-public sealed class EfQueryableCursorPagingProvider : CursorPagingProvider
+internal sealed class EfQueryableCursorPagingProvider : CursorPagingProvider
 {
     private static readonly MethodInfo _createHandler =
         typeof(EfQueryableCursorPagingProvider).GetMethod(

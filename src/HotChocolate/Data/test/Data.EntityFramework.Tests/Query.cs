@@ -32,14 +32,14 @@ public class Query
     [UseSorting]
     public IExecutable<Author> GetAuthorOffsetPagingExecutable(
         BookContext context) =>
-        context.Authors.AsExecutable();
+        context.Authors.AsDbContextExecutable();
 
     [UsePaging(IncludeTotalCount = true)]
     [UseFiltering]
     [UseSorting]
     public IExecutable<Author> GetAuthorCursorPagingExecutable(
         BookContext context) =>
-        context.Authors.AsExecutable();
+        context.Authors.AsDbContextExecutable();
 
     [UsePaging(IncludeTotalCount = true)]
     public IQueryable<Author> GetAuthorCursorPaging(
@@ -80,14 +80,14 @@ public class QueryTask
     [UseSorting]
     public Task<IExecutable<Author>> GetAuthorOffsetPagingExecutable(
         BookContext context)
-        => Task.FromResult(context.Authors.AsExecutable());
+        => Task.FromResult(context.Authors.AsDbContextExecutable());
 
     [UsePaging(IncludeTotalCount = true)]
     [UseFiltering]
     [UseSorting]
     public Task<IExecutable<Author>> GetAuthorCursorPagingExecutable(
         BookContext context)
-        => Task.FromResult(context.Authors.AsExecutable());
+        => Task.FromResult(context.Authors.AsDbContextExecutable());
 
     [UsePaging(IncludeTotalCount = true)]
     public Task<IQueryable<Author>> GetAuthorCursorPaging(
@@ -113,14 +113,14 @@ public class QueryValueTask
     [UseSorting]
     public ValueTask<IExecutable<Author>> GetAuthorOffsetPagingExecutable(
         BookContext context)
-        => new(context.Authors.AsExecutable());
+        => new(context.Authors.AsDbContextExecutable());
 
     [UsePaging(IncludeTotalCount = true)]
     [UseFiltering]
     [UseSorting]
     public ValueTask<IExecutable<Author>> GetAuthorCursorPagingExecutable(
         BookContext context)
-        => new(context.Authors.AsExecutable());
+        => new(context.Authors.AsDbContextExecutable());
 
     [UsePaging(IncludeTotalCount = true)]
     public ValueTask<IQueryable<Author>> GetAuthorCursorPaging(

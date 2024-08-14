@@ -198,8 +198,8 @@ internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions opti
     private static IQueryableExecutable<TEntity> CreateExecutable(object source)
         => source switch
         {
-            IQueryable<TEntity> q => q.ToExecutable(),
-            IEnumerable<TEntity> e => e.AsQueryable().ToExecutable(),
+            IQueryable<TEntity> q => q.AsDbContextExecutable(),
+            IEnumerable<TEntity> e => e.AsQueryable().AsDbContextExecutable(),
             IQueryableExecutable<TEntity> e => e,
             _ => throw new InvalidOperationException("Cannot handle the specified data source."),
         };

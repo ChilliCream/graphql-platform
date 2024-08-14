@@ -38,4 +38,7 @@ internal sealed class EfQueryableExecutable<T>(IQueryable<T> source)
 
     public override async ValueTask<List<T>> ToListAsync(CancellationToken cancellationToken = default)
         => await source.ToListAsync(cancellationToken).ConfigureAwait(false);
+
+    public override string Print()
+        => source.ToQueryString();
 }
