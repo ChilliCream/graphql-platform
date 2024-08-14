@@ -192,7 +192,7 @@ public abstract class CursorPagingHandler<TQuery, TEntity>(PagingOptions options
 
             var pageInfo = CreatePageInfo(isSequenceFromStart, moreItemsReturnedThanRequested, edges);
 
-            return new Connection<TEntity>(edges, pageInfo, data.TotalCount ?? -1);
+            return new Connection<TEntity>(edges, pageInfo, totalCount ?? data.TotalCount ?? -1);
         }
 
         // if we require a count but no data we will just run the count on the query.

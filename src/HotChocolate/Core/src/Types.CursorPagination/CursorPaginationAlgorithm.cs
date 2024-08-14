@@ -38,11 +38,13 @@ public abstract class CursorPaginationAlgorithm<TQuery, TEntity> where TQuery : 
 
         var skip = range.Start;
         var take = range.Count();
+        var overfetch = false;
 
         // we fetch one element more than we requested
         if (take != totalCount.Value)
         {
             take++;
+            overfetch = true;
         }
 
         var slicedSource = query;
@@ -57,7 +59,7 @@ public abstract class CursorPaginationAlgorithm<TQuery, TEntity> where TQuery : 
             slicedSource = ApplyTake(slicedSource, take);
         }
 
-        return new(slicedSource, skip, --take);
+        return new(slicedSource, skip, overfetch ? --take : take);
     }
 
     /// <summary>
