@@ -4,12 +4,39 @@ using System.Reflection;
 
 namespace HotChocolate.Pagination.Expressions;
 
+/// <summary>
+/// This class provides helper methods to build slicing where clauses.
+/// </summary>
 public static class ExpressionHelpers
 {
     private static readonly MethodInfo _createAndConvert = typeof(ExpressionHelpers)
         .GetMethod(nameof(CreateAndConvertParameter), BindingFlags.NonPublic | BindingFlags.Static)!;
     private static readonly ConcurrentDictionary<Type, Func<object?, Expression>> _cachedConverters = new();
 
+    /// <summary>
+    /// Builds a where expression that can be used to slice a dataset.
+    /// </summary>
+    /// <param name="keys">
+    /// The key definitions that represent the cursor.
+    /// </param>
+    /// <param name="cursor">
+    /// The key values that represent the cursor.
+    /// </param>
+    /// <param name="forward">
+    /// Defines how the dataset is sorted.
+    /// </param>
+    /// <typeparam name="T">
+    /// The entity type.
+    /// </typeparam>
+    /// <returns>
+    /// Returns a where expression that can be used to slice a dataset.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// If <paramref name="keys"/> or <paramref name="cursor"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentException">
+    /// If the number of keys does not match the number of values.
+    /// </exception>
     public static Expression<Func<T, bool>> BuildWhereExpression<T>(
         CursorKey[] keys,
         object?[] cursor,

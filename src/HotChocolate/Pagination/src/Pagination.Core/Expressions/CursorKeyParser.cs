@@ -4,6 +4,9 @@ using HotChocolate.Pagination.Serialization;
 
 namespace HotChocolate.Pagination.Expressions;
 
+/// <summary>
+/// This expression visitor will collect the cursor keys from a query expression.
+/// </summary>
 public sealed class CursorKeyParser : ExpressionVisitor
 {
     private readonly List<CursorKey> _keys = new();

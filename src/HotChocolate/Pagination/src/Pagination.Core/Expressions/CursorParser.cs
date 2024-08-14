@@ -4,11 +4,32 @@ using System.Text;
 
 namespace HotChocolate.Pagination.Expressions;
 
+/// <summary>
+/// The cursor parser allows to parser the cursor into its key values.
+/// </summary>
 public static class CursorParser
 {
     private const byte _escape = (byte)':';
     private const byte _separator = (byte)':';
 
+    /// <summary>
+    /// Parses the cursor into its key values.
+    /// </summary>
+    /// <param name="cursor">
+    /// The cursor that should be parsed.
+    /// </param>
+    /// <param name="keys">
+    /// The keys that make up the cursor.
+    /// </param>
+    /// <returns>
+    /// Returns the key values of the cursor.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// If <paramref name="cursor"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentException">
+    /// If the number of keys is zero.
+    /// </exception>
     public static object?[] Parse(string cursor, ReadOnlySpan<CursorKey> keys)
     {
         if (cursor == null)
