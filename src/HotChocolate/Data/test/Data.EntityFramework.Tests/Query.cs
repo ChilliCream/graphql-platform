@@ -78,14 +78,14 @@ public class QueryTask
     [UseOffsetPaging(IncludeTotalCount = true)]
     [UseFiltering]
     [UseSorting]
-    public Task<IExecutable<Author>> GetAuthorOffsetPagingExecutable(
+    public Task<IQueryableExecutable<Author>> GetAuthorOffsetPagingExecutable(
         BookContext context)
         => Task.FromResult(context.Authors.AsDbContextExecutable());
 
     [UsePaging(IncludeTotalCount = true)]
     [UseFiltering]
     [UseSorting]
-    public Task<IExecutable<Author>> GetAuthorCursorPagingExecutable(
+    public Task<IQueryableExecutable<Author>> GetAuthorCursorPagingExecutable(
         BookContext context)
         => Task.FromResult(context.Authors.AsDbContextExecutable());
 
