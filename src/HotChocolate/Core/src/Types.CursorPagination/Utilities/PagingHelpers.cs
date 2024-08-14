@@ -11,6 +11,18 @@ public static class PagingHelpers
     private const string _originalQuery = "HotChocolate.Pagination.OriginalQuery";
     private const string _slicedQuery = "HotChocolate.Pagination.SlicedQuery";
 
+    /// <summary>
+    /// Gets the paging flags from the context.
+    /// </summary>
+    /// <param name="context">
+    /// The resolver context.
+    /// </param>
+    /// <param name="totalCountEnabled">
+    /// Defines weather the total count is enabled.
+    /// </param>
+    /// <returns>
+    /// Returns the paging flags.
+    /// </returns>
     public static PagingFlags GetPagingFlags(this IResolverContext context, bool totalCountEnabled = false)
     {
         var pagingFlags = context.GetLocalStateOrDefault(_pagingFlagsKey, PagingFlags.None);
@@ -40,18 +52,75 @@ public static class PagingHelpers
         return pagingFlags;
     }
 
+    /// <summary>
+    /// Sets the paging flags for the current resolver pipeline.
+    /// </summary>
+    /// <param name="context">
+    /// The resolver context.
+    /// </param>
+    /// <param name="flags">
+    /// The paging flags.
+    /// </param>
     public static void SetPagingFlags(this IResolverContext context, PagingFlags flags)
         => context.SetLocalState(_pagingFlagsKey, flags);
 
+    /// <summary>
+    /// Sets the original query before the paging middleware appended any slicing.
+    /// </summary>
+    /// <param name="context">
+    /// The resolver context.
+    /// </param>
+    /// <param name="query">
+    /// The original query.
+    /// </param>
+    /// <typeparam name="TQuery">
+    /// The type of the query.
+    /// </typeparam>
     public static void SetOriginalQuery<TQuery>(this IResolverContext context, TQuery query)
         => context.SetLocalState(_originalQuery, query);
 
+    /// <summary>
+    /// Sets the sliced query after the paging middleware appended slicing.
+    /// </summary>
+    /// <param name="context">
+    /// The resolver context.
+    /// </param>
+    /// <param name="query">
+    /// The sliced query.
+    /// </param>
+    /// <typeparam name="TQuery">
+    /// The type of the query.
+    /// </typeparam>
     public static void SetSlicedQuery<TQuery>(this IResolverContext context, TQuery query)
         => context.SetLocalState(_slicedQuery, query);
 
+    /// <summary>
+    /// Gets the original query before the paging middleware appended any slicing.
+    /// </summary>
+    /// <param name="context">
+    /// The resolver context.
+    /// </param>
+    /// <typeparam name="TQuery">
+    /// The type of the query.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the original query.
+    /// </returns>
     public static TQuery GetOriginalQuery<TQuery>(this IResolverContext context)
         => context.GetLocalState<TQuery>(_originalQuery);
 
+    /// <summary>
+    /// Gets the sliced query after the paging middleware appended slicing.
+    /// </summary>
+    /// <param name="context">
+    /// The resolver context.
+    /// </param>
+    /// <typeparam name="TQuery">
+    /// The type of the query.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the sliced query.
+    /// </returns>
     public static TQuery GetSlicedQuery<TQuery>(this IResolverContext context)
         => context.GetLocalState<TQuery>(_slicedQuery);
 }
