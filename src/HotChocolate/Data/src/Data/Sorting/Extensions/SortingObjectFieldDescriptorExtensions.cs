@@ -19,7 +19,7 @@ public static class SortingObjectFieldDescriptorExtensions
 {
     private static readonly MethodInfo _factoryTemplate =
         typeof(SortingObjectFieldDescriptorExtensions)
-            .GetMethod(nameof(CreateMiddleware), BindingFlags.Static | BindingFlags.NonPublic)!;
+            .GetMethod(nameof(CreateBuilder), BindingFlags.Static | BindingFlags.NonPublic)!;
 
     /// <summary>
     /// Registers the middleware and adds the arguments for sorting
@@ -130,42 +130,12 @@ public static class SortingObjectFieldDescriptorExtensions
         ITypeSystemMember? sortTypeInstance,
         string? scope)
     {
-        FieldMiddlewareDefinition sortStatus = new(_ => _ => default);
         FieldMiddlewareDefinition sortQuery = new(_ => _ => default, key: WellKnownMiddleware.Sorting);
 
         var argumentPlaceholder = "_" + Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
         var fieldDefinition = descriptor.Extend().Definition;
 
-        fieldDefinition.MiddlewareDefinitions.Add(sortStatus);
         fieldDefinition.MiddlewareDefinitions.Add(sortQuery);
-        fieldDefinition.ParameterExpressionBuilders.Add(SortStatusParameterExpressionBuilder.Instance);
-
-        fieldDefinition.Configurations.Add(
-            new CompleteConfiguration<ObjectFieldDefinition>(
-                (context, fieldDef) =>
-                {
-                    var argumentName = context.GetSortConvention(scope).GetArgumentName();
-                    var index = fieldDef.MiddlewareDefinitions.IndexOf(sortStatus);
-                    fieldDef.MiddlewareDefinitions[index] = new FieldMiddlewareDefinition(
-                        next => ctx =>
-                        {
-                            const string status = "sortStatus";
-                            var where = ctx.ArgumentLiteral<IValueNode>(argumentName);
-
-                            if (where.IsNull() || where is ListValueNode { Items.Count: 0 })
-                            {
-                                ctx.SetLocalState(status, SortStatus.Undefined);
-                            }
-                            else
-                            {
-                                ctx.SetLocalState(status, SortStatus.Applied);
-                            }
-
-                            return next(ctx);
-                        });
-                },
-                fieldDefinition,
-                ApplyConfigurationOn.BeforeNaming));
 
         descriptor
             .Extend()
@@ -270,7 +240,7 @@ public static class SortingObjectFieldDescriptorExtensions
         definition.MiddlewareDefinitions[index] = new(middleware, key: WellKnownMiddleware.Sorting);
     }
 
-    private static IQueryBuilder CreateMiddleware<TEntity>(
+    private static IQueryBuilder CreateBuilder<TEntity>(
         ISortConvention convention) =>
         convention.CreateBuilder<TEntity>();
 }

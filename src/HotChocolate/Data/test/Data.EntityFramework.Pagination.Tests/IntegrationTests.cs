@@ -42,20 +42,130 @@ public class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
                 """)
-            .SetGlobalState("printQuery", true));
+            .SetGlobalState("printSQL", true));
 
         result.MatchMarkdownSnapshot();
     }
 
+    [Fact]
+    public async Task Paging_Next_2_With_Default_Sorting()
+    {
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        var executor = await new ServiceCollection()
+            .AddScoped(_ => new CatalogContext(connectionString))
+            .AddGraphQLServer()
+            .AddQueryType<Query>()
+            .AddSorting()
+            .AddDbContextCursorPagingProvider()
+            .BuildRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(q => q
+            .SetDocument(
+                """
+                {
+                    brands(first: 2, after: "MTA=") {
+                        nodes {
+                            name
+                        }
+                        pageInfo {
+                            endCursor
+                        }
+                    }
+                }
+                """)
+            .SetGlobalState("printSQL", true));
+
+        result.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Paging_With_User_Sorting()
+    {
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        var executor = await new ServiceCollection()
+            .AddScoped(_ => new CatalogContext(connectionString))
+            .AddGraphQLServer()
+            .AddQueryType<Query>()
+            .AddDbContextCursorPagingProvider()
+            .AddSorting()
+            .BuildRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(q => q
+            .SetDocument(
+                """
+                {
+                    brands(first: 10, order: { name: ASC }) {
+                        nodes {
+                            name
+                        }
+                        pageInfo {
+                            endCursor
+                        }
+                    }
+                }
+                """)
+            .SetGlobalState("printSQL", true));
+
+        result.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Paging_Next_2_With_User_Sorting()
+    {
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        var executor = await new ServiceCollection()
+            .AddScoped(_ => new CatalogContext(connectionString))
+            .AddGraphQLServer()
+            .AddQueryType<Query>()
+            .AddDbContextCursorPagingProvider()
+            .AddSorting()
+            .BuildRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(q => q
+            .SetDocument(
+                """
+                {
+                    brands(first: 2, after: "QnJhbmQxNzoxOA==", order: { name: ASC }) {
+                        nodes {
+                            name
+                        }
+                        pageInfo {
+                            endCursor
+                        }
+                    }
+                }
+                """)
+            .SetGlobalState("printSQL", true));
+
+        result.MatchMarkdownSnapshot();
+    }
 
     public class Query
     {
         [UsePaging]
         [UseSorting]
-        public IQueryable<Brand> GetBrands(CatalogContext context, SortStatus sorting)
-            => sorting is SortStatus.Undefined
-                ? context.Brands.OrderBy(t => t.Name)
-                : context.Brands;
+        public IQueryable<Brand> GetBrands(CatalogContext context, ISortingContext sorting)
+        {
+            sorting.Handled(false);
+            sorting.OnAfterSortingApplied<IQueryable<Brand>>(
+                static (sortingApplied, query) =>
+                {
+                    if (sortingApplied)
+                    {
+                        return ((IOrderedQueryable<Brand>)query).ThenBy(b => b.Id);
+                    }
+
+                    return query.OrderBy(b => b.Id);
+                });
+
+            return context.Brands;
+        }
     }
 
     private static async Task SeedAsync(string connectionString)

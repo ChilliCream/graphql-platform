@@ -50,6 +50,11 @@ public class SortingContext : ISortingContext
     public IReadOnlyList<IReadOnlyList<ISortingFieldInfo>> GetFields()
         => _value.Select(x => x.GetFields()).ToArray();
 
+    public void OnAfterSortingApplied<T>(PostSortingAction<T> action)
+    {
+        _context.LocalContextData = _context.LocalContextData.SetItem(PostSortingActionKey, action);
+    }
+
     /// <inheritdoc />
     public IList<IDictionary<string, object?>> ToList()
         => _value

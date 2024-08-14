@@ -12,34 +12,37 @@
           "name": "Brand1"
         },
         {
-          "name": "Brand10"
+          "name": "Brand2"
         },
         {
-          "name": "Brand11"
+          "name": "Brand3"
         },
         {
-          "name": "Brand12"
+          "name": "Brand4"
         },
         {
-          "name": "Brand13"
+          "name": "Brand5"
         },
         {
-          "name": "Brand14"
+          "name": "Brand6"
         },
         {
-          "name": "Brand15"
+          "name": "Brand7"
         },
         {
-          "name": "Brand16"
+          "name": "Brand8"
         },
         {
-          "name": "Brand17"
+          "name": "Brand9"
         }
       ],
       "pageInfo": {
-        "endCursor": "OQ=="
+        "endCursor": "MTA="
       }
     }
+  },
+  "extensions": {
+    "sql": "-- @__p_0='11'\nSELECT b.\"Id\", b.\"AlwaysNull\", b.\"DisplayName\", b.\"Name\", b.\"BrandDetails_Country_Name\"\nFROM \"Brands\" AS b\nORDER BY b.\"Id\"\nLIMIT @__p_0"
   }
 }
 ```

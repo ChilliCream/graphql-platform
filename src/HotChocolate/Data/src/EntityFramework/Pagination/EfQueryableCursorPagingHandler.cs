@@ -67,7 +67,7 @@ internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions opti
         var builder = ImmutableArray.CreateBuilder<Edge<TEntity>>();
 
 #if DEBUG
-        if (context.ContextData.ContainsKey("printQuery"))
+        if (context.ContextData.ContainsKey("printSQL"))
         {
             ((IMiddlewareContext)context).OperationResult.SetExtension("sql", query.ToQueryString());
         }
