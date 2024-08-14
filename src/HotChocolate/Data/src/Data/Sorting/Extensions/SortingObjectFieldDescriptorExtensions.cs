@@ -1,8 +1,11 @@
 using System.Globalization;
+using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Data;
 using HotChocolate.Data.Sorting;
+using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Data.DataResources;
@@ -127,13 +130,42 @@ public static class SortingObjectFieldDescriptorExtensions
         ITypeSystemMember? sortTypeInstance,
         string? scope)
     {
-        FieldMiddlewareDefinition placeholder =
-            new(_ => _ => default, key: WellKnownMiddleware.Sorting);
+        FieldMiddlewareDefinition sortStatus = new(_ => _ => default);
+        FieldMiddlewareDefinition sortQuery = new(_ => _ => default, key: WellKnownMiddleware.Sorting);
 
-        var argumentPlaceholder =
-            "_" + Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
+        var argumentPlaceholder = "_" + Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
+        var fieldDefinition = descriptor.Extend().Definition;
 
-        descriptor.Extend().Definition.MiddlewareDefinitions.Add(placeholder);
+        fieldDefinition.MiddlewareDefinitions.Add(sortStatus);
+        fieldDefinition.MiddlewareDefinitions.Add(sortQuery);
+        fieldDefinition.ParameterExpressionBuilders.Add(SortStatusParameterExpressionBuilder.Instance);
+
+        fieldDefinition.Configurations.Add(
+            new CompleteConfiguration<ObjectFieldDefinition>(
+                (context, fieldDef) =>
+                {
+                    var argumentName = context.GetSortConvention(scope).GetArgumentName();
+                    var index = fieldDef.MiddlewareDefinitions.IndexOf(sortStatus);
+                    fieldDef.MiddlewareDefinitions[index] = new FieldMiddlewareDefinition(
+                        next => ctx =>
+                        {
+                            const string status = "sortStatus";
+                            var where = ctx.ArgumentLiteral<IValueNode>(argumentName);
+
+                            if (where.IsNull() || where is ListValueNode { Items.Count: 0 })
+                            {
+                                ctx.SetLocalState(status, SortStatus.Undefined);
+                            }
+                            else
+                            {
+                                ctx.SetLocalState(status, SortStatus.Applied);
+                            }
+
+                            return next(ctx);
+                        });
+                },
+                fieldDefinition,
+                ApplyConfigurationOn.BeforeNaming));
 
         descriptor
             .Extend()
@@ -196,7 +228,7 @@ public static class SortingObjectFieldDescriptorExtensions
                                     context,
                                     def,
                                     argumentDefinition,
-                                    placeholder,
+                                    sortQuery,
                                     scope),
                             definition,
                             ApplyConfigurationOn.BeforeCompletion,
@@ -205,9 +237,7 @@ public static class SortingObjectFieldDescriptorExtensions
 
                     argumentDefinition.Configurations.Add(
                         new CompleteConfiguration<ArgumentDefinition>(
-                            (context, argDef) =>
-                                argDef.Name =
-                                    context.GetSortConvention(scope).GetArgumentName(),
+                            (context, argDef) => argDef.Name = context.GetSortConvention(scope).GetArgumentName(),
                             argumentDefinition,
                             ApplyConfigurationOn.BeforeNaming));
                 });

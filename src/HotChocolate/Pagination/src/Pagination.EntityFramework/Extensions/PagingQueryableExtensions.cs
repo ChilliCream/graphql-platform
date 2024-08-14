@@ -73,13 +73,6 @@ public static class PagingQueryableExtensions
             throw new ArgumentNullException(nameof(source));
         }
 
-        if (arguments.First is not null && arguments.Last is not null)
-        {
-            throw new ArgumentException(
-                "Either specify `first` or `last`, but not both at the same time.",
-                nameof(arguments));
-        }
-
         var keys = ParseDataSetKeys(source);
 
         if (keys.Length == 0)
@@ -222,10 +215,10 @@ public static class PagingQueryableExtensions
             throw new ArgumentNullException(nameof(keySelector));
         }
 
-        if (arguments.First is not null && arguments.Last is not null)
+        if (arguments.Last is not null && arguments.First is not null)
         {
             throw new ArgumentException(
-                "Either specify `first` or `last`, but not both at the same time.",
+                "You can specify either `first` or `last`, but not both as this can lead to unpredictable results.",
                 nameof(arguments));
         }
 

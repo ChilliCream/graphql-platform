@@ -527,6 +527,96 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
             .MatchMarkdownAsync();
     }
 
+    [Fact]
+    public async Task BatchPaging_First_5()
+    {
+        // Arrange
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        // Act
+        await using var context = new CatalogContext(connectionString);
+
+        var pagingArgs = new PagingArguments { First = 2 };
+
+        var results = await context.Brands
+            .Where(t => t.Id == 1 || t.Id == 2 || t.Id == 3)
+            .Include(t => t.Products.OrderBy(p => p.Id))
+            .ToBatchPageAsync(k => k.Id, pagingArgs);
+
+        // Assert
+        var snapshot = new Snapshot();
+
+        foreach (var result in results)
+        {
+            var key = result.Key.Key;
+            foreach (var product in result.Value.Items)
+            {
+                product.Brand = null;
+            }
+
+            snapshot.Add(
+                new
+                {
+                    result.Value.HasNextPage,
+                    result.Value.HasPreviousPage,
+                    First = result.Value.First?.Id,
+                    FirstCursor = result.Value.First is not null ? result.Value.CreateCursor(result.Value.First) : null,
+                    Last = result.Value.Last?.Id,
+                    LastCursor = result.Value.Last is not null ? result.Value.CreateCursor(result.Value.Last) : null,
+                    result.Value.Items
+                },
+                "Brand " + key);
+        }
+
+        await snapshot.MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task BatchPaging_Last_5()
+    {
+        // Arrange
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        // Act
+        await using var context = new CatalogContext(connectionString);
+
+        var pagingArgs = new PagingArguments { Last = 2 };
+
+        var results = await context.Brands
+            .Where(t => t.Id == 1 || t.Id == 2 || t.Id == 3)
+            .Include(t => t.Products.OrderBy(p => p.Id))
+            .ToBatchPageAsync(k => k.Id, pagingArgs);
+
+        // Assert
+        var snapshot = new Snapshot();
+
+        foreach (var result in results)
+        {
+            var key = result.Key.Key;
+            foreach (var product in result.Value.Items)
+            {
+                product.Brand = null;
+            }
+
+            snapshot.Add(
+                new
+                {
+                    result.Value.HasNextPage,
+                    result.Value.HasPreviousPage,
+                    First = result.Value.First?.Id,
+                    FirstCursor = result.Value.First is not null ? result.Value.CreateCursor(result.Value.First) : null,
+                    Last = result.Value.Last?.Id,
+                    LastCursor = result.Value.Last is not null ? result.Value.CreateCursor(result.Value.Last) : null,
+                    result.Value.Items
+                },
+                "Brand " + key);
+        }
+
+        await snapshot.MatchMarkdownAsync();
+    }
+
     private static async Task SeedAsync(string connectionString)
     {
         await using var context = new CatalogContext(connectionString);

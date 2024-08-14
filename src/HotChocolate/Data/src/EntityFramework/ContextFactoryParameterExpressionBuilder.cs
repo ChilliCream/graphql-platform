@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HotChocolate.Data;
 
-public class ContextFactoryParameterExpressionBuilder<T>()
+public sealed class ContextFactoryParameterExpressionBuilder<T>()
     : CustomParameterExpressionBuilder<T>(ctx => CreateDbContext(ctx))
     , IParameterBindingFactory
     , IParameterBinding

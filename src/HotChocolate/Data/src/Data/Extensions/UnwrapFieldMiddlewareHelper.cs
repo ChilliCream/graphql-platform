@@ -22,8 +22,8 @@ internal static class UnwrapFieldMiddlewareHelper
                     builder.Apply(ctx);
                 }
 
-                // if we how ever have a field result we will only invoke
-                // the data middleware if its a success result.
+                // if we however have a field result we will only invoke
+                // the data middleware if it's a success result.
                 else if (fieldResult.IsSuccess)
                 {
                     // we need to unwrap the success result.

@@ -27,7 +27,7 @@ public interface IQueryableExecutable<T> : IExecutable<T>
     /// <summary>
     /// Returns a new executable with the provided source
     /// </summary>
-    /// <param name="src">The source that should be set</param>
+    /// <param name="source">The source that should be set</param>
     /// <returns>The new instance of an enumerable executable</returns>
-    IQueryableExecutable<TQuery> WithSource<TQuery>(IQueryable<TQuery> src);
+    IQueryableExecutable<TQuery> WithSource<TQuery>(IQueryable<TQuery> source);
 }
