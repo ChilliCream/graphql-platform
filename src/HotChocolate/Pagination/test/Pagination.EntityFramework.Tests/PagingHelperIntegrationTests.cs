@@ -4,13 +4,14 @@ using HotChocolate.Execution;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
 using HotChocolate.Pagination;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Squadron;
 
 namespace HotChocolate.Data;
 
+[Collection(PostgresCacheCollectionFixture.DefinitionName)]
 public class IntegrationPagingHelperTests(PostgreSqlResource resource)
-    : IClassFixture<PostgreSqlResource>
 {
     public PostgreSqlResource Resource { get; } = resource;
 
@@ -384,6 +385,90 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
 
         // Assert
         result.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Paging_Empty_PagingArgs()
+    {
+        // Arrange
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        // Act
+        await using var context = new CatalogContext(connectionString);
+
+        var pagingArgs = new PagingArguments();
+        var result = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(pagingArgs);
+
+        // Assert
+        await Snapshot.Create()
+            .Add(new
+                {
+                    result.HasNextPage,
+                    result.HasPreviousPage,
+                    First = result.First?.Id,
+                    FirstCursor = result.First is not null ? result.CreateCursor(result.First) : null,
+                    Last = result.Last?.Id,
+                    LastCursor = result.Last is not null ? result.CreateCursor(result.Last) : null
+                })
+            .Add(result.Items)
+            .MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Paging_First_5()
+    {
+        // Arrange
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        // Act
+        await using var context = new CatalogContext(connectionString);
+
+        var pagingArgs = new PagingArguments { First = 5 };
+        var result = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(pagingArgs);
+
+        // Assert
+        await Snapshot.Create()
+            .Add(new
+            {
+                result.HasNextPage,
+                result.HasPreviousPage,
+                First = result.First?.Id,
+                FirstCursor = result.First is not null ? result.CreateCursor(result.First) : null,
+                Last = result.Last?.Id,
+                LastCursor = result.Last is not null ? result.CreateCursor(result.Last) : null
+            })
+            .Add(result.Items)
+            .MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Paging_First_5_After_Id_13()
+    {
+        // Arrange
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        // Act
+        await using var context = new CatalogContext(connectionString);
+
+        var pagingArgs = new PagingArguments { First = 5, After = "QnJhbmQ5OToxMDA=" };
+        var result = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(pagingArgs);
+
+        // Assert
+        await Snapshot.Create()
+            .Add(new
+            {
+                result.HasNextPage,
+                result.HasPreviousPage,
+                First = result.First?.Id,
+                FirstCursor = result.First is not null ? result.CreateCursor(result.First) : null,
+                Last = result.Last?.Id,
+                LastCursor = result.Last is not null ? result.CreateCursor(result.Last) : null
+            })
+            .Add(result.Items)
+            .MatchMarkdownAsync();
     }
 
     private static async Task SeedAsync(string connectionString)

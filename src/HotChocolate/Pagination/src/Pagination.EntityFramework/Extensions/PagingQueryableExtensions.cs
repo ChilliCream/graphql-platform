@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Pagination.Expressions;
 using Microsoft.EntityFrameworkCore.Query;
 using static HotChocolate.Pagination.Expressions.ExpressionHelpers;
@@ -34,6 +35,38 @@ public static class PagingQueryableExtensions
         this IQueryable<T> source,
         PagingArguments arguments,
         CancellationToken cancellationToken = default)
+        => await source.ToPageAsync(arguments, includeTotalCount: false, cancellationToken);
+
+
+    /// <summary>
+    /// Executes a query with paging and returns the selected page.
+    /// </summary>
+    /// <param name="source">
+    /// The queryable to be paged.
+    /// </param>
+    /// <param name="arguments">
+    /// The paging arguments.
+    /// </param>
+    /// <param name="includeTotalCount">
+    /// If set to <c>true</c> the total count will be included in the result.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <typeparam name="T">
+    /// The type of the items in the queryable.
+    /// </typeparam>
+    /// <returns>
+    /// Returns a page of items.
+    /// </returns>
+    /// <exception cref="ArgumentException">
+    /// If the queryable does not have any keys specified.
+    /// </exception>
+    public static async ValueTask<Page<T>> ToPageAsync<T>(
+        this IQueryable<T> source,
+        PagingArguments arguments,
+        bool includeTotalCount,
+        CancellationToken cancellationToken = default)
     {
         var keys = ParseDataSetKeys(source);
 
@@ -51,6 +84,7 @@ public static class PagingQueryableExtensions
                 nameof(arguments));
         }
 
+        var originalQuery = source;
         var forward = arguments.Last is null;
 
         if (arguments.After is not null)
@@ -75,19 +109,40 @@ public static class PagingQueryableExtensions
             source = source.Reverse().Take(arguments.Last.Value);
         }
 
-        var result = await source.ToListAsync(cancellationToken);
+        var builder = ImmutableArray.CreateBuilder<T>();
+        int? totalCount = null;
 
-        if(result.Count == 0)
+        if(includeTotalCount)
+        {
+            var combinedQuery = source.Select(t => new { TotalCount = originalQuery.Count(), Item = t });
+
+            await foreach (var item in combinedQuery.AsAsyncEnumerable()
+                .WithCancellation(cancellationToken).ConfigureAwait(false))
+            {
+                totalCount ??= item.TotalCount;
+                builder.Add(item.Item);
+            }
+        }
+        else
+        {
+            await foreach (var item in source.AsAsyncEnumerable()
+                .WithCancellation(cancellationToken).ConfigureAwait(false))
+            {
+                builder.Add(item);
+            }
+        }
+
+        if(builder.Count == 0)
         {
             return Page<T>.Empty;
         }
 
         if (!forward)
         {
-            result.Reverse();
+            builder.Reverse();
         }
 
-        return CreatePage(result, arguments, keys);
+        return CreatePage(builder.ToImmutable(), arguments, keys, totalCount);
     }
 
     /// <summary>
@@ -139,11 +194,11 @@ public static class PagingQueryableExtensions
             switch (rewriter.ResultProperty.GetValue(group))
             {
                 case IReadOnlyList<TProperty> resultList:
-                    result.Add(key, CreatePage(resultList, arguments, rewriter.Keys));
+                    result.Add(key, CreatePage(resultList.ToImmutableArray(), arguments, rewriter.Keys));
                     break;
 
                 case IEnumerable<TProperty> resultEnumerable:
-                    result.Add(key, CreatePage(resultEnumerable.ToArray(), arguments, rewriter.Keys));
+                    result.Add(key, CreatePage(resultEnumerable.ToImmutableArray(), arguments, rewriter.Keys));
                     break;
 
                 default:
@@ -155,14 +210,18 @@ public static class PagingQueryableExtensions
         return result;
     }
 
-    private static Page<T> CreatePage<T>(IReadOnlyList<T> items, PagingArguments arguments, CursorKey[] keys)
+    private static Page<T> CreatePage<T>(
+        ImmutableArray<T> items,
+        PagingArguments arguments,
+        CursorKey[] keys,
+        int? totalCount = null)
     {
-        var hasPrevious = arguments.First is not null && items.Count > 0 ||
-            (arguments.Last is not null && items.Count > arguments.Last);
-        var hasNext = arguments.First is not null && items.Count > arguments.First ||
-            (arguments.Last is not null && items.Count > 0);
+        var hasPrevious = arguments.First is not null && items.Length > 0 ||
+            (arguments.Last is not null && items.Length > arguments.Last);
+        var hasNext = arguments.First is not null && items.Length > arguments.First ||
+            (arguments.Last is not null && items.Length > 0);
 
-        return new Page<T>(items, hasNext, hasPrevious, item => CursorFormatter.Format(item, keys));
+        return new Page<T>(items, hasNext, hasPrevious, item => CursorFormatter.Format(item, keys), totalCount);
     }
 
     private static CursorKey[] ParseDataSetKeys<T>(IQueryable<T> source)

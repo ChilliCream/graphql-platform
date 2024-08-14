@@ -25,11 +25,11 @@ public sealed class CursorKeyParser : ExpressionVisitor
         }
         else if (IsOrderByDescending(node))
         {
-            PushProperty(node, false);
+            PushProperty(node, CursorKeyDirection.Descending);
         }
         else if (IsThenByDescending(node))
         {
-            PushProperty(node, false);
+            PushProperty(node, CursorKeyDirection.Descending);
         }
 
         return base.VisitMethodCall(node);
@@ -54,12 +54,12 @@ public sealed class CursorKeyParser : ExpressionVisitor
     private static bool IsMethod(MethodCallExpression node, string name, Type declaringType)
         => node.Method.DeclaringType == declaringType && node.Method.Name.Equals(name, StringComparison.Ordinal);
 
-    private void PushProperty(MethodCallExpression node, bool ascending = true)
+    private void PushProperty(MethodCallExpression node, CursorKeyDirection direction = CursorKeyDirection.Ascending)
     {
         if (TryExtractProperty(node, out var expression))
         {
             var serializer = CursorKeySerializerRegistration.Find(expression.ReturnType);
-            _keys.Insert(0, new CursorKey(expression, serializer, ascending));
+            _keys.Insert(0, new CursorKey(expression, serializer, direction));
         }
     }
 

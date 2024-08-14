@@ -71,8 +71,8 @@ public static class ExpressionHelpers
             }
 
             var greaterThan = forward
-                ? key.Ascending
-                : !key.Ascending;
+                ? key.Direction is CursorKeyDirection.Ascending
+                : key.Direction is CursorKeyDirection.Descending;
 
             keyExpr =
                 greaterThan

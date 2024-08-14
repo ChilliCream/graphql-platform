@@ -35,7 +35,7 @@ public static class CursorKeySerializerHelperTests
     public static void Parse_NoColons_ReturnsParsedValue()
     {
         // arrange
-        var formattedKey = Encoding.UTF8.GetBytes("testvalue");
+        var formattedKey = "testvalue"u8.ToArray();
         var expectedValue = "testvalue";
 
         // act
