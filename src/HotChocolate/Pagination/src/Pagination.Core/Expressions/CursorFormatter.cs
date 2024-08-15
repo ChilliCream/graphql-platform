@@ -2,15 +2,42 @@ using System.Buffers;
 using System.Buffers.Text;
 using System.Text;
 
-namespace HotChocolate.Pagination;
+namespace HotChocolate.Pagination.Expressions;
 
-internal static class CursorFormatter
+/// <summary>
+/// A helper class to format a cursor for an entity.
+/// </summary>
+public static class CursorFormatter
 {
-    public static string Format<T>(T item, CursorKey[] keys)
+    /// <summary>
+    /// Formats a cursor for an entity.
+    /// </summary>
+    /// <param name="entity">
+    /// The entity for which the cursor should be formatted.
+    /// </param>
+    /// <param name="keys">
+    /// The keys that make up the cursor.
+    /// </param>
+    /// <typeparam name="T">
+    /// The type of the entity.
+    /// </typeparam>
+    /// <returns>
+    /// Returns a cursor for the entity.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// If <paramref name="entity"/> or <paramref name="keys"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentException">
+    /// If the number of keys is zero.
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    /// If a key cannot be formatted.
+    /// </exception>
+    public static string Format<T>(T entity, CursorKey[] keys)
     {
-        if (item == null)
+        if (entity == null)
         {
-            throw new ArgumentNullException(nameof(item));
+            throw new ArgumentNullException(nameof(entity));
         }
 
         if (keys == null)
@@ -44,11 +71,11 @@ internal static class CursorFormatter
                 first = false;
             }
 
-            if (!key.TryFormat(item, span[totalWritten..], out var written))
+            if (!key.TryFormat(entity, span[totalWritten..], out var written))
             {
                 ExpandBuffer(ref poolArray, ref span, totalWritten, written);
 
-                if (!key.TryFormat(item, span[totalWritten..], out written))
+                if (!key.TryFormat(entity, span[totalWritten..], out written))
                 {
                     throw new InvalidOperationException();
                 }

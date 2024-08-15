@@ -118,9 +118,7 @@ public class CursorPagingQueryableExtensionsTests
 
             return await list.AsQueryable().ApplyCursorPaginationAsync(
                 context,
-                defaultPageSize: 2,
-                totalCount: list.Length,
-                cancellationToken: cancellationToken);
+                defaultPageSize: 2);
         }
     }
 
@@ -141,9 +139,7 @@ public class CursorPagingQueryableExtensionsTests
 
             return await list.ApplyCursorPaginationAsync(
                 context,
-                defaultPageSize: 2,
-                totalCount: list.Length,
-                cancellationToken: cancellationToken);
+                defaultPageSize: 2);
         }
     }
 

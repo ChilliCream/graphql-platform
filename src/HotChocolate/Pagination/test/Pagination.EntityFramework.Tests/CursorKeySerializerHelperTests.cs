@@ -1,6 +1,8 @@
 using System.Text;
 using HotChocolate.Pagination.Serialization;
 
+namespace HotChocolate.Data;
+
 public static class CursorKeySerializerHelperTests
 {
     private static readonly ICursorKeySerializer _serializer = new StringCursorKeySerializer();
@@ -35,7 +37,7 @@ public static class CursorKeySerializerHelperTests
     public static void Parse_NoColons_ReturnsParsedValue()
     {
         // arrange
-        var formattedKey = Encoding.UTF8.GetBytes("testvalue");
+        var formattedKey = "testvalue"u8.ToArray();
         var expectedValue = "testvalue";
 
         // act

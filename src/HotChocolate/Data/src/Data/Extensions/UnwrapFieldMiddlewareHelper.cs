@@ -16,14 +16,14 @@ internal static class UnwrapFieldMiddlewareHelper
                 await next(ctx).ConfigureAwait(false);
 
                 // if the result is not a field result there is no need
-                // to unwrap and we can just invoke the data middleware.
+                // to unwrap, and we can just invoke the data middleware.
                 if (ctx.Result is not IFieldResult fieldResult)
                 {
                     builder.Apply(ctx);
                 }
 
-                // if we how ever have a field result we will only invoke
-                // the data middleware if its a success result.
+                // if we however have a field result we will only invoke
+                // the data middleware if it's a success result.
                 else if (fieldResult.IsSuccess)
                 {
                     // we need to unwrap the success result.

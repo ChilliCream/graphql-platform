@@ -14,27 +14,6 @@ public class Connection<T> : Connection
     /// <param name="info">
     /// Additional information about this connection.
     /// </param>
-    /// <param name="getTotalCount">
-    /// A delegate to request the the total count.
-    /// </param>
-    public Connection(
-        IReadOnlyCollection<Edge<T>> edges,
-        ConnectionPageInfo info,
-        Func<CancellationToken, ValueTask<int>> getTotalCount)
-        : base(edges, info, getTotalCount)
-    {
-        Edges = edges;
-    }
-
-    /// <summary>
-    /// Initializes <see cref="Connection{T}" />.
-    /// </summary>
-    /// <param name="edges">
-    /// The edges that belong to this connection.
-    /// </param>
-    /// <param name="info">
-    /// Additional information about this connection.
-    /// </param>
     /// <param name="totalCount">
     /// The total count of items of this connection
     /// </param>
@@ -45,6 +24,14 @@ public class Connection<T> : Connection
         : base(edges, info, totalCount)
     {
         Edges = edges;
+    }
+
+    public Connection(
+        ConnectionPageInfo info,
+        int totalCount = 0)
+        : base(Array.Empty<Edge<T>>(), info, totalCount)
+    {
+        Edges = Array.Empty<Edge<T>>();
     }
 
     /// <summary>
