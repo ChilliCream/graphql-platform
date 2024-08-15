@@ -25,14 +25,6 @@ type Query {
     @resolver(subgraph: "Reviews2", select: "{ node(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
     @variable(subgraph: "Products", name: "id", argument: "id")
     @resolver(subgraph: "Products", select: "{ node(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
-  "Lookup nodes by a list of IDs."
-  nodes("The list of node IDs." ids: [ID!]!): [Node]!
-    @variable(subgraph: "Accounts", name: "ids", argument: "ids")
-    @resolver(subgraph: "Accounts", select: "{ nodes(ids: $ids) }", arguments: [ { name: "ids", type: "[ID!]!" } ])
-    @variable(subgraph: "Reviews2", name: "ids", argument: "ids")
-    @resolver(subgraph: "Reviews2", select: "{ nodes(ids: $ids) }", arguments: [ { name: "ids", type: "[ID!]!" } ])
-    @variable(subgraph: "Products", name: "ids", argument: "ids")
-    @resolver(subgraph: "Products", select: "{ nodes(ids: $ids) }", arguments: [ { name: "ids", type: "[ID!]!" } ])
   productBookmarkByUsername(username: ID!): ProductBookmark
     @variable(subgraph: "Products", name: "username", argument: "username")
     @resolver(subgraph: "Products", select: "{ productBookmarkByUsername(username: $username) }", arguments: [ { name: "username", type: "ID!" } ])
