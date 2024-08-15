@@ -31,6 +31,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 11,
+            "Name": "Product 0-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 1,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -62,6 +76,20 @@
           {
             "Id": 1,
             "Name": "Product 0-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 1,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 11,
+            "Name": "Product 0-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -115,6 +143,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 111,
+            "Name": "Product 1-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 2,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -146,6 +188,20 @@
           {
             "Id": 101,
             "Name": "Product 1-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 2,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 111,
+            "Name": "Product 1-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -199,6 +255,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 211,
+            "Name": "Product 2-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 3,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -230,6 +300,20 @@
           {
             "Id": 201,
             "Name": "Product 2-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 3,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 211,
+            "Name": "Product 2-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -283,6 +367,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 311,
+            "Name": "Product 3-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 4,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -314,6 +412,20 @@
           {
             "Id": 301,
             "Name": "Product 3-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 4,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 311,
+            "Name": "Product 3-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -367,6 +479,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 411,
+            "Name": "Product 4-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 5,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -398,6 +524,20 @@
           {
             "Id": 401,
             "Name": "Product 4-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 5,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 411,
+            "Name": "Product 4-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -451,6 +591,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 511,
+            "Name": "Product 5-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 6,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -482,6 +636,20 @@
           {
             "Id": 501,
             "Name": "Product 5-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 6,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 511,
+            "Name": "Product 5-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -535,6 +703,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 611,
+            "Name": "Product 6-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 7,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -566,6 +748,20 @@
           {
             "Id": 601,
             "Name": "Product 6-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 7,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 611,
+            "Name": "Product 6-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -619,6 +815,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 711,
+            "Name": "Product 7-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 8,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -650,6 +860,20 @@
           {
             "Id": 701,
             "Name": "Product 7-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 8,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 711,
+            "Name": "Product 7-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -703,6 +927,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 811,
+            "Name": "Product 8-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 9,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -734,6 +972,20 @@
           {
             "Id": 801,
             "Name": "Product 8-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 9,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 811,
+            "Name": "Product 8-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -787,6 +1039,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 911,
+            "Name": "Product 9-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 10,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -818,6 +1084,20 @@
           {
             "Id": 901,
             "Name": "Product 9-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 10,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 911,
+            "Name": "Product 9-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -871,6 +1151,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 1011,
+            "Name": "Product 10-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 11,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -902,6 +1196,20 @@
           {
             "Id": 1001,
             "Name": "Product 10-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 11,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 1011,
+            "Name": "Product 10-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -955,6 +1263,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 1111,
+            "Name": "Product 11-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 12,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -986,6 +1308,20 @@
           {
             "Id": 1101,
             "Name": "Product 11-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 12,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 1111,
+            "Name": "Product 11-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -1039,6 +1375,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 1211,
+            "Name": "Product 12-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 13,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -1070,6 +1420,20 @@
           {
             "Id": 1201,
             "Name": "Product 12-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 13,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 1211,
+            "Name": "Product 12-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -1123,6 +1487,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 1311,
+            "Name": "Product 13-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 14,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -1154,6 +1532,20 @@
           {
             "Id": 1301,
             "Name": "Product 13-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 14,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 1311,
+            "Name": "Product 13-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -1207,6 +1599,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 1411,
+            "Name": "Product 14-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 15,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -1238,6 +1644,20 @@
           {
             "Id": 1401,
             "Name": "Product 14-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 15,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 1411,
+            "Name": "Product 14-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -1291,6 +1711,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 1511,
+            "Name": "Product 15-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 16,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -1322,6 +1756,20 @@
           {
             "Id": 1501,
             "Name": "Product 15-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 16,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 1511,
+            "Name": "Product 15-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -1375,6 +1823,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 1611,
+            "Name": "Product 16-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 17,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -1406,6 +1868,20 @@
           {
             "Id": 1601,
             "Name": "Product 16-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 17,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 1611,
+            "Name": "Product 16-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -1459,6 +1935,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 1711,
+            "Name": "Product 17-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 18,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -1490,6 +1980,20 @@
           {
             "Id": 1701,
             "Name": "Product 17-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 18,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 1711,
+            "Name": "Product 17-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -1543,6 +2047,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 1811,
+            "Name": "Product 18-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 19,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -1574,6 +2092,20 @@
           {
             "Id": 1801,
             "Name": "Product 18-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 19,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 1811,
+            "Name": "Product 18-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -1627,6 +2159,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 1911,
+            "Name": "Product 19-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 20,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -1658,6 +2204,20 @@
           {
             "Id": 1901,
             "Name": "Product 19-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 20,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 1911,
+            "Name": "Product 19-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -1711,6 +2271,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 2011,
+            "Name": "Product 20-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 21,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -1742,6 +2316,20 @@
           {
             "Id": 2001,
             "Name": "Product 20-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 21,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 2011,
+            "Name": "Product 20-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -1795,6 +2383,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 2111,
+            "Name": "Product 21-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 22,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -1826,6 +2428,20 @@
           {
             "Id": 2101,
             "Name": "Product 21-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 22,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 2111,
+            "Name": "Product 21-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -1879,6 +2495,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 2211,
+            "Name": "Product 22-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 23,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -1910,6 +2540,20 @@
           {
             "Id": 2201,
             "Name": "Product 22-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 23,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 2211,
+            "Name": "Product 22-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -1963,6 +2607,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 2311,
+            "Name": "Product 23-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 24,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -1994,6 +2652,20 @@
           {
             "Id": 2301,
             "Name": "Product 23-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 24,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 2311,
+            "Name": "Product 23-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -2047,6 +2719,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 2411,
+            "Name": "Product 24-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 25,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -2078,6 +2764,20 @@
           {
             "Id": 2401,
             "Name": "Product 24-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 25,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 2411,
+            "Name": "Product 24-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -2131,6 +2831,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 2511,
+            "Name": "Product 25-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 26,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -2162,6 +2876,20 @@
           {
             "Id": 2501,
             "Name": "Product 25-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 26,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 2511,
+            "Name": "Product 25-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -2215,6 +2943,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 2611,
+            "Name": "Product 26-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 27,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -2246,6 +2988,20 @@
           {
             "Id": 2601,
             "Name": "Product 26-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 27,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 2611,
+            "Name": "Product 26-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -2299,6 +3055,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 2711,
+            "Name": "Product 27-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 28,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -2330,6 +3100,20 @@
           {
             "Id": 2701,
             "Name": "Product 27-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 28,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 2711,
+            "Name": "Product 27-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -2383,6 +3167,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 2811,
+            "Name": "Product 28-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 29,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -2414,6 +3212,20 @@
           {
             "Id": 2801,
             "Name": "Product 28-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 29,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 2811,
+            "Name": "Product 28-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -2467,6 +3279,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 2911,
+            "Name": "Product 29-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 30,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -2498,6 +3324,20 @@
           {
             "Id": 2901,
             "Name": "Product 29-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 30,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 2911,
+            "Name": "Product 29-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -2551,6 +3391,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 3011,
+            "Name": "Product 30-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 31,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -2582,6 +3436,20 @@
           {
             "Id": 3001,
             "Name": "Product 30-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 31,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 3011,
+            "Name": "Product 30-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -2635,6 +3503,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 3111,
+            "Name": "Product 31-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 32,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -2666,6 +3548,20 @@
           {
             "Id": 3101,
             "Name": "Product 31-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 32,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 3111,
+            "Name": "Product 31-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -2719,6 +3615,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 3211,
+            "Name": "Product 32-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 33,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -2750,6 +3660,20 @@
           {
             "Id": 3201,
             "Name": "Product 32-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 33,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 3211,
+            "Name": "Product 32-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -2803,6 +3727,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 3311,
+            "Name": "Product 33-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 34,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -2834,6 +3772,20 @@
           {
             "Id": 3301,
             "Name": "Product 33-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 34,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 3311,
+            "Name": "Product 33-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -2887,6 +3839,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 3411,
+            "Name": "Product 34-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 35,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -2918,6 +3884,20 @@
           {
             "Id": 3401,
             "Name": "Product 34-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 35,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 3411,
+            "Name": "Product 34-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -2971,6 +3951,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 3511,
+            "Name": "Product 35-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 36,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -3002,6 +3996,20 @@
           {
             "Id": 3501,
             "Name": "Product 35-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 36,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 3511,
+            "Name": "Product 35-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -3055,6 +4063,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 3611,
+            "Name": "Product 36-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 37,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -3086,6 +4108,20 @@
           {
             "Id": 3601,
             "Name": "Product 36-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 37,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 3611,
+            "Name": "Product 36-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -3139,6 +4175,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 3711,
+            "Name": "Product 37-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 38,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -3170,6 +4220,20 @@
           {
             "Id": 3701,
             "Name": "Product 37-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 38,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 3711,
+            "Name": "Product 37-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -3223,6 +4287,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 3811,
+            "Name": "Product 38-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 39,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -3254,6 +4332,20 @@
           {
             "Id": 3801,
             "Name": "Product 38-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 39,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 3811,
+            "Name": "Product 38-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -3307,6 +4399,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 3911,
+            "Name": "Product 39-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 40,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -3338,6 +4444,20 @@
           {
             "Id": 3901,
             "Name": "Product 39-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 40,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 3911,
+            "Name": "Product 39-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -3391,6 +4511,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 4011,
+            "Name": "Product 40-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 41,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -3422,6 +4556,20 @@
           {
             "Id": 4001,
             "Name": "Product 40-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 41,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 4011,
+            "Name": "Product 40-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -3475,6 +4623,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 4111,
+            "Name": "Product 41-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 42,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -3506,6 +4668,20 @@
           {
             "Id": 4101,
             "Name": "Product 41-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 42,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 4111,
+            "Name": "Product 41-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -3559,6 +4735,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 4211,
+            "Name": "Product 42-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 43,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -3590,6 +4780,20 @@
           {
             "Id": 4201,
             "Name": "Product 42-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 43,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 4211,
+            "Name": "Product 42-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -3643,6 +4847,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 4311,
+            "Name": "Product 43-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 44,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -3674,6 +4892,20 @@
           {
             "Id": 4301,
             "Name": "Product 43-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 44,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 4311,
+            "Name": "Product 43-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -3727,6 +4959,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 4411,
+            "Name": "Product 44-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 45,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -3758,6 +5004,20 @@
           {
             "Id": 4401,
             "Name": "Product 44-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 45,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 4411,
+            "Name": "Product 44-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -3811,6 +5071,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 4511,
+            "Name": "Product 45-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 46,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -3842,6 +5116,20 @@
           {
             "Id": 4501,
             "Name": "Product 45-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 46,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 4511,
+            "Name": "Product 45-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -3895,6 +5183,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 4611,
+            "Name": "Product 46-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 47,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -3926,6 +5228,20 @@
           {
             "Id": 4601,
             "Name": "Product 46-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 47,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 4611,
+            "Name": "Product 46-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -3979,6 +5295,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 4711,
+            "Name": "Product 47-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 48,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -4010,6 +5340,20 @@
           {
             "Id": 4701,
             "Name": "Product 47-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 48,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 4711,
+            "Name": "Product 47-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -4063,6 +5407,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 4811,
+            "Name": "Product 48-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 49,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -4094,6 +5452,20 @@
           {
             "Id": 4801,
             "Name": "Product 48-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 49,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 4811,
+            "Name": "Product 48-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -4147,6 +5519,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 4911,
+            "Name": "Product 49-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 50,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -4178,6 +5564,20 @@
           {
             "Id": 4901,
             "Name": "Product 49-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 50,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 4911,
+            "Name": "Product 49-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -4231,6 +5631,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 5011,
+            "Name": "Product 50-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 51,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -4262,6 +5676,20 @@
           {
             "Id": 5001,
             "Name": "Product 50-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 51,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 5011,
+            "Name": "Product 50-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -4315,6 +5743,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 5111,
+            "Name": "Product 51-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 52,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -4346,6 +5788,20 @@
           {
             "Id": 5101,
             "Name": "Product 51-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 52,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 5111,
+            "Name": "Product 51-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -4399,6 +5855,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 5211,
+            "Name": "Product 52-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 53,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -4430,6 +5900,20 @@
           {
             "Id": 5201,
             "Name": "Product 52-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 53,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 5211,
+            "Name": "Product 52-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -4483,6 +5967,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 5311,
+            "Name": "Product 53-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 54,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -4514,6 +6012,20 @@
           {
             "Id": 5301,
             "Name": "Product 53-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 54,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 5311,
+            "Name": "Product 53-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -4567,6 +6079,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 5411,
+            "Name": "Product 54-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 55,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -4598,6 +6124,20 @@
           {
             "Id": 5401,
             "Name": "Product 54-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 55,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 5411,
+            "Name": "Product 54-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -4651,6 +6191,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 5511,
+            "Name": "Product 55-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 56,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -4682,6 +6236,20 @@
           {
             "Id": 5501,
             "Name": "Product 55-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 56,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 5511,
+            "Name": "Product 55-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -4735,6 +6303,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 5611,
+            "Name": "Product 56-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 57,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -4766,6 +6348,20 @@
           {
             "Id": 5601,
             "Name": "Product 56-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 57,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 5611,
+            "Name": "Product 56-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -4819,6 +6415,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 5711,
+            "Name": "Product 57-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 58,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -4850,6 +6460,20 @@
           {
             "Id": 5701,
             "Name": "Product 57-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 58,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 5711,
+            "Name": "Product 57-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -4903,6 +6527,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 5811,
+            "Name": "Product 58-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 59,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -4934,6 +6572,20 @@
           {
             "Id": 5801,
             "Name": "Product 58-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 59,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 5811,
+            "Name": "Product 58-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -4987,6 +6639,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 5911,
+            "Name": "Product 59-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 60,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -5018,6 +6684,20 @@
           {
             "Id": 5901,
             "Name": "Product 59-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 60,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 5911,
+            "Name": "Product 59-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -5071,6 +6751,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 6011,
+            "Name": "Product 60-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 61,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -5102,6 +6796,20 @@
           {
             "Id": 6001,
             "Name": "Product 60-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 61,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 6011,
+            "Name": "Product 60-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -5155,6 +6863,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 6111,
+            "Name": "Product 61-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 62,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -5186,6 +6908,20 @@
           {
             "Id": 6101,
             "Name": "Product 61-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 62,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 6111,
+            "Name": "Product 61-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -5239,6 +6975,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 6211,
+            "Name": "Product 62-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 63,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -5270,6 +7020,20 @@
           {
             "Id": 6201,
             "Name": "Product 62-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 63,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 6211,
+            "Name": "Product 62-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -5323,6 +7087,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 6311,
+            "Name": "Product 63-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 64,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -5354,6 +7132,20 @@
           {
             "Id": 6301,
             "Name": "Product 63-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 64,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 6311,
+            "Name": "Product 63-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -5407,6 +7199,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 6411,
+            "Name": "Product 64-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 65,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -5438,6 +7244,20 @@
           {
             "Id": 6401,
             "Name": "Product 64-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 65,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 6411,
+            "Name": "Product 64-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -5491,6 +7311,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 6511,
+            "Name": "Product 65-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 66,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -5522,6 +7356,20 @@
           {
             "Id": 6501,
             "Name": "Product 65-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 66,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 6511,
+            "Name": "Product 65-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -5575,6 +7423,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 6611,
+            "Name": "Product 66-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 67,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -5606,6 +7468,20 @@
           {
             "Id": 6601,
             "Name": "Product 66-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 67,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 6611,
+            "Name": "Product 66-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -5659,6 +7535,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 6711,
+            "Name": "Product 67-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 68,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -5690,6 +7580,20 @@
           {
             "Id": 6701,
             "Name": "Product 67-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 68,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 6711,
+            "Name": "Product 67-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -5743,6 +7647,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 6811,
+            "Name": "Product 68-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 69,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -5774,6 +7692,20 @@
           {
             "Id": 6801,
             "Name": "Product 68-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 69,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 6811,
+            "Name": "Product 68-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -5827,6 +7759,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 6911,
+            "Name": "Product 69-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 70,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -5858,6 +7804,20 @@
           {
             "Id": 6901,
             "Name": "Product 69-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 70,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 6911,
+            "Name": "Product 69-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -5911,6 +7871,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 7011,
+            "Name": "Product 70-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 71,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -5942,6 +7916,20 @@
           {
             "Id": 7001,
             "Name": "Product 70-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 71,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 7011,
+            "Name": "Product 70-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -5995,6 +7983,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 7111,
+            "Name": "Product 71-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 72,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -6026,6 +8028,20 @@
           {
             "Id": 7101,
             "Name": "Product 71-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 72,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 7111,
+            "Name": "Product 71-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -6079,6 +8095,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 7211,
+            "Name": "Product 72-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 73,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -6110,6 +8140,20 @@
           {
             "Id": 7201,
             "Name": "Product 72-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 73,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 7211,
+            "Name": "Product 72-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -6163,6 +8207,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 7311,
+            "Name": "Product 73-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 74,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -6194,6 +8252,20 @@
           {
             "Id": 7301,
             "Name": "Product 73-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 74,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 7311,
+            "Name": "Product 73-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -6247,6 +8319,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 7411,
+            "Name": "Product 74-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 75,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -6278,6 +8364,20 @@
           {
             "Id": 7401,
             "Name": "Product 74-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 75,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 7411,
+            "Name": "Product 74-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -6331,6 +8431,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 7511,
+            "Name": "Product 75-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 76,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -6362,6 +8476,20 @@
           {
             "Id": 7501,
             "Name": "Product 75-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 76,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 7511,
+            "Name": "Product 75-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -6415,6 +8543,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 7611,
+            "Name": "Product 76-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 77,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -6446,6 +8588,20 @@
           {
             "Id": 7601,
             "Name": "Product 76-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 77,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 7611,
+            "Name": "Product 76-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -6499,6 +8655,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 7711,
+            "Name": "Product 77-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 78,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -6530,6 +8700,20 @@
           {
             "Id": 7701,
             "Name": "Product 77-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 78,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 7711,
+            "Name": "Product 77-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -6583,6 +8767,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 7811,
+            "Name": "Product 78-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 79,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -6614,6 +8812,20 @@
           {
             "Id": 7801,
             "Name": "Product 78-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 79,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 7811,
+            "Name": "Product 78-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -6667,6 +8879,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 7911,
+            "Name": "Product 79-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 80,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -6698,6 +8924,20 @@
           {
             "Id": 7901,
             "Name": "Product 79-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 80,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 7911,
+            "Name": "Product 79-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -6751,6 +8991,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 8011,
+            "Name": "Product 80-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 81,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -6782,6 +9036,20 @@
           {
             "Id": 8001,
             "Name": "Product 80-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 81,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 8011,
+            "Name": "Product 80-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -6835,6 +9103,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 8111,
+            "Name": "Product 81-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 82,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -6866,6 +9148,20 @@
           {
             "Id": 8101,
             "Name": "Product 81-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 82,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 8111,
+            "Name": "Product 81-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -6919,6 +9215,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 8211,
+            "Name": "Product 82-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 83,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -6950,6 +9260,20 @@
           {
             "Id": 8201,
             "Name": "Product 82-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 83,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 8211,
+            "Name": "Product 82-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -7003,6 +9327,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 8311,
+            "Name": "Product 83-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 84,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -7034,6 +9372,20 @@
           {
             "Id": 8301,
             "Name": "Product 83-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 84,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 8311,
+            "Name": "Product 83-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -7087,6 +9439,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 8411,
+            "Name": "Product 84-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 85,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -7118,6 +9484,20 @@
           {
             "Id": 8401,
             "Name": "Product 84-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 85,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 8411,
+            "Name": "Product 84-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -7171,6 +9551,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 8511,
+            "Name": "Product 85-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 86,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -7202,6 +9596,20 @@
           {
             "Id": 8501,
             "Name": "Product 85-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 86,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 8511,
+            "Name": "Product 85-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -7255,6 +9663,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 8611,
+            "Name": "Product 86-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 87,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -7286,6 +9708,20 @@
           {
             "Id": 8601,
             "Name": "Product 86-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 87,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 8611,
+            "Name": "Product 86-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -7339,6 +9775,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 8711,
+            "Name": "Product 87-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 88,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -7370,6 +9820,20 @@
           {
             "Id": 8701,
             "Name": "Product 87-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 88,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 8711,
+            "Name": "Product 87-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -7423,6 +9887,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 8811,
+            "Name": "Product 88-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 89,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -7454,6 +9932,20 @@
           {
             "Id": 8801,
             "Name": "Product 88-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 89,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 8811,
+            "Name": "Product 88-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -7507,6 +9999,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 8911,
+            "Name": "Product 89-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 90,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -7538,6 +10044,20 @@
           {
             "Id": 8901,
             "Name": "Product 89-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 90,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 8911,
+            "Name": "Product 89-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -7591,6 +10111,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 9011,
+            "Name": "Product 90-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 91,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -7622,6 +10156,20 @@
           {
             "Id": 9001,
             "Name": "Product 90-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 91,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 9011,
+            "Name": "Product 90-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -7675,6 +10223,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 9111,
+            "Name": "Product 91-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 92,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -7706,6 +10268,20 @@
           {
             "Id": 9101,
             "Name": "Product 91-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 92,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 9111,
+            "Name": "Product 91-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -7759,6 +10335,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 9211,
+            "Name": "Product 92-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 93,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -7790,6 +10380,20 @@
           {
             "Id": 9201,
             "Name": "Product 92-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 93,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 9211,
+            "Name": "Product 92-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -7843,6 +10447,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 9311,
+            "Name": "Product 93-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 94,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -7874,6 +10492,20 @@
           {
             "Id": 9301,
             "Name": "Product 93-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 94,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 9311,
+            "Name": "Product 93-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -7927,6 +10559,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 9411,
+            "Name": "Product 94-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 95,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -7958,6 +10604,20 @@
           {
             "Id": 9401,
             "Name": "Product 94-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 95,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 9411,
+            "Name": "Product 94-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -8011,6 +10671,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 9511,
+            "Name": "Product 95-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 96,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -8042,6 +10716,20 @@
           {
             "Id": 9501,
             "Name": "Product 95-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 96,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 9511,
+            "Name": "Product 95-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -8095,6 +10783,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 9611,
+            "Name": "Product 96-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 97,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -8126,6 +10828,20 @@
           {
             "Id": 9601,
             "Name": "Product 96-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 97,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 9611,
+            "Name": "Product 96-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -8179,6 +10895,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 9711,
+            "Name": "Product 97-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 98,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -8210,6 +10940,20 @@
           {
             "Id": 9701,
             "Name": "Product 97-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 98,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 9711,
+            "Name": "Product 97-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -8263,6 +11007,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 9811,
+            "Name": "Product 98-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 99,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -8294,6 +11052,20 @@
           {
             "Id": 9801,
             "Name": "Product 98-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 99,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 9811,
+            "Name": "Product 98-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,
@@ -8347,6 +11119,20 @@
             "RestockThreshold": 0,
             "MaxStockThreshold": 0,
             "OnReorder": false
+          },
+          {
+            "Id": 9911,
+            "Name": "Product 99-10",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 100,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
           }
         ],
         "BrandDetails": {
@@ -8378,6 +11164,20 @@
           {
             "Id": 9901,
             "Name": "Product 99-0",
+            "Description": null,
+            "Price": 0.0,
+            "ImageFileName": null,
+            "TypeId": 1,
+            "Type": null,
+            "BrandId": 100,
+            "AvailableStock": 0,
+            "RestockThreshold": 0,
+            "MaxStockThreshold": 0,
+            "OnReorder": false
+          },
+          {
+            "Id": 9911,
+            "Name": "Product 99-10",
             "Description": null,
             "Price": 0.0,
             "ImageFileName": null,

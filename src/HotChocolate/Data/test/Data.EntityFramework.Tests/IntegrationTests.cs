@@ -32,7 +32,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 x => x
                     .Name("Query")
                     .Field("executable")
-                    .Resolve(_authors.AsExecutable()))
+                    .Resolve(_authors.AsDbContextExecutable()))
             .BuildRequestExecutorAsync();
 
         // act
@@ -95,7 +95,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .Name("Query")
                     .Field("executable")
                     .Type<ObjectType<Author>>()
-                    .Resolve(_authors.AsExecutable())
+                    .Resolve(_authors.AsDbContextExecutable())
                     .UseSingleOrDefault()
                     .UseProjection()
                     .UseFiltering()
@@ -165,7 +165,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .Name("Query")
                     .Field("executable")
                     .Type<ObjectType<Author>>()
-                    .Resolve(_authors.AsExecutable())
+                    .Resolve(_authors.AsDbContextExecutable())
                     .UseFirstOrDefault())
             .BuildRequestExecutorAsync();
 

@@ -800,6 +800,9 @@ namespace HotChocolate.Types.Pagination
         ValueTask<object?> IExecutable.SingleOrDefaultAsync(CancellationToken cancellationToken)
             => new(source.SingleOrDefault());
 
+        public ValueTask<int> CountAsync(CancellationToken cancellationToken = default)
+            => new(source.Count());
+
         public ValueTask<T?> SingleOrDefaultAsync(CancellationToken cancellationToken)
             => new(source.SingleOrDefault());
 

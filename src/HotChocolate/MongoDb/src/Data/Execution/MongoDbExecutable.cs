@@ -81,5 +81,8 @@ public abstract class MongoDbExecutable<T> : IExecutable<T>, IMongoDbExecutable
     public abstract ValueTask<T?> SingleOrDefaultAsync(CancellationToken cancellationToken);
 
     /// <inheritdoc />
+    public abstract ValueTask<int> CountAsync(CancellationToken cancellationToken);
+
+    /// <inheritdoc />
     public abstract string Print();
 }
