@@ -38,6 +38,12 @@ public class MongoDbAggregateFluentExecutable<T>(IAggregateFluent<T> aggregate) 
     public override async ValueTask<T?> SingleOrDefaultAsync(CancellationToken cancellationToken)
         => await BuildPipeline().SingleOrDefaultAsync(cancellationToken).ConfigureAwait(false);
 
+    public override async ValueTask<int> CountAsync(CancellationToken cancellationToken)
+    {
+        var item = await aggregate.Count().FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+        return (int)(item?.Count ?? 0);
+    }
+
     /// <inheritdoc />
     public override string Print() => BuildPipeline().ToString() ?? "";
 

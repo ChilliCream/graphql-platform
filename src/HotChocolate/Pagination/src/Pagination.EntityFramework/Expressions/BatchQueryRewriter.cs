@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace HotChocolate.Pagination;
+namespace HotChocolate.Pagination.Expressions;
 
 internal sealed class BatchQueryRewriter<T>(PagingArguments arguments) : ExpressionVisitor
 {
@@ -71,7 +71,7 @@ internal sealed class BatchQueryRewriter<T>(PagingArguments arguments) : Express
                 null,
                 Where(),
                 enumerable,
-                PagingQueryableExtensions.BuildWhereExpression<T>(keys, cursor, forward));
+                ExpressionHelpers.BuildWhereExpression<T>(keys, cursor, forward));
         }
 
         if (pagingArgs.Before is not null)
@@ -81,18 +81,20 @@ internal sealed class BatchQueryRewriter<T>(PagingArguments arguments) : Express
                 null,
                 Where(),
                 enumerable,
-                PagingQueryableExtensions.BuildWhereExpression<T>(keys, cursor, forward));
+                ExpressionHelpers.BuildWhereExpression<T>(keys, cursor, forward));
         }
 
         if (pagingArgs.First is not null)
         {
-            var first = Expression.Constant(pagingArgs.First.Value);
+            var firstValue = pagingArgs.First + 1;
+            var first = Expression.Constant(firstValue);
             enumerable = Expression.Call(null, Take(), enumerable, first);
         }
 
         if (pagingArgs.Last is not null)
         {
-            var last = Expression.Constant(pagingArgs.Last.Value);
+            var lastValue = pagingArgs.Last + 1;
+            var last = Expression.Constant(lastValue);
             enumerable = Expression.Call(null, Take(), enumerable, last);
         }
 

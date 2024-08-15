@@ -151,7 +151,7 @@ public interface ISortConvention : IConvention
     IQueryBuilder CreateBuilder<TEntityType>();
 
     /// <summary>
-    /// Configures the field where the sortings are applied. This can be used to add context
+    /// Configures the field where sorting is applied. This can be used to add context
     /// data to the field.
     /// </summary>
     /// <param name="fieldDescriptor">

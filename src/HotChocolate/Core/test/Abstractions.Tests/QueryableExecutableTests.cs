@@ -173,7 +173,7 @@ public static class QueryableExecutableTests
         async Task Error() => await Executable.From(query).SingleOrDefaultAsync();
 
         // assert
-        await Assert.ThrowsAsync<GraphQLException>(Error);
+        await Assert.ThrowsAsync<InvalidOperationException>(Error);
     }
 
     [Fact]
@@ -212,7 +212,7 @@ public static class QueryableExecutableTests
         async Task Error() => await Executable.From(query).SingleOrDefaultAsync();
 
         // assert
-        await Assert.ThrowsAsync<GraphQLException>(Error);
+        await Assert.ThrowsAsync<InvalidOperationException>(Error);
     }
 
     [Fact]
