@@ -77,20 +77,6 @@ internal static class ErrorHelper
             .SetExtension(nameof(fieldHandler), fieldHandler)
             .Build();
 
-    public static IError ProjectionProvider_CreateMoreThanOneError(IResolverContext context) =>
-        ErrorBuilder.New()
-            .SetMessage(DataResources.ProjectionProvider_CreateMoreThanOneError)
-            .SetCode(ErrorCodes.Data.MoreThanOneElement)
-            .SetPath(context.Path)
-            .AddLocation(context.Selection.SyntaxNode)
-            .Build();
-
-    public static IError ProjectionProvider_CreateMoreThanOneError() =>
-        ErrorBuilder.New()
-            .SetMessage(DataResources.ProjectionProvider_CreateMoreThanOneError)
-            .SetCode(ErrorCodes.Data.MoreThanOneElement)
-            .Build();
-
     public static IError ProjectionProvider_CouldNotProjectFiltering(IValueNode node) =>
         ErrorBuilder.New()
             .SetMessage(DataResources.ProjectionProvider_CouldNotProjectFiltering)
