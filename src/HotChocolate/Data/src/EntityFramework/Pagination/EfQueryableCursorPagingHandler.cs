@@ -4,6 +4,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Pagination;
 using HotChocolate.Types.Pagination.Utilities;
 using Microsoft.EntityFrameworkCore;
+using static HotChocolate.Data.Properties.EntityFrameworkResources;
 
 namespace HotChocolate.Data.Pagination;
 
@@ -30,14 +31,14 @@ internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions opti
         if (keys.Length == 0)
         {
             throw new ArgumentException(
-                "In order to use cursor pagination, you must specify at least on key using the `OrderBy` method.",
+                EfQueryableCursorPagingHandler_SliceAsync_NoOrder,
                 nameof(executable));
         }
 
         if (arguments.Last is not null && arguments.First is not null)
         {
             throw new ArgumentException(
-                "You can specify either `first` or `last`, but not both as this can lead to unpredictable results.",
+                EfQueryableCursorPagingHandler_SliceAsync_FirstOrLast,
                 nameof(arguments));
         }
 
@@ -201,7 +202,7 @@ internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions opti
             IQueryable<TEntity> q => q.AsDbContextExecutable(),
             IEnumerable<TEntity> e => e.AsQueryable().AsDbContextExecutable(),
             IQueryableExecutable<TEntity> e => e,
-            _ => throw new InvalidOperationException("Cannot handle the specified data source."),
+            _ => throw new InvalidOperationException(EfQueryableCursorPagingHandler_SourceNotSupported),
         };
 
     private static CursorKey[] ParseDataSetKeys<T>(IQueryable<T> source)

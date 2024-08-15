@@ -1,5 +1,4 @@
 using System.Runtime.CompilerServices;
-using static HotChocolate.ExecutableErrorHelper;
 
 namespace HotChocolate;
 
@@ -67,7 +66,7 @@ internal sealed class DefaultQueryableExecutable<T>(IQueryable<T> source, Func<I
 
                 if (await enumerator.MoveNextAsync().ConfigureAwait(false))
                 {
-                    throw new GraphQLException(SequenceContainsMoreThanOneElement());
+                    throw new InvalidOperationException("Sequence contains more than one element.");
                 }
 
                 return result;
@@ -95,7 +94,7 @@ internal sealed class DefaultQueryableExecutable<T>(IQueryable<T> source, Func<I
 
                 if(enumerator.MoveNext())
                 {
-                    throw new GraphQLException(SequenceContainsMoreThanOneElement());
+                    throw new InvalidOperationException("Sequence contains more than one element.");
                 }
 
                 return obj;

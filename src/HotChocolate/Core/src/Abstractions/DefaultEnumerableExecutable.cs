@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Runtime.CompilerServices;
-using static HotChocolate.ExecutableErrorHelper;
 
 namespace HotChocolate;
 
@@ -70,7 +69,7 @@ internal sealed class DefaultEnumerableExecutable(IEnumerable source) : IExecuta
 
                 if(enumerator.MoveNext())
                 {
-                    throw new GraphQLException(SequenceContainsMoreThanOneElement());
+                    throw new InvalidOperationException("Sequence contains more than one element.");
                 }
 
                 return new ValueTask<object?>(obj);

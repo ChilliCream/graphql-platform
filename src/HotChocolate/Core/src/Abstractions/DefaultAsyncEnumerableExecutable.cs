@@ -1,5 +1,4 @@
 using System.Runtime.CompilerServices;
-using static HotChocolate.ExecutableErrorHelper;
 
 namespace HotChocolate;
 
@@ -23,7 +22,7 @@ internal sealed class DefaultAsyncEnumerableExecutable<T>(IAsyncEnumerable<T> so
 
             if (await enumerator.MoveNextAsync())
             {
-                throw new GraphQLException(SequenceContainsMoreThanOneElement());
+                throw new InvalidOperationException("Sequence contains more than one element.");
             }
 
             return result;
