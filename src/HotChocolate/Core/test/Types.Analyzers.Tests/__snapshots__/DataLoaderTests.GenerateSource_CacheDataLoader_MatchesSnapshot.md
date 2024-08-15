@@ -40,6 +40,7 @@ namespace TestNamespace
             int key,
             global::System.Threading.CancellationToken ct)
         {
+            await using var scope = _services.CreateAsyncScope();
             return await TestNamespace.TestClass.GetEntityByIdAsync(key, ct).ConfigureAwait(false);
         }
     }

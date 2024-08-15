@@ -41,6 +41,7 @@ namespace TestNamespace
             System.Collections.Generic.IReadOnlyList<int> keys,
             global::System.Threading.CancellationToken ct)
         {
+            await using var scope = _services.CreateAsyncScope();
             return await TestNamespace.TestClass.GetEntityByIdAsync(keys, ct).ConfigureAwait(false);
         }
     }
