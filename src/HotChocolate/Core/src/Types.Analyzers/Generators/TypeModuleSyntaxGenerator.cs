@@ -328,7 +328,7 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
         int cancelIndex,
         Dictionary<int, string> services)
     {
-        var isScoped = dataLoader.IsScoped ?? defaults.Scoped ?? false;
+        var isScoped = dataLoader.IsScoped ?? defaults.Scoped ?? true;
         var isPublic = dataLoader.IsPublic ?? defaults.IsPublic ?? true;
         var isInterfacePublic = dataLoader.IsInterfacePublic ?? defaults.IsInterfacePublic ?? true;
 
