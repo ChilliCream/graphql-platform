@@ -6,9 +6,7 @@ using static HotChocolate.Properties.TypeResources;
 
 namespace HotChocolate.Types.Pagination;
 
-internal class CollectionSegmentType
-    : ObjectType
-    , IPageType
+internal class CollectionSegmentType : ObjectType, IPageType
 {
     internal CollectionSegmentType(
         string? collectionSegmentName,
@@ -98,7 +96,7 @@ internal class CollectionSegmentType
             definition.Fields.Add(new(
                 Names.TotalCount,
                 type: TypeReference.Parse($"{ScalarNames.Int}!"),
-                resolver: GetTotalCountAsync)
+                pureResolver: GetTotalCount)
             {
                 Flags = FieldFlags.TotalCount
             });
@@ -113,8 +111,8 @@ internal class CollectionSegmentType
     private static IEnumerable<object?> GetItems(IResolverContext context)
         => context.Parent<CollectionSegment>().Items;
 
-    private static async ValueTask<object?> GetTotalCountAsync(IResolverContext context)
-        => await context.Parent<CollectionSegment>().GetTotalCountAsync(context.RequestAborted);
+    private static object GetTotalCount(IResolverContext context)
+        => context.Parent<CollectionSegment>().TotalCount;
 
     private static bool IsItemsField(ObjectFieldDefinition field)
         => field.CustomSettings.Count > 0 && field.CustomSettings[0].Equals(ContextDataKeys.Items);

@@ -24,7 +24,7 @@ internal sealed class SortingContextParameterExpressionBuilder
     /// <inheritdoc cref="IParameterExpressionBuilder.Kind" />
     public ArgumentKind Kind => ArgumentKind.Service;
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IParameterExpressionBuilder.IsPure" />
     public bool IsPure => false;
 
     /// <inheritdoc />

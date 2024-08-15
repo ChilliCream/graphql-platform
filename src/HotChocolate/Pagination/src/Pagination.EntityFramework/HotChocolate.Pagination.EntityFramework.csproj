@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Pagination.Core\HotChocolate.Pagination.Core.csproj"/>
+    <ProjectReference Include="..\Pagination.Primitives\HotChocolate.Pagination.Primitives.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -15,6 +15,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{0663553C-7
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Pagination.EntityFramework.Tests", "test\Pagination.EntityFramework.Tests\HotChocolate.Pagination.EntityFramework.Tests.csproj", "{C28F65B0-B87A-443C-B91D-728AD402947B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Pagination.Primitives", "src\Pagination.Primitives\HotChocolate.Pagination.Primitives.csproj", "{E9526D22-440D-40CF-B71D-FF70E5E773C2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -40,11 +42,16 @@ Global
 		{C28F65B0-B87A-443C-B91D-728AD402947B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C28F65B0-B87A-443C-B91D-728AD402947B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C28F65B0-B87A-443C-B91D-728AD402947B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E9526D22-440D-40CF-B71D-FF70E5E773C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E9526D22-440D-40CF-B71D-FF70E5E773C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E9526D22-440D-40CF-B71D-FF70E5E773C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E9526D22-440D-40CF-B71D-FF70E5E773C2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{A265F87B-7602-4BD3-A253-E0C1B44F4C0F} = {C4F118E6-3F9B-419A-A61F-606487AA699B}
 		{1D1254D6-02AF-47E6-BFDB-8119F16E61A4} = {C4F118E6-3F9B-419A-A61F-606487AA699B}
 		{AB11480D-43B4-4032-8EC3-45F987D179D8} = {C4F118E6-3F9B-419A-A61F-606487AA699B}
 		{C28F65B0-B87A-443C-B91D-728AD402947B} = {0663553C-7D78-496E-860A-2CC4EEED211C}
+		{E9526D22-440D-40CF-B71D-FF70E5E773C2} = {C4F118E6-3F9B-419A-A61F-606487AA699B}
 	EndGlobalSection
 EndGlobal

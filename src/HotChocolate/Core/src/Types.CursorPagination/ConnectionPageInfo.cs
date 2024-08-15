@@ -46,4 +46,6 @@ public class ConnectionPageInfo : IPageInfo
     /// When paginating forwards, the cursor to continue.
     /// </summary>
     public string? EndCursor { get; }
+
+    public static ConnectionPageInfo Empty { get; } = new(false, false, null, null);
 }

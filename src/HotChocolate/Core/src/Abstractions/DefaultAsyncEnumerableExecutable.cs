@@ -1,5 +1,4 @@
 using System.Runtime.CompilerServices;
-using static HotChocolate.ExecutableErrorHelper;
 
 namespace HotChocolate;
 
@@ -23,13 +22,28 @@ internal sealed class DefaultAsyncEnumerableExecutable<T>(IAsyncEnumerable<T> so
 
             if (await enumerator.MoveNextAsync())
             {
-                throw new GraphQLException(SequenceContainsMoreThanOneElement());
+                throw new InvalidOperationException("Sequence contains more than one element.");
             }
 
             return result;
         }
 
         return default;
+    }
+
+    public override async ValueTask<int> CountAsync(CancellationToken cancellationToken = default)
+    {
+        var count = 0;
+
+        await foreach (var _ in source.WithCancellation(cancellationToken).ConfigureAwait(false))
+        {
+            checked
+            {
+                count++;
+            }
+        }
+
+        return count;
     }
 
     public override async ValueTask<List<T>> ToListAsync(CancellationToken cancellationToken = default)
