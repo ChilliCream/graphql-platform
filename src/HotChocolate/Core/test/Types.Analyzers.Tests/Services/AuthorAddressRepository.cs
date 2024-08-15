@@ -1,6 +1,3 @@
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace HotChocolate.Types;
 
 public sealed class AuthorAddressRepository(AddressByIdDataLoader addressById)

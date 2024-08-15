@@ -6,7 +6,6 @@ open System.Collections.Generic
 open HotChocolate.Utilities
 open Microsoft.FSharp.Reflection
 
-
 [<AutoOpen>]
 module private Helpers =
 
@@ -50,7 +49,6 @@ module private Helpers =
             else
                 None
         )
-
 
 type OptionTypeConverter() =
 

@@ -39,7 +39,6 @@ namespace HotChocolate.ApolloFederation.Types;
 )]
 public sealed class RequiresScopesAttribute(string[] scopes) : DescriptorAttribute
 {
-
     /// <summary>
     /// Retrieves array of required JWT scopes.
     /// </summary>

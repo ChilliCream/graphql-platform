@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Utilities.Subscriptions;

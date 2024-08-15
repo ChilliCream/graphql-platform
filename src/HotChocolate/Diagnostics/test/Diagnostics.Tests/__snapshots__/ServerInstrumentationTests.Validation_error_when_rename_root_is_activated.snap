@@ -68,9 +68,10 @@
               ],
               "event": [
                 {
-                  "Name": "Error",
+                  "Name": "exception",
                   "Tags": {
-                    "graphql.error.message": "The field `abc` does not exist on the type `Query`.",
+                    "exception.message": "The field `abc` does not exist on the type `Query`.",
+                    "exception.type": "GRAPHQL_ERROR",
                     "graphql.error.location.column": 21,
                     "graphql.error.location.line": 3
                   }

@@ -6,8 +6,6 @@
 
     <AssemblyName>HotChocolate.Fusion.Aspire</AssemblyName>
     <RootNamespace>HotChocolate.Fusion</RootNamespace>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
 
     <IsPackable>true</IsPackable>
   </PropertyGroup>

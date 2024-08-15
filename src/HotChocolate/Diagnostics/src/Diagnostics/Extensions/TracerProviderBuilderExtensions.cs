@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Diagnostics;
 
 namespace OpenTelemetry.Trace;

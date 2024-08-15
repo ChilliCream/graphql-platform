@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using Snapshooter.Xunit;
@@ -47,7 +45,7 @@ namespace HotChocolate.Types.Pagination
                 return new CollectionSegment<string>(
                     new[] { "hello", "abc", },
                     new CollectionSegmentInfo(false, false),
-                    ct => throw new NotImplementedException());
+                    1);
             }
         }
     }

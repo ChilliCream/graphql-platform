@@ -1,10 +1,5 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace HotChocolate;
 
@@ -72,7 +67,7 @@ public static class AsyncEnumerableExecutableTests
         async Task Error() => await Executable.From(query).SingleOrDefaultAsync();
 
         // assert
-        await Assert.ThrowsAsync<GraphQLException>(Error);
+        await Assert.ThrowsAsync<InvalidOperationException>(Error);
     }
 
     [Fact]

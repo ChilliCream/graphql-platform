@@ -1,7 +1,3 @@
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-
 #nullable enable
 
 namespace HotChocolate.Types.Pagination;
@@ -24,9 +20,5 @@ public interface IPage
     /// <summary>
     /// Gets the total count of the data set.
     /// </summary>
-    /// <param name="cancellationToken">
-    /// The <see cref="CancellationToken" />
-    /// </param>
-    /// <returns></returns>
-    ValueTask<int> GetTotalCountAsync(CancellationToken cancellationToken);
+    int TotalCount { get; }
 }

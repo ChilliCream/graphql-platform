@@ -40,7 +40,7 @@ public class SortEnumTypeDescriptor
         SortEnumTypeDefinition definition)
     {
         Context.Descriptors.Push(this);
-        
+
         if (!Definition.AttributesAreApplied && Definition.RuntimeType != typeof(object))
         {
             Context.TypeInspector.ApplyAttributes(
@@ -62,7 +62,7 @@ public class SortEnumTypeDescriptor
         }
 
         base.OnCreateDefinition(definition);
-        
+
         Context.Descriptors.Pop();
     }
 

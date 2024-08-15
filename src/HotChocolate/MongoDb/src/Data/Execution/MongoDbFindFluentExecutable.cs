@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Runtime.CompilerServices;
 using MongoDB.Driver;
 
@@ -46,6 +45,10 @@ public class MongoDbFindFluentExecutable<T>(IFindFluent<T, T> findFluent) : Mong
         await BuildPipeline()
             .SingleOrDefaultAsync(cancellationToken)
             .ConfigureAwait(false);
+
+    public override async ValueTask<int> CountAsync(
+        CancellationToken cancellationToken) =>
+        (int)await findFluent.CountDocumentsAsync(cancellationToken);
 
     /// <inheritdoc />
     public override string Print() => BuildPipeline().ToString() ?? "";

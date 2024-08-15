@@ -1,7 +1,3 @@
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 
 // ReSharper disable once CheckNamespace
@@ -70,6 +66,7 @@ public static class OffsetPagingQueryableExtensions
         => QueryableOffsetPagination<TEntity>.Instance.ApplyPaginationAsync(
             query,
             arguments,
+            false,
             cancellationToken);
 
     /// <summary>
@@ -87,6 +84,7 @@ public static class OffsetPagingQueryableExtensions
     /// <param name="totalCount">
     /// The total count if already known.
     /// </param>
+    /// <param name="requireTotalCount">Specifies if the total count is needed.</param>
     /// <param name="cancellationToken">
     /// The cancellation token.
     /// </param>
@@ -102,6 +100,7 @@ public static class OffsetPagingQueryableExtensions
         IResolverContext context,
         int? defaultPageSize = null,
         int? totalCount = null,
+        bool requireTotalCount = false,
         CancellationToken cancellationToken = default)
     {
         if (query is null)
@@ -127,6 +126,7 @@ public static class OffsetPagingQueryableExtensions
             query,
             arguments,
             totalCount,
+            requireTotalCount,
             cancellationToken);
     }
 }

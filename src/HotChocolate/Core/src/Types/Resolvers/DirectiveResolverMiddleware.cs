@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Resolvers;
 
 internal sealed class DirectiveDelegateMiddleware : IDirectiveMiddleware

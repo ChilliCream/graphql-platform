@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Runtime.CompilerServices;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
@@ -7,7 +6,7 @@ using MongoDB.Driver;
 namespace HotChocolate.Data.MongoDb;
 
 /// <summary>
-/// A executable that is based on <see cref="IMongoCollection{TResult}"/>
+/// An executable that is based on <see cref="IMongoCollection{TResult}"/>
 /// </summary>
 /// <typeparam name="T">The entity type</typeparam>
 public class MongoDbCollectionExecutable<T> : MongoDbExecutable<T>
@@ -32,7 +31,7 @@ public class MongoDbCollectionExecutable<T> : MongoDbExecutable<T>
     /// Applies the options to the executable
     /// </summary>
     /// <param name="options">The options</param>
-    /// <returns>A executable that contains the options</returns>
+    /// <returns>An executable that contains the options</returns>
     public IMongoDbExecutable WithOptions(FindOptionsBase options)
     {
         Options = options;
@@ -107,6 +106,7 @@ public class MongoDbCollectionExecutable<T> : MongoDbExecutable<T>
             }
         }
     }
+
     /// <inheritdoc />
     public override async ValueTask<T?> FirstOrDefaultAsync(
         CancellationToken cancellationToken) =>
@@ -120,6 +120,9 @@ public class MongoDbCollectionExecutable<T> : MongoDbExecutable<T>
         await BuildPipeline()
             .SingleOrDefaultAsync(cancellationToken)
             .ConfigureAwait(false);
+
+    public override async ValueTask<int> CountAsync(CancellationToken cancellationToken)
+        => (int)await BuildPipeline().CountDocumentsAsync(cancellationToken);
 
     /// <inheritdoc />
     public override string Print() => BuildPipeline().ToString() ?? "";

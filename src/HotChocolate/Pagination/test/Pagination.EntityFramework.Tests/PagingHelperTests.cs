@@ -6,7 +6,8 @@ using Squadron;
 
 namespace HotChocolate.Data;
 
-public class PagingHelperTests(PostgreSqlResource resource) : IClassFixture<PostgreSqlResource>
+[Collection(PostgresCacheCollectionFixture.DefinitionName)]
+public class PagingHelperTests(PostgreSqlResource resource)
 {
     public PostgreSqlResource Resource { get; } = resource;
 
@@ -23,7 +24,8 @@ public class PagingHelperTests(PostgreSqlResource resource) : IClassFixture<Post
         // Act
         var arguments = new PagingArguments(2);
         await using var context = new CatalogContext(connectionString);
-        var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id)
+            .ToPageAsync(arguments);
 
         // Assert
         page.MatchMarkdownSnapshot();
@@ -39,7 +41,8 @@ public class PagingHelperTests(PostgreSqlResource resource) : IClassFixture<Post
         // .. get first page
         var arguments = new PagingArguments(2);
         await using var context = new CatalogContext(connectionString);
-        var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id)
+            .ToPageAsync(arguments);
 
         // Act
         arguments = new PagingArguments(2, after: page.CreateCursor(page.Last!));
@@ -59,7 +62,8 @@ public class PagingHelperTests(PostgreSqlResource resource) : IClassFixture<Post
         // .. get first page
         var arguments = new PagingArguments(2);
         await using var context = new CatalogContext(connectionString);
-        var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id)
+            .ToPageAsync(arguments);
 
         arguments = new PagingArguments(2, after: page.CreateCursor(page.Last!));
         page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
@@ -82,7 +86,8 @@ public class PagingHelperTests(PostgreSqlResource resource) : IClassFixture<Post
         // Act
         var arguments = new PagingArguments(last: 2);
         await using var context = new CatalogContext(connectionString);
-        var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id)
+            .ToPageAsync(arguments);
 
         // Assert
         page.MatchMarkdownSnapshot();
@@ -98,7 +103,8 @@ public class PagingHelperTests(PostgreSqlResource resource) : IClassFixture<Post
         // .. get last page
         var arguments = new PagingArguments(last: 2);
         await using var context = new CatalogContext(connectionString);
-        var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id)
+            .ToPageAsync(arguments);
 
         // Act
         arguments = arguments with { Before = page.CreateCursor(page.First!), };
@@ -183,16 +189,19 @@ public class PagingHelperTests(PostgreSqlResource resource) : IClassFixture<Post
 
         for (var i = 0; i < 100; i++)
         {
-            var brand = new Brand { Name = "Brand" + i, };
+            var brand = new Brand
+            {
+                Name = "Brand" + i,
+                DisplayName = i % 2 == 0 ? "BrandDisplay" + i : null,
+                BrandDetails = new() { Country = new() { Name = "Country" + i } }
+            };
             context.Brands.Add(brand);
 
             for (var j = 0; j < 100; j++)
             {
                 var product = new Product
                 {
-                    Name = $"Product {i}-{j}",
-                    Type = type,
-                    Brand = brand,
+                    Name = $"Product {i}-{j}", Type = type, Brand = brand,
                 };
                 context.Products.Add(product);
             }

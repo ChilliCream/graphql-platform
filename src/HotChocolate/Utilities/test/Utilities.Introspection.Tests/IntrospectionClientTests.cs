@@ -1,6 +1,3 @@
-using System;
-using System.Threading.Tasks;
-using System.Net.Http;
 using CookieCrumble;
 using Xunit;
 using HotChocolate.AspNetCore.Tests.Utilities;
@@ -37,7 +34,7 @@ public class IntrospectionClientTests(TestServerFactory serverFactory) : ServerT
     {
         // arrange
         // act
-        Task Error() => IntrospectionClient.InspectServerAsync(((HttpClient)null)!);
+        Task Error() => IntrospectionClient.InspectServerAsync(((HttpClient?)null)!);
 
         // assert
         await Assert.ThrowsAsync<ArgumentNullException>(Error);
@@ -67,7 +64,7 @@ public class IntrospectionClientTests(TestServerFactory serverFactory) : ServerT
     {
         // arrange
         // act
-        Task Error() => IntrospectionClient.IntrospectServerAsync(((HttpClient)null)!);
+        Task Error() => IntrospectionClient.IntrospectServerAsync(((HttpClient?)null)!);
 
         // assert
         await Assert.ThrowsAsync<ArgumentNullException>(Error);

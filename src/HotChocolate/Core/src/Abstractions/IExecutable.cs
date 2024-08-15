@@ -1,7 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace HotChocolate;
 
@@ -51,6 +48,17 @@ public interface IExecutable
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     ValueTask<object?> SingleOrDefaultAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns the number of elements in the sequence.
+    /// </summary>
+    /// <param name="cancellationToken">
+    /// A cancellation token that can be used to cancel the execution.
+    /// </param>
+    /// <returns>
+    /// The number of elements in the sequence.
+    /// </returns>
+    ValueTask<int> CountAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Prints the executable in its current state

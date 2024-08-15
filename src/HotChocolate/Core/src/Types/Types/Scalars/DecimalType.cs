@@ -33,7 +33,7 @@ public class DecimalType : FloatTypeBase<decimal>
     {
         Description = description;
     }
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="DecimalType"/> class.
     /// </summary>

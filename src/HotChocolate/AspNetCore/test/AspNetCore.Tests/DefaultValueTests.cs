@@ -16,7 +16,6 @@ public class DefaultValueTests
     {
         [DefaultValue(500)]
         public Optional<int> ValuesToRetrieveInBatch { get; set; }
-
     }
 
     public class Queries
@@ -29,7 +28,6 @@ public class DefaultValueTests
         public MyInputObjectOut DoSomething(MyInputObject input) =>
             new MyInputObjectOut() { Result = input.ValuesToRetrieveInBatch.Value };
     }
-
 
     [Fact]
     public async Task DefaultValueTests_Simple()

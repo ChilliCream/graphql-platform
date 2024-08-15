@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Execution.Configuration;
 
 internal sealed class DefaultApplicationServiceProvider

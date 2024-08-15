@@ -1,5 +1,3 @@
-using System.Linq;
-
 namespace StrawberryShake.CodeGeneration.CSharp;
 
 internal static class StringExtensions

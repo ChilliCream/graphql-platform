@@ -1,4 +1,4 @@
-﻿using System.Buffers;
+using System.Buffers;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -155,6 +155,20 @@ public class Snapshot
     {
         formatter ??= FindSerializer(value);
         _segments.Add(new SnapshotSegment(name, value, formatter));
+        return this;
+    }
+
+    public Snapshot Add(
+        object? value,
+        string name,
+        string markdownLanguage)
+    {
+        _segments.Add(
+            new SnapshotSegment(
+                name,
+                value,
+                new PlainTextSnapshotValueFormatter(markdownLanguage)));
+
         return this;
     }
 

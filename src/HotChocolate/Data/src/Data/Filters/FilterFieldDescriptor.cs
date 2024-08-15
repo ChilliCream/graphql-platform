@@ -75,7 +75,7 @@ public class FilterFieldDescriptor
         FilterFieldDefinition definition)
     {
         Context.Descriptors.Push(this);
-        
+
         if (Definition is { AttributesAreApplied: false, Member: not null, })
         {
             Context.TypeInspector.ApplyAttributes(Context, this, Definition.Member);

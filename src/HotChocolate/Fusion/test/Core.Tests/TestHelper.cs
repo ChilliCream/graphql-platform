@@ -11,23 +11,21 @@ namespace HotChocolate.Fusion;
 
 internal static class TestHelper
 {
-    // TODO: Temporary
-    public static async Task<IExecutionResult> ProduceProperError(string schemaText, string request)
-    {
-        var subgraph = await TestSubgraph.CreateAsync(schemaText);
-        var executor = await subgraph.TestServer.Services.GetRequestExecutorAsync();
-
-        return await executor.ExecuteAsync(request);
-    }
+    public static void MatchMarkdownSnapshot(
+        IOperationRequest request,
+        IExecutionResult result,
+        object? postFix = null)
+        => MatchMarkdownSnapshot(request.Document?.ToString() ?? string.Empty, result, postFix);
 
     public static void MatchMarkdownSnapshot(
         string requestText,
-        IExecutionResult result)
+        IExecutionResult result,
+        object? postFix = null)
     {
-        var snapshot = new Snapshot();
-        var request = Utf8GraphQLParser.Parse(requestText);
+        var snapshot = new Snapshot(postFix?.ToString());
+        var requestDocument = Utf8GraphQLParser.Parse(requestText);
 
-        CollectSnapshotData(snapshot, request, result);
+        CollectSnapshotData(snapshot, requestDocument, result);
         snapshot.MatchMarkdownSnapshot();
     }
 
@@ -94,7 +92,6 @@ internal static class TestHelper
             _formatter.Format(result, writer);
             _value = writer.GetWrittenSpan().ToArray();
         }
-
 
         public override string? Name { get; }
 

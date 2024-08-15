@@ -1,9 +1,5 @@
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
@@ -803,6 +799,9 @@ namespace HotChocolate.Types.Pagination
 
         ValueTask<object?> IExecutable.SingleOrDefaultAsync(CancellationToken cancellationToken)
             => new(source.SingleOrDefault());
+
+        public ValueTask<int> CountAsync(CancellationToken cancellationToken = default)
+            => new(source.Count());
 
         public ValueTask<T?> SingleOrDefaultAsync(CancellationToken cancellationToken)
             => new(source.SingleOrDefault());

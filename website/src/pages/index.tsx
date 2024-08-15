@@ -4,9 +4,7 @@ import { Carousel } from "react-responsive-carousel";
 import styled from "styled-components";
 
 import { BananaCakePop } from "@/components/images/banana-cake-pop";
-import { BlogPostBananaCakePopApis } from "@/components/images/blog-post-banana-cake-pop-apis";
 import { BlogPostGraphQLFusion } from "@/components/images/blog-post-graphql-fusion";
-import { BlogPostHotChocolate13 } from "@/components/images/blog-post-hot-chocolate-13";
 import { NewsletterMay2024 } from "@/components/images/newsletter-may-2024";
 import { Layout } from "@/components/layout";
 import { Link } from "@/components/misc/link";
@@ -31,6 +29,7 @@ import { THEME_COLORS } from "@/shared-style";
 
 // Artwork
 import { FullstackWorkshop } from "@/components/images/fullstack-workshop";
+import { LoggingInBananaCakePop } from "@/components/images/logging";
 import { SrOnly } from "@/components/misc/sr-only";
 import ContactUsSvg from "@/images/artwork/contact-us.svg";
 import DashboardSvg from "@/images/artwork/dashboard.svg";
@@ -77,6 +76,11 @@ const IndexPage: FC = () => {
           showThumbs={false}
         >
           <Slide>
+            <Link to="/blog/2024/08/11/logging">
+              <LoggingInBananaCakePop />
+            </Link>
+          </Slide>
+          <Slide>
             <Link to="/blog/2024/05/21/newsletter-may">
               <NewsletterMay2024 />
             </Link>
@@ -89,16 +93,6 @@ const IndexPage: FC = () => {
           <Slide>
             <Link to="/blog/2023/08/15/graphql-fusion">
               <BlogPostGraphQLFusion />
-            </Link>
-          </Slide>
-          <Slide>
-            <Link to="/blog/2023/02/08/new-in-hot-chocolate-13">
-              <BlogPostHotChocolate13 />
-            </Link>
-          </Slide>
-          <Slide>
-            <Link to="/blog/2023/03/15/banana-cake-pop-graphql-apis">
-              <BlogPostBananaCakePopApis />
             </Link>
           </Slide>
           <Slide>

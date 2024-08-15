@@ -66,7 +66,6 @@ public class DefaultSocketSessionInterceptor : ISocketSessionInterceptor
         CancellationToken cancellationToken = default)
         => new(default(IReadOnlyDictionary<string, object?>?));
 
-
     public virtual ValueTask OnPongAsync(
         ISocketSession session,
         IOperationMessagePayload pongMessage,

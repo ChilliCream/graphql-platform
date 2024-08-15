@@ -1,4 +1,4 @@
-﻿namespace StrawberryShake.CodeGeneration.Analyzers.Types;
+namespace StrawberryShake.CodeGeneration.Analyzers.Types;
 
 public class RuntimeTypeDirective
 {

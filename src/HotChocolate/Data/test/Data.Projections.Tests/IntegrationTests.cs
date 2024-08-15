@@ -503,7 +503,6 @@ public class Mutation
     {
         public AnError(string message) : base(message)
         {
-
         }
     }
 }

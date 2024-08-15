@@ -21,7 +21,8 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
 
         // act
         var result = await executor.ExecuteAsync(
-            @"{
+            """
+            {
                 root {
                     edges {
                         node {
@@ -37,12 +38,13 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
                         endCursor
                     }
                 }
-            }");
+            }
+            """);
 
         // assert
         result.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task In_Memory_Queryable_Does_Not_Throw()
     {
@@ -51,11 +53,13 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
 
         // act
         var result = await executor.ExecuteAsync(
-            @"{
+            """
+            {
                 root1 {
                   foo
                 }
-            }");
+            }
+            """);
 
         // assert
         result.MatchSnapshot();
@@ -69,7 +73,8 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
 
         // act
         var result = await executor.ExecuteAsync(
-            @"{
+            """
+            {
                 root {
                     edges {
                         node {
@@ -85,7 +90,8 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
                         endCursor
                     }
                 }
-                }");
+            }
+            """);
 
         // assert
         result.MatchSnapshot();
@@ -99,7 +105,8 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
 
         // act
         var result = await executor.ExecuteAsync(
-            @"{
+            """
+            {
                 root {
                     edges {
                         node {
@@ -115,7 +122,8 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
                         endCursor
                     }
                 }
-            }");
+            }
+            """);
 
         // assert
         result.MatchSnapshot();
@@ -129,7 +137,8 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
 
         // act
         var result = await executor.ExecuteAsync(
-            @"{
+            """
+            {
                 root(first: 2) {
                     edges {
                         node {
@@ -145,7 +154,8 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
                         endCursor
                     }
                 }
-            }");
+            }
+            """);
 
         // assert
         result.MatchSnapshot();
@@ -159,7 +169,8 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
 
         // act
         var result = await executor.ExecuteAsync(
-            @"{
+            """
+            {
                 root(first: 2) {
                     edges {
                         node {
@@ -175,7 +186,8 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
                         endCursor
                     }
                 }
-            }");
+            }
+            """);
 
         // assert
         result.MatchSnapshot();
@@ -189,8 +201,9 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
 
         // act
         var result = await executor.ExecuteAsync(
-            @"{
-                root(first: 2 after: ""MQ=="") {
+            """
+            {
+                root(first: 2 after: "MQ==") {
                     edges {
                         node {
                             foo
@@ -205,7 +218,8 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
                         endCursor
                     }
                 }
-            }");
+            }
+            """);
 
         // assert
         result.MatchSnapshot();
@@ -219,23 +233,25 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
 
         // act
         var result = await executor.ExecuteAsync(
-            @"{
-                    root(first: 2 after: ""MQ=="") {
-                        edges {
-                            node {
-                                foo
-                            }
-                            cursor
+            """
+            {
+                root(first: 2 after: "MQ==") {
+                    edges {
+                        node {
+                            foo
                         }
-                        nodes {foo}
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                            startCursor
-                            endCursor
-                        }
+                        cursor
                     }
-                }");
+                    nodes {foo}
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                        startCursor
+                        endCursor
+                    }
+                }
+            }
+            """);
 
         // assert
         result.MatchSnapshot();
@@ -249,37 +265,8 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
 
         // act
         var result = await executor.ExecuteAsync(
-            @"{
-                    root {
-                        edges {
-                            node {
-                                foo
-                            }
-                            cursor
-                        }
-                        nodes {foo}
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                            startCursor
-                            endCursor
-                        }
-                    }
-                }");
-
-        // assert
-        result.MatchSnapshot();
-    }
-
-    [Fact]
-    public async Task Attribute_Simple_StringList_Global_DefaultItem_2()
-    {
-        // arrange
-        var executor = CreateSchema(Data);
-
-        // act
-        var result = await executor.ExecuteAsync(
-            @"{
+            """
+            {
                 root {
                     edges {
                         node {
@@ -295,7 +282,61 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
                         endCursor
                     }
                 }
-            }");
+            }
+            """);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Attribute_Simple_StringList_Global_DefaultItem_2()
+    {
+        // arrange
+        var executor = CreateSchema(Data);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                root {
+                    edges {
+                        node {
+                            foo
+                        }
+                        cursor
+                    }
+                    nodes {foo}
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                        startCursor
+                        endCursor
+                    }
+                }
+            }
+            """);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Nodes_And_TotalCount()
+    {
+        // arrange
+        var executor = CreateSchema(Data);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                root {
+                    nodes { foo }
+                    totalCount
+                }
+            }
+            """);
 
         // assert
         result.MatchSnapshot();
@@ -309,11 +350,13 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
 
         // act
         var result = await executor.ExecuteAsync(
-            @"{
+            """
+            {
                 root {
                     totalCount
                 }
-            }");
+            }
+            """);
 
         // assert
         result.MatchSnapshot();

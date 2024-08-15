@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Threading;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -28,7 +24,6 @@ public static class TestHelper
         mock.Setup(c => c.Parent<_Service>()).Returns(new _Service());
         mock.Setup(c => c.Clone()).Returns(mock.Object);
         mock.SetupGet(c => c.Schema).Returns(schema);
-        
 
         if (type is not null)
         {

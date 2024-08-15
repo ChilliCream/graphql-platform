@@ -1000,4 +1000,7 @@ Type: `{0}`</value>
   <data name="ResolverContextExtensions_IsSelected_FieldNameEmpty" xml:space="preserve">
     <value>The field name mustn't be null, empty or consist only of white spaces.</value>
   </data>
+  <data name="ObjectToDictionaryConverter_CycleInObjectGraph" xml:space="preserve">
+    <value>Cycle in object graph detected.</value>
+  </data>
 </root>

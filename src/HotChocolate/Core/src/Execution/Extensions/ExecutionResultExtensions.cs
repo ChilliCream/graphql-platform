@@ -1,4 +1,3 @@
-using System;
 using System.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Serialization;

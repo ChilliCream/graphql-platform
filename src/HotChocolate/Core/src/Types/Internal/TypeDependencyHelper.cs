@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -169,7 +167,7 @@ public static class TypeDependencyHelper
                 dependencies.Add(dependency);
             }
         }
-        
+
         if (definition.HasArguments)
         {
             foreach (var argument in definition.Arguments)
@@ -181,7 +179,7 @@ public static class TypeDependencyHelper
                         dependencies.Add(dependency);
                     }
                 }
-                
+
                 if (argument.Type is not null)
                 {
                     dependencies.Add(new(

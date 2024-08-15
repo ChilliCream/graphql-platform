@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -30,7 +28,7 @@ public sealed class EnumValue : IEnumValue
                 TypeResources.EnumValue_ValueIsNull,
                 nameof(enumValueDefinition));
         }
-        
+
         Name = string.IsNullOrEmpty(enumValueDefinition.Name)
             ? enumValueDefinition.RuntimeValue.ToString()!
             : enumValueDefinition.Name;

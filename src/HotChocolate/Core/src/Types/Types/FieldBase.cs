@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
@@ -21,7 +19,7 @@ public abstract class FieldBase
     {
         _definition = definition ?? throw new ArgumentNullException(nameof(definition));
         Index = index;
-        
+
         Name = definition.Name.EnsureGraphQLName();
         Description = definition.Description;
         Flags = definition.Flags;

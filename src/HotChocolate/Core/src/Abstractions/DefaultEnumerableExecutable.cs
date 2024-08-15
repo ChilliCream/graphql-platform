@@ -1,11 +1,5 @@
-
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
-using static HotChocolate.ExecutableErrorHelper;
 
 namespace HotChocolate;
 
@@ -75,7 +69,7 @@ internal sealed class DefaultEnumerableExecutable(IEnumerable source) : IExecuta
 
                 if(enumerator.MoveNext())
                 {
-                    throw new GraphQLException(SequenceContainsMoreThanOneElement());
+                    throw new InvalidOperationException("Sequence contains more than one element.");
                 }
 
                 return new ValueTask<object?>(obj);
@@ -90,6 +84,31 @@ internal sealed class DefaultEnumerableExecutable(IEnumerable source) : IExecuta
                 disposable.Dispose();
             }
         }
+    }
+
+    public ValueTask<int> CountAsync(CancellationToken cancellationToken = default)
+    {
+        if (source is Array array)
+        {
+            return new ValueTask<int>(array.Length);
+        }
+
+        if(source is ICollection collection)
+        {
+            return new ValueTask<int>(collection.Count);
+        }
+
+        var count = 0;
+
+        foreach (var _ in source)
+        {
+            checked
+            {
+                count++;
+            }
+        }
+
+        return new ValueTask<int>(count);
     }
 
     public string Print() => Source.ToString() ?? Source.GetType().FullName ?? Source.GetType().Name;

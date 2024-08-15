@@ -37,7 +37,7 @@ public class SqlLiteCursorTestBase
                 c =>
                 {
                     c.Name("Query");
-                    
+
                     c.Field("root")
                         .Resolve(
                             ctx =>

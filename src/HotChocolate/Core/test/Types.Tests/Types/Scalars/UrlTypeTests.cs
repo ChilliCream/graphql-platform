@@ -1,4 +1,3 @@
-﻿using System;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types;
@@ -213,5 +212,4 @@ public class UrlTypeTests
         // assert
         Assert.False(isUrlType);
     }
-
 }

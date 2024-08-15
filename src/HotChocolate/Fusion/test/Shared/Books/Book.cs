@@ -8,7 +8,6 @@ public class Book
 
     public string Title {get; set; }
 
-
     public Book(string id, string authorId, string title) {
         this.Id = id;
         this.AuthorId = authorId;

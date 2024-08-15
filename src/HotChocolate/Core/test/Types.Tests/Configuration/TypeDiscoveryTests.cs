@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
 
@@ -131,7 +130,7 @@ public class TypeDiscoveryTests
 
     public struct InputStructWithCtor
     {
-        public InputStructWithCtor(System.Collections.Generic.IEnumerable<int> values) =>
+        public InputStructWithCtor(IEnumerable<int> values) =>
             Values = System.Collections.Immutable.ImmutableArray.CreateRange(values);
 
         public System.Collections.Immutable.ImmutableArray<int> Values { get; set; }

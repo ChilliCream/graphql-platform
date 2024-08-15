@@ -60,13 +60,13 @@ internal static class ErrorHelper
                 {
                     { nameof(headerValue), headerValue },
                 }));
-    
+
     public static IOperationResult MultiPartRequestPreflightRequired()
         => OperationResultBuilder.CreateError(
             new Error(
                 ErrorHelper_MultiPartRequestPreflightRequired,
                 code: ErrorCodes.Server.MultiPartPreflightRequired));
-    
+
     public static GraphQLRequestException InvalidQueryIdFormat()
         => new GraphQLRequestException(
             ErrorBuilder.New()

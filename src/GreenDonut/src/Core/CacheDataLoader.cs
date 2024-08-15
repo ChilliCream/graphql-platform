@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace GreenDonut;
 
 public abstract class CacheDataLoader<TKey, TValue>
@@ -20,7 +15,7 @@ public abstract class CacheDataLoader<TKey, TValue>
         if (options.Cache is null)
         {
             throw new ArgumentException(
-                "A cache must be provided when using the CacheDataLoader.", 
+                "A cache must be provided when using the CacheDataLoader.",
                 nameof(options));
         }
     }

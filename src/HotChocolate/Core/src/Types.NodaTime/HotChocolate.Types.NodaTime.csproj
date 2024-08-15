@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
@@ -15,21 +14,21 @@
   <ItemGroup>
     <Using Include="Microsoft.Extensions.DependencyInjection" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
-  </ItemGroup>  
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="NodaTime" />
-  </ItemGroup>  
+  </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Update="Properties\NodaTimeResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>NodaTimeResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-  </ItemGroup>  
+  </ItemGroup>
 
   <ItemGroup>
     <Compile Update="Properties\NodaTimeResources.Designer.cs">
@@ -38,5 +37,5 @@
       <DependentUpon>NodaTimeResources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
-  
+
 </Project>

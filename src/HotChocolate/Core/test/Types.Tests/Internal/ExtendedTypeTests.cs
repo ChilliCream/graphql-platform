@@ -1,9 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Threading.Tasks;
 using HotChocolate.Types;
 
 #nullable enable
@@ -418,8 +414,6 @@ public class ExtendedTypeTests
         public TK Foo { get; set; } = default!;
     }
 
-#nullable enable
-
     public class Nullability
     {
         public Nullable<Optional<string?>> NullableOptionalNullableString() =>
@@ -435,6 +429,4 @@ public class ExtendedTypeTests
             public string? Value { get; set; }
         }
     }
-
-#nullable disable
 }

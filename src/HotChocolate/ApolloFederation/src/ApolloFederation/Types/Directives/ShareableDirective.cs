@@ -29,8 +29,8 @@ namespace HotChocolate.ApolloFederation.Types;
 [Package(Federation20)]
 [DirectiveType(
     ShareableDirective_Name,
-    DirectiveLocation.FieldDefinition | 
-    DirectiveLocation.Object, 
+    DirectiveLocation.FieldDefinition |
+    DirectiveLocation.Object,
     IsRepeatable = true)]
 [GraphQLDescription(ShareableDirective_Description)]
 public sealed class ShareableDirective

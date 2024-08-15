@@ -45,7 +45,7 @@ Success:
         var factory = crs is null
             ? NtsGeometryServices.Instance.CreateGeometryFactory()
             : NtsGeometryServices.Instance.CreateGeometryFactory(crs.Value);
-        
+
         return factory.CreateMultiPoint(geometries);
 
 Error:

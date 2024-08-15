@@ -1,9 +1,7 @@
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json;
-using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Metadata;
@@ -123,6 +121,10 @@ internal static class ExecutionUtils
                 {
                     if (!result.IsInitialized)
                     {
+                        // we add a placeholder here so if the ComposeObject propagates an error
+                        // there is a value here.
+                        result.Set(responseName, null, nullable);
+
                         var value = ComposeObject(
                             context,
                             selectionSetResult,
@@ -392,7 +394,8 @@ internal static class ExecutionUtils
 
             while (Unsafe.IsAddressLessThan(ref selection, ref endSelection))
             {
-                if (data.TryGetProperty(selection.ResponseName, out var value))
+                if (data.ValueKind is not JsonValueKind.Null &&
+                    data.TryGetProperty(selection.ResponseName, out var value))
                 {
                     selectionData = selectionData.AddResult(new JsonResult(schemaName, value));
                 }
@@ -414,7 +417,8 @@ internal static class ExecutionUtils
 
                 while (Unsafe.IsAddressLessThan(ref selection, ref endSelection))
                 {
-                    if (element.TryGetProperty(selection.ResponseName, out var value))
+                    if (element.ValueKind is not JsonValueKind.Null &&
+                        element.TryGetProperty(selection.ResponseName, out var value))
                     {
                         selectionData = selectionData.AddResult(new JsonResult(schemaName, value));
                     }
@@ -494,6 +498,7 @@ internal static class ExecutionUtils
         DocumentNode document,
         OperationDefinitionNode operation,
         ResultBuilder resultBuilder,
+        IErrorHandler errorHandler,
         JsonElement errors,
         ObjectResult selectionSetResult,
         int pathDepth,
@@ -507,7 +512,7 @@ internal static class ExecutionUtils
         var path = PathHelper.CreatePathFromContext(selectionSetResult);
         foreach (var error in errors.EnumerateArray())
         {
-            ExtractError(document, operation, resultBuilder, error, path, pathDepth, addDebugInfo);
+            ExtractError(document, operation, resultBuilder, errorHandler, error, path, pathDepth, addDebugInfo);
         }
     }
 
@@ -515,6 +520,7 @@ internal static class ExecutionUtils
         DocumentNode document,
         OperationDefinitionNode operation,
         ResultBuilder resultBuilder,
+        IErrorHandler errorHandler,
         JsonElement error,
         Path parentPath,
         int pathDepth,
@@ -579,7 +585,9 @@ internal static class ExecutionUtils
                 errorBuilder.AddLocation(field);
             }
 
-            resultBuilder.AddError(errorBuilder.Build());
+            var handledError = errorHandler.Handle(errorBuilder.Build());
+
+            resultBuilder.AddError(handledError);
         }
     }
 

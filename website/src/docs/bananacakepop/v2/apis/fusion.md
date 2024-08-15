@@ -261,7 +261,7 @@ dotnet barista fusion-configuration publish commit --api-key <<api-key>>
 ![Image](images/fusion-1.png)
 Banana Cake Pop provides a distributed telemetry solution for your Fusion Gateway. It allows you to monitor your gateway and all your subgraphs in one place. You can inspect the traces of your operations on the gateway and see how they are executed on the subgraphs.
 
-To enable telemetry for your gateway and subgraphs, all of them need to be configured to send telemetry data to Banana Cake Pop. Your subgraphs can be configured to send telemetry data by using the [BananaCakePop.Services](https://www.nuget.org/packages/BananaCakePop.Services/) package. You can find more information about how to configure your subgraphs in the [Open Telemetry](/docs/bananacakepop/v2/apis/open-telemetry) guide.
+To enable telemetry for your gateway and subgraphs, all of them need to be configured to send telemetry data to Banana Cake Pop. Your subgraphs can be configured to send telemetry data by using the [BananaCakePop.Services](https://www.nuget.org/packages/BananaCakePop.Services/) package. You can find more information about how to configure your subgraphs in the [Open Telemetry](/docs/bananacakepop/v2/open-telemetry/operation-monitoring) guide.
 
 To send telemetry data from the gateway you need to add the instrumentation and the exporter to your gateway.
 

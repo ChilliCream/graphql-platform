@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using CookieCrumble;
 using Moq;
@@ -19,7 +16,6 @@ public class OptimizedNodeIdSerializerTests
         Assert.Equal("Rm9vOg==", id);
     }
 
-
     [Fact]
     public void Format_Small_StringId()
     {
@@ -28,6 +24,20 @@ public class OptimizedNodeIdSerializerTests
         var id = serializer.Format("Foo", "abc");
 
         Assert.Equal("Rm9vOmFiYw==", id);
+    }
+
+    [Fact]
+    public void Format_Small_StringId_Without_Outputting_New_Format()
+    {
+        var stringSerializer = new StringNodeIdValueSerializer();
+        var serializer = new OptimizedNodeIdSerializer(
+            [new BoundNodeIdValueSerializer("Foo", stringSerializer)],
+            [stringSerializer],
+            outputNewIdFormat: false);
+
+        var id = serializer.Format("Foo", "abc");
+
+        Assert.Equal("Rm9vCmRhYmM=", id);
     }
 
     [Fact]

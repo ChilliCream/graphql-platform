@@ -1,10 +1,6 @@
-using System;
-using System.Collections.Generic;
 #if NET7_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 #endif
-using System.Threading;
-using System.Threading.Tasks;
 using static HotChocolate.Execution.Properties.Resources;
 
 // ReSharper disable once CheckNamespace

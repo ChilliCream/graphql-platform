@@ -1,10 +1,5 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
 using CookieCrumble;
 
 namespace HotChocolate;
@@ -14,7 +9,7 @@ public static class QueryableExecutableTests
     [Fact]
     public static void Queryable_Is_Null_Throws_ArgumentNullException()
     {
-        Assert.Throws<ArgumentNullException>(() => Executable.From(((IQueryable<string>)null)!));
+        Assert.Throws<ArgumentNullException>(() => Executable.From(((IQueryable<string>?)null)!));
     }
 
     [Fact]
@@ -178,7 +173,7 @@ public static class QueryableExecutableTests
         async Task Error() => await Executable.From(query).SingleOrDefaultAsync();
 
         // assert
-        await Assert.ThrowsAsync<GraphQLException>(Error);
+        await Assert.ThrowsAsync<InvalidOperationException>(Error);
     }
 
     [Fact]
@@ -217,7 +212,7 @@ public static class QueryableExecutableTests
         async Task Error() => await Executable.From(query).SingleOrDefaultAsync();
 
         // assert
-        await Assert.ThrowsAsync<GraphQLException>(Error);
+        await Assert.ThrowsAsync<InvalidOperationException>(Error);
     }
 
     [Fact]

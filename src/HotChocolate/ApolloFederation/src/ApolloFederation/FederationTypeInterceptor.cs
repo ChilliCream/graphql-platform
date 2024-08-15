@@ -1,9 +1,6 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 using HotChocolate.ApolloFederation.Resolvers;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Configuration;
@@ -148,6 +145,11 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
         void RegisterImport(MemberInfo element)
         {
+            if (_context.GetFederationVersion() == FederationVersion.Federation10)
+            {
+                return;
+            }
+
             var package = element.GetCustomAttribute<PackageAttribute>();
 
             if (package is null)

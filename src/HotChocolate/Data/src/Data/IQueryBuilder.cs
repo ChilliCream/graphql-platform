@@ -3,7 +3,7 @@ using HotChocolate.Resolvers;
 namespace HotChocolate.Data;
 
 /// <summary>
-/// An abstraction that is used to translate GraphQL queries to other query languages. 
+/// An abstraction that is used to translate GraphQL queries to other query languages.
 /// </summary>
 public interface IQueryBuilder
 {

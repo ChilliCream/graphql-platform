@@ -1,5 +1,3 @@
-using System;
-using System.Net.Http;
 using HotChocolate.Transport.Http;
 using static HotChocolate.Utilities.Introspection.Properties.IntroResources;
 

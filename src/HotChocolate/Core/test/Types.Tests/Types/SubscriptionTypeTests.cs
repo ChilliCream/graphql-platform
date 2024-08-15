@@ -6,11 +6,6 @@
 #pragma warning disable CS0618 // Type or member is obsolete
 #nullable enable
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Subscriptions;
@@ -573,7 +568,7 @@ public class SubscriptionTypeTests : TypeTestBase
     {
         // arrange
         var snapshot = new Snapshot();
-        
+
         // act
         var executor = await TestHelper.CreateExecutorAsync(
             r => r
@@ -593,7 +588,7 @@ public class SubscriptionTypeTests : TypeTestBase
     {
         // arrange
         var snapshot = new Snapshot();
-        
+
         // act
         var executor = await TestHelper.CreateExecutorAsync(
             r => r
@@ -613,7 +608,7 @@ public class SubscriptionTypeTests : TypeTestBase
     {
         // arrange
         var snapshot = new Snapshot();
-        
+
         // act
         var executor = await TestHelper.CreateExecutorAsync(
             r => r

@@ -13,4 +13,3 @@ public interface IDirectivesProvider : ITypeSystemMemberDefinition
     /// </value>
     IDirectiveCollection Directives { get; }
 }
-

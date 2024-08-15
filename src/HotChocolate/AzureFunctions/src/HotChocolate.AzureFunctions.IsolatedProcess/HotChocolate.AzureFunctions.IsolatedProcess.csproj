@@ -5,8 +5,6 @@
     <AssemblyName>HotChocolate.AzureFunctions.IsolatedProcess</AssemblyName>
     <RootNamespace>HotChocolate.AzureFunctions.IsolatedProcess</RootNamespace>
     <Description>This package contains the GraphQL AzureFunctions Isolated Process integration for Hot Chocolate.</Description>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

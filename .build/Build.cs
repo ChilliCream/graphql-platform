@@ -86,7 +86,6 @@ partial class Build : NukeBuild
                 .OrderBy(p => p.Name)
                 .ToList();
 
-
             var matrix = new
             {
                 include = testProjects.Select(p => new
@@ -132,7 +131,6 @@ partial class Build : NukeBuild
             }
         });
 }
-
 
 [Serializable]
 public class TestProject

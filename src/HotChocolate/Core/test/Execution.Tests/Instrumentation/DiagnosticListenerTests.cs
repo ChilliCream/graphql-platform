@@ -91,7 +91,7 @@ public class DiagnosticListenerTests
 
     private sealed class TestListener : ExecutionDiagnosticEventListener
     {
-        public List<object> Results { get; } = [];
+        public List<object?> Results { get; } = [];
 
         public override bool EnableResolveFieldValue => true;
 
@@ -102,7 +102,7 @@ public class DiagnosticListenerTests
 
         private sealed class ResolverActivityScope : IDisposable
         {
-            public ResolverActivityScope(IMiddlewareContext context, List<object> results)
+            public ResolverActivityScope(IMiddlewareContext context, List<object?> results)
             {
                 Context = context;
                 Results = results;
@@ -110,7 +110,7 @@ public class DiagnosticListenerTests
 
             private IMiddlewareContext Context { get; }
 
-            public List<object> Results { get; }
+            public List<object?> Results { get; }
 
             public void Dispose()
             {

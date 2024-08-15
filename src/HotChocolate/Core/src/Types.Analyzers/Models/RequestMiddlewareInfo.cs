@@ -1,5 +1,3 @@
-using HotChocolate.Types.Analyzers.Filters;
-
 namespace HotChocolate.Types.Analyzers.Models;
 
 public sealed class RequestMiddlewareInfo(

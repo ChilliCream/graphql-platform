@@ -1,8 +1,5 @@
 using System.Collections;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace HotChocolate;
 
@@ -34,6 +31,9 @@ public abstract class Executable<T> : IExecutable<T>
 
     async ValueTask<IList> IExecutable.ToListAsync(CancellationToken cancellationToken)
         => await ToListAsync(cancellationToken);
+
+    /// <inheritdoc />
+    public abstract ValueTask<int> CountAsync(CancellationToken cancellationToken = default);
 
     /// <inheritdoc />
     public virtual string Print() => Source.ToString() ?? Source.GetType().FullName ?? Source.GetType().Name;

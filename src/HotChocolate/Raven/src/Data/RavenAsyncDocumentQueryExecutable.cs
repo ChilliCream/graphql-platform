@@ -1,12 +1,11 @@
 using System.Collections;
 using System.Runtime.CompilerServices;
-using Raven.Client.Documents;
 using Raven.Client.Documents.Session;
 
 namespace HotChocolate.Data.Raven;
 
 /// <summary>
-/// Is the base class for a executable for the Raven.
+/// Is the base class for an executable for the Raven.
 /// </summary>
 public sealed class RavenAsyncDocumentQueryExecutable<T>(IAsyncDocumentQuery<T> query) : IExecutable<T>
 {
@@ -59,6 +58,9 @@ public sealed class RavenAsyncDocumentQueryExecutable<T>(IAsyncDocumentQuery<T> 
     /// <inheritdoc />
     public async ValueTask<T?> SingleOrDefaultAsync(CancellationToken cancellationToken)
         => await Query.SingleOrDefaultAsync(cancellationToken);
+
+    public async ValueTask<int> CountAsync(CancellationToken cancellationToken = default)
+        => await Query.CountAsync(cancellationToken);
 
     /// <inheritdoc />
     async ValueTask<object?> IExecutable.SingleOrDefaultAsync(CancellationToken cancellationToken)

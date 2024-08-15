@@ -105,7 +105,6 @@ public class BookType : ObjectType<Book>
     }
 }
 
-
 // Startup.cs
 public class Startup
 {

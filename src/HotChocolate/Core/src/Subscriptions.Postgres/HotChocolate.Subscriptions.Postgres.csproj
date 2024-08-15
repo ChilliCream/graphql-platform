@@ -8,8 +8,6 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
     <TargetFrameworks>$(Library3TargetFrameworks)</TargetFrameworks>
   </PropertyGroup>
 
@@ -39,6 +37,10 @@
 
   <ItemGroup>
     <PackageReference Include="Npgsql" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
+    <PackageReference Include="Microsoft.Bcl.TimeProvider" />
   </ItemGroup>
 
 </Project>
