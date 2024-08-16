@@ -920,7 +920,6 @@ public class IsSelectedTests
             };
         }
 
-
         public User GetUser_Context_1(IResolverContext context)
         {
             ((IMiddlewareContext)context).OperationResult.SetExtension("isSelected", context.IsSelected("email"));
@@ -1059,17 +1058,17 @@ public class IsSelectedTests
 
         public Category Next { get; set; }
     }
-}
 
-public class UserTag
-{
-    public string Name { get; set; }
-    public int Value { get; set; }
-    public Audit Audit { get; set; }
-}
+    public class UserTag
+    {
+        public string Name { get; set; }
+        public int Value { get; set; }
+        public Audit Audit { get; set; }
+    }
 
-public class Audit
-{
-    public string EditedBy { get; set; }
-    public string EditedAt { get; set; }
+    public class Audit
+    {
+        public string EditedBy { get; set; }
+        public string EditedAt { get; set; }
+    }
 }
