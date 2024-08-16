@@ -1795,7 +1795,7 @@ public class SkipTests(ITestOutputHelper output)
         var subgraphB = await TestSubgraph.CreateAsync(
             """
             type Query {
-              brandById(id: ID!): Bran
+              brandById(id: ID!): Brand
               productById(id: ID!): Product
             }
 
