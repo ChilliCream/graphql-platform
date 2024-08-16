@@ -20,7 +20,12 @@ public sealed class MiddlewareGenerator : ISyntaxGenerator
             return;
         }
 
-        var module = syntaxInfos.GetModuleInfo(compilation.AssemblyName, out var defaultModule);
+        var module = syntaxInfos.GetModuleInfo(compilation.AssemblyName, out _);
+
+        if((module.Options & ModuleOptions.RegisterTypes) != ModuleOptions.RegisterTypes)
+        {
+            return;
+        }
 
         // if there is only the module info we do not need to generate a module.
         if (!syntaxInfos.Any(t => t is RequestMiddlewareInfo))

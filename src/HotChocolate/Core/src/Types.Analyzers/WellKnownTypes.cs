@@ -57,6 +57,7 @@ public static class WellKnownTypes
     public const string FieldResolverDelegates = "HotChocolate.Resolvers.FieldResolverDelegates";
     public const string ListPostProcessor = "HotChocolate.Execution.ListPostProcessor";
     public const string EnumerableDefinition = "System.Collections.Generic.IEnumerable<>";
+    public const string ServiceCollection = "Microsoft.Extensions.DependencyInjection.IServiceCollection";
 
     public static HashSet<string> TypeClass { get; } =
     [
