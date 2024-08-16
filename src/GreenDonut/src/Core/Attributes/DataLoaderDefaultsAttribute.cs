@@ -1,4 +1,4 @@
-namespace HotChocolate;
+namespace GreenDonut;
 
 /// <summary>
 /// Specified the DataLoader source generator defaults.

@@ -9,7 +9,7 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
-public static class DataLoaderServiceCollectionExtension
+public static class DataLoaderServiceCollectionExtensions
 {
     public static IServiceCollection AddDataLoader<T>(
         this IServiceCollection services)

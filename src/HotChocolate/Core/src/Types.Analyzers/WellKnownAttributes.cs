@@ -2,6 +2,7 @@ namespace HotChocolate.Types.Analyzers;
 
 public static class WellKnownAttributes
 {
+    public const string ModuleAttribute = "HotChocolate.ModuleAttribute";
     public const string ExtendObjectTypeAttribute = "HotChocolate.Types.ExtendObjectTypeAttribute";
     public const string ObjectTypeAttribute = "HotChocolate.Types.ObjectTypeAttribute";
     public const string InterfaceTypeAttribute = "HotChocolate.Types.InterfaceTypeAttribute";
@@ -11,7 +12,9 @@ public static class WellKnownAttributes
     public const string QueryTypeAttribute = "HotChocolate.Types.QueryTypeAttribute";
     public const string MutationTypeAttribute = "HotChocolate.Types.MutationTypeAttribute";
     public const string SubscriptionTypeAttribute = "HotChocolate.Types.SubscriptionTypeAttribute";
-    public const string DataLoaderAttribute = "HotChocolate.DataLoaderAttribute";
+    public const string DataLoaderAttribute = "GreenDonut.DataLoaderAttribute";
+    public const string DataLoaderModuleAttribute = "GreenDonut.DataLoaderModuleAttribute";
+    public const string DataLoaderDefaultsAttribute = "GreenDonut.DataLoaderDefaultsAttribute";
     public const string QueryAttribute = "HotChocolate.QueryAttribute";
     public const string MutationAttribute = "HotChocolate.MutationAttribute";
     public const string SubscriptionAttribute = "HotChocolate.SubscriptionAttribute";

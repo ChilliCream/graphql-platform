@@ -1,6 +1,5 @@
 using System.Text;
 using HotChocolate.Types.Analyzers.Helpers;
-using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis.Text;
 
 namespace HotChocolate.Types.Analyzers.FileBuilders;
@@ -8,15 +7,13 @@ namespace HotChocolate.Types.Analyzers.FileBuilders;
 public sealed class DataLoaderModuleFileBuilder : IDisposable
 {
     private readonly string _moduleName;
-    private readonly string _ns;
     private StringBuilder _sb;
     private CodeWriter _writer;
     private bool _disposed;
 
-    public DataLoaderModuleFileBuilder(string moduleName, string ns)
+    public DataLoaderModuleFileBuilder(string moduleName)
     {
         _moduleName = moduleName;
-        _ns = ns;
         _sb = StringBuilderPool.Get();
         _writer = new CodeWriter(_sb);
     }
@@ -77,11 +74,21 @@ public sealed class DataLoaderModuleFileBuilder : IDisposable
         _writer.WriteIndentedLine("}");
     }
 
-    public void WriteDataLoaderRegistration(string dataLoaderType)
+    public void WriteAddDataLoader(string dataLoaderType)
     {
-        _writer.WriteIndentedLine("services.TryAddDataLoaderCore();");
-        _writer.WriteIndentedLine("services.AddSingleton(new DataLoaderRegistration(typeof({0})));", dataLoaderType);
-        _writer.WriteIndentedLine("services.TryAddScoped<{0}>(sp => sp.GetDataLoader<{0}>());", dataLoaderType);
+        _writer.WriteIndentedLine(
+            "global::{0}.AddDataLoader<global::{1}>(services);",
+            WellKnownTypes.DataLoaderServiceCollectionExtension,
+            dataLoaderType);
+    }
+
+    public void WriteAddDataLoader(string dataLoaderType, string dataLoaderInterfaceType)
+    {
+        _writer.WriteIndentedLine(
+            "global::{0}.AddDataLoader<global::{1}, global::{2}>(services);",
+            WellKnownTypes.DataLoaderServiceCollectionExtension,
+            dataLoaderInterfaceType,
+            dataLoaderType);
     }
 
     public override string ToString()

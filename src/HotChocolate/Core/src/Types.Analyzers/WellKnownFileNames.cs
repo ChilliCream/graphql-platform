@@ -9,4 +9,5 @@ public static class WellKnownFileNames
     public const string MiddlewareFile = "HotChocolateMiddleware.735550c.g.cs";
     public const string TypesFile = "HotChocolateTypes.735550c.g.cs";
     public const string ResolversFile = "HotChocolateResolvers.735550c.g.cs";
+    public const string DataLoaderModuleFile = "GreenDonutDataLoaders.735550c.g.cs";
 }

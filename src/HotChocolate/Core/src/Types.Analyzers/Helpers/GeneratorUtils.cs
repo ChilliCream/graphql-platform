@@ -37,7 +37,7 @@ internal static class GeneratorUtils
         return new DataLoaderDefaultsInfo(null, null, true, true);
     }
 
-    private static string CreateModuleName(string? assemblyName)
+    public static string CreateModuleName(string? assemblyName)
         => assemblyName is null
             ? "AssemblyTypes"
             : assemblyName.Split('.').Last() + "Types";

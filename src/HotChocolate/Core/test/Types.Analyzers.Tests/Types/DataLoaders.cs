@@ -1,3 +1,5 @@
+using GreenDonut;
+
 namespace HotChocolate.Types;
 
 public static class DataLoaders
