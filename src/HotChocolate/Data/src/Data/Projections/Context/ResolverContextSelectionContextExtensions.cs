@@ -14,5 +14,5 @@ public static class ResolverContextSelectionExtensions
     /// <param name="context">The resolver context</param>
     /// Returns the <see cref="ISelectedField"/> of the current resolver.
     public static ISelectedField GetSelectedField(this IResolverContext context)
-        => new SelectedField(context, (ISelection)context.Selection);
+        => new SelectedField(context, context.Selection);
 }
