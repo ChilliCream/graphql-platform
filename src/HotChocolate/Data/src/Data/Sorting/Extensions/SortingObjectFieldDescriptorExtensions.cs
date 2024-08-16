@@ -1,8 +1,11 @@
 using System.Globalization;
+using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Data;
 using HotChocolate.Data.Sorting;
+using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Data.DataResources;
@@ -16,7 +19,7 @@ public static class SortingObjectFieldDescriptorExtensions
 {
     private static readonly MethodInfo _factoryTemplate =
         typeof(SortingObjectFieldDescriptorExtensions)
-            .GetMethod(nameof(CreateMiddleware), BindingFlags.Static | BindingFlags.NonPublic)!;
+            .GetMethod(nameof(CreateBuilder), BindingFlags.Static | BindingFlags.NonPublic)!;
 
     /// <summary>
     /// Registers the middleware and adds the arguments for sorting
@@ -127,13 +130,12 @@ public static class SortingObjectFieldDescriptorExtensions
         ITypeSystemMember? sortTypeInstance,
         string? scope)
     {
-        FieldMiddlewareDefinition placeholder =
-            new(_ => _ => default, key: WellKnownMiddleware.Sorting);
+        FieldMiddlewareDefinition sortQuery = new(_ => _ => default, key: WellKnownMiddleware.Sorting);
 
-        var argumentPlaceholder =
-            "_" + Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
+        var argumentPlaceholder = "_" + Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
+        var fieldDefinition = descriptor.Extend().Definition;
 
-        descriptor.Extend().Definition.MiddlewareDefinitions.Add(placeholder);
+        fieldDefinition.MiddlewareDefinitions.Add(sortQuery);
 
         descriptor
             .Extend()
@@ -196,7 +198,7 @@ public static class SortingObjectFieldDescriptorExtensions
                                     context,
                                     def,
                                     argumentDefinition,
-                                    placeholder,
+                                    sortQuery,
                                     scope),
                             definition,
                             ApplyConfigurationOn.BeforeCompletion,
@@ -205,9 +207,7 @@ public static class SortingObjectFieldDescriptorExtensions
 
                     argumentDefinition.Configurations.Add(
                         new CompleteConfiguration<ArgumentDefinition>(
-                            (context, argDef) =>
-                                argDef.Name =
-                                    context.GetSortConvention(scope).GetArgumentName(),
+                            (context, argDef) => argDef.Name = context.GetSortConvention(scope).GetArgumentName(),
                             argumentDefinition,
                             ApplyConfigurationOn.BeforeNaming));
                 });
@@ -240,7 +240,7 @@ public static class SortingObjectFieldDescriptorExtensions
         definition.MiddlewareDefinitions[index] = new(middleware, key: WellKnownMiddleware.Sorting);
     }
 
-    private static IQueryBuilder CreateMiddleware<TEntity>(
+    private static IQueryBuilder CreateBuilder<TEntity>(
         ISortConvention convention) =>
         convention.CreateBuilder<TEntity>();
 }

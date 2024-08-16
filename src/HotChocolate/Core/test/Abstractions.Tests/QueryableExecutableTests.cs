@@ -9,7 +9,7 @@ public static class QueryableExecutableTests
     [Fact]
     public static void Queryable_Is_Null_Throws_ArgumentNullException()
     {
-        Assert.Throws<ArgumentNullException>(() => Executable.From(((IQueryable<string>)null)!));
+        Assert.Throws<ArgumentNullException>(() => Executable.From(((IQueryable<string>?)null)!));
     }
 
     [Fact]
@@ -173,7 +173,7 @@ public static class QueryableExecutableTests
         async Task Error() => await Executable.From(query).SingleOrDefaultAsync();
 
         // assert
-        await Assert.ThrowsAsync<GraphQLException>(Error);
+        await Assert.ThrowsAsync<InvalidOperationException>(Error);
     }
 
     [Fact]
@@ -212,7 +212,7 @@ public static class QueryableExecutableTests
         async Task Error() => await Executable.From(query).SingleOrDefaultAsync();
 
         // assert
-        await Assert.ThrowsAsync<GraphQLException>(Error);
+        await Assert.ThrowsAsync<InvalidOperationException>(Error);
     }
 
     [Fact]

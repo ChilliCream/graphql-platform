@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Types.Pagination;
 
 namespace HotChocolate.Data.MongoDb.Paging;
@@ -6,11 +7,11 @@ internal interface IMongoPagingContainer<TEntity>
 {
     Task<int> CountAsync(CancellationToken cancellationToken);
 
-    ValueTask<IReadOnlyList<Edge<TEntity>>> ExecuteQueryAsync(
+    Task<ImmutableArray<Edge<TEntity>>> QueryAsync(
         int offset,
         CancellationToken cancellationToken);
 
-    ValueTask<List<TEntity>> ToListAsync(CancellationToken cancellationToken);
+    Task<List<TEntity>> ToListAsync(CancellationToken cancellationToken);
 
     IMongoPagingContainer<TEntity> Skip(int skip);
 

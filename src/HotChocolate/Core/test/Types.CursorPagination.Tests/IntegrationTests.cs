@@ -5,8 +5,6 @@ using HotChocolate.Resolvers;
 using HotChocolate.Tests;
 using Snapshooter.Xunit;
 
-#nullable enable
-
 namespace HotChocolate.Types.Pagination;
 
 public class IntegrationTests
@@ -611,27 +609,29 @@ public class IntegrationTests
                 .GetRequestExecutorAsync();
 
         await executor
-            .ExecuteAsync(@"
+            .ExecuteAsync(
+                """
                 {
-                    fooExecutable {
-                        edges {
-                            node {
-                                bar
-                            }
-                            cursor
-                        }
-                        nodes {
-                            bar
-                        }
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                            startCursor
-                            endCursor
-                        }
-                        totalCount
-                    }
-                }")
+                  fooExecutable {
+                      edges {
+                          node {
+                              bar
+                          }
+                          cursor
+                      }
+                      nodes {
+                          bar
+                      }
+                      pageInfo {
+                          hasNextPage
+                          hasPreviousPage
+                          startCursor
+                          endCursor
+                      }
+                      totalCount
+                  }
+                }
+                """)
             .MatchSnapshotAsync();
     }
 
@@ -886,29 +886,6 @@ public class IntegrationTests
     }
 
     [Fact]
-    public async Task FluentPagingTests()
-    {
-        Snapshot.FullName();
-
-        var executor =
-            await new ServiceCollection()
-                .AddGraphQL()
-                .AddQueryType<FluentPaging>()
-                .Services
-                .BuildServiceProvider()
-                .GetRequestExecutorAsync();
-
-        await executor
-            .ExecuteAsync(@"
-                {
-                    items {
-                        nodes
-                    }
-                }")
-            .MatchSnapshotAsync();
-    }
-
-    [Fact]
     public async Task SelectDefaultProvider()
     {
         Snapshot.FullName();
@@ -1104,16 +1081,17 @@ public class IntegrationTests
 
     public class ExecutableQuery
     {
-        public IExecutable<Foo> FoosExecutable() => new MockExecutable<Foo>(
-            new List<Foo>
-            {
-                new() { Bar = "a", },
-                new() { Bar = "b", },
-                new() { Bar = "c", } ,
-                new() { Bar = "d", },
-                new() { Bar = "e", },
-                new() { Bar = "f", },
-            }.AsQueryable());
+        public IExecutable<Foo> FoosExecutable()
+            => Executable.From(
+                new List<Foo>
+                {
+                    new() { Bar = "a", },
+                    new() { Bar = "b", },
+                    new() { Bar = "c", } ,
+                    new() { Bar = "d", },
+                    new() { Bar = "e", },
+                    new() { Bar = "f", },
+                }.AsQueryable());
     }
 
     public class Foo
@@ -1202,20 +1180,6 @@ public class IntegrationTests
         public string[] Abc => [];
     }
 
-    public class FluentPaging
-    {
-        [UsePaging(ProviderName = "Items")]
-        public async Task<Connection<string>> GetItems(
-            int? first,
-            int? last,
-            string? before,
-            string? after,
-            CancellationToken cancellationToken)
-            => await new[] { "a", "b", "c", "d", }
-                .AsQueryable()
-                .ApplyCursorPaginationAsync(first, last, before, after, cancellationToken);
-    }
-
     public class DummyProvider : CursorPagingProvider
     {
         public override bool CanHandle(IExtendedType source) => false;
@@ -1238,8 +1202,7 @@ public class IntegrationTests
             CursorPagingArguments arguments)
             => new(new Connection(
                 new[] { new Edge<string>("a", "b"), },
-                new ConnectionPageInfo(false, false, null, null),
-                _ => new(1)));
+                new ConnectionPageInfo(false, false, null, null), 1));
     }
 
     public class Dummy2Provider : CursorPagingProvider
@@ -1252,20 +1215,15 @@ public class IntegrationTests
             => new Dummy2Handler(options);
     }
 
-    public class Dummy2Handler : CursorPagingHandler
+    public class Dummy2Handler(PagingOptions options) : CursorPagingHandler(options)
     {
-        public Dummy2Handler(PagingOptions options) : base(options)
-        {
-        }
-
         protected override ValueTask<Connection> SliceAsync(
             IResolverContext context,
             object source,
             CursorPagingArguments arguments)
             => new(new Connection(
                 new[] { new Edge<string>("d", "e"), },
-                new ConnectionPageInfo(false, false, null, null),
-                _ => new(1)));
+                new ConnectionPageInfo(false, false, null, null), 1));
     }
 
     public class BackwardQuery
@@ -1274,8 +1232,7 @@ public class IntegrationTests
         public Connection<string> GetFoos(int? first, string? after)
             => new Connection<string>(
                 new[] { new Edge<string>("abc", "def"), },
-                new ConnectionPageInfo(false, false, null, null),
-                _ => new(1));
+                new ConnectionPageInfo(false, false, null, null), 1);
     }
 
     public class CustomConnectionQuery

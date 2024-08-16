@@ -119,7 +119,7 @@ public static class GenerateCommand
                 var config = GraphQLConfig.FromJson(configBody);
                 var clientName = config.Extensions.StrawberryShake.Name;
                 var rootNamespace = args.RootNamespace ?? $"{clientName}NS";
-                var documents = GetGraphQLDocuments(configDir, config.Documents, buildArtifacts);
+                var documents = GetGraphQLDocuments(configDir, config.Documents, buildArtifacts, config.Schema);
                 var settings = CreateSettings(config, args, rootNamespace);
                 var result = GenerateClient(settings.ClientName, documents, settings);
                 var outputDir = args.OutputDir ??

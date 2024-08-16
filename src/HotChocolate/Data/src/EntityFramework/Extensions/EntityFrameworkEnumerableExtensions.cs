@@ -1,7 +1,12 @@
+using HotChocolate.Data.Pagination;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotChocolate.Data;
 
+/// <summary>
+/// This extension class provides a set of methods to
+/// create entity framework optimized executables.
+/// </summary>
 public static class EntityFrameworkEnumerableExtensions
 {
     /// <summary>
@@ -12,9 +17,9 @@ public static class EntityFrameworkEnumerableExtensions
     /// <returns>
     /// Returns an <see cref="IExecutable{T}"/>.
     /// </returns>
-    public static IExecutable<T> AsExecutable<T>(
+    public static IQueryableExecutable<T> AsDbContextExecutable<T>(
         this DbSet<T> source) where T : class
-        => Executable.From(source, s => s.ToQueryString());
+        => new EfQueryableExecutable<T>(source);
 
     /// <summary>
     /// Creates an entity framework executable for a <see cref="IQueryable{T}"/>
@@ -24,7 +29,7 @@ public static class EntityFrameworkEnumerableExtensions
     /// <returns>
     /// Returns an <see cref="IExecutable{T}"/>.
     /// </returns>
-    public static IExecutable<T> AsEntityFrameworkExecutable<T>(
+    public static IQueryableExecutable<T> AsDbContextExecutable<T>(
         this IQueryable<T> source)
-        => Executable.From(source, s => s.ToQueryString());
+        => new EfQueryableExecutable<T>(source);
 }

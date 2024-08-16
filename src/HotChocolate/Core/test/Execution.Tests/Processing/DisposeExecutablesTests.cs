@@ -65,18 +65,20 @@ public static class DisposeExecutablesTests
             CancellationToken cancellationToken = default)
             => throw new NotImplementedException();
 
-        public override ValueTask<string> FirstOrDefaultAsync(
+        public override ValueTask<string?> FirstOrDefaultAsync(
             CancellationToken cancellationToken = default)
             => throw new NotImplementedException();
 
-        public override ValueTask<string> SingleOrDefaultAsync(
+        public override ValueTask<string?> SingleOrDefaultAsync(
+            CancellationToken cancellationToken = default)
+            => throw new NotImplementedException();
+
+        public override ValueTask<int> CountAsync(
             CancellationToken cancellationToken = default)
             => throw new NotImplementedException();
 
         public override ValueTask<List<string>> ToListAsync(CancellationToken cancellationToken = default)
-        {
-            return new ValueTask<List<string>>(items.ToList());
-        }
+            => new(items.ToList());
 
         public ValueTask DisposeAsync()
         {
@@ -95,18 +97,21 @@ public static class DisposeExecutablesTests
             CancellationToken cancellationToken = default)
             => throw new NotImplementedException();
 
-        public override ValueTask<string> FirstOrDefaultAsync(
+        public override ValueTask<string?> FirstOrDefaultAsync(
             CancellationToken cancellationToken = default)
             => throw new NotImplementedException();
 
-        public override ValueTask<string> SingleOrDefaultAsync(
+        public override ValueTask<string?> SingleOrDefaultAsync(
             CancellationToken cancellationToken = default)
             => throw new NotImplementedException();
 
-        public override ValueTask<List<string>> ToListAsync(CancellationToken cancellationToken = default)
-        {
-            return new ValueTask<List<string>>(items.ToList());
-        }
+        public override ValueTask<int> CountAsync(
+            CancellationToken cancellationToken = default)
+            => throw new NotImplementedException();
+
+        public override ValueTask<List<string>> ToListAsync(
+            CancellationToken cancellationToken = default)
+            => new(items.ToList());
 
         public void Dispose()
         {

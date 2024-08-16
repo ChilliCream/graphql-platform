@@ -3,7 +3,6 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.StarWars</AssemblyName>
     <RootNamespace>HotChocolate.StarWars</RootNamespace>
-    <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

@@ -54,7 +54,7 @@ public class PathExtensionsTests
     {
         // arrange
         var hero = Path.Root.Append("hero");
-        Path friends = null;
+        Path? friends = null;
 
         // act
         var areEqual = hero.Equals(friends);

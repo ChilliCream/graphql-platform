@@ -185,7 +185,7 @@ internal sealed class ConnectionType
                 Names.TotalCount,
                 ConnectionType_TotalCount_Description,
                 type: TypeReference.Parse($"{ScalarNames.Int}!"),
-                resolver: GetTotalCountAsync)
+                pureResolver: GetTotalCount)
             {
                 Flags = FieldFlags.TotalCount
             });
@@ -211,8 +211,8 @@ internal sealed class ConnectionType
     private static IEnumerable<object?> GetNodes(IResolverContext context)
         => context.Parent<Connection>().Edges.Select(t => t.Node);
 
-    private static async ValueTask<object?> GetTotalCountAsync(IResolverContext context)
-        => await context.Parent<Connection>().GetTotalCountAsync(context.RequestAborted);
+    private static object? GetTotalCount(IResolverContext context)
+        => context.Parent<Connection>().TotalCount;
 
     internal static class Names
     {
