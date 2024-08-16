@@ -40,6 +40,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
         ImmutableArray<SyntaxInfo> syntaxInfos,
         StringBuilder sb)
     {
+        var hasTypes = false;
         var firstNamespace = true;
         foreach (var group in syntaxInfos
             .OfType<IOutputTypeInfo>()
@@ -79,12 +80,17 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
                 sb.AppendLine();
                 classGenerator.WriteConfigureMethod(typeInfo);
                 classGenerator.WriteEndClass();
+                hasTypes = true;
+
             }
 
             generator.WriteEndNamespace();
         }
 
-        context.AddSource(WellKnownFileNames.TypesFile, sb.ToString());
+        if (hasTypes)
+        {
+            context.AddSource(WellKnownFileNames.TypesFile, sb.ToString());
+        }
     }
 
     private static void WriteResolvers(

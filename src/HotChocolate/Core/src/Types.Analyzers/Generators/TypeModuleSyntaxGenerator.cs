@@ -56,88 +56,94 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
         var operations = OperationType.No;
         var hasObjectTypeExtensions = false;
         var hasInterfaceTypes = false;
+        var hasConfigurations = false;
 
         foreach (var syntaxInfo in syntaxInfos)
         {
             switch (syntaxInfo)
             {
                 case TypeInfo type:
-                    if ((module.Options & ModuleOptions.RegisterTypes) ==
-                        ModuleOptions.RegisterTypes)
+                    if ((module.Options & ModuleOptions.RegisterTypes) == ModuleOptions.RegisterTypes)
                     {
                         generator.WriteRegisterType(type.Name);
+                        hasConfigurations = true;
                     }
+
                     break;
 
                 case TypeExtensionInfo extension:
-                    if ((module.Options & ModuleOptions.RegisterTypes) ==
-                        ModuleOptions.RegisterTypes)
+                    if ((module.Options & ModuleOptions.RegisterTypes) == ModuleOptions.RegisterTypes)
                     {
                         generator.WriteRegisterTypeExtension(extension.Name, extension.IsStatic);
+                        hasConfigurations = true;
 
-                        if (extension.Type is not OperationType.No &&
-                            (operations & extension.Type) != extension.Type)
+                        if (extension.Type is not OperationType.No && (operations & extension.Type) != extension.Type)
                         {
                             operations |= extension.Type;
                         }
                     }
+
                     break;
 
                 case RegisterDataLoaderInfo dataLoader:
-                    if ((module.Options & ModuleOptions.RegisterDataLoader) ==
-                        ModuleOptions.RegisterDataLoader)
+                    if ((module.Options & ModuleOptions.RegisterDataLoader) == ModuleOptions.RegisterDataLoader)
                     {
                         generator.WriteRegisterDataLoader(dataLoader.Name);
+                        hasConfigurations = true;
                     }
+
                     break;
 
                 case DataLoaderInfo dataLoader:
-                    if ((module.Options & ModuleOptions.RegisterDataLoader) ==
-                        ModuleOptions.RegisterDataLoader)
+                    if ((module.Options & ModuleOptions.RegisterDataLoader) == ModuleOptions.RegisterDataLoader)
                     {
                         var typeName = $"{dataLoader.Namespace}.{dataLoader.Name}";
                         var interfaceTypeName = $"{dataLoader.Namespace}.{dataLoader.InterfaceName}";
 
                         generator.WriteRegisterDataLoader(typeName, interfaceTypeName);
+                        hasConfigurations = true;
                     }
+
                     break;
 
                 case OperationRegistrationInfo operation:
-                    if ((module.Options & ModuleOptions.RegisterTypes) ==
-                        ModuleOptions.RegisterTypes)
+                    if ((module.Options & ModuleOptions.RegisterTypes) == ModuleOptions.RegisterTypes)
                     {
                         generator.WriteRegisterTypeExtension(operation.TypeName, false);
+                        hasConfigurations = true;
 
-                        if (operation.Type is not OperationType.No &&
-                            (operations & operation.Type) != operation.Type)
+                        if (operation.Type is not OperationType.No && (operations & operation.Type) != operation.Type)
                         {
                             operations |= operation.Type;
                         }
                     }
+
                     break;
 
                 case ObjectTypeExtensionInfo objectTypeExtension:
-                    if ((module.Options & ModuleOptions.RegisterTypes) ==
-                        ModuleOptions.RegisterTypes &&
-                        objectTypeExtension.Diagnostics.Length == 0)
+                    if ((module.Options & ModuleOptions.RegisterTypes) == ModuleOptions.RegisterTypes
+                        && objectTypeExtension.Diagnostics.Length == 0)
                     {
                         hasObjectTypeExtensions = true;
                         generator.WriteRegisterObjectTypeExtension(
                             objectTypeExtension.RuntimeType.ToFullyQualified(),
                             objectTypeExtension.Type.ToFullyQualified());
+                        hasConfigurations = true;
                     }
+
                     break;
 
                 case InterfaceTypeExtensionInfo interfaceType:
-                    if ((module.Options & ModuleOptions.RegisterTypes) ==
-                        ModuleOptions.RegisterTypes &&
-                        interfaceType.Diagnostics.Length == 0)
+                    if ((module.Options & ModuleOptions.RegisterTypes) == ModuleOptions.RegisterTypes
+                        && interfaceType.Diagnostics.Length == 0)
                     {
                         hasInterfaceTypes = true;
                         generator.WriteRegisterInterfaceTypeExtension(
                             interfaceType.RuntimeType.ToFullyQualified(),
                             interfaceType.Type.ToFullyQualified());
+                        hasConfigurations = true;
                     }
+
                     break;
             }
         }
@@ -145,16 +151,19 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
         if ((operations & OperationType.Query) == OperationType.Query)
         {
             generator.WriteTryAddOperationType(OperationType.Query);
+            hasConfigurations = true;
         }
 
         if ((operations & OperationType.Mutation) == OperationType.Mutation)
         {
             generator.WriteTryAddOperationType(OperationType.Mutation);
+            hasConfigurations = true;
         }
 
         if ((operations & OperationType.Subscription) == OperationType.Subscription)
         {
             generator.WriteTryAddOperationType(OperationType.Subscription);
+            hasConfigurations = true;
         }
 
         generator.WriteEndRegistrationMethod();
@@ -162,17 +171,22 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
         if (hasObjectTypeExtensions)
         {
             generator.WriteRegisterObjectTypeExtensionHelpers();
+            hasConfigurations = true;
         }
 
         if (hasInterfaceTypes)
         {
             generator.WriteRegisterInterfaceTypeExtensionHelpers();
+            hasConfigurations = true;
         }
 
         generator.WriteEndClass();
         generator.WriteEndNamespace();
 
-        context.AddSource(WellKnownFileNames.TypeModuleFile, generator.ToSourceText());
+        if (hasConfigurations)
+        {
+            context.AddSource(WellKnownFileNames.TypeModuleFile, generator.ToSourceText());
+        }
     }
 
     private static void WriteDataLoader(
@@ -200,8 +214,9 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
                 continue;
             }
 
-            if (dataLoader.MethodSymbol.DeclaredAccessibility is not Accessibility.Public
-                and not Accessibility.Internal and not Accessibility.ProtectedAndInternal)
+            if (dataLoader.MethodSymbol.DeclaredAccessibility is not Accessibility.Public and
+                not Accessibility.Internal and
+                not Accessibility.ProtectedAndInternal)
             {
                 context.ReportDiagnostic(
                     Diagnostic.Create(
@@ -214,6 +229,8 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
 
             dataLoaders.Add(dataLoader);
         }
+
+        var hasDataLoaders = false;
 
         using var generator = new DataLoaderFileBuilder();
         generator.WriteHeader();
@@ -267,12 +284,16 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
                     dataLoader.MethodSymbol.Parameters.Length,
                     cancellationTokenIndex,
                     serviceMap);
+                hasDataLoaders = true;
             }
 
             generator.WriteEndNamespace();
         }
 
-        context.AddSource(WellKnownFileNames.DataLoaderFile, generator.ToSourceText());
+        if (hasDataLoaders)
+        {
+            context.AddSource(WellKnownFileNames.DataLoaderFile, generator.ToSourceText());
+        }
     }
 
     private static void WriteOperationTypes(
@@ -383,13 +404,13 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
     }
 
     private static bool IsKeysArgument(ITypeSymbol type)
-        => type is INamedTypeSymbol { IsGenericType: true, TypeArguments.Length: 1, } nt &&
-            WellKnownTypes.ReadOnlyList.Equals(ToTypeNameNoGenerics(nt), StringComparison.Ordinal);
+        => type is INamedTypeSymbol { IsGenericType: true, TypeArguments.Length: 1, } nt
+            && WellKnownTypes.ReadOnlyList.Equals(ToTypeNameNoGenerics(nt), StringComparison.Ordinal);
 
     private static ITypeSymbol ExtractKeyType(ITypeSymbol type)
     {
-        if (type is INamedTypeSymbol { IsGenericType: true, TypeArguments.Length: 1, } namedType &&
-            WellKnownTypes.ReadOnlyList.Equals(ToTypeNameNoGenerics(namedType), StringComparison.Ordinal))
+        if (type is INamedTypeSymbol { IsGenericType: true, TypeArguments.Length: 1, } namedType
+            && WellKnownTypes.ReadOnlyList.Equals(ToTypeNameNoGenerics(namedType), StringComparison.Ordinal))
         {
             return namedType.TypeArguments[0];
         }
@@ -398,8 +419,8 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
     }
 
     private static bool IsCancellationToken(string typeName)
-        => string.Equals(typeName, WellKnownTypes.CancellationToken) ||
-            string.Equals(typeName, WellKnownTypes.GlobalCancellationToken);
+        => string.Equals(typeName, WellKnownTypes.CancellationToken)
+            || string.Equals(typeName, WellKnownTypes.GlobalCancellationToken);
 
     private static bool IsReturnTypeDictionary(ITypeSymbol returnType, ITypeSymbol keyType)
     {
@@ -407,9 +428,9 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
         {
             var resultType = namedType.TypeArguments[0];
 
-            if (IsReadOnlyDictionary(resultType) &&
-                resultType is INamedTypeSymbol { TypeArguments.Length: 2, } dictionaryType &&
-                dictionaryType.TypeArguments[0].Equals(keyType, SymbolEqualityComparer.Default))
+            if (IsReadOnlyDictionary(resultType)
+                && resultType is INamedTypeSymbol { TypeArguments.Length: 2, } dictionaryType
+                && dictionaryType.TypeArguments[0].Equals(keyType, SymbolEqualityComparer.Default))
             {
                 return true;
             }
@@ -424,13 +445,14 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
         {
             var resultType = namedType.TypeArguments[0];
 
-            if (ToTypeNameNoGenerics(resultType).Equals(WellKnownTypes.Lookup, StringComparison.Ordinal) &&
-                resultType is INamedTypeSymbol { TypeArguments.Length: 2, } dictionaryType &&
-                dictionaryType.TypeArguments[0].Equals(keyType, SymbolEqualityComparer.Default))
+            if (ToTypeNameNoGenerics(resultType).Equals(WellKnownTypes.Lookup, StringComparison.Ordinal)
+                && resultType is INamedTypeSymbol { TypeArguments.Length: 2, } dictionaryType
+                && dictionaryType.TypeArguments[0].Equals(keyType, SymbolEqualityComparer.Default))
             {
                 return true;
             }
         }
+
         return false;
     }
 
@@ -440,7 +462,8 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
         {
             foreach (var interfaceSymbol in type.Interfaces)
             {
-                if (ToTypeNameNoGenerics(interfaceSymbol).Equals(WellKnownTypes.ReadOnlyDictionary, StringComparison.Ordinal))
+                if (ToTypeNameNoGenerics(interfaceSymbol)
+                    .Equals(WellKnownTypes.ReadOnlyDictionary, StringComparison.Ordinal))
                 {
                     return true;
                 }
@@ -456,8 +479,8 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
     {
         if (returnType is INamedTypeSymbol { TypeArguments.Length: 1, } namedType)
         {
-            if (kind is DataLoaderKind.Batch or DataLoaderKind.Group &&
-                namedType.TypeArguments[0] is INamedTypeSymbol { TypeArguments.Length: 2, } dict)
+            if (kind is DataLoaderKind.Batch or DataLoaderKind.Group
+                && namedType.TypeArguments[0] is INamedTypeSymbol { TypeArguments.Length: 2, } dict)
             {
                 return dict.TypeArguments[1];
             }
