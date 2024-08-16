@@ -720,6 +720,59 @@ public class IsSelectedTests
     }
 
     [Fact]
+    public async Task Traverse_With_Select()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(
+                    c =>
+                    {
+                        c.Name("Query");
+                        c.Field("user")
+                            .Resolve(
+                                ctx =>
+                                {
+                                    var isTagsOnContext = ctx.IsSelected("tags");
+                                    var collection = ctx.Select("tags");
+                                    var isAuditOnTagsCollection = collection.IsSelected("audit");
+                                    collection = collection.Select("audit");
+                                    var isEditedByOnAudiCollection = collection.IsSelected("editedBy");
+                                    var operationResult = ((IMiddlewareContext)ctx).OperationResult;
+
+                                    operationResult.SetExtension(
+                                        nameof(isTagsOnContext),
+                                        isTagsOnContext);
+                                    operationResult.SetExtension(
+                                        nameof(isAuditOnTagsCollection),
+                                        isAuditOnTagsCollection);
+                                    operationResult.SetExtension(
+                                        nameof(isEditedByOnAudiCollection),
+                                        isEditedByOnAudiCollection);
+
+                                    return Query.DummyUser;
+                                });
+                    })
+                .ExecuteRequestAsync(
+                    """
+                    query {
+                        user {
+                            name
+                            tags {
+                                value
+                                name
+                                audit {
+                                    editedBy
+                                }
+                            }
+                        }
+                    }
+                    """);
+
+        result.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
     public async Task Select_Category_Level_2()
     {
         var result =
@@ -867,6 +920,7 @@ public class IsSelectedTests
             };
         }
 
+
         public User GetUser_Context_1(IResolverContext context)
         {
             ((IMiddlewareContext)context).OperationResult.SetExtension("isSelected", context.IsSelected("email"));
@@ -996,6 +1050,7 @@ public class IsSelectedTests
         public string City { get; set; }
 
         public Category Category { get; set; }
+        public List<UserTag> Tags { get; set; }
     }
 
     public class Category
@@ -1004,4 +1059,17 @@ public class IsSelectedTests
 
         public Category Next { get; set; }
     }
+}
+
+public class UserTag
+{
+    public string Name { get; set; }
+    public int Value { get; set; }
+    public Audit Audit { get; set; }
+}
+
+public class Audit
+{
+    public string EditedBy { get; set; }
+    public string EditedAt { get; set; }
 }
