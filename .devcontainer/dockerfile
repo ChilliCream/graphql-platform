@@ -1,0 +1,26 @@
+# Use the base image specified in the devcontainer.json
+FROM mcr.microsoft.com/devcontainers/base:bullseye
+
+# Install dependencies
+RUN apt-get update && apt-get install -y wget apt-transport-https curl
+
+# Install .NET 6 SDK
+RUN wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh \
+    && chmod +x dotnet-install.sh \
+    && ./dotnet-install.sh --channel 6.0 --install-dir /usr/share/dotnet --architecture arm64 \
+    && ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet
+
+# Install .NET 7 SDK
+RUN ./dotnet-install.sh --channel 7.0 --install-dir /usr/share/dotnet --architecture arm64
+
+# Install .NET 8 SDK (when available)
+RUN ./dotnet-install.sh --channel 8.0 --install-dir /usr/share/dotnet --architecture arm64
+
+# Install Node.js LTS
+RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - \
+    && apt-get install -y nodejs
+
+# Clean up
+RUN rm dotnet-install.sh \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
