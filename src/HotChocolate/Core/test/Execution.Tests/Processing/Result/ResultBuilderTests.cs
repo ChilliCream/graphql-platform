@@ -23,7 +23,7 @@ public class ResultBuilderTests
     private ResultPool CreatePool()
     {
         return new ResultPool(
-            new ObjectResultPool(16, 16),
-            new ListResultPool(16, 16));
+            new ObjectResultPool(16, 16, 16),
+            new ListResultPool(16, 16, 16));
     }
 }
