@@ -20,6 +20,9 @@ RUN ./dotnet-install.sh --channel 8.0 --install-dir /usr/share/dotnet --architec
 RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - \
     && apt-get install -y nodejs
 
+# Install Yarn
+RUN npm install -g yarn
+
 # Clean up
 RUN rm dotnet-install.sh \
     && apt-get clean \
