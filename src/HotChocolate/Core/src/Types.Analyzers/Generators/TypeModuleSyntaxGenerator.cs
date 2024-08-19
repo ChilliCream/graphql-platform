@@ -63,6 +63,11 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
 
         foreach (var syntaxInfo in syntaxInfos)
         {
+            if(syntaxInfo.Diagnostics.Length > 0)
+            {
+                continue;
+            }
+
             switch (syntaxInfo)
             {
                 case TypeInfo type:

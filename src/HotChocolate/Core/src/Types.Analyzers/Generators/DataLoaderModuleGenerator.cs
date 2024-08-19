@@ -28,6 +28,11 @@ public sealed class DataLoaderModuleGenerator : ISyntaxGenerator
 
         foreach (var syntaxInfo in syntaxInfos)
         {
+            if(syntaxInfo.Diagnostics.Length > 0)
+            {
+                continue;
+            }
+
             switch (syntaxInfo)
             {
                 case RegisterDataLoaderInfo dataLoader:
