@@ -19,27 +19,3 @@ public interface IPromiseCacheObserver : IDisposable
     /// </param>
     void Accept(IPromiseCache cache, string? skipCacheKeyType = null);
 }
-
-public static class PromiseCacheObserverExtensions
-{
-    public static void Accept<TKey, TValue>(
-        this IPromiseCacheObserver observer,
-        DataLoaderBase<TKey, TValue> dataLoader)
-        where TKey : notnull
-    {
-        if (observer == null)
-        {
-            throw new ArgumentNullException(nameof(observer));
-        }
-
-        if (dataLoader == null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
-
-        if (dataLoader.Cache is not null)
-        {
-            observer.Accept(dataLoader.Cache, dataLoader.CacheKeyType);
-        }
-    }
-}
