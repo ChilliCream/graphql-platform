@@ -2,7 +2,7 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace GreenDonut;
 
-internal class PromiseCachePooledObjectPolicy(int size) : PooledObjectPolicy<PromiseCache>
+internal sealed class PromiseCachePooledObjectPolicy(int size) : PooledObjectPolicy<PromiseCache>
 {
     public override PromiseCache Create() => new(size);
 
