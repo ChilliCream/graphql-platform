@@ -203,10 +203,10 @@ public sealed class PromiseCache : IPromiseCache
 
     private void NotifySubscribers<T>(PromiseCacheKey key, Promise<T> promise)
     {
-        promise = promise.Clone();
-
         if (_subscriptions.TryGetValue(typeof(T), out var subscriptions))
         {
+            promise = promise.Clone();
+
             foreach (var subscription in subscriptions)
             {
                 if (subscription is Subscription<T> casted)
