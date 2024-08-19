@@ -64,12 +64,17 @@ public sealed class PromiseCache : IPromiseCache
         }
 
         var promise = (Promise<T>)entry.Value;
-        promise.OnComplete(NotifySubscribers, new CacheAndKey(this, key));
+
+        if (!promise.IsClone)
+        {
+            promise.OnComplete(NotifySubscribers, new CacheAndKey(this, key));
+        }
+
         return promise.Task;
     }
 
     /// <inheritdoc />
-    public bool TryAdd<T>(PromiseCacheKey key, Promise<T> promise, bool additionalLookup = false)
+    public bool TryAdd<T>(PromiseCacheKey key, Promise<T> promise)
     {
         if (key.Type is null)
         {
@@ -89,11 +94,7 @@ public sealed class PromiseCache : IPromiseCache
             return AddNewEntry(k, promise);
         });
 
-        if (!additionalLookup)
-        {
-            NotifySubscribers(key, promise);
-        }
-        else
+        if (!promise.IsClone)
         {
             promise.OnComplete(NotifySubscribers, new CacheAndKey(this, key));
         }
@@ -123,7 +124,12 @@ public sealed class PromiseCache : IPromiseCache
         });
 
         var promise = (Promise<T>)entry.Value;
-        promise.OnComplete(NotifySubscribers, new CacheAndKey(this, key));
+
+        if (!promise.IsClone)
+        {
+            promise.OnComplete(NotifySubscribers, new CacheAndKey(this, key));
+        }
+
         return !read;
     }
 
@@ -159,7 +165,8 @@ public sealed class PromiseCache : IPromiseCache
 
         lock (_sync)
         {
-            var current = _head;
+            var first = _head;
+            var current = first;
 
             while (current is not null)
             {
@@ -168,12 +175,18 @@ public sealed class PromiseCache : IPromiseCache
 #else
                 if (current.Value.Task.IsCompletedSuccessfully
 #endif
+                    && !current.Value.IsClone
                     && current.Value.Type == type)
                 {
-                    promises.Add((current.Key, current.Value));
+                    promises.Add((current.Key, current.Value.Clone()));
                 }
 
                 current = current.Next;
+
+                if (current == first)
+                {
+                    break;
+                }
             }
         }
 
@@ -190,6 +203,8 @@ public sealed class PromiseCache : IPromiseCache
 
     private void NotifySubscribers<T>(PromiseCacheKey key, Promise<T> promise)
     {
+        promise = promise.Clone();
+
         if (_subscriptions.TryGetValue(typeof(T), out var subscriptions))
         {
             foreach (var subscription in subscriptions)

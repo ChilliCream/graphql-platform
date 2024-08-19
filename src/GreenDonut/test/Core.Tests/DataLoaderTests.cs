@@ -906,7 +906,7 @@ public class DataLoaderTests(ITestOutputHelper output)
     public void IDataLoaderSetTwice()
     {
         // arrange
-        var fetch = TestHelpers.CreateFetch<string, string>();
+        var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
         var cache = new PromiseCache(10);
         var options = new DataLoaderOptions { Cache = cache, };
@@ -921,5 +921,82 @@ public class DataLoaderTests(ITestOutputHelper output)
 
         // assert
         Assert.Equal(1, cache.Usage);
+    }
+
+    [Fact]
+    public async Task Add_Additional_Lookup_With_CacheObserver()
+    {
+        // arrange
+        var cache = new PromiseCache(10);
+
+        var dataLoader1 = new TestDataLoader1(
+            new AutoBatchScheduler(),
+            new DataLoaderOptions { Cache = cache });
+        var entity1 = await dataLoader1.LoadAsync(1, CancellationToken.None);
+        await Task.Delay(500);
+
+        // act
+        var dataLoader2 = new TestDataLoader2(
+            new AutoBatchScheduler(),
+            new DataLoaderOptions { Cache = cache });
+        var entity2 = await dataLoader2.LoadAsync(2, CancellationToken.None);
+
+        // assert
+        Assert.Same(entity1, entity2);
+
+    }
+
+    private class TestDataLoader1(
+        IBatchScheduler batchScheduler,
+        DataLoaderOptions? options = null)
+        : DataLoaderBase<int, Entity>(batchScheduler, options)
+    {
+        protected override ValueTask FetchAsync(
+            IReadOnlyList<int> keys,
+            Memory<Result<Entity>> results,
+            CancellationToken cancellationToken)
+        {
+            for (var i = 0; i < keys.Count; i++)
+            {
+                var key = keys[i];
+                results.Span[i] = new Entity { Id = key, OtherId = key + 1 };
+            }
+
+            return default;
+        }
+    }
+
+    private class TestDataLoader2 : DataLoaderBase<int, Entity>
+    {
+        public TestDataLoader2(
+            IBatchScheduler batchScheduler,
+            DataLoaderOptions? options = null)
+            : base(batchScheduler, options)
+        {
+            PromiseCacheObserver
+                .Create(value => value.OtherId, this)
+                .Accept(this);
+        }
+
+        protected override ValueTask FetchAsync(
+            IReadOnlyList<int> keys,
+            Memory<Result<Entity>> results,
+            CancellationToken cancellationToken)
+        {
+            for (var i = 0; i < keys.Count; i++)
+            {
+                var key = keys[i];
+                results.Span[i] = new Entity { Id = key + 1, OtherId = key };
+            }
+
+            return default;
+        }
+    }
+
+    public class Entity
+    {
+        public int Id { get; set; }
+
+        public int OtherId { get; set; }
     }
 }

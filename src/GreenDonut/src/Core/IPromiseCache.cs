@@ -53,7 +53,7 @@ public interface IPromiseCache
     /// <returns>
     /// A value indicating whether the add was successful.
     /// </returns>
-    bool TryAdd<T>(PromiseCacheKey key, Promise<T> promise, bool additionalLookup = false);
+    bool TryAdd<T>(PromiseCacheKey key, Promise<T> promise);
 
     /// <summary>
     /// Tries to add a single task to the cache. It does nothing if the
@@ -82,6 +82,21 @@ public interface IPromiseCache
     /// </exception>
     bool TryRemove(PromiseCacheKey key);
 
+    /// <summary>
+    /// Subscribes to the cache and gets notified when a new task is added.
+    /// </summary>
+    /// <param name="next">
+    /// The action that is called when a new task is added.
+    /// </param>
+    /// <param name="skipCacheKeyType">
+    /// The cache key type that should be skipped.
+    /// </param>
+    /// <typeparam name="T">
+    /// The task type.
+    /// </typeparam>
+    /// <returns>
+    /// Returns a disposable that can be used to unsubscribe.
+    /// </returns>
     IDisposable Subscribe<T>(
         Action<IPromiseCache, Promise<T>> next,
         string? skipCacheKeyType);

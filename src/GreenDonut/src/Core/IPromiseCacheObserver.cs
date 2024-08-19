@@ -13,9 +13,33 @@ public interface IPromiseCacheObserver : IDisposable
     /// <param name="cache">
     /// The cache to subscribe to.
     /// </param>
-    /// <param name="cacheKeyType">
+    /// <param name="skipCacheKeyType">
     /// The cache key type of the owning <see cref="IDataLoader"/>.
     /// Items with this cache key type will be ignored when subscribing.
     /// </param>
-    void Accept(IPromiseCache cache, string? cacheKeyType = null);
+    void Accept(IPromiseCache cache, string? skipCacheKeyType = null);
+}
+
+public static class PromiseCacheObserverExtensions
+{
+    public static void Accept<TKey, TValue>(
+        this IPromiseCacheObserver observer,
+        DataLoaderBase<TKey, TValue> dataLoader)
+        where TKey : notnull
+    {
+        if (observer == null)
+        {
+            throw new ArgumentNullException(nameof(observer));
+        }
+
+        if (dataLoader == null)
+        {
+            throw new ArgumentNullException(nameof(dataLoader));
+        }
+
+        if (dataLoader.Cache is not null)
+        {
+            observer.Accept(dataLoader.Cache, dataLoader.CacheKeyType);
+        }
+    }
 }

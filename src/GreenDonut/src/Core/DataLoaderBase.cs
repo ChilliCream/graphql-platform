@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using static GreenDonut.NoopDataLoaderDiagnosticEventListener;
 using static GreenDonut.Errors;
 
@@ -54,37 +53,17 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         _batchScheduler = batchScheduler;
         _maxBatchSize = options.MaxBatchSize;
         CacheKeyType = GetCacheKeyType(GetType());
-
-        // ReSharper disable VirtualMemberCallInConstructor
-        if (Cache is not null && CacheObservers.Count > 0)
-        {
-            foreach (var observer in CacheObservers)
-            {
-                observer.Accept(Cache);
-            }
-        }
-        // ReSharper restore VirtualMemberCallInConstructor
     }
 
     /// <summary>
     /// Gets access to the cache of this DataLoader.
     /// </summary>
-    protected IPromiseCache? Cache { get; }
+    protected internal IPromiseCache? Cache { get; }
 
     /// <summary>
     /// Gets the cache key type for this DataLoader.
     /// </summary>
-    protected virtual string CacheKeyType { get; }
-
-    /// <summary>
-    /// Gets the cache observers for this DataLoader.
-    /// <remarks>
-    /// Do not use any context from the implementing class as
-    /// this property is used in the base class constructor.
-    /// </remarks>
-    /// </summary>
-    protected virtual IImmutableList<IPromiseCacheObserver> CacheObservers { get; } =
-        ImmutableList<IPromiseCacheObserver>.Empty;
+    protected internal virtual string CacheKeyType { get; }
 
     /// <inheritdoc />
     public Task<TValue> LoadAsync(TKey key, CancellationToken cancellationToken = default)
@@ -237,7 +216,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
                 Cache.TryRemove(cacheKey);
             }
 
-            batch.GetPromise<TValue>(key).TrySetException(error);
+            batch.GetPromise<TValue>(key).TrySetError(error);
         }
     }
 
@@ -328,18 +307,18 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     // ReSharper restore InconsistentlySynchronizedField
 
     private void SetSingleResult(
-        TaskCompletionSource<TValue> promise,
+        Promise<TValue> promise,
         TKey key,
         Result<TValue> result)
     {
         if (result.Kind is ResultKind.Value)
         {
-            promise.SetResult(result);
+            promise.TrySetResult(result);
         }
         else
         {
             _diagnosticEvents.BatchItemError(key, result.Error!);
-            promise.SetException(result.Error!);
+            promise.TrySetError(result.Error!);
         }
     }
 
