@@ -70,7 +70,11 @@ public readonly struct Promise<TValue> : IPromise
         Task.ContinueWith(
             (task, s) =>
             {
+#if NETSTANDARD2_0
+                if(task.Status == TaskStatus.RanToCompletion)
+#else
                 if (task.IsCompletedSuccessfully)
+#endif
                 {
                     callback(new Promise<TValue>(task.Result), (TState)s!);
                 }

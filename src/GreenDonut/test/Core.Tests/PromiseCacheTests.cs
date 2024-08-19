@@ -147,10 +147,10 @@ public class PromiseCacheTests
         var key = new PromiseCacheKey("a", "Foo");
 
         // act
-        void Verify() => cache.TryAdd(key, default(Promise<string>)!);
+        void Verify() => cache.TryAdd(key, default(Promise<string>));
 
         // assert
-        Assert.Throws<ArgumentNullException>("value", Verify);
+        Assert.Throws<ArgumentNullException>("promise", Verify);
     }
 
     [Fact(DisplayName = "TryAdd: Should result in a new cache entry")]

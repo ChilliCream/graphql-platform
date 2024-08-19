@@ -69,7 +69,7 @@ public sealed class PromiseCache : IPromiseCache
     }
 
     /// <inheritdoc />
-    public bool TryAdd<T>(PromiseCacheKey key, Promise<T> promise, bool additionalLookup)
+    public bool TryAdd<T>(PromiseCacheKey key, Promise<T> promise, bool additionalLookup = false)
     {
         if (key.Type is null)
         {
@@ -154,7 +154,7 @@ public sealed class PromiseCache : IPromiseCache
 
         _subscriptions.AddOrUpdate(
             type,
-            _ => [subscription],
+            _ => ImmutableArray.Create<Subscription>(subscription),
             (_, list) => list.Add(subscription));
 
         lock (_sync)
@@ -163,7 +163,11 @@ public sealed class PromiseCache : IPromiseCache
 
             while (current is not null)
             {
+#if NETSTANDARD2_0
+                if(current.Value.Task.Status == TaskStatus.RanToCompletion
+#else
                 if (current.Value.Task.IsCompletedSuccessfully
+#endif
                     && current.Value.Type == type)
                 {
                     promises.Add((current.Key, current.Value));
@@ -327,7 +331,11 @@ public sealed class PromiseCache : IPromiseCache
     {
         public void OnNext(PromiseCacheKey key, Promise<T> promise)
         {
+#if NETSTANDARD2_0
+            if(promise.Task.Status == TaskStatus.RanToCompletion
+#else
             if (promise.Task.IsCompletedSuccessfully
+#endif
                 && (skipCacheKeyType is null
                     || key.Type.Equals(skipCacheKeyType, StringComparison.Ordinal)))
             {
@@ -349,7 +357,7 @@ public sealed class PromiseCache : IPromiseCache
             {
                 subscriptions.AddOrUpdate(
                     type,
-                    _ => [this],
+                    _ => ImmutableArray.Create(this),
                     (_, list) => list.Remove(this));
 
                 _disposed = true;
