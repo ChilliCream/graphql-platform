@@ -58,7 +58,7 @@ public class BatchDataLoaderTests
     public async Task Null_Result()
     {
         // arrange
-        using var cacheOwner = new TaskCacheOwner();
+        using var cacheOwner = new PromiseCacheOwner();
         var dataLoader = new EmptyBatchDataLoader(
             new AutoBatchScheduler(),
             new DataLoaderOptions
@@ -111,7 +111,7 @@ public class CacheDataLoaderTests
     public async Task LoadSingleAsync()
     {
         // arrange
-        using var cacheOwner = new TaskCacheOwner();
+        using var cacheOwner = new PromiseCacheOwner();
         var dataLoader = new CustomCacheDataLoader(
             new DataLoaderOptions
             {

@@ -34,7 +34,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        var cache = new TaskCache(10);
+        var cache = new PromiseCache(10);
         var options = new DataLoaderOptions { Cache = cache, };
         var loader = new DataLoader<string, string>(fetch, batchScheduler, options);
 
@@ -447,7 +447,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         var ct = cts.Token;
         using var cacheOwner = caching
-            ? new TaskCacheOwner()
+            ? new PromiseCacheOwner()
             : null;
 
         var options = new DataLoaderOptions
@@ -541,7 +541,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        var cache = new TaskCache(10);
+        var cache = new PromiseCache(10);
         var options = new DataLoaderOptions { Cache = cache, };
         var loader = new DataLoader<string, string>(fetch, batchScheduler, options);
         var key = "Foo";
@@ -593,7 +593,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        var cache = new TaskCache(10);
+        var cache = new PromiseCache(10);
         var options = new DataLoaderOptions { Cache = cache, };
         var loader = new DataLoader<string, string>(fetch, batchScheduler, options);
         var key = "Foo";
@@ -612,7 +612,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        var cache = new TaskCache(10);
+        var cache = new PromiseCache(10);
         var options = new DataLoaderOptions { Cache = cache, };
         var loader = new DataLoader<string, string>(fetch, batchScheduler, options);
         var key = "Foo";
@@ -820,7 +820,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        var cache = new TaskCache(10);
+        var cache = new PromiseCache(10);
         var options = new DataLoaderOptions { Cache = cache, };
         IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler, options);
         object key = "Foo";
@@ -889,7 +889,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        var cache = new TaskCache(10);
+        var cache = new PromiseCache(10);
         var options = new DataLoaderOptions { Cache = cache, };
         IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler, options);
         object key = "Foo";
@@ -908,7 +908,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = TestHelpers.CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        var cache = new TaskCache(10);
+        var cache = new PromiseCache(10);
         var options = new DataLoaderOptions { Cache = cache, };
         IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler, options);
         const string key = "Foo";

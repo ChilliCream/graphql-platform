@@ -13,7 +13,7 @@ public interface IDataLoaderDiagnosticEvents
     /// <param name="task">The task that has been resolved.</param>
     void ResolvedTaskFromCache(
         IDataLoader dataLoader,
-        TaskCacheKey cacheKey,
+        PromiseCacheKey cacheKey,
         Task task);
 
     /// <summary>

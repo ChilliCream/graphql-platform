@@ -3,7 +3,7 @@ namespace GreenDonut;
 /// <summary>
 /// A memorization cache for <c>DataLoader</c>.
 /// </summary>
-public interface ITaskCache
+public interface IPromiseCache
 {
     /// <summary>
     /// Gets the maximum size of the cache.
@@ -17,11 +17,11 @@ public interface ITaskCache
 
     /// <summary>
     /// Gets a task from the cache if a task with the specified <paramref name="key"/> already
-    /// exists; otherwise, the <paramref name="createTask"/> factory is used to create a new
+    /// exists; otherwise, the <paramref name="createPromise"/> factory is used to create a new
     /// task and add it to the cache.
     /// </summary>
     /// <param name="key">A cache entry key.</param>
-    /// <param name="createTask">A factory to create the new task.</param>
+    /// <param name="createPromise">A factory to create the new task.</param>
     /// <typeparam name="T">The task type.</typeparam>
     /// <returns>
     /// Returns either the retrieved or new task from the cache.
@@ -30,45 +30,48 @@ public interface ITaskCache
     /// Throws if <paramref name="key"/> is <c>null</c>.
     /// </exception>
     /// <exception cref="ArgumentNullException">
-    /// Throws if <paramref name="createTask"/> is <c>null</c>.
+    /// Throws if <paramref name="createPromise"/> is <c>null</c>.
     /// </exception>
-    Task<T> GetOrAddTask<T>(TaskCacheKey key, Func<TaskCacheKey, Promise<T>> createTask);
+    Task<T> GetOrAddTask<T>(PromiseCacheKey key, Func<PromiseCacheKey, Promise<T>> createPromise);
 
     /// <summary>
     /// Tries to add a single task to the cache. It does nothing if the
     /// task exists already.
     /// </summary>
     /// <param name="key">A cache entry key.</param>
-    /// <param name="value">A task.</param>
+    /// <param name="promise">A task.</param>
+    /// <param name="additionalLookup">
+    /// Specifies that this promise was already added to the cache with a different key.
+    /// </param>
     /// <typeparam name="T">The task type.</typeparam>
     /// <exception cref="ArgumentNullException">
     /// Throws if <paramref name="key"/> is <c>null</c>.
     /// </exception>
     /// <exception cref="ArgumentNullException">
-    /// Throws if <paramref name="value"/> is <c>null</c>.
+    /// Throws if <paramref name="promise"/> is <c>null</c>.
     /// </exception>
     /// <returns>
     /// A value indicating whether the add was successful.
     /// </returns>
-    bool TryAdd<T>(TaskCacheKey key, Promise<T> value);
+    bool TryAdd<T>(PromiseCacheKey key, Promise<T> promise, bool additionalLookup = false);
 
     /// <summary>
     /// Tries to add a single task to the cache. It does nothing if the
     /// task exists already.
     /// </summary>
     /// <param name="key">A cache entry key.</param>
-    /// <param name="createTask">A factory to create the new task.</param>
+    /// <param name="createPromise">A factory to create the new task.</param>
     /// <typeparam name="T">The task type.</typeparam>
     /// <exception cref="ArgumentNullException">
     /// Throws if <paramref name="key"/> is <c>null</c>.
     /// </exception>
     /// <exception cref="ArgumentNullException">
-    /// Throws if <paramref name="createTask"/> is <c>null</c>.
+    /// Throws if <paramref name="createPromise"/> is <c>null</c>.
     /// </exception>
     /// <returns>
     /// A value indicating whether the add was successful.
     /// </returns>
-    bool TryAdd<T>(TaskCacheKey key, Func<Promise<T>> createTask);
+    bool TryAdd<T>(PromiseCacheKey key, Func<Promise<T>> createPromise);
 
     /// <summary>
     /// Removes a specific task from the cache.
@@ -77,7 +80,11 @@ public interface ITaskCache
     /// <exception cref="ArgumentNullException">
     /// Throws if <paramref name="key"/> is <c>null</c>.
     /// </exception>
-    bool TryRemove(TaskCacheKey key);
+    bool TryRemove(PromiseCacheKey key);
+
+    IDisposable Subscribe<T>(
+        Action<IPromiseCache, Promise<T>> next,
+        string? skipCacheKeyType);
 
     /// <summary>
     /// Clears the complete cache.

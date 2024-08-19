@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using static GreenDonut.NoopDataLoaderDiagnosticEventListener;
 using static GreenDonut.Errors;
 
@@ -53,17 +54,37 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         _batchScheduler = batchScheduler;
         _maxBatchSize = options.MaxBatchSize;
         CacheKeyType = GetCacheKeyType(GetType());
+
+        // ReSharper disable VirtualMemberCallInConstructor
+        if (Cache is not null && CacheObservers.Count > 0)
+        {
+            foreach (var observer in CacheObservers)
+            {
+                observer.Accept(Cache);
+            }
+        }
+        // ReSharper restore VirtualMemberCallInConstructor
     }
 
     /// <summary>
     /// Gets access to the cache of this DataLoader.
     /// </summary>
-    protected ITaskCache? Cache { get; }
+    protected IPromiseCache? Cache { get; }
 
     /// <summary>
     /// Gets the cache key type for this DataLoader.
     /// </summary>
     protected virtual string CacheKeyType { get; }
+
+    /// <summary>
+    /// Gets the cache observers for this DataLoader.
+    /// <remarks>
+    /// Do not use any context from the implementing class as
+    /// this property is used in the base class constructor.
+    /// </remarks>
+    /// </summary>
+    protected virtual IImmutableList<IPromiseCacheObserver> CacheObservers { get; } =
+        ImmutableList<IPromiseCacheObserver>.Empty;
 
     /// <inheritdoc />
     public Task<TValue> LoadAsync(TKey key, CancellationToken cancellationToken = default)
@@ -74,7 +95,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         }
 
         var cached = true;
-        TaskCacheKey cacheKey = new(CacheKeyType, key);
+        PromiseCacheKey cacheKey = new(CacheKeyType, key);
 
         lock (_sync)
         {
@@ -135,7 +156,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
                 cancellationToken.ThrowIfCancellationRequested();
 
                 cached = true;
-                TaskCacheKey cacheKey = new(CacheKeyType, key);
+                PromiseCacheKey cacheKey = new(CacheKeyType, key);
                 var cachedTask = Cache.GetOrAddTask(cacheKey, k => CreatePromise((TKey)k.Key));
 
                 if (cached)
@@ -176,7 +197,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
         if (Cache is not null)
         {
-            TaskCacheKey cacheKey = new(CacheKeyType, key);
+            PromiseCacheKey cacheKey = new(CacheKeyType, key);
             Cache.TryRemove(cacheKey);
         }
     }
@@ -196,7 +217,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
         if (Cache is not null)
         {
-            TaskCacheKey cacheKey = new(CacheKeyType, key);
+            PromiseCacheKey cacheKey = new(CacheKeyType, key);
             Cache.TryAdd(cacheKey, new Promise<TValue>(value));
         }
     }
@@ -212,7 +233,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         {
             if (Cache is not null)
             {
-                TaskCacheKey cacheKey = new(CacheKeyType, key);
+                PromiseCacheKey cacheKey = new(CacheKeyType, key);
                 Cache.TryRemove(cacheKey);
             }
 
@@ -350,13 +371,13 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
         foreach (var item in items)
         {
-            TaskCacheKey cacheKey = new(cacheKeyType, key(item));
+            PromiseCacheKey cacheKey = new(cacheKeyType, key(item));
             Cache.TryAdd(cacheKey, () => new Promise<TV>(value(item)));
         }
     }
 
     /// <summary>
-    /// A helper to adds an additional cache lookup to a resolved entity.
+    /// A helper to adds another cache lookup to a resolved entity.
     /// </summary>
     /// <param name="cacheKeyType">
     /// The cache key type that shall be used to refer to the entity.
@@ -376,7 +397,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             return;
         }
 
-        TaskCacheKey cacheKey = new(cacheKeyType, key);
+        PromiseCacheKey cacheKey = new(cacheKeyType, key);
         Cache.TryAdd(cacheKey, () => new Promise<TV>(value));
     }
 

@@ -5,6 +5,8 @@ namespace GreenDonut;
 /// </summary>
 public interface IPromise
 {
+    Type Type { get; }
+
     /// <summary>
     /// Gets the task that represents the async work for this promise.
     /// </summary>

@@ -58,8 +58,25 @@ public readonly struct Promise<TValue> : IPromise
 
     Task IPromise.Task => Task;
 
+    Type IPromise.Type => typeof(TValue);
+
     void IPromise.TryCancel()
         => _completionSource?.TrySetCanceled();
+
+    public void OnComplete<TState>(
+        Action<Promise<TValue>, TState> callback,
+        TState state)
+    {
+        Task.ContinueWith(
+            (task, s) =>
+            {
+                if (task.IsCompletedSuccessfully)
+                {
+                    callback(new Promise<TValue>(task.Result), (TState)s!);
+                }
+            },
+            state);
+    }
 
     /// <summary>
     /// Implicitly converts a <see cref="TaskCompletionSource{TResult}"/> to a promise.

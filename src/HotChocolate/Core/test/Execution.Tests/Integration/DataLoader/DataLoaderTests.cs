@@ -518,7 +518,7 @@ public class DataLoaderTests
         public bool BatchErrorTouched;
         public bool BatchItemErrorTouched;
 
-        public override void ResolvedTaskFromCache(IDataLoader dataLoader, TaskCacheKey cacheKey, Task task)
+        public override void ResolvedTaskFromCache(IDataLoader dataLoader, PromiseCacheKey cacheKey, Task task)
         {
             ResolvedTaskFromCacheTouched = true;
         }

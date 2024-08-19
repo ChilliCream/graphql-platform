@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace GreenDonut;
 
 public class DataLoader<TKey, TValue>(
