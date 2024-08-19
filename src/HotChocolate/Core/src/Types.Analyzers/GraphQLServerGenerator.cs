@@ -21,7 +21,7 @@ public class GraphQLServerGenerator : IIncrementalGenerator
         new OperationInspector(),
         new ObjectTypeExtensionInfoInspector(),
         new InterfaceTypeInfoInspector(),
-        new RequestMiddlewareInspector(),
+        new RequestMiddlewareInspector()
     ];
 
     private static readonly ISyntaxGenerator[] _generators =
@@ -30,6 +30,7 @@ public class GraphQLServerGenerator : IIncrementalGenerator
         new TypesSyntaxGenerator(),
         new MiddlewareGenerator(),
         new DataLoaderModuleGenerator(),
+        new DataLoaderGenerator()
     ];
 
     private static readonly Func<SyntaxNode, bool> _predicate;

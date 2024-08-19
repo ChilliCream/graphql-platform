@@ -46,7 +46,9 @@ public sealed class DataLoaderModuleFileBuilder : IDisposable
 
     public void WriteBeginClass()
     {
-        _writer.WriteIndentedLine("public static partial class {0}DataLoaderServiceExtensions", _moduleName);
+        _writer.WriteIndentedLine(
+            "public static partial class {0}DataLoaderServiceExtensions",
+            _moduleName);
         _writer.WriteIndentedLine("{");
         _writer.IncreaseIndent();
     }

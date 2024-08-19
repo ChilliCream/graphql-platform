@@ -22,6 +22,12 @@ public sealed class MiddlewareGenerator : ISyntaxGenerator
 
         var module = syntaxInfos.GetModuleInfo(compilation.AssemblyName, out _);
 
+        // the generator is disabled.
+        if(module.Options == ModuleOptions.Disabled)
+        {
+            return;
+        }
+
         if((module.Options & ModuleOptions.RegisterTypes) != ModuleOptions.RegisterTypes)
         {
             return;

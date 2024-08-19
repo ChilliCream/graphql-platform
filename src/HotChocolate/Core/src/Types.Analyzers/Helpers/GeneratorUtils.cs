@@ -19,6 +19,12 @@ internal static class GeneratorUtils
             }
         }
 
+        if(syntaxInfos.Any(t => t is DataLoaderModuleInfo))
+        {
+            defaultModule = false;
+            return new ModuleInfo(CreateModuleName(assemblyName), ModuleOptions.Disabled);
+        }
+
         defaultModule = true;
         return new ModuleInfo(CreateModuleName(assemblyName), ModuleOptions.Default);
     }

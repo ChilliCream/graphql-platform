@@ -13,13 +13,16 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
         SourceProductionContext context,
         Compilation compilation,
         ImmutableArray<SyntaxInfo> syntaxInfos)
-        => Execute(context, syntaxInfos);
-
-    private static void Execute(
-        SourceProductionContext context,
-        ImmutableArray<SyntaxInfo> syntaxInfos)
     {
         if (syntaxInfos.IsEmpty)
+        {
+            return;
+        }
+
+        var module = syntaxInfos.GetModuleInfo(compilation.AssemblyName, out _);
+
+        // the generator is disabled.
+        if(module.Options == ModuleOptions.Disabled)
         {
             return;
         }

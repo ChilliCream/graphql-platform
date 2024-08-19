@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis;
 
 namespace HotChocolate.Types.Analyzers.Generators;
 
-public class DataLoaderModuleGenerator : ISyntaxGenerator
+public sealed class DataLoaderModuleGenerator : ISyntaxGenerator
 {
     public void Generate(
         SourceProductionContext context,

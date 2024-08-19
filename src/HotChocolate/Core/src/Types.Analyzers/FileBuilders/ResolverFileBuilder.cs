@@ -156,7 +156,7 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                         }
 
                         _writer.WriteLine();
-                        _writer.WriteIndentedLine("});");
+                        _writer.WriteIndentedLine("})!;");
                     }
                 }
 
@@ -719,7 +719,7 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
     {
         if (defaultValue == null)
         {
-            return "null";
+            return "default";
         }
 
         if (type.SpecialType == SpecialType.System_String)
