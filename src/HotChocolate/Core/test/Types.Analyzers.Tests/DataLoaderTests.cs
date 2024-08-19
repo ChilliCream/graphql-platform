@@ -11,6 +11,7 @@ public class DataLoaderTests
             using System.Threading;
             using System.Threading.Tasks;
             using HotChocolate;
+            using GreenDonut;
 
             namespace TestNamespace;
 
@@ -34,6 +35,7 @@ public class DataLoaderTests
             using System.Threading;
             using System.Threading.Tasks;
             using HotChocolate;
+            using GreenDonut;
 
             namespace TestNamespace;
 
@@ -55,6 +57,7 @@ public class DataLoaderTests
             using System.Threading;
             using System.Threading.Tasks;
             using HotChocolate;
+            using GreenDonut;
 
             namespace TestNamespace;
 

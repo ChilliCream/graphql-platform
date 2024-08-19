@@ -101,6 +101,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
         ImmutableArray<SyntaxInfo> syntaxInfos,
         StringBuilder sb)
     {
+        var hasResolvers = false;
         var typeLookup = new DefaultLocalTypeLookup(syntaxInfos);
 
         var generator = new ResolverFileBuilder(sb);
@@ -153,11 +154,15 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
                 }
 
                 generator.WriteEndClass();
+                hasResolvers = true;
             }
 
             generator.WriteEndNamespace();
         }
 
-        context.AddSource(WellKnownFileNames.ResolversFile, sb.ToString());
+        if (hasResolvers)
+        {
+            context.AddSource(WellKnownFileNames.ResolversFile, sb.ToString());
+        }
     }
 }
