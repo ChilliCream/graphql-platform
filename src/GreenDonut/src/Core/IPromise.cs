@@ -5,6 +5,9 @@ namespace GreenDonut;
 /// </summary>
 public interface IPromise
 {
+    /// <summary>
+    /// Gets the type of the value this promise will produce.
+    /// </summary>
     Type Type { get; }
 
     /// <summary>
