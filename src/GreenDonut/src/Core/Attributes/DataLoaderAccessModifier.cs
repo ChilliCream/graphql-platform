@@ -1,4 +1,4 @@
-namespace HotChocolate;
+namespace GreenDonut;
 
 /// <summary>
 /// Specifies the access modifiers for generated DataLoader.

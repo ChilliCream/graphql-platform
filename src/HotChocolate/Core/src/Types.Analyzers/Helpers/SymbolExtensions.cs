@@ -7,6 +7,12 @@ namespace HotChocolate.Types.Analyzers.Helpers;
 
 public static class SymbolExtensions
 {
+    public static bool IsNullableRefType(this ITypeSymbol typeSymbol)
+    {
+        return typeSymbol.IsReferenceType
+            && typeSymbol.NullableAnnotation == NullableAnnotation.Annotated;
+    }
+
     public static string ToFullyQualified(this ITypeSymbol typeSymbol)
         => typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 

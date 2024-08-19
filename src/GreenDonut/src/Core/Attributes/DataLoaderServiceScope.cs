@@ -1,4 +1,4 @@
-namespace HotChocolate;
+namespace GreenDonut;
 
 /// <summary>
 /// Specifies the service scope for a DataLoader.

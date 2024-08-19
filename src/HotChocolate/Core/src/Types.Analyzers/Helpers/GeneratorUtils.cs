@@ -19,6 +19,12 @@ internal static class GeneratorUtils
             }
         }
 
+        if(syntaxInfos.Any(t => t is DataLoaderModuleInfo))
+        {
+            defaultModule = false;
+            return new ModuleInfo(CreateModuleName(assemblyName), ModuleOptions.Disabled);
+        }
+
         defaultModule = true;
         return new ModuleInfo(CreateModuleName(assemblyName), ModuleOptions.Default);
     }
@@ -37,7 +43,7 @@ internal static class GeneratorUtils
         return new DataLoaderDefaultsInfo(null, null, true, true);
     }
 
-    private static string CreateModuleName(string? assemblyName)
+    public static string CreateModuleName(string? assemblyName)
         => assemblyName is null
             ? "AssemblyTypes"
             : assemblyName.Split('.').Last() + "Types";

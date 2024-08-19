@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Basic.Reference.Assemblies;
 using CookieCrumble;
+using GreenDonut;
 using HotChocolate.Types.Analyzers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -27,7 +28,7 @@ internal static partial class TestHelper
         // Create a Roslyn compilation for the syntax tree.
         var compilation = CSharpCompilation.Create(
             assemblyName: "Tests",
-            syntaxTrees: new[] { syntaxTree },
+            syntaxTrees: [syntaxTree],
             ReferenceAssemblies.Net80.Concat(references));
 
         // Create an instance of our GraphQLServerGenerator incremental source generator.
@@ -84,11 +85,7 @@ internal static partial class TestHelper
         using var stream = new MemoryStream();
         using var jsonWriter = new Utf8JsonWriter(
             stream,
-            new JsonWriterOptions
-            {
-                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-                Indented = true
-            });
+            new JsonWriterOptions { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping, Indented = true });
 
         jsonWriter.WriteStartArray();
 

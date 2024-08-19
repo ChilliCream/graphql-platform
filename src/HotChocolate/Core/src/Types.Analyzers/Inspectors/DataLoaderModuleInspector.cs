@@ -9,7 +9,7 @@ using static HotChocolate.Types.Analyzers.WellKnownTypes;
 
 namespace HotChocolate.Types.Analyzers.Inspectors;
 
-public sealed class ModuleInspector : ISyntaxInspector
+public sealed class DataLoaderModuleInspector : ISyntaxInspector
 {
     public IReadOnlyList<ISyntaxFilter> Filters => [AssemblyAttributeList.Instance];
 
@@ -30,20 +30,12 @@ public sealed class ModuleInspector : ISyntaxInspector
                 var attributeContainingTypeSymbol = attributeSymbol.ContainingType;
                 var fullName = attributeContainingTypeSymbol.ToDisplayString();
 
-                if (fullName.Equals(ModuleAttribute, Ordinal) &&
+                if (fullName.Equals(DataLoaderModuleAttribute, Ordinal) &&
                     attributeSyntax.ArgumentList is { Arguments.Count: > 0, })
                 {
                     var nameExpr = attributeSyntax.ArgumentList.Arguments[0].Expression;
                     var name = context.SemanticModel.GetConstantValue(nameExpr).ToString();
-
-                    var features = (int)ModuleOptions.Default;
-                    if (attributeSyntax.ArgumentList.Arguments.Count > 1)
-                    {
-                        var featuresExpr = attributeSyntax.ArgumentList.Arguments[1].Expression;
-                        features = (int)context.SemanticModel.GetConstantValue(featuresExpr).Value!;
-                    }
-
-                    syntaxInfo = new ModuleInfo(name, (ModuleOptions)features);
+                    syntaxInfo = new DataLoaderModuleInfo(name);
                     return true;
                 }
             }

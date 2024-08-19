@@ -156,7 +156,7 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                         }
 
                         _writer.WriteLine();
-                        _writer.WriteIndentedLine("});");
+                        _writer.WriteIndentedLine("})!;");
                     }
                 }
 
@@ -565,9 +565,10 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                     var defaultValueString = ConvertDefaultValueToString(defaultValue, parameter.Type);
 
                     _writer.WriteIndentedLine(
-                        "var args{0} = context.GetGlobalStateOrDefault<{1}>(\"{2}\", {3});",
+                        "var args{0} = context.GetGlobalStateOrDefault<{1}{2}>(\"{3}\", {4});",
                         i,
                         parameter.Type.ToFullyQualified(),
+                        parameter.Type.IsNullableRefType() ? "?" : string.Empty,
                         parameter.Key,
                         defaultValueString);
                     break;
@@ -604,9 +605,10 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                     var defaultValueString = ConvertDefaultValueToString(defaultValue, parameter.Type);
 
                     _writer.WriteIndentedLine(
-                        "var args{0} = context.GetScopedStateOrDefault<{1}>(\"{2}\", {3});",
+                        "var args{0} = context.GetScopedStateOrDefault<{1}{2}>(\"{3}\", {4});",
                         i,
                         parameter.Type.ToFullyQualified(),
+                        parameter.Type.IsNullableRefType() ? "?" : string.Empty,
                         parameter.Key,
                         defaultValueString);
                     break;
@@ -643,9 +645,10 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                     var defaultValueString = ConvertDefaultValueToString(defaultValue, parameter.Type);
 
                     _writer.WriteIndentedLine(
-                        "var args{0} = context.GetLocalStateOrDefault<{1}>(\"{2}\", {3});",
+                        "var args{0} = context.GetLocalStateOrDefault<{1}{2}>(\"{3}\", {4});",
                         i,
                         parameter.Type.ToFullyQualified(),
+                        parameter.Type.IsNullableRefType() ? "?" : string.Empty,
                         parameter.Key,
                         defaultValueString);
                     break;
@@ -719,7 +722,7 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
     {
         if (defaultValue == null)
         {
-            return "null";
+            return "default";
         }
 
         if (type.SpecialType == SpecialType.System_String)
