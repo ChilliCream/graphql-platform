@@ -943,7 +943,6 @@ public class DataLoaderTests(ITestOutputHelper output)
 
         // assert
         Assert.Same(entity1, entity2);
-
     }
 
     private class TestDataLoader1(

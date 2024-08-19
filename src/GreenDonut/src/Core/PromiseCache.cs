@@ -351,8 +351,7 @@ public sealed class PromiseCache : IPromiseCache
 #else
             if (promise.Task.IsCompletedSuccessfully
 #endif
-                && (skipCacheKeyType is null
-                    || key.Type.Equals(skipCacheKeyType, StringComparison.Ordinal)))
+                && skipCacheKeyType?.Equals(key.Type, StringComparison.Ordinal) != true)
             {
                 next(owner, promise);
             }
