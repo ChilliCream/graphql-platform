@@ -34,7 +34,7 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
 
             if (dataLoader.MethodSymbol.Parameters.Length == 0)
             {
-                context.ReportDiagnostic(
+                dataLoader.AddDiagnostic(
                     Diagnostic.Create(
                         Errors.KeyParameterMissing,
                         Location.Create(
@@ -43,13 +43,25 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
                 continue;
             }
 
-            if (dataLoader.MethodSymbol.DeclaredAccessibility is not Accessibility.Public and
+            if (dataLoader.MethodSymbol.DeclaredAccessibility is
+                not Accessibility.Public and
                 not Accessibility.Internal and
                 not Accessibility.ProtectedAndInternal)
             {
-                context.ReportDiagnostic(
+                dataLoader.AddDiagnostic(
                     Diagnostic.Create(
                         Errors.MethodAccessModifierInvalid,
+                        Location.Create(
+                            dataLoader.MethodSyntax.SyntaxTree,
+                            dataLoader.MethodSyntax.Modifiers.Span)));
+                continue;
+            }
+
+            if (dataLoader.MethodSymbol.IsGenericMethod)
+            {
+                dataLoader.AddDiagnostic(
+                    Diagnostic.Create(
+                        Errors.DataLoaderCannotBeGeneric,
                         Location.Create(
                             dataLoader.MethodSyntax.SyntaxTree,
                             dataLoader.MethodSyntax.Modifiers.Span)));
