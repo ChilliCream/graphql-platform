@@ -21,7 +21,7 @@ namespace TestNamespace
     }
 
     public sealed class EntitiesByIdDataLoader
-        : global::GreenDonut.DataLoaderBase<int, Entity>
+        : global::GreenDonut.DataLoaderBase<int, Entity[]>
         , IEntitiesByIdDataLoader
     {
         private readonly global::System.IServiceProvider _services;

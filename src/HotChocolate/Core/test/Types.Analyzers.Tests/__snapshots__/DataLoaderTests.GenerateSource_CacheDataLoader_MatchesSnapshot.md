@@ -29,7 +29,7 @@ namespace TestNamespace
         public EntityByIdDataLoader(
             global::System.IServiceProvider services,
             global::GreenDonut.DataLoaderOptions options)
-            : base(options)
+            : base(AutoBatchScheduler.Default, options)
         {
             _services = services ??
                 throw new global::System.ArgumentNullException(nameof(services));
