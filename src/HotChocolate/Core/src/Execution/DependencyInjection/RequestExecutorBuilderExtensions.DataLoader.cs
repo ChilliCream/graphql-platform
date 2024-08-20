@@ -8,10 +8,6 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static partial class RequestExecutorBuilderExtensions
 {
-    public static IRequestExecutorBuilder AddDataLoaderAutoCaching(
-        this IRequestExecutorBuilder builder)
-        => builder.TryAddTypeInterceptor<DataLoaderRootFieldTypeInterceptor>();
-
     public static IRequestExecutorBuilder AddDataLoader<T>(
         this IRequestExecutorBuilder builder)
         where T : class, IDataLoader

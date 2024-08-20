@@ -17,7 +17,6 @@ public static class AutoCacheDataLoaderTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .AddType(typeof(CatExtensions))
-                .TryAddTypeInterceptor<DataLoaderRootFieldTypeInterceptor>()
                 .AddDataLoader<CatDataLoader>()
                 .BuildRequestExecutorAsync();
 
