@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace GreenDonut;
 
 /// <summary>
@@ -13,6 +15,12 @@ namespace GreenDonut;
 /// </summary>
 public interface IDataLoader
 {
+    /// <summary>
+    /// Gets or sets the context data which can be used to store
+    /// transient state on the DataLoader.
+    /// </summary>
+    IImmutableDictionary<string, object?> ContextData { get; set; }
+
     /// <summary>
     /// Loads a single value by key. This call may return a cached value
     /// or enqueues this single request for batching if enabled.

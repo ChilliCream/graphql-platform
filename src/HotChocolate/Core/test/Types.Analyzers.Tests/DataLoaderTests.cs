@@ -203,4 +203,79 @@ public class DataLoaderTests
             }
             """).MatchMarkdownAsync();
     }
+
+    [Fact]
+    public async Task GenerateSource_BatchDataLoader_With_Optional_State_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal static class TestClass
+            {
+                [DataLoader]
+                public static Task<Dictionary<int, string?>> GetEntityByIdAsync(
+                    IReadOnlyList<int> entityIds,
+                    [DataLoaderState("key")] string? state,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task GenerateSource_BatchDataLoader_With_Required_State_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal static class TestClass
+            {
+                [DataLoader]
+                public static Task<Dictionary<int, string?>> GetEntityByIdAsync(
+                    IReadOnlyList<int> entityIds,
+                    [DataLoaderState("key")] string state,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task GenerateSource_BatchDataLoader_With_State_With_Default_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal static class TestClass
+            {
+                [DataLoader]
+                public static Task<Dictionary<int, string?>> GetEntityByIdAsync(
+                    IReadOnlyList<int> entityIds,
+                    [DataLoaderState("key")] string state = "default",
+                    CancellationToken cancellationToken = default)
+                    => default!;
+            }
+            """).MatchMarkdownAsync();
+    }
 }

@@ -5,6 +5,7 @@ using HotChocolate.Types.Analyzers.Inspectors;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+using static HotChocolate.Types.Analyzers.Helpers.GeneratorUtils;
 
 namespace HotChocolate.Types.Analyzers.FileBuilders;
 
@@ -205,9 +206,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
         DataLoaderKind kind,
         ITypeSymbol key,
         ITypeSymbol value,
-        Dictionary<int, string> services,
-        int parameterCount,
-        int cancelIndex)
+        ImmutableArray<DataLoaderParameterInfo> parameters)
     {
         _writer.WriteIndentedLine(
             "protected override async global::{0} FetchAsync(",
@@ -234,29 +233,54 @@ public sealed class DataLoaderFileBuilder : IDisposable
 
         using (_writer.IncreaseIndent())
         {
-            if (isScoped)
+            if (isScoped && parameters.Any(p => p.Kind == DataLoaderParameterKind.Service))
             {
-                if (services.Count > 0)
-                {
-                    _writer.WriteIndentedLine("await using var scope = _services.CreateAsyncScope();");
-
-                    foreach (var item in services.OrderBy(t => t.Key))
-                    {
-                        _writer.WriteIndentedLine(
-                            "var p{0} = scope.ServiceProvider.GetRequiredService<{1}>();",
-                            item.Key,
-                            item.Value);
-                    }
-                }
+                _writer.WriteIndentedLine("await using var scope = _services.CreateAsyncScope();");
             }
-            else
+
+            foreach (var parameter in parameters)
             {
-                foreach (var item in services.OrderBy(t => t.Key))
+                if (parameter.Kind is DataLoaderParameterKind.Service)
                 {
                     _writer.WriteIndentedLine(
-                        "var p{0} = _services.GetRequiredService<{1}>();",
-                        item.Key,
-                        item.Value);
+                        "var {0} = {1}.GetRequiredService<{2}>();",
+                        parameter.VariableName,
+                        isScoped ? "scope.ServiceProvider" : "_services",
+                        parameter.Type.ToFullyQualified());
+                }
+                else if (parameter.Kind is DataLoaderParameterKind.ContextData)
+                {
+                    if (parameter.Parameter.HasExplicitDefaultValue)
+                    {
+                        var defaultValue = parameter.Parameter.ExplicitDefaultValue;
+                        var defaultValueString = ConvertDefaultValueToString(defaultValue, parameter.Type);
+
+                        _writer.WriteIndentedLine(
+                            "var {0} = GetStateOrDefault<{1}{2}>(\"{3}\", {4});",
+                            parameter.VariableName,
+                            parameter.Type.ToFullyQualified(),
+                            parameter.Type.PrintNullRefQualifier(),
+                            parameter.StateKey,
+                            defaultValueString);
+
+                    }
+                    else if (parameter.Type.IsNullableType())
+                    {
+                        _writer.WriteIndentedLine(
+                            "var {0} = GetState<{1}{2}>(\"{3}\");",
+                            parameter.VariableName,
+                            parameter.Type.ToFullyQualified(),
+                            parameter.Type.PrintNullRefQualifier(),
+                            parameter.StateKey);
+                    }
+                    else
+                    {
+                        _writer.WriteIndentedLine(
+                            "var {0} = GetRequiredState<{1}>(\"{2}\");",
+                            parameter.VariableName,
+                            parameter.Type.ToFullyQualified(),
+                            parameter.StateKey);
+                    }
                 }
             }
 
@@ -274,7 +298,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
                     {
                         _writer.WriteIndentedLine("var key = keys[i];");
                         _writer.WriteIndented("var value = ");
-                        WriteFetchCall(method, containingType, kind, parameterCount, cancelIndex);
+                        WriteFetchCall(method, containingType, kind, parameters);
                         _writer.WriteIndentedLine(
                             "results.Span[i] = Result<{0}{1}>.Resolve(value);",
                             value.ToFullyQualified(),
@@ -301,7 +325,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
             else
             {
                 _writer.WriteIndented("var temp = ");
-                WriteFetchCall(method, containingType, kind, parameterCount, cancelIndex);
+                WriteFetchCall(method, containingType, kind, parameters);
                 _writer.WriteIndentedLine("CopyResults(keys, results.Span, temp);");
             }
         }
@@ -426,17 +450,18 @@ public sealed class DataLoaderFileBuilder : IDisposable
         IMethodSymbol fetchMethod,
         string containingType,
         DataLoaderKind kind,
-        int parameterCount,
-        int cancelIndex)
+        ImmutableArray<DataLoaderParameterInfo> parameters)
     {
         _writer.Write("await {0}.{1}(", containingType, fetchMethod.Name);
 
-        for (var i = 0; i < parameterCount; i++)
+        for (var i = 0; i < parameters.Length; i++)
         {
             if (i > 0)
             {
                 _writer.Write(", ");
             }
+
+            var parameter = parameters[i];
 
             if (i == 0)
             {
@@ -445,14 +470,9 @@ public sealed class DataLoaderFileBuilder : IDisposable
                         ? "key"
                         : "keys");
             }
-            else if (i == cancelIndex)
-            {
-                _writer.Write("ct");
-            }
             else
             {
-                _writer.Write("p");
-                _writer.Write(i);
+                _writer.Write(parameter.VariableName);
             }
         }
 
