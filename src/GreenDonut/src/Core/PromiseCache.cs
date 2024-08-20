@@ -155,7 +155,7 @@ public sealed class PromiseCache : IPromiseCache
     {
         var promise = Promise<T>.CreateClone(value);
 
-        lock (_sync)
+        lock (_promises)
         {
             _promises.Add(promise);
         }
@@ -177,7 +177,7 @@ public sealed class PromiseCache : IPromiseCache
         var buffer = ArrayPool<Promise<T>>.Shared.Rent(values.Count);
         var span = buffer.AsSpan().Slice(values.Count);
 
-        lock (_sync)
+        lock (_promises)
         {
             for (var i = 0; i < values.Count; i++)
             {
@@ -219,7 +219,7 @@ public sealed class PromiseCache : IPromiseCache
             _ => ImmutableArray.Create<Subscription>(subscription),
             (_, list) => list.Add(subscription));
 
-        lock (_sync)
+        lock (_promises)
         {
             foreach (var promise in _promises)
             {
@@ -228,7 +228,10 @@ public sealed class PromiseCache : IPromiseCache
                     promises.Add((null, promise));
                 }
             }
+        }
 
+        lock (_sync)
+        {
             var first = _head;
             var current = first;
 
