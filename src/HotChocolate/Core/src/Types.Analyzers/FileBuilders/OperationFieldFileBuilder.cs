@@ -14,7 +14,7 @@ public sealed class OperationFieldFileBuilder : IDisposable
 
     public OperationFieldFileBuilder()
     {
-        _sb = StringBuilderPool.Get();
+        _sb = PooledObjects.GetStringBuilder();
         _writer = new CodeWriter(_sb);
     }
 
@@ -125,7 +125,7 @@ public sealed class OperationFieldFileBuilder : IDisposable
             return;
         }
 
-        StringBuilderPool.Return(_sb);
+        PooledObjects.Return(_sb);
         _sb = default!;
         _writer = default!;
         _disposed = true;

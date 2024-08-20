@@ -14,4 +14,14 @@ public static class DataLoaders
 
     public static int CreateLookupKey(Guid key)
         => default!;
+
+    [DataLoader]
+    public static Task<ILookup<int, string>> GetSomeInfoGroupedById(
+        IReadOnlyList<int> keys)
+        => default!;
+
+    [DataLoader]
+    public static Task<string> GetSomeInfoCacheById(
+        int key)
+        => default!;
 }

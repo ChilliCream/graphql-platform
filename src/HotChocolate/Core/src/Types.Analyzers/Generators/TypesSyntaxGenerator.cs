@@ -27,7 +27,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
             return;
         }
 
-        var sb = StringBuilderPool.Get();
+        var sb = PooledObjects.GetStringBuilder();
 
         WriteTypes(context, syntaxInfos, sb);
 
@@ -35,7 +35,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
 
         WriteResolvers(context, syntaxInfos, sb);
 
-        StringBuilderPool.Return(sb);
+        PooledObjects.Return(sb);
     }
 
     private static void WriteTypes(

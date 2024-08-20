@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types.Analyzers.Filters;
+using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -16,7 +17,7 @@ public sealed class DataLoaderInspector : ISyntaxInspector
         GeneratorSyntaxContext context,
         [NotNullWhen(true)] out SyntaxInfo? syntaxInfo)
     {
-        if (context.Node is MethodDeclarationSyntax { AttributeLists.Count: > 0, } methodSyntax)
+        if (context.Node is MethodDeclarationSyntax { AttributeLists.Count: > 0 } methodSyntax)
         {
             foreach (var attributeListSyntax in methodSyntax.AttributeLists)
             {
@@ -35,13 +36,11 @@ public sealed class DataLoaderInspector : ISyntaxInspector
                     if (fullName.Equals(WellKnownAttributes.DataLoaderAttribute, Ordinal) &&
                         context.SemanticModel.GetDeclaredSymbol(methodSyntax) is { } methodSymbol)
                     {
-                        var dataLoader = new DataLoaderInfo(
+                        syntaxInfo = new DataLoaderInfo(
                             attributeSyntax,
                             attributeSymbol,
                             methodSymbol,
                             methodSyntax);
-
-                        syntaxInfo = dataLoader;
                         return true;
                     }
                 }

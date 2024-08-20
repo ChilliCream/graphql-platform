@@ -2,11 +2,11 @@ using System.Text;
 
 namespace HotChocolate.Types.Analyzers.Helpers;
 
-public static class StringBuilderPool
+public static class PooledObjects
 {
     private static StringBuilder? _stringBuilder;
 
-    public static StringBuilder Get()
+    public static StringBuilder GetStringBuilder()
     {
         var stringBuilder = Interlocked.Exchange(ref _stringBuilder, null);
         return stringBuilder ?? new StringBuilder();
