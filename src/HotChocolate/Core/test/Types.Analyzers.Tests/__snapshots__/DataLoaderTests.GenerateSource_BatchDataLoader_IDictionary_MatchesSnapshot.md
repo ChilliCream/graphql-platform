@@ -1,4 +1,4 @@
-# GenerateSource_BatchDataLoader_MatchesSnapshot
+# GenerateSource_BatchDataLoader_IDictionary_MatchesSnapshot
 
 ## GreenDonutDataLoader.735550c.g.cs
 
@@ -16,12 +16,12 @@ using GreenDonut;
 namespace TestNamespace
 {
     public interface IEntityByIdDataLoader
-        : global::GreenDonut.IDataLoader<int, Entity>
+        : global::GreenDonut.IDataLoader<int, string>
     {
     }
 
     public sealed class EntityByIdDataLoader
-        : global::GreenDonut.DataLoaderBase<int, Entity>
+        : global::GreenDonut.DataLoaderBase<int, string>
         , IEntityByIdDataLoader
     {
         private readonly global::System.IServiceProvider _services;
@@ -38,7 +38,7 @@ namespace TestNamespace
 
         protected override async global::System.Threading.Tasks.ValueTask FetchAsync(
             global::System.Collections.Generic.IReadOnlyList<int> keys,
-            global::System.Memory<GreenDonut.Result<Entity>> results,
+            global::System.Memory<GreenDonut.Result<string>> results,
             global::System.Threading.CancellationToken ct)
         {
             var temp = await TestNamespace.TestClass.GetEntityByIdAsync(keys, ct).ConfigureAwait(false);
@@ -47,19 +47,19 @@ namespace TestNamespace
 
         private void CopyResults(
             global::System.Collections.Generic.IReadOnlyList<int> keys,
-            global::System.Span<GreenDonut.Result<Entity>> results,
-            global::System.Collections.Generic.IReadOnlyDictionary<int, Entity> resultMap)
+            global::System.Span<GreenDonut.Result<string>> results,
+            global::System.Collections.Generic.IDictionary<int, string> resultMap)
         {
             for (var i = 0; i < keys.Count; i++)
             {
                 var key = keys[i];
                 if (resultMap.TryGetValue(key, out var value))
                 {
-                    results[i] = global::GreenDonut.Result<Entity>.Resolve(value);
+                    results[i] = global::GreenDonut.Result<string>.Resolve(value);
                 }
                 else
                 {
-                    results[i] = global::GreenDonut.Result<Entity>.Reject(key);
+                    results[i] = global::GreenDonut.Result<string>.Reject(key);
                 }
             }
         }

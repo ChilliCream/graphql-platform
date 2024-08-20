@@ -47,8 +47,21 @@ public static class DataLoaderAttributeHelper
 
     public static string[] GetLookups(this AttributeData attribute)
     {
-        var lookups = attribute.NamedArguments.FirstOrDefault(
-            t => t.Key.Equals("Lookups", StringComparison.Ordinal));
+        foreach (var argument in attribute.NamedArguments)
+        {
+            if (argument.Key.Equals("Lookups", StringComparison.Ordinal)
+                && !argument.Value.IsNull
+                && argument.Value.Values.Any())
+            {
+                var values = new string[argument.Value.Values.Length];
+                for (var i = 0; i < argument.Value.Values.Length; i++)
+                {
+                    values[i] = (string)argument.Value.Values[i].Value!;
+                }
+
+                return values;
+            }
+        }
 
         return [];
     }
@@ -58,9 +71,9 @@ public static class DataLoaderAttributeHelper
         var scoped = attribute.NamedArguments.FirstOrDefault(
             t => t.Key.Equals("ServiceScope", StringComparison.Ordinal));
 
-        if (scoped.Value.Value is not null)
+        if (!scoped.Value.IsNull)
         {
-            switch ((int)scoped.Value.Value)
+            switch ((int)scoped.Value.Value!)
             {
                 case 0:
                     return null;

@@ -93,4 +93,53 @@ public class DataLoaderTests
             }
             """).MatchMarkdownAsync();
     }
+
+    [Fact]
+    public async Task GenerateSource_BatchDataLoader_IDictionary_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal static class TestClass
+            {
+                [DataLoader]
+                public static async Task<IDictionary<int, string>> GetEntityByIdAsync(
+                    IReadOnlyList<int> entityIds,
+                    CancellationToken cancellationToken) { }
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task GenerateSource_BatchDataLoader_With_Lookup_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal static class TestClass
+            {
+                [DataLoader(Lookups = [nameof(CreateLookupKey)])]
+                public static async Task<IDictionary<int, string>> GetEntityByIdAsync(
+                    IReadOnlyList<int> entityIds,
+                    CancellationToken cancellationToken) { }
+
+                public static int CreateLookupKey(string key)
+                    => default!;
+            }
+            """).MatchMarkdownAsync();
+    }
 }

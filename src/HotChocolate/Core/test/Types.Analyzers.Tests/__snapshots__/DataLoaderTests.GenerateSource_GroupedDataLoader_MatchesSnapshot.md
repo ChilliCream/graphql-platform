@@ -10,10 +10,8 @@
 
 using System;
 using System.Runtime.CompilerServices;
-using HotChocolate;
-using HotChocolate.Types;
-using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using GreenDonut;
 
 namespace TestNamespace
 {
@@ -23,7 +21,7 @@ namespace TestNamespace
     }
 
     public sealed class EntitiesByIdDataLoader
-        : global::GreenDonut.GroupedDataLoader<int, Entity>
+        : global::GreenDonut.DataLoaderBase<int, Entity>
         , IEntitiesByIdDataLoader
     {
         private readonly global::System.IServiceProvider _services;
@@ -37,15 +35,36 @@ namespace TestNamespace
             _services = services ??
                 throw new global::System.ArgumentNullException(nameof(services));
         }
-        protected override async global::System.Threading.Tasks.Task<System.Linq.ILookup<int, Entity>> LoadGroupedBatchAsync(
-            System.Collections.Generic.IReadOnlyList<int> keys,
+
+        protected override async global::System.Threading.Tasks.ValueTask FetchAsync(
+            global::System.Collections.Generic.IReadOnlyList<int> keys,
+            global::System.Memory<GreenDonut.Result<Entity>> results,
             global::System.Threading.CancellationToken ct)
         {
-            await using var scope = _services.CreateAsyncScope();
-            return await TestNamespace.TestClass.GetEntitiesByIdAsync(keys, ct).ConfigureAwait(false);
+            var temp = await TestNamespace.TestClass.GetEntitiesByIdAsync(keys, ct).ConfigureAwait(false);
+            CopyResults(keys, results.Span, temp);
+        }
+
+        private void CopyResults(
+            global::System.Collections.Generic.IReadOnlyList<int> keys,
+            global::System.Span<GreenDonut.Result<Entity>> results,
+            global::System.Linq.ILookup<int, Entity> resultMap)
+        {
+            for (var i = 0; i < keys.Count; i++)
+            {
+                var key = keys[i];
+                if (resultMap.Contains(key))
+                {
+                    var items = resultMap[key];
+                    results[i] = global::GreenDonut.Result<Entity[]>.Resolve(items.ToArray());
+                }
+                else
+                {
+                    results[i] = global::GreenDonut.Result<Entity[]>.Resolve(global::System.Array.Empty<Entity>());
+                }
+            }
         }
     }
-
 }
 
 

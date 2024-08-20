@@ -22,6 +22,7 @@ public static class WellKnownTypes
     public const string Queryable = "System.Linq.IQueryable";
     public const string Dictionary = "System.Collections.Generic.Dictionary";
     public const string ReadOnlyDictionary = "System.Collections.Generic.IReadOnlyDictionary";
+    public const string DictionaryInterface = "System.Collections.Generic.IDictionary";
     public const string Lookup = "System.Linq.ILookup";
     public const string Task = "System.Threading.Tasks.Task";
     public const string ValueTask = "System.Threading.Tasks.ValueTask";
@@ -61,6 +62,7 @@ public static class WellKnownTypes
     public const string Span = "System.Span";
     public const string Result = "GreenDonut.Result";
     public const string Array = "System.Array";
+    public const string PromiseCacheObserver = "GreenDonut.PromiseCacheObserver";
 
     public static HashSet<string> TypeClass { get; } =
     [

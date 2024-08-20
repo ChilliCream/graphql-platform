@@ -7,6 +7,8 @@ namespace HotChocolate.Types.Analyzers.Models;
 
 public sealed class DataLoaderInfo : SyntaxInfo
 {
+    private readonly string[] _lookups;
+
     public DataLoaderInfo(
         AttributeSyntax attributeSyntax,
         IMethodSymbol attributeSymbol,
@@ -21,7 +23,7 @@ public sealed class DataLoaderInfo : SyntaxInfo
         MethodSyntax = methodSyntax;
 
         var attribute = methodSymbol.GetDataLoaderAttribute();
-        var lookups = Array.Empty<string>(); // attribute.GetLookups();
+        _lookups = attribute.GetLookups();
         var declaringType = methodSymbol.ContainingType;
 
         Name = GetDataLoaderName(methodSymbol.Name, attribute);
@@ -35,32 +37,6 @@ public sealed class DataLoaderInfo : SyntaxInfo
         MethodName = methodSymbol.Name;
         KeyParameter = MethodSymbol.Parameters[0];
         ContainingType = declaringType.ToDisplayString();
-
-        if (lookups.Length > 0)
-        {
-            var builder = ImmutableArray.CreateBuilder<IMethodSymbol>();
-
-            foreach (var lookup in lookups)
-            {
-                foreach (var method in declaringType.GetMembers()
-                    .OfType<IMethodSymbol>()
-                    .Where(m => m.Name == lookup))
-                {
-                    if (method.Name.Equals(lookup, StringComparison.Ordinal)
-                        && method.Parameters.Length == 1
-                        && method.ReturnType.Equals(KeyParameter.Type, SymbolEqualityComparer.Default))
-                    {
-                        builder.Add(method);
-                    }
-                }
-            }
-
-            Lookups = builder.ToImmutable();
-        }
-        else
-        {
-            Lookups = ImmutableArray<IMethodSymbol>.Empty;
-        }
     }
 
     private void Validate(
@@ -131,7 +107,31 @@ public sealed class DataLoaderInfo : SyntaxInfo
 
     public IParameterSymbol KeyParameter { get; }
 
-    public ImmutableArray<IMethodSymbol> Lookups { get; }
+    public ImmutableArray<IMethodSymbol> GetLookups(ITypeSymbol keyType)
+    {
+        if (_lookups.Length > 0)
+        {
+            var builder = ImmutableArray.CreateBuilder<IMethodSymbol>();
+
+            foreach (var lookup in _lookups)
+            {
+                foreach (var method in MethodSymbol.ContainingType.GetMembers()
+                    .OfType<IMethodSymbol>()
+                    .Where(m => m.Name == lookup))
+                {
+                    if (method.Parameters.Length == 1
+                        && method.ReturnType.Equals(keyType, SymbolEqualityComparer.Default))
+                    {
+                        builder.Add(method);
+                    }
+                }
+            }
+
+            return builder.ToImmutable();
+        }
+
+        return ImmutableArray<IMethodSymbol>.Empty;
+    }
 
     public override bool Equals(object? obj)
         => obj is DataLoaderInfo other && Equals(other);
