@@ -10,7 +10,7 @@ public interface IPage
     /// <summary>
     /// Gets the items of this page.
     /// </summary>
-    IReadOnlyCollection<object> Items { get; }
+    IReadOnlyList<object> Items { get; }
 
     /// <summary>
     /// Gets basic information about this page in the overall data set.
@@ -21,4 +21,12 @@ public interface IPage
     /// Gets the total count of the data set.
     /// </summary>
     int TotalCount { get; }
+
+    /// <summary>
+    /// Accepts a page observer and will in turn report the page.
+    /// </summary>
+    /// <param name="observer">
+    /// The page obserer.
+    /// </param>
+    void Accept(IPageObserver observer);
 }

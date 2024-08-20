@@ -141,12 +141,30 @@ public readonly struct Promise<TValue> : IPromise
 
     IPromise IPromise.Clone() => Clone();
 
+    /// <summary>
+    /// Creates a new promise for the specified value type.
+    /// </summary>
+    /// <returns>
+    /// Returns a new instance of <see cref="Promise{TValue}"/>.
+    /// </returns>
     public static Promise<TValue> Create()
     {
         var taskCompletionSource = new TaskCompletionSource<TValue>(
             TaskCreationOptions.RunContinuationsAsynchronously);
         return new Promise<TValue>(taskCompletionSource);
     }
+
+    /// <summary>
+    /// Creates a new completed promise for the specified value.
+    /// </summary>
+    /// <param name="value">
+    /// The value of the promise.
+    /// </param>
+    /// <returns>
+    /// Returns a new instance of <see cref="Promise{TValue}"/>.
+    /// </returns>
+    public static Promise<TValue> CreateClone(TValue value)
+        => new(System.Threading.Tasks.Task.FromResult(value), isClone: true);
 
     /// <summary>
     /// Implicitly converts a <see cref="TaskCompletionSource{TResult}"/> to a promise.

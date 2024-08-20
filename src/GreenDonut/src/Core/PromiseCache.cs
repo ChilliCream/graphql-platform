@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
@@ -13,9 +14,10 @@ public sealed class PromiseCache : IPromiseCache
     private readonly object _sync = new();
     private readonly ConcurrentDictionary<PromiseCacheKey, Entry> _map = new();
     private readonly ConcurrentDictionary<Type, ImmutableArray<Subscription>> _subscriptions = new();
+    private readonly List<IPromise> _promises = new();
     private readonly int _size;
     private readonly int _order;
-    private List<(PromiseCacheKey Key, IPromise Promise)>? _promises;
+    private List<(PromiseCacheKey? Key, IPromise Promise)>? _buffer;
     private int _usage;
     private Entry? _head;
 
@@ -150,18 +152,85 @@ public sealed class PromiseCache : IPromiseCache
     }
 
     /// <inheritdoc />
+    public void Publish<T>(T value)
+    {
+        var promise = Promise<T>.CreateClone(value);
+
+        lock (_promises)
+        {
+            _promises.Add(promise);
+        }
+
+        if (_subscriptions.TryGetValue(typeof(T), out var subscriptions))
+        {
+            foreach (var subscription in subscriptions)
+            {
+                if (subscription is Subscription<T> casted)
+                {
+                    casted.OnNext(promise);
+                }
+            }
+        }
+    }
+
+    /// <inheritdoc />
+    public void PublishMany<T>(IReadOnlyList<T> values)
+    {
+        var buffer = ArrayPool<Promise<T>>.Shared.Rent(values.Count);
+        var span = buffer.AsSpan().Slice(values.Count);
+
+        lock (_promises)
+        {
+            for (var i = 0; i < values.Count; i++)
+            {
+                var promise = Promise<T>.CreateClone(values[i]);
+                span[i] = promise;
+                _promises.Add(promise);
+            }
+        }
+
+        if (_subscriptions.TryGetValue(typeof(T), out var subscriptions))
+        {
+            foreach (var subscription in subscriptions)
+            {
+                if (subscription is Subscription<T> casted)
+                {
+                    for (var i = 0; i < span.Length; i++)
+                    {
+                        casted.OnNext(span[i]);
+                    }
+                }
+            }
+        }
+
+        span.Clear();
+        ArrayPool<Promise<T>>.Shared.Return(buffer);
+    }
+
+    /// <inheritdoc />
     public IDisposable Subscribe<T>(
         Action<IPromiseCache, Promise<T>> next,
         string? skipCacheKeyType)
     {
         var type = typeof(T);
-        var promises = Interlocked.Exchange(ref _promises, null) ?? [];
+        var promises = Interlocked.Exchange(ref _buffer, null) ?? [];
         var subscription = new Subscription<T>(this, next, skipCacheKeyType);
 
         _subscriptions.AddOrUpdate(
             type,
             _ => ImmutableArray.Create<Subscription>(subscription),
             (_, list) => list.Add(subscription));
+
+        lock (_promises)
+        {
+            foreach (var promise in _promises)
+            {
+                if (promise is Promise<T>)
+                {
+                    promises.Add((null, promise));
+                }
+            }
+        }
 
         lock (_sync)
         {
@@ -192,11 +261,18 @@ public sealed class PromiseCache : IPromiseCache
 
         foreach (var entry in promises)
         {
-            subscription.OnNext(entry.Key, (Promise<T>)entry.Promise);
+            if (entry.Key.HasValue)
+            {
+                subscription.OnNext(entry.Key.Value, (Promise<T>)entry.Promise);
+            }
+            else
+            {
+                subscription.OnNext((Promise<T>)entry.Promise);
+            }
         }
 
         promises.Clear();
-        _promises = Interlocked.CompareExchange(ref _promises, promises, null);
+        _buffer = Interlocked.CompareExchange(ref _buffer, promises, null);
 
         return subscription;
     }
@@ -237,6 +313,9 @@ public sealed class PromiseCache : IPromiseCache
             }
 
             _map.Clear();
+            _buffer?.Clear();
+            _subscriptions.Clear();
+            _promises.Clear();
             _head = null;
             _usage = 0;
         }
@@ -352,6 +431,18 @@ public sealed class PromiseCache : IPromiseCache
             if (promise.Task.IsCompletedSuccessfully
 #endif
                 && skipCacheKeyType?.Equals(key.Type, StringComparison.Ordinal) != true)
+            {
+                next(owner, promise);
+            }
+        }
+
+        public void OnNext(Promise<T> promise)
+        {
+#if NETSTANDARD2_0
+            if(promise.Task.Status == TaskStatus.RanToCompletion)
+#else
+            if (promise.Task.IsCompletedSuccessfully)
+#endif
             {
                 next(owner, promise);
             }
