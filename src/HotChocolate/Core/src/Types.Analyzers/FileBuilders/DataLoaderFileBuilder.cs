@@ -16,7 +16,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
 
     public DataLoaderFileBuilder()
     {
-        _sb = StringBuilderPool.Get();
+        _sb = PooledObjects.GetStringBuilder();
         _writer = new CodeWriter(_sb);
     }
 
@@ -220,10 +220,11 @@ public sealed class DataLoaderFileBuilder : IDisposable
                 WellKnownTypes.ReadOnlyList,
                 key.ToFullyQualified());
             _writer.WriteIndentedLine(
-                "global::{0}<{1}<{2}>> results,",
+                "global::{0}<{1}<{2}{3}>> results,",
                 WellKnownTypes.Memory,
                 WellKnownTypes.Result,
-                value.ToFullyQualified());
+                value.ToFullyQualified(),
+                kind is DataLoaderKind.Group ? "[]" : string.Empty);
             _writer.WriteIndentedLine(
                 "global::{0} ct)",
                 WellKnownTypes.CancellationToken);
@@ -321,10 +322,11 @@ public sealed class DataLoaderFileBuilder : IDisposable
                 WellKnownTypes.ReadOnlyList,
                 key.ToFullyQualified());
             _writer.WriteIndentedLine(
-                "global::{0}<{1}<{2}>> results,",
+                "global::{0}<{1}<{2}{3}>> results,",
                 WellKnownTypes.Span,
                 WellKnownTypes.Result,
-                value.ToFullyQualified());
+                value.ToFullyQualified(),
+                kind is DataLoaderKind.Group ? "[]" : string.Empty);
             _writer.WriteIndentedLine(
                 "global::{0} resultMap)",
                 ExtractMapType(method.ReturnType));
@@ -482,7 +484,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
             return;
         }
 
-        StringBuilderPool.Return(_sb);
+        PooledObjects.Return(_sb);
         _sb = default!;
         _writer = default!;
         _disposed = true;
