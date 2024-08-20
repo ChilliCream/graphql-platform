@@ -1,12 +1,17 @@
 using GreenDonut;
 using GreenDonut.DependencyInjection;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Fetching;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static partial class RequestExecutorBuilderExtensions
 {
+    public static IRequestExecutorBuilder AddDataLoaderAutoCaching(
+        this IRequestExecutorBuilder builder)
+        => builder.TryAddTypeInterceptor<DataLoaderRootFieldTypeInterceptor>();
+
     public static IRequestExecutorBuilder AddDataLoader<T>(
         this IRequestExecutorBuilder builder)
         where T : class, IDataLoader
