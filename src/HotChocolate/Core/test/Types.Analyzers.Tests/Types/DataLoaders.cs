@@ -1,4 +1,5 @@
 using GreenDonut;
+using GreenDonut.Projections;
 
 namespace HotChocolate.Types;
 
@@ -62,4 +63,12 @@ public static class DataLoaders
         [DataLoaderState("key")] string state = "123",
         CancellationToken ct = default)
         => await Task.FromResult(keys.ToDictionary(k => k, k => k + " - some info"));
+
+    [DataLoader]
+    public static async Task<IDictionary<int, Author>> GetAuthorById(
+        IReadOnlyList<int> keys,
+        IQueryable<Author> query,
+        ISelectorContext context,
+        CancellationToken ct)
+        => await Task.FromResult(query.Select(context).ToDictionary(t => t.Id));
 }
