@@ -1,4 +1,4 @@
-namespace HotChocolate;
+namespace GreenDonut;
 
 /// <summary>
 /// Marks a method as a DataLoader which will trigger the Hot Chocolate

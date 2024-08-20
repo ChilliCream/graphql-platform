@@ -2,8 +2,6 @@ namespace HotChocolate.Types.Analyzers;
 
 public static class WellKnownTypes
 {
-    public const string ModuleAttribute = "HotChocolate.ModuleAttribute";
-    public const string DataLoaderDefaultsAttribute = "HotChocolate.DataLoaderDefaultsAttribute";
     public const string SystemObject = "System.Object";
     public const string ObjectType = "HotChocolate.Types.ObjectType";
     public const string InterfaceType = "HotChocolate.Types.InterfaceType";
@@ -57,6 +55,8 @@ public static class WellKnownTypes
     public const string FieldResolverDelegates = "HotChocolate.Resolvers.FieldResolverDelegates";
     public const string ListPostProcessor = "HotChocolate.Execution.ListPostProcessor";
     public const string EnumerableDefinition = "System.Collections.Generic.IEnumerable<>";
+    public const string ServiceCollection = "Microsoft.Extensions.DependencyInjection.IServiceCollection";
+    public const string DataLoaderServiceCollectionExtension = "Microsoft.Extensions.DependencyInjection.DataLoaderServiceCollectionExtensions";
 
     public static HashSet<string> TypeClass { get; } =
     [

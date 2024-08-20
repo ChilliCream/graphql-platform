@@ -11,6 +11,7 @@ public class DataLoaderTests
             using System.Threading;
             using System.Threading.Tasks;
             using HotChocolate;
+            using GreenDonut;
 
             namespace TestNamespace;
 
@@ -34,6 +35,7 @@ public class DataLoaderTests
             using System.Threading;
             using System.Threading.Tasks;
             using HotChocolate;
+            using GreenDonut;
 
             namespace TestNamespace;
 
@@ -55,6 +57,7 @@ public class DataLoaderTests
             using System.Threading;
             using System.Threading.Tasks;
             using HotChocolate;
+            using GreenDonut;
 
             namespace TestNamespace;
 
@@ -63,6 +66,29 @@ public class DataLoaderTests
                 [DataLoader]
                 public static async Task<Entity> GetEntityByIdAsync(
                     int entityId,
+                    CancellationToken cancellationToken) { }
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task GenerateSource_GenericBatchDataLoader_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal static class TestClass
+            {
+                [DataLoader]
+                public static async Task<IReadOnlyDictionary<int, T>> GetEntityByIdAsync<T>(
+                    IReadOnlyList<int> entityIds,
                     CancellationToken cancellationToken) { }
             }
             """).MatchMarkdownAsync();

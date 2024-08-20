@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using GreenDonut;
 using HotChocolate.Internal;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;

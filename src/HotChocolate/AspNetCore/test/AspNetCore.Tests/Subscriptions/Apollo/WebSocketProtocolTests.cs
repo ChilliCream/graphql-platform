@@ -10,13 +10,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Apollo;
 
-public class WebSocketProtocolTests : SubscriptionTestBase
+public class WebSocketProtocolTests(TestServerFactory serverFactory)
+    : SubscriptionTestBase(serverFactory)
 {
-    public WebSocketProtocolTests(TestServerFactory serverFactory)
-        : base(serverFactory)
-    {
-    }
-
     [Fact]
     public Task Send_Connect_AcceptAndKeepAlive()
         => TryTest(async ct =>
@@ -32,7 +28,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             // assert
             var message = await webSocket.ReceiveServerMessageAsync(ct);
             Assert.NotNull(message);
-            Assert.Equal("connection_ack", message!["type"]);
+            Assert.Equal("connection_ack", message["type"]);
         });
 
     [Fact]
@@ -98,7 +94,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             // assert
             var message = await webSocket.ReceiveServerMessageAsync(ct);
             Assert.NotNull(message);
-            Assert.Equal("connection_ack", message![MessageProperties.Type]);
+            Assert.Equal("connection_ack", message[MessageProperties.Type]);
         });
 
     [Fact]
@@ -141,7 +137,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             // assert
             var message = await webSocket.ReceiveServerMessageAsync(ct);
             Assert.NotNull(message);
-            Assert.Equal("connection_ack", message!["type"]);
+            Assert.Equal("connection_ack", message["type"]);
         });
 
     [Fact]
@@ -161,7 +157,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             // assert
             var message = await webSocket.ReceiveServerMessageAsync(ct);
             Assert.NotNull(message);
-            Assert.Equal("connection_ack", message!["type"]);
+            Assert.Equal("connection_ack", message["type"]);
         });
 
     [Fact]
@@ -228,15 +224,17 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             await testServer.SendPostRequestAsync(
                 new ClientQueryRequest
                 {
-                    Query = @"
+                    Query =
+                        """
                         mutation {
                             createReview(episode: NEW_HOPE review: {
-                                commentary: ""foo""
+                                commentary: "foo"
                                 stars: 5
                             }) {
                                 stars
                             }
-                        }",
+                        }
+                        """
                 });
 
             var message = await WaitForMessage(webSocket, "data", ct);
