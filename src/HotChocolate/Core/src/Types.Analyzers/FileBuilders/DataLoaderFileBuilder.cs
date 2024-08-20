@@ -374,10 +374,11 @@ public sealed class DataLoaderFileBuilder : IDisposable
                         _writer.WriteIndentedLine(
                             "var items = resultMap[key];");
                         _writer.WriteIndentedLine(
-                            "results[i] = global::{0}<{1}{2}[]>.Resolve(items.ToArray());",
+                            "results[i] = global::{0}<{1}{2}[]>.Resolve(global::{3}.ToArray(items));",
                             WellKnownTypes.Result,
                             value.ToFullyQualified(),
-                            value.PrintNullRefQualifier());
+                            value.PrintNullRefQualifier(),
+                            WellKnownTypes.EnumerableExtensions);
                     }
 
                     _writer.WriteIndentedLine("}");

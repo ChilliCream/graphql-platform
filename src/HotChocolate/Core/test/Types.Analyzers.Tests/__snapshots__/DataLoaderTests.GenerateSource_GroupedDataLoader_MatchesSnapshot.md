@@ -56,7 +56,7 @@ namespace TestNamespace
                 if (resultMap.Contains(key))
                 {
                     var items = resultMap[key];
-                    results[i] = global::GreenDonut.Result<Entity[]>.Resolve(items.ToArray());
+                    results[i] = global::GreenDonut.Result<Entity[]>.Resolve(global::System.Linq.Enumerable.ToArray(items));
                 }
                 else
                 {
