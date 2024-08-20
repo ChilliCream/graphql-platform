@@ -32,39 +32,8 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
                 continue;
             }
 
-            if (dataLoader.MethodSymbol.Parameters.Length == 0)
+            if (dataLoader.Diagnostics.Length > 0)
             {
-                dataLoader.AddDiagnostic(
-                    Diagnostic.Create(
-                        Errors.KeyParameterMissing,
-                        Location.Create(
-                            dataLoader.MethodSyntax.SyntaxTree,
-                            dataLoader.MethodSyntax.ParameterList.Span)));
-                continue;
-            }
-
-            if (dataLoader.MethodSymbol.DeclaredAccessibility is
-                not Accessibility.Public and
-                not Accessibility.Internal and
-                not Accessibility.ProtectedAndInternal)
-            {
-                dataLoader.AddDiagnostic(
-                    Diagnostic.Create(
-                        Errors.MethodAccessModifierInvalid,
-                        Location.Create(
-                            dataLoader.MethodSyntax.SyntaxTree,
-                            dataLoader.MethodSyntax.Modifiers.Span)));
-                continue;
-            }
-
-            if (dataLoader.MethodSymbol.IsGenericMethod)
-            {
-                dataLoader.AddDiagnostic(
-                    Diagnostic.Create(
-                        Errors.DataLoaderCannotBeGeneric,
-                        Location.Create(
-                            dataLoader.MethodSyntax.SyntaxTree,
-                            dataLoader.MethodSyntax.Modifiers.Span)));
                 continue;
             }
 
@@ -115,6 +84,11 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
 
                 var valueType = ExtractValueType(dataLoader.MethodSymbol.ReturnType, kind);
 
+                if (hasDataLoaders)
+                {
+                    generator.WriteLine();
+                }
+
                 GenerateDataLoader(
                     generator,
                     dataLoader,
@@ -161,10 +135,16 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
             kind,
             keyType,
             valueType);
-        generator.WriteDataLoaderConstructor(dataLoader.Name, kind);
+        generator.WriteDataLoaderConstructor(
+            dataLoader.Name,
+            kind,
+            keyType,
+            valueType,
+            dataLoader.GetLookups(keyType, valueType));
+        generator.WriteLine();
         generator.WriteDataLoaderLoadMethod(
             dataLoader.ContainingType,
-            dataLoader.MethodName,
+            dataLoader.MethodSymbol,
             isScoped,
             kind,
             keyType,
@@ -227,9 +207,16 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
         {
             var resultType = namedType.TypeArguments[0];
 
-            if (IsReadOnlyDictionary(resultType)
-                && resultType is INamedTypeSymbol { TypeArguments.Length: 2, } dictionaryType
-                && dictionaryType.TypeArguments[0].Equals(keyType, SymbolEqualityComparer.Default))
+            if (IsReadOnlyDictionaryInterface(resultType)
+                && resultType is INamedTypeSymbol { TypeArguments.Length: 2, } dictionaryType1
+                && dictionaryType1.TypeArguments[0].Equals(keyType, SymbolEqualityComparer.Default))
+            {
+                return true;
+            }
+
+            if (IsDictionaryInterface(resultType)
+                && resultType is INamedTypeSymbol { TypeArguments.Length: 2, } dictionaryType2
+                && dictionaryType2.TypeArguments[0].Equals(keyType, SymbolEqualityComparer.Default))
             {
                 return true;
             }
@@ -255,7 +242,7 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
         return false;
     }
 
-    private static bool IsReadOnlyDictionary(ITypeSymbol type)
+    private static bool IsReadOnlyDictionaryInterface(ITypeSymbol type)
     {
         if (!ToTypeNameNoGenerics(type).Equals(WellKnownTypes.ReadOnlyDictionary, StringComparison.Ordinal))
         {
@@ -263,6 +250,25 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
             {
                 if (ToTypeNameNoGenerics(interfaceSymbol)
                     .Equals(WellKnownTypes.ReadOnlyDictionary, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private static bool IsDictionaryInterface(ITypeSymbol type)
+    {
+        if (!ToTypeNameNoGenerics(type).Equals(WellKnownTypes.DictionaryInterface, StringComparison.Ordinal))
+        {
+            foreach (var interfaceSymbol in type.Interfaces)
+            {
+                if (ToTypeNameNoGenerics(interfaceSymbol)
+                    .Equals(WellKnownTypes.DictionaryInterface, StringComparison.Ordinal))
                 {
                     return true;
                 }

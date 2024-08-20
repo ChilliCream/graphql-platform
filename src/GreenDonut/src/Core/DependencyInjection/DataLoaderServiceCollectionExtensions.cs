@@ -53,8 +53,8 @@ public static class DataLoaderServiceCollectionExtensions
         services.TryAddScoped<IDataLoaderScope>(sp => sp.GetRequiredService<DataLoaderScopeFactory>().CreateScope(sp));
         services.TryAddScoped<IBatchScheduler, AutoBatchScheduler>();
 
-        services.TryAddSingleton(sp => TaskCachePool.Create(sp.GetRequiredService<ObjectPoolProvider>()));
-        services.TryAddScoped(sp => new TaskCacheOwner(sp.GetRequiredService<ObjectPool<TaskCache>>()));
+        services.TryAddSingleton(sp => PromiseCachePool.Create(sp.GetRequiredService<ObjectPoolProvider>()));
+        services.TryAddScoped(sp => new PromiseCacheOwner(sp.GetRequiredService<ObjectPool<PromiseCache>>()));
 
         services.TryAddSingleton<IDataLoaderDiagnosticEvents>(
             sp =>
@@ -72,7 +72,7 @@ public static class DataLoaderServiceCollectionExtensions
         services.TryAddScoped(
             sp =>
             {
-                var cacheOwner = sp.GetRequiredService<TaskCacheOwner>();
+                var cacheOwner = sp.GetRequiredService<PromiseCacheOwner>();
 
                 return new DataLoaderOptions
                 {

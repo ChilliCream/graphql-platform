@@ -13,6 +13,12 @@ public sealed class DataLoaderAttribute(string? name = null) : Attribute
     public string? Name { get; } = name;
 
     /// <summary>
+    /// Gets or sets additional lookup methods that are used
+    /// to create additional cache lookups for entities.
+    /// </summary>
+    public string[] Lookups { get; set; } = [];
+
+    /// <summary>
     /// Specifies how services by default are handled.
     /// </summary>
     public DataLoaderServiceScope ServiceScope { get; set; }

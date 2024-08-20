@@ -1,4 +1,4 @@
-# GenerateSource_CacheDataLoader_MatchesSnapshot
+# GenerateSource_BatchDataLoader_With_Lookup_From_OtherType_MatchesSnapshot
 
 ## GreenDonutDataLoader.735550c.g.cs
 
@@ -16,41 +16,54 @@ using GreenDonut;
 namespace TestNamespace
 {
     public interface IEntityByIdDataLoader
-        : global::GreenDonut.IDataLoader<int, Entity>
+        : global::GreenDonut.IDataLoader<int, global::TestNamespace.Entity2>
     {
     }
 
     public sealed class EntityByIdDataLoader
-        : global::GreenDonut.DataLoaderBase<int, Entity>
+        : global::GreenDonut.DataLoaderBase<int, global::TestNamespace.Entity2>
         , IEntityByIdDataLoader
     {
         private readonly global::System.IServiceProvider _services;
 
         public EntityByIdDataLoader(
             global::System.IServiceProvider services,
+            global::GreenDonut.IBatchScheduler batchScheduler,
             global::GreenDonut.DataLoaderOptions options)
-            : base(options)
+            : base(batchScheduler, options)
         {
             _services = services ??
                 throw new global::System.ArgumentNullException(nameof(services));
+
+            global::GreenDonut.PromiseCacheObserver
+                .Create<int, global::TestNamespace.Entity2, global::TestNamespace.Entity1>(global::TestNamespace.TestClass.CreateLookupKey, this)
+                .Accept(this);
         }
 
         protected override async global::System.Threading.Tasks.ValueTask FetchAsync(
             global::System.Collections.Generic.IReadOnlyList<int> keys,
-            global::System.Memory<GreenDonut.Result<Entity>> results,
+            global::System.Memory<GreenDonut.Result<global::TestNamespace.Entity2>> results,
             global::System.Threading.CancellationToken ct)
+        {
+            var temp = await TestNamespace.TestClass.GetEntityByIdAsync(keys, ct).ConfigureAwait(false);
+            CopyResults(keys, results.Span, temp);
+        }
+
+        private void CopyResults(
+            global::System.Collections.Generic.IReadOnlyList<int> keys,
+            global::System.Span<GreenDonut.Result<global::TestNamespace.Entity2>> results,
+            global::System.Collections.Generic.IDictionary<int, TestNamespace.Entity2> resultMap)
         {
             for (var i = 0; i < keys.Count; i++)
             {
-                try
+                var key = keys[i];
+                if (resultMap.TryGetValue(key, out var value))
                 {
-                    var key = keys[i];
-                    var value = await TestNamespace.TestClass.GetEntityByIdAsync(key, ct).ConfigureAwait(false);
-                    results.Span[i] = Result<Entity>.Resolve(value);
+                    results[i] = global::GreenDonut.Result<global::TestNamespace.Entity2>.Resolve(value);
                 }
-                catch (global::System.Exception ex)
+                else
                 {
-                    results.Span[i] = Result<Entity>.Reject(ex);
+                    results[i] = global::GreenDonut.Result<global::TestNamespace.Entity2>.Reject(key);
                 }
             }
         }

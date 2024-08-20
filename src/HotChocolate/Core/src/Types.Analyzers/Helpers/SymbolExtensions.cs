@@ -7,10 +7,35 @@ namespace HotChocolate.Types.Analyzers.Helpers;
 
 public static class SymbolExtensions
 {
+    public static bool IsNullableType(this ITypeSymbol typeSymbol)
+    {
+        return typeSymbol.IsNullableRefType() ||
+            typeSymbol.IsNullableValueType();
+    }
+
     public static bool IsNullableRefType(this ITypeSymbol typeSymbol)
     {
         return typeSymbol.IsReferenceType
             && typeSymbol.NullableAnnotation == NullableAnnotation.Annotated;
+    }
+
+    public static bool IsNullableValueType(this ITypeSymbol typeSymbol)
+    {
+        if (typeSymbol is INamedTypeSymbol namedTypeSymbol)
+        {
+            if (namedTypeSymbol.IsGenericType &&
+                namedTypeSymbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static string PrintNullRefQualifier(this ITypeSymbol typeSymbol)
+    {
+        return typeSymbol.IsNullableRefType() ? "?" : string.Empty;
     }
 
     public static string ToFullyQualified(this ITypeSymbol typeSymbol)

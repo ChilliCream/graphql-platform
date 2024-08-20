@@ -6,7 +6,7 @@ internal class AggregateDataLoaderDiagnosticEventListener(
 {
     public override void ResolvedTaskFromCache(
         IDataLoader dataLoader,
-        TaskCacheKey cacheKey,
+        PromiseCacheKey cacheKey,
         Task task)
     {
         for (var i = 0; i < listeners.Length; i++)
