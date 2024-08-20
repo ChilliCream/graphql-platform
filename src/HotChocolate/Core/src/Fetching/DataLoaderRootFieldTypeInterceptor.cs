@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fetching;
 
-public class DataLoaderRootFieldTypeInterceptor : TypeInterceptor
+internal sealed class DataLoaderRootFieldTypeInterceptor : TypeInterceptor
 {
     private IApplicationServiceProvider? _services;
     private HashSet<Type>? _dataLoaderValueTypes;
@@ -59,6 +59,7 @@ public class DataLoaderRootFieldTypeInterceptor : TypeInterceptor
             foreach (var field in typeDef.Fields)
             {
                 if ((field.Flags & FieldFlags.Connection) == FieldFlags.Connection
+                    && field.ResultType != null
                     && field.ResultType != typeof(object))
                 {
                     var resultType = completionContext.TypeInspector.GetType(field.ResultType);
@@ -95,23 +96,26 @@ public class DataLoaderRootFieldTypeInterceptor : TypeInterceptor
 
         var dataLoaderValueTypes = new HashSet<Type>();
 
-        foreach (var registration in _services.GetServices<DataLoaderRegistration>())
+        if (_services is not null)
         {
-            if (registration.ServiceType.IsGenericType
-                && registration.ServiceType.GetGenericTypeDefinition() == typeof(IDataLoader<,>))
+            foreach (var registration in _services.GetServices<DataLoaderRegistration>())
             {
-                dataLoaderValueTypes.Add(registration.ServiceType.GetGenericArguments()[1]);
-            }
-            else
-            {
-                var interfaces = registration.ServiceType.GetInterfaces();
-                foreach (var interfaceType in interfaces)
+                if (registration.ServiceType.IsGenericType
+                    && registration.ServiceType.GetGenericTypeDefinition() == typeof(IDataLoader<,>))
                 {
-                    if (interfaceType.IsGenericType
-                        && interfaceType.GetGenericTypeDefinition() == typeof(IDataLoader<,>))
+                    dataLoaderValueTypes.Add(registration.ServiceType.GetGenericArguments()[1]);
+                }
+                else
+                {
+                    var interfaces = registration.ServiceType.GetInterfaces();
+                    foreach (var interfaceType in interfaces)
                     {
-                        dataLoaderValueTypes.Add(interfaceType.GetGenericArguments()[1]);
-                        break;
+                        if (interfaceType.IsGenericType
+                            && interfaceType.GetGenericTypeDefinition() == typeof(IDataLoader<,>))
+                        {
+                            dataLoaderValueTypes.Add(interfaceType.GetGenericArguments()[1]);
+                            break;
+                        }
                     }
                 }
             }
