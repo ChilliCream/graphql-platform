@@ -53,18 +53,11 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
             {
                 var keyArg = dataLoader.MethodSymbol.Parameters[0];
                 var keyType = keyArg.Type;
-                var cancellationTokenIndex = -1;
-                var serviceMap = new Dictionary<int, string>();
 
                 if (IsKeysArgument(keyType))
                 {
                     keyType = ExtractKeyType(keyType);
                 }
-
-                InspectDataLoaderParameters(
-                    dataLoader,
-                    ref cancellationTokenIndex,
-                    serviceMap);
 
                 DataLoaderKind kind;
 
@@ -95,10 +88,7 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
                     defaults,
                     kind,
                     keyType,
-                    valueType,
-                    dataLoader.MethodSymbol.Parameters.Length,
-                    cancellationTokenIndex,
-                    serviceMap);
+                    valueType);
                 hasDataLoaders = true;
             }
 
@@ -117,10 +107,7 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
         DataLoaderDefaultsInfo defaults,
         DataLoaderKind kind,
         ITypeSymbol keyType,
-        ITypeSymbol valueType,
-        int parameterCount,
-        int cancelIndex,
-        Dictionary<int, string> services)
+        ITypeSymbol valueType)
     {
         var isScoped = dataLoader.IsScoped ?? defaults.Scoped ?? true;
         var isPublic = dataLoader.IsPublic ?? defaults.IsPublic ?? true;
@@ -149,37 +136,8 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
             kind,
             keyType,
             valueType,
-            services,
-            parameterCount,
-            cancelIndex);
+            dataLoader.Parameters);
         generator.WriteEndDataLoaderClass();
-    }
-
-    private static void InspectDataLoaderParameters(
-        DataLoaderInfo dataLoader,
-        ref int cancellationTokenIndex,
-        Dictionary<int, string> serviceMap)
-    {
-        for (var i = 1; i < dataLoader.MethodSymbol.Parameters.Length; i++)
-        {
-            var argument = dataLoader.MethodSymbol.Parameters[i];
-            var argumentType = argument.Type.ToFullyQualified();
-
-            if (IsCancellationToken(argumentType))
-            {
-                if (cancellationTokenIndex != -1)
-                {
-                    // report error
-                    return;
-                }
-
-                cancellationTokenIndex = i;
-            }
-            else
-            {
-                serviceMap[i] = argumentType;
-            }
-        }
     }
 
     private static bool IsKeysArgument(ITypeSymbol type)
@@ -196,10 +154,6 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
 
         throw new InvalidOperationException();
     }
-
-    private static bool IsCancellationToken(string typeName)
-        => string.Equals(typeName, WellKnownTypes.CancellationToken)
-            || string.Equals(typeName, WellKnownTypes.GlobalCancellationToken);
 
     private static bool IsReturnTypeDictionary(ITypeSymbol returnType, ITypeSymbol keyType)
     {
