@@ -92,7 +92,9 @@ public sealed class DataLoaderFileBuilder : IDisposable
             name);
         _writer.IncreaseIndent();
         _writer.WriteIndentedLine(
-            ": global::GreenDonut.DataLoaderBase<{0}, {1}>",
+            kind is DataLoaderKind.Group
+                ? ": global::GreenDonut.DataLoaderBase<{0}, {1}[]>"
+                : ": global::GreenDonut.DataLoaderBase<{0}, {1}>",
             key.ToFullyQualified(),
             value.ToFullyQualified());
         _writer.WriteIndentedLine(", {0}", interfaceName);
@@ -137,7 +139,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
             {
                 _writer.WriteIndentedLine("global::System.IServiceProvider services,");
                 _writer.WriteIndentedLine("global::GreenDonut.DataLoaderOptions options)");
-                _writer.WriteIndentedLine(": base(options)");
+                _writer.WriteIndentedLine(": base(AutoBatchScheduler.Default, options)");
             }
         }
 
