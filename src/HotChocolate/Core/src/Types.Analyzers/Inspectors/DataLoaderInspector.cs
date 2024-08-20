@@ -41,39 +41,6 @@ public sealed class DataLoaderInspector : ISyntaxInspector
                             methodSymbol,
                             methodSyntax);
 
-                        if (dataLoader.MethodSymbol.Parameters.Length == 0)
-                        {
-                            dataLoader.AddDiagnostic(
-                                Diagnostic.Create(
-                                    Errors.KeyParameterMissing,
-                                    Location.Create(
-                                        dataLoader.MethodSyntax.SyntaxTree,
-                                        dataLoader.MethodSyntax.ParameterList.Span)));
-                        }
-
-                        if (dataLoader.MethodSymbol.DeclaredAccessibility is
-                            not Accessibility.Public and
-                            not Accessibility.Internal and
-                            not Accessibility.ProtectedAndInternal)
-                        {
-                            dataLoader.AddDiagnostic(
-                                Diagnostic.Create(
-                                    Errors.MethodAccessModifierInvalid,
-                                    Location.Create(
-                                        dataLoader.MethodSyntax.SyntaxTree,
-                                        dataLoader.MethodSyntax.Modifiers.Span)));
-                        }
-
-                        if (dataLoader.MethodSymbol.IsGenericMethod)
-                        {
-                            dataLoader.AddDiagnostic(
-                                Diagnostic.Create(
-                                    Errors.DataLoaderCannotBeGeneric,
-                                    Location.Create(
-                                        dataLoader.MethodSyntax.SyntaxTree,
-                                        dataLoader.MethodSyntax.Modifiers.Span)));
-                        }
-
                         syntaxInfo = dataLoader;
                         return true;
                     }

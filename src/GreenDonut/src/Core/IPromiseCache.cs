@@ -40,9 +40,6 @@ public interface IPromiseCache
     /// </summary>
     /// <param name="key">A cache entry key.</param>
     /// <param name="promise">A task.</param>
-    /// <param name="additionalLookup">
-    /// Specifies that this promise was already added to the cache with a different key.
-    /// </param>
     /// <typeparam name="T">The task type.</typeparam>
     /// <exception cref="ArgumentNullException">
     /// Throws if <paramref name="key"/> is <c>null</c>.

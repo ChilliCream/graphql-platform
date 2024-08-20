@@ -107,11 +107,11 @@ public sealed class DataLoaderInfo : SyntaxInfo
 
     public IParameterSymbol KeyParameter { get; }
 
-    public ImmutableArray<IMethodSymbol> GetLookups(ITypeSymbol keyType)
+    public ImmutableArray<CacheLookup> GetLookups(ITypeSymbol keyType, ITypeSymbol valueType)
     {
         if (_lookups.Length > 0)
         {
-            var builder = ImmutableArray.CreateBuilder<IMethodSymbol>();
+            var builder = ImmutableArray.CreateBuilder<CacheLookup>();
 
             foreach (var lookup in _lookups)
             {
@@ -120,9 +120,16 @@ public sealed class DataLoaderInfo : SyntaxInfo
                     .Where(m => m.Name == lookup))
                 {
                     if (method.Parameters.Length == 1
+                        && method.Parameters[0].Type.Equals(valueType, SymbolEqualityComparer.Default)
                         && method.ReturnType.Equals(keyType, SymbolEqualityComparer.Default))
                     {
-                        builder.Add(method);
+                        builder.Add(new CacheLookup(method));
+                    }
+
+                    if (method.Parameters.Length == 1
+                        && IsKeyValuePair(method.ReturnType, keyType, valueType))
+                    {
+                        builder.Add(new CacheLookup(method, isTransform: true));
                     }
                 }
             }
@@ -130,7 +137,22 @@ public sealed class DataLoaderInfo : SyntaxInfo
             return builder.ToImmutable();
         }
 
-        return ImmutableArray<IMethodSymbol>.Empty;
+        return ImmutableArray<CacheLookup>.Empty;
+    }
+
+    public static bool IsKeyValuePair(ITypeSymbol returnTypeSymbol, ITypeSymbol keyType, ITypeSymbol valueType)
+    {
+        if (returnTypeSymbol is INamedTypeSymbol namedTypeSymbol
+            && namedTypeSymbol.IsGenericType
+            && namedTypeSymbol.OriginalDefinition.SpecialType == SpecialType.None
+            && namedTypeSymbol.ConstructedFrom.ToDisplayString().StartsWith(WellKnownTypes.KeyValuePair)
+            && keyType.Equals(namedTypeSymbol.TypeArguments[0], SymbolEqualityComparer.Default)
+            && valueType.Equals(namedTypeSymbol.TypeArguments[1], SymbolEqualityComparer.Default))
+        {
+            return true;
+        }
+
+        return false;
     }
 
     public override bool Equals(object? obj)

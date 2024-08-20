@@ -1,4 +1,4 @@
-# GenerateSource_BatchDataLoader_With_Lookup_MatchesSnapshot
+# GenerateSource_BatchDataLoader_Nullable_Result_MatchesSnapshot
 
 ## GreenDonutDataLoader.735550c.g.cs
 
@@ -34,10 +34,6 @@ namespace TestNamespace
         {
             _services = services ??
                 throw new global::System.ArgumentNullException(nameof(services));
-
-            global::GreenDonut.PromiseCacheObserver
-                .Create<int, string>(global::TestNamespace.TestClass.CreateLookupKey, this)
-                .Accept(this);
         }
 
         protected override async global::System.Threading.Tasks.ValueTask FetchAsync(
@@ -52,18 +48,18 @@ namespace TestNamespace
         private void CopyResults(
             global::System.Collections.Generic.IReadOnlyList<int> keys,
             global::System.Span<GreenDonut.Result<string>> results,
-            global::System.Collections.Generic.IDictionary<int, string> resultMap)
+            global::System.Collections.Generic.Dictionary<int, string?> resultMap)
         {
             for (var i = 0; i < keys.Count; i++)
             {
                 var key = keys[i];
                 if (resultMap.TryGetValue(key, out var value))
                 {
-                    results[i] = global::GreenDonut.Result<string>.Resolve(value);
+                    results[i] = global::GreenDonut.Result<string?>.Resolve(value);
                 }
                 else
                 {
-                    results[i] = global::GreenDonut.Result<string>.Reject(key);
+                    results[i] = global::GreenDonut.Result<string?>.Resolve(default(string));
                 }
             }
         }

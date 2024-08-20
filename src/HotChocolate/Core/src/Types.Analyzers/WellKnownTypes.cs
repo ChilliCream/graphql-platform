@@ -63,6 +63,7 @@ public static class WellKnownTypes
     public const string Result = "GreenDonut.Result";
     public const string Array = "System.Array";
     public const string PromiseCacheObserver = "GreenDonut.PromiseCacheObserver";
+    public const string KeyValuePair = "System.Collections.Generic.KeyValuePair";
 
     public static HashSet<string> TypeClass { get; } =
     [
