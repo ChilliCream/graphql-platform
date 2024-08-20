@@ -14,6 +14,54 @@ public static class DataLoaderAttributeHelper
                 "DataLoaderAttribute",
                 StringComparison.Ordinal));
 
+    public static string? GetDataLoaderStateKey(
+        this IParameterSymbol parameter)
+    {
+        foreach (var attributeData in parameter.GetAttributes())
+        {
+            if (!IsTypeName(attributeData.AttributeClass, "GreenDonut", "DataLoaderStateAttribute"))
+            {
+                continue;
+            }
+
+            if (attributeData.ConstructorArguments.Length > 0
+                && !attributeData.ConstructorArguments[0].IsNull)
+            {
+                return attributeData.ConstructorArguments[0].Value?.ToString();
+            }
+
+            var keyProperty = attributeData.NamedArguments.FirstOrDefault(kv => kv.Key == "Key").Value;
+            if (!keyProperty.IsNull)
+            {
+                return keyProperty.Value?.ToString();
+            }
+
+            return null;
+        }
+
+        return null;
+    }
+
+    private static bool IsTypeName(INamedTypeSymbol? type, string containingNamespace, string typeName)
+    {
+        if (type is null)
+        {
+            return false;
+        }
+
+        while (type != null)
+        {
+            if (type.MetadataName == typeName && type.ContainingNamespace?.ToDisplayString() == containingNamespace)
+            {
+                return true;
+            }
+
+            type = type.BaseType;
+        }
+
+        return false;
+    }
+
     public static bool? IsScoped(
         this SeparatedSyntaxList<AttributeArgumentSyntax> arguments,
         GeneratorSyntaxContext context)
@@ -234,8 +282,7 @@ public static class DataLoaderAttributeHelper
         this AttributeData attribute,
         [NotNullWhen(true)] out string? name)
     {
-        if (attribute.ConstructorArguments.Length > 0 &&
-            attribute.ConstructorArguments[0].Value is string s)
+        if (attribute.ConstructorArguments.Length > 0 && attribute.ConstructorArguments[0].Value is string s)
         {
             name = s;
             return true;

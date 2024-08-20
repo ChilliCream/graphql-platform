@@ -24,4 +24,42 @@ public static class DataLoaders
     public static Task<string> GetSomeInfoCacheById(
         int key)
         => default!;
+
+    [DataLoader]
+    public static Task<string> GetSomeInfoCacheWithServiceById(
+        int key,
+        ChapterRepository repository,
+        CancellationToken ct)
+        => default!;
+
+    [DataLoader]
+    public static async Task<IDictionary<int, string>> GetSomeInfoWithServiceById(
+        IReadOnlyList<int> keys,
+        ChapterRepository repository,
+        CancellationToken ct)
+        => await Task.FromResult(keys.ToDictionary(k => k, k => k + " - some info"));
+
+    [DataLoader]
+    public static async Task<IDictionary<int, string>> GetSomeInfoWithServiceAndRequiredStateById(
+        IReadOnlyList<int> keys,
+        ChapterRepository repository,
+        [DataLoaderState("key")] string state,
+        CancellationToken ct)
+        => await Task.FromResult(keys.ToDictionary(k => k, k => k + " - some info"));
+
+    [DataLoader]
+    public static async Task<IDictionary<int, string>> GetSomeInfoWithServiceAndStateById(
+        IReadOnlyList<int> keys,
+        ChapterRepository repository,
+        [DataLoaderState("key")] string? state,
+        CancellationToken ct)
+        => await Task.FromResult(keys.ToDictionary(k => k, k => k + " - some info"));
+
+    [DataLoader]
+    public static async Task<IDictionary<int, string>> GetSomeInfoWithServiceAndStateWithDefaultById(
+        IReadOnlyList<int> keys,
+        ChapterRepository repository,
+        [DataLoaderState("key")] string state = "123",
+        CancellationToken ct = default)
+        => await Task.FromResult(keys.ToDictionary(k => k, k => k + " - some info"));
 }

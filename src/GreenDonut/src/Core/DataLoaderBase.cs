@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using static GreenDonut.NoopDataLoaderDiagnosticEventListener;
 using static GreenDonut.Errors;
 
@@ -64,6 +65,13 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     /// Gets the cache key type for this DataLoader.
     /// </summary>
     protected internal virtual string CacheKeyType { get; }
+
+    /// <summary>
+    /// Gets or sets the context data which can be used to store
+    /// transient state on the DataLoader.
+    /// </summary>
+    public IImmutableDictionary<string, object?> ContextData { get; set; } =
+        ImmutableDictionary<string, object?>.Empty;
 
     /// <inheritdoc />
     public Task<TValue> LoadAsync(TKey key, CancellationToken cancellationToken = default)
@@ -320,6 +328,37 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             _diagnosticEvents.BatchItemError(key, result.Error!);
             promise.TrySetError(result.Error!);
         }
+    }
+
+    protected TState? GetState<TState>(string key)
+    {
+        if (ContextData.TryGetValue(key, out var value) && value is TState state)
+        {
+            return state;
+        }
+
+        return default;
+    }
+
+    protected TState GetRequiredState<TState>(string key)
+    {
+        if (ContextData.TryGetValue(key, out var value) && value is TState state)
+        {
+            return state;
+        }
+
+        throw new InvalidOperationException(
+            $"The state `{key}` is not available on the DataLoader.");
+    }
+
+    protected TState GetStateOrDefault<TState>(string key, TState defaultValue)
+    {
+        if (ContextData.TryGetValue(key, out var value) && value is TState state)
+        {
+            return state;
+        }
+
+        return defaultValue;
     }
 
     /// <summary>
