@@ -151,6 +151,7 @@ public sealed class PromiseCache : IPromiseCache
         return false;
     }
 
+    /// <inheritdoc />
     public void Publish<T>(T value)
     {
         var promise = Promise<T>.CreateClone(value);
@@ -172,6 +173,7 @@ public sealed class PromiseCache : IPromiseCache
         }
     }
 
+    /// <inheritdoc />
     public void PublishMany<T>(IReadOnlyList<T> values)
     {
         var buffer = ArrayPool<Promise<T>>.Shared.Rent(values.Count);
@@ -475,4 +477,3 @@ public sealed class PromiseCache : IPromiseCache
         public PromiseCacheKey Key { get; } = key;
     }
 }
-
