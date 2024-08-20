@@ -44,6 +44,24 @@ public static class PromiseCacheObserver
 
         return new PromiseCacheObserver<TKey, TValue>(createLookup, dataLoader.CacheKeyType);
     }
+
+    public static IPromiseCacheObserver Create<TKey, TObserved, TValue>(
+        Func<TObserved, TKey> createLookup,
+        DataLoaderBase<TKey, TValue> dataLoader)
+        where TKey : notnull
+    {
+        if (createLookup == null)
+        {
+            throw new ArgumentNullException(nameof(createLookup));
+        }
+
+        if (dataLoader == null)
+        {
+            throw new ArgumentNullException(nameof(dataLoader));
+        }
+
+        return new PromiseCacheObserver<TKey, TObserved>(createLookup, dataLoader.CacheKeyType);
+    }
 }
 
 /// <summary>

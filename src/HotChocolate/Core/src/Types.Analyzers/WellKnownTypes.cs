@@ -57,6 +57,10 @@ public static class WellKnownTypes
     public const string EnumerableDefinition = "System.Collections.Generic.IEnumerable<>";
     public const string ServiceCollection = "Microsoft.Extensions.DependencyInjection.IServiceCollection";
     public const string DataLoaderServiceCollectionExtension = "Microsoft.Extensions.DependencyInjection.DataLoaderServiceCollectionExtensions";
+    public const string Memory = "System.Memory";
+    public const string Span = "System.Span";
+    public const string Result = "GreenDonut.Result";
+    public const string Array = "System.Array";
 
     public static HashSet<string> TypeClass { get; } =
     [

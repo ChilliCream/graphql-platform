@@ -32,39 +32,8 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
                 continue;
             }
 
-            if (dataLoader.MethodSymbol.Parameters.Length == 0)
+            if (dataLoader.Diagnostics.Length > 0)
             {
-                dataLoader.AddDiagnostic(
-                    Diagnostic.Create(
-                        Errors.KeyParameterMissing,
-                        Location.Create(
-                            dataLoader.MethodSyntax.SyntaxTree,
-                            dataLoader.MethodSyntax.ParameterList.Span)));
-                continue;
-            }
-
-            if (dataLoader.MethodSymbol.DeclaredAccessibility is
-                not Accessibility.Public and
-                not Accessibility.Internal and
-                not Accessibility.ProtectedAndInternal)
-            {
-                dataLoader.AddDiagnostic(
-                    Diagnostic.Create(
-                        Errors.MethodAccessModifierInvalid,
-                        Location.Create(
-                            dataLoader.MethodSyntax.SyntaxTree,
-                            dataLoader.MethodSyntax.Modifiers.Span)));
-                continue;
-            }
-
-            if (dataLoader.MethodSymbol.IsGenericMethod)
-            {
-                dataLoader.AddDiagnostic(
-                    Diagnostic.Create(
-                        Errors.DataLoaderCannotBeGeneric,
-                        Location.Create(
-                            dataLoader.MethodSyntax.SyntaxTree,
-                            dataLoader.MethodSyntax.Modifiers.Span)));
                 continue;
             }
 
@@ -164,7 +133,7 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
         generator.WriteDataLoaderConstructor(dataLoader.Name, kind);
         generator.WriteDataLoaderLoadMethod(
             dataLoader.ContainingType,
-            dataLoader.MethodName,
+            dataLoader.MethodSymbol,
             isScoped,
             kind,
             keyType,

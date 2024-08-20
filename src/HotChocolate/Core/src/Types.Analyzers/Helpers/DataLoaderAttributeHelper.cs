@@ -45,6 +45,14 @@ public static class DataLoaderAttributeHelper
         return null;
     }
 
+    public static string[] GetLookups(this AttributeData attribute)
+    {
+        var lookups = attribute.NamedArguments.FirstOrDefault(
+            t => t.Key.Equals("Lookups", StringComparison.Ordinal));
+
+        return [];
+    }
+
     public static bool? IsScoped(this AttributeData attribute)
     {
         var scoped = attribute.NamedArguments.FirstOrDefault(

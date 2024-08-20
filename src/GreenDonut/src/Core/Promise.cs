@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace GreenDonut;
 
 /// <summary>
@@ -115,10 +117,11 @@ public readonly struct Promise<TValue> : IPromise
             (task, s) =>
             {
 #if NETSTANDARD2_0
-                if(task.Status == TaskStatus.RanToCompletion)
+                if(task.Status == TaskStatus.RanToCompletion
 #else
-                if (task.IsCompletedSuccessfully)
+                if (task.IsCompletedSuccessfully
 #endif
+                    && task.Result is not null)
                 {
                     callback(new Promise<TValue>(task.Result), (TState)s!);
                 }

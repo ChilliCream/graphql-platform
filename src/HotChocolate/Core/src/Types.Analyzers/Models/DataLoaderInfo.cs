@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Types.Analyzers.Helpers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -12,12 +13,16 @@ public sealed class DataLoaderInfo : SyntaxInfo
         IMethodSymbol methodSymbol,
         MethodDeclarationSyntax methodSyntax)
     {
+        Validate(methodSymbol, methodSyntax);
+
         AttributeSyntax = attributeSyntax;
         AttributeSymbol = attributeSymbol;
         MethodSymbol = methodSymbol;
         MethodSyntax = methodSyntax;
 
         var attribute = methodSymbol.GetDataLoaderAttribute();
+        var lookups = Array.Empty<string>(); // attribute.GetLookups();
+        var declaringType = methodSymbol.ContainingType;
 
         Name = GetDataLoaderName(methodSymbol.Name, attribute);
         InterfaceName = $"I{Name}";
@@ -28,9 +33,72 @@ public sealed class DataLoaderInfo : SyntaxInfo
         IsPublic = attribute.IsPublic();
         IsInterfacePublic = attribute.IsInterfacePublic();
         MethodName = methodSymbol.Name;
+        KeyParameter = MethodSymbol.Parameters[0];
+        ContainingType = declaringType.ToDisplayString();
 
-        var type = methodSymbol.ContainingType;
-        ContainingType = type.ToDisplayString();
+        if (lookups.Length > 0)
+        {
+            var builder = ImmutableArray.CreateBuilder<IMethodSymbol>();
+
+            foreach (var lookup in lookups)
+            {
+                foreach (var method in declaringType.GetMembers()
+                    .OfType<IMethodSymbol>()
+                    .Where(m => m.Name == lookup))
+                {
+                    if (method.Name.Equals(lookup, StringComparison.Ordinal)
+                        && method.Parameters.Length == 1
+                        && method.ReturnType.Equals(KeyParameter.Type, SymbolEqualityComparer.Default))
+                    {
+                        builder.Add(method);
+                    }
+                }
+            }
+
+            Lookups = builder.ToImmutable();
+        }
+        else
+        {
+            Lookups = ImmutableArray<IMethodSymbol>.Empty;
+        }
+    }
+
+    private void Validate(
+        IMethodSymbol methodSymbol,
+        MethodDeclarationSyntax methodSyntax)
+    {
+        if (methodSymbol.Parameters.Length == 0)
+        {
+            AddDiagnostic(
+                Diagnostic.Create(
+                    Errors.KeyParameterMissing,
+                    Location.Create(
+                        methodSyntax.SyntaxTree,
+                        methodSyntax.ParameterList.Span)));
+        }
+
+        if (methodSymbol.DeclaredAccessibility is
+            not Accessibility.Public and
+            not Accessibility.Internal and
+            not Accessibility.ProtectedAndInternal)
+        {
+            AddDiagnostic(
+                Diagnostic.Create(
+                    Errors.MethodAccessModifierInvalid,
+                    Location.Create(
+                        methodSyntax.SyntaxTree,
+                        methodSyntax.Modifiers.Span)));
+        }
+
+        if (methodSymbol.IsGenericMethod)
+        {
+            AddDiagnostic(
+                Diagnostic.Create(
+                    Errors.DataLoaderCannotBeGeneric,
+                    Location.Create(
+                        methodSyntax.SyntaxTree,
+                        methodSyntax.Modifiers.Span)));
+        }
     }
 
     public string Name { get; }
@@ -60,6 +128,10 @@ public sealed class DataLoaderInfo : SyntaxInfo
     public IMethodSymbol MethodSymbol { get; }
 
     public MethodDeclarationSyntax MethodSyntax { get; }
+
+    public IParameterSymbol KeyParameter { get; }
+
+    public ImmutableArray<IMethodSymbol> Lookups { get; }
 
     public override bool Equals(object? obj)
         => obj is DataLoaderInfo other && Equals(other);
