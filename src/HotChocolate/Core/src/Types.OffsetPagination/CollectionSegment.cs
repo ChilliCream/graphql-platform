@@ -18,7 +18,7 @@ public class CollectionSegment : IPage
     /// The totalCount.
     /// </param>
     public CollectionSegment(
-        IReadOnlyCollection<object> items,
+        IReadOnlyList<object> items,
         CollectionSegmentInfo info,
         int totalCount)
     {
@@ -30,7 +30,7 @@ public class CollectionSegment : IPage
     /// <summary>
     /// The items that belong to this page.
     /// </summary>
-    public IReadOnlyCollection<object> Items { get; }
+    public IReadOnlyList<object> Items { get; }
 
     /// <summary>
     /// Gets more information about this page.
@@ -46,4 +46,11 @@ public class CollectionSegment : IPage
     /// Returns the total count of the data set / collection that is being paged.
     /// </summary>
     public int TotalCount { get; }
+
+    /// <summary>
+    /// Accepts a page observer.
+    /// </summary>
+    public virtual void Accept(IPageObserver observer)
+    {
+    }
 }

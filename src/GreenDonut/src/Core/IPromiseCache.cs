@@ -80,6 +80,30 @@ public interface IPromiseCache
     bool TryRemove(PromiseCacheKey key);
 
     /// <summary>
+    /// Publishes a value to the cache subscribers without adding it to the cache  iself.
+    /// This allows the subscribers to decide if they want to cache the value.
+    /// </summary>
+    /// <param name="value">
+    /// The value that is published to the subscribers.
+    /// </param>
+    /// <typeparam name="T">
+    /// The value type.
+    /// </typeparam>
+    void Publish<T>(T value);
+
+    /// <summary>
+    /// Publishes the values to the cache subscribers without adding it to the cache iself.
+    /// This allows the subscribers to decide if they want to cache the values.
+    /// </summary>
+    /// <param name="values">
+    /// The values that are published to the subscribers.
+    /// </param>
+    /// <typeparam name="T">
+    /// The value type.
+    /// </typeparam>
+    void PublishMany<T>(IReadOnlyList<T> values);
+
+    /// <summary>
     /// Subscribes to the cache and gets notified when a new task is added.
     /// </summary>
     /// <param name="next">

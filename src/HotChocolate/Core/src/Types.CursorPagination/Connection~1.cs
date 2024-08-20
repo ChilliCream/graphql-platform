@@ -18,7 +18,7 @@ public class Connection<T> : Connection
     /// The total count of items of this connection
     /// </param>
     public Connection(
-        IReadOnlyCollection<Edge<T>> edges,
+        IReadOnlyList<Edge<T>> edges,
         ConnectionPageInfo info,
         int totalCount = 0)
         : base(edges, info, totalCount)
@@ -37,5 +37,24 @@ public class Connection<T> : Connection
     /// <summary>
     /// The edges that belong to this connection.
     /// </summary>
-    public new IReadOnlyCollection<Edge<T>> Edges { get; }
+    public new IReadOnlyList<Edge<T>> Edges { get; }
+
+    /// <inheritdoc cref="Connection"/>
+    public override void Accept(IPageObserver observer)
+    {
+        if(Edges.Count == 0)
+        {
+            observer.OnAfterSliced(Array.Empty<T>(), Info);
+            return;
+        }
+
+        var items = new T[Edges.Count];
+
+        for (var i = 0; i < Edges.Count; i++)
+        {
+            items[i] = Edges[i].Node;
+        }
+
+        observer.OnAfterSliced(items, Info);
+    }
 }
