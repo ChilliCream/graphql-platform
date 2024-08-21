@@ -2,7 +2,7 @@ using Xunit;
 
 namespace GreenDonut;
 
-public class TaskCacheTests
+public class PromiseCacheTests
 {
     [Fact(DisplayName = "Constructor: Should not throw any exception")]
     public void ConstructorNoException()
@@ -11,7 +11,7 @@ public class TaskCacheTests
         var cacheSize = 1;
 
         // act
-        void Verify() => new TaskCache(cacheSize);
+        void Verify() => new PromiseCache(cacheSize);
 
         // assert
         Assert.Null(Record.Exception(Verify));
@@ -26,7 +26,7 @@ public class TaskCacheTests
     public void Size(int cacheSize, int expectedCacheSize)
     {
         // arrange
-        var cache = new TaskCache(cacheSize);
+        var cache = new PromiseCache(cacheSize);
 
         // act
         var result = cache.Size;
@@ -45,11 +45,11 @@ public class TaskCacheTests
     {
         // arrange
         var cacheSize = 10;
-        var cache = new TaskCache(cacheSize);
+        var cache = new PromiseCache(cacheSize);
 
         foreach (var value in values)
         {
-            cache.TryAdd(new TaskCacheKey("a", $"Key:{value}"), new Promise<string>(value));
+            cache.TryAdd(new PromiseCacheKey("a", $"Key:{value}"), new Promise<string>(value));
         }
 
         // act
@@ -64,7 +64,7 @@ public class TaskCacheTests
     {
         // arrange
         var cacheSize = 10;
-        var cache = new TaskCache(cacheSize);
+        var cache = new PromiseCache(cacheSize);
 
         // act
         void Verify() => cache.Clear();
@@ -78,7 +78,7 @@ public class TaskCacheTests
     {
         // arrange
         var cacheSize = 10;
-        var cache = new TaskCache(cacheSize);
+        var cache = new PromiseCache(cacheSize);
 
         // act
         cache.Clear();
@@ -92,10 +92,10 @@ public class TaskCacheTests
     {
         // arrange
         var cacheSize = 10;
-        var cache = new TaskCache(cacheSize);
+        var cache = new PromiseCache(cacheSize);
 
-        cache.TryAdd(new TaskCacheKey("a", "Foo"), new Promise<string>("Bar"));
-        cache.TryAdd(new TaskCacheKey("a", "Bar"), new Promise<string>("Baz"));
+        cache.TryAdd(new PromiseCacheKey("a", "Foo"), new Promise<string>("Bar"));
+        cache.TryAdd(new PromiseCacheKey("a", "Bar"), new Promise<string>("Baz"));
 
         // act
         cache.Clear();
@@ -109,7 +109,7 @@ public class TaskCacheTests
     {
         // arrange
         var cacheSize = 10;
-        var cache = new TaskCache(cacheSize);
+        var cache = new PromiseCache(cacheSize);
         var key = "Foo";
 
         // act
@@ -124,8 +124,8 @@ public class TaskCacheTests
     {
         // arrange
         var cacheSize = 10;
-        var cache = new TaskCache(cacheSize);
-        var key = new TaskCacheKey("a", "Foo");
+        var cache = new PromiseCache(cacheSize);
+        var key = new PromiseCacheKey("a", "Foo");
         var value = Task.FromResult("Bar");
 
         cache.TryAdd(key, new Promise<string>(value));
@@ -143,14 +143,14 @@ public class TaskCacheTests
     {
         // arrange
         var cacheSize = 10;
-        var cache = new TaskCache(cacheSize);
-        var key = new TaskCacheKey("a", "Foo");
+        var cache = new PromiseCache(cacheSize);
+        var key = new PromiseCacheKey("a", "Foo");
 
         // act
-        void Verify() => cache.TryAdd(key, default(Promise<string>)!);
+        void Verify() => cache.TryAdd(key, default(Promise<string>));
 
         // assert
-        Assert.Throws<ArgumentNullException>("value", Verify);
+        Assert.Throws<ArgumentNullException>("promise", Verify);
     }
 
     [Fact(DisplayName = "TryAdd: Should result in a new cache entry")]
@@ -158,8 +158,8 @@ public class TaskCacheTests
     {
         // arrange
         var cacheSize = 10;
-        var cache = new TaskCache(cacheSize);
-        var key = new TaskCacheKey("a", "Foo");
+        var cache = new PromiseCache(cacheSize);
+        var key = new PromiseCacheKey("a", "Foo");
         var expected = new Promise<string>("Bar");
 
         // act
@@ -177,8 +177,8 @@ public class TaskCacheTests
     {
         // arrange
         var cacheSize = 10;
-        var cache = new TaskCache(cacheSize);
-        var key = new TaskCacheKey("a", "Foo");
+        var cache = new PromiseCache(cacheSize);
+        var key = new PromiseCacheKey("a", "Foo");
         var expected = new Promise<string>(Task.FromResult("Bar"));
 
         // act
@@ -196,8 +196,8 @@ public class TaskCacheTests
     {
         // arrange
         var cacheSize = 10;
-        var cache = new TaskCache(cacheSize);
-        var key = new TaskCacheKey("a", "Foo");
+        var cache = new PromiseCache(cacheSize);
+        var key = new PromiseCacheKey("a", "Foo");
         var expected = Task.FromResult("Bar");
         var another = Task.FromResult("Baz");
 
@@ -218,8 +218,8 @@ public class TaskCacheTests
     {
         // arrange
         var cacheSize = 10;
-        var cache = new TaskCache(cacheSize);
-        var key = new TaskCacheKey("a", "Foo");
+        var cache = new PromiseCache(cacheSize);
+        var key = new PromiseCacheKey("a", "Foo");
 
         // act
         var resolved = cache.GetOrAddTask(key, _ => new Promise<string>(Task.FromResult("Quox")));
@@ -233,8 +233,8 @@ public class TaskCacheTests
     {
         // arrange
         var cacheSize = 10;
-        var cache = new TaskCache(cacheSize);
-        var key = new TaskCacheKey("a", 1);
+        var cache = new PromiseCache(cacheSize);
+        var key = new PromiseCacheKey("a", 1);
 
         // act
         var resolved = cache.GetOrAddTask(key, _ => new Promise<string>(Task.FromResult("Quox")));

@@ -32,39 +32,8 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
                 continue;
             }
 
-            if (dataLoader.MethodSymbol.Parameters.Length == 0)
+            if (dataLoader.Diagnostics.Length > 0)
             {
-                dataLoader.AddDiagnostic(
-                    Diagnostic.Create(
-                        Errors.KeyParameterMissing,
-                        Location.Create(
-                            dataLoader.MethodSyntax.SyntaxTree,
-                            dataLoader.MethodSyntax.ParameterList.Span)));
-                continue;
-            }
-
-            if (dataLoader.MethodSymbol.DeclaredAccessibility is
-                not Accessibility.Public and
-                not Accessibility.Internal and
-                not Accessibility.ProtectedAndInternal)
-            {
-                dataLoader.AddDiagnostic(
-                    Diagnostic.Create(
-                        Errors.MethodAccessModifierInvalid,
-                        Location.Create(
-                            dataLoader.MethodSyntax.SyntaxTree,
-                            dataLoader.MethodSyntax.Modifiers.Span)));
-                continue;
-            }
-
-            if (dataLoader.MethodSymbol.IsGenericMethod)
-            {
-                dataLoader.AddDiagnostic(
-                    Diagnostic.Create(
-                        Errors.DataLoaderCannotBeGeneric,
-                        Location.Create(
-                            dataLoader.MethodSyntax.SyntaxTree,
-                            dataLoader.MethodSyntax.Modifiers.Span)));
                 continue;
             }
 
@@ -84,18 +53,11 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
             {
                 var keyArg = dataLoader.MethodSymbol.Parameters[0];
                 var keyType = keyArg.Type;
-                var cancellationTokenIndex = -1;
-                var serviceMap = new Dictionary<int, string>();
 
                 if (IsKeysArgument(keyType))
                 {
                     keyType = ExtractKeyType(keyType);
                 }
-
-                InspectDataLoaderParameters(
-                    dataLoader,
-                    ref cancellationTokenIndex,
-                    serviceMap);
 
                 DataLoaderKind kind;
 
@@ -115,16 +77,18 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
 
                 var valueType = ExtractValueType(dataLoader.MethodSymbol.ReturnType, kind);
 
+                if (hasDataLoaders)
+                {
+                    generator.WriteLine();
+                }
+
                 GenerateDataLoader(
                     generator,
                     dataLoader,
                     defaults,
                     kind,
                     keyType,
-                    valueType,
-                    dataLoader.MethodSymbol.Parameters.Length,
-                    cancellationTokenIndex,
-                    serviceMap);
+                    valueType);
                 hasDataLoaders = true;
             }
 
@@ -143,10 +107,7 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
         DataLoaderDefaultsInfo defaults,
         DataLoaderKind kind,
         ITypeSymbol keyType,
-        ITypeSymbol valueType,
-        int parameterCount,
-        int cancelIndex,
-        Dictionary<int, string> services)
+        ITypeSymbol valueType)
     {
         var isScoped = dataLoader.IsScoped ?? defaults.Scoped ?? true;
         var isPublic = dataLoader.IsPublic ?? defaults.IsPublic ?? true;
@@ -161,45 +122,22 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
             kind,
             keyType,
             valueType);
-        generator.WriteDataLoaderConstructor(dataLoader.Name, kind);
+        generator.WriteDataLoaderConstructor(
+            dataLoader.Name,
+            kind,
+            keyType,
+            valueType,
+            dataLoader.GetLookups(keyType, valueType));
+        generator.WriteLine();
         generator.WriteDataLoaderLoadMethod(
             dataLoader.ContainingType,
-            dataLoader.MethodName,
+            dataLoader.MethodSymbol,
             isScoped,
             kind,
             keyType,
             valueType,
-            services,
-            parameterCount,
-            cancelIndex);
+            dataLoader.Parameters);
         generator.WriteEndDataLoaderClass();
-    }
-
-    private static void InspectDataLoaderParameters(
-        DataLoaderInfo dataLoader,
-        ref int cancellationTokenIndex,
-        Dictionary<int, string> serviceMap)
-    {
-        for (var i = 1; i < dataLoader.MethodSymbol.Parameters.Length; i++)
-        {
-            var argument = dataLoader.MethodSymbol.Parameters[i];
-            var argumentType = argument.Type.ToFullyQualified();
-
-            if (IsCancellationToken(argumentType))
-            {
-                if (cancellationTokenIndex != -1)
-                {
-                    // report error
-                    return;
-                }
-
-                cancellationTokenIndex = i;
-            }
-            else
-            {
-                serviceMap[i] = argumentType;
-            }
-        }
     }
 
     private static bool IsKeysArgument(ITypeSymbol type)
@@ -217,19 +155,22 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
         throw new InvalidOperationException();
     }
 
-    private static bool IsCancellationToken(string typeName)
-        => string.Equals(typeName, WellKnownTypes.CancellationToken)
-            || string.Equals(typeName, WellKnownTypes.GlobalCancellationToken);
-
     private static bool IsReturnTypeDictionary(ITypeSymbol returnType, ITypeSymbol keyType)
     {
         if (returnType is INamedTypeSymbol { TypeArguments.Length: 1, } namedType)
         {
             var resultType = namedType.TypeArguments[0];
 
-            if (IsReadOnlyDictionary(resultType)
-                && resultType is INamedTypeSymbol { TypeArguments.Length: 2, } dictionaryType
-                && dictionaryType.TypeArguments[0].Equals(keyType, SymbolEqualityComparer.Default))
+            if (IsReadOnlyDictionaryInterface(resultType)
+                && resultType is INamedTypeSymbol { TypeArguments.Length: 2, } dictionaryType1
+                && dictionaryType1.TypeArguments[0].Equals(keyType, SymbolEqualityComparer.Default))
+            {
+                return true;
+            }
+
+            if (IsDictionaryInterface(resultType)
+                && resultType is INamedTypeSymbol { TypeArguments.Length: 2, } dictionaryType2
+                && dictionaryType2.TypeArguments[0].Equals(keyType, SymbolEqualityComparer.Default))
             {
                 return true;
             }
@@ -255,7 +196,7 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
         return false;
     }
 
-    private static bool IsReadOnlyDictionary(ITypeSymbol type)
+    private static bool IsReadOnlyDictionaryInterface(ITypeSymbol type)
     {
         if (!ToTypeNameNoGenerics(type).Equals(WellKnownTypes.ReadOnlyDictionary, StringComparison.Ordinal))
         {
@@ -263,6 +204,25 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
             {
                 if (ToTypeNameNoGenerics(interfaceSymbol)
                     .Equals(WellKnownTypes.ReadOnlyDictionary, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private static bool IsDictionaryInterface(ITypeSymbol type)
+    {
+        if (!ToTypeNameNoGenerics(type).Equals(WellKnownTypes.DictionaryInterface, StringComparison.Ordinal))
+        {
+            foreach (var interfaceSymbol in type.Interfaces)
+            {
+                if (ToTypeNameNoGenerics(interfaceSymbol)
+                    .Equals(WellKnownTypes.DictionaryInterface, StringComparison.Ordinal))
                 {
                     return true;
                 }

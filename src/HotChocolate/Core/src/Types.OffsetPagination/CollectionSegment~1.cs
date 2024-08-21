@@ -20,7 +20,7 @@ public class CollectionSegment<T> : CollectionSegment
     /// The total count of the data set / collection that is being paged.
     /// </param>
     public CollectionSegment(
-        IReadOnlyCollection<T> items,
+        IReadOnlyList<T> items,
         CollectionSegmentInfo info,
         int totalCount)
         : base(new CollectionWrapper(items), info, totalCount)
@@ -31,17 +31,40 @@ public class CollectionSegment<T> : CollectionSegment
     /// <summary>
     /// The items that belong to this page.
     /// </summary>
-    public new IReadOnlyCollection<T> Items { get; }
+    public new IReadOnlyList<T> Items { get; }
+
+    /// <summary>
+    /// Accepts a page observer.
+    /// </summary>
+    public override void Accept(IPageObserver observer)
+    {
+        if(Items.Count == 0)
+        {
+            observer.OnAfterSliced(Array.Empty<T>(), Info);
+            return;
+        }
+
+        var items = new T[Items.Count];
+
+        for (var i = 0; i < Items.Count; i++)
+        {
+            items[i] = Items[i];
+        }
+
+        observer.OnAfterSliced(Items, Info);
+    }
 
     /// <summary>
     /// This wrapper is used to be able to pass along the items collection to the base class
     /// which demands <see cref="IReadOnlyCollection{Object}"/>.
     /// </summary>
-    private sealed class CollectionWrapper(IReadOnlyCollection<T> collection)
-        : IReadOnlyCollection<object>
+    private sealed class CollectionWrapper(IReadOnlyList<T> collection)
+        : IReadOnlyList<object>
     {
-        private readonly IReadOnlyCollection<T> _collection = collection
+        private readonly IReadOnlyList<T> _collection = collection
             ?? throw new ArgumentNullException(nameof(collection));
+
+        public object this[int index] => _collection[index]!;
 
         public int Count => _collection.Count;
 

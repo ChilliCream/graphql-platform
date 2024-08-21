@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Execution\HotChocolate.Execution.csproj" />
+    <ProjectReference Include="..\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />
     <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
   </ItemGroup>
 

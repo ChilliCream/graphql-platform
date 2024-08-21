@@ -3,30 +3,30 @@ using Microsoft.Extensions.ObjectPool;
 namespace GreenDonut;
 
 /// <summary>
-/// Owner of <see cref="TaskCache"/> that is responsible for returning the rented
-/// <see cref="TaskCache"/> appropriately to the <see cref="ObjectPool{TaskCache}"/>.
+/// Owner of <see cref="PromiseCache"/> that is responsible for returning the rented
+/// <see cref="PromiseCache"/> appropriately to the <see cref="ObjectPool{TaskCache}"/>.
 /// </summary>
-public sealed class TaskCacheOwner : IDisposable
+public sealed class PromiseCacheOwner : IDisposable
 {
     private readonly CancellationTokenSource _cts = new();
-    private readonly ObjectPool<TaskCache> _pool;
-    private readonly TaskCache _cache;
+    private readonly ObjectPool<PromiseCache> _pool;
+    private readonly PromiseCache _cache;
     private bool _disposed;
 
     /// <summary>
-    /// Rents a new cache from <see cref="TaskCachePool.Shared"/>.
+    /// Rents a new cache from <see cref="PromiseCachePool.Shared"/>.
     /// </summary>
-    public TaskCacheOwner()
+    public PromiseCacheOwner()
     {
-        _pool = TaskCachePool.Shared;
-        _cache = TaskCachePool.Shared.Get();
+        _pool = PromiseCachePool.Shared;
+        _cache = PromiseCachePool.Shared.Get();
         CancellationToken = _cts.Token;
     }
 
     /// <summary>
     /// Rents a new cache from the given <paramref name="pool"/>.
     /// </summary>
-    public TaskCacheOwner(ObjectPool<TaskCache> pool)
+    public PromiseCacheOwner(ObjectPool<PromiseCache> pool)
     {
         _pool = pool ?? throw new ArgumentNullException(nameof(pool));
         _cache = pool.Get();
@@ -42,7 +42,7 @@ public sealed class TaskCacheOwner : IDisposable
     /// <summary>
     /// Gets the rented cache.
     /// </summary>
-    public ITaskCache Cache => _cache;
+    public IPromiseCache Cache => _cache;
 
     /// <summary>
     /// Returns the rented cache back to the <see cref="ObjectPool{TaskCache}"/>.

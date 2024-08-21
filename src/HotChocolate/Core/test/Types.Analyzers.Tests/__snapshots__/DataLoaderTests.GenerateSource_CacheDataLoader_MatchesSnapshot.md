@@ -10,10 +10,8 @@
 
 using System;
 using System.Runtime.CompilerServices;
-using HotChocolate;
-using HotChocolate.Types;
-using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using GreenDonut;
 
 namespace TestNamespace
 {
@@ -23,7 +21,7 @@ namespace TestNamespace
     }
 
     public sealed class EntityByIdDataLoader
-        : global::GreenDonut.CacheDataLoader<int, Entity>
+        : global::GreenDonut.DataLoaderBase<int, Entity>
         , IEntityByIdDataLoader
     {
         private readonly global::System.IServiceProvider _services;
@@ -31,20 +29,32 @@ namespace TestNamespace
         public EntityByIdDataLoader(
             global::System.IServiceProvider services,
             global::GreenDonut.DataLoaderOptions options)
-            : base(options)
+            : base(AutoBatchScheduler.Default, options)
         {
             _services = services ??
                 throw new global::System.ArgumentNullException(nameof(services));
         }
-        protected override async global::System.Threading.Tasks.Task<Entity> LoadSingleAsync(
-            int key,
+
+        protected override async global::System.Threading.Tasks.ValueTask FetchAsync(
+            global::System.Collections.Generic.IReadOnlyList<int> keys,
+            global::System.Memory<GreenDonut.Result<Entity>> results,
             global::System.Threading.CancellationToken ct)
         {
-            await using var scope = _services.CreateAsyncScope();
-            return await TestNamespace.TestClass.GetEntityByIdAsync(key, ct).ConfigureAwait(false);
+            for (var i = 0; i < keys.Count; i++)
+            {
+                try
+                {
+                    var key = keys[i];
+                    var value = await TestNamespace.TestClass.GetEntityByIdAsync(key, ct).ConfigureAwait(false);
+                    results.Span[i] = Result<Entity>.Resolve(value);
+                }
+                catch (global::System.Exception ex)
+                {
+                    results.Span[i] = Result<Entity>.Reject(ex);
+                }
+            }
         }
     }
-
 }
 
 

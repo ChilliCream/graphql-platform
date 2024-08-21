@@ -20,7 +20,7 @@ public class Connection : IPage
     /// The total count of items of this connection
     /// </param>
     public Connection(
-        IReadOnlyCollection<IEdge> edges,
+        IReadOnlyList<IEdge> edges,
         ConnectionPageInfo info,
         int totalCount = 0)
     {
@@ -32,12 +32,12 @@ public class Connection : IPage
     /// <summary>
     /// The edges that belong to this connection.
     /// </summary>
-    public IReadOnlyCollection<IEdge> Edges { get; }
+    public IReadOnlyList<IEdge> Edges { get; }
 
     /// <summary>
     /// The items that belong to this connection.
     /// </summary>
-    IReadOnlyCollection<object> IPage.Items => Edges;
+    IReadOnlyList<object> IPage.Items => Edges;
 
     /// <summary>
     /// Information about pagination in a connection.
@@ -56,6 +56,13 @@ public class Connection : IPage
     /// The total count of the data set / collection.
     /// </returns>
     public int TotalCount { get; }
+
+    /// <summary>
+    /// Accepts a page observer.
+    /// </summary>
+    public virtual void Accept(IPageObserver observer)
+    {
+    }
 
     /// <summary>
     /// Gets an cashed empty connection object.

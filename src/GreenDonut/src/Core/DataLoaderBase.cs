@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using static GreenDonut.NoopDataLoaderDiagnosticEventListener;
 using static GreenDonut.Errors;
 
@@ -58,12 +59,19 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     /// <summary>
     /// Gets access to the cache of this DataLoader.
     /// </summary>
-    protected ITaskCache? Cache { get; }
+    protected internal IPromiseCache? Cache { get; }
 
     /// <summary>
     /// Gets the cache key type for this DataLoader.
     /// </summary>
-    protected virtual string CacheKeyType { get; }
+    protected internal virtual string CacheKeyType { get; }
+
+    /// <summary>
+    /// Gets or sets the context data which can be used to store
+    /// transient state on the DataLoader.
+    /// </summary>
+    public IImmutableDictionary<string, object?> ContextData { get; set; } =
+        ImmutableDictionary<string, object?>.Empty;
 
     /// <inheritdoc />
     public Task<TValue> LoadAsync(TKey key, CancellationToken cancellationToken = default)
@@ -74,7 +82,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         }
 
         var cached = true;
-        TaskCacheKey cacheKey = new(CacheKeyType, key);
+        PromiseCacheKey cacheKey = new(CacheKeyType, key);
 
         lock (_sync)
         {
@@ -135,7 +143,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
                 cancellationToken.ThrowIfCancellationRequested();
 
                 cached = true;
-                TaskCacheKey cacheKey = new(CacheKeyType, key);
+                PromiseCacheKey cacheKey = new(CacheKeyType, key);
                 var cachedTask = Cache.GetOrAddTask(cacheKey, k => CreatePromise((TKey)k.Key));
 
                 if (cached)
@@ -176,7 +184,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
         if (Cache is not null)
         {
-            TaskCacheKey cacheKey = new(CacheKeyType, key);
+            PromiseCacheKey cacheKey = new(CacheKeyType, key);
             Cache.TryRemove(cacheKey);
         }
     }
@@ -196,7 +204,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
         if (Cache is not null)
         {
-            TaskCacheKey cacheKey = new(CacheKeyType, key);
+            PromiseCacheKey cacheKey = new(CacheKeyType, key);
             Cache.TryAdd(cacheKey, new Promise<TValue>(value));
         }
     }
@@ -212,11 +220,11 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         {
             if (Cache is not null)
             {
-                TaskCacheKey cacheKey = new(CacheKeyType, key);
+                PromiseCacheKey cacheKey = new(CacheKeyType, key);
                 Cache.TryRemove(cacheKey);
             }
 
-            batch.GetPromise<TValue>(key).TrySetException(error);
+            batch.GetPromise<TValue>(key).TrySetError(error);
         }
     }
 
@@ -307,19 +315,50 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     // ReSharper restore InconsistentlySynchronizedField
 
     private void SetSingleResult(
-        TaskCompletionSource<TValue> promise,
+        Promise<TValue> promise,
         TKey key,
         Result<TValue> result)
     {
         if (result.Kind is ResultKind.Value)
         {
-            promise.SetResult(result);
+            promise.TrySetResult(result);
         }
         else
         {
             _diagnosticEvents.BatchItemError(key, result.Error!);
-            promise.SetException(result.Error!);
+            promise.TrySetError(result.Error!);
         }
+    }
+
+    protected TState? GetState<TState>(string key)
+    {
+        if (ContextData.TryGetValue(key, out var value) && value is TState state)
+        {
+            return state;
+        }
+
+        return default;
+    }
+
+    protected TState GetRequiredState<TState>(string key)
+    {
+        if (ContextData.TryGetValue(key, out var value) && value is TState state)
+        {
+            return state;
+        }
+
+        throw new InvalidOperationException(
+            $"The state `{key}` is not available on the DataLoader.");
+    }
+
+    protected TState GetStateOrDefault<TState>(string key, TState defaultValue)
+    {
+        if (ContextData.TryGetValue(key, out var value) && value is TState state)
+        {
+            return state;
+        }
+
+        return defaultValue;
     }
 
     /// <summary>
@@ -350,13 +389,13 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
         foreach (var item in items)
         {
-            TaskCacheKey cacheKey = new(cacheKeyType, key(item));
+            PromiseCacheKey cacheKey = new(cacheKeyType, key(item));
             Cache.TryAdd(cacheKey, () => new Promise<TV>(value(item)));
         }
     }
 
     /// <summary>
-    /// A helper to adds an additional cache lookup to a resolved entity.
+    /// A helper to adds another cache lookup to a resolved entity.
     /// </summary>
     /// <param name="cacheKeyType">
     /// The cache key type that shall be used to refer to the entity.
@@ -376,7 +415,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             return;
         }
 
-        TaskCacheKey cacheKey = new(cacheKeyType, key);
+        PromiseCacheKey cacheKey = new(cacheKeyType, key);
         Cache.TryAdd(cacheKey, () => new Promise<TV>(value));
     }
 

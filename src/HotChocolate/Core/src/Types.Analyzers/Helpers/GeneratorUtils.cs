@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Types.Analyzers.Models;
+using Microsoft.CodeAnalysis;
 
 namespace HotChocolate.Types.Analyzers.Helpers;
 
@@ -47,4 +48,46 @@ internal static class GeneratorUtils
         => assemblyName is null
             ? "AssemblyTypes"
             : assemblyName.Split('.').Last() + "Types";
+
+    public static string ConvertDefaultValueToString(object? defaultValue, ITypeSymbol type)
+    {
+        if (defaultValue == null)
+        {
+            return "default";
+        }
+
+        if (type.SpecialType == SpecialType.System_String)
+        {
+            return $"\"{defaultValue}\"";
+        }
+
+        if (type.SpecialType == SpecialType.System_Char)
+        {
+            return $"'{defaultValue}'";
+        }
+
+        if (type.SpecialType == SpecialType.System_Boolean)
+        {
+            return defaultValue.ToString().ToLower();
+        }
+
+        if (type.SpecialType == SpecialType.System_Double ||
+            type.SpecialType == SpecialType.System_Single)
+        {
+            return $"{defaultValue}d";
+        }
+
+        if (type.SpecialType == SpecialType.System_Decimal)
+        {
+            return $"{defaultValue}m";
+        }
+
+        if (type.SpecialType == SpecialType.System_Int64 ||
+            type.SpecialType == SpecialType.System_UInt64)
+        {
+            return $"{defaultValue}L";
+        }
+
+        return defaultValue.ToString();
+    }
 }

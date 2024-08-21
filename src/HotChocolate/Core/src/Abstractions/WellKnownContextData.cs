@@ -334,4 +334,6 @@ public static class WellKnownContextData
     /// The key to set the flag that only the cost should be validated and the request should not be executed.
     /// </summary>
     public const string ValidateCost = "HotChocolate.CostAnalysis.ValidateCost";
+
+    public const string PagingObserver = "HotChocolate.Types.PagingObserver";
 }

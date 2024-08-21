@@ -15,6 +15,7 @@ public static class WellKnownAttributes
     public const string DataLoaderAttribute = "GreenDonut.DataLoaderAttribute";
     public const string DataLoaderModuleAttribute = "GreenDonut.DataLoaderModuleAttribute";
     public const string DataLoaderDefaultsAttribute = "GreenDonut.DataLoaderDefaultsAttribute";
+    public const string DataLoaderStateAttribute = "GreenDonut.DataLoaderStateAttribute";
     public const string QueryAttribute = "HotChocolate.QueryAttribute";
     public const string MutationAttribute = "HotChocolate.MutationAttribute";
     public const string SubscriptionAttribute = "HotChocolate.SubscriptionAttribute";

@@ -17,7 +17,7 @@ public sealed class ModuleFileBuilder : IDisposable
     {
         _moduleName = moduleName;
         _ns = ns;
-        _sb = StringBuilderPool.Get();
+        _sb = PooledObjects.GetStringBuilder();
         _writer = new CodeWriter(_sb);
     }
 
@@ -304,7 +304,7 @@ public sealed class ModuleFileBuilder : IDisposable
             return;
         }
 
-        StringBuilderPool.Return(_sb);
+        PooledObjects.Return(_sb);
         _sb = default!;
         _writer = default!;
         _disposed = true;

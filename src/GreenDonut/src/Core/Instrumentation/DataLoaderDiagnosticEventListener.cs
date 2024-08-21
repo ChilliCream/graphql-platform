@@ -14,7 +14,7 @@ public class DataLoaderDiagnosticEventListener : IDataLoaderDiagnosticEventListe
     /// <inheritdoc />
     public virtual void ResolvedTaskFromCache(
         IDataLoader dataLoader,
-        TaskCacheKey cacheKey,
+        PromiseCacheKey cacheKey,
         Task task) { }
 
     /// <inheritdoc />

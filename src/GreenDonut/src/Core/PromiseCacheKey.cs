@@ -4,17 +4,17 @@ namespace GreenDonut;
 /// <summary>
 /// The key of a cached task.
 /// </summary>
-public readonly record struct TaskCacheKey(string Type, object Key);
+public readonly record struct PromiseCacheKey(string Type, object Key);
 #else
 namespace GreenDonut;
 
 /// <summary>
 /// The key of a cached task.
 /// </summary>
-public readonly struct TaskCacheKey : IEquatable<TaskCacheKey>
+public readonly struct PromiseCacheKey : IEquatable<PromiseCacheKey>
 {
     /// <summary>
-    /// Creates a new instance of <see cref="TaskCacheKey"/>.
+    /// Creates a new instance of <see cref="PromiseCacheKey"/>.
     /// </summary>
     /// <param name="type">
     /// The key type.
@@ -25,7 +25,7 @@ public readonly struct TaskCacheKey : IEquatable<TaskCacheKey>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="type"/> or <paramref name="key"/> is <c>null</c>.
     /// </exception>
-    public TaskCacheKey(string type, object key)
+    public PromiseCacheKey(string type, object key)
     {
         Type = type ?? throw new ArgumentNullException(nameof(type));
         Key = key ?? throw new ArgumentNullException(nameof(key));
@@ -42,13 +42,13 @@ public readonly struct TaskCacheKey : IEquatable<TaskCacheKey>
     public object Key { get; }
 
     /// <inheritdoc />
-    public bool Equals(TaskCacheKey other)
+    public bool Equals(PromiseCacheKey other)
         => Type.Equals(other.Type, StringComparison.Ordinal) &&
             Key.Equals(other.Key);
 
     /// <inheritdoc />
     public override bool Equals(object? obj)
-        => obj is TaskCacheKey other && Equals(other);
+        => obj is PromiseCacheKey other && Equals(other);
 
     /// <inheritdoc />
     public override int GetHashCode()
