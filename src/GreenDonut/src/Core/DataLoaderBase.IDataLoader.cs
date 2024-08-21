@@ -1,6 +1,6 @@
 namespace GreenDonut;
 
-public abstract partial class DataLoaderBase<TKey, TValue> where TKey : notnull
+public abstract partial class DataLoaderBase<TKey, TValue>
 {
     /// <inheritdoc />
     Task<object?> IDataLoader.LoadAsync(

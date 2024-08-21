@@ -25,7 +25,8 @@ namespace GreenDonut;
 /// <typeparam name="TKey">A key type.</typeparam>
 /// <typeparam name="TValue">A value type.</typeparam>
 public abstract partial class DataLoaderBase<TKey, TValue>
-    : IDataLoader<TKey, TValue> where TKey : notnull
+    : IDataLoader<TKey, TValue>
+    where TKey : notnull
 {
     private readonly object _sync = new();
     private readonly IBatchScheduler _batchScheduler;
