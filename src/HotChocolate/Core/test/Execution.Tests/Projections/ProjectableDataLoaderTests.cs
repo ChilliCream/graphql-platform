@@ -83,6 +83,46 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             .MatchMarkdownSnapshot();
     }
 
+    [Fact]
+    public async Task Force_A_Branch()
+    {
+        // Arrange
+        var queries = new List<string>();
+        var connectionString = CreateConnectionString();
+        await CatalogContext.SeedAsync(connectionString);
+
+        // Act
+        var result = await new ServiceCollection()
+            .AddScoped(_ => queries)
+            .AddScoped(_ => new CatalogContext(connectionString))
+            .AddDataLoader<BrandByIdDataLoader>()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddPagingArguments()
+            .ExecuteRequestAsync(
+                """
+                {
+                    a: productById(id: 1) {
+                        name
+                        brand {
+                            name
+                        }
+                    }
+                    b: productById(id: 1) {
+                        id
+                        brand {
+                            id
+                        }
+                    }
+                }
+                """);
+
+        Snapshot.Create()
+            .AddSql(queries)
+            .AddResult(result)
+            .MatchMarkdownSnapshot();
+    }
+
     public class Query
     {
         public async Task<Brand> GetBrandByIdAsync(
