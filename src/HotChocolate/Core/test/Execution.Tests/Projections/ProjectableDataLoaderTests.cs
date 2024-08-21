@@ -4,7 +4,6 @@ using GreenDonut;
 using GreenDonut.Projections;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.TestContext;
-using HotChocolate.Resolvers.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Squadron;
@@ -102,19 +101,20 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
     }
 
     public class BrandByIdDataLoader(
-        CatalogContext context,
+        CatalogContext catalogContext,
         List<string> queries,
         IBatchScheduler batchScheduler,
         DataLoaderOptions options)
-        : BatchDataLoader<int, Brand>(batchScheduler, options)
+        : StatefulBatchDataLoader<int, Brand>(batchScheduler, options)
     {
         protected override async Task<IReadOnlyDictionary<int, Brand>> LoadBatchAsync(
             IReadOnlyList<int> keys,
+            DataLoaderFetchContext<Brand> context,
             CancellationToken cancellationToken)
         {
-            var query = context.Brands
+            var query = catalogContext.Brands
                 .Where(t => keys.Contains(t.Id))
-                .Select(GetSelector())
+                .Select(context.GetSelector())
                 .SelectKey(b => b.Id);
 
             queries.Add(query.ToQueryString());
@@ -126,19 +126,20 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
     }
 
     public class ProductByIdDataLoader(
-        CatalogContext context,
+        CatalogContext catalogContext,
         List<string> queries,
         IBatchScheduler batchScheduler,
         DataLoaderOptions options)
-        : BatchDataLoader<int, Product>(batchScheduler, options)
+        : StatefulBatchDataLoader<int, Product>(batchScheduler, options)
     {
         protected override async Task<IReadOnlyDictionary<int, Product>> LoadBatchAsync(
             IReadOnlyList<int> keys,
+            DataLoaderFetchContext<Product> context,
             CancellationToken cancellationToken)
         {
-            var query = context.Products
+            var query = catalogContext.Products
                 .Where(t => keys.Contains(t.Id))
-                .Select(GetSelector())
+                .Select(context.GetSelector())
                 .SelectKey(b => b.Id);
 
             queries.Add(query.ToQueryString());

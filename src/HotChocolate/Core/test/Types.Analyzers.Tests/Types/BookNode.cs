@@ -15,14 +15,14 @@ public static partial class BookNode
     }
 
     public static async Task<Author?> GetAuthorAsync(
-        [HotChocolate.Parent] Book book,
+        [Parent] Book book,
         AuthorRepository repository,
         CancellationToken cancellationToken)
         => await repository.GetAuthorAsync(book.AuthorId, cancellationToken);
 
     [UsePaging]
     public static async Task<IEnumerable<Chapter>> GetChapterAsync(
-        [HotChocolate.Parent] Book book,
+        [Parent] Book book,
         ChapterRepository repository,
         CancellationToken cancellationToken)
         => await repository.GetChaptersAsync(book.Id, cancellationToken);

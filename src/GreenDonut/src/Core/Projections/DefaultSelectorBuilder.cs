@@ -4,16 +4,8 @@ using System.Linq.Expressions;
 
 namespace GreenDonut.Projections;
 
-[Experimental(Experimentals.Projections)]
-public interface ISelectorContext
-{
-    void Add<T>(Expression<Func<T, T>> selector);
-
-    Expression<Func<T, T>>? TryCompile<T>();
-}
-
-[Experimental(Experimentals.Projections)]
-internal sealed class DefaultSelectorContext<TValue> : ISelectorContext
+[Experimental(Experiments.Projections)]
+internal sealed class DefaultSelectorBuilder<TValue> : ISelectorBuilder
 {
     private LambdaExpression? _expression;
 

@@ -1,5 +1,7 @@
 using System.Collections.Immutable;
+#if NET8_0_OR_GREATER
 using GreenDonut.Projections;
+#endif
 
 namespace GreenDonut;
 
@@ -155,5 +157,18 @@ public interface IDataLoader<in TKey, TValue> : IDataLoader where TKey : notnull
     /// </exception>
     void Set(TKey key, Task<TValue> value);
 
+#if NET8_0_OR_GREATER
+    /// <summary>
+    /// Branches the current <c>DataLoader</c> to allow for selections
+    /// to be applied to the data fetching.
+    /// </summary>
+    /// <param name="key">
+    /// A unique key to identify the branch.
+    /// </param>
+    /// <returns>
+    /// A new <c>DataLoader</c> instance which allows for selections to be
+    /// applied to the data fetching.
+    /// </returns>
     ISelectionDataLoader<TKey, TValue> Branch(string key);
+#endif
 }

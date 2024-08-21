@@ -5,8 +5,10 @@ using System.Linq.Expressions;
 namespace GreenDonut.Projections;
 
 [Experimental(Experiments.Projections)]
-public interface ISelectorQuery<T>
+public interface ISelectorBuilder
 {
-    IQueryable<T> SelectKey(Expression<Func<T, object>> key);
+    void Add<T>(Expression<Func<T, T>> selector);
+
+    Expression<Func<T, T>>? TryCompile<T>();
 }
 #endif

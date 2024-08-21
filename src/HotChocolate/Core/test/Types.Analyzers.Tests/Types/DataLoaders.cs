@@ -69,8 +69,8 @@ public static class DataLoaders
     public static async Task<IDictionary<int, Author>> GetAuthorById(
         IReadOnlyList<int> keys,
         IQueryable<Author> query,
-        ISelectorContext context,
+        ISelectorBuilder selector,
         CancellationToken ct)
-        => await Task.FromResult(query.Select(context).ToDictionary(t => t.Id));
+        => await Task.FromResult(query.Select(selector).SelectKey(t => t.Id).ToDictionary(t => t.Id));
 #endif
 }

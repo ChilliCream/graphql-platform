@@ -950,9 +950,10 @@ public class DataLoaderTests(ITestOutputHelper output)
         DataLoaderOptions? options = null)
         : DataLoaderBase<int, Entity>(batchScheduler, options)
     {
-        protected override ValueTask FetchAsync(
+        protected internal override ValueTask FetchAsync(
             IReadOnlyList<int> keys,
             Memory<Result<Entity>> results,
+            DataLoaderFetchContext<Entity> context,
             CancellationToken cancellationToken)
         {
             for (var i = 0; i < keys.Count; i++)
@@ -977,9 +978,10 @@ public class DataLoaderTests(ITestOutputHelper output)
                 .Accept(this);
         }
 
-        protected override ValueTask FetchAsync(
+        protected internal override ValueTask FetchAsync(
             IReadOnlyList<int> keys,
             Memory<Result<Entity>> results,
+            DataLoaderFetchContext<Entity> context,
             CancellationToken cancellationToken)
         {
             for (var i = 0; i < keys.Count; i++)

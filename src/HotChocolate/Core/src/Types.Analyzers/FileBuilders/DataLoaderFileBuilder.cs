@@ -224,6 +224,11 @@ public sealed class DataLoaderFileBuilder : IDisposable
                 WellKnownTypes.Result,
                 value.ToFullyQualified(),
                 kind is DataLoaderKind.Group ? "[]" : string.Empty);
+                _writer.WriteIndentedLine(
+            "global::{0}<{1}{2}> context,",
+                WellKnownTypes.DataLoaderFetchContext,
+                value.ToFullyQualified(),
+                kind is DataLoaderKind.Group ? "[]" : string.Empty);
             _writer.WriteIndentedLine(
                 "global::{0} ct)",
                 WellKnownTypes.CancellationToken);
@@ -248,6 +253,14 @@ public sealed class DataLoaderFileBuilder : IDisposable
                         isScoped ? "scope.ServiceProvider" : "_services",
                         parameter.Type.ToFullyQualified());
                 }
+                else if (parameter.Kind is DataLoaderParameterKind.SelectorBuilder)
+                {
+                    _writer.WriteIndentedLine(
+                        "var {0} = context.GetRequiredState<{1}>(\"{2}\");",
+                        parameter.VariableName,
+                        parameter.Type.ToFullyQualified(),
+                        parameter.StateKey);
+                }
                 else if (parameter.Kind is DataLoaderParameterKind.ContextData)
                 {
                     if (parameter.Parameter.HasExplicitDefaultValue)
@@ -256,7 +269,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
                         var defaultValueString = ConvertDefaultValueToString(defaultValue, parameter.Type);
 
                         _writer.WriteIndentedLine(
-                            "var {0} = GetStateOrDefault<{1}{2}>(\"{3}\", {4});",
+                            "var {0} = context.GetStateOrDefault<{1}{2}>(\"{3}\", {4});",
                             parameter.VariableName,
                             parameter.Type.ToFullyQualified(),
                             parameter.Type.PrintNullRefQualifier(),
@@ -267,7 +280,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
                     else if (parameter.Type.IsNullableType())
                     {
                         _writer.WriteIndentedLine(
-                            "var {0} = GetState<{1}{2}>(\"{3}\");",
+                            "var {0} = context.GetState<{1}{2}>(\"{3}\");",
                             parameter.VariableName,
                             parameter.Type.ToFullyQualified(),
                             parameter.Type.PrintNullRefQualifier(),
@@ -276,7 +289,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
                     else
                     {
                         _writer.WriteIndentedLine(
-                            "var {0} = GetRequiredState<{1}>(\"{2}\");",
+                            "var {0} = context.GetRequiredState<{1}>(\"{2}\");",
                             parameter.VariableName,
                             parameter.Type.ToFullyQualified(),
                             parameter.StateKey);

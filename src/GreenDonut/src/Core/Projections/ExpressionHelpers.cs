@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace GreenDonut.Projections;
 
-public static class ExpressionHelpers
+internal static class ExpressionHelpers
 {
     public static Expression<Func<T, T>> Combine<T>(
         Expression<Func<T, T>> first,

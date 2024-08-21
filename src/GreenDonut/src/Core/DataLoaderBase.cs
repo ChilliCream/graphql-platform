@@ -34,8 +34,10 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     private readonly int _maxBatchSize;
     private readonly IDataLoaderDiagnosticEvents _diagnosticEvents;
     private readonly CancellationToken _ct;
+#if NET8_0_OR_GREATER
     private ImmutableDictionary<string, ISelectionDataLoader<TKey, TValue>> _branches =
         ImmutableDictionary<string, ISelectionDataLoader<TKey, TValue>>.Empty;
+#endif
     private Batch<TKey>? _currentBatch;
 
     /// <summary>
@@ -79,17 +81,30 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     public IImmutableDictionary<string, object?> ContextData { get; set; } =
         ImmutableDictionary<string, object?>.Empty;
 
+    private protected virtual bool PropagateCompletion => true;
+
+    protected internal IBatchScheduler BatchScheduler
+        => _batchScheduler;
+
+    protected internal DataLoaderOptions Options
+        => new()
+        {
+            MaxBatchSize = _maxBatchSize,
+            Cache = Cache,
+            DiagnosticEvents = _diagnosticEvents,
+            CancellationToken = _ct,
+        };
+
     /// <inheritdoc />
     public Task<TValue> LoadAsync(
         TKey key,
         CancellationToken cancellationToken = default)
-        => LoadAsync(key, CacheKeyType, true, cancellationToken);
+        => LoadAsync(key, CacheKeyType, PropagateCompletion);
 
-    internal Task<TValue> LoadAsync(
+    private Task<TValue> LoadAsync(
         TKey key,
         string cacheKeyType,
-        bool propagateCompletion,
-        CancellationToken cancellationToken)
+        bool propagateCompletion)
     {
         if (key is null)
         {
@@ -127,9 +142,9 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     public Task<IReadOnlyList<TValue>> LoadAsync(
         IReadOnlyCollection<TKey> keys,
         CancellationToken cancellationToken = default)
-        => LoadAsync(keys, CacheKeyType, true, cancellationToken);
+        => LoadAsync(keys, CacheKeyType, PropagateCompletion, cancellationToken);
 
-    internal Task<IReadOnlyList<TValue>> LoadAsync(
+    private Task<IReadOnlyList<TValue>> LoadAsync(
         IReadOnlyCollection<TKey> keys,
         string cacheKeyType,
         bool propagateCompletion,
@@ -230,6 +245,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             Cache.TryAdd(cacheKey, new Promise<TValue>(value));
         }
     }
+#if NET8_0_OR_GREATER
 
     /// <inheritdoc />
     public ISelectionDataLoader<TKey, TValue> Branch(string key)
@@ -249,6 +265,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
         return branch;
     }
+#endif
 
     private void BatchOperationFailed(
         Batch<TKey> batch,
@@ -316,7 +333,8 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
                 try
                 {
-                    await FetchAsync(batch.Keys, buffer, cancellationToken).ConfigureAwait(false);
+                    var context = new DataLoaderFetchContext<TValue>(ContextData);
+                    await FetchAsync(batch.Keys, buffer, context, cancellationToken).ConfigureAwait(false);
                     BatchOperationSucceeded(batch, batch.Keys, buffer);
                     _diagnosticEvents.BatchResults<TKey, TValue>(batch.Keys, buffer);
                 }
@@ -370,56 +388,6 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             promise.TrySetError(result.Error!);
         }
     }
-
-    protected TState? GetState<TState>(string key)
-    {
-        if (ContextData.TryGetValue(key, out var value) && value is TState state)
-        {
-            return state;
-        }
-
-        return default;
-    }
-
-    protected TState GetRequiredState<TState>(string key)
-    {
-        if (ContextData.TryGetValue(key, out var value) && value is TState state)
-        {
-            return state;
-        }
-
-        throw new InvalidOperationException(
-            $"The state `{key}` is not available on the DataLoader.");
-    }
-
-    protected TState GetStateOrDefault<TState>(string key, TState defaultValue)
-    {
-        if (ContextData.TryGetValue(key, out var value) && value is TState state)
-        {
-            return state;
-        }
-
-        return defaultValue;
-    }
-#if NET8_0_OR_GREATER
-
-    [Experimental(Experimentals.Projections)]
-    protected ISelectorContext GetSelector()
-    {
-        DefaultSelectorContext<TValue> context;
-        if (ContextData.TryGetValue(typeof(ISelectorContext).FullName!, out var value)
-            && value is DefaultSelectorContext<TValue> casted)
-        {
-            context = casted;
-        }
-        else
-        {
-            context = new DefaultSelectorContext<TValue>();
-        }
-
-        return context;
-    }
-#endif
 
     /// <summary>
     /// A helper to add additional cache lookups to a resolved entity.

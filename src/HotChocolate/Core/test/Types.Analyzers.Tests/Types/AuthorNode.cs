@@ -5,13 +5,13 @@ public static partial class AuthorNode
 {
     [UsePaging]
     public static async Task<IEnumerable<Book>> GetBooksAsync(
-        [HotChocolate.Parent] Author author,
+        [Parent] Author author,
         BookRepository repository,
         CancellationToken cancellationToken)
         => await repository.GetBooksByAuthorAsync(author.Id, cancellationToken);
 
     public static async Task<string> GetSomeInfo(
-        [HotChocolate.Parent] Author author,
+        [Parent] Author author,
         ISomeInfoByIdDataLoader dataLoader,
         CancellationToken cancellationToken)
         => await dataLoader.LoadAsync(author.Id, cancellationToken);

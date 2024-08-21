@@ -1,6 +1,6 @@
 namespace GreenDonut;
 
-internal static class Experimentals
+internal static class Experiments
 {
     public const string Projections = "GD0001";
 }

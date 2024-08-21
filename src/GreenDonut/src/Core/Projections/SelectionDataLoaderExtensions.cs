@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 
 namespace GreenDonut.Projections;
 
-[Experimental(Experimentals.Projections)]
+[Experimental(Experiments.Projections)]
 public static class SelectionDataLoaderExtensions
 {
     public static ISelectionDataLoader<TKey, TValue> Select<TKey, TValue>(
@@ -22,20 +22,20 @@ public static class SelectionDataLoaderExtensions
             throw new ArgumentNullException(nameof(selector));
         }
 
-        DefaultSelectorContext<TValue> context;
+        DefaultSelectorBuilder<TValue> context;
         var branch = dataLoader.Branch(selector.ToString());
-        if (branch.ContextData.TryGetValue(typeof(ISelectorContext).FullName!, out var value)
-            && value is DefaultSelectorContext<TValue> casted)
+        if (branch.ContextData.TryGetValue(typeof(ISelectorBuilder).FullName!, out var value)
+            && value is DefaultSelectorBuilder<TValue> casted)
         {
             context = casted;
         }
         else
         {
-            context = new DefaultSelectorContext<TValue>();
+            context = new DefaultSelectorBuilder<TValue>();
         }
 
         context.Add(selector);
-        branch.ContextData = branch.ContextData.SetItem(typeof(ISelectorContext).FullName!, context);
+        branch.ContextData = branch.ContextData.SetItem(typeof(ISelectorBuilder).FullName!, context);
         return branch;
     }
 
@@ -54,26 +54,26 @@ public static class SelectionDataLoaderExtensions
             throw new ArgumentNullException(nameof(selector));
         }
 
-        var context = (DefaultSelectorContext<TValue>)dataLoader.ContextData[typeof(ISelectorContext).FullName!]!;
+        var context = (DefaultSelectorBuilder<TValue>)dataLoader.ContextData[typeof(ISelectorBuilder).FullName!]!;
         context.Add(selector);
         return dataLoader;
     }
 
     public static ISelectorQuery<T> Select<T>(
         this IQueryable<T> queryable,
-        ISelectorContext context)
+        ISelectorBuilder builder)
     {
         if (queryable is null)
         {
             throw new ArgumentNullException(nameof(queryable));
         }
 
-        if (context is null)
+        if (builder is null)
         {
-            throw new ArgumentNullException(nameof(context));
+            throw new ArgumentNullException(nameof(builder));
         }
 
-        var selector = context.TryCompile<T>();
+        var selector = builder.TryCompile<T>();
         return new DefaultSelectorQuery<T>(queryable, selector);
     }
 }
