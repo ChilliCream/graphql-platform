@@ -87,5 +87,3 @@ internal sealed class SelectionExpressionBuilder
             => Operation.GetSelectionSet(selection, (ObjectType)selection.Type.NamedType());
     }
 }
-
-
