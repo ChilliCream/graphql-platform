@@ -6,15 +6,33 @@ using GreenDonut.Projections;
 
 namespace GreenDonut;
 
-public readonly struct DataLoaderFetchContext<TValue>
+/// <summary>
+/// The fetch context is used to pass a snapshot of the transient DataLoader state into a fetch call.
+/// This allows the fetch to interact with a save version of the state.
+/// </summary>
+/// <param name="contextData">
+/// The context data that is passed into the fetch call.
+/// </param>
+/// <typeparam name="TValue">
+/// The value type of the DataLoader.
+/// </typeparam>
+public readonly struct DataLoaderFetchContext<TValue>(
+    IImmutableDictionary<string, object?> contextData)
 {
-    public DataLoaderFetchContext(IImmutableDictionary<string, object?> contextData)
-    {
-        ContextData = contextData;
-    }
+    public IImmutableDictionary<string, object?> ContextData { get; } = contextData;
 
-    public IImmutableDictionary<string, object?> ContextData { get; }
-
+    /// <summary>
+    /// Gets a value from the DataLoader state snapshot.
+    /// </summary>
+    /// <param name="key">
+    /// The key to look up the value.
+    /// </param>
+    /// <typeparam name="TState">
+    /// The type of the state value.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the state value if it exists.
+    /// </returns>
     public TState? GetState<TState>(string key)
     {
         if (ContextData.TryGetValue(key, out var value) && value is TState state)
@@ -25,6 +43,21 @@ public readonly struct DataLoaderFetchContext<TValue>
         return default;
     }
 
+    /// <summary>
+    /// Gets a required value from the DataLoader state snapshot.
+    /// </summary>
+    /// <param name="key">
+    /// The key to look up the value.
+    /// </param>
+    /// <typeparam name="TState">
+    /// The type of the state value.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the state value if it exists.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    /// Throws an exception if the state value does not exist.
+    /// </exception>
     public TState GetRequiredState<TState>(string key)
     {
         if (ContextData.TryGetValue(key, out var value) && value is TState state)
@@ -36,6 +69,21 @@ public readonly struct DataLoaderFetchContext<TValue>
             $"The state `{key}` is not available on the DataLoader.");
     }
 
+    /// <summary>
+    /// Gets a value from the DataLoader state snapshot or returns a default value.
+    /// </summary>
+    /// <param name="key">
+    /// The key to look up the value.
+    /// </param>
+    /// <param name="defaultValue">
+    /// The default value to return if the state value does not exist.
+    /// </param>
+    /// <typeparam name="TState">
+    /// The type of the state value.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the state value if it exists.
+    /// </returns>
     public TState GetStateOrDefault<TState>(string key, TState defaultValue)
     {
         if (ContextData.TryGetValue(key, out var value) && value is TState state)
@@ -47,6 +95,13 @@ public readonly struct DataLoaderFetchContext<TValue>
     }
 #if NET8_0_OR_GREATER
 
+    /// <summary>
+    /// Gets the selector builder from the DataLoader state snapshot.
+    /// The state builder can be user to create a selector expression.
+    /// </summary>
+    /// <returns>
+    /// Returns the selector builder if it exists.
+    /// </returns>
     [Experimental(Experiments.Projections)]
     public ISelectorBuilder GetSelector()
     {
