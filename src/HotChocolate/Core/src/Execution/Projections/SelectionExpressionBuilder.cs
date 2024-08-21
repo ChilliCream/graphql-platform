@@ -57,7 +57,8 @@ internal sealed class SelectionExpressionBuilder
         var namedType = selection.Field.Type.NamedType();
 
         if (namedType.IsAbstractType()
-            || (selection.Field.Type.IsListType() && !namedType.IsLeafType()))
+            || (selection.Field.Type.IsListType() && !namedType.IsLeafType())
+            || selection.Field.ResolverMember?.ReflectedType != selection.Field.DeclaringType.RuntimeType)
         {
             return null;
         }

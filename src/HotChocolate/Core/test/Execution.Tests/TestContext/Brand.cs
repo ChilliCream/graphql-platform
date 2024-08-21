@@ -11,13 +11,12 @@ public class Brand
     [Required]
     public string Name { get; set; } = default!;
 
-    public string? DisplayName { get; set; } = default!;
-
-    public string? AlwaysNull { get; set; }
+    [MaxLength(100)]
+    public string? DisplayName { get; set; }
 
     public ICollection<Product> Products { get; } = new List<Product>();
 
-    public BrandDetails BrandDetails { get; set; } = default!;
+    public BrandDetails Details { get; set; } = default!;
 }
 
 public class BrandDetails

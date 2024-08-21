@@ -41,7 +41,7 @@ public class CatalogContext(string connectionString) : DbContext
             {
                 Name = "Brand" + i,
                 DisplayName = i % 2 == 0 ? "BrandDisplay" + i : null,
-                BrandDetails = new() { Country = new() { Name = "Country" + i } }
+                Details = new() { Country = new() { Name = "Country" + i } }
             };
             context.Brands.Add(brand);
 

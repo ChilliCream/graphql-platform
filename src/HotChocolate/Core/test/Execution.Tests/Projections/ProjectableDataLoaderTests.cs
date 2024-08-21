@@ -4,6 +4,7 @@ using GreenDonut;
 using GreenDonut.Projections;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.TestContext;
+using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Squadron;
@@ -29,14 +30,76 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
         // Act
         var result = await new ServiceCollection()
             .AddScoped(_ => queries)
-            .AddScoped(_ => new CatalogContext(connectionString))
-            .AddDataLoader<BrandByIdDataLoader>()
+            .AddTransient(_ => new CatalogContext(connectionString))
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddPagingArguments()
             .ExecuteRequestAsync(
                 """
                 {
+                    brandById(id: 1) {
+                        name
+                    }
+                }
+                """);
+
+        Snapshot.Create()
+            .AddSql(queries)
+            .AddResult(result)
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Do_Not_Project()
+    {
+        // Arrange
+        var queries = new List<string>();
+        var connectionString = CreateConnectionString();
+        await CatalogContext.SeedAsync(connectionString);
+
+        // Act
+        var result = await new ServiceCollection()
+            .AddScoped(_ => queries)
+            .AddTransient(_ => new CatalogContext(connectionString))
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddPagingArguments()
+            .ExecuteRequestAsync(
+                """
+                {
+                    brandByIdNoProjection(id: 1) {
+                        name
+                    }
+                }
+                """);
+
+        Snapshot.Create()
+            .AddSql(queries)
+            .AddResult(result)
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Project_And_Do_Not_Project()
+    {
+        // Arrange
+        var queries = new List<string>();
+        var connectionString = CreateConnectionString();
+        await CatalogContext.SeedAsync(connectionString);
+
+        // Act
+        var result = await new ServiceCollection()
+            .AddScoped(_ => queries)
+            .AddTransient(_ => new CatalogContext(connectionString))
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddPagingArguments()
+            .ExecuteRequestAsync(
+                """
+                {
+                    brandByIdNoProjection(id: 1) {
+                        name
+                    }
                     brandById(id: 1) {
                         name
                     }
@@ -60,8 +123,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
         // Act
         var result = await new ServiceCollection()
             .AddScoped(_ => queries)
-            .AddScoped(_ => new CatalogContext(connectionString))
-            .AddDataLoader<BrandByIdDataLoader>()
+            .AddTransient(_ => new CatalogContext(connectionString))
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddPagingArguments()
@@ -94,8 +156,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
         // Act
         var result = await new ServiceCollection()
             .AddScoped(_ => queries)
-            .AddScoped(_ => new CatalogContext(connectionString))
-            .AddDataLoader<BrandByIdDataLoader>()
+            .AddTransient(_ => new CatalogContext(connectionString))
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddPagingArguments()
@@ -136,10 +197,10 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
         var result = await new ServiceCollection()
             .AddScoped(_ => queries)
             .AddTransient(_ => new CatalogContext(connectionString))
-            .AddDataLoader<BrandByIdDataLoader>()
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddPagingArguments()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
             .ExecuteRequestAsync(
                 """
                 {
@@ -164,6 +225,77 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             .MatchMarkdownSnapshot();
     }
 
+    [Fact]
+    public async Task Brand_Details_Country_Name()
+    {
+        // Arrange
+        var queries = new List<string>();
+        var connectionString = CreateConnectionString();
+        await CatalogContext.SeedAsync(connectionString);
+
+        // Act
+        var result = await new ServiceCollection()
+            .AddScoped(_ => queries)
+            .AddTransient(_ => new CatalogContext(connectionString))
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddPagingArguments()
+            .ExecuteRequestAsync(
+                """
+                {
+                    brandById(id: 1) {
+                        name
+                        details {
+                            country {
+                                name
+                            }
+                        }
+                    }
+                }
+                """);
+
+        Snapshot.Create()
+            .AddSql(queries)
+            .AddResult(result)
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Brand_Details_Country_Name_With_Details_As_Custom_Resolver()
+    {
+        // Arrange
+        var queries = new List<string>();
+        var connectionString = CreateConnectionString();
+        await CatalogContext.SeedAsync(connectionString);
+
+        // Act
+        var result = await new ServiceCollection()
+            .AddScoped(_ => queries)
+            .AddTransient(_ => new CatalogContext(connectionString))
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddTypeExtension<BrandExtensions>()
+            .AddPagingArguments()
+            .ExecuteRequestAsync(
+                """
+                {
+                    brandById(id: 1) {
+                        name
+                        details {
+                            country {
+                                name
+                            }
+                        }
+                    }
+                }
+                """);
+
+        Snapshot.Create()
+            .AddSql(queries)
+            .AddResult(result)
+            .MatchMarkdownSnapshot();
+    }
+
     public class Query
     {
         public async Task<Brand?> GetBrandByIdAsync(
@@ -173,6 +305,13 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             CancellationToken cancellationToken)
             => await brandById.Select(selection).LoadAsync(id, cancellationToken);
 
+        public async Task<Brand?> GetBrandByIdNoProjectionAsync(
+            int id,
+            ISelection selection,
+            BrandByIdDataLoader brandById,
+            CancellationToken cancellationToken)
+            => await brandById.LoadAsync(id, cancellationToken);
+
         public async Task<Product?> GetProductByIdAsync(
             int id,
             ISelection selection,
@@ -181,8 +320,17 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             => await productById.Select(selection).LoadAsync(id, cancellationToken);
     }
 
+    [ExtendObjectType<Brand>]
+    public class BrandExtensions
+    {
+        [BindMember(nameof(Brand.Details))]
+        public BrandDetails GetDetails(
+            [Parent] Brand brand)
+            => new() { Country = new Country { Name = "Germany" } };
+    }
+
     public class BrandByIdDataLoader(
-        CatalogContext catalogContext,
+        IServiceProvider services,
         List<string> queries,
         IBatchScheduler batchScheduler,
         DataLoaderOptions options)
@@ -193,12 +341,17 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             DataLoaderFetchContext<Brand> context,
             CancellationToken cancellationToken)
         {
+            var catalogContext = services.GetRequiredService<CatalogContext>();
+
             var query = catalogContext.Brands
                 .Where(t => keys.Contains(t.Id))
                 .Select(context.GetSelector())
                 .SelectKey(b => b.Id);
 
-            queries.Add(query.ToQueryString());
+            lock (queries)
+            {
+                queries.Add(query.ToQueryString());
+            }
 
             var x = await query.ToDictionaryAsync(t => t.Id, cancellationToken);
 
@@ -207,7 +360,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
     }
 
     public class ProductByIdDataLoader(
-        CatalogContext catalogContext,
+        IServiceProvider services,
         List<string> queries,
         IBatchScheduler batchScheduler,
         DataLoaderOptions options)
@@ -218,12 +371,17 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             DataLoaderFetchContext<Product> context,
             CancellationToken cancellationToken)
         {
+            var catalogContext = services.GetRequiredService<CatalogContext>();
+
             var query = catalogContext.Products
                 .Where(t => keys.Contains(t.Id))
                 .Select(context.GetSelector())
                 .SelectKey(b => b.Id);
 
-            queries.Add(query.ToQueryString());
+            lock (queries)
+            {
+                queries.Add(query.ToQueryString());
+            }
 
             var x = await query.ToDictionaryAsync(t => t.Id, cancellationToken);
 
