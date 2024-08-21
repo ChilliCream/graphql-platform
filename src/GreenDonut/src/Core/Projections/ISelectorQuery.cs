@@ -26,6 +26,6 @@ public interface ISelectorQuery<T>
     /// Returns the <see cref="IQueryable{T}"/> with the data selector
     /// and key selector applied to it.
     /// </returns>
-    IQueryable<T> SelectKey(Expression<Func<T, object>> key);
+    IQueryable<T> SelectKey(Expression<Func<T, object?>> key);
 }
 #endif

@@ -34,10 +34,42 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddPagingArguments()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
             .ExecuteRequestAsync(
                 """
                 {
                     brandById(id: 1) {
+                        name
+                    }
+                }
+                """);
+
+        Snapshot.Create()
+            .AddSql(queries)
+            .AddResult(result)
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Manual_Include_Of_Brand()
+    {
+        // Arrange
+        var queries = new List<string>();
+        var connectionString = CreateConnectionString();
+        await CatalogContext.SeedAsync(connectionString);
+
+        // Act
+        var result = await new ServiceCollection()
+            .AddScoped(_ => queries)
+            .AddTransient(_ => new CatalogContext(connectionString))
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddPagingArguments()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .ExecuteRequestAsync(
+                """
+                {
+                    productByIdWithBrand(id: 1) {
                         name
                     }
                 }
@@ -64,6 +96,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddPagingArguments()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
             .ExecuteRequestAsync(
                 """
                 {
@@ -94,6 +127,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddPagingArguments()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
             .ExecuteRequestAsync(
                 """
                 {
@@ -127,6 +161,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddPagingArguments()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
             .ExecuteRequestAsync(
                 """
                 {
@@ -240,6 +275,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddPagingArguments()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
             .ExecuteRequestAsync(
                 """
                 {
@@ -276,6 +312,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             .AddQueryType<Query>()
             .AddTypeExtension<BrandExtensions>()
             .AddPagingArguments()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
             .ExecuteRequestAsync(
                 """
                 {
@@ -318,6 +355,13 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             ProductByIdDataLoader productById,
             CancellationToken cancellationToken)
             => await productById.Select(selection).LoadAsync(id, cancellationToken);
+
+        public async Task<Product?> GetProductByIdWithBrandAsync(
+            int id,
+            ISelection selection,
+            ProductByIdDataLoader productById,
+            CancellationToken cancellationToken)
+            => await productById.Select(selection).Include(c => c.Brand).LoadAsync(id, cancellationToken);
     }
 
     [ExtendObjectType<Brand>]

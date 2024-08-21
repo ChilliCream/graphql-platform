@@ -1,6 +1,7 @@
 #if NET8_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace GreenDonut.Projections;
 
@@ -101,6 +102,86 @@ public static class SelectionDataLoaderExtensions
 
         var context = (DefaultSelectorBuilder<TValue>)dataLoader.ContextData[typeof(ISelectorBuilder).FullName!]!;
         context.Add(selector);
+        return dataLoader;
+    }
+
+    public static IDataLoader<TKey, TValue> Include<TKey, TValue>(
+        this IDataLoader<TKey, TValue> dataLoader,
+        Expression<Func<TValue, object?>> includeSelector)
+        where TKey : notnull
+    {
+        if (dataLoader is null)
+        {
+            throw new ArgumentNullException(nameof(dataLoader));
+        }
+
+        if (includeSelector is null)
+        {
+            throw new ArgumentNullException(nameof(includeSelector));
+        }
+
+        if (includeSelector is not LambdaExpression lambda)
+        {
+            throw new ArgumentException(
+                "The include selector must be a lambda expression.",
+                nameof(includeSelector));
+        }
+
+        if (lambda.Body is not MemberExpression member
+            || member.Member.MemberType != MemberTypes.Property)
+        {
+            throw new ArgumentException(
+                "The include selector must be a property selector.",
+                nameof(includeSelector));
+        }
+
+        DefaultSelectorBuilder<TValue> context;
+        if (dataLoader.ContextData.TryGetValue(typeof(ISelectorBuilder).FullName!, out var value)
+            && value is DefaultSelectorBuilder<TValue> casted)
+        {
+            context = casted;
+        }
+        else
+        {
+            context = new DefaultSelectorBuilder<TValue>();
+        }
+
+        context.Add(ExpressionHelpers.Rewrite(includeSelector));
+        return dataLoader;
+    }
+
+    public static ISelectionDataLoader<TKey, TValue> Include<TKey, TValue>(
+        this ISelectionDataLoader<TKey, TValue> dataLoader,
+        Expression<Func<TValue, object?>> includeSelector)
+        where TKey : notnull
+    {
+        if (dataLoader is null)
+        {
+            throw new ArgumentNullException(nameof(dataLoader));
+        }
+
+        if (includeSelector is null)
+        {
+            throw new ArgumentNullException(nameof(includeSelector));
+        }
+
+        if (includeSelector is not LambdaExpression lambda)
+        {
+            throw new ArgumentException(
+                "The include selector must be a lambda expression.",
+                nameof(includeSelector));
+        }
+
+        if (lambda.Body is not MemberExpression member
+            || member.Member.MemberType != MemberTypes.Property)
+        {
+            throw new ArgumentException(
+                "The include selector must be a property selector.",
+                nameof(includeSelector));
+        }
+
+        var context = (DefaultSelectorBuilder<TValue>)dataLoader.ContextData[typeof(ISelectorBuilder).FullName!]!;
+        context.Add(ExpressionHelpers.Rewrite(includeSelector));
         return dataLoader;
     }
 

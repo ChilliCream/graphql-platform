@@ -15,7 +15,7 @@ public static class HotChocolateExecutionDataLoaderExtensions
 {
     private static readonly SelectionExpressionBuilder _builder = new();
 
-    public static IDataLoader<TKey, TValue> Select<TKey, TValue>(
+    public static ISelectionDataLoader<TKey, TValue> Select<TKey, TValue>(
         this IDataLoader<TKey, TValue> dataLoader,
         ISelection selection)
         where TKey : notnull

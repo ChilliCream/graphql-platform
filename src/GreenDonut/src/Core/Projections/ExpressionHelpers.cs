@@ -43,7 +43,7 @@ internal static class ExpressionHelpers
     }
 
     public static Expression<Func<TRoot, TRoot>> Rewrite<TRoot>(
-        Expression<Func<TRoot, object>> selector)
+        Expression<Func<TRoot, object?>> selector)
     {
         var parameter = selector.Parameters[0];
         var bindings = new List<MemberBinding>();

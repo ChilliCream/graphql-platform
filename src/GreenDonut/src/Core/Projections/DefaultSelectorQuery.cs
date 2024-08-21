@@ -11,7 +11,7 @@ internal sealed class DefaultSelectorQuery<T>(
     Expression<Func<T, T>>? selector)
     : ISelectorQuery<T>
 {
-    public IQueryable<T> SelectKey(Expression<Func<T, object>> key)
+    public IQueryable<T> SelectKey(Expression<Func<T, object?>> key)
         => selector is not null
             ? query.Select(Combine(selector, Rewrite(key)))
             : query;
