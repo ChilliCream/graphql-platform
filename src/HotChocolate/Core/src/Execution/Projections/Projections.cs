@@ -92,7 +92,7 @@ internal sealed class SelectionExpressionBuilder
     }
 }
 
-[Experimental(Experimentals.Projections)]
+[Experimental(Experiments.Projections)]
 public static class HotChocolateExecutionDataLoaderExtensions
 {
     private static readonly SelectionExpressionBuilder _builder = new();
