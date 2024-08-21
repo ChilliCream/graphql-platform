@@ -1,20 +1,24 @@
+#if NET8_0_OR_GREATER
 #nullable enable
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
+using GreenDonut;
+using GreenDonut.Projections;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
 
-namespace HotChocolate.Projections;
+namespace HotChocolate.Execution.Projections;
 
 internal sealed class SelectionExpressionBuilder
 {
-    public LambdaExpression BuildExpression<TRoot>(IOperation operation, ISelection selection)
+    public Expression<Func<TRoot, TRoot>> BuildExpression<TRoot>(ISelection selection)
     {
         var rootType = typeof(TRoot);
         var parameter = Expression.Parameter(rootType, "root");
-        var context = new Context(operation, parameter, rootType);
+        var context = new Context(selection.DeclaringOperation, parameter, rootType);
         var selectionSet = context.GetSelectionSet(selection);
         var selectionSetExpression = BuildSelectionSetExpression(selectionSet, context);
 
@@ -87,3 +91,24 @@ internal sealed class SelectionExpressionBuilder
             => Operation.GetSelectionSet(selection, (ObjectType)selection.Type.NamedType());
     }
 }
+
+[Experimental(Experimentals.Projections)]
+public static class HotChocolateExecutionDataLoaderExtensions
+{
+    private static readonly SelectionExpressionBuilder _builder = new();
+
+    public static IDataLoader<TKey, TValue> Select<TKey, TValue>(
+        this IDataLoader<TKey, TValue> dataLoader,
+        ISelection selection)
+        where TKey : notnull
+    {
+        var key = $"{dataLoader.GetType().FullName!}.{selection.Id}";
+        var expression = selection.DeclaringOperation
+            .GetOrAddState<Expression<Func<TValue, TValue>>, SelectionExpressionBuilder>(
+                key,
+                (_, b) => b.BuildExpression<TValue>(selection),
+                _builder);
+        return dataLoader.Select(expression);
+    }
+}
+#endif

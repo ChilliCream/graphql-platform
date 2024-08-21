@@ -9,14 +9,14 @@ internal class Batch<TKey> where TKey : notnull
 
     public IReadOnlyList<TKey> Keys => _keys;
 
-    public Promise<TValue> GetOrCreatePromise<TValue>(TKey key)
+    public Promise<TValue> GetOrCreatePromise<TValue>(TKey key, bool propagateCompletion = false)
     {
         if(_items.TryGetValue(key, out var value))
         {
             return (Promise<TValue>)value;
         }
 
-        var promise = Promise<TValue>.Create();
+        var promise = Promise<TValue>.Create(!propagateCompletion);
 
         _keys.Add(key);
         _items.Add(key, promise);

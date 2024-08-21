@@ -7,7 +7,7 @@ namespace GreenDonut.Projections;
 [Experimental(Experimentals.Projections)]
 public static class SelectionDataLoaderExtensions
 {
-    public static IDataLoader<TKey, TValue> Select<TKey, TValue>(
+    public static ISelectionDataLoader<TKey, TValue> Select<TKey, TValue>(
         this IDataLoader<TKey, TValue> dataLoader,
         Expression<Func<TValue, TValue>> selector)
         where TKey : notnull
@@ -23,7 +23,8 @@ public static class SelectionDataLoaderExtensions
         }
 
         DefaultSelectorContext<TValue> context;
-        if (dataLoader.ContextData.TryGetValue(typeof(ISelectorContext).FullName!, out var value)
+        var branch = dataLoader.Branch(selector.ToString());
+        if (branch.ContextData.TryGetValue(typeof(ISelectorContext).FullName!, out var value)
             && value is DefaultSelectorContext<TValue> casted)
         {
             context = casted;
@@ -34,11 +35,31 @@ public static class SelectionDataLoaderExtensions
         }
 
         context.Add(selector);
-        dataLoader.ContextData = dataLoader.ContextData.SetItem(typeof(ISelectorContext).FullName!, context);
+        branch.ContextData = branch.ContextData.SetItem(typeof(ISelectorContext).FullName!, context);
+        return branch;
+    }
+
+    public static ISelectionDataLoader<TKey, TValue> Select<TKey, TValue>(
+        this ISelectionDataLoader<TKey, TValue> dataLoader,
+        Expression<Func<TValue, TValue>> selector)
+        where TKey : notnull
+    {
+        if (dataLoader is null)
+        {
+            throw new ArgumentNullException(nameof(dataLoader));
+        }
+
+        if (selector is null)
+        {
+            throw new ArgumentNullException(nameof(selector));
+        }
+
+        var context = (DefaultSelectorContext<TValue>)dataLoader.ContextData[typeof(ISelectorContext).FullName!]!;
+        context.Add(selector);
         return dataLoader;
     }
 
-    public static IQueryable<T> Select<T>(
+    public static ISelectorQuery<T> Select<T>(
         this IQueryable<T> queryable,
         ISelectorContext context)
     {
@@ -53,13 +74,7 @@ public static class SelectionDataLoaderExtensions
         }
 
         var selector = context.TryCompile<T>();
-
-        if (selector is null)
-        {
-            return queryable;
-        }
-
-        return queryable.Select(selector);
+        return new DefaultSelectorQuery<T>(queryable, selector);
     }
 }
 #endif

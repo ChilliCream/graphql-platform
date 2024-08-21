@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using GreenDonut.Projections;
 
 namespace GreenDonut;
 
@@ -153,4 +154,6 @@ public interface IDataLoader<in TKey, TValue> : IDataLoader where TKey : notnull
     /// Throws if <paramref name="value"/> is <c>null</c>.
     /// </exception>
     void Set(TKey key, Task<TValue> value);
+
+    ISelectionDataLoader<TKey, TValue> Branch(string key);
 }
