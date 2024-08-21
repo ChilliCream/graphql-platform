@@ -1,12 +1,12 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Basic.Reference.Assemblies;
 using CookieCrumble;
-using GreenDonut;
 using HotChocolate.Types.Analyzers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -15,21 +15,31 @@ namespace HotChocolate.Types;
 
 internal static partial class TestHelper
 {
+    private static readonly string[] ReferenceAssemblyNames =
+    [
+        "GreenDonut",
+        "HotChocolate.Execution",
+        "HotChocolate.Execution.Abstractions",
+        "HotChocolate.Types",
+        "Microsoft.Extensions.DependencyInjection.Abstractions"
+    ];
+
     public static Snapshot GetGeneratedSourceSnapshot([StringSyntax("csharp")] string sourceText)
     {
         // Parse the provided string into a C# syntax tree.
         var syntaxTree = CSharpSyntaxTree.ParseText(sourceText);
 
-        IEnumerable<PortableExecutableReference> references = new[]
-        {
-            MetadataReference.CreateFromFile(typeof(DataLoaderAttribute).Assembly.Location)
-        };
+        var references = ReferenceAssemblyNames.Select(
+            assemblyName => MetadataReference.CreateFromFile(Assembly.Load(assemblyName).Location));
 
         // Create a Roslyn compilation for the syntax tree.
         var compilation = CSharpCompilation.Create(
             assemblyName: "Tests",
             syntaxTrees: [syntaxTree],
-            ReferenceAssemblies.Net80.Concat(references));
+            ReferenceAssemblies.Net80.Concat(references),
+            new CSharpCompilationOptions(
+                outputKind: OutputKind.DynamicallyLinkedLibrary,
+                nullableContextOptions: NullableContextOptions.Enable));
 
         // Create an instance of our GraphQLServerGenerator incremental source generator.
         var generator = new GraphQLServerGenerator();
@@ -38,7 +48,17 @@ internal static partial class TestHelper
         GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
 
         // Run the source generator.
-        driver = driver.RunGenerators(compilation);
+        driver = driver.RunGeneratorsAndUpdateCompilation(
+            compilation,
+            out var outputCompilation,
+            out _);
+
+        // Ensure that there are no diagnostics.
+        if (outputCompilation.GetDiagnostics().Any())
+        {
+            throw new Exception(
+                string.Join(Environment.NewLine, outputCompilation.GetDiagnostics()));
+        }
 
         // Create a snapshot.
         return CreateSnapshot(driver);

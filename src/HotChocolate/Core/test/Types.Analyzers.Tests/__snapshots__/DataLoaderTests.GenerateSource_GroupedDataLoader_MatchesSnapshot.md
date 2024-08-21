@@ -16,12 +16,12 @@ using GreenDonut;
 namespace TestNamespace
 {
     public interface IEntitiesByIdDataLoader
-        : global::GreenDonut.IDataLoader<int, Entity[]>
+        : global::GreenDonut.IDataLoader<int, object[]>
     {
     }
 
     public sealed class EntitiesByIdDataLoader
-        : global::GreenDonut.DataLoaderBase<int, Entity[]>
+        : global::GreenDonut.DataLoaderBase<int, object[]>
         , IEntitiesByIdDataLoader
     {
         private readonly global::System.IServiceProvider _services;
@@ -38,7 +38,7 @@ namespace TestNamespace
 
         protected override async global::System.Threading.Tasks.ValueTask FetchAsync(
             global::System.Collections.Generic.IReadOnlyList<int> keys,
-            global::System.Memory<GreenDonut.Result<Entity[]>> results,
+            global::System.Memory<GreenDonut.Result<object[]>> results,
             global::System.Threading.CancellationToken ct)
         {
             var temp = await TestNamespace.TestClass.GetEntitiesByIdAsync(keys, ct).ConfigureAwait(false);
@@ -47,8 +47,8 @@ namespace TestNamespace
 
         private void CopyResults(
             global::System.Collections.Generic.IReadOnlyList<int> keys,
-            global::System.Span<GreenDonut.Result<Entity[]>> results,
-            global::System.Linq.ILookup<int, Entity> resultMap)
+            global::System.Span<GreenDonut.Result<object[]>> results,
+            global::System.Linq.ILookup<int, object> resultMap)
         {
             for (var i = 0; i < keys.Count; i++)
             {
@@ -56,11 +56,11 @@ namespace TestNamespace
                 if (resultMap.Contains(key))
                 {
                     var items = resultMap[key];
-                    results[i] = global::GreenDonut.Result<Entity[]>.Resolve(global::System.Linq.Enumerable.ToArray(items));
+                    results[i] = global::GreenDonut.Result<object[]>.Resolve(global::System.Linq.Enumerable.ToArray(items));
                 }
                 else
                 {
-                    results[i] = global::GreenDonut.Result<Entity[]>.Resolve(global::System.Array.Empty<Entity>());
+                    results[i] = global::GreenDonut.Result<object[]>.Resolve(global::System.Array.Empty<object>());
                 }
             }
         }

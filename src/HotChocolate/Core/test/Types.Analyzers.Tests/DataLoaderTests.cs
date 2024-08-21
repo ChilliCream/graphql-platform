@@ -10,7 +10,6 @@ public class DataLoaderTests
             using System.Collections.Generic;
             using System.Threading;
             using System.Threading.Tasks;
-            using HotChocolate;
             using GreenDonut;
 
             namespace TestNamespace;
@@ -18,9 +17,10 @@ public class DataLoaderTests
             internal static class TestClass
             {
                 [DataLoader]
-                public static async Task<IReadOnlyDictionary<int, Entity>> GetEntityByIdAsync(
+                public static async Task<IReadOnlyDictionary<int, object>> GetEntityByIdAsync(
                     IReadOnlyList<int> entityIds,
-                    CancellationToken cancellationToken) { }
+                    CancellationToken cancellationToken)
+                        => await Task.FromResult(new Dictionary<int, object>());
             }
             """).MatchMarkdownAsync();
     }
@@ -34,7 +34,6 @@ public class DataLoaderTests
             using System.Linq;
             using System.Threading;
             using System.Threading.Tasks;
-            using HotChocolate;
             using GreenDonut;
 
             namespace TestNamespace;
@@ -42,9 +41,10 @@ public class DataLoaderTests
             internal static class TestClass
             {
                 [DataLoader]
-                public static async Task<ILookup<int, Entity>> GetEntitiesByIdAsync(
+                public static async Task<ILookup<int, object>> GetEntitiesByIdAsync(
                     IReadOnlyList<int> entityIds,
-                    CancellationToken cancellationToken) { }
+                    CancellationToken cancellationToken)
+                        => await Task.FromResult(entityIds.ToLookup(id => id, _ => new object()));
             }
             """).MatchMarkdownAsync();
     }
@@ -56,7 +56,6 @@ public class DataLoaderTests
             """
             using System.Threading;
             using System.Threading.Tasks;
-            using HotChocolate;
             using GreenDonut;
 
             namespace TestNamespace;
@@ -64,9 +63,10 @@ public class DataLoaderTests
             internal static class TestClass
             {
                 [DataLoader]
-                public static async Task<Entity> GetEntityByIdAsync(
+                public static async Task<object> GetEntityByIdAsync(
                     int entityId,
-                    CancellationToken cancellationToken) { }
+                    CancellationToken cancellationToken)
+                        => await Task.FromResult(new object());
             }
             """).MatchMarkdownAsync();
     }
@@ -79,7 +79,6 @@ public class DataLoaderTests
             using System.Collections.Generic;
             using System.Threading;
             using System.Threading.Tasks;
-            using HotChocolate;
             using GreenDonut;
 
             namespace TestNamespace;
@@ -89,7 +88,8 @@ public class DataLoaderTests
                 [DataLoader]
                 public static async Task<IReadOnlyDictionary<int, T>> GetEntityByIdAsync<T>(
                     IReadOnlyList<int> entityIds,
-                    CancellationToken cancellationToken) { }
+                    CancellationToken cancellationToken)
+                        => await Task.FromResult(new Dictionary<int, T>());
             }
             """).MatchMarkdownAsync();
     }
@@ -102,7 +102,6 @@ public class DataLoaderTests
             using System.Collections.Generic;
             using System.Threading;
             using System.Threading.Tasks;
-            using HotChocolate;
             using GreenDonut;
 
             namespace TestNamespace;
@@ -112,7 +111,8 @@ public class DataLoaderTests
                 [DataLoader]
                 public static async Task<IDictionary<int, string>> GetEntityByIdAsync(
                     IReadOnlyList<int> entityIds,
-                    CancellationToken cancellationToken) { }
+                    CancellationToken cancellationToken)
+                        => await Task.FromResult(new Dictionary<int, string>());
             }
             """).MatchMarkdownAsync();
     }
@@ -125,7 +125,6 @@ public class DataLoaderTests
             using System.Collections.Generic;
             using System.Threading;
             using System.Threading.Tasks;
-            using HotChocolate;
             using GreenDonut;
 
             namespace TestNamespace;
@@ -135,7 +134,8 @@ public class DataLoaderTests
                 [DataLoader(Lookups = new string[] { nameof(CreateLookupKey) })]
                 public static async Task<IDictionary<int, string>> GetEntityByIdAsync(
                     IReadOnlyList<int> entityIds,
-                    CancellationToken cancellationToken) { }
+                    CancellationToken cancellationToken)
+                        => await Task.FromResult(new Dictionary<int, string>());
 
                 public static int CreateLookupKey(string key)
                     => default!;
@@ -151,7 +151,6 @@ public class DataLoaderTests
             using System.Collections.Generic;
             using System.Threading;
             using System.Threading.Tasks;
-            using HotChocolate;
             using GreenDonut;
 
             namespace TestNamespace;
@@ -161,10 +160,11 @@ public class DataLoaderTests
                 [DataLoader(Lookups = new string[] { nameof(CreateLookupKey) })]
                 public static async Task<IDictionary<int, Entity2>> GetEntityByIdAsync(
                     IReadOnlyList<int> entityIds,
-                    CancellationToken cancellationToken) { }
+                    CancellationToken cancellationToken)
+                        => await Task.FromResult(new Dictionary<int, Entity2>());
 
-                public static KeyValuePair<int, Entity2> CreateLookupKey(Entity1 key)
-                    => default!;
+                public static KeyValuePair<int, Entity2>? CreateLookupKey(Entity1 key)
+                    => default;
             }
 
             public class Entity1
@@ -189,7 +189,6 @@ public class DataLoaderTests
             using System.Collections.Generic;
             using System.Threading;
             using System.Threading.Tasks;
-            using HotChocolate;
             using GreenDonut;
 
             namespace TestNamespace;
@@ -199,7 +198,8 @@ public class DataLoaderTests
                 [DataLoader]
                 public static async Task<Dictionary<int, string?>> GetEntityByIdAsync(
                     IReadOnlyList<int> entityIds,
-                    CancellationToken cancellationToken) { }
+                    CancellationToken cancellationToken)
+                        => await Task.FromResult(new Dictionary<int, string?>());
             }
             """).MatchMarkdownAsync();
     }
@@ -212,7 +212,6 @@ public class DataLoaderTests
             using System.Collections.Generic;
             using System.Threading;
             using System.Threading.Tasks;
-            using HotChocolate;
             using GreenDonut;
 
             namespace TestNamespace;
@@ -224,7 +223,7 @@ public class DataLoaderTests
                     IReadOnlyList<int> entityIds,
                     [DataLoaderState("key")] string? state,
                     CancellationToken cancellationToken)
-                    => default!;
+                        => default!;
             }
             """).MatchMarkdownAsync();
     }
@@ -237,7 +236,6 @@ public class DataLoaderTests
             using System.Collections.Generic;
             using System.Threading;
             using System.Threading.Tasks;
-            using HotChocolate;
             using GreenDonut;
 
             namespace TestNamespace;
@@ -249,7 +247,7 @@ public class DataLoaderTests
                     IReadOnlyList<int> entityIds,
                     [DataLoaderState("key")] string state,
                     CancellationToken cancellationToken)
-                    => default!;
+                        => default!;
             }
             """).MatchMarkdownAsync();
     }
@@ -262,7 +260,6 @@ public class DataLoaderTests
             using System.Collections.Generic;
             using System.Threading;
             using System.Threading.Tasks;
-            using HotChocolate;
             using GreenDonut;
 
             namespace TestNamespace;
@@ -274,7 +271,7 @@ public class DataLoaderTests
                     IReadOnlyList<int> entityIds,
                     [DataLoaderState("key")] string state = "default",
                     CancellationToken cancellationToken = default)
-                    => default!;
+                        => default!;
             }
             """).MatchMarkdownAsync();
     }
