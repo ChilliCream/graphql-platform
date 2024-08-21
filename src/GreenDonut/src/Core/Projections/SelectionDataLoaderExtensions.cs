@@ -35,7 +35,6 @@ public static class SelectionDataLoaderExtensions
         this IDataLoader<TKey, TValue> dataLoader,
         Expression<Func<TValue, TValue>> selector)
         where TKey : notnull
-        where TValue : notnull
     {
         if (dataLoader is null)
         {
@@ -89,7 +88,6 @@ public static class SelectionDataLoaderExtensions
         this ISelectionDataLoader<TKey, TValue> dataLoader,
         Expression<Func<TValue, TValue>> selector)
         where TKey : notnull
-        where TValue : notnull
     {
         if (dataLoader is null)
         {

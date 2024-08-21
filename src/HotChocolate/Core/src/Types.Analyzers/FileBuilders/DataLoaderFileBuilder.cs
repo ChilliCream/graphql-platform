@@ -219,11 +219,12 @@ public sealed class DataLoaderFileBuilder : IDisposable
                 WellKnownTypes.ReadOnlyList,
                 key.ToFullyQualified());
             _writer.WriteIndentedLine(
-                "global::{0}<{1}<{2}{3}>> results,",
+                "global::{0}<{1}<{2}{3}{4}>> results,",
                 WellKnownTypes.Memory,
                 WellKnownTypes.Result,
                 value.ToFullyQualified(),
-                kind is DataLoaderKind.Group ? "[]" : string.Empty);
+                kind is DataLoaderKind.Group ? "[]" : string.Empty,
+                value.IsValueType ? string.Empty : "?");
                 _writer.WriteIndentedLine(
             "global::{0}<{1}{2}> context,",
                 WellKnownTypes.DataLoaderFetchContext,
@@ -315,7 +316,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
                         _writer.WriteIndentedLine(
                             "results.Span[i] = Result<{0}{1}>.Resolve(value);",
                             value.ToFullyQualified(),
-                            value.PrintNullRefQualifier());
+                            value.IsValueType ? string.Empty : "?");
                     }
 
                     _writer.WriteIndentedLine("}");
@@ -327,7 +328,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
                         _writer.WriteIndentedLine(
                             "results.Span[i] = Result<{0}{1}>.Reject(ex);",
                             value.ToFullyQualified(),
-                            value.PrintNullRefQualifier());
+                            value.IsValueType ? string.Empty : "?");
                     }
 
                     _writer.WriteIndentedLine("}");
@@ -359,11 +360,12 @@ public sealed class DataLoaderFileBuilder : IDisposable
                 WellKnownTypes.ReadOnlyList,
                 key.ToFullyQualified());
             _writer.WriteIndentedLine(
-                "global::{0}<{1}<{2}{3}>> results,",
+                "global::{0}<{1}<{2}{3}{4}>> results,",
                 WellKnownTypes.Span,
                 WellKnownTypes.Result,
                 value.ToFullyQualified(),
-                kind is DataLoaderKind.Group ? "[]" : string.Empty);
+                kind is DataLoaderKind.Group ? "[]" : string.Empty,
+                value.IsValueType ? string.Empty : "?");
             _writer.WriteIndentedLine(
                 "global::{0} resultMap)",
                 ExtractMapType(method.ReturnType));
@@ -387,7 +389,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
                         _writer.WriteIndentedLine(
                             "var items = resultMap[key];");
                         _writer.WriteIndentedLine(
-                            "results[i] = global::{0}<{1}{2}[]>.Resolve(global::{3}.ToArray(items));",
+                            "results[i] = global::{0}<{1}{2}[]?>.Resolve(global::{3}.ToArray(items));",
                             WellKnownTypes.Result,
                             value.ToFullyQualified(),
                             value.PrintNullRefQualifier(),
@@ -401,7 +403,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
                     using (_writer.IncreaseIndent())
                     {
                         _writer.WriteIndentedLine(
-                            "results[i] = global::{0}<{1}{2}[]>.Resolve(global::{3}.Empty<{1}{2}>());",
+                            "results[i] = global::{0}<{1}{2}[]?>.Resolve(global::{3}.Empty<{1}{2}>());",
                             WellKnownTypes.Result,
                             value.ToFullyQualified(),
                             value.PrintNullRefQualifier(),
@@ -421,7 +423,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
                             "results[i] = global::{0}<{1}{2}>.Resolve(value);",
                             WellKnownTypes.Result,
                             value.ToFullyQualified(),
-                            value.PrintNullRefQualifier());
+                            value.IsValueType ? string.Empty : "?");
                     }
 
                     _writer.WriteIndentedLine("}");
@@ -434,7 +436,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
                             "results[i] = global::{0}<{1}{2}>.Resolve(default({3}));",
                             WellKnownTypes.Result,
                             value.ToFullyQualified(),
-                            value.PrintNullRefQualifier(),
+                            value.IsValueType ? string.Empty : "?",
                             value.ToFullyQualified());
                     }
 

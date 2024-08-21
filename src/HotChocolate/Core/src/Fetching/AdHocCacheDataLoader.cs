@@ -4,7 +4,6 @@ namespace HotChocolate.Fetching;
 
 internal sealed class AdHocCacheDataLoader<TKey, TValue> : CacheDataLoader<TKey, TValue>
     where TKey : notnull
-    where TValue : notnull
 {
     private readonly FetchCache<TKey, TValue> _fetch;
 

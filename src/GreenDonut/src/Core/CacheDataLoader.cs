@@ -3,7 +3,6 @@ namespace GreenDonut;
 public abstract class CacheDataLoader<TKey, TValue>
     : DataLoaderBase<TKey, TValue>
     where TKey : notnull
-    where TValue : notnull
 {
     protected CacheDataLoader(DataLoaderOptions options)
         : base(AutoBatchScheduler.Default, CreateLocalOptions(options))
