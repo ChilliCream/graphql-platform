@@ -495,41 +495,53 @@ internal static class ExecutionUtils
         executionState.IsInitialized = true;
     }
 
+    public static void CreateTransportErrors(
+        Exception transportException,
+        ResultBuilder resultBuilder,
+        IErrorHandler errorHandler,
+        ObjectResult selectionSetResult,
+        List<RootSelection> rootSelections,
+        string subgraphName,
+        bool addDebugInfo)
+    {
+        foreach (var rootSelection in rootSelections)
+        {
+            var errorBuilder = errorHandler.CreateUnexpectedError(transportException);
+
+            errorBuilder.AddLocation(rootSelection.Selection.SyntaxNode);
+            errorBuilder.SetPath(PathHelper.CreatePathFromContext(rootSelection.Selection, selectionSetResult, 0));
+
+            if (addDebugInfo)
+            {
+                errorBuilder.SetExtension("subgraphName", subgraphName);
+            }
+
+            var error = errorHandler.Handle(errorBuilder.Build());
+
+            resultBuilder.AddError(error);
+        }
+    }
+
     public static void ExtractErrors(
         DocumentNode document,
         OperationDefinitionNode operation,
         ResultBuilder resultBuilder,
         IErrorHandler errorHandler,
         JsonElement errors,
-        Exception? transportException,
         ObjectResult selectionSetResult,
-        List<RootSelection> rootSelections,
         int pathDepth,
         bool addDebugInfo)
     {
-        if (transportException is not null)
+        if (errors.ValueKind is not JsonValueKind.Array)
         {
-            foreach (var rootSelection in rootSelections)
-            {
-                var errorBuilder = errorHandler.CreateUnexpectedError(transportException);
-                var path = PathHelper.CreatePathFromContext(rootSelection.Selection, selectionSetResult, 0);
-
-                var error = errorHandler.Handle(errorBuilder
-                    .AddLocation(rootSelection.Selection.SyntaxNode)
-                    .SetPath(path)
-                    .Build());
-
-                resultBuilder.AddError(error);
-            }
+            return;
         }
-        else if (errors.ValueKind is JsonValueKind.Array)
-        {
-            var parentPath = PathHelper.CreatePathFromContext(selectionSetResult);
 
-            foreach (var error in errors.EnumerateArray())
-            {
-                ExtractError(document, operation, resultBuilder, errorHandler, error, parentPath, pathDepth, addDebugInfo);
-            }
+        var parentPath = PathHelper.CreatePathFromContext(selectionSetResult);
+
+        foreach (var error in errors.EnumerateArray())
+        {
+            ExtractError(document, operation, resultBuilder, errorHandler, error, parentPath, pathDepth, addDebugInfo);
         }
     }
 

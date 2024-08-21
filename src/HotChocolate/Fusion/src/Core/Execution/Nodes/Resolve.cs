@@ -148,15 +148,25 @@ internal sealed class Resolve(int id, Config config) : ResolverNodeBase(id, conf
             var exportKeys = state.Requires;
             var variableValues = state.VariableValues;
 
+            if (response.TransportException is not null)
+            {
+                CreateTransportErrors(
+                    response.TransportException,
+                    context.Result,
+                    context.ErrorHandler,
+                    selectionSetResult,
+                    RootSelections,
+                    subgraphName,
+                    context.ShowDebugInfo);
+            }
+
             ExtractErrors(
                 context.Operation.Document,
                 context.Operation.Definition,
                 context.Result,
                 context.ErrorHandler,
                 response.Errors,
-                response.TransportException,
                 selectionSetResult,
-                RootSelections,
                 pathLength,
                 context.ShowDebugInfo);
 
