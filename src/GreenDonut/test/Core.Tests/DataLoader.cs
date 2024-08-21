@@ -12,7 +12,7 @@ public class DataLoader<TKey, TValue>(
 
     protected internal override ValueTask FetchAsync(
         IReadOnlyList<TKey> keys,
-        Memory<Result<TValue>> results,
+        Memory<Result<TValue?>> results,
         DataLoaderFetchContext<TValue> context,
         CancellationToken cancellationToken)
         => _fetch(keys, results, cancellationToken);

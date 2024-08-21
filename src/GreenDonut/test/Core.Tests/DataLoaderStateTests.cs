@@ -95,7 +95,7 @@ public static class DataLoaderStateTests
 
         protected internal override ValueTask FetchAsync(
             IReadOnlyList<string> keys,
-            Memory<Result<string>> results,
+            Memory<Result<string?>> results,
             DataLoaderFetchContext<string> context,
             CancellationToken cancellationToken)
         {

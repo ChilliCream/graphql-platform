@@ -430,23 +430,12 @@ public sealed class DataLoaderFileBuilder : IDisposable
 
                     using (_writer.IncreaseIndent())
                     {
-                        if (value.IsNullableType())
-                        {
-                            _writer.WriteIndentedLine(
-                                "results[i] = global::{0}<{1}{2}>.Resolve(default({3}));",
-                                WellKnownTypes.Result,
-                                value.ToFullyQualified(),
-                                value.PrintNullRefQualifier(),
-                                value.ToFullyQualified());
-                        }
-                        else
-                        {
-                            _writer.WriteIndentedLine(
-                                "results[i] = global::{0}<{1}{2}>.Reject(key);",
-                                WellKnownTypes.Result,
-                                value.ToFullyQualified(),
-                                value.PrintNullRefQualifier());
-                        }
+                        _writer.WriteIndentedLine(
+                            "results[i] = global::{0}<{1}{2}>.Resolve(default({3}));",
+                            WellKnownTypes.Result,
+                            value.ToFullyQualified(),
+                            value.PrintNullRefQualifier(),
+                            value.ToFullyQualified());
                     }
 
                     _writer.WriteIndentedLine("}");
