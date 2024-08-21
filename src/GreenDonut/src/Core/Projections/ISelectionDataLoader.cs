@@ -20,6 +20,9 @@ public interface ISelectionDataLoader<in TKey, TValue>
     : IDataLoader<TKey, TValue>
     where TKey : notnull
 {
+    /// <summary>
+    /// Gets the root DataLoader instance from which this instance was branched off.
+    /// </summary>
     IDataLoader<TKey, TValue> Root { get; }
 }
 #endif
