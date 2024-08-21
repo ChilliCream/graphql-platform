@@ -64,7 +64,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
         Set((TKey)key, AwaitValue());
 
-        async Task<TValue> AwaitValue() => (TValue)(await value.ConfigureAwait(false))!;
+        async Task<TValue?> AwaitValue() => (TValue)(await value.ConfigureAwait(false))!;
     }
 
     /// <inheritdoc />

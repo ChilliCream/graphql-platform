@@ -27,10 +27,10 @@ public static partial class BookNode
         CancellationToken cancellationToken)
         => await repository.GetChaptersAsync(book.Id, cancellationToken);
 
-    public static string IdAndTitle([Parent] Book book)
+    public static string IdAndTitle([HotChocolate.Parent] Book book)
         => $"{book.Id}: {book.Title}";
 
-    public static string GetBookUri([Parent] Book book, HttpContext context, [LocalState] string? foo = null)
+    public static string GetBookUri([HotChocolate.Parent] Book book, HttpContext context, [LocalState] string? foo = null)
         => context.Request.Path + $"/{book.Id}";
 
     [NodeResolver]

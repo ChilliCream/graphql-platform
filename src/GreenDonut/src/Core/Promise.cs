@@ -1,5 +1,3 @@
-using System.Globalization;
-
 namespace GreenDonut;
 
 /// <summary>
@@ -44,9 +42,10 @@ public readonly struct Promise<TValue> : IPromise
         Task = completionSource.Task;
     }
 
-    private Promise(Task<TValue> task, bool isClone)
+    private Promise(Task<TValue> task, TaskCompletionSource<TValue>? completionSource, bool isClone)
     {
         Task = task;
+        _completionSource = completionSource;
         IsClone = isClone;
     }
 
@@ -137,21 +136,24 @@ public readonly struct Promise<TValue> : IPromise
     /// Returns a new instance of <see cref="Promise{TValue}"/>.
     /// </returns>
     public Promise<TValue> Clone()
-        => new(Task, isClone: true);
+        => new(Task, null, isClone: true);
 
     IPromise IPromise.Clone() => Clone();
 
     /// <summary>
     /// Creates a new promise for the specified value type.
     /// </summary>
+    /// <param name="cloned">
+    /// Marks the promise as a clone.
+    /// </param>
     /// <returns>
     /// Returns a new instance of <see cref="Promise{TValue}"/>.
     /// </returns>
-    public static Promise<TValue> Create()
+    public static Promise<TValue> Create(bool cloned = false)
     {
         var taskCompletionSource = new TaskCompletionSource<TValue>(
             TaskCreationOptions.RunContinuationsAsynchronously);
-        return new Promise<TValue>(taskCompletionSource);
+        return new Promise<TValue>(taskCompletionSource.Task, taskCompletionSource, cloned);
     }
 
     /// <summary>
@@ -160,11 +162,14 @@ public readonly struct Promise<TValue> : IPromise
     /// <param name="value">
     /// The value of the promise.
     /// </param>
+    /// <param name="cloned">
+    /// Marks the promise as a clone.
+    /// </param>
     /// <returns>
     /// Returns a new instance of <see cref="Promise{TValue}"/>.
     /// </returns>
-    public static Promise<TValue> CreateClone(TValue value)
-        => new(System.Threading.Tasks.Task.FromResult(value), isClone: true);
+    public static Promise<TValue> Create(TValue value, bool cloned = true)
+        => new(System.Threading.Tasks.Task.FromResult(value), null, isClone: true);
 
     /// <summary>
     /// Implicitly converts a <see cref="TaskCompletionSource{TResult}"/> to a promise.

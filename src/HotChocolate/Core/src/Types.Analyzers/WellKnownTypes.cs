@@ -61,10 +61,12 @@ public static class WellKnownTypes
     public const string Memory = "System.Memory";
     public const string Span = "System.Span";
     public const string Result = "GreenDonut.Result";
+    public const string DataLoaderFetchContext = "GreenDonut.DataLoaderFetchContext";
     public const string Array = "System.Array";
     public const string PromiseCacheObserver = "GreenDonut.PromiseCacheObserver";
     public const string KeyValuePair = "System.Collections.Generic.KeyValuePair";
     public const string EnumerableExtensions = "System.Linq.Enumerable";
+    public const string SelectorBuilder = "GreenDonut.Projections.ISelectorBuilder";
 
     public static HashSet<string> TypeClass { get; } =
     [

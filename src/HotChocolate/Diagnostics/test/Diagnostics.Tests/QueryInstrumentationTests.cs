@@ -398,15 +398,15 @@ public partial class QueryInstrumentationTests
 
         public string CauseFatalError() => throw new GraphQLException("fail");
 
-        public Deep Deep() => new Deep();
+        public Deep Deep() => new();
 
-        public Task<string> DataLoader(CustomDataLoader dataLoader, string key)
+        public Task<string?> DataLoader(CustomDataLoader dataLoader, string key)
             => dataLoader.LoadAsync(key);
     }
 
     public class Deep
     {
-        public Deeper Deeper() => new Deeper();
+        public Deeper Deeper() => new();
 
         public string CauseFatalError() => throw new GraphQLException("fail");
     }
