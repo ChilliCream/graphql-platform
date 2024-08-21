@@ -82,6 +82,41 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
     }
 
     [Fact]
+    public async Task Manual_Include_And_Observe_Brand()
+    {
+        // Arrange
+        var queries = new List<string>();
+        var connectionString = CreateConnectionString();
+        await CatalogContext.SeedAsync(connectionString);
+
+        // Act
+        var result = await new ServiceCollection()
+            .AddScoped(_ => queries)
+            .AddTransient(_ => new CatalogContext(connectionString))
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddTypeExtension<ProductExtensions>()
+            .AddPagingArguments()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .ExecuteRequestAsync(
+                """
+                {
+                    productByIdWithBrandNoSelection(id: 1) {
+                        name
+                        brand {
+                            name
+                        }
+                    }
+                }
+                """);
+
+        Snapshot.Create()
+            .AddSql(queries)
+            .AddResult(result)
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
     public async Task Do_Not_Project()
     {
         // Arrange
@@ -362,6 +397,13 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             ProductByIdDataLoader productById,
             CancellationToken cancellationToken)
             => await productById.Select(selection).Include(c => c.Brand).LoadAsync(id, cancellationToken);
+
+        public async Task<Product?> GetProductByIdWithBrandNoSelectionAsync(
+            int id,
+            ISelection selection,
+            ProductByIdDataLoader productById,
+            CancellationToken cancellationToken)
+            => await productById.Include(c => c.Brand).LoadAsync(id, cancellationToken);
     }
 
     [ExtendObjectType<Brand>]
@@ -373,28 +415,59 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             => new() { Country = new Country { Name = "Germany" } };
     }
 
-    public class BrandByIdDataLoader(
-        IServiceProvider services,
-        List<string> queries,
-        IBatchScheduler batchScheduler,
-        DataLoaderOptions options)
-        : StatefulBatchDataLoader<int, Brand>(batchScheduler, options)
+    [ExtendObjectType<Product>]
+    public class ProductExtensions
     {
+        [BindMember(nameof(Product.Brand))]
+        public Task<Brand> GetBrandAsync(
+            [Parent] Product product,
+            BrandByIdDataLoader brandById)
+            => brandById.LoadRequiredAsync(product.BrandId);
+    }
+
+    public class BrandByIdDataLoader : StatefulBatchDataLoader<int, Brand>
+    {
+        private readonly IServiceProvider _services;
+        private readonly List<string> _queries;
+
+        public BrandByIdDataLoader(IServiceProvider services,
+            List<string> queries,
+            IBatchScheduler batchScheduler,
+            DataLoaderOptions options) : base(batchScheduler, options)
+        {
+            _services = services;
+            _queries = queries;
+
+            PromiseCacheObserver
+                .Create<int, Brand, Product>(
+                    p =>
+                    {
+                        if (p.Brand is not null)
+                        {
+                            return new KeyValuePair<int, Brand>(p.Brand.Id, p.Brand);
+                        }
+
+                        return null;
+                    },
+                    this)
+                .Accept(this);
+        }
+
         protected override async Task<IReadOnlyDictionary<int, Brand>> LoadBatchAsync(
             IReadOnlyList<int> keys,
             DataLoaderFetchContext<Brand> context,
             CancellationToken cancellationToken)
         {
-            var catalogContext = services.GetRequiredService<CatalogContext>();
+            var catalogContext = _services.GetRequiredService<CatalogContext>();
 
             var query = catalogContext.Brands
                 .Where(t => keys.Contains(t.Id))
                 .Select(context.GetSelector())
                 .SelectKey(b => b.Id);
 
-            lock (queries)
+            lock (_queries)
             {
-                queries.Add(query.ToQueryString());
+                _queries.Add(query.ToQueryString());
             }
 
             var x = await query.ToDictionaryAsync(t => t.Id, cancellationToken);
