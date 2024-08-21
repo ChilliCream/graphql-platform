@@ -99,6 +99,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddPagingArguments()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
             .ExecuteRequestAsync(
                 """
                 {
@@ -123,16 +124,56 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             .MatchMarkdownSnapshot();
     }
 
+    [Fact]
+    public async Task Branches_Are_Merged()
+    {
+        // Arrange
+        var queries = new List<string>();
+        var connectionString = CreateConnectionString();
+        await CatalogContext.SeedAsync(connectionString);
+
+        // Act
+        var result = await new ServiceCollection()
+            .AddScoped(_ => queries)
+            .AddTransient(_ => new CatalogContext(connectionString))
+            .AddDataLoader<BrandByIdDataLoader>()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddPagingArguments()
+            .ExecuteRequestAsync(
+                """
+                {
+                    a: productById(id: 1) {
+                        name
+                        brand {
+                            name
+                        }
+                    }
+                    b: productById(id: 2) {
+                        name
+                        brand {
+                            name
+                        }
+                    }
+                }
+                """);
+
+        Snapshot.Create()
+            .AddSql(queries)
+            .AddResult(result)
+            .MatchMarkdownSnapshot();
+    }
+
     public class Query
     {
-        public async Task<Brand> GetBrandByIdAsync(
+        public async Task<Brand?> GetBrandByIdAsync(
             int id,
             ISelection selection,
             BrandByIdDataLoader brandById,
             CancellationToken cancellationToken)
             => await brandById.Select(selection).LoadAsync(id, cancellationToken);
 
-        public async Task<Product> GetProductByIdAsync(
+        public async Task<Product?> GetProductByIdAsync(
             int id,
             ISelection selection,
             ProductByIdDataLoader productById,
