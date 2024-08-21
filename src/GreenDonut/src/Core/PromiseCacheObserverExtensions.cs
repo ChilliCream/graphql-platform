@@ -27,6 +27,7 @@ public static class PromiseCacheObserverExtensions
         this IPromiseCacheObserver observer,
         DataLoaderBase<TKey, TValue> dataLoader)
         where TKey : notnull
+        where TValue : notnull
     {
         if (observer == null)
         {

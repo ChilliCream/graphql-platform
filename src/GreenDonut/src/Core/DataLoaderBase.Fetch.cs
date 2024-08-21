@@ -21,7 +21,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     /// </returns>
     protected internal abstract ValueTask FetchAsync(
         IReadOnlyList<TKey> keys,
-        Memory<Result<TValue>> results,
+        Memory<Result<TValue?>> results,
         DataLoaderFetchContext<TValue> context,
         CancellationToken cancellationToken);
 }

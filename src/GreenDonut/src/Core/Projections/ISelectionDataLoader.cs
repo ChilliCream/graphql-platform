@@ -3,7 +3,8 @@
 namespace GreenDonut.Projections;
 
 public interface ISelectionDataLoader<in TKey, TValue>
-    : IDataLoader<TKey, TValue> where TKey : notnull
+    : IDataLoader<TKey, TValue>
+    where TKey : notnull
 {
     IDataLoader<TKey, TValue> Root { get; }
 }

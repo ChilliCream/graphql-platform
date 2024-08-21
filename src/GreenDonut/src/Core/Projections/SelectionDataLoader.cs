@@ -25,7 +25,7 @@ internal sealed class SelectionDataLoader<TKey, TValue>
 
     protected internal override ValueTask FetchAsync(
         IReadOnlyList<TKey> keys,
-        Memory<Result<TValue>> results,
+        Memory<Result<TValue?>> results,
         DataLoaderFetchContext<TValue> context,
         CancellationToken cancellationToken)
         => _root.FetchAsync(keys, results, context, cancellationToken);

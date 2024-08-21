@@ -1,6 +1,6 @@
 namespace GreenDonut;
 
-public abstract partial class DataLoaderBase<TKey, TValue>
+public abstract partial class DataLoaderBase<TKey, TValue> where TKey : notnull
 {
     /// <inheritdoc />
     Task<object?> IDataLoader.LoadAsync(
@@ -64,7 +64,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
         Set((TKey)key, AwaitValue());
 
-        async Task<TValue> AwaitValue() => (TValue)(await value.ConfigureAwait(false))!;
+        async Task<TValue?> AwaitValue() => (TValue)(await value.ConfigureAwait(false))!;
     }
 
     /// <inheritdoc />

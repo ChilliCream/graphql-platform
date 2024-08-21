@@ -37,7 +37,7 @@ public abstract class BatchDataLoader<TKey, TValue>
     /// <inheritdoc />
     protected internal sealed override async ValueTask FetchAsync(
         IReadOnlyList<TKey> keys,
-        Memory<Result<TValue>> results,
+        Memory<Result<TValue?>> results,
         DataLoaderFetchContext<TValue> context,
         CancellationToken cancellationToken)
     {
@@ -50,7 +50,7 @@ public abstract class BatchDataLoader<TKey, TValue>
 
     private static void CopyResults(
         IReadOnlyList<TKey> keys,
-        Span<Result<TValue>> results,
+        Span<Result<TValue?>> results,
         IReadOnlyDictionary<TKey, TValue> resultMap)
     {
         for (var i = 0; i < keys.Count; i++)
@@ -88,6 +88,7 @@ public abstract class BatchDataLoader<TKey, TValue>
 public abstract class StatefulBatchDataLoader<TKey, TValue>
     : DataLoaderBase<TKey, TValue>
     where TKey : notnull
+    where TValue : notnull
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="BatchDataLoader{TKey, TValue}"/> class.
@@ -116,7 +117,7 @@ public abstract class StatefulBatchDataLoader<TKey, TValue>
     /// <inheritdoc />
     protected internal sealed override async ValueTask FetchAsync(
         IReadOnlyList<TKey> keys,
-        Memory<Result<TValue>> results,
+        Memory<Result<TValue?>> results,
         DataLoaderFetchContext<TValue> context,
         CancellationToken cancellationToken)
     {
@@ -129,7 +130,7 @@ public abstract class StatefulBatchDataLoader<TKey, TValue>
 
     private static void CopyResults(
         IReadOnlyList<TKey> keys,
-        Span<Result<TValue>> results,
+        Span<Result<TValue?>> results,
         IReadOnlyDictionary<TKey, TValue> resultMap)
     {
         for (var i = 0; i < keys.Count; i++)

@@ -3,6 +3,7 @@ namespace GreenDonut;
 public abstract class CacheDataLoader<TKey, TValue>
     : DataLoaderBase<TKey, TValue>
     where TKey : notnull
+    where TValue : notnull
 {
     protected CacheDataLoader(DataLoaderOptions options)
         : base(AutoBatchScheduler.Default, CreateLocalOptions(options))
@@ -22,7 +23,7 @@ public abstract class CacheDataLoader<TKey, TValue>
 
     protected internal sealed override async ValueTask FetchAsync(
         IReadOnlyList<TKey> keys,
-        Memory<Result<TValue>> results,
+        Memory<Result<TValue?>> results,
         DataLoaderFetchContext<TValue> context,
         CancellationToken cancellationToken)
     {
@@ -56,6 +57,7 @@ public abstract class CacheDataLoader<TKey, TValue>
 public abstract class StatefulCacheDataLoader<TKey, TValue>
     : DataLoaderBase<TKey, TValue>
     where TKey : notnull
+    where TValue : notnull
 {
     protected StatefulCacheDataLoader(DataLoaderOptions options)
         : base(AutoBatchScheduler.Default, CreateLocalOptions(options))
@@ -75,7 +77,7 @@ public abstract class StatefulCacheDataLoader<TKey, TValue>
 
     protected internal sealed override async ValueTask FetchAsync(
         IReadOnlyList<TKey> keys,
-        Memory<Result<TValue>> results,
+        Memory<Result<TValue?>> results,
         DataLoaderFetchContext<TValue> context,
         CancellationToken cancellationToken)
     {

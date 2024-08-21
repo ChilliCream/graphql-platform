@@ -31,6 +31,7 @@ public static class PromiseCacheObserver
         Func<TValue, TKey> createLookup,
         DataLoaderBase<TKey, TValue> dataLoader)
         where TKey : notnull
+        where TValue : notnull
     {
         if (createLookup == null)
         {
@@ -74,6 +75,7 @@ public static class PromiseCacheObserver
         Func<TObservedValue, KeyValuePair<TKey, TValue>?> createLookup,
         DataLoaderBase<TKey, TValue> dataLoader)
         where TKey : notnull
+        where TValue : notnull
     {
         if (createLookup == null)
         {

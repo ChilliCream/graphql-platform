@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 #if NET8_0_OR_GREATER
-using System.Diagnostics.CodeAnalysis;
 using GreenDonut.Projections;
 #endif
 using static GreenDonut.NoopDataLoaderDiagnosticEventListener;
@@ -26,8 +25,7 @@ namespace GreenDonut;
 /// <typeparam name="TKey">A key type.</typeparam>
 /// <typeparam name="TValue">A value type.</typeparam>
 public abstract partial class DataLoaderBase<TKey, TValue>
-    : IDataLoader<TKey, TValue>
-    where TKey : notnull
+    : IDataLoader<TKey, TValue> where TKey : notnull
 {
     private readonly object _sync = new();
     private readonly IBatchScheduler _batchScheduler;
@@ -96,12 +94,12 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         };
 
     /// <inheritdoc />
-    public Task<TValue> LoadAsync(
+    public Task<TValue?> LoadAsync(
         TKey key,
         CancellationToken cancellationToken = default)
         => LoadAsync(key, CacheKeyType, PropagateCompletion);
 
-    private Task<TValue> LoadAsync(
+    private Task<TValue?> LoadAsync(
         TKey key,
         string cacheKeyType,
         bool propagateCompletion)
@@ -131,7 +129,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             return cachedTask;
         }
 
-        Promise<TValue> CreatePromise()
+        Promise<TValue?> CreatePromise()
         {
             cached = false;
             return GetOrCreatePromiseUnsafe(key, propagateCompletion);
@@ -139,12 +137,12 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     }
 
     /// <inheritdoc />
-    public Task<IReadOnlyList<TValue>> LoadAsync(
+    public Task<IReadOnlyList<TValue?>> LoadAsync(
         IReadOnlyCollection<TKey> keys,
         CancellationToken cancellationToken = default)
         => LoadAsync(keys, CacheKeyType, PropagateCompletion, cancellationToken);
 
-    private Task<IReadOnlyList<TValue>> LoadAsync(
+    private Task<IReadOnlyList<TValue?>> LoadAsync(
         IReadOnlyCollection<TKey> keys,
         string cacheKeyType,
         bool propagateCompletion,
@@ -156,7 +154,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         }
 
         var index = 0;
-        var tasks = new Task<TValue>[keys.Count];
+        var tasks = new Task<TValue?>[keys.Count];
         bool cached;
 
         lock (_sync)
@@ -201,10 +199,10 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             }
         }
 
-        async Task<IReadOnlyList<TValue>> WhenAll()
+        async Task<IReadOnlyList<TValue?>> WhenAll()
             => await Task.WhenAll(tasks).ConfigureAwait(false);
 
-        Promise<TValue> CreatePromise(TKey key)
+        Promise<TValue?> CreatePromise(TKey key)
         {
             cached = false;
             return GetOrCreatePromiseUnsafe(key, propagateCompletion);
@@ -227,7 +225,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     }
 
     /// <inheritdoc />
-    public void Set(TKey key, Task<TValue> value)
+    public void Set(TKey key, Task<TValue?> value)
     {
         if (key == null)
         {
@@ -242,7 +240,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         if (Cache is not null)
         {
             PromiseCacheKey cacheKey = new(CacheKeyType, key);
-            Cache.TryAdd(cacheKey, new Promise<TValue>(value));
+            Cache.TryAdd(cacheKey, new Promise<TValue?>(value));
         }
     }
 #if NET8_0_OR_GREATER
@@ -289,7 +287,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     private void BatchOperationSucceeded(
         Batch<TKey> batch,
         IReadOnlyList<TKey> keys,
-        Result<TValue>[] results)
+        Result<TValue?>[] results)
     {
         for (var i = 0; i < keys.Count; i++)
         {
@@ -305,7 +303,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
                 return;
             }
 
-            SetSingleResult(batch.GetPromise<TValue>(key), key, value);
+            SetSingleResult(batch.GetPromise<TValue?>(key), key, value);
         }
     }
 
@@ -329,7 +327,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
             using (_diagnosticEvents.ExecuteBatch(this, batch.Keys))
             {
-                var buffer = new Result<TValue>[batch.Keys.Count];
+                var buffer = new Result<TValue?>[batch.Keys.Count];
 
                 try
                 {
@@ -355,15 +353,15 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     }
 
     // ReSharper disable InconsistentlySynchronizedField
-    private Promise<TValue> GetOrCreatePromiseUnsafe(TKey key, bool propagateCompletion)
+    private Promise<TValue?> GetOrCreatePromiseUnsafe(TKey key, bool propagateCompletion)
     {
         if (_currentBatch is not null && (_currentBatch.Size < _maxBatchSize || _maxBatchSize == 0))
         {
-            return _currentBatch.GetOrCreatePromise<TValue>(key, propagateCompletion);
+            return _currentBatch.GetOrCreatePromise<TValue?>(key, propagateCompletion);
         }
 
         var newBatch = BatchPool<TKey>.Shared.Get();
-        var newPromise = newBatch.GetOrCreatePromise<TValue>(key, propagateCompletion);
+        var newPromise = newBatch.GetOrCreatePromise<TValue?>(key, propagateCompletion);
 
         // set the batch before enqueueing to avoid concurrency issues.
         _currentBatch = newBatch;
@@ -371,12 +369,12 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
         return newPromise;
     }
-    // ReSharper restore InconsistentlySynchronizedField
 
+    // ReSharper restore InconsistentlySynchronizedField
     private void SetSingleResult(
-        Promise<TValue> promise,
+        Promise<TValue?> promise,
         TKey key,
-        Result<TValue> result)
+        Result<TValue?> result)
     {
         if (result.Kind is ResultKind.Value)
         {

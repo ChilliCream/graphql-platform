@@ -32,7 +32,7 @@ public abstract class GroupedDataLoader<TKey, TValue>
     /// <inheritdoc />
     protected internal sealed override async ValueTask FetchAsync(
         IReadOnlyList<TKey> keys,
-        Memory<Result<TValue[]>> results,
+        Memory<Result<TValue[]?>> results,
         DataLoaderFetchContext<TValue[]> context,
         CancellationToken cancellationToken)
     {
@@ -45,7 +45,7 @@ public abstract class GroupedDataLoader<TKey, TValue>
 
     private static void CopyResults(
         IReadOnlyList<TKey> keys,
-        Span<Result<TValue[]>> results,
+        Span<Result<TValue[]?>> results,
         ILookup<TKey, TValue> resultLookup)
     {
         for (var i = 0; i < keys.Count; i++)
@@ -99,7 +99,7 @@ public abstract class StatefulGroupedDataLoader<TKey, TValue>
     /// <inheritdoc />
     protected internal sealed override async ValueTask FetchAsync(
         IReadOnlyList<TKey> keys,
-        Memory<Result<TValue[]>> results,
+        Memory<Result<TValue[]?>> results,
         DataLoaderFetchContext<TValue[]> context,
         CancellationToken cancellationToken)
     {
@@ -112,7 +112,7 @@ public abstract class StatefulGroupedDataLoader<TKey, TValue>
 
     private static void CopyResults(
         IReadOnlyList<TKey> keys,
-        Span<Result<TValue[]>> results,
+        Span<Result<TValue[]?>> results,
         ILookup<TKey, TValue> resultLookup)
     {
         for (var i = 0; i < keys.Count; i++)

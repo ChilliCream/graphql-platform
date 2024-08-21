@@ -27,7 +27,7 @@ public class DataLoaderDiagnosticEventListener : IDataLoaderDiagnosticEventListe
     /// <inheritdoc />
     public virtual void BatchResults<TKey, TValue>(
         IReadOnlyList<TKey> keys,
-        ReadOnlySpan<Result<TValue>> values)
+        ReadOnlySpan<Result<TValue?>> values)
         where TKey : notnull { }
 
     /// <inheritdoc />
