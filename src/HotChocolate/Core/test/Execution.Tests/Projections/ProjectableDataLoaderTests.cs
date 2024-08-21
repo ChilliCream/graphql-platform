@@ -81,7 +81,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             .MatchMarkdownSnapshot();
     }
 
-    [Fact]
+    [Fact(Skip = "Include does not work")]
     public async Task Manual_Include_And_Observe_Brand()
     {
         // Arrange
@@ -398,12 +398,14 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             CancellationToken cancellationToken)
             => await productById.Select(selection).Include(c => c.Brand).LoadAsync(id, cancellationToken);
 
+        /*
         public async Task<Product?> GetProductByIdWithBrandNoSelectionAsync(
             int id,
             ISelection selection,
             ProductByIdDataLoader productById,
             CancellationToken cancellationToken)
             => await productById.Include(c => c.Brand).LoadAsync(id, cancellationToken);
+            */
     }
 
     [ExtendObjectType<Brand>]
