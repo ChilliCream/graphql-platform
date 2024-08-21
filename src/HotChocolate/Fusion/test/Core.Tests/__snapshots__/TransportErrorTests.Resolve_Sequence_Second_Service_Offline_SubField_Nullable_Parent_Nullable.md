@@ -9,20 +9,6 @@
       "message": "Unexpected Execution Error",
       "locations": [
         {
-          "line": 5,
-          "column": 7
-        }
-      ],
-      "path": [
-        "product",
-        "brand",
-        "id"
-      ]
-    },
-    {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
           "line": 6,
           "column": 7
         }

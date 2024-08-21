@@ -162,7 +162,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
                     response.Errors,
                     response.TransportException,
                     batchState.SelectionSetResult,
-                    SelectionSet,
+                    RootSelections,
                     pathLength + 1,
                     context.ShowDebugInfo);
                 first = false;

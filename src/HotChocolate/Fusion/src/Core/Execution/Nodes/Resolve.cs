@@ -156,7 +156,7 @@ internal sealed class Resolve(int id, Config config) : ResolverNodeBase(id, conf
                 response.Errors,
                 response.TransportException,
                 selectionSetResult,
-                selectionSet,
+                RootSelections,
                 pathLength,
                 context.ShowDebugInfo);
 

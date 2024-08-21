@@ -5,6 +5,7 @@ using System.Text.Json;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Metadata;
+using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
@@ -502,19 +503,20 @@ internal static class ExecutionUtils
         JsonElement errors,
         Exception? transportException,
         ObjectResult selectionSetResult,
-        SelectionSet selectionSet,
+        List<RootSelection> rootSelections,
         int pathDepth,
         bool addDebugInfo)
     {
         if (transportException is not null)
         {
-            foreach (var selection in selectionSet.Selections)
+            foreach (var rootSelection in rootSelections)
             {
                 var errorBuilder = errorHandler.CreateUnexpectedError(transportException);
-                
+                var path = PathHelper.CreatePathFromContext(rootSelection.Selection, selectionSetResult, 0);
+
                 var error = errorHandler.Handle(errorBuilder
-                    .AddLocation(selection.SyntaxNode)
-                    .SetPath(PathHelper.CreatePathFromContext(selection, selectionSetResult, 0))
+                    .AddLocation(rootSelection.Selection.SyntaxNode)
+                    .SetPath(path)
                     .Build());
 
                 resultBuilder.AddError(error);
