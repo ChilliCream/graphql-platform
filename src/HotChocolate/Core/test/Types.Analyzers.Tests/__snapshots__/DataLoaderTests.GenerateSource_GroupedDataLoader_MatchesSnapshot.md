@@ -39,6 +39,7 @@ namespace TestNamespace
         protected override async global::System.Threading.Tasks.ValueTask FetchAsync(
             global::System.Collections.Generic.IReadOnlyList<int> keys,
             global::System.Memory<GreenDonut.Result<Entity[]>> results,
+            global::GreenDonut.DataLoaderFetchContext<Entity[]> context,
             global::System.Threading.CancellationToken ct)
         {
             var temp = await TestNamespace.TestClass.GetEntitiesByIdAsync(keys, ct).ConfigureAwait(false);

@@ -43,6 +43,7 @@ namespace TestNamespace
         protected override async global::System.Threading.Tasks.ValueTask FetchAsync(
             global::System.Collections.Generic.IReadOnlyList<int> keys,
             global::System.Memory<GreenDonut.Result<global::TestNamespace.Entity2>> results,
+            global::GreenDonut.DataLoaderFetchContext<global::TestNamespace.Entity2> context,
             global::System.Threading.CancellationToken ct)
         {
             var temp = await TestNamespace.TestClass.GetEntityByIdAsync(keys, ct).ConfigureAwait(false);
@@ -63,7 +64,7 @@ namespace TestNamespace
                 }
                 else
                 {
-                    results[i] = global::GreenDonut.Result<global::TestNamespace.Entity2>.Reject(key);
+                    results[i] = global::GreenDonut.Result<global::TestNamespace.Entity2>.Resolve(default(global::TestNamespace.Entity2));
                 }
             }
         }
