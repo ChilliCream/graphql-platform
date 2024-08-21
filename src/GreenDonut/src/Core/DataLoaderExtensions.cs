@@ -30,7 +30,12 @@ public static class DataLoaderExtensions
         where TKey : notnull
         where TValue : notnull
     {
-        if (key is null)
+        if (dataLoader == null)
+        {
+            throw new ArgumentNullException(nameof(dataLoader));
+        }
+
+        if (key == null)
         {
             throw new ArgumentNullException(nameof(key));
         }
@@ -68,7 +73,12 @@ public static class DataLoaderExtensions
         where TKey : notnull
         where TValue : notnull
     {
-        if (keys is null)
+        if (dataLoader == null)
+        {
+            throw new ArgumentNullException(nameof(dataLoader));
+        }
+
+        if (keys == null)
         {
             throw new ArgumentNullException(nameof(keys));
         }
@@ -109,6 +119,11 @@ public static class DataLoaderExtensions
             throw new ArgumentNullException(nameof(dataLoader));
         }
 
+        if (key == null)
+        {
+            throw new ArgumentNullException(nameof(key));
+        }
+
         dataLoader.Set(key, Task.FromResult(value));
     }
 
@@ -132,6 +147,11 @@ public static class DataLoaderExtensions
         if (dataLoader == null)
         {
             throw new ArgumentNullException(nameof(dataLoader));
+        }
+
+        if (key == null)
+        {
+            throw new ArgumentNullException(nameof(key));
         }
 
         dataLoader.Set(key, Task.FromResult(value));

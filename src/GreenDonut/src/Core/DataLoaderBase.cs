@@ -84,10 +84,10 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
     private protected virtual bool AllowBranching => true;
 
-    protected internal IBatchScheduler BatchScheduler
+    internal IBatchScheduler BatchScheduler
         => _batchScheduler;
 
-    protected internal DataLoaderOptions Options
+    internal DataLoaderOptions Options
         => new()
         {
             MaxBatchSize = _maxBatchSize,
