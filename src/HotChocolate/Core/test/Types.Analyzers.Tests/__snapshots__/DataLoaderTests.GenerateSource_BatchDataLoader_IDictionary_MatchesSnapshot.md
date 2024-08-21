@@ -38,7 +38,7 @@ namespace TestNamespace
 
         protected override async global::System.Threading.Tasks.ValueTask FetchAsync(
             global::System.Collections.Generic.IReadOnlyList<int> keys,
-            global::System.Memory<GreenDonut.Result<string>> results,
+            global::System.Memory<GreenDonut.Result<string?>> results,
             global::GreenDonut.DataLoaderFetchContext<string> context,
             global::System.Threading.CancellationToken ct)
         {
@@ -48,7 +48,7 @@ namespace TestNamespace
 
         private void CopyResults(
             global::System.Collections.Generic.IReadOnlyList<int> keys,
-            global::System.Span<GreenDonut.Result<string>> results,
+            global::System.Span<GreenDonut.Result<string?>> results,
             global::System.Collections.Generic.IDictionary<int, string> resultMap)
         {
             for (var i = 0; i < keys.Count; i++)
@@ -56,11 +56,11 @@ namespace TestNamespace
                 var key = keys[i];
                 if (resultMap.TryGetValue(key, out var value))
                 {
-                    results[i] = global::GreenDonut.Result<string>.Resolve(value);
+                    results[i] = global::GreenDonut.Result<string?>.Resolve(value);
                 }
                 else
                 {
-                    results[i] = global::GreenDonut.Result<string>.Resolve(default(string));
+                    results[i] = global::GreenDonut.Result<string?>.Resolve(default(string));
                 }
             }
         }

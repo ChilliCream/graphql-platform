@@ -42,7 +42,7 @@ namespace TestNamespace
 
         protected override async global::System.Threading.Tasks.ValueTask FetchAsync(
             global::System.Collections.Generic.IReadOnlyList<int> keys,
-            global::System.Memory<GreenDonut.Result<global::TestNamespace.Entity2>> results,
+            global::System.Memory<GreenDonut.Result<global::TestNamespace.Entity2?>> results,
             global::GreenDonut.DataLoaderFetchContext<global::TestNamespace.Entity2> context,
             global::System.Threading.CancellationToken ct)
         {
@@ -52,7 +52,7 @@ namespace TestNamespace
 
         private void CopyResults(
             global::System.Collections.Generic.IReadOnlyList<int> keys,
-            global::System.Span<GreenDonut.Result<global::TestNamespace.Entity2>> results,
+            global::System.Span<GreenDonut.Result<global::TestNamespace.Entity2?>> results,
             global::System.Collections.Generic.IDictionary<int, TestNamespace.Entity2> resultMap)
         {
             for (var i = 0; i < keys.Count; i++)
@@ -60,11 +60,11 @@ namespace TestNamespace
                 var key = keys[i];
                 if (resultMap.TryGetValue(key, out var value))
                 {
-                    results[i] = global::GreenDonut.Result<global::TestNamespace.Entity2>.Resolve(value);
+                    results[i] = global::GreenDonut.Result<global::TestNamespace.Entity2?>.Resolve(value);
                 }
                 else
                 {
-                    results[i] = global::GreenDonut.Result<global::TestNamespace.Entity2>.Resolve(default(global::TestNamespace.Entity2));
+                    results[i] = global::GreenDonut.Result<global::TestNamespace.Entity2?>.Resolve(default(global::TestNamespace.Entity2));
                 }
             }
         }
