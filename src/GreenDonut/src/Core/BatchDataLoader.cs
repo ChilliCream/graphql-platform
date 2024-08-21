@@ -88,7 +88,6 @@ public abstract class BatchDataLoader<TKey, TValue>
 public abstract class StatefulBatchDataLoader<TKey, TValue>
     : DataLoaderBase<TKey, TValue>
     where TKey : notnull
-    where TValue : notnull
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="BatchDataLoader{TKey, TValue}"/> class.

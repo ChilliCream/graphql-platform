@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 
 namespace GreenDonut;
 
@@ -112,7 +113,6 @@ public static class DataLoaderExtensions
         TKey key,
         TValue? value)
         where TKey : notnull
-        where TValue : notnull
     {
         if (dataLoader is null)
         {
@@ -185,7 +185,6 @@ public static class DataLoaderExtensions
         this IDataLoader<TKey, TValue> dataLoader,
         TState value)
         where TKey : notnull
-        where TValue : notnull
     {
         if (dataLoader is null)
         {
@@ -230,7 +229,6 @@ public static class DataLoaderExtensions
         string key,
         TState value)
         where TKey : notnull
-        where TValue : notnull
     {
         if (dataLoader is null)
         {
@@ -276,7 +274,6 @@ public static class DataLoaderExtensions
         this IDataLoader<TKey, TValue> dataLoader,
         TState value)
         where TKey : notnull
-        where TValue : notnull
     {
         if (dataLoader is null)
         {
@@ -321,7 +318,6 @@ public static class DataLoaderExtensions
         string key,
         TState value)
         where TKey : notnull
-        where TValue : notnull
     {
         if (dataLoader is null)
         {
@@ -371,7 +367,6 @@ public static class DataLoaderExtensions
         this IDataLoader<TKey, TValue> dataLoader,
         TState value)
         where TKey : notnull
-        where TValue : notnull
     {
         if (dataLoader is null)
         {
@@ -416,7 +411,6 @@ public static class DataLoaderExtensions
         string key,
         TState value)
         where TKey : notnull
-        where TValue : notnull
     {
         if (dataLoader is null)
         {

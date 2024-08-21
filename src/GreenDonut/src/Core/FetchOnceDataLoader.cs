@@ -6,7 +6,6 @@ namespace GreenDonut;
 /// <typeparam name="TValue">A value type.</typeparam>
 public abstract class FetchOnceDataLoader<TValue>
     : CacheDataLoader<string, TValue>
-    where TValue : notnull
 {
     protected FetchOnceDataLoader(DataLoaderOptions options)
         : base(options)

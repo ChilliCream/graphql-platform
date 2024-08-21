@@ -56,7 +56,6 @@ public abstract class CacheDataLoader<TKey, TValue>
 public abstract class StatefulCacheDataLoader<TKey, TValue>
     : DataLoaderBase<TKey, TValue>
     where TKey : notnull
-    where TValue : notnull
 {
     protected StatefulCacheDataLoader(DataLoaderOptions options)
         : base(AutoBatchScheduler.Default, CreateLocalOptions(options))
