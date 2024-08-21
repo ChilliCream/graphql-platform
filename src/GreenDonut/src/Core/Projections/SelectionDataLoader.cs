@@ -21,7 +21,7 @@ internal sealed class SelectionDataLoader<TKey, TValue>
 
     protected internal override string CacheKeyType { get; }
 
-    private protected override bool PropagateCompletion => false;
+    private protected override bool AllowCachePropagation => false;
 
     protected internal override ValueTask FetchAsync(
         IReadOnlyList<TKey> keys,

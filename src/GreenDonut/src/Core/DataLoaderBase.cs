@@ -79,7 +79,9 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     public IImmutableDictionary<string, object?> ContextData { get; set; } =
         ImmutableDictionary<string, object?>.Empty;
 
-    private protected virtual bool PropagateCompletion => true;
+    private protected virtual bool AllowCachePropagation => true;
+
+    private protected virtual bool AllowBranching => true;
 
     protected internal IBatchScheduler BatchScheduler
         => _batchScheduler;
@@ -97,12 +99,12 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     public Task<TValue?> LoadAsync(
         TKey key,
         CancellationToken cancellationToken = default)
-        => LoadAsync(key, CacheKeyType, PropagateCompletion);
+        => LoadAsync(key, CacheKeyType, AllowCachePropagation);
 
     private Task<TValue?> LoadAsync(
         TKey key,
         string cacheKeyType,
-        bool propagateCompletion)
+        bool allowCachePropagation)
     {
         if (key is null)
         {
@@ -132,7 +134,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         Promise<TValue?> CreatePromise()
         {
             cached = false;
-            return GetOrCreatePromiseUnsafe(key, propagateCompletion);
+            return GetOrCreatePromiseUnsafe(key, allowCachePropagation);
         }
     }
 
@@ -140,12 +142,12 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     public Task<IReadOnlyList<TValue?>> LoadAsync(
         IReadOnlyCollection<TKey> keys,
         CancellationToken cancellationToken = default)
-        => LoadAsync(keys, CacheKeyType, PropagateCompletion, cancellationToken);
+        => LoadAsync(keys, CacheKeyType, AllowCachePropagation, cancellationToken);
 
     private Task<IReadOnlyList<TValue?>> LoadAsync(
         IReadOnlyCollection<TKey> keys,
         string cacheKeyType,
-        bool propagateCompletion,
+        bool allowCachePropagation,
         CancellationToken cancellationToken)
     {
         if (keys is null)
@@ -205,7 +207,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         Promise<TValue?> CreatePromise(TKey key)
         {
             cached = false;
-            return GetOrCreatePromiseUnsafe(key, propagateCompletion);
+            return GetOrCreatePromiseUnsafe(key, allowCachePropagation);
         }
     }
 
@@ -353,15 +355,15 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     }
 
     // ReSharper disable InconsistentlySynchronizedField
-    private Promise<TValue?> GetOrCreatePromiseUnsafe(TKey key, bool propagateCompletion)
+    private Promise<TValue?> GetOrCreatePromiseUnsafe(TKey key, bool allowCachePropagation)
     {
         if (_currentBatch is not null && (_currentBatch.Size < _maxBatchSize || _maxBatchSize == 0))
         {
-            return _currentBatch.GetOrCreatePromise<TValue?>(key, propagateCompletion);
+            return _currentBatch.GetOrCreatePromise<TValue?>(key, allowCachePropagation);
         }
 
         var newBatch = BatchPool<TKey>.Shared.Get();
-        var newPromise = newBatch.GetOrCreatePromise<TValue?>(key, propagateCompletion);
+        var newPromise = newBatch.GetOrCreatePromise<TValue?>(key, allowCachePropagation);
 
         // set the batch before enqueueing to avoid concurrency issues.
         _currentBatch = newBatch;

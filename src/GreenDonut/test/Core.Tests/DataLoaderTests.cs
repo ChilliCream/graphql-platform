@@ -341,7 +341,7 @@ public class DataLoaderTests(ITestOutputHelper output)
 
         ValueTask Fetch(
             IReadOnlyList<string> keys,
-            Memory<Result<string>> results,
+            Memory<Result<string?>> results,
             CancellationToken cancellationToken)
         {
             var span = results.Span;
@@ -386,7 +386,7 @@ public class DataLoaderTests(ITestOutputHelper output)
 
         ValueTask Fetch(
             IReadOnlyList<string> keys,
-            Memory<Result<string>> results,
+            Memory<Result<string?>> results,
             CancellationToken cancellationToken)
             => throw expectedException;
 

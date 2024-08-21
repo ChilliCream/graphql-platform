@@ -4,9 +4,33 @@ using System.Linq.Expressions;
 
 namespace GreenDonut.Projections;
 
+/// <summary>
+/// Data loader extensions for projections.
+/// </summary>
 [Experimental(Experiments.Projections)]
 public static class SelectionDataLoaderExtensions
 {
+    /// <summary>
+    /// Branches a DataLoader and applies a selector to load the data.
+    /// </summary>
+    /// <param name="dataLoader">
+    /// The DataLoader to branch.
+    /// </param>
+    /// <param name="selector">
+    /// The data selector.
+    /// </param>
+    /// <typeparam name="TKey">
+    /// The key type.
+    /// </typeparam>
+    /// <typeparam name="TValue">
+    /// The value type.
+    /// </typeparam>
+    /// <returns>
+    /// Returns a branched DataLoader with the selector applied.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// Throws if <paramref name="dataLoader"/> is <c>null</c>.
+    /// </exception>
     public static ISelectionDataLoader<TKey, TValue> Select<TKey, TValue>(
         this IDataLoader<TKey, TValue> dataLoader,
         Expression<Func<TValue, TValue>> selector)
@@ -40,6 +64,27 @@ public static class SelectionDataLoaderExtensions
         return branch;
     }
 
+    /// <summary>
+    /// Adds another selector to the branched DataLoader.
+    /// </summary>
+    /// <param name="dataLoader">
+    /// The branched DataLoader.
+    /// </param>
+    /// <param name="selector">
+    /// The data selector.
+    /// </param>
+    /// <typeparam name="TKey">
+    /// The key type.
+    /// </typeparam>
+    /// <typeparam name="TValue">
+    /// The value type.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the branched DataLoader with the selector applied.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// Throws if <paramref name="dataLoader"/> is <c>null</c>.
+    /// </exception>
     public static ISelectionDataLoader<TKey, TValue> Select<TKey, TValue>(
         this ISelectionDataLoader<TKey, TValue> dataLoader,
         Expression<Func<TValue, TValue>> selector)
@@ -61,6 +106,24 @@ public static class SelectionDataLoaderExtensions
         return dataLoader;
     }
 
+    /// <summary>
+    /// Applies the selector from the DataLoader state to a queryable.
+    /// </summary>
+    /// <param name="queryable">
+    /// The queryable to apply the selector to.
+    /// </param>
+    /// <param name="builder">
+    /// The selector builder.
+    /// </param>
+    /// <typeparam name="T">
+    /// The queryable type.
+    /// </typeparam>
+    /// <returns>
+    /// Returns a selector query on which a key must be applied to fetch the data.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// Throws if <paramref name="queryable"/> is <c>null</c>.
+    /// </exception>
     public static ISelectorQuery<T> Select<T>(
         this IQueryable<T> queryable,
         ISelectorBuilder builder)
