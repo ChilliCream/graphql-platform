@@ -64,6 +64,7 @@ public static class DataLoaders
         CancellationToken ct = default)
         => await Task.FromResult(keys.ToDictionary(k => k, k => k + " - some info"));
 
+#if NET8_0_OR_GREATER
     [DataLoader]
     public static async Task<IDictionary<int, Author>> GetAuthorById(
         IReadOnlyList<int> keys,
@@ -71,4 +72,5 @@ public static class DataLoaders
         ISelectorContext context,
         CancellationToken ct)
         => await Task.FromResult(query.Select(context).ToDictionary(t => t.Id));
+#endif
 }

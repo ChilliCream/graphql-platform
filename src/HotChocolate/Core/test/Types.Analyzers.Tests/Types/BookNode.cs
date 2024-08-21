@@ -15,22 +15,22 @@ public static partial class BookNode
     }
 
     public static async Task<Author?> GetAuthorAsync(
-        [Parent] Book book,
+        [HotChocolate.Parent] Book book,
         AuthorRepository repository,
         CancellationToken cancellationToken)
         => await repository.GetAuthorAsync(book.AuthorId, cancellationToken);
 
     [UsePaging]
     public static async Task<IEnumerable<Chapter>> GetChapterAsync(
-        [Parent] Book book,
+        [HotChocolate.Parent] Book book,
         ChapterRepository repository,
         CancellationToken cancellationToken)
         => await repository.GetChaptersAsync(book.Id, cancellationToken);
 
-    public static string IdAndTitle([Parent] Book book)
+    public static string IdAndTitle([HotChocolate.Parent] Book book)
         => $"{book.Id}: {book.Title}";
 
-    public static string GetBookUri([Parent] Book book, HttpContext context, [LocalState] string? foo = null)
+    public static string GetBookUri([HotChocolate.Parent] Book book, HttpContext context, [LocalState] string? foo = null)
         => context.Request.Path + $"/{book.Id}";
 
     [NodeResolver]
