@@ -251,6 +251,12 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     /// <inheritdoc />
     public ISelectionDataLoader<TKey, TValue> Branch(string key)
     {
+        if(!AllowBranching)
+        {
+            throw new InvalidOperationException(
+                "Branching is not allowed for this DataLoader.");
+        }
+
         if(!_branches.TryGetValue(key, out var branch))
         {
             lock (_sync)
