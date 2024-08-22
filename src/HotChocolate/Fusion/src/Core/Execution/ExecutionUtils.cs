@@ -97,8 +97,8 @@ internal static class ExecutionUtils
 
                     result.Set(responseName, value, nullable);
 
-                    if (value.ValueKind is JsonValueKind.String &&
-                        (selection.CustomOptions & _reEncodeIdFlag) == _reEncodeIdFlag)
+                    if (value.ValueKind is JsonValueKind.String
+                        && (selection.CustomOptions & _reEncodeIdFlag) == _reEncodeIdFlag)
                     {
                         var subgraphName = data.Single.SubgraphName;
                         var reformattedId = context.ReformatId(value.GetString()!, subgraphName);
@@ -268,8 +268,8 @@ internal static class ExecutionUtils
                 return null;
             }
 
-            if (value.ValueKind is JsonValueKind.String &&
-                (selection.CustomOptions & _reEncodeIdFlag) == _reEncodeIdFlag)
+            if (value.ValueKind is JsonValueKind.String
+                && (selection.CustomOptions & _reEncodeIdFlag) == _reEncodeIdFlag)
             {
                 var subgraphName = selectionData.Single.SubgraphName;
                 return context.ReformatId(value.GetString()!, subgraphName);
@@ -395,8 +395,8 @@ internal static class ExecutionUtils
 
             while (Unsafe.IsAddressLessThan(ref selection, ref endSelection))
             {
-                if (data.ValueKind is not JsonValueKind.Null &&
-                    data.TryGetProperty(selection.ResponseName, out var value))
+                if (data.ValueKind is not JsonValueKind.Null
+                    && data.TryGetProperty(selection.ResponseName, out var value))
                 {
                     selectionData = selectionData.AddResult(new JsonResult(schemaName, value));
                 }
@@ -418,8 +418,8 @@ internal static class ExecutionUtils
 
                 while (Unsafe.IsAddressLessThan(ref selection, ref endSelection))
                 {
-                    if (element.ValueKind is not JsonValueKind.Null &&
-                        element.TryGetProperty(selection.ResponseName, out var value))
+                    if (element.ValueKind is not JsonValueKind.Null
+                        && element.TryGetProperty(selection.ResponseName, out var value))
                     {
                         selectionData = selectionData.AddResult(new JsonResult(schemaName, value));
                     }
@@ -593,16 +593,16 @@ internal static class ExecutionUtils
                 }
             }
 
-            if (field is null &&
-                error.TryGetProperty("locations", out var locations) &&
-                locations.ValueKind is JsonValueKind.Array)
+            if (field is null
+                && error.TryGetProperty("locations", out var locations)
+                && locations.ValueKind is JsonValueKind.Array)
             {
                 foreach (var location in locations.EnumerateArray())
                 {
-                    if (location.TryGetProperty("line", out var lineValue) &&
-                        location.TryGetProperty("column", out var columnValue) &&
-                        lineValue.TryGetInt32(out var line) &&
-                        columnValue.TryGetInt32(out var column))
+                    if (location.TryGetProperty("line", out var lineValue)
+                        && location.TryGetProperty("column", out var columnValue)
+                        && lineValue.TryGetInt32(out var line)
+                        && columnValue.TryGetInt32(out var column))
                     {
                         errorBuilder.AddLocation(line, column);
                     }
