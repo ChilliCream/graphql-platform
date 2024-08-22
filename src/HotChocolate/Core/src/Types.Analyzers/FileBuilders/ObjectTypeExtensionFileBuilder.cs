@@ -75,6 +75,12 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns) 
                 _writer.WriteIndentedLine(
                     "var thisType = typeof({0});",
                     objectTypeExtension.Type.ToFullyQualified());
+                if(objectTypeExtension.Resolvers.Any(t => t.Bindings.Any(b => b.Kind == MemberBindingKind.Property)))
+                {
+                    _writer.WriteIndentedLine(
+                        "var runtimeType = typeof({0});",
+                        objectTypeExtension.RuntimeType.ToFullyQualified());
+                }
                 _writer.WriteIndentedLine(
                     "var bindingResolver = descriptor.Extend().Context.ParameterBindingResolver;");
                 _writer.WriteIndentedLine(
@@ -133,6 +139,31 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns) 
                         }
 
                         _writer.WriteIndentedLine("});");
+                    }
+
+                    if (resolver.Bindings.Length > 0)
+                    {
+                        foreach (var binding in resolver.Bindings)
+                        {
+                            _writer.WriteLine();
+                            _writer.WriteIndentedLine("descriptor");
+
+                            using (_writer.IncreaseIndent())
+                            {
+                                if (binding.Kind is MemberBindingKind.Property)
+                                {
+                                    _writer.WriteIndentedLine(
+                                        ".Field(runtimeType.GetMember(\"{0}\", bindingFlags)[0])",
+                                        binding.Name);
+                                    _writer.WriteIndentedLine(".Ignore();");
+                                }
+                                else if (binding.Kind is MemberBindingKind.Property)
+                                {
+                                    _writer.WriteIndentedLine(".Field(\"{0}\")", binding.Name);
+                                    _writer.WriteIndentedLine(".Ignore();");
+                                }
+                            }
+                        }
                     }
                 }
             }
