@@ -321,7 +321,7 @@ public class EntitiesResolverTests
         public string SomeField { get; set; } = default!;
 
         [ReferenceResolver]
-        public static async Task<FederatedType> GetById(
+        public static async Task<FederatedType?> GetById(
             [LocalState] ObjectValueNode data,
             [Service] FederatedTypeDataLoader loader)
         {

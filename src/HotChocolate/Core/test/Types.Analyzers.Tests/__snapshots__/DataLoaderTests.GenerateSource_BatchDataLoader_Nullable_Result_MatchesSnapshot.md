@@ -38,7 +38,8 @@ namespace TestNamespace
 
         protected override async global::System.Threading.Tasks.ValueTask FetchAsync(
             global::System.Collections.Generic.IReadOnlyList<int> keys,
-            global::System.Memory<GreenDonut.Result<string>> results,
+            global::System.Memory<GreenDonut.Result<string?>> results,
+            global::GreenDonut.DataLoaderFetchContext<string> context,
             global::System.Threading.CancellationToken ct)
         {
             var temp = await TestNamespace.TestClass.GetEntityByIdAsync(keys, ct).ConfigureAwait(false);
@@ -47,7 +48,7 @@ namespace TestNamespace
 
         private void CopyResults(
             global::System.Collections.Generic.IReadOnlyList<int> keys,
-            global::System.Span<GreenDonut.Result<string>> results,
+            global::System.Span<GreenDonut.Result<string?>> results,
             global::System.Collections.Generic.Dictionary<int, string?> resultMap)
         {
             for (var i = 0; i < keys.Count; i++)

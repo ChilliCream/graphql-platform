@@ -38,7 +38,8 @@ namespace TestNamespace
 
         protected override async global::System.Threading.Tasks.ValueTask FetchAsync(
             global::System.Collections.Generic.IReadOnlyList<int> keys,
-            global::System.Memory<GreenDonut.Result<Entity[]>> results,
+            global::System.Memory<GreenDonut.Result<Entity[]?>> results,
+            global::GreenDonut.DataLoaderFetchContext<Entity[]> context,
             global::System.Threading.CancellationToken ct)
         {
             var temp = await TestNamespace.TestClass.GetEntitiesByIdAsync(keys, ct).ConfigureAwait(false);
@@ -47,7 +48,7 @@ namespace TestNamespace
 
         private void CopyResults(
             global::System.Collections.Generic.IReadOnlyList<int> keys,
-            global::System.Span<GreenDonut.Result<Entity[]>> results,
+            global::System.Span<GreenDonut.Result<Entity[]?>> results,
             global::System.Linq.ILookup<int, Entity> resultMap)
         {
             for (var i = 0; i < keys.Count; i++)
@@ -56,11 +57,11 @@ namespace TestNamespace
                 if (resultMap.Contains(key))
                 {
                     var items = resultMap[key];
-                    results[i] = global::GreenDonut.Result<Entity[]>.Resolve(global::System.Linq.Enumerable.ToArray(items));
+                    results[i] = global::GreenDonut.Result<Entity[]?>.Resolve(global::System.Linq.Enumerable.ToArray(items));
                 }
                 else
                 {
-                    results[i] = global::GreenDonut.Result<Entity[]>.Resolve(global::System.Array.Empty<Entity>());
+                    results[i] = global::GreenDonut.Result<Entity[]?>.Resolve(global::System.Array.Empty<Entity>());
                 }
             }
         }

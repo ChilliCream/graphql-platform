@@ -102,4 +102,20 @@ public interface IOperation : IHasReadOnlyContextData, IEnumerable<ISelectionSet
     /// Returns the include flags for the specified variable values.
     /// </returns>
     long CreateIncludeFlags(IVariableValueCollection variables);
+
+    TState GetOrAddState<TState>(
+        Func<TState> createState);
+
+    TState GetOrAddState<TState, TContext>(
+        Func<TContext, TState> createState,
+        TContext context);
+
+    TState GetOrAddState<TState, TContext>(
+        string key,
+        Func<string, TState> createState);
+
+    TState GetOrAddState<TState, TContext>(
+        string key,
+        Func<string, TContext, TState> createState,
+        TContext context);
 }

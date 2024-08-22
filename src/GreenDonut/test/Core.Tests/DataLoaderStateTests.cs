@@ -93,9 +93,10 @@ public static class DataLoaderStateTests
     {
         public object? State { get; set; }
 
-        protected override ValueTask FetchAsync(
+        protected internal override ValueTask FetchAsync(
             IReadOnlyList<string> keys,
-            Memory<Result<string>> results,
+            Memory<Result<string?>> results,
+            DataLoaderFetchContext<string> context,
             CancellationToken cancellationToken)
         {
             for (var i = 0; i < keys.Count; i++)
@@ -103,7 +104,7 @@ public static class DataLoaderStateTests
                 results.Span[i] = keys[i];
             }
 
-            State = GetState<object?>(expectedKey);
+            State = context.GetState<object?>(expectedKey);
 
             return default;
         }
