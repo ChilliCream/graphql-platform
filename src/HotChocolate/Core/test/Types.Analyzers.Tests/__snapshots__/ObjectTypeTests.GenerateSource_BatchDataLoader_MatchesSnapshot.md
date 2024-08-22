@@ -162,6 +162,11 @@ public static partial class BookNode
             global::System.Reflection.BindingFlags.Public
                 | global::System.Reflection.BindingFlags.NonPublic
                 | global::System.Reflection.BindingFlags.Static;
+        const global::System.Reflection.BindingFlags runtimeBindingFlags =
+            global::System.Reflection.BindingFlags.Public
+                | global::System.Reflection.BindingFlags.NonPublic
+                | global::System.Reflection.BindingFlags.Instance
+                | global::System.Reflection.BindingFlags.Static;
 
         var thisType = typeof(global::TestNamespace.BookNode);
         var runtimeType = typeof(global::TestNamespace.Book);
@@ -177,7 +182,7 @@ public static partial class BookNode
             });
 
         descriptor
-            .Field(runtimeType.GetMember("AuthorId", bindingFlags)[0])
+            .Field(runtimeType.GetMember("AuthorId", runtimeBindingFlags)[0])
             .Ignore();
 
         Configure(descriptor);
