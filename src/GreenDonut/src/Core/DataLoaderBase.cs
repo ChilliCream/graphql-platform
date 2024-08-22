@@ -1,4 +1,7 @@
 using System.Collections.Immutable;
+#if NET8_0_OR_GREATER
+using GreenDonut.Projections;
+#endif
 using static GreenDonut.NoopDataLoaderDiagnosticEventListener;
 using static GreenDonut.Errors;
 
@@ -30,6 +33,10 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     private readonly int _maxBatchSize;
     private readonly IDataLoaderDiagnosticEvents _diagnosticEvents;
     private readonly CancellationToken _ct;
+#if NET8_0_OR_GREATER
+    private ImmutableDictionary<string, ISelectionDataLoader<TKey, TValue>> _branches =
+        ImmutableDictionary<string, ISelectionDataLoader<TKey, TValue>>.Empty;
+#endif
     private Batch<TKey>? _currentBatch;
 
     /// <summary>
@@ -73,8 +80,32 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     public IImmutableDictionary<string, object?> ContextData { get; set; } =
         ImmutableDictionary<string, object?>.Empty;
 
+    private protected virtual bool AllowCachePropagation => true;
+
+    private protected virtual bool AllowBranching => true;
+
+    internal IBatchScheduler BatchScheduler
+        => _batchScheduler;
+
+    internal DataLoaderOptions Options
+        => new()
+        {
+            MaxBatchSize = _maxBatchSize,
+            Cache = Cache,
+            DiagnosticEvents = _diagnosticEvents,
+            CancellationToken = _ct,
+        };
+
     /// <inheritdoc />
-    public Task<TValue> LoadAsync(TKey key, CancellationToken cancellationToken = default)
+    public Task<TValue?> LoadAsync(
+        TKey key,
+        CancellationToken cancellationToken = default)
+        => LoadAsync(key, CacheKeyType, AllowCachePropagation);
+
+    private Task<TValue?> LoadAsync(
+        TKey key,
+        string cacheKeyType,
+        bool allowCachePropagation)
     {
         if (key is null)
         {
@@ -82,7 +113,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         }
 
         var cached = true;
-        PromiseCacheKey cacheKey = new(CacheKeyType, key);
+        PromiseCacheKey cacheKey = new(cacheKeyType, key);
 
         lock (_sync)
         {
@@ -101,17 +132,24 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             return cachedTask;
         }
 
-        Promise<TValue> CreatePromise()
+        Promise<TValue?> CreatePromise()
         {
             cached = false;
-            return GetOrCreatePromiseUnsafe(key);
+            return GetOrCreatePromiseUnsafe(key, allowCachePropagation);
         }
     }
 
     /// <inheritdoc />
-    public Task<IReadOnlyList<TValue>> LoadAsync(
+    public Task<IReadOnlyList<TValue?>> LoadAsync(
         IReadOnlyCollection<TKey> keys,
         CancellationToken cancellationToken = default)
+        => LoadAsync(keys, CacheKeyType, AllowCachePropagation, cancellationToken);
+
+    private Task<IReadOnlyList<TValue?>> LoadAsync(
+        IReadOnlyCollection<TKey> keys,
+        string cacheKeyType,
+        bool allowCachePropagation,
+        CancellationToken cancellationToken)
     {
         if (keys is null)
         {
@@ -119,7 +157,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         }
 
         var index = 0;
-        var tasks = new Task<TValue>[keys.Count];
+        var tasks = new Task<TValue?>[keys.Count];
         bool cached;
 
         lock (_sync)
@@ -134,6 +172,9 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             }
         }
 
+        // we dispatch after everything is enqueued.
+        _batchScheduler.Schedule(() => DispatchBatchAsync(_currentBatch, _ct));
+
         return WhenAll();
 
         void InitializeWithCache()
@@ -143,7 +184,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
                 cancellationToken.ThrowIfCancellationRequested();
 
                 cached = true;
-                PromiseCacheKey cacheKey = new(CacheKeyType, key);
+                PromiseCacheKey cacheKey = new(cacheKeyType, key);
                 var cachedTask = Cache.GetOrAddTask(cacheKey, k => CreatePromise((TKey)k.Key));
 
                 if (cached)
@@ -164,13 +205,13 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             }
         }
 
-        async Task<IReadOnlyList<TValue>> WhenAll()
+        async Task<IReadOnlyList<TValue?>> WhenAll()
             => await Task.WhenAll(tasks).ConfigureAwait(false);
 
-        Promise<TValue> CreatePromise(TKey key)
+        Promise<TValue?> CreatePromise(TKey key)
         {
             cached = false;
-            return GetOrCreatePromiseUnsafe(key);
+            return GetOrCreatePromiseUnsafe(key, allowCachePropagation, scheduleOnNewBatch: false);
         }
     }
 
@@ -190,7 +231,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     }
 
     /// <inheritdoc />
-    public void Set(TKey key, Task<TValue> value)
+    public void Set(TKey key, Task<TValue?> value)
     {
         if (key == null)
         {
@@ -205,9 +246,36 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         if (Cache is not null)
         {
             PromiseCacheKey cacheKey = new(CacheKeyType, key);
-            Cache.TryAdd(cacheKey, new Promise<TValue>(value));
+            Cache.TryAdd(cacheKey, new Promise<TValue?>(value));
         }
     }
+#if NET8_0_OR_GREATER
+
+    /// <inheritdoc />
+    public ISelectionDataLoader<TKey, TValue> Branch(string key)
+    {
+        if(!AllowBranching)
+        {
+            throw new InvalidOperationException(
+                "Branching is not allowed for this DataLoader.");
+        }
+
+        if(!_branches.TryGetValue(key, out var branch))
+        {
+            lock (_sync)
+            {
+                if (!_branches.TryGetValue(key, out branch))
+                {
+                    var newBranch = new SelectionDataLoader<TKey, TValue>(this, key);
+                    _branches = _branches.Add(key, newBranch);
+                    return newBranch;
+                }
+            }
+        }
+
+        return branch;
+    }
+#endif
 
     private void BatchOperationFailed(
         Batch<TKey> batch,
@@ -231,7 +299,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     private void BatchOperationSucceeded(
         Batch<TKey> batch,
         IReadOnlyList<TKey> keys,
-        Result<TValue>[] results)
+        Result<TValue?>[] results)
     {
         for (var i = 0; i < keys.Count; i++)
         {
@@ -247,7 +315,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
                 return;
             }
 
-            SetSingleResult(batch.GetPromise<TValue>(key), key, value);
+            SetSingleResult(batch.GetPromise<TValue?>(key), key, value);
         }
     }
 
@@ -271,11 +339,12 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
             using (_diagnosticEvents.ExecuteBatch(this, batch.Keys))
             {
-                var buffer = new Result<TValue>[batch.Keys.Count];
+                var buffer = new Result<TValue?>[batch.Keys.Count];
 
                 try
                 {
-                    await FetchAsync(batch.Keys, buffer, cancellationToken).ConfigureAwait(false);
+                    var context = new DataLoaderFetchContext<TValue>(ContextData);
+                    await FetchAsync(batch.Keys, buffer, context, cancellationToken).ConfigureAwait(false);
                     BatchOperationSucceeded(batch, batch.Keys, buffer);
                     _diagnosticEvents.BatchResults<TKey, TValue>(batch.Keys, buffer);
                 }
@@ -296,28 +365,34 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     }
 
     // ReSharper disable InconsistentlySynchronizedField
-    private Promise<TValue> GetOrCreatePromiseUnsafe(TKey key)
+    private Promise<TValue?> GetOrCreatePromiseUnsafe(
+        TKey key,
+        bool allowCachePropagation,
+        bool scheduleOnNewBatch = true)
     {
         if (_currentBatch is not null && (_currentBatch.Size < _maxBatchSize || _maxBatchSize == 0))
         {
-            return _currentBatch.GetOrCreatePromise<TValue>(key);
+            return _currentBatch.GetOrCreatePromise<TValue?>(key, allowCachePropagation);
         }
 
         var newBatch = BatchPool<TKey>.Shared.Get();
-        var newPromise = newBatch.GetOrCreatePromise<TValue>(key);
+        var newPromise = newBatch.GetOrCreatePromise<TValue?>(key, allowCachePropagation);
 
         // set the batch before enqueueing to avoid concurrency issues.
         _currentBatch = newBatch;
-        _batchScheduler.Schedule(() => DispatchBatchAsync(newBatch, _ct));
+        if (scheduleOnNewBatch)
+        {
+            _batchScheduler.Schedule(() => DispatchBatchAsync(newBatch, _ct));
+        }
 
         return newPromise;
     }
-    // ReSharper restore InconsistentlySynchronizedField
 
+    // ReSharper restore InconsistentlySynchronizedField
     private void SetSingleResult(
-        Promise<TValue> promise,
+        Promise<TValue?> promise,
         TKey key,
-        Result<TValue> result)
+        Result<TValue?> result)
     {
         if (result.Kind is ResultKind.Value)
         {
@@ -328,37 +403,6 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             _diagnosticEvents.BatchItemError(key, result.Error!);
             promise.TrySetError(result.Error!);
         }
-    }
-
-    protected TState? GetState<TState>(string key)
-    {
-        if (ContextData.TryGetValue(key, out var value) && value is TState state)
-        {
-            return state;
-        }
-
-        return default;
-    }
-
-    protected TState GetRequiredState<TState>(string key)
-    {
-        if (ContextData.TryGetValue(key, out var value) && value is TState state)
-        {
-            return state;
-        }
-
-        throw new InvalidOperationException(
-            $"The state `{key}` is not available on the DataLoader.");
-    }
-
-    protected TState GetStateOrDefault<TState>(string key, TState defaultValue)
-    {
-        if (ContextData.TryGetValue(key, out var value) && value is TState state)
-        {
-            return state;
-        }
-
-        return defaultValue;
     }
 
     /// <summary>

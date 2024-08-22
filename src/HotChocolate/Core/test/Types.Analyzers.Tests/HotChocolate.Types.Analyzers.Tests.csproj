@@ -13,6 +13,7 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Types.Analyzers.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Types</RootNamespace>
+    <NoWarn>GD0001</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

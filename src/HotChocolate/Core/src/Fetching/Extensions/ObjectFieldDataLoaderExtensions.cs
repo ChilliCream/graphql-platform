@@ -135,12 +135,16 @@ public static class DataLoaderObjectFieldExtensions
                     .LoadAsync(values, context.RequestAborted)
                     .ConfigureAwait(false);
 
-                var result = new HashSet<object>();
+                var result = new HashSet<object?>();
                 for (var m = 0; m < data.Count; m++)
                 {
-                    for (var n = 0; n < data[m].Length; n++)
+                    var group = data[m];
+                    if (group is not null)
                     {
-                        result.Add(data[m][n]!);
+                        for (var n = 0; n < group.Length; n++)
+                        {
+                            result.Add(group[n]);
+                        }
                     }
                 }
 

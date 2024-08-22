@@ -3,6 +3,8 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Execution.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Execution</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <NoWarn>GD0001</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,6 +16,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Squadron.PostgreSql" />
     <PackageReference Include="System.IO.Pipelines" />
   </ItemGroup>
 

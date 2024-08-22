@@ -38,8 +38,8 @@ public class DataLoaderTests(ITestOutputHelper output)
         var options = new DataLoaderOptions { Cache = cache, };
         var loader = new DataLoader<string, string>(fetch, batchScheduler, options);
 
-        loader.Set("Foo", Task.FromResult("Bar"));
-        loader.Set("Bar", Task.FromResult("Baz"));
+        loader.Set("Foo", Task.FromResult<string?>("Bar"));
+        loader.Set("Bar", Task.FromResult<string?>("Baz"));
 
         // act
         loader.Clear();
@@ -57,7 +57,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         var loader = new DataLoader<string, string>(fetch, batchScheduler);
 
         // act
-        Task<string> Verify() => loader.LoadAsync(default(string)!, CancellationToken.None);
+        Task<string?> Verify() => loader.LoadAsync(default(string)!, CancellationToken.None);
 
         // assert
         await Assert.ThrowsAsync<ArgumentNullException>("key", Verify);
@@ -130,12 +130,10 @@ public class DataLoaderTests(ITestOutputHelper output)
         var key = "Foo";
 
         // act
-        Task<string> Verify() => loader.LoadAsync(key, CancellationToken.None);
+        Task<string?> Verify() => loader.LoadAsync(key, CancellationToken.None);
 
         // assert
-        var task = Assert
-            .ThrowsAsync<InvalidOperationException>((Func<Task<string>>)Verify);
-
+        var task = Assert.ThrowsAsync<InvalidOperationException>(Verify);
         await Task.Delay(25);
         batchScheduler.Dispatch();
 
@@ -151,10 +149,10 @@ public class DataLoaderTests(ITestOutputHelper output)
         var loader = new DataLoader<string, string>(fetch, batchScheduler);
 
         // act
-        Task<IReadOnlyList<string>> Verify() => loader.LoadAsync(default(string[])!);
+        Task<IReadOnlyList<string?>> Verify() => loader.LoadAsync(default(string[])!);
 
         // assert
-        await Assert.ThrowsAsync<ArgumentNullException>("keys", (Func<Task<IReadOnlyList<string>>>)Verify);
+        await Assert.ThrowsAsync<ArgumentNullException>("keys", Verify);
     }
 
     [Fact(DisplayName = "LoadAsync: Should allow empty list of keys")]
@@ -203,7 +201,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         var loader = new DataLoader<string, string>(fetch, batchScheduler);
 
         // act
-        Task<IReadOnlyList<string>> Verify()
+        Task<IReadOnlyList<string?>> Verify()
             => loader.LoadAsync(default(List<string>)!, CancellationToken.None);
 
         // assert
@@ -343,7 +341,7 @@ public class DataLoaderTests(ITestOutputHelper output)
 
         ValueTask Fetch(
             IReadOnlyList<string> keys,
-            Memory<Result<string>> results,
+            Memory<Result<string?>> results,
             CancellationToken cancellationToken)
         {
             var span = results.Span;
@@ -388,7 +386,7 @@ public class DataLoaderTests(ITestOutputHelper output)
 
         ValueTask Fetch(
             IReadOnlyList<string> keys,
-            Memory<Result<string>> results,
+            Memory<Result<string?>> results,
             CancellationToken cancellationToken)
             => throw expectedException;
 
@@ -510,7 +508,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         var batchScheduler = new ManualBatchScheduler();
         var loader = new DataLoader<string, string>(fetch, batchScheduler);
 
-        loader.Set("Foo", Task.FromResult("Bar"));
+        loader.Set("Foo", Task.FromResult<string?>("Bar"));
 
         // act
         void Verify() => loader.Remove(default!);
@@ -546,7 +544,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         var loader = new DataLoader<string, string>(fetch, batchScheduler, options);
         var key = "Foo";
 
-        loader.Set(key, Task.FromResult("Bar"));
+        loader.Set(key, Task.FromResult<string?>("Bar"));
 
         // act
         loader.Remove(key);
@@ -562,7 +560,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
         var loader = new DataLoader<string, string>(fetch, batchScheduler);
-        var value = Task.FromResult("Foo");
+        var value = Task.FromResult<string?>("Foo");
 
         // act
         void Verify() => loader.Set(null!, value);
@@ -597,7 +595,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         var options = new DataLoaderOptions { Cache = cache, };
         var loader = new DataLoader<string, string>(fetch, batchScheduler, options);
         var key = "Foo";
-        var value = Task.FromResult("Bar");
+        var value = Task.FromResult<string?>("Bar");
 
         // act
         loader.Set(key, value);
@@ -616,8 +614,8 @@ public class DataLoaderTests(ITestOutputHelper output)
         var options = new DataLoaderOptions { Cache = cache, };
         var loader = new DataLoader<string, string>(fetch, batchScheduler, options);
         var key = "Foo";
-        var first = Task.FromResult("Bar");
-        var second = Task.FromResult("Baz");
+        var first = Task.FromResult<string?>("Bar");
+        var second = Task.FromResult<string?>("Baz");
 
         // act
         loader.Set(key, first);
@@ -950,9 +948,10 @@ public class DataLoaderTests(ITestOutputHelper output)
         DataLoaderOptions? options = null)
         : DataLoaderBase<int, Entity>(batchScheduler, options)
     {
-        protected override ValueTask FetchAsync(
+        protected internal override ValueTask FetchAsync(
             IReadOnlyList<int> keys,
-            Memory<Result<Entity>> results,
+            Memory<Result<Entity?>> results,
+            DataLoaderFetchContext<Entity> context,
             CancellationToken cancellationToken)
         {
             for (var i = 0; i < keys.Count; i++)
@@ -977,9 +976,10 @@ public class DataLoaderTests(ITestOutputHelper output)
                 .Accept(this);
         }
 
-        protected override ValueTask FetchAsync(
+        protected internal override ValueTask FetchAsync(
             IReadOnlyList<int> keys,
-            Memory<Result<Entity>> results,
+            Memory<Result<Entity?>> results,
+            DataLoaderFetchContext<Entity> context,
             CancellationToken cancellationToken)
         {
             for (var i = 0; i < keys.Count; i++)

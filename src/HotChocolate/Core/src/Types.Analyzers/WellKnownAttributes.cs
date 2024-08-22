@@ -24,6 +24,14 @@ public static class WellKnownAttributes
     public const string EventMessageAttribute = "HotChocolate.EventMessageAttribute";
     public const string ServiceAttribute = "HotChocolate.ServiceAttribute";
     public const string ArgumentAttribute = "HotChocolate.ArgumentAttribute";
+    public const string BindMemberAttribute = "HotChocolate.Types.BindMemberAttribute";
+    public const string BindFieldAttribute = "HotChocolate.Types.BindFieldAttribute";
+
+    public static HashSet<string> BindAttributes { get; } =
+    [
+        BindMemberAttribute,
+        BindFieldAttribute,
+    ];
 
     public static HashSet<string> TypeAttributes { get; } =
     [
