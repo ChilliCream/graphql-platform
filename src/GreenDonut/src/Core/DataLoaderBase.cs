@@ -172,6 +172,9 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             }
         }
 
+        // we dispatch after everything is enqueued.
+        _batchScheduler.Schedule(() => DispatchBatchAsync(_currentBatch, _ct));
+
         return WhenAll();
 
         void InitializeWithCache()
@@ -208,7 +211,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         Promise<TValue?> CreatePromise(TKey key)
         {
             cached = false;
-            return GetOrCreatePromiseUnsafe(key, allowCachePropagation);
+            return GetOrCreatePromiseUnsafe(key, allowCachePropagation, scheduleOnNewBatch: false);
         }
     }
 
@@ -362,7 +365,10 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     }
 
     // ReSharper disable InconsistentlySynchronizedField
-    private Promise<TValue?> GetOrCreatePromiseUnsafe(TKey key, bool allowCachePropagation)
+    private Promise<TValue?> GetOrCreatePromiseUnsafe(
+        TKey key,
+        bool allowCachePropagation,
+        bool scheduleOnNewBatch = true)
     {
         if (_currentBatch is not null && (_currentBatch.Size < _maxBatchSize || _maxBatchSize == 0))
         {
@@ -374,7 +380,10 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
         // set the batch before enqueueing to avoid concurrency issues.
         _currentBatch = newBatch;
-        _batchScheduler.Schedule(() => DispatchBatchAsync(newBatch, _ct));
+        if (scheduleOnNewBatch)
+        {
+            _batchScheduler.Schedule(() => DispatchBatchAsync(newBatch, _ct));
+        }
 
         return newPromise;
     }
