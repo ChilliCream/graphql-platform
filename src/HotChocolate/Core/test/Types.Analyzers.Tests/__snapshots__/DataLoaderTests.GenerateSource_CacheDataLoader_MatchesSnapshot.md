@@ -37,7 +37,8 @@ namespace TestNamespace
 
         protected override async global::System.Threading.Tasks.ValueTask FetchAsync(
             global::System.Collections.Generic.IReadOnlyList<int> keys,
-            global::System.Memory<GreenDonut.Result<object>> results,
+            global::System.Memory<GreenDonut.Result<object?>> results,
+            global::GreenDonut.DataLoaderFetchContext<object> context,
             global::System.Threading.CancellationToken ct)
         {
             for (var i = 0; i < keys.Count; i++)
@@ -46,11 +47,11 @@ namespace TestNamespace
                 {
                     var key = keys[i];
                     var value = await TestNamespace.TestClass.GetEntityByIdAsync(key, ct).ConfigureAwait(false);
-                    results.Span[i] = Result<object>.Resolve(value);
+                    results.Span[i] = Result<object?>.Resolve(value);
                 }
                 catch (global::System.Exception ex)
                 {
-                    results.Span[i] = Result<object>.Reject(ex);
+                    results.Span[i] = Result<object?>.Reject(ex);
                 }
             }
         }

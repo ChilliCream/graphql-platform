@@ -154,7 +154,7 @@ public sealed class PromiseCache : IPromiseCache
     /// <inheritdoc />
     public void Publish<T>(T value)
     {
-        var promise = Promise<T>.CreateClone(value);
+        var promise = Promise<T>.Create(value, cloned: true);
 
         lock (_promises)
         {
@@ -183,7 +183,7 @@ public sealed class PromiseCache : IPromiseCache
         {
             for (var i = 0; i < values.Count; i++)
             {
-                var promise = Promise<T>.CreateClone(values[i]);
+                var promise = Promise<T>.Create(values[i], cloned: true);
                 span[i] = promise;
                 _promises.Add(promise);
             }

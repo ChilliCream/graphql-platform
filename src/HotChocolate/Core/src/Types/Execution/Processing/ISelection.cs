@@ -52,6 +52,11 @@ public interface ISelection : IOptionalSelection
     ISelectionSet DeclaringSelectionSet { get; }
 
     /// <summary>
+    /// Gets the operation that declares this selection.
+    /// </summary>
+    IOperation DeclaringOperation { get; }
+
+    /// <summary>
     /// Gets the merged field selection syntax node.
     /// </summary>
     FieldNode SyntaxNode { get; }

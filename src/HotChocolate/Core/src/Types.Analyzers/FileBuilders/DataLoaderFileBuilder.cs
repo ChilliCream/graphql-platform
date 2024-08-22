@@ -219,9 +219,15 @@ public sealed class DataLoaderFileBuilder : IDisposable
                 WellKnownTypes.ReadOnlyList,
                 key.ToFullyQualified());
             _writer.WriteIndentedLine(
-                "global::{0}<{1}<{2}{3}>> results,",
+                "global::{0}<{1}<{2}{3}{4}>> results,",
                 WellKnownTypes.Memory,
                 WellKnownTypes.Result,
+                value.ToFullyQualified(),
+                kind is DataLoaderKind.Group ? "[]" : string.Empty,
+                value.IsValueType ? string.Empty : "?");
+                _writer.WriteIndentedLine(
+            "global::{0}<{1}{2}> context,",
+                WellKnownTypes.DataLoaderFetchContext,
                 value.ToFullyQualified(),
                 kind is DataLoaderKind.Group ? "[]" : string.Empty);
             _writer.WriteIndentedLine(
@@ -248,6 +254,14 @@ public sealed class DataLoaderFileBuilder : IDisposable
                         isScoped ? "scope.ServiceProvider" : "_services",
                         parameter.Type.ToFullyQualified());
                 }
+                else if (parameter.Kind is DataLoaderParameterKind.SelectorBuilder)
+                {
+                    _writer.WriteIndentedLine(
+                        "var {0} = context.GetRequiredState<{1}>(\"{2}\");",
+                        parameter.VariableName,
+                        parameter.Type.ToFullyQualified(),
+                        parameter.StateKey);
+                }
                 else if (parameter.Kind is DataLoaderParameterKind.ContextData)
                 {
                     if (parameter.Parameter.HasExplicitDefaultValue)
@@ -256,7 +270,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
                         var defaultValueString = ConvertDefaultValueToString(defaultValue, parameter.Type);
 
                         _writer.WriteIndentedLine(
-                            "var {0} = GetStateOrDefault<{1}{2}>(\"{3}\", {4});",
+                            "var {0} = context.GetStateOrDefault<{1}{2}>(\"{3}\", {4});",
                             parameter.VariableName,
                             parameter.Type.ToFullyQualified(),
                             parameter.Type.PrintNullRefQualifier(),
@@ -267,7 +281,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
                     else if (parameter.Type.IsNullableType())
                     {
                         _writer.WriteIndentedLine(
-                            "var {0} = GetState<{1}{2}>(\"{3}\");",
+                            "var {0} = context.GetState<{1}{2}>(\"{3}\");",
                             parameter.VariableName,
                             parameter.Type.ToFullyQualified(),
                             parameter.Type.PrintNullRefQualifier(),
@@ -276,7 +290,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
                     else
                     {
                         _writer.WriteIndentedLine(
-                            "var {0} = GetRequiredState<{1}>(\"{2}\");",
+                            "var {0} = context.GetRequiredState<{1}>(\"{2}\");",
                             parameter.VariableName,
                             parameter.Type.ToFullyQualified(),
                             parameter.StateKey);
@@ -302,7 +316,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
                         _writer.WriteIndentedLine(
                             "results.Span[i] = Result<{0}{1}>.Resolve(value);",
                             value.ToFullyQualified(),
-                            value.PrintNullRefQualifier());
+                            value.IsValueType ? string.Empty : "?");
                     }
 
                     _writer.WriteIndentedLine("}");
@@ -314,7 +328,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
                         _writer.WriteIndentedLine(
                             "results.Span[i] = Result<{0}{1}>.Reject(ex);",
                             value.ToFullyQualified(),
-                            value.PrintNullRefQualifier());
+                            value.IsValueType ? string.Empty : "?");
                     }
 
                     _writer.WriteIndentedLine("}");
@@ -346,11 +360,12 @@ public sealed class DataLoaderFileBuilder : IDisposable
                 WellKnownTypes.ReadOnlyList,
                 key.ToFullyQualified());
             _writer.WriteIndentedLine(
-                "global::{0}<{1}<{2}{3}>> results,",
+                "global::{0}<{1}<{2}{3}{4}>> results,",
                 WellKnownTypes.Span,
                 WellKnownTypes.Result,
                 value.ToFullyQualified(),
-                kind is DataLoaderKind.Group ? "[]" : string.Empty);
+                kind is DataLoaderKind.Group ? "[]" : string.Empty,
+                value.IsValueType ? string.Empty : "?");
             _writer.WriteIndentedLine(
                 "global::{0} resultMap)",
                 ExtractMapType(method.ReturnType));
@@ -374,7 +389,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
                         _writer.WriteIndentedLine(
                             "var items = resultMap[key];");
                         _writer.WriteIndentedLine(
-                            "results[i] = global::{0}<{1}{2}[]>.Resolve(global::{3}.ToArray(items));",
+                            "results[i] = global::{0}<{1}{2}[]?>.Resolve(global::{3}.ToArray(items));",
                             WellKnownTypes.Result,
                             value.ToFullyQualified(),
                             value.PrintNullRefQualifier(),
@@ -388,7 +403,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
                     using (_writer.IncreaseIndent())
                     {
                         _writer.WriteIndentedLine(
-                            "results[i] = global::{0}<{1}{2}[]>.Resolve(global::{3}.Empty<{1}{2}>());",
+                            "results[i] = global::{0}<{1}{2}[]?>.Resolve(global::{3}.Empty<{1}{2}>());",
                             WellKnownTypes.Result,
                             value.ToFullyQualified(),
                             value.PrintNullRefQualifier(),
@@ -408,7 +423,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
                             "results[i] = global::{0}<{1}{2}>.Resolve(value);",
                             WellKnownTypes.Result,
                             value.ToFullyQualified(),
-                            value.PrintNullRefQualifier());
+                            value.IsValueType ? string.Empty : "?");
                     }
 
                     _writer.WriteIndentedLine("}");
@@ -417,23 +432,12 @@ public sealed class DataLoaderFileBuilder : IDisposable
 
                     using (_writer.IncreaseIndent())
                     {
-                        if (value.IsNullableType())
-                        {
-                            _writer.WriteIndentedLine(
-                                "results[i] = global::{0}<{1}{2}>.Resolve(default({3}));",
-                                WellKnownTypes.Result,
-                                value.ToFullyQualified(),
-                                value.PrintNullRefQualifier(),
-                                value.ToFullyQualified());
-                        }
-                        else
-                        {
-                            _writer.WriteIndentedLine(
-                                "results[i] = global::{0}<{1}{2}>.Reject(key);",
-                                WellKnownTypes.Result,
-                                value.ToFullyQualified(),
-                                value.PrintNullRefQualifier());
-                        }
+                        _writer.WriteIndentedLine(
+                            "results[i] = global::{0}<{1}{2}>.Resolve(default({3}));",
+                            WellKnownTypes.Result,
+                            value.ToFullyQualified(),
+                            value.IsValueType ? string.Empty : "?",
+                            value.ToFullyQualified());
                     }
 
                     _writer.WriteIndentedLine("}");

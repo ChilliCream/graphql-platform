@@ -392,7 +392,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
             selection.ResolverPipeline,
             selection.PureResolver);
         proxy.SetSelectionSetId(((Selection)selection).SelectionSetId);
-        proxy.Seal(selection.DeclaringSelectionSet);
+        proxy.Seal(selection.DeclaringOperation, selection.DeclaringSelectionSet);
         return proxy;
     }
 

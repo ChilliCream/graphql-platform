@@ -163,6 +163,18 @@ public sealed class DataLoaderInfo : SyntaxInfo
                 continue;
             }
 
+            // check for well-known state
+            if (IsSelectorBuilder(parameter))
+            {
+                builder.Add(
+                    new DataLoaderParameterInfo(
+                        $"p{i}",
+                        parameter,
+                        DataLoaderParameterKind.SelectorBuilder,
+                        WellKnownTypes.SelectorBuilder));
+                continue;
+            }
+
             var stateKey = parameter.GetDataLoaderStateKey();
 
             // if the parameter is annotated as a state attribute we will get here a state key.
@@ -192,6 +204,12 @@ public sealed class DataLoaderInfo : SyntaxInfo
     {
         var typeName = parameter.Type.ToDisplayString();
         return string.Equals(typeName, WellKnownTypes.CancellationToken, StringComparison.Ordinal);
+    }
+
+    private static bool IsSelectorBuilder(IParameterSymbol parameter)
+    {
+        var typeName = parameter.Type.ToDisplayString();
+        return string.Equals(typeName, WellKnownTypes.SelectorBuilder, StringComparison.Ordinal);
     }
 
     public static bool IsKeyValuePair(ITypeSymbol returnTypeSymbol, ITypeSymbol keyType, ITypeSymbol valueType)
@@ -246,31 +264,4 @@ public sealed class DataLoaderInfo : SyntaxInfo
 
         return name + "DataLoader";
     }
-}
-
-public readonly struct DataLoaderParameterInfo(
-    string variableName,
-    IParameterSymbol parameter,
-    DataLoaderParameterKind kind,
-    string? stateKey = null)
-{
-    public string VariableName { get; } = variableName;
-
-    public string? StateKey { get; } = stateKey;
-
-    public int Index => Parameter.Ordinal;
-
-    public ITypeSymbol Type => Parameter.Type;
-
-    public IParameterSymbol Parameter { get; } = parameter;
-
-    public DataLoaderParameterKind Kind { get; } = kind;
-}
-
-public enum DataLoaderParameterKind
-{
-    Key = 0,
-    Service = 1,
-    ContextData = 2,
-    CancellationToken = 3
 }
