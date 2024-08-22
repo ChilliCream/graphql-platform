@@ -24,6 +24,21 @@ public class IntegrationTests
     }
 
     [Fact]
+    public async Task IncludeNodesField_False()
+    {
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .ModifyPagingOptions(o => o.IncludeNodesField = false)
+                .Services
+                .BuildServiceProvider()
+                .GetRequestExecutorAsync();
+
+        executor.Schema.Print().MatchSnapshot();
+    }
+
+    [Fact]
     public async Task SetPagingOptionsIsStillApplied()
     {
         var executor =
