@@ -18,9 +18,15 @@ public class DataLoaderTests
             internal static class TestClass
             {
                 [DataLoader]
-                public static async Task<IReadOnlyDictionary<int, Entity>> GetEntityByIdAsync(
+                public static Task<IReadOnlyDictionary<int, Entity>> GetEntityByIdAsync(
                     IReadOnlyList<int> entityIds,
-                    CancellationToken cancellationToken) { }
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+
+            public class Entity
+            {
+                public int Id { get; set; }
             }
             """).MatchMarkdownAsync();
     }
@@ -42,9 +48,15 @@ public class DataLoaderTests
             internal static class TestClass
             {
                 [DataLoader]
-                public static async Task<ILookup<int, Entity>> GetEntitiesByIdAsync(
+                public static Task<ILookup<int, Entity>> GetEntitiesByIdAsync(
                     IReadOnlyList<int> entityIds,
-                    CancellationToken cancellationToken) { }
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+
+            public class Entity
+            {
+                public int Id { get; set; }
             }
             """).MatchMarkdownAsync();
     }
@@ -64,9 +76,15 @@ public class DataLoaderTests
             internal static class TestClass
             {
                 [DataLoader]
-                public static async Task<Entity> GetEntityByIdAsync(
+                public static Task<Entity> GetEntityByIdAsync(
                     int entityId,
-                    CancellationToken cancellationToken) { }
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+
+            public class Entity
+            {
+                public int Id { get; set; }
             }
             """).MatchMarkdownAsync();
     }
@@ -87,9 +105,10 @@ public class DataLoaderTests
             internal static class TestClass
             {
                 [DataLoader]
-                public static async Task<IReadOnlyDictionary<int, T>> GetEntityByIdAsync<T>(
+                public static Task<IReadOnlyDictionary<int, T>> GetEntityByIdAsync<T>(
                     IReadOnlyList<int> entityIds,
-                    CancellationToken cancellationToken) { }
+                    CancellationToken cancellationToken)
+                    => default!;
             }
             """).MatchMarkdownAsync();
     }
@@ -110,9 +129,10 @@ public class DataLoaderTests
             internal static class TestClass
             {
                 [DataLoader]
-                public static async Task<IDictionary<int, string>> GetEntityByIdAsync(
+                public static Task<IDictionary<int, string>> GetEntityByIdAsync(
                     IReadOnlyList<int> entityIds,
-                    CancellationToken cancellationToken) { }
+                    CancellationToken cancellationToken)
+                    => default!;
             }
             """).MatchMarkdownAsync();
     }
@@ -133,9 +153,10 @@ public class DataLoaderTests
             internal static class TestClass
             {
                 [DataLoader(Lookups = new string[] { nameof(CreateLookupKey) })]
-                public static async Task<IDictionary<int, string>> GetEntityByIdAsync(
+                public static Task<IDictionary<int, string>> GetEntityByIdAsync(
                     IReadOnlyList<int> entityIds,
-                    CancellationToken cancellationToken) { }
+                    CancellationToken cancellationToken)
+                    => default!;
 
                 public static int CreateLookupKey(string key)
                     => default!;
@@ -159,9 +180,10 @@ public class DataLoaderTests
             internal static class TestClass
             {
                 [DataLoader(Lookups = new string[] { nameof(CreateLookupKey) })]
-                public static async Task<IDictionary<int, Entity2>> GetEntityByIdAsync(
+                public static Task<IDictionary<int, Entity2>> GetEntityByIdAsync(
                     IReadOnlyList<int> entityIds,
-                    CancellationToken cancellationToken) { }
+                    CancellationToken cancellationToken)
+                    => default!;
 
                 public static KeyValuePair<int, Entity2> CreateLookupKey(Entity1 key)
                     => default!;
@@ -197,9 +219,10 @@ public class DataLoaderTests
             internal static class TestClass
             {
                 [DataLoader]
-                public static async Task<Dictionary<int, string?>> GetEntityByIdAsync(
+                public static Task<Dictionary<int, string?>> GetEntityByIdAsync(
                     IReadOnlyList<int> entityIds,
-                    CancellationToken cancellationToken) { }
+                    CancellationToken cancellationToken)
+                    => default!;
             }
             """).MatchMarkdownAsync();
     }
@@ -275,6 +298,38 @@ public class DataLoaderTests
                     [DataLoaderState("key")] string state = "default",
                     CancellationToken cancellationToken = default)
                     => default!;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task DataLoader_With_Optional_Lookup()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal static class TestClass
+            {
+                [DataLoader(Lookups = new string[] { nameof(CreateLookupKey) })]
+                public static Task<IReadOnlyDictionary<int, Entity>> GetEntityByIdAsync(
+                    IReadOnlyList<int> entityIds,
+                    CancellationToken cancellationToken)
+                    => default!;
+
+                public static int? CreateLookupKey(Entity entity)
+                    => default!;
+            }
+
+            public class Entity
+            {
+                public int Id { get; set; }
             }
             """).MatchMarkdownAsync();
     }

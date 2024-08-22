@@ -14,6 +14,7 @@ public static partial class BookNode
         descriptor.Field(t => t.Genre);
     }
 
+    [BindMember(nameof(Book.AuthorId))]
     public static async Task<Author?> GetAuthorAsync(
         [Parent] Book book,
         AuthorRepository repository,

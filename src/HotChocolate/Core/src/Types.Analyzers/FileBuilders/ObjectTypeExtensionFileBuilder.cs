@@ -59,6 +59,9 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns) 
         {
             if (objectTypeExtension.Resolvers.Length > 0 || objectTypeExtension.NodeResolver is not null)
             {
+                var hasRuntimeBindings = objectTypeExtension.Resolvers.Any(
+                    t => t.Bindings.Any(b => b.Kind == MemberBindingKind.Property));
+
                 _writer.WriteIndentedLine("const global::{0} bindingFlags =", WellKnownTypes.BindingFlags);
                 using (_writer.IncreaseIndent())
                 {
@@ -70,11 +73,32 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns) 
                     }
                 }
 
+                if (hasRuntimeBindings)
+                {
+                    _writer.WriteIndentedLine("const global::{0} runtimeBindingFlags =", WellKnownTypes.BindingFlags);
+                    using (_writer.IncreaseIndent())
+                    {
+                        _writer.WriteIndentedLine("global::{0}.Public", WellKnownTypes.BindingFlags);
+                        using (_writer.IncreaseIndent())
+                        {
+                            _writer.WriteIndentedLine("| global::{0}.NonPublic", WellKnownTypes.BindingFlags);
+                            _writer.WriteIndentedLine("| global::{0}.Instance", WellKnownTypes.BindingFlags);
+                            _writer.WriteIndentedLine("| global::{0}.Static;", WellKnownTypes.BindingFlags);
+                        }
+                    }
+                }
+
                 _writer.WriteLine();
 
                 _writer.WriteIndentedLine(
                     "var thisType = typeof({0});",
                     objectTypeExtension.Type.ToFullyQualified());
+                if(hasRuntimeBindings)
+                {
+                    _writer.WriteIndentedLine(
+                        "var runtimeType = typeof({0});",
+                        objectTypeExtension.RuntimeType.ToFullyQualified());
+                }
                 _writer.WriteIndentedLine(
                     "var bindingResolver = descriptor.Extend().Context.ParameterBindingResolver;");
                 _writer.WriteIndentedLine(
@@ -133,6 +157,31 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns) 
                         }
 
                         _writer.WriteIndentedLine("});");
+                    }
+
+                    if (resolver.Bindings.Length > 0)
+                    {
+                        foreach (var binding in resolver.Bindings)
+                        {
+                            _writer.WriteLine();
+                            _writer.WriteIndentedLine("descriptor");
+
+                            using (_writer.IncreaseIndent())
+                            {
+                                if (binding.Kind is MemberBindingKind.Property)
+                                {
+                                    _writer.WriteIndentedLine(
+                                        ".Field(runtimeType.GetMember(\"{0}\", runtimeBindingFlags)[0])",
+                                        binding.Name);
+                                    _writer.WriteIndentedLine(".Ignore();");
+                                }
+                                else if (binding.Kind is MemberBindingKind.Property)
+                                {
+                                    _writer.WriteIndentedLine(".Field(\"{0}\")", binding.Name);
+                                    _writer.WriteIndentedLine(".Ignore();");
+                                }
+                            }
+                        }
                     }
                 }
             }
