@@ -5,6 +5,7 @@ using System.Text.Json;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Metadata;
+using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
@@ -394,8 +395,8 @@ internal static class ExecutionUtils
 
             while (Unsafe.IsAddressLessThan(ref selection, ref endSelection))
             {
-                if (data.ValueKind is not JsonValueKind.Null &&
-                    data.TryGetProperty(selection.ResponseName, out var value))
+                if (data.ValueKind is not JsonValueKind.Null
+                    && data.TryGetProperty(selection.ResponseName, out var value))
                 {
                     selectionData = selectionData.AddResult(new JsonResult(schemaName, value));
                 }
@@ -417,8 +418,8 @@ internal static class ExecutionUtils
 
                 while (Unsafe.IsAddressLessThan(ref selection, ref endSelection))
                 {
-                    if (element.ValueKind is not JsonValueKind.Null &&
-                        element.TryGetProperty(selection.ResponseName, out var value))
+                    if (element.ValueKind is not JsonValueKind.Null
+                        && element.TryGetProperty(selection.ResponseName, out var value))
                     {
                         selectionData = selectionData.AddResult(new JsonResult(schemaName, value));
                     }
@@ -494,6 +495,33 @@ internal static class ExecutionUtils
         executionState.IsInitialized = true;
     }
 
+    public static void CreateTransportErrors(
+        Exception transportException,
+        ResultBuilder resultBuilder,
+        IErrorHandler errorHandler,
+        ObjectResult selectionSetResult,
+        List<RootSelection> rootSelections,
+        string subgraphName,
+        bool addDebugInfo)
+    {
+        foreach (var rootSelection in rootSelections)
+        {
+            var errorBuilder = errorHandler.CreateUnexpectedError(transportException);
+
+            errorBuilder.AddLocation(rootSelection.Selection.SyntaxNode);
+            errorBuilder.SetPath(PathHelper.CreatePathFromContext(rootSelection.Selection, selectionSetResult, 0));
+
+            if (addDebugInfo)
+            {
+                errorBuilder.SetExtension("subgraphName", subgraphName);
+            }
+
+            var error = errorHandler.Handle(errorBuilder.Build());
+
+            resultBuilder.AddError(error);
+        }
+    }
+
     public static void ExtractErrors(
         DocumentNode document,
         OperationDefinitionNode operation,
@@ -509,10 +537,11 @@ internal static class ExecutionUtils
             return;
         }
 
-        var path = PathHelper.CreatePathFromContext(selectionSetResult);
+        var parentPath = PathHelper.CreatePathFromContext(selectionSetResult);
+
         foreach (var error in errors.EnumerateArray())
         {
-            ExtractError(document, operation, resultBuilder, errorHandler, error, path, pathDepth, addDebugInfo);
+            ExtractError(document, operation, resultBuilder, errorHandler, error, parentPath, pathDepth, addDebugInfo);
         }
     }
 
@@ -724,7 +753,7 @@ internal static class ExecutionUtils
 
             Visit(operation, context);
 
-            var field =  context.Field;
+            var field = context.Field;
 
             context.Reset();
             Interlocked.Exchange(ref _errorPathContext, context);

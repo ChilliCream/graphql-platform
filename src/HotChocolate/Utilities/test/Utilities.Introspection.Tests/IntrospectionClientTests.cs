@@ -1,3 +1,4 @@
+using System.Net;
 using CookieCrumble;
 using Xunit;
 using HotChocolate.AspNetCore.Tests.Utilities;
@@ -68,5 +69,65 @@ public class IntrospectionClientTests(TestServerFactory serverFactory) : ServerT
 
         // assert
         await Assert.ThrowsAsync<ArgumentNullException>(Error);
+    }
+
+    [Fact]
+    public async Task IntrospectServer_Http_200_Wrong_Content_Type()
+    {
+        // arrange
+        var client = new HttpClient(new CustomHttpClientHandler(HttpStatusCode.OK));
+        client.BaseAddress = new Uri("http://localhost:5000");
+        client.BaseAddress = new Uri("http://localhost:5000");
+
+        // act
+        Task Error() => IntrospectionClient.IntrospectServerAsync(client);
+
+        // assert
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(Error);
+        Assert.Equal("Received a successful response with an unexpected content type.", exception.Message);
+    }
+
+    [Fact]
+    public async Task IntrospectServer_Http_404_Wrong_Content_Type()
+    {
+        // arrange
+        var client = new HttpClient(new CustomHttpClientHandler(HttpStatusCode.NotFound));
+        client.BaseAddress = new Uri("http://localhost:5000");
+
+        // act
+        Task Error() => IntrospectionClient.IntrospectServerAsync(client);
+
+        // assert
+        await Assert.ThrowsAsync<HttpRequestException>(Error);
+    }
+
+    [Fact]
+    public async Task IntrospectServer_Transport_Error()
+    {
+        // arrange
+        var client = new HttpClient(new CustomHttpClientHandler());
+        client.BaseAddress = new Uri("http://localhost:5000");
+
+        // act
+        Task Error() => IntrospectionClient.IntrospectServerAsync(client);
+
+        // assert
+        var exception = await Assert.ThrowsAsync<Exception>(Error);
+        Assert.Equal("Something went wrong", exception.Message);
+    }
+
+    private class CustomHttpClientHandler(HttpStatusCode? httpStatusCode = null) : HttpClientHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            if (httpStatusCode.HasValue)
+            {
+                return Task.FromResult(new HttpResponseMessage(httpStatusCode.Value));
+            }
+
+            throw new Exception("Something went wrong");
+        }
     }
 }

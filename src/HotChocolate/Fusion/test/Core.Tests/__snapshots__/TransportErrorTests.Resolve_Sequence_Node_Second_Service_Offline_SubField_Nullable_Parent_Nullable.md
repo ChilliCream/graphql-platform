@@ -1,4 +1,4 @@
-# Resolve_Sequence_First_Service_Offline_EntryField_Nullable
+# Resolve_Sequence_Node_Second_Service_Offline_SubField_Nullable_Parent_Nullable
 
 ## Result
 
@@ -9,17 +9,25 @@
       "message": "Unexpected Execution Error",
       "locations": [
         {
-          "line": 2,
-          "column": 3
+          "line": 6,
+          "column": 7
         }
       ],
       "path": [
-        "product"
+        "product",
+        "brand",
+        "name"
       ]
     }
   ],
   "data": {
-    "product": null
+    "product": {
+      "id": "1",
+      "brand": {
+        "id": "1",
+        "name": null
+      }
+    }
   }
 }
 ```
@@ -41,7 +49,7 @@
 ## QueryPlan Hash
 
 ```text
-10F6CB69F78A0E4FD176C0F4651E2E37CF47C9C5
+D3BBE380CDE08C00EE4F104AAD03C78AC29E4B9C
 ```
 
 ## QueryPlan
@@ -72,10 +80,10 @@
       {
         "type": "Resolve",
         "subgraph": "Subgraph_2",
-        "document": "query fetch_product_2($__fusion_exports__1: ID!) { brandById(id: $__fusion_exports__1) { name } }",
+        "document": "query fetch_product_2($__fusion_exports__1: ID!) { node(id: $__fusion_exports__1) { ... on Brand { name } } }",
         "selectionSetId": 2,
         "path": [
-          "brandById"
+          "node"
         ],
         "requires": [
           {

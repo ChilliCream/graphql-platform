@@ -7,6 +7,49 @@ namespace HotChocolate.Fusion;
 
 public class TransportErrorTests(ITestOutputHelper output)
 {
+    #region Resolve (node)
+    [Fact]
+    public async Task Resolve_Node_Service_Offline_EntryField_Nullable()
+    {
+        // arrange
+        var subgraph = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              node(id: ID!): Node
+            }
+
+            type Brand implements Node {
+              id: ID!
+              name: String
+            }
+
+            interface Node {
+              id: ID!
+            }
+            """,
+            isOffline: true);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        node(id: "QnJhbmQ6MQ==") {
+                          id
+                          ... on Brand {
+                            name
+                          }
+                        }
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        MatchMarkdownSnapshot(request, result);
+    }
+    #endregion
+
     #region Parallel, Shared Entry Field
 
     [Fact]
@@ -1226,6 +1269,66 @@ public class TransportErrorTests(ITestOutputHelper output)
         MatchMarkdownSnapshot(request, result);
     }
 
+    #endregion
+
+    #region Resolve Sequence (node)
+    [Fact]
+    public async Task Resolve_Sequence_Node_Second_Service_Offline_SubField_Nullable_Parent_Nullable()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              product: Product
+            }
+
+            type Product {
+              id: ID!
+              brand: Brand
+            }
+
+            type Brand {
+              id: ID!
+            }
+            """);
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              node(id: ID!): Node
+            }
+
+            type Brand implements Node {
+              id: ID!
+              name: String
+            }
+
+            interface Node {
+              id: ID!
+            }
+            """,
+            isOffline: true);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        product {
+                          id
+                          brand {
+                            id
+                            name
+                          }
+                        }
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        MatchMarkdownSnapshot(request, result);
+    }
     #endregion
 
     #region ResolveByKey

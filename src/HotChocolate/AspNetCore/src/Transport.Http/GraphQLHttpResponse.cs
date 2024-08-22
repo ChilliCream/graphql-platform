@@ -134,8 +134,9 @@ public sealed class GraphQLHttpResponse : IDisposable
 #endif
         }
 
-        // if the media type is anything else we will return a transport error.
-        return new ValueTask<OperationResult>(_transportError);
+        _message.EnsureSuccessStatusCode();
+
+        throw new InvalidOperationException("Received a successful response with an unexpected content type.");
     }
 
 #if NET6_0_OR_GREATER
