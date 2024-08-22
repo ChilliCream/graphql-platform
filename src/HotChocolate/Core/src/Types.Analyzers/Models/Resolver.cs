@@ -8,6 +8,7 @@ public sealed class Resolver(
     ISymbol member,
     ResolverResultKind resultKind,
     ImmutableArray<ResolverParameter> parameters,
+    ImmutableArray<MemberBinding> bindings,
     bool isNodeResolver = false)
 {
     public string TypeName => typeName;
@@ -24,4 +25,18 @@ public sealed class Resolver(
     public ResolverResultKind ResultKind => resultKind;
 
     public ImmutableArray<ResolverParameter> Parameters => parameters;
+
+    public ImmutableArray<MemberBinding> Bindings => bindings;
+}
+
+public enum MemberBindingKind {
+    Field,
+    Property
+}
+
+public readonly struct MemberBinding(string name, MemberBindingKind kind)
+{
+    public string Name => name;
+
+    public MemberBindingKind Kind => kind;
 }
