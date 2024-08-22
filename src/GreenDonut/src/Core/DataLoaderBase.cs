@@ -173,7 +173,10 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         }
 
         // we dispatch after everything is enqueued.
-        _batchScheduler.Schedule(() => DispatchBatchAsync(_currentBatch, _ct));
+        if (_currentBatch is not null)
+        {
+            _batchScheduler.Schedule(() => DispatchBatchAsync(_currentBatch, _ct));
+        }
 
         return WhenAll();
 
