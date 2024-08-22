@@ -219,8 +219,7 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
             requestDocument,
             executionStep.ParentSelection,
             selectionSet,
-            // TODO
-            [],
+            executionStep.SelectEntityStep.RootSelections,
             context.Exports.GetExportKeys(executionStep),
             executionStep.SelectEntityStep.Variables.Values,
             context.ForwardedVariables.Select(t => t.Variable.Name.Value),

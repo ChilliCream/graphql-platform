@@ -31,6 +31,5 @@ public sealed class GraphQLResponse : IDisposable
     public void Dispose()
     {
         _resource?.Dispose();
-        TransportException = null;
     }
 }
