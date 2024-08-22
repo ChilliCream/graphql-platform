@@ -18,8 +18,9 @@ public class PagingOptions
     public int? MaxPageSize { get; set; }
 
     /// <summary>
-    /// Defines if the total count of the paged data set
-    /// shall be included into the paging result type.
+    /// Defines whether a <c>totalCount</c> field shall be
+    /// exposed on the Connection type, returning the total
+    /// count of items in the paginated data set.
     /// </summary>
     public bool? IncludeTotalCount { get; set; }
 
@@ -52,6 +53,13 @@ public class PagingOptions
     public string? ProviderName { get; set; }
 
     /// <summary>
+    /// Defines whether a <c>nodes</c> field shall be
+    /// exposed on the Connection type, returning the
+    /// flattened nodes of the <c>edges</c> field.
+    /// </summary>
+    public bool? IncludeNodesField { get; set; }
+
+    /// <summary>
     /// Merges the <paramref name="other"/> options into this options instance wherever
     /// a property is not set.
     /// </summary>
@@ -68,6 +76,7 @@ public class PagingOptions
         InferConnectionNameFromField ??= other.InferConnectionNameFromField;
         InferCollectionSegmentNameFromField ??= other.InferCollectionSegmentNameFromField;
         ProviderName ??= other.ProviderName;
+        IncludeNodesField ??= other.IncludeNodesField;
     }
 
     /// <summary>
@@ -83,6 +92,7 @@ public class PagingOptions
             RequirePagingBoundaries = RequirePagingBoundaries,
             InferConnectionNameFromField = InferConnectionNameFromField,
             InferCollectionSegmentNameFromField = InferCollectionSegmentNameFromField,
-            ProviderName = ProviderName
+            ProviderName = ProviderName,
+            IncludeNodesField = IncludeNodesField
         };
 }
