@@ -1,6 +1,8 @@
 using System.Buffers;
+using System.Diagnostics;
 using System.IO.Pipelines;
 using HotChocolate.Utilities;
+using static HotChocolate.Execution.Serialization.EventStreamResultFormatterEventSource;
 
 namespace HotChocolate.Execution.Serialization;
 
@@ -24,7 +26,7 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
     }
 
     /// <summary>
-    /// Formats an <see cref="IExecutionResult"/> into a SSE stream.
+    /// Formats an <see cref="IExecutionResult"/> into an SSE stream.
     /// </summary>
     /// <param name="result"></param>
     /// <param name="outputStream"></param>
@@ -152,6 +154,7 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
                 .WithCancellation(ct)
                 .ConfigureAwait(false))
             {
+                Log.FormatOperationResultStart();
                 try
                 {
                     MessageHelper.WriteNextMessage(payloadFormatter, result, buffer);
@@ -160,9 +163,16 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
                     keepAliveJob.Reset();
                     buffer.Reset();
                 }
+                catch (Exception ex)
+                {
+                    Log.FormatOperationResultError(ex);
+                    Debug.WriteLine(ex);
+                    break;
+                }
                 finally
                 {
                     await result.DisposeAsync().ConfigureAwait(false);
+                    Log.FormatOperationResultStop();
                 }
             }
         }
@@ -170,8 +180,8 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
 
     private sealed class KeepAliveJob : IDisposable
     {
-        private static readonly TimeSpan _timeout = TimeSpan.FromSeconds(12);
-        private static readonly TimeSpan _timeout1 = TimeSpan.FromSeconds(8);
+        private static readonly TimeSpan _timerPeriod = TimeSpan.FromSeconds(12);
+        private static readonly TimeSpan _keepAlivePeriod = TimeSpan.FromSeconds(8);
         private readonly PipeWriter _writer;
         private readonly Timer _keepAliveTimer;
         private DateTime _lastWriteTime = DateTime.UtcNow;
@@ -180,17 +190,18 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
         public KeepAliveJob(PipeWriter writer)
         {
             _writer = writer;
-            _keepAliveTimer = new Timer(_ => EnsureKeepAlive(), null, _timeout, _timeout);
+            _keepAliveTimer = new Timer(_ => EnsureKeepAlive(), null, _timerPeriod, _timerPeriod);
         }
 
         public void Reset() => _lastWriteTime = DateTime.UtcNow;
 
         private void EnsureKeepAlive()
         {
-            if (DateTime.UtcNow - _lastWriteTime >= _timeout1)
+            if (DateTime.UtcNow - _lastWriteTime >= _keepAlivePeriod)
             {
                 Task.Run(WriteKeepAliveAsync);
             }
+
             return;
 
             async Task WriteKeepAliveAsync()
