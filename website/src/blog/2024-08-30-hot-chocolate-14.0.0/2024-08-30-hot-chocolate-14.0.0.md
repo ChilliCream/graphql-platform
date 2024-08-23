@@ -225,6 +225,9 @@ internal static class ProductDataLoader
 
 ## Projections
 
+// GreenDonut
+// Isolated Code Generation for layered code.
+
 ```csharp
 internal static class BrandDataLoader
 {
