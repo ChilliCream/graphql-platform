@@ -282,6 +282,8 @@ public class Query
 
 ## Query Errors
 
+Interface Resolver
+
 // from ExtendObjectType to ObjectType<T>
 
 NodeIdSerializer (composite identifiers)
@@ -339,13 +341,6 @@ HotChocolate 15
   - Projections Engine
 
 
-* Fixed Various Issues with the new Resolver Compiler by @michaelstaib in https://github.com/ChilliCream/graphql-platform/pull/7177
-* Detect Pure Resolver Properly with new Resolver Compiler by @michaelstaib in https://github.com/ChilliCream/graphql-platform/pull/7181
-* Added support for NodeResolvers with new Resolver Compiler. by @michaelstaib in https://github.com/ChilliCream/graphql-platform/pull/7185
-* Remove Pure Resolver Context by @michaelstaib in https://github.com/ChilliCream/graphql-platform/pull/7186
-* Fixed SQLite file access issue on Windows by @glen-84 in https://github.com/ChilliCream/graphql-platform/pull/7183
-* Replaced FieldCoordinate with SchemaCoordinate by @glen-84 in https://github.com/ChilliCream/graphql-platform/pull/7182
-* Apply Class Attributes to ObjectTypeAttribute<T> by @michaelstaib in https://github.com/ChilliCream/graphql-platform/pull/7188
 * Add IBM cost analysis by @glen-84 in https://github.com/ChilliCream/graphql-platform/pull/7146
 * Fixed Resolver Compiler Issue When Only Having a Node Resolver by @michaelstaib in https://github.com/ChilliCream/graphql-platform/pull/7195
 * Fixed Resolver Compiler Issue with Properties by @michaelstaib in https://github.com/ChilliCream/graphql-platform/pull/7196
