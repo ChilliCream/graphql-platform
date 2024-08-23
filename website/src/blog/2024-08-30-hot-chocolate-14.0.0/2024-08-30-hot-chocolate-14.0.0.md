@@ -45,7 +45,58 @@ EXAMPLE.
 
 ## Query Inspection
 
-## Query Errors
+Another area where we have made significant improvements is in query inspection. With Hot Chocolate 14, its now super simple to check what fields are being requested within the resolver without the need for complex syntax tree traversals. You now can formulate a pattern with the GraphQL selection syntax and let the executer inject you with a simple boolean that tells you if your pattern matched the user query.
+
+```csharp
+public sealed class BrandService(CatalogContext context)
+{
+    public async Task<Brand> GetBrandAsync(
+        int id,
+        [IsSelected("products { details }")]
+        bool includeProductDetails,
+        CancellationToken ct = default)
+    {
+        var query = context.Brands
+            .AsNoTracking()
+            .OrderBy(t => t.Name)
+            .ThenBy(t => t.Id);
+
+        if(includeProductDetails)
+        {
+            query = query.Include(t => t.Products.Details);
+        }
+
+        return await query.FirstOrDefaultAsync(ct);
+    }
+}
+```
+
+The patterns also support inline fragments to match abstract types. But even with these complex patterns, sometimes its just great if you can write your own traversal logic but without complex trees. For this you can now simple inject the resolver context and use our fluent selector inspection API.
+
+```csharp
+public sealed class BrandService(CatalogContext context)
+{
+    public async Task<Brand> GetBrandAsync(
+        int id,
+        IResolverContext context,
+        CancellationToken ct = default)
+    {
+        var query = context.Brands
+            .AsNoTracking()
+            .OrderBy(t => t.Name)
+            .ThenBy(t => t.Id);
+
+        if(context.Select("products").IsSelected(details))
+        {
+            query = query.Include(t => t.Products.Details);
+        }
+
+        return await query.FirstOrDefaultAsync(ct);
+    }
+}
+```
+
+If you want to go full in and have all the power of the operation executor then you still can inject `ISelection` and traverse the compiled operation tree.
 
 ## Pagination
 
@@ -220,6 +271,8 @@ public class Query
 ```
 
 ## Source Generators
+
+## Query Errors
 
 // from ExtendObjectType to ObjectType<T>
 
