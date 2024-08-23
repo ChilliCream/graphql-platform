@@ -27,13 +27,13 @@ public static IQueryable<Session> GetSessions(
     => context.Sessions.OrderBy(s => s.Title);
 ```
 
-This leads to clearer code that is more understandable and easier to maintain. The above resolver for instance injects the `ApplicationDbContext`. There is no need to tell Hot Chocolate that this is a service or what characteristics this services has, it will just work. This is because we have simplified the way Hot Chocolate interacts with the dependency injection system.
+This leads to clearer code that is more understandable and easier to maintain. For instance, the resolver above injects the ApplicationDbContext. There is no need to tell Hot Chocolate that this is a service or what characteristics this service has; it will just work. This is because we have simplified the way Hot Chocolate interacts with the dependency injection system.
 
-In GraphQL we in essence have two execution algorithms, the first one that is used for queries allows for parallelization to optimize data fetching. This allows us to enqueue transparently data fetching requests and execute them in parallel. The second algorithm is used for mutations and is a sequential algorithm that executes one mutation after the other.
+In GraphQL, we essentially have two execution algorithms. The first, used for queries, allows for parallelization to optimize data fetching. This enables us to enqueue data fetching requests transparently and execute them in parallel. The second algorithm, used for mutations, is a sequential algorithm that executes one mutation after another.
 
-So, how is this related to DI? In Hot Chocolate 14 if we have an async resolver that requires services from the DI we will create a service scope around it. Ensuring that the service you use in the resolver are not used by other resolvers concurrently. Since query resolvers are per spec defined as side-effect free this is a great default behavior.
+So, how is this related to DI? In Hot Chocolate 14, if we have an async resolver that requires services from the DI, we create a service scope around it, ensuring that the services you use in the resolver are not used concurrently by other resolvers. Since query resolvers are, by specification, defined as side-effect-free, this is an excellent default behavior.
 
-For mutations this is very different, as we are cause with the mutation a side-effect and you might want to use for instance a shared DBContext between two mutations, or y
+For mutations, the situation is different, as mutations inherently cause side effects. For instance, you might want to use a shared DbContext between two mutations, or y
 
 
 
