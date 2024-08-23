@@ -43,18 +43,189 @@ Also, you can override the default, whatever your default may be on a per resolv
 
 EXAMPLE.
 
+## Query Inspection
+
+## Query Errors
+
 ## Pagination
+
+// talk about the non-layered paging providers
+// sorting expression interception
+// default sorting
+// benefits of keyset pagination
+
+```csharp
+public sealed class BrandService(CatalogContext context)
+{
+    public async Task<Page<Brand>> GetBrandsAsync(
+        PagingArguments args,
+        CancellationToken ct = default)
+        => await context.Brands
+            .AsNoTracking()
+            .OrderBy(t => t.Name)
+            .ThenBy(t => t.Id)
+            .ToPageAsync(args, ct);
+}
+```
+
+```csharp
+public sealed class ProductDataLoader
+{
+    [DataLoader]
+    public static async Task<Dictionary<int, Page<Product>>> GetProductsByBrandIdAsync(
+        IReadOnlyList<int> keys,
+        PagingArguments pagingArguments,
+        CatalogContext context,
+        CancellationToken ct)
+        => await context.Products
+            .AsNoTracking()
+            .Where(p => keys.Contains(p.BrandId))
+            .OrderBy(p => p.Name).ThenBy(p => p.Id)
+            .ToBatchPageAsync(t => t.BrandId, pagingArguments, ct);
+}
+```
+
+```csharp
+public static class BrandNode
+{
+    public static async Task<Brand?> GetBrandByIdAsync(
+        [Parent] Brand brand,
+        PagingArguments args,
+        BrandByIdDataLoader brandById,
+        CancellationToken cancellationToken)
+        => await brandById
+            .Select(selection)
+            .WithPagingArguments(args)
+            .LoadAsync(id, cancellationToken);
+}
+```
 
 ## DataLoader
 
+```csharp
+internal static class BrandDataLoader
+{
+    [DataLoader]
+    public static async Task<Dictionary<int, Brand>> GetBrandByIdAsync(
+        IReadOnlyList<int> ids,
+        CatalogContext context,
+        CancellationToken ct)
+        => await context.Brands
+            .AsNoTracking()
+            .Where(t => ids.Contains(t.Id))
+            .ToDictionaryAsync(t => t.Id, ct);
+}
+```
+
+```csharp
+internal static class BrandDataLoader
+{
+    [DataLoader(Lookups = [nameof(CreateBrandByIdLookup)])]
+    public static async Task<Dictionary<int, Brand>> GetBrandByIdAsync(
+        IReadOnlyList<int> ids,
+        CatalogContext context,
+        CancellationToken ct)
+        => await context.Brands
+            .AsNoTracking()
+            .Where(t => ids.Contains(t.Id))
+            .ToDictionaryAsync(t => t.Id, ct);
+
+    private static int CreateBrandByIdLookup(Brand brand) => brand.Id;
+
+    [DataLoader(Lookups = [nameof(CreateBrandByNameLookup)])]
+    public static async Task<Dictionary<string, Brand>> GetBrandByNameAsync(
+        IReadOnlyList<string> names,
+        CatalogContext context,
+        CancellationToken ct)
+        => await context.Brands
+            .AsNoTracking()
+            .Where(t => names.Contains(t.Name))
+            .ToDictionaryAsync(t => t.Name, ct);
+
+    private static string CreateBrandByNameLookup(Brand brand) => brand.Name;
+}
+```
+
+```csharp
+public sealed class BrandService(CatalogContext context)
+{
+    public async Task<Page<Brand>> GetBrandByIdAsync(
+        PagingArguments args,
+        BrandByIdDataLoader brandById,
+        CancellationToken ct = default)
+        => await brandById
+            .AsNoTracking()
+            .Include(b => b.Products)
+            .ToPageAsync(args, ct);
+}
+```
+
+```csharp
+internal static class ProductDataLoader
+{
+    [DataLoader(Lookups = [nameof(CreateProductByIdLookups)])]
+    public static async Task<Dictionary<int, Product>> GetProductByIdAsync(
+        => ...
+
+    private static IEnumerable<KeyValuePair<int, Product>> CreateProductByIdLookups(Brand brand)
+      => brand.Products.Select(p => new KeyValuePair<int, Product>(p.Id, p));
+}
+```
+
 ## Projections
 
+```csharp
+internal static class BrandDataLoader
+{
+    [DataLoader(Lookups = [nameof(CreateBrandByIdLookup)])]
+    public static async Task<Dictionary<int, Brand>> GetBrandByIdAsync(
+        IReadOnlyList<int> ids,
+        CatalogContext context,
+        ISelectorBuilder selector,
+        CancellationToken ct)
+        => await context.Brands
+            .AsNoTracking()
+            .Select(selector, key: b => b.Id)
+            .ToDictionaryAsync(b => b.Id, ct);
+}
+```
+
+```csharp
+public class Query
+{
+    public async Task<Brand?> GetBrandByIdAsync(
+        int id,
+        ISelection selection,
+        BrandByIdDataLoader brandById,
+        CancellationToken cancellationToken)
+        => await brandById
+            .Select(selection)
+            .LoadAsync(id, cancellationToken);
+}
+```
+
+```csharp
+public class Query
+{
+    public async Task<Brand?> GetBrandByIdAsync(
+        int id,
+        ISelection selection,
+        BrandByIdDataLoader brandById,
+        CancellationToken cancellationToken)
+        => await brandById
+            .Select(selection)
+            .Include(b => b.Products)
+            .LoadAsync(id, cancellationToken);
+}
+```
+
+## Source Generators
+
+// from ExtendObjectType to ObjectType<T>
 
 Security
 
 Ease of use
-
-Dependency Injection
 
 Layering
 
