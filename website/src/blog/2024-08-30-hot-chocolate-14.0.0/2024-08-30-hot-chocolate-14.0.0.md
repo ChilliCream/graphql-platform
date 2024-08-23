@@ -240,3 +240,15 @@ Community
 Source Generators
 
 IsSelected
+
+Root Fields [Query, Mutation, Subscription]
+
+OpenTelemetry/BCP
+
+GraphQL Semantic Operation Routes
+
+Variable and Request Batching
+
+Cost Analysis
+
+Schema Registry
