@@ -596,18 +596,22 @@ The new serializer is more efficient and aligns better with the ID serialization
 
 The new serializer still allows for the old format to be passed in and you can also register the legacy serializer if you prefer the way we handled it before.
 
+Relay is still the best GraphQL client library out there with other still trying to catch up by copying Relay concepts. We always have been very vocal about this and are using Relay as our first choice in customer projects. Relay is a smart GraphQL client which would immensely benefit from a feature called fragment isolation where an error in one fragment would not cause erasure of data from a colocated fragment.
+The issue here is that the GraphQL specification defines that if a non-null field either returns null or throws an error, the selection-set is erased and the error is porpagated upwards. This is a problem for Relay because it would cause the erasure of data from colocated fragments.
 
+We have been working on a solution for this problem for years now within the GraphQL foundation and Hot Chocolate implemented for the past versions a proposal called CCN (Client-Controlled-Nullability) where the user could change the nullability of fields.
 
+However there is now a new push that we call the true-nullability proposal which allows smart clients to simply disable null bubbling. In this case a smart client could create a sort of fragment isolation on the client side by only deleting the fragment that would be affected by an error or non-null violation.
+
+With Hot Chocolate 14 We have decided to remove CCN and add a new HTTP header `hc-disable-null-bubbling` that allows you to disable null bubbling for a request. This is a first step towards true-nullability which would also introduce a new semantic nullability kind.
+
+We have prefixed the header with `hc-` to signal that this is a Hot Chocolate specific header and not to collide with the eventual GraphQL specification.
 
 ## Query Errors
 
 Interface Resolver
 
 Null Bubbling Mode and CCN
-
-// from ExtendObjectType to ObjectType<T>
-
-NodeIdSerializer (composite identifiers)
 
 Security
   - no introspection
