@@ -475,12 +475,135 @@ internal static class ProductDataLoader
 
 In this case, we can subscribe to `Brand` entities on the cache and check if they have the products list populated. If they do, we can create lookups for the products.
 
-
 ## Source Generators
+
+With Hot Chocolate 14, we have started to expand our use of source-generated code. We have already used source generators in the past to automatically register types or generate the boilerplate code for `DataLoader`. With Hot Chocolate 14, we are now beginning to use source generators to generate resolvers. This feature is opt-in and, at the moment, only available for our new type extension API.
+
+The new `ObjectType<T>` attribute will, over the next few versions, replace the `ExtendObjectType` attribute. The new attribute works only in combination with the source generator and combines the power of the implementation-first approach with the code-first fluent API.
+
+```csharp
+[ObjectType<Brand>]
+public static partial class BrandNode
+{
+    static partial void Configure(IObjectTypeDescriptor<Brand> descriptor)
+    {
+        descriptor.Ignore(t => t.Subscriptions);
+    }
+
+    [UsePaging]
+    public static async Task<Connection<Product>> GetProductsAsync(
+        [Parent] Brand brand,
+        PagingArguments pagingArguments,
+        ProductService productService,
+        CancellationToken cancellationToken)
+        => await productService.GetProductsByBrandAsync(brand.Id, pagingArguments, cancellationToken).ToConnectionAsync();
+}
+```
+
+The beauty of the source generator is that, in contrast to expression compilation, the results are fully inspectable, and we can guide you by issuing compile-time warnings and errors. The source generator output can be viewed within your IDE and is debuggable.
+
+IMAGE
+
+With the new type extension API we also allow for new ways to declare root fields and colocate queries, mutations and subscriptions.
+
+```csharp
+public static class Operations
+{
+    [Query]
+    public static async Task<Connection<Brand>> GetBrandsAsync(
+        BrandService brandService,
+        PagingArguments pagingArgs,
+        CancellationToken ct)
+        => await brandService.GetBrandsAsync(pagingArgs, ct);
+
+    [Mutation]
+    public static async Task<Brand> CreateBrand(
+        CreateBrandInput input,
+        BrandService brandService,
+        CancellationToken ct)
+        => await brandService.CreateBrandAsync(input, ct);
+}
+```
+
+Operation fields also can be collocated into extension types.
+
+```csharp
+[ObjectType<Brand>]
+public static partial class BrandNode
+{
+    static partial void Configure(IObjectTypeDescriptor<Brand> descriptor)
+    {
+        descriptor.Ignore(t => t.Subscriptions);
+    }
+
+    [UsePaging]
+    public static async Task<Connection<Product>> GetProductsAsync(
+        [Parent] Brand brand,
+        PagingArguments pagingArguments,
+        ProductService productService,
+        CancellationToken cancellationToken)
+        => await productService.GetProductsByBrandAsync(brand.Id, pagingArguments, cancellationToken).ToConnectionAsync();
+
+    [Query]
+    public static async Task<Connection<Brand>> GetBrandsAsync(
+        BrandService brandService,
+        PagingArguments pagingArgs,
+        CancellationToken ct)
+        => await brandService.GetBrandsAsync(pagingArgs, ct);
+
+    [Mutation]
+    public static async Task<Brand> CreateBrand(
+        CreateBrandInput input,
+        BrandService brandService,
+        CancellationToken ct)
+        => await brandService.CreateBrandAsync(input, ct);
+}
+```
+
+This allows for more flexibility in addition to the already established `QueryTypeAttribute`, `MutationTypeAttribute`, and `SubscriptionTypeAttribute`.
+
+With the new version of Hot Chocolate, we are also introducing a new type extension for interfaces which allow to introduce base resolvers for common functionality. Think of this like base classes.
+
+```csharp
+public interface IEntity
+{
+    [ID] int Id { get; }
+}
+
+[InterfaceType<IEntity>]
+public static partial class EntityInterface
+{
+    public static string SomeField([Parent] IEntity entity)
+        => ...;
+}
+```
+
+The field definition and the resolver are inherited by all implementing object types. So, if a object type does not declare `someField`,  in this case it will get the resolver inherited from the interface declaration.
+
+This API os also available through the fluent API, where you now have `Resolve` descriptors on interface fields.
+
+## Relay Support
+
+With Hot Chocolate 14, we have also improved our Relay support. We have made it easier to integrate aggregations to the connection type and also to add custom data to edges. You also have now more control over the shape of the connection type where you can disable the `nodes` field to either remove it as unnecessary or to replace it with a custom field.
+
+Apart from this we have reworked the node id serializers to be extendable and support composite identifiers.
+
+```csharp
+EXAMPLE NODE ID SERIALIZER REGISTRATION
+```
+
+The new serializer is more efficient and aligns better with the ID serialization format of other GraphQL servers where the encoded id as the following format `{TypeName}:{Id}`.
+
+The new serializer still allows for the old format to be passed in and you can also register the legacy serializer if you prefer the way we handled it before.
+
+
+
 
 ## Query Errors
 
 Interface Resolver
+
+Null Bubbling Mode and CCN
 
 // from ExtendObjectType to ObjectType<T>
 
@@ -489,12 +612,6 @@ NodeIdSerializer (composite identifiers)
 Security
   - no introspection
   - cost and stuff
-
-Ease of use
-
-Layering
-
-DataLoader
 
 Fusion
 
@@ -506,10 +623,6 @@ Community
 
   * Further optimize filter expressions by @nikolai-mb in https://github.com/ChilliCream/graphql-platform/pull/7311
   * DevContainer
-
-Source Generators
-
-IsSelected
 
 Root Fields [Query, Mutation, Subscription]
 
