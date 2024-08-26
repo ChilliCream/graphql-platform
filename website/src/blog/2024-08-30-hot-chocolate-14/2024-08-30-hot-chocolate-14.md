@@ -654,7 +654,7 @@ query {
       title
     }
     ... on Error {
-      code : __typename
+      code: __typename
       message
     }
     ... on BookNotFound {
@@ -693,14 +693,69 @@ public class Query
 
 ## Transport
 
-- Semantic Routes
-- Variable Batching
-- Transport Layer Changes
-- GraphQL over HTTP Spec
-- Fixed NotAuthenticated
-- Variable and Request Batching
+Lets talk about the GraphQL transport layer and what has changed with Hot Chocolate 14. The GraphQL over HTTP spec is now in its final stages and we have been adopting the latest changes. This means that we no longer return status code 500 when the full result has be erased due to a non-null violation. Instead we return status code 200 and a JSON body that contains the error information and data as null.
+
+If you are interested into the spec, you can find the current version [here](LINK).
+
+We have also reintroduced the error code for not authenticated errors to make it easier for authentication flows. This was something we originally dropped in Hot Chocolate 13 but because a lot of you have struggled with this we have reintroduced it.
+
+Apart from these smaller bits an pieces we have completely rewritten our persisted operation aka trusted document pipeline to introduce end-2-end tracability across the whole transport layer. We have done this by implementing a feature we call semantic routes. The idea here is that each operation has a unique uri that is derived from the document has and the operation name.
+
+This new persisted operation transport pipeline can be mapped separatly like the following.
+
+```csharp
+app.MapGraphQLPersistedOperations();
+```
+
+By default we would map the persisted operations to `/graphql/persisted/{documentHash}/{operationName}` but you can change the root for this path.
+
+Now with this only the variables and extensions are posted to the server or when you are using a query you can also use a get request like the following:
+
+```csharp
+GET /graphql/persisted/1234/GetBook?variables={id:1}
+```
+
+This also makes it so much easier to work with CDNs or to reroute certain operation to different servers.
+
+For this release we have also reimplementd our batching transport layer and support now variable batching and request batching. Variable batching is a new batching proposal we have created for the upcoming Composite Schema Specification to transparently use batching in combination with standard GraphQL queries instead of relying on special field like the `_entities` field.
+
+With variable batching you can batch for the same operation multiple sets of variables.
+
+```json
+{
+  "query": "query GetBooks($id: ID!) { book(id: $id) { title } }",
+  "variables": [{ "id": "1" }, { "id": "2" }]
+}
+```
+
+Since a variable batch request has the same structure than a standard GraphQL request, except for the variable field which in this case is a list, we can also batch these within a batch request.
+
+```json
+[
+  {
+    "query": "query GetBooks($id: ID!) { book(id: $id) { title } }",
+    "variables": [{ "id": "1" }, { "id": "2" }]
+  },
+  {
+    "query": "query GetBooks($id: ID!) { book(id: $id) { title } }",
+    "variables": { "id": "3" }
+  }
+]
+```
+
+This new batching API with in your backend allows for new use-cases and is a great way to optimize your GraphQL server.
 
 ## Security
+
+One of our greatest investments we have done with version 14 is into security. We have seen countless GraphQL servers with our customers and in 90% of the cases they were not configured in a secure way. This was not for the lack of functionality in Hot Chocolate but for the lack of knowledge how to configure things. Often there is also a lack of understanding why certain things are important with GraphQL.
+
+GraphQL as facebook created and used it was built around flexibility at dev time and persisted operations at production. This means the moment facebook deploys to production the GraphQL server becomes in essence a REST server that has now way to freely create new operations. The GraphQL server is only able to execute whatever frontend engineers used within in their frontends. On production build the operations were stripped from the frontend code and stored in an operations store. The frontend on production would send to the GraphQL server a hash instead of a full operation and the GraphQL server would only execute operations that are stored in the operations store.
+
+This is as of today still the best way to do GraphQL and with Banana Cake Pop you can setup a schema registry and an operation store in less than 5 minutes. Have a look [here](LINK) for more information.
+
+But we wanted to create a new setup for Hot Chocolate no matter if you have any clue about all of this you will end up with a secure GraphQL server. This is why we have implemented the IBM cost specification to weight your request and restrict expensive operations right from the start. With Hot Chocolate 14 you basically have two profiles to run the server, with IBM cost spec or with persisted operations.
+
+
 
 - Cost Analysis
 - Introspection
@@ -721,17 +776,17 @@ public class Query
 
 ## Community
 
-  * Further optimize filter expressions by @nikolai-mb in https://github.com/ChilliCream/graphql-platform/pull/7311
-  * DevContainer
-  * Azure Data API Builder
+- Further optimize filter expressions by @nikolai-mb in https://github.com/ChilliCream/graphql-platform/pull/7311
+- DevContainer
+- Azure Data API Builder
 
 ## Documentation and Courses
 
-  - DomeTrain Course
+- DomeTrain Course
 
 ## Hot Chocolate 15
 
-  - Focus
-  - .NET 8 / 9
-  - DataLoader
-  - Projections Engine
+- Focus
+- .NET 8 / 9
+- DataLoader
+- Projections Engine
