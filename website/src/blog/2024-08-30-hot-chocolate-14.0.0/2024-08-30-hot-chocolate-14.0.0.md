@@ -504,7 +504,7 @@ The beauty of the source generator is that, in contrast to expression compilatio
 
 IMAGE
 
-With the new type extension API we also allow for new ways to declare root fields and colocate queries, mutations and subscriptions.
+With the new type extension API, we also allow for new ways to declare root fields and colocate queries, mutations, and subscriptions.
 
 ```csharp
 public static class Operations
@@ -525,7 +525,7 @@ public static class Operations
 }
 ```
 
-Operation fields also can be collocated into extension types.
+Operation fields can also be colocated into extension types.
 
 ```csharp
 [ObjectType<Brand>]
@@ -562,7 +562,7 @@ public static partial class BrandNode
 
 This allows for more flexibility in addition to the already established `QueryTypeAttribute`, `MutationTypeAttribute`, and `SubscriptionTypeAttribute`.
 
-With the new version of Hot Chocolate, we are also introducing a new type extension for interfaces which allow to introduce base resolvers for common functionality. Think of this like base classes.
+With the new version of Hot Chocolate, we are also introducing a new type extension for interfaces, which allows you to introduce base resolvers for common functionality. Think of this like base classes.
 
 ```csharp
 public interface IEntity
@@ -578,34 +578,35 @@ public static partial class EntityInterface
 }
 ```
 
-The field definition and the resolver are inherited by all implementing object types. So, if a object type does not declare `someField`,  in this case it will get the resolver inherited from the interface declaration.
+The field definition and the resolver are inherited by all implementing object types. So, if an object type does not declare `someField`, it will inherit the resolver from the interface declaration.
 
-This API os also available through the fluent API, where you now have `Resolve` descriptors on interface fields.
+This API is also available through the fluent API, where you now have `Resolve` descriptors on interface fields.
 
 ## Relay Support
 
-With Hot Chocolate 14, we have also improved our Relay support. We have made it easier to integrate aggregations to the connection type and also to add custom data to edges. You also have now more control over the shape of the connection type where you can disable the `nodes` field to either remove it as unnecessary or to replace it with a custom field.
+With Hot Chocolate 14, we have also improved our Relay support. We have made it easier to integrate aggregations into the connection type and to add custom data to edges. You now have more control over the shape of the connection type, allowing you to disable the `nodes` field—either to remove it as unnecessary or to replace it with a custom field.
 
-Apart from this we have reworked the node id serializers to be extendable and support composite identifiers.
+Additionally, we have reworked the node ID serializers to be extendable and support composite identifiers.
 
 ```csharp
 EXAMPLE NODE ID SERIALIZER REGISTRATION
 ```
 
-The new serializer is more efficient and aligns better with the ID serialization format of other GraphQL servers where the encoded id as the following format `{TypeName}:{Id}`.
+The new serializer is more efficient and aligns better with the ID serialization format of other GraphQL servers, where the encoded ID has the following format: `{TypeName}:{Id}`.
 
-The new serializer still allows for the old format to be passed in and you can also register the legacy serializer if you prefer the way we handled it before.
+The new serializer still allows for the old format to be passed in, and you can also register the legacy serializer if you prefer the way we handled it before.
 
-Relay is still the best GraphQL client library out there with other still trying to catch up by copying Relay concepts. We always have been very vocal about this and are using Relay as our first choice in customer projects. Relay is a smart GraphQL client which would immensely benefit from a feature called fragment isolation where an error in one fragment would not cause erasure of data from a colocated fragment.
-The issue here is that the GraphQL specification defines that if a non-null field either returns null or throws an error, the selection-set is erased and the error is porpagated upwards. This is a problem for Relay because it would cause the erasure of data from colocated fragments.
+Relay remains the best GraphQL client library, with others still trying to catch up by copying Relay concepts. We have always been very vocal about this and use Relay as our first choice in customer projects. Relay is a smart GraphQL client that would immensely benefit from a feature called fragment isolation, where an error in one fragment would not cause the erasure of data from a colocated fragment.
 
-We have been working on a solution for this problem for years now within the GraphQL foundation and Hot Chocolate implemented for the past versions a proposal called CCN (Client-Controlled-Nullability) where the user could change the nullability of fields.
+The issue here is that the GraphQL specification defines that if a non-null field either returns null or throws an error, the selection set is erased, and the error is propagated upwards. This is a problem for Relay because it would cause the erasure of data from colocated fragments.
 
-However there is now a new push that we call the true-nullability proposal which allows smart clients to simply disable null bubbling. In this case a smart client could create a sort of fragment isolation on the client side by only deleting the fragment that would be affected by an error or non-null violation.
+We have been working on a solution to this problem for years now within the GraphQL foundation, and Hot Chocolate has implemented, in past versions, a proposal called CCN (Client-Controlled-Nullability) where the user could change the nullability of fields.
 
-With Hot Chocolate 14 We have decided to remove CCN and add a new HTTP header `hc-disable-null-bubbling` that allows you to disable null bubbling for a request. This is a first step towards true-nullability which would also introduce a new semantic nullability kind.
+However, there is now a new push called the true-nullability proposal, which allows smart clients to simply disable null bubbling. In this case, a smart client could create a sort of fragment isolation on the client side by only deleting the fragment affected by an error or non-null violation.
 
-We have prefixed the header with `hc-` to signal that this is a Hot Chocolate specific header and not to collide with the eventual GraphQL specification.
+With Hot Chocolate 14, we have decided to remove CCN and add a new HTTP header `hc-disable-null-bubbling` that allows you to disable null bubbling for a request. This is a first step towards true-nullability, which would also introduce a new semantic nullability kind.
+
+We have prefixed the header with `hc-` to signal that this is a Hot Chocolate-specific header and to avoid collision with the eventual GraphQL specification.
 
 ## Data
 
