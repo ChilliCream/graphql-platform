@@ -102,12 +102,11 @@ If you want to go full in and have all the power of the operation executor then 
 
 ## Pagination
 
-// talk about the non-layered paging providers
-// sorting expression interception
-// default sorting / IsDefined!
-// benefits of keyset pagination
-// cursor key serialization
-// * Added inlining of total count when using cursor pagination. by @michaelstaib in https://github.com/ChilliCream/graphql-platform/pull/7366
+Pagination is a common requirement in GraphQL APIs, and Hot Chocolate 14 makes it easier than ever to implement no matter if you are building layered applications or if you are using DbContext right in your resolver.
+
+For layered application patterns like DDD, CQRS or Clean Architecture, we have built a brand new paging API that is completely separate from the HotChocolate GraphQL core. When building layered application pagination should be a business concern and handled in your repository or services layer. Doing so brings some unique concerns with, like how the abstraction of a page looks like. For this we have introduced a couple of new primitives like `Page<T>`, `PagingArguments` and others that allow you to build your own paging API that fits your needs and interfaces well with GraphQL.
+
+We also have implemented keyset pagination for Entity Framework core which you can use in your infrastructure layer. The Entity Framework team is planing to have at some point a paging API for keyset pagination natively integrated into EF Core (LINK). Until then you can use our API to get the best performance out of your EF Core queries when using pagination.
 
 ```csharp
 public sealed class BrandService(CatalogContext context)
@@ -122,6 +121,63 @@ public sealed class BrandService(CatalogContext context)
             .ToPageAsync(args, ct);
 }
 ```
+
+We are focusing on keyset pagination because its the better way to do pagination as performance is constant per progression to the pages as opposed to growing linearly with offset pagination. Apart form the better performance keyset pagination also allows to have stable pagination result even if the underlying data changes.
+
+We also worked hard to allow for pagination in your DataLoader. In GraphQL where nested pagination is a common thing having the capability to in essence batch multiple nested paging request in one database query is essential.
+
+Lets assume we have the following query and we are using a layered architecture approach.
+
+```graphql
+query GetBrands {
+  brands(first: 10) {
+    nodes {
+      id
+      name
+      products(first: 10) {
+        nodes {
+          id
+          name
+        }
+      }
+    }
+  }
+}
+```
+
+Let's assume we have the following two resolvers for the above query fetching the brands and the products.
+
+```csharp
+[UsePaging]
+public static async Task<Connection<Brand>> GetBrandsAsync(
+    PagingArguments pagingArguments,
+    BrandService brandService,
+    CancellationToken cancellationToken)
+    => await brandService.GetBrandsAsync(pagingArguments, cancellationToken).ToConnectionAsync();
+
+
+[UsePaging]
+public static async Task<Connection<Product>> GetProductsAsync(
+    [Parent] Brand brand,
+    PagingArguments pagingArguments,
+    ProductService productService,
+    CancellationToken cancellationToken)
+    => await productService.GetProductsByBrandAsync(brand.Id, pagingArguments, cancellationToken).ToConnectionAsync();
+```
+
+With the above resolvers the execution engine would call first the `BrandService` and then for each `Brand` would call the `ProductService` to get the products per brand. This would lead to a N+1 query problem within our GraphQL server. To solve this we can use a `DataLoader` within our `ProductService` and batch the product requests.
+
+To allow this we have worked a lot on `DataLoader` and now support stateful DataLoader. This means we can pass on state to a `DataLoader` separate from the keys. If we would peek into the `ProductService` we would see something like this:
+
+```csharp
+public async Task<Page<Product>> GetProductsByBrandAsync(
+    int brandId,
+    PagingArguments args,
+    CancellationToken ct = default)
+    => await productsByBrandId.WithPagingArguments(args).LoadAsync(brandId, ct);
+```
+
+Our DataLoader in this case would look like the following:
 
 ```csharp
 public sealed class ProductDataLoader
@@ -139,6 +195,46 @@ public sealed class ProductDataLoader
             .ToBatchPageAsync(t => t.BrandId, pagingArguments, ct);
 }
 ```
+
+The `ToBatchPageAsync` extension would rewrite the paging query so that each `brandId` would be a separate page allowing us to do one database call to get in this case 10 products per brand for 10 brands.
+
+Important in keyset pagination is a stable order, that needs to have a unique key at the end. In the above case we order by `Name` and then chain in at the end the primary key `Id`. This ensures that the order is stable even if the `Name` is not unique.
+
+> If you want to read more about keyset pagination you can do so [here](LINK).
+
+We have brought the same capabilities also to non-layered applications where you now have for EF Core a new paging provider that allows for transparent keyset pagination.
+
+So if you are doing something like this in your resolver:
+
+```csharp
+[UsePaging]
+public static async IQueryable<Brand> GetBrandsAsync(
+    PagingArguments pagingArguments,
+    CatalogContext context)
+    => context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id);
+```
+
+Then by default we would emulate cursor pagination by using skip/take underneath. However, as I said we have a new keyset pagination provider for EF core that you now can opt-in to. Its not the default btw as it is not compatible with SQLite.
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>()
+
+
+```
+
+
+
+
+
+
+// talk about the non-layered paging providers
+// sorting expression interception
+// default sorting / IsDefined!
+// benefits of keyset pagination
+// cursor key serialization
+// * Added inlining of total count when using cursor pagination. by @michaelstaib in https://github.com/ChilliCream/graphql-platform/pull/7366
 
 ```csharp
 public static class BrandNode
