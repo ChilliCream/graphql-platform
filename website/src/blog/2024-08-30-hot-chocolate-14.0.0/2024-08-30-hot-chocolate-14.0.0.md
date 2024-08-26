@@ -47,7 +47,7 @@ TODO : Mention DataLoader DI handling!!!
 
 ## Query Inspection
 
-Another area where we have made significant improvements is in query inspection. With Hot Chocolate 14, its now super simple to check what fields are being requested within the resolver without the need for complex syntax tree traversals. You now can formulate a pattern with the GraphQL selection syntax and let the executer inject you with a simple boolean that tells you if your pattern matched the user query.
+Another area where we have made significant improvements is in query inspection. With Hot Chocolate 14, it’s now incredibly simple to check which fields are being requested within the resolver without the need for complex syntax tree traversals. You can now formulate a pattern with the GraphQL selection syntax and let the executor inject a simple boolean that tells you if your pattern matched the user query.
 
 ```csharp
 public sealed class BrandService(CatalogContext context)
@@ -73,7 +73,7 @@ public sealed class BrandService(CatalogContext context)
 }
 ```
 
-The patterns also support inline fragments to match abstract types. But even with these complex patterns, sometimes its just great if you can write your own traversal logic but without complex trees. For this you can now simple inject the resolver context and use our fluent selector inspection API.
+The patterns also support inline fragments to match abstract types. However, even with these complex patterns, it can be beneficial to write your own traversal logic without dealing with complex trees. For this, you can now simply inject the resolver context and use our fluent selector inspection API.
 
 ```csharp
 public sealed class BrandService(CatalogContext context)
@@ -98,15 +98,15 @@ public sealed class BrandService(CatalogContext context)
 }
 ```
 
-If you want to go full in and have all the power of the operation executor then you still can inject `ISelection` and traverse the compiled operation tree.
+If you want to go all in and have the full power of the operation executor, you can still inject `ISelection` and traverse the compiled operation tree.
 
 ## Pagination
 
-Pagination is a common requirement in GraphQL APIs, and Hot Chocolate 14 makes it easier than ever to implement no matter if you are building layered applications or if you are using DbContext right in your resolver.
+Pagination is a common requirement in GraphQL APIs, and Hot Chocolate 14 makes it easier than ever to implement, no matter if you are building layered applications or using `DbContext` right in your resolver.
 
-For layered application patterns like DDD, CQRS or Clean Architecture, we have built a brand new paging API that is completely separate from the HotChocolate GraphQL core. When building layered application pagination should be a business concern and handled in your repository or services layer. Doing so brings some unique concerns with, like how the abstraction of a page looks like. For this we have introduced a couple of new primitives like `Page<T>`, `PagingArguments` and others that allow you to build your own paging API that fits your needs and interfaces well with GraphQL.
+For layered application patterns like DDD, CQRS, or Clean Architecture, we have built a brand new paging API that is completely separate from the Hot Chocolate GraphQL core. When building layered applications, pagination should be a business concern and handled in your repository or services layer. Doing so brings some unique concerns, like how the abstraction of a page looks. For this, we have introduced a couple of new primitives like `Page<T>`, `PagingArguments`, and others that allow you to build your own paging API that fits your needs and interfaces well with GraphQL.
 
-We also have implemented keyset pagination for Entity Framework core which you can use in your infrastructure layer. The Entity Framework team is planing to have at some point a paging API for keyset pagination natively integrated into EF Core (LINK). Until then you can use our API to get the best performance out of your EF Core queries when using pagination.
+We have also implemented keyset pagination for Entity Framework Core, which you can use in your infrastructure layer. The Entity Framework team is planning to have, at some point, a paging API for keyset pagination natively integrated into EF Core (LINK). Until then, you can use our API to get the best performance out of your EF Core queries when using pagination.
 
 ```csharp
 public sealed class BrandService(CatalogContext context)
@@ -122,11 +122,11 @@ public sealed class BrandService(CatalogContext context)
 }
 ```
 
-We are focusing on keyset pagination because its the better way to do pagination as performance is constant per progression to the pages as opposed to growing linearly with offset pagination. Apart form the better performance keyset pagination also allows to have stable pagination result even if the underlying data changes.
+We are focusing on keyset pagination because it’s the better way to do pagination, as performance is constant per progression to the pages, as opposed to growing linearly with offset pagination. Apart from the better performance, keyset pagination also allows for stable pagination results even if the underlying data changes.
 
-We also worked hard to allow for pagination in your DataLoader. In GraphQL where nested pagination is a common thing having the capability to in essence batch multiple nested paging request in one database query is essential.
+We also worked hard to allow for pagination in your `DataLoader`. In GraphQL, where nested pagination is a common requirement, having the capability to batch multiple nested paging requests into one database query is essential.
 
-Lets assume we have the following query and we are using a layered architecture approach.
+Let’s assume we have the following query and we are using a layered architecture approach.
 
 ```graphql
 query GetBrands {
@@ -145,7 +145,7 @@ query GetBrands {
 }
 ```
 
-Let's assume we have the following two resolvers for the above query fetching the brands and the products.
+Let's assume we have the following two resolvers for the above query, fetching the brands and the products.
 
 ```csharp
 [UsePaging]
@@ -165,9 +165,9 @@ public static async Task<Connection<Product>> GetProductsAsync(
     => await productService.GetProductsByBrandAsync(brand.Id, pagingArguments, cancellationToken).ToConnectionAsync();
 ```
 
-With the above resolvers the execution engine would call first the `BrandService` and then for each `Brand` would call the `ProductService` to get the products per brand. This would lead to a N+1 query problem within our GraphQL server. To solve this we can use a `DataLoader` within our `ProductService` and batch the product requests.
+With the above resolvers, the execution engine would first call the `BrandService`, and then for each `Brand`, it would call the `ProductService` to get the products per brand. This would lead to an N+1 query problem within our GraphQL server. To solve this, we can use a `DataLoader` within our `ProductService` and batch the product requests.
 
-To allow this we have worked a lot on `DataLoader` and now support stateful DataLoader. This means we can pass on state to a `DataLoader` separate from the keys. If we would peek into the `ProductService` we would see something like this:
+To enable this, we have worked extensively on `DataLoader` and now support stateful `DataLoader`. This means we can pass on state to a `DataLoader` separate from the keys. If we were to peek into the `ProductService`, we would see something like this:
 
 ```csharp
 public async Task<Page<Product>> GetProductsByBrandAsync(
@@ -177,7 +177,7 @@ public async Task<Page<Product>> GetProductsByBrandAsync(
     => await productsByBrandId.WithPagingArguments(args).LoadAsync(brandId, ct);
 ```
 
-Our DataLoader in this case would look like the following:
+Our `DataLoader` in this case would look like the following:
 
 ```csharp
 public sealed class ProductDataLoader
@@ -196,66 +196,94 @@ public sealed class ProductDataLoader
 }
 ```
 
-The `ToBatchPageAsync` extension would rewrite the paging query so that each `brandId` would be a separate page allowing us to do one database call to get in this case 10 products per brand for 10 brands.
+The `ToBatchPageAsync` extension would rewrite the paging query so that each `brandId` would be a separate page, allowing us to make one database call to get, in this case, 10 products per brand for 10 brands.
 
-Important in keyset pagination is a stable order, that needs to have a unique key at the end. In the above case we order by `Name` and then chain in at the end the primary key `Id`. This ensures that the order is stable even if the `Name` is not unique.
+An important aspect of keyset pagination is maintaining a stable order, which requires a unique key at the end. In the above case, we order by `Name` and then chain the primary key `Id` at the end. This ensures that the order remains stable even if the `Name` is not unique.
 
-> If you want to read more about keyset pagination you can do so [here](LINK).
+> If you want to read more about keyset pagination, you can do so [here](LINK).
 
-We have brought the same capabilities also to non-layered applications where you now have for EF Core a new paging provider that allows for transparent keyset pagination.
+We have brought the same capabilities to non-layered applications, where you now have a new paging provider for EF Core that allows for transparent keyset pagination.
 
 So if you are doing something like this in your resolver:
 
 ```csharp
 [UsePaging]
-public static async IQueryable<Brand> GetBrandsAsync(
+public static async IQueryable<Brand> GetBrands(
     PagingArguments pagingArguments,
     CatalogContext context)
     => context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id);
 ```
 
-Then by default we would emulate cursor pagination by using skip/take underneath. However, as I said we have a new keyset pagination provider for EF core that you now can opt-in to. Its not the default btw as it is not compatible with SQLite.
+By default, this would emulate cursor pagination by using `skip/take` underneath. However, as I mentioned, we now have a new keyset pagination provider for EF Core that you can opt-in to. It's not the default, by the way, as it is not compatible with SQLite.
 
 ```csharp
 builder.Services
     .AddGraphQLServer()
-    .AddQueryType<Query>()
-
-
+    ...
+    .AddDbContextCursorPagingProvider();
 ```
 
-
-
-
-
-
-// talk about the non-layered paging providers
-// sorting expression interception
-// default sorting / IsDefined!
-// benefits of keyset pagination
-// cursor key serialization
-// * Added inlining of total count when using cursor pagination. by @michaelstaib in https://github.com/ChilliCream/graphql-platform/pull/7366
+But what about user-controlled sorting? The above example would fall apart when using `[UseSorting]`, as we could not guarantee that the order is stable. To address this, we have added a couple of helpers to the `ISortingContext` that allow you to manipulate the sorting expression.
 
 ```csharp
-public static class BrandNode
+[UsePaging]
+[UseSorting]
+public static async IQueryable<Brand> GetBrands(
+    CatalogContext context,
+    ISortingContext sorting)
 {
-    public static async Task<Brand?> GetBrandByIdAsync(
-        [Parent] Brand brand,
-        PagingArguments args,
-        BrandByIdDataLoader brandById,
-        CancellationToken cancellationToken)
-        => await brandById
-            .Select(selection)
-            .WithPagingArguments(args)
-            .LoadAsync(id, cancellationToken);
+    // this signals that the expression was not handled within the resolver
+    // and the sorting middleware should take over.
+    sorting.Handled(false);
+
+    sorting.OnAfterSortingApplied<IQueryable<Brand>>(
+        static (sortingApplied, query) =>
+        {
+            if (sortingApplied && query is IOrderedQueryable<Brand> ordered)
+            {
+                return ordered.ThenBy(b => b.Id);
+            }
+
+            return query.OrderBy(b => b.Id);
+        });
+
+    return context.Brands;
 }
 ```
 
+With the `ISortingContext`, we now have a hook that is executed after the user sorting has been applied. This allows us to append a stable order to the user sorting. Typically, this could be generalized and moved into a user extension method to make the resolver look cleaner.
+
+```csharp
+[UsePaging]
+[UseSorting]
+public static async IQueryable<Brand> GetBrands(
+    CatalogContext context,
+    ISortingContext sorting)
+{
+    sorting.AppendStableOrder(b => b.Id);
+    return context.Brands;
+}
+```
+
+You even could go further and bake it into a custom middleware.
+
+```csharp
+[UsePaging]
+[UseCustomSorting]
+public static async IQueryable<Brand> GetBrands(
+    CatalogContext context,
+    ISortingContext sorting)
+    => context.Products;
+```
+
+With the new paging providers, we now also inline the total count into the database query that slices the page, meaning you have a single call to the database. The paging middleware will inspect what data is actually needed and either fetch the page and the total count in one database query, just the page if the total count is not needed, or just the total count if the page is not needed. All of this is built on top of the new `IsSelected` query inspection API.
+
 ## DataLoader
+
+Let's talk about `DataLoader`, as we already touched on how `DataLoader` is now more flexible with pagination.
 
 / ContextData
 / DataLoader auto-caching
-
 
 ```csharp
 internal static class BrandDataLoader
