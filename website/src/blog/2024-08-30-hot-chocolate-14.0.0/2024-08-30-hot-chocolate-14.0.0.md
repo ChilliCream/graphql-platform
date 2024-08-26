@@ -607,53 +607,51 @@ With Hot Chocolate 14 We have decided to remove CCN and add a new HTTP header `h
 
 We have prefixed the header with `hc-` to signal that this is a Hot Chocolate specific header and not to collide with the eventual GraphQL specification.
 
+## Data
+
+- Executable / Cosmos Driver / EF Driver
+
 ## Query Errors
 
-Interface Resolver
+## Transport
 
-Null Bubbling Mode and CCN
+- Semantic Routes
+- Variable Batching
+- Transport Layer Changes
+- GraphQL over HTTP Spec
+- Fixed NotAuthenticated
+- Variable and Request Batching
 
-Security
-  - no introspection
-  - cost and stuff
+## Security
 
-Fusion
+- Cost Analysis
+- Introspection
 
-Composite Schema Specification
+## Fusion
 
-Source Schema Package
+- Source Schema Package
+- Composite Schema Specification
 
-Community
+## Client
+
+- HotChocolate.Transport
+
+## GraphQL Cockpit
+
+- OpenTelemetry/BCP
+- Schema Registry
+
+## Community
 
   * Further optimize filter expressions by @nikolai-mb in https://github.com/ChilliCream/graphql-platform/pull/7311
   * DevContainer
+  * Azure Data API Builder
 
-Root Fields [Query, Mutation, Subscription]
+## Documentation and Courses
 
-OpenTelemetry/BCP
+  - DomeTrain Course
 
-GraphQL Semantic Operation Routes
-  - persisted operations and more
-
-Variable and Request Batching
-
-Cost Analysis
-
-Schema Registry
-
-DomeTrain Course
-
-Executable / Cosmos Driver / EF Driver
-
-Azure Data API Builder
-
-HotChocolate.Transport
-
-Transport Layer Changes and GraphQL over HTTP Spec / Fixed NotAuthenticated
-
-Null Bubbling Mode and CCN
-
-HotChocolate 15
+## Hot Chocolate 15
 
   - Focus
   - .NET 8 / 9
