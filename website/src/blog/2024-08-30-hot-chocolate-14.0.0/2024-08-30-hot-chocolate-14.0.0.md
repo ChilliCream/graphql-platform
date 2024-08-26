@@ -279,9 +279,9 @@ With the new paging providers, we now also inline the total count into the datab
 
 ## DataLoader
 
-Let's talk about DataLoader, as we already touched on how DataLoader is now more flexible with pagination, whats underneath is the new state that can be associated with DataLoader. Since DataLoader can be accessed from multiple threads concurrently and also be dispatched at multiple points during execution you have unreliable state that can be used when its there but should not make the DataLoader fail. But you also can have state that is used to branch a DataLoader and where the state is guaranteed in that branch.
+Let's talk about `DataLoader`. As we already touched on how `DataLoader` is now more flexible with pagination, what's underneath is the new state that can be associated with `DataLoader`. Since `DataLoader` can be accessed from multiple threads concurrently and also be dispatched at multiple points during execution, you have unreliable state that can be used when it's available but should not cause the `DataLoader` to fail. However, you can also have state that is used to branch a `DataLoader`, where the state is guaranteed within that branch.
 
-Let me give you some examples. In the following example we are fetching brands for id 1 and 2. We also provide some state when we ask for brand 2. The state is guaranteed to be there when I fetch the second brand but could bne there for the first brand, this all depends on the dispatcher.
+Let me give you some examples. In the following example, we are fetching brands for ID 1 and 2. We also provide some state when we ask for brand 2. The state is guaranteed to be there when I fetch the second brand, but it could be there for the first brand—this all depends on the dispatcher.
 
 ```csharp
 var task1 = brandById.LoadAsync(1);
@@ -289,7 +289,7 @@ var task2 = brandById.SetState("some-state", "some-value").LoadAsync(2);
 Task.WaitAll(task1, task2);
 ```
 
-However, in some cases like paging I want the state to be guaranteed, in these cases we can branch a DataLoader and into this branch we pass in some data that make up the context of this branch.
+However, in some cases like paging, I want the state to be guaranteed. In these cases, we can branch a `DataLoader`, and into this branch, we pass in some data that make up the context of this branch.
 
 ```csharp
 var branch = brandById
@@ -301,13 +301,13 @@ var task2 = branch.LoadAsync(2);
 Task.WaitAll(task1, task2);
 ```
 
-When we look at paging for instance than we use the paging arguments to create a branch key, so whenever you pass in the same paging arguments you will get the same branch. This allows us to batch the paging requests for the same paging arguments.
+When we look at paging, for instance, we use the paging arguments to create a branch key. So, whenever you pass in the same paging arguments, you will get the same branch. This allows us to batch the paging requests for the same paging arguments.
 
 ```csharp
 productsByBrandId.WithPagingArguments(args).LoadAsync(brandId, ct);
 ```
 
-We also use the same state mechanism for DataLoader with projections.
+We also use the same state mechanism for `DataLoader` with projections.
 
 ```csharp
 public class Query
@@ -323,7 +323,7 @@ public class Query
 }
 ```
 
-Where you can pass in an `ISelection` into the DataLoader. Any selection that structurally equivalent will point to the same DataLoader branch and be batched together. We can even add to that state thing we might want to include on top, like things we want to be guaranteed when fetching the entity.
+You can pass an `ISelection` into the `DataLoader`. Any selection that is structurally equivalent will point to the same `DataLoader` branch and be batched together. We can even add to that state things we might want to include on top, like elements we want to be guaranteed when fetching the entity.
 
 ```csharp
 public class Query
@@ -340,7 +340,7 @@ public class Query
 }
 ```
 
-From the DataLoader side  we can inject these selections and apply them to our queryable.
+From the `DataLoader` side, we can inject these selections and apply them to our queryable.
 
 ```csharp
 internal static class BrandDataLoader
@@ -358,7 +358,7 @@ internal static class BrandDataLoader
 }
 ```
 
-When using our DataLoader projections we are using a new projection engine that is separate from HotChocolate.Data and we are using this to redefine what projections are in Hot Chocolate. This is why `IsProjectedAttribute` is not supported. Instead we have modified the `ParentAttribute` to specify requirements.
+When using our `DataLoader` projections, we are utilizing a new projection engine that is separate from `HotChocolate.Data`, and we are using this to redefine what projections are in Hot Chocolate. This is why `IsProjectedAttribute` is not supported. Instead, we have modified the `ParentAttribute` to specify requirements.
 
 ```csharp
 public static class ProductExtensions
@@ -373,11 +373,11 @@ public static class ProductExtensions
 }
 ```
 
-The optional argument on the `ParentAttribute` specifies a selection set which describes the requirements for the parent object. In the case above it just defines that the brand id is required. But you could also specify that you need the ids of the products as well `Id Products { Id }`. The parent we inject is the guaranteed to have the properties filled with the required data. We evaluate this string the in source generator and if it does not match the object structure it would yield a compile time error. The whole DataLoader projections engine marked as experimental and we are looking for feedback.
+The optional argument on the `ParentAttribute` specifies a selection set that describes the requirements for the parent object. In the example above, it defines that the brand ID is required. However, you could also specify that you need the IDs of the products as well, such as `Id Products { Id }`. The parent we inject is guaranteed to have the properties filled with the required data. We evaluate this string in the source generator, and if it does not match the object structure, it would yield a compile-time error. The whole `DataLoader` projections engine is marked as experimental, and we are looking for feedback.
 
-Apart from this we have invested a lot into GreenDonut to make sure that you can use the source generated DataLoader without any dependencies on HotChocolate. Since DataLoader ideally are used between the business layer and the data layer and are transparent to the REST or GraphQL Layer.
+Apart from this, we have invested a lot into `GreenDonut` to ensure that you can use the source-generated `DataLoader` without any dependencies on `HotChocolate`. Since `DataLoader` is ideally used between the business layer and the data layer and is transparent to the REST or GraphQL layer.
 
-With Hot Chocolate 14 you can now add the `HotChocolate.Types.Analyzers` package and the `GreenDonut` package into your data layer. The analyzers package is just the source generator and will not be a dependency of your package. We will generate the DataLoader code plus the dependency injection code for registering your DataLoader. Yous simply need to add to your project the `DataLoaderModuleAttribute` like the following:
+With Hot Chocolate 14, you can now add the `HotChocolate.Types.Analyzers` package and the `GreenDonut` package to your data layer. The analyzers package is just the source generator and will not be a dependency of your package. We will generate the `DataLoader` code plus the dependency injection code for registering your `DataLoader`. You simply need to add the `DataLoaderModuleAttribute` to your project like the following:
 
 ```csharp
 [assembly: DataLoaderModule("CatalogDataLoader")]
@@ -412,7 +412,7 @@ internal static class BrandDataLoader
 }
 ```
 
-If I would use these two DataLoader within a single request we would in fact fetch the same entity twice. But with Hot Chocolate 14 we can now share the entities between the two DataLoader.
+Lastly, on the topic of `DataLoader`, we have made the `DataLoader` cache observable, allowing you to share entities between `DataLoader` instances for even more efficient caching. Let's say that we have two brand `DataLoader` instances: one fetches the entity by ID, and the other one by name.
 
 ```csharp
 internal static class BrandDataLoader
@@ -443,9 +443,9 @@ internal static class BrandDataLoader
 }
 ```
 
-This can be easily done by writing to observer methods which create a new cache lookup for the same object. So at the moment one of the DataLoader is instantiated it will subscribe for `Brand` entities on the cache and create lookups. After that the DataLoader will receive real-time notifications if any other DataLoader has fetched a `Brand` entity and will be able to use the cached entity.
+This can be easily done by writing two observer methods that create a new cache lookup for the same object. So, at the moment one of the `DataLoader` instances is instantiated, it will subscribe for `Brand` entities on the cache and create lookups. After that, the `DataLoader` will receive real-time notifications if any other `DataLoader` has fetched a `Brand` entity and will be able to use the cached entity.
 
-Where this really shines is with optional includes, where when we use for instance the `BrandByIdDataLoader` we could do an include to load in one request already the products because we know that we will need them.
+Where this really shines is with optional includes. For instance, when using the `BrandByIdDataLoader`, we could include the products in one request because we know that we will need them.
 
 ```csharp
 public sealed class BrandService(CatalogContext context)
@@ -473,7 +473,7 @@ internal static class ProductDataLoader
 }
 ```
 
-In this case we can subscribe to `Brand` entities on the cache and check if they have the products list populated. If they have we can create lookups for the products.
+In this case, we can subscribe to `Brand` entities on the cache and check if they have the products list populated. If they do, we can create lookups for the products.
 
 
 ## Source Generators
