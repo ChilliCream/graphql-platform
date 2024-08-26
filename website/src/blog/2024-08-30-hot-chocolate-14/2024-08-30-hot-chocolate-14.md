@@ -1,9 +1,8 @@
 ---
-path: "/blog/2024/08/30/new-in-hot-chocolate-14"
+path: "/blog/2024/08/30/hot-chocolate-14"
 date: "2024-08-30"
 title: "What's new for Hot Chocolate 14"
 tags: ["hotchocolate", "graphql", "dotnet", "aspnetcore"]
-featuredImage: "hot-chocolate-14-banner.png"
 author: Michael Staib
 authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
@@ -610,9 +609,87 @@ We have prefixed the header with `hc-` to signal that this is a Hot Chocolate-sp
 
 ## Data
 
-- Executable / Cosmos Driver / EF Driver
+To make it easier to integrate new data sources into Hot Chocolate, we have made our `IExecutable` abstraction easier to implement and integrated it more fully into our resolver pipeline. This allows for easier integration of IQueryable based data drivers, like Entity Framework Core or Cosmos DB without the need of branching the whole data provider in Hot Chocolate.
 
-## Query Errors
+We have integrated the current Cosmos DB driver with the new `HotChocolate.Data.Cosmos` package and adds the new `AsCosmosExecutable` extension method to the `IQueryable` interface. This allows you to easily convert your Cosmos DB queryable into an `IExecutable` that can be used within the default Filter, Sorting and Projection middleware.
+
+```csharp
+[QueryType]
+public static class Query
+{
+    [UsePaging]
+    [UseFiltering]
+    [UseSorting]
+    public static IExecutable<Book> GetBooks(Container container)
+        => container
+            .GetItemLinqQueryable<Book>(allowSynchronousQueryExecution: true)
+            .AsCosmosExecutable();
+}
+```
+
+However, if you are already trying out EF Core 9 then you should give the new Cosmos driver within EF Core a second look as it was rewritten from the ground up and is now on par with the Cosmos DB SDK driver.
+
+## Query Conventions
+
+Our mutation conventions were received very well by the community back when we introduced them. They help to implement a complex GraphQL pattern around mutations and errors. With mutation convention we provided consistency and removed the boilerplate from your code.
+
+Ever since we have introduced the mutation conventions, we have been asked to provide a similar pattern for queries. While in most cases I actually would not resort to error patterns like for mutations because queries are typically side-effect-free and should be easily queried without care for complex result types. However, there are these cases where you want to return a domain error as part of your query. For these cases we did recognize the need for a consistent pattern.
+
+However, queries are different from mutations and there is a better pattern here than introducing payloadesque types. With our new query conventions we are embracing a union type as result type where the first entry in the union represents success and the following entries represent errors.
+
+```graphql
+type Query {
+  book(id: ID!): BookResult
+}
+
+union BookResult = Book | BookNotFound | BookAccessDenied
+```
+
+This allows as to query like the following:
+
+```graphql
+query {
+  book(id: "1") {
+    ... on Book {
+      title
+    }
+    ... on Error {
+      code : __typename
+      message
+    }
+    ... on BookNotFound {
+      bookId
+    }
+    ... on BookAccessDenied {
+      requiredRoles
+    }
+  }
+}
+```
+
+To opt-in to the query conventions you can chain into the configuration builder `AddQueryConventions`.
+
+```csharp
+builder
+  .AddGraphQL()
+  .AddTypes()
+  .AddQueryConventions();
+```
+
+This in turn allows you like with mutations to annotate errors on your resolver or use the `FieldResult<TResult, TError>` type.
+
+```csharp
+public class Query
+{
+    [Error<BookNotFoundException>]
+    [Error<BookAccessDeniedException>]
+    public async Task<Book> GetBook(
+        int id,
+        BookService bookService,
+        CancellationToken ct)
+        => await bookService.GetBookAsync(id, ct);
+
+```
 
 ## Transport
 
