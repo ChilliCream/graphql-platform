@@ -12,11 +12,50 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.AspNetCore.Authorization;
 
-public class AuthorizationTests : ServerTestBase
+public class AuthorizationTests(TestServerFactory serverFactory) : ServerTestBase(serverFactory)
 {
-    public AuthorizationTests(TestServerFactory serverFactory)
-        : base(serverFactory)
+    [Theory]
+    [ClassData(typeof(AuthorizationTestData))]
+    [ClassData(typeof(AuthorizationAttributeTestData))]
+    public async Task Authorize_WithoutArgs_NoClaimsIdentity_NotAuthenticated(Action<IRequestExecutorBuilder> configure)
     {
+        // arrange
+        var server = CreateTestServer(
+            builder =>
+            {
+                configure(builder);
+                builder.Services.AddAuthorization();
+            },
+            context => context.User = new ClaimsPrincipal());
+
+        // act
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ default }", });
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, result.StatusCode);
+        result.MatchSnapshot();
+    }
+
+    [Theory]
+    [ClassData(typeof(AuthorizationTestData))]
+    [ClassData(typeof(AuthorizationAttributeTestData))]
+    public async Task Authorize_WithoutArgs_HasClaimsIdentity_Authenticated(Action<IRequestExecutorBuilder> configure)
+    {
+        // arrange
+        var server = CreateTestServer(
+            builder =>
+            {
+                configure(builder);
+                builder.Services.AddAuthorization();
+            },
+            context => context.User = new ClaimsPrincipal(new ClaimsIdentity("abc")));
+
+        // act
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ default }", });
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, result.StatusCode);
+        result.MatchSnapshot();
     }
 
     [Theory]
