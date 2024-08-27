@@ -609,9 +609,9 @@ We have prefixed the header with `hc-` to signal that this is a Hot Chocolate-sp
 
 ## Data
 
-To make it easier to integrate new data sources into Hot Chocolate, we have made our `IExecutable` abstraction easier to implement and integrated it more fully into our resolver pipeline. This allows for easier integration of IQueryable based data drivers, like Entity Framework Core or Cosmos DB without the need of branching the whole data provider in Hot Chocolate.
+To make it easier to integrate new data sources into Hot Chocolate, we have made our `IExecutable` abstraction simpler to implement and integrated it more fully into our resolver pipeline. This allows for easier integration of `IQueryable`-based data drivers, like Entity Framework Core or Cosmos DB, without the need to branch the entire data provider in Hot Chocolate.
 
-We have integrated the current Cosmos DB driver with the new `HotChocolate.Data.Cosmos` package and adds the new `AsCosmosExecutable` extension method to the `IQueryable` interface. This allows you to easily convert your Cosmos DB queryable into an `IExecutable` that can be used within the default Filter, Sorting and Projection middleware.
+We have integrated the current Cosmos DB driver with the new `HotChocolate.Data.Cosmos` package and added the new `AsCosmosExecutable` extension method to the `IQueryable` interface. This allows you to easily convert your Cosmos DB queryable into an `IExecutable` that can be used within the default Filter, Sorting, and Projection middleware.
 
 ```csharp
 [QueryType]
@@ -627,15 +627,15 @@ public static class Query
 }
 ```
 
-However, if you are already trying out EF Core 9 then you should give the new Cosmos driver within EF Core a second look as it was rewritten from the ground up and is now on par with the Cosmos DB SDK driver.
+However, if you are already trying out EF Core 9, you should give the new Cosmos driver within EF Core a second look, as it was rewritten from the ground up and is now on par with the Cosmos DB SDK driver.
 
 ## Query Conventions
 
-Our mutation conventions were received very well by the community back when we introduced them. They help to implement a complex GraphQL pattern around mutations and errors. With mutation convention we provided consistency and removed the boilerplate from your code.
+Our mutation conventions were very well received by the community when we introduced them. They help to implement a complex GraphQL pattern around mutations and errors. With mutation conventions, we provided consistency and removed the boilerplate from your code.
 
-Ever since we have introduced the mutation conventions, we have been asked to provide a similar pattern for queries. While in most cases I actually would not resort to error patterns like for mutations because queries are typically side-effect-free and should be easily queried without care for complex result types. However, there are these cases where you want to return a domain error as part of your query. For these cases we did recognize the need for a consistent pattern.
+Ever since we introduced the mutation conventions, we have been asked to provide a similar pattern for queries. While in most cases, I would not recommend resorting to error patterns like those used for mutations—because queries are typically side-effect-free and should be easily queried without concern for complex result types—there are cases where you want to return a domain error as part of your query. For these situations, we recognized the need for a consistent pattern.
 
-However, queries are different from mutations and there is a better pattern here than introducing payloadesque types. With our new query conventions we are embracing a union type as result type where the first entry in the union represents success and the following entries represent errors.
+However, queries are different from mutations, and there is a better pattern than introducing payload-esque types. With our new query conventions, we are embracing a union type as the result type, where the first entry in the union represents success, and the following entries represent errors.
 
 ```graphql
 type Query {
@@ -693,33 +693,33 @@ public class Query
 
 ## Transport
 
-Lets talk about the GraphQL transport layer and what has changed with Hot Chocolate 14. The GraphQL over HTTP spec is now in its final stages and we have been adopting the latest changes. This means that we no longer return status code 500 when the full result has be erased due to a non-null violation. Instead we return status code 200 and a JSON body that contains the error information and data as null.
+Let's talk about the GraphQL transport layer and what has changed with Hot Chocolate 14. The GraphQL over HTTP spec is now in its final stages, and we have been adopting the latest changes. This means that we no longer return status code 500 when the full result has been erased due to a non-null violation. Instead, we return status code 200 with a JSON body that contains the error information and `data` as null.
 
-If you are interested into the spec, you can find the current version [here](LINK).
+If you are interested in the spec, you can find the current version [here](LINK).
 
-We have also reintroduced the error code for not authenticated errors to make it easier for authentication flows. This was something we originally dropped in Hot Chocolate 13 but because a lot of you have struggled with this we have reintroduced it.
+We have also reintroduced the error code for not authenticated errors to make it easier for authentication flows. This was something we originally dropped in Hot Chocolate 13, but because many of you struggled with this, we have reintroduced it.
 
-Apart from these smaller bits an pieces we have completely rewritten our persisted operation aka trusted document pipeline to introduce end-2-end tracability across the whole transport layer. We have done this by implementing a feature we call semantic routes. The idea here is that each operation has a unique uri that is derived from the document has and the operation name.
+Apart from these smaller bits and pieces, we have completely rewritten our persisted operation, aka trusted document pipeline, to introduce end-to-end traceability across the entire transport layer. We have done this by implementing a feature we call semantic routes. The idea here is that each operation has a unique URI that is derived from the document hash and the operation name.
 
-This new persisted operation transport pipeline can be mapped separatly like the following.
+This new persisted operation transport pipeline can be mapped separately, as shown in the following example:
 
 ```csharp
 app.MapGraphQLPersistedOperations();
 ```
 
-By default we would map the persisted operations to `/graphql/persisted/{documentHash}/{operationName}` but you can change the root for this path.
+By default, we would map the persisted operations to `/graphql/persisted/{documentHash}/{operationName}`, but you can change the root for this path.
 
-Now with this only the variables and extensions are posted to the server or when you are using a query you can also use a get request like the following:
+Now, with this setup, only the variables and extensions are posted to the server. If you are using a query, you can also use a GET request, like the following:
 
 ```csharp
 GET /graphql/persisted/1234/GetBook?variables={id:1}
 ```
 
-This also makes it so much easier to work with CDNs or to reroute certain operation to different servers.
+This also makes it much easier to work with CDNs or to reroute certain operations to different servers.
 
-For this release we have also reimplementd our batching transport layer and support now variable batching and request batching. Variable batching is a new batching proposal we have created for the upcoming Composite Schema Specification to transparently use batching in combination with standard GraphQL queries instead of relying on special field like the `_entities` field.
+For this release, we have also reimplemented our batching transport layer and now support both variable batching and request batching. Variable batching is a new batching proposal we have created for the upcoming Composite Schema Specification to transparently use batching in combination with standard GraphQL queries, instead of relying on special fields like the `_entities` field.
 
-With variable batching you can batch for the same operation multiple sets of variables.
+With variable batching, you can batch multiple sets of variables for the same operation.
 
 ```json
 {
@@ -728,7 +728,7 @@ With variable batching you can batch for the same operation multiple sets of var
 }
 ```
 
-Since a variable batch request has the same structure than a standard GraphQL request, except for the variable field which in this case is a list, we can also batch these within a batch request.
+Since a variable batch request has the same structure as a standard GraphQL request, except for the `variable` field, which in this case is a list, we can also batch these within a batch request.
 
 ```json
 [
@@ -743,27 +743,27 @@ Since a variable batch request has the same structure than a standard GraphQL re
 ]
 ```
 
-This new batching API with in your backend allows for new use-cases and is a great way to optimize your GraphQL server.
+This new batching API within your backend allows for new use cases and is a great way to optimize your GraphQL server.
 
 ## Security
 
-We have seen countless GraphQL servers over the last year as part of our consulting engagements and in many cases they were not configured in a secure way. This was not for the lack of functionality in Hot Chocolate but because engineers that were transitioning to GraphQL often did not know good security practices in GraphQL.
+We have seen countless GraphQL servers over the last year as part of our consulting engagements, and in many cases, they were not configured in a secure way. This was not due to a lack of functionality in Hot Chocolate but because engineers transitioning to GraphQL often did not know good security practices in GraphQL.
 
-GraphQL as facebook created and used it was built around flexibility at dev time and persisted operations at production. This means the moment facebook deploys to production the GraphQL server becomes in essence a REST server. There is no GraphQL in production. The GraphQL server is only able to execute trusted operations that were exported from the various frontends into an operation store. The way this works is that in the build pipeline operations are stripped from the frontend code and replaced with a unique identifier. The stripped operation documents are stored in an operation store. The frontend on production would send to the GraphQL server the unique identifier instead of a full operation and the GraphQL server would only execute operations that are stored in the operations store.
+GraphQL, as Facebook created and used it, was built around flexibility during development and persisted operations in production. This means that when Facebook deploys to production, the GraphQL server essentially becomes a REST server—there is no open GraphQL in production. The GraphQL server is only able to execute trusted operations that were exported from the various frontends into an operation store. In the build pipeline, operations are stripped from the frontend code and replaced with a unique identifier. The stripped operation documents are stored in an operation store. In production, the frontend sends the unique identifier to the GraphQL server instead of a full operation, and the GraphQL server only executes operations stored in the operations store.
 
-This is the best way to do GraphQL and gives you the best story for schema evolvability as used operations are centrally known and can be statically analyzed. It also makes sure that you know the performance characteristics and the impact of operations to your backend, With Banana Cake Pop you can setup a schema registry and an operation store in less than 5 minutes. Have a look [here](LINK) for more information.
+This is the best way to do GraphQL and provides the best approach for schema evolvability, as used operations are centrally known and can be statically analyzed. It also ensures that you know the performance characteristics and impact of operations on your backend. With Banana Cake Pop, you can set up a schema registry and an operation store in less than 5 minutes. Have a look [here](LINK) for more information.
 
-However, most new developers are not aware how to do this or do not understand why they should. The other problem is that there is now easy path from an open GraphQL server to a closed system once you have clients working against your API.
+However, most new developers are not aware of how to do this or do not understand why they should. Another problem is that there is no easy path from an open GraphQL server to a closed system once you have clients working against your API.
 
-With Hot Chocolate 14 we wanted to make sure that your servers are secure even if you do not configure a single setting, and even if you do not know about persisted operations or you explicitly want an open GraphQL server. Going forward we have built into the core of Hot Chocolate the IBM cost specification to weight the impact of your requests and to restrict expensive operations right from the start.
+With Hot Chocolate 14, we wanted to ensure that your servers are secure even if you do not configure a single setting, even if you do not know about persisted operations, or even if you explicitly want an open GraphQL server. Going forward, we have built into the core of Hot Chocolate the IBM cost specification to weigh the impact of your requests and to restrict expensive operations right from the start.
 
-When you export your schema with Hot Chocolate 14 you will see that we have added cost directives to certain fields. We estimate cost automatically so that you do not have to do this manually. You can override where we are wrong. The IBM cost spec has to weights it calculates. The type cost, which estimates the objects being produced, in essence the data cost. Secondly, it estimates the field cost, this basically is the computational cost.
+When you export your schema with Hot Chocolate 14, you will see that we have added cost directives to certain fields. We estimate costs automatically so that you do not have to do this manually. You can override these estimates where necessary. The IBM cost spec has two weights it calculates: type cost, which estimates the objects being produced (essentially the data cost), and field cost, which estimates the computational cost.
 
-> With Hot Chocolate 14 we have implemented the static analysis but will add runtime analysis and result analysis as opt-ins with Hot Chocolate 15.
+> With Hot Chocolate 14, we have implemented static analysis, but we will add runtime analysis and result analysis as opt-ins with Hot Chocolate 15.
 
-The static analysis will go for maximums, which means if you say you want 50 elements in a list it will estimate 50 elements on not the actual number of elements. This makes sure that you do not overwhelm your server with a single request and have a good estimate what the request could mean to your backend.
+The static analysis estimates maximums, meaning if you specify a list of 50 elements, it will estimate 50 elements, not the actual number of elements. This ensures that you do not overwhelm your server with a single request and provides a good estimate of what the request could mean for your backend.
 
-You can combine the cost analysis scores with rate limiting to ensure that a use stays in cost boundaries over time.
+You can combine the cost analysis scores with rate limiting to ensure that a user stays within cost boundaries over time.
 
 ```csharp
 .UseRequest(next =>
@@ -808,15 +808,15 @@ You can combine the cost analysis scores with rate limiting to ensure that a use
 })
 ```
 
-While you would need it a bit more sophisticated in production, with redis to have a distributed rate limiter, this is a good start to ensure that your server is not overwhelmed.
+While you would need a more sophisticated setup in production, such as using Redis to have a distributed rate limiter, this is a good start to ensure that your server is not overwhelmed.
 
-With the cost spec you can also estimate a request impact without doing the actual request by sending in the header `GraphQL-Cost:validate` or if you want the request to be executed but to still the the cost even if the request is valid then you can send in the header `GraphQL-Cost:report`.
+With the cost spec, you can also estimate a request's impact without executing the actual request by sending the header `GraphQL-Cost:validate`. If you want the request to be executed but still want to see the cost, even if the request is valid, you can send the header `GraphQL-Cost:report`.
 
-With the IBM cost spec backed into the core its always on and this will make your GraphQL server more secure and more predictable. But this also will tell you the truth about your requests which might hurt when you migrate.
+With the IBM cost spec baked into the core, it's always on, making your GraphQL server more secure and predictable. However, it will also reveal the true cost of your requests, which might be challenging when you migrate.
 
-What we also have made sure of is that when you want to migrate from an open GraphQL server to trusted documents that this can now be done in a couple of minutes by slapping Banana Cake Pop in. Over a time frame of 30,60 or 90 days the GraphQL server will report operations that were executed and will store them in the operation store. You can manually decide which queries not to take in. After that period you can switch trusted operations on and only operations tracked in the operation store will be allowed form this day forward.
+We have also ensured that migrating from an open GraphQL server to trusted documents can now be done in a few minutes by integrating Banana Cake Pop. Over a period of 30, 60, or 90 days, the GraphQL server will report executed operations and store them in the operation store. You can manually decide which queries to exclude. After that period, you can switch to trusted operations, and only operations tracked in the operation store will be allowed from that day forward.
 
-One other thing we have changed with Hot Chocolate 14 is around introspection. When we detect a production environment in ASP.NET core we will automatically disable introspection and provide a schema file on the route `/graphql?sdl` which is one time computed schema file that will server as a simple file from your server. The misunderstanding with introsection is often that people think its about hiding the schema. This is actually not the case since it quite simple to infer the schema from the request observed in a web application. The problem with introspection is that it is easy to produce very large results in your GraphQL server. When I say large than I mean 200 - 300 MB large. This depends on your schema. Most tools will work fine with a schema file which is much smaller than the introspection result and costs literally no compute and memory. You can override this behavior like the following.
+Another change we made with Hot Chocolate 14 is around introspection. When we detect a production environment in ASP.NET Core, we will automatically disable introspection and provide a schema file at the route `/graphql?sdl`, which is a one-time computed schema file that will be served as a simple file from your server. The misunderstanding with introspection is often that people think it's about hiding the schema. This is actually not the case since it's quite simple to infer the schema from requests observed in a web application. The problem with introspection is that it can easily produce very large results from your GraphQL server. When I say large, I mean 200-300 MB, depending on your schema. Most tools will work fine with a schema file, which is much smaller than the introspection result and costs virtually nothing in terms of compute and memory. You can override this behavior as follows:
 
 ```csharp
 builder
