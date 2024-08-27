@@ -82,7 +82,7 @@ public sealed class BrandService(CatalogContext context)
             .OrderBy(t => t.Name)
             .ThenBy(t => t.Id);
 
-        if(includeProductDetails)
+        if (includeProductDetails)
         {
             query = query.Include(t => t.Products.Details);
         }
