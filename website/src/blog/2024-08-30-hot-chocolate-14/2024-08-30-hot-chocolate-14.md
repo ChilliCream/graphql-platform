@@ -834,31 +834,104 @@ builder
 
 ## Fusion
 
-- Source Schema Package
-- Composite Schema Specification
+OK, with that, let's talk about Fusion, our GraphQL solution for federated APIs. With version 14, we have focused heavily on stability. Based on feedback from the community, we have improved how errors traverse from the source schemas to the composite schema.
+
+We have also made the configuration process easier by providing a new package that offers attributes for Fusion. This allows you to use C# instead of GraphQL extension files.
+
+```csharp
+public static class Query
+{
+    [Lookup]
+    public static async Task<Brand?> GetBrandByProductIdAsync(
+        [Is("product { id }")] int id,
+        ISelection selection,
+        BrandByProductIdDataLoader brandByProductId,
+        CancellationToken cancellationToken)
+        => await brandByProductId
+            .Select(selection)
+            .LoadAsync(id, cancellationToken);
+}
+```
+
+This is especially nice when we talk about `@require`.
+
+```csharp
+public static int EstimateShippingTime(
+    [Require("dimension { weight }")] int productWeight)
+```
+
+We have also worked on experimental support for Aspire, which gives you a much nicer development workflow around distributed GraphQL.
+
+Apart from these smaller changes, we are currently working on three major areas for Fusion. The first is implementing the composite schema specification, which will align Hot Chocolate Fusion with the open spec proposal. The second effort is achieving AOT compatibility for the gateway. This is a major undertaking, as we are essentially creating a second GraphQL server from scratch, focused solely on the gateway.
+
+Additionally, recognizing that many people use Apollo Federation and may want to migrate to a pure .NET solution, we are also working on compatibility with the Apollo Federation spec. As the composite schema specification merges Fusion concepts around lookups and the Apollo Federation spec around schema evolution and traffic steering, the step from Fusion to supporting Apollo Federation is not that big. However, we have moved these tasks from Hot Chocolate 14 to Hot Chocolate 15.
 
 ## Client
 
-- HotChocolate.Transport
+For Hot Chocolate Fusion, we have created a low-level GraphQL client that supports a variety of GraphQL protocols. We have refactored Strawberry Shake to use this basic client for HTTP traffic. For many server-to-server use cases, I recommend using this client as it is geared toward performance and allows you to bring your own models.
+
+```csharp
+var client = new DefaultGraphQLHttpClient(httpClient);
+
+var query =
+    """
+    query($episode: Episode!) {
+      hero(episode: $episode) {
+        name
+      }
+    }
+    """;
+
+var variables = new Dictionary<string, object?>
+{
+    ["episode"] = "JEDI",
+};
+
+
+var response = await client.PostAsync(query, variables);
+
+using var body = await response.ReadAsResultAsync(cts.Token);
+var mode = body.Data.Deserialize<MyResponseModel>()
+```
 
 ## GraphQL Cockpit
 
-- OpenTelemetry/BCP
-- Schema Registry
+With Banana Cake Pop, we have further shifted to give you more control over your applications with an end-to-end GraphQL cockpit that provides a schema registry, client registry, operation store, GraphQL telemetry, end-to-end OTEL tracing, logging, metrics, and strong schema evolution workflows that put you in control.
+
+SCREENSHOT
+
+With Banana Cake Pop you have the best solution to manage you distributed GraphQL setup.
 
 ## Community
 
-- Further optimize filter expressions by @nikolai-mb in https://github.com/ChilliCream/graphql-platform/pull/7311
-- DevContainer
-- Azure Data API Builder
+In this release, we had a staggering **30** new contributors who helped alongside the team of core contributors. Overall, we had 46 contributors working on Hot Chocolate 14. These contributions ranged from fixing typos to optimizing our filter expressions, like the [pull request](https://github.com/ChilliCream/graphql-platform/pull/7311) from @nikolai-mb. We are very grateful to have such a vibrant community that helps us make Hot Chocolate better every day.
+
+For this reason, we have now created a GitHub DevContainer template so that you can get started with contributing in about 2 minutes. You can either run the DevContainer directly on GitHub:
+
+SCREENSHOT
+
+Or you can run it locally on your own Docker. If you do not know what DevContainers are, you can read up on them [here](https://docs.github.com/en/codespaces/setting-up-your-project-for-codespaces/adding-a-dev-container-configuration/introduction-to-dev-containers).
 
 ## Documentation and Courses
 
-- DomeTrain Course
+We are still hard at work updating the documentation and are also taking feedback on this version. This post is based on 14.0.0-rc.1.
+
+If you want to learn all about the new features of Hot Chocolate, I have made a course on DomeTrain that gives you the ultimate introduction to GraphQL and uses Hot Chocolate in its preview builds.
+
+If you use the code `STAIB`, you will get a 20% discount on the course.
+
+[https://dometrain.com/course/getting-started-graphql-in-dotnet/](https://dometrain.com/course/getting-started-graphql-in-dotnet/)
 
 ## Hot Chocolate 15
 
-- Focus
-- .NET 8 / 9
-- DataLoader
-- Projections Engine
+Lastly, let's talk about the roadmap ahead. We have already started work on Hot Chocolate 15, which is slated for release in December/January. Hot Chocolate 15 will have a heavy focus on Hot Chocolate Fusion and will introduce a brand new gateway and new composition tooling. As I outlined in the Fusion section, we are working on three areas that will reinvent what Fusion is.
+
+Other areas we will focus on include `DataLoader`, with a new batch scheduler that uses its own `TaskScheduler` to better track `DataLoader` promises in batching and defer scenarios. We already have a PR up for this but had stability concerns for version 14. With version 15, we will have the time to get this right and provide a much more efficient `DataLoader` implementation.
+
+Projections is another area where we are all in, working on a brand new projections engine. You can already see bits and pieces in Hot Chocolate 14 with the experimental features we've introduced around `DataLoader` projections. The new projection engine in `HotChocolate.Data` will be built on top of `DataLoader` and will offer a much more efficient way to project your data with proper data requirements.
+
+With Hot Chocolate 15, we are dropping support for `.NETStandard 2.0`, `.NET 6.0`, and `.NET 7`. Going forward, you will need to run on `.NET 8.0` or `.NET 9.0`. This change will allow us to modernize a lot of code and eliminate many precompile directives.
+
+Looking beyond Hot Chocolate 15, we will shift our focus back to Strawberry Shake, which will undergo a major overhaul.
+
+With that, I encourage you to try out Hot Chocolate 14 RC.1 and give us your feedback. We have planned for three more RCs before we go GA.
