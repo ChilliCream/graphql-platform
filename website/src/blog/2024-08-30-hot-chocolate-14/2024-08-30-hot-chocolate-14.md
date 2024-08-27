@@ -642,7 +642,7 @@ The new serializer is more efficient and aligns better with the ID serialization
 
 The new serializer still allows for the old format to be passed in, and you can also register the legacy serializer if you prefer the way we handled it before.
 
-Relay remains the best GraphQL client library, with others still trying to catch up by copying Relay concepts. We have always been very vocal about this and use Relay as our first choice in customer projects. Relay is a smart GraphQL client that would immensely benefit from a feature called fragment isolation, where an error in one fragment would not cause the erasure of data from a colocated fragment.
+Relay remains the best GraphQL client library, with others still trying to catch up by copying Relay concepts. We have always been very vocal about this and use Relay as our first choice in customer projects. Relay is a smart GraphQL client that would benefit immensely from a feature called fragment isolation, where an error in one fragment would not cause the erasure of data from a colocated fragment.
 
 The issue here is that the GraphQL specification defines that if a non-null field either returns null or throws an error, the selection set is erased, and the error is propagated upwards. This is a problem for Relay because it would cause the erasure of data from colocated fragments.
 
