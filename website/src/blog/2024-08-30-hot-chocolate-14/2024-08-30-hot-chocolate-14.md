@@ -802,21 +802,23 @@ This new batching API within your backend allows for new use cases and is a grea
 
 We have seen countless GraphQL servers over the last year as part of our consulting engagements, and in many cases, they were not configured in a secure way. This was not due to a lack of functionality in Hot Chocolate but because engineers transitioning to GraphQL often did not know good security practices for GraphQL.
 
-GraphQL, as Facebook created and used it, was built around flexibility during development and persisted operations in production. This means that when Facebook deploys to production, the GraphQL server essentially becomes a REST server — there is no open GraphQL endpoint in production. The GraphQL server is only able to execute trusted operations that were exported from the various frontends into an operation store. In the build pipeline, operations are stripped from the frontend code and replaced with a unique identifier. The stripped operation documents are stored in an operation store. In production, the frontend sends the unique identifier to the GraphQL server instead of a full operation, and the GraphQL server only executes operations stored in the operations store.
+GraphQL, as Facebook created and used it, was built around flexibility during development and persisted operations in production. This means that when Facebook deploys to production, the GraphQL server essentially becomes a REST server — there is no open GraphQL endpoint in production. The GraphQL server is only able to execute trusted operations that were exported from the various frontends into an operation store.
 
-This is the best way to do GraphQL and provides the best approach for schema evolvability, as used operations are centrally known and can be statically analyzed. It also ensures that you know the performance characteristics and impact of operations on your backend. With Banana Cake Pop, you can set up a schema registry and an operation store in less than 5 minutes. Have a look [here](https://chillicream.com/docs/bananacakepop/v2/apis/schema-registry) for more information.
+In the build pipeline, operations are stripped from the frontend code and replaced with a unique identifier. The stripped operation documents are stored in an operation store. In production, the frontend sends the unique identifier to the GraphQL server instead of a full operation. The GraphQL server only executes operations stored in the operations store and will deny execution of an arbitrary GraphQL requests.
 
-However, most new developers are not aware of how to do this or do not understand why they should. Another problem is that there is no easy path from an open GraphQL server to a closed system once you have clients working against your API.
+This is the BEST way to do GraphQL and provides the best approach for schema evolvability, as operations are centrally known and can be statically analyzed. It also ensures that you know the performance characteristics and impact of operations on your backend. With Banana Cake Pop, you can set up a schema registry and an operation store in less than 5 minutes. Have a look [here](https://chillicream.com/docs/bananacakepop/v2/apis/schema-registry) for more information.
 
-With Hot Chocolate 14, we wanted to ensure that your servers are secure even if you do not configure a single setting, even if you do not know about persisted operations, or even if you explicitly want an open GraphQL server. Going forward, we have built into the core of Hot Chocolate the IBM cost specification to weigh the impact of your requests and to restrict expensive operations right from the start.
+However, most new developers are not aware of how to do this or do not understand why they should do it in the first place. Another problem is that there is no easy path from an open GraphQL server to a closed system once you have clients working against your API.
+
+With Hot Chocolate 14, we wanted to ensure that your GraphQL server is secure even if you do not configure any security related options, even if you do not know about persisted operations, or even if you explicitly want an open GraphQL server. Going forward, we have built into the core of Hot Chocolate the IBM cost specification to weigh the impact of your requests and to restrict expensive operations right from the start.
 
 <Video videoId="R6Rq4kU_GfM" />
 
 When you export your schema with Hot Chocolate 14, you will see that we have added cost directives to certain fields. We estimate costs automatically so that you do not have to do this manually. You can override these estimates where necessary. The IBM cost spec has two weights it calculates: type cost, which estimates the objects being produced (essentially the data cost), and field cost, which estimates the computational cost.
 
-> With Hot Chocolate 14, we have implemented static analysis, but we will add runtime analysis and result analysis as opt-ins with Hot Chocolate 15.
+> With Hot Chocolate 14, we have implemented static analysis, but we will add runtime analysis and result analysis in later updates as well.
 
-The static analysis estimates maximums, meaning if you specify a list of 50 elements, it will estimate 50 elements, not the actual number of elements. This ensures that you do not overwhelm your server with a single request and provides a good estimate of what the request could mean for your backend.
+The static analysis estimates maximums, meaning if you request a list of 50 elements, it will estimate 50 elements, not the actual number of elements that is returned. This ensures that you do not overwhelm your server with a single request and provides a good estimate of what the request could mean for your backend.
 
 You can combine the cost analysis scores with rate limiting to ensure that a user stays within cost boundaries over time.
 
@@ -863,15 +865,15 @@ You can combine the cost analysis scores with rate limiting to ensure that a use
 })
 ```
 
-While you would need a more sophisticated setup in production, such as using Redis to have a distributed rate limiter, this is a good start to ensure that your server is not overwhelmed.
+While you would need a more sophisticated setup in production, such as using Redis to have a distributed rate limiter, this is a good start to ensure that your server is not overwhelmed and as predictable performance characteristics.
 
 With the cost spec, you can also estimate a request's impact without executing the actual request by sending the header `GraphQL-Cost:validate`. If you want the request to be executed but still want to see the cost, even if the request is valid, you can send the header `GraphQL-Cost:report`.
 
 With the IBM cost spec baked into the core, it's always on, making your GraphQL server more secure and predictable. However, it will also reveal the true cost of your requests, which might be challenging when you migrate.
 
-We have also ensured that migrating from an open GraphQL server to trusted documents can now be done in a few minutes by integrating Banana Cake Pop. Over a period of 30, 60, or 90 days, the GraphQL server will report executed operations and store them in the operation store. You can manually decide which queries to exclude. After that period, you can switch to trusted operations, and only operations tracked in the operation store will be allowed from that day forward.
+We have also ensured that migrating from an open GraphQL server to trusted documents can now be done in a few minutes by integrating with Banana Cake Pop. Over a period of 30, 60, or 90 days, the GraphQL server will report executed operations to Banana Cake Pop which will store them in the operation store. You can manually decide which queries to exclude. After that period, you can switch to trusted operations, and only operations tracked in the operation store will be allowed from that day forward.
 
-Another change we made with Hot Chocolate 14 is around introspection. When we detect a production environment in ASP.NET Core, we will automatically disable introspection and provide a schema file at the route `/graphql?sdl`, which is a one-time computed schema file that will be served as a simple file from your server. The misunderstanding with introspection is often that people think it's about hiding the schema. This is actually not the case since it's quite simple to infer the schema from requests observed in a web application. The problem with introspection is that it can easily produce very large results from your GraphQL server. When I say large, I mean 200-300 MB, depending on your schema. Most tools will work fine with a schema file, which is much smaller than the introspection result and costs virtually nothing in terms of compute and memory. You can override this behavior as follows:
+Another change we made with Hot Chocolate 14 is around introspection. When we detect a production environment in ASP.NET Core, we will automatically disable introspection and provide a schema file at the route `/graphql?sdl`, which is a one-time computed schema file that will be served as a simple file from your server. The misunderstanding with introspection is often that people think it's about hiding the schema. This actually is not the case since it's quite simple to infer the schema from requests observed in a web application. The problem with introspection is that it can easily produce very large results. When I say large, I mean 200-300 MB, depending on your schema. Most tools will work fine with a schema file, which is much smaller than the introspection result and costs virtually nothing in terms of compute and memory. You can override this behavior as follows:
 
 ```csharp
 builder
@@ -919,7 +921,7 @@ We have also worked on experimental support for Aspire, which gives you a much n
 
 Apart from these smaller changes, we are currently working on three major areas for Fusion. The first is implementing the composite schema specification, which will align Hot Chocolate Fusion with the open spec proposal. The second effort is achieving AOT compatibility for the gateway. This is a major undertaking, as we are essentially creating a second GraphQL server from scratch, focused solely on the gateway.
 
-Additionally, recognizing that many people use Apollo Federation and may want to migrate to a pure .NET solution, we are also working on compatibility with the Apollo Federation spec. As the composite schema specification merges Fusion concepts around lookups and the Apollo Federation spec around schema evolution and traffic steering, the step from Fusion to supporting Apollo Federation is not that big. However, we have moved these tasks from Hot Chocolate 14 to Hot Chocolate 15.
+Additionally, recognizing that many people use Apollo Federation and may want to migrate to a pure .NET solution, we are also working on compatibility with the Apollo Federation spec. As the composite schema specification merges Fusion concepts around lookups and the Apollo Federation spec around schema evolution and traffic steering, the step from Fusion to supporting Apollo Federation is not that big anymore. However, we have moved these tasks from Hot Chocolate 14 to Hot Chocolate 15 as we still have lots to do here.
 
 ## Client
 
@@ -950,9 +952,9 @@ var mode = body.Data.Deserialize<MyResponseModel>()
 
 ## GraphQL Cockpit
 
-With Banana Cake Pop, we have further shifted to give you more control over your applications with an end-to-end GraphQL cockpit that provides a schema registry, client registry, operation store, GraphQL telemetry, end-to-end OTEL tracing, logging, metrics, and strong schema evolution workflows that put you in control.
+With Banana Cake Pop, we have further shifted to give you more control over your applications with an end-to-end GraphQL cockpit that provides a schema registry, client registry, operation store, GraphQL telemetry, end-to-end OpenTelemetry tracing, logging, metrics, and strong schema evolution workflows that put you in control.
 
-SCREENSHOT
+![Banana Cake Pop](screen-banana-cake-pop-1.png)
 
 With Banana Cake Pop you have the best solution to manage your distributed GraphQL setup.
 
@@ -964,13 +966,13 @@ In this release, we had a staggering **30** new contributors who helped alongsid
 
 For this reason, we have now created a GitHub DevContainer template so that you can get started with contributing in about 2 minutes. You can either run the DevContainer directly on GitHub:
 
-SCREENSHOT
+![GitHub Codespaces](screen-codespaces-1.png)
 
 Or you can run it locally on your own Docker. If you do not know what DevContainers are, you can read up on them [here](https://docs.github.com/en/codespaces/setting-up-your-project-for-codespaces/adding-a-dev-container-configuration/introduction-to-dev-containers).
 
 ## Documentation and Courses
 
-We are still hard at work updating the documentation and are also taking feedback on this version. This post is based on 14.0.0-rc.1.
+We are still hard at work updating the documentation and are also taking feedback on this version. This post is based on 14.0.0-rc.1 which will be out in a couple of days.
 
 If you want to learn all about the new features of Hot Chocolate, I have made a course on DomeTrain that gives you the ultimate introduction to GraphQL and uses Hot Chocolate in its preview builds.
 
@@ -982,14 +984,14 @@ Apart from the in-depth workshop at DomeTrain we have also reworked our Getting 
 
 ## Hot Chocolate 15
 
-Lastly, let's talk about the roadmap ahead. We have already started work on Hot Chocolate 15, which is slated for release in December/January. Hot Chocolate 15 will have a heavy focus on Hot Chocolate Fusion and will introduce a brand new gateway and new composition tooling. As I outlined in the Fusion section, we are working on three areas that will reinvent what Fusion is.
+Lastly, let's talk about the roadmap ahead. We have already started work on Hot Chocolate 15, which is slated for release in December/January. Hot Chocolate 15 will have a heavy focus on Hot Chocolate Fusion and will introduce a brand new gateway and new composition tooling. As I outlined in the Fusion section, we are working on three key areas that will reinvent what Fusion is.
 
 Other areas we will focus on include DataLoader, with a new batch scheduler that uses its own `TaskScheduler` to better track DataLoader promises in batching and defer scenarios. We already have a PR up for this but had stability concerns for version 14. With version 15, we will have the time to get this right and provide a much more efficient DataLoader implementation.
 
 Projections is another area where we are all in, working on a brand new projections engine. You can already see bits and pieces in Hot Chocolate 14 with the experimental features we've introduced around DataLoader projections. The new projection engine in `HotChocolate.Data` will be built on top of DataLoader and will offer a much more efficient way to project your data with proper data requirements.
 
-With Hot Chocolate 15, we are dropping support for `.NETStandard 2.0`, `.NET 6.0`, and `.NET 7`. Going forward, you will need to run on `.NET 8.0` or `.NET 9.0`. This change will allow us to modernize a lot of code and eliminate many precompile directives.
+With Hot Chocolate 15, we are dropping support for `.NETStandard 2.0`, `.NET 6.0`, and `.NET 7.0`. Going forward, you will need to run on `.NET 8.0` or `.NET 9.0`. This change will allow us to modernize a lot of code and eliminate many precompile directives.
 
 Looking beyond Hot Chocolate 15, we will shift our focus back to Strawberry Shake, which will undergo a major overhaul.
 
-With that, I encourage you to try out Hot Chocolate 14 RC.1 and give us your feedback. We have planned for three more RCs before we go GA.
+With that, I encourage you to try out Hot Chocolate 14 RC.1 and give us your feedback as soon as it will drop on nuget.org. We have planned for three more RCs after RC.1 to address issues our community finds.

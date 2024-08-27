@@ -141,6 +141,7 @@ debuggable
 colocated
 esque
 frontends
+evolvability
 
 # Command line options
 -Lsfo
