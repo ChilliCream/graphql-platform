@@ -648,7 +648,7 @@ The issue here is that the GraphQL specification defines that if a non-null fiel
 
 We have been working on a solution to this problem for years now within the GraphQL foundation, and Hot Chocolate has implemented, in past versions, a proposal called CCN (Client-Controlled-Nullability) where the user could change the nullability of fields.
 
-However, there is now a new push called the true-nullability proposal, which allows smart clients to simply disable null bubbling. In this case, a smart client could create a sort of fragment isolation on the client side by only deleting the fragment affected by an error or non-null violation.
+However, there is now a new push to solve this problem in a simpler way with a proposal called true-nullability, which allows smart clients to simply disable null bubbling. In this case, a smart client could create a sort of fragment isolation on the client side by only deleting the fragment affected by an error or non-null violation.
 
 With Hot Chocolate 14, we have decided to remove CCN and add a new HTTP header `hc-disable-null-bubbling` that allows you to disable null bubbling for a request. This is a first step towards true-nullability, which would also introduce a new semantic nullability type to the type system.
 
