@@ -923,7 +923,7 @@ With Banana Cake Pop, we have further shifted to give you more control over your
 
 SCREENSHOT
 
-With Banana Cake Pop you have the best solution to manage you distributed GraphQL setup.
+With Banana Cake Pop you have the best solution to manage your distributed GraphQL setup.
 
 <Video videoId="KfBV3GQ3760" />
 
