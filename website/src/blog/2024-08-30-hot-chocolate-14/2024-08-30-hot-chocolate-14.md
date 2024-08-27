@@ -892,7 +892,7 @@ Additionally, recognizing that many people use Apollo Federation and may want to
 
 ## Client
 
-For Hot Chocolate Fusion, we have created a low-level GraphQL client that supports a variety of GraphQL protocols. We have refactored Strawberry Shake to use this basic client for HTTP traffic. For many server-to-server use cases, I recommend using this client as it is geared toward performance and allows you to bring your own models.
+For Hot Chocolate Fusion, we have created a low-level GraphQL client that supports a variety of GraphQL protocols. We have refactored Strawberry Shake to use this basic client for HTTP traffic. For many server-to-server use cases, we recommend using this client as it is geared toward performance and allows you to bring your own models.
 
 ```csharp
 var client = new DefaultGraphQLHttpClient(httpClient);
