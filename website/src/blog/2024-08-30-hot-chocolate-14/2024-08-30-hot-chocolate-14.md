@@ -33,7 +33,7 @@ In GraphQL, we essentially have two execution algorithms. The first, used for qu
 
 So, how is this related to DI? In Hot Chocolate 14, if we have an async resolver that requires services from the DI, we create a service scope around it, ensuring that the services you use in the resolver are not used concurrently used by other resolvers. Since query resolvers are, by specification, defined as side-effect-free, this is an excellent default behavior where you as the developer can just focus on writing code without concerning your self with concurrency between resolver instances.
 
-For mutations, the situation is different, as mutations inherently cause side effects. For instance, you might want to use a shared DbContext between two mutations. When executing a mutation Hot Chocolate will use the default request scope as its guaranteed by the execution algorithm that there ever will be a single mutation resolver executed at the same time for a request.
+For mutations, the situation is different, as mutations inherently cause side effects. For instance, you might want to use a shared DbContext between two mutations. When executing a mutation Hot Chocolate will use the default request scope as it's guaranteed by the execution algorithm that there will only ever be a single mutation resolver executed at the same time for a request.
 
 While the new default execution behavior is much more opinionated it leads to a dramatically easier experience when implementing resolvers. However, we recognize that there are reasons you maybe want to use the request DI scope everywhere. Thats why you can change the default configuration with the default schema options.
 
