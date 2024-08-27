@@ -83,7 +83,7 @@ The Operation Complexity Analyzer in v13 has been replaced by Cost Analysis in v
 - The `Complexity` property on `RequestExecutorOptions` (accessed via `ModifyRequestOptions`) has been removed.
 - Cost analysis is enabled by default.
 
-Please see the [documentation](../../security/cost-analysis) for further information.
+Please see the [documentation](/docs/hotchocolate/v14/security/cost-analysis) for further information.
 
 ## DateTime scalar enforces a specific format
 
