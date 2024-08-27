@@ -136,6 +136,11 @@ websockets
 winget
 Wunder
 xunit
+inspectable
+debuggable
+colocated
+esque
+frontends
 
 # Command line options
 -Lsfo

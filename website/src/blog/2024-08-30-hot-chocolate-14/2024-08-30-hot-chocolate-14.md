@@ -31,7 +31,7 @@ This leads to dramatically clearer code that is more understandable and easier t
 
 In GraphQL, we essentially have two execution algorithms. The first, used for queries, allows for parallelization to optimize data fetching. This enables us to enqueue data fetching requests transparently and execute them in parallel. The second algorithm, used for mutations, is a sequential algorithm that executes one mutation after another.
 
-So, how is this related to DI? In Hot Chocolate 14, if we have an async resolver that requires services from the DI, we create a service scope around it, ensuring that the services you use in the resolver are not used concurrently used by other resolvers. Since query resolvers are, by specification, defined as side-effect-free, this is an excellent default behavior where you as the developer can just focus on writing code without concerning your self with concurrency between resolver instances.
+So, how is this related to DI? In Hot Chocolate 14, if we have an async resolver that requires services from the DI container, we create a service scope around it, ensuring that the services you use in the resolver are not used concurrently used by other resolvers. Since query resolvers are, by specification, defined as side-effect-free, this is an excellent default behavior where you as the developer can just focus on writing code without concerning yourself with concurrency between resolver instances.
 
 For mutations, the situation is different, as mutations inherently cause side effects. For instance, you might want to use a shared DbContext between two mutations. When executing a mutation Hot Chocolate will use the default request scope as it's guaranteed by the execution algorithm that there will only ever be a single mutation resolver executed at the same time for a request.
 
@@ -57,7 +57,9 @@ public static async Task<Connection<Brand>> GetBrandsAsync(
     PagingArguments pagingArguments,
     BrandService brandService,
     CancellationToken cancellationToken)
-    => await brandService.GetBrandsAsync(pagingArguments, cancellationToken).ToConnectionAsync();
+    => await brandService
+        .GetBrandsAsync(pagingArguments, cancellationToken)
+        .ToConnectionAsync();
 ```
 
 > We have applied the same DI handling to source generated DataLoader which by default will now use an explicit service scope for each DataLoader fetch.
@@ -66,7 +68,7 @@ public static async Task<Connection<Brand>> GetBrandsAsync(
 
 <Video videoId="XZVpimb6sKg" />
 
-Another area where we have made significant improvements is in query inspection. With Hot Chocolate 14, it’s now incredibly simple to check which fields are being requested within the resolver without the need for complex syntax tree traversals. You can now formulate a pattern with the GraphQL selection syntax and let the executor inject a simple boolean that tells you if your pattern matched the user query.
+Another area where we have made significant improvements is with query inspections. With Hot Chocolate 14, it’s now incredibly simple to check which fields are being requested within the resolver without the need for complex syntax tree traversals. You can now formulate a pattern with the GraphQL selection syntax and let the executor inject a simple boolean that tells you if your pattern matched the user query.
 
 ```csharp
 public sealed class BrandService(CatalogContext context)
@@ -92,7 +94,17 @@ public sealed class BrandService(CatalogContext context)
 }
 ```
 
-The patterns also support inline fragments to match abstract types. However, even with these complex patterns, it can be beneficial to write your own traversal logic without dealing with complex trees. For this, you can now simply inject the resolver context and use our fluent selector inspection API.
+The patterns also support inline fragments to match abstract types.
+
+```graphql
+products {
+  ... on Book {
+    isbn
+  }
+}
+```
+
+However, even with these complex patterns, it can be beneficial to write your own traversal logic without dealing with complex trees. For this, you can now simply inject the resolver context and use our fluent selector inspection API.
 
 ```csharp
 public sealed class BrandService(CatalogContext context)
@@ -121,11 +133,11 @@ If you want to go all in and have the full power of the operation executor, you 
 
 ## Pagination
 
-Pagination is a common requirement in GraphQL APIs, and Hot Chocolate 14 makes it easier than ever to implement, no matter if you are building layered applications or using `DbContext` right in your resolvers.
+Pagination is a common requirement in GraphQL APIs, and Hot Chocolate 14 makes it easier than ever to implement pagination, no matter if you are building layered applications or using `DbContext` right in your resolvers.
 
-For layered application patterns like DDD, CQRS, or Clean Architecture, we have built a brand new paging API that is completely separate from the Hot Chocolate GraphQL core. When building layered applications, pagination should be a business concern and be handled in your repository or services layer. Doing so brings some unique concerns, like how the abstraction of a page looks. For this, we have introduced a couple of new primitives like `Page<T>`, `PagingArguments`, and others that allow you to build your own paging API that fits your needs and interfaces well with GraphQL and REST.
+For layered application patterns like DDD, CQRS, or Clean Architecture, we have built a brand new paging API that is completely separate from the Hot Chocolate GraphQL core. When building layered applications, pagination should be a business concern and should be handled in your repository or service layer. Doing so brings some unique concerns, like how the abstraction of a page looks like. For this, we have introduced a couple of new primitives like `Page<T>`, `PagingArguments`, and others that allow you to build your own paging API that fits your needs and interfaces well with GraphQL and REST.
 
-We have also implemented keyset pagination for Entity Framework Core, which you can use in your infrastructure layer. The Entity Framework team is planning to have, at some point, a paging API for keyset pagination natively integrated into EF Core ([Holistic end-to-end pagination feature](https://github.com/dotnet/efcore/issues/33160)). Until then, you can use our API to get the best performance out of your EF Core queries when using pagination.
+We have also implemented keyset pagination for Entity Framework Core, which you can use in your infrastructure layer. The Entity Framework team is planning to have, at some point, a paging API for keyset pagination natively integrated into EF Core ([Holistic end-to-end pagination feature](https://github.com/dotnet/efcore/issues/33160)). Until then, you can use our API to get the best performance out of your EF Core queries when using pagination with a layered application.
 
 ```csharp
 public sealed class BrandService(CatalogContext context)
@@ -141,7 +153,7 @@ public sealed class BrandService(CatalogContext context)
 }
 ```
 
-We are focusing on keyset pagination because it’s the better way to do pagination, as performance is constant per progression through pages, as opposed to a linearly growing performance impact with offset pagination. Apart from the better performance, keyset pagination also allows for stable pagination results even if the underlying data changes.
+We are focusing on keyset pagination because it’s the better way to do pagination, as performance is constant for each page accessed, as opposed to a linearly growing performance impact with offset pagination. Apart from the better performance, keyset pagination also allows for stable pagination results even if the underlying data changes.
 
 We also worked hard to allow for pagination in your DataLoader. In GraphQL, where nested pagination is a common requirement, having the capability to batch multiple nested paging requests into one database query is essential.
 
@@ -172,7 +184,9 @@ public static async Task<Connection<Brand>> GetBrandsAsync(
     PagingArguments pagingArguments,
     BrandService brandService,
     CancellationToken cancellationToken)
-    => await brandService.GetBrandsAsync(pagingArguments, cancellationToken).ToConnectionAsync();
+    => await brandService
+        .GetBrandsAsync(pagingArguments, cancellationToken)
+        .ToConnectionAsync();
 
 [UsePaging]
 public static async Task<Connection<Product>> GetProductsAsync(
@@ -180,7 +194,9 @@ public static async Task<Connection<Product>> GetProductsAsync(
     PagingArguments pagingArguments,
     ProductService productService,
     CancellationToken cancellationToken)
-    => await productService.GetProductsByBrandAsync(brand.Id, pagingArguments, cancellationToken).ToConnectionAsync();
+    => await productService
+        .GetProductsByBrandAsync(brand.Id, pagingArguments, cancellationToken)
+        .ToConnectionAsync();
 ```
 
 With the above resolvers, the execution engine would first call the `BrandService`, and then for each `Brand`, it would call the `ProductService` to get the products per brand. This would lead to an N+1 query problem within our GraphQL server. To solve this, we can use a DataLoader within our `ProductService` and batch the product requests.
@@ -191,8 +207,11 @@ To enable this, we have worked extensively on DataLoader and now support statefu
 public async Task<Page<Product>> GetProductsByBrandAsync(
     int brandId,
     PagingArguments args,
+    ProductsByBrandIdDataLoader productsByBrandId,
     CancellationToken ct = default)
-    => await productsByBrandId.WithPagingArguments(args).LoadAsync(brandId, ct);
+    => await productsByBrandId
+        .WithPagingArguments(args)
+        .LoadAsync(brandId, ct);
 ```
 
 Our DataLoader in this case would look like the following:
@@ -214,9 +233,9 @@ public sealed class ProductDataLoader
 }
 ```
 
-The `ToBatchPageAsync` extension would rewrite the paging query so that each `brandId` would be a separate page, allowing us to make one database call to get, in this case, 10 products per brand for 10 brands.
+The `ToBatchPageAsync` extension method will rewrite the paging query so that each `brandId` will be a separate page, allowing us to make one database call to get, in this case, 10 products per brand for 10 brands.
 
-An important aspect of keyset pagination is maintaining a stable order, which requires a unique key. In the above case, we order by `Name` and then chain the primary key `Id` at the end. This ensures that the order remains stable even if the `Name` is not unique.
+An important aspect of keyset pagination is maintaining a stable order, which requires a unique key. In the above case, we order by `Name` and then chain the primary key `Id` in at the end. This ensures that the order remains stable even if the `Name` is not unique.
 
 > If you want to read more about keyset pagination, you can do so [here](https://use-the-index-luke.com/no-offset).
 
@@ -227,12 +246,11 @@ So if you are doing something like this in your resolver:
 ```csharp
 [UsePaging]
 public static async IQueryable<Brand> GetBrands(
-    PagingArguments pagingArguments,
     CatalogContext context)
     => context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id);
 ```
 
-By default, this would emulate cursor pagination by using `skip/take` underneath. However, as I mentioned, we have now a new keyset pagination provider for EF Core that you can opt-in to. It's not the default, by the way, as it is not compatible with SQLite.
+By default, Hot Chocolate would emulate cursor pagination by using `skip/take` underneath. However, as I mentioned, we have now a new keyset pagination provider for EF Core that you can opt into. It's not the default, as it is not compatible with SQLite for instance.
 
 ```csharp
 builder.Services
@@ -283,14 +301,13 @@ public static async IQueryable<Brand> GetBrands(
 }
 ```
 
-You even could go further and bake this into a custom middleware.
+You could even go further and bake this into a custom middleware.
 
 ```csharp
 [UsePaging]
 [UseCustomSorting]
 public static async IQueryable<Brand> GetBrands(
-    CatalogContext context,
-    ISortingContext sorting)
+    CatalogContext context)
     => context.Products;
 ```
 
@@ -298,7 +315,7 @@ With the new paging providers, we now also inline the total count into the datab
 
 ## DataLoader
 
-Let's talk about `DataLoader`. As we already touched on how `DataLoader` is now more flexible with pagination, what's underneath is the new state that can be associated with `DataLoader`. Since `DataLoader` can be accessed from multiple threads concurrently and also be dispatched at multiple points during execution, you have unreliable state that can be used when it's available but should not cause the `DataLoader` to fail. However, you can also have state that is used to branch a `DataLoader`, where the state is guaranteed within that branch.
+Let's talk about DataLoader. As we already touched on how DataLoader is now more flexible with pagination, what's underneath all of this is the new state that can be associated with DataLoader. Since DataLoader can be accessed from multiple threads concurrently and also be dispatched at multiple points during execution, you have unreliable state that can be used when it's available but should not cause the DataLoader to fail. However, you can also have state that is used to branch a DataLoader, where the state is guaranteed within that branch.
 
 Let me give you some examples. In the following example, we are fetching brands for ID 1 and 2. We also provide some state when we ask for brand 2. The state is guaranteed to be there when I fetch the second brand, but it could be there for the first brand — this all depends on the dispatcher in this case.
 
@@ -308,7 +325,7 @@ var task2 = brandById.SetState("some-state", "some-value").LoadAsync(2);
 Task.WaitAll(task1, task2);
 ```
 
-However, in some cases like paging, I want the state to be guaranteed. In these cases. This is where branching comes in. We can branch a `DataLoader`, and into this branch, we pass in some data that represents the context of this branch.
+However, in some cases like paging, I want the state to be guaranteed. In these cases. This is where branching comes in. We can branch a DataLoader, and into this branch, we pass in some data that represents the context of this branch.
 
 ```csharp
 var branch = brandById
@@ -326,7 +343,7 @@ When we look at paging, for instance, we use the paging arguments to create a br
 productsByBrandId.WithPagingArguments(args).LoadAsync(brandId, ct);
 ```
 
-We also use the same state mechanism for `DataLoader` with projections.
+We also use the same state mechanism for DataLoader with projections.
 
 ```csharp
 public class Query
@@ -342,7 +359,7 @@ public class Query
 }
 ```
 
-You can pass an `ISelection` into the `DataLoader`. Any selection that is structurally equivalent will point to the same `DataLoader` branch and be batched together. We can even chain other things to that branched state like properties we want include even if they were not requested by the user and even if they are not part of the schema.
+You can pass an `ISelection` into the DataLoader. Any selection that is structurally equivalent will point to the same DataLoader branch and be batched together. We can even chain other things to that branched state like properties we want include even if they were not requested by the user and even if they are not part of the schema.
 
 ```csharp
 public class Query
@@ -359,12 +376,12 @@ public class Query
 }
 ```
 
-From the `DataLoader` side, we can inject these selections and apply them to our queryable.
+From the DataLoader side, we can inject these selections and apply them to our queryable.
 
 ```csharp
 internal static class BrandDataLoader
 {
-    [DataLoader(Lookups = [nameof(CreateBrandByIdLookup)])]
+    [DataLoader]
     public static async Task<Dictionary<int, Brand>> GetBrandByIdAsync(
         IReadOnlyList<int> ids,
         CatalogContext context,
@@ -377,7 +394,7 @@ internal static class BrandDataLoader
 }
 ```
 
-When using our `DataLoader` projections, we are utilizing a new projection engine that is separate from `HotChocolate.Data`, and we are using this to redefine what projections are in Hot Chocolate. This is why `IsProjectedAttribute` is not supported. Instead, we have modified the `ParentAttribute` to specify requirements.
+When using our DataLoader projections, we are utilizing a new projection engine that is separate from `HotChocolate.Data`, and we are using this to redefine what projections are in Hot Chocolate. This is why `IsProjectedAttribute` is not supported by DataLoader projections. Instead, we have modified the `ParentAttribute` to specify requirements.
 
 ```csharp
 public static class ProductExtensions
@@ -388,15 +405,17 @@ public static class ProductExtensions
         PagingArguments pagingArguments,
         ProductService productService,
         CancellationToken cancellationToken)
-        => await productService.GetProductsByBrandAsync(brand.Id, pagingArguments, cancellationToken).ToConnectionAsync();
+        => await productService
+            .GetProductsByBrandAsync(brand.Id, pagingArguments, cancellationToken)
+            .ToConnectionAsync();
 }
 ```
 
-The optional argument on the `ParentAttribute` specifies a selection set that describes the requirements for the parent object. In the example above, it defines that the brand ID is required. However, you could also specify that you need the IDs of the products as well, such as `Id Products { Id }`. The parent that is injected is guaranteed to have the properties filled with the required data. We evaluate this string representing the requirement in the source generator, and if it does not match the object structure, it would yield a compile-time error. The whole `DataLoader` projections engine is marked as experimental, and we are looking for feedback.
+The optional argument on the `ParentAttribute` specifies a selection set that describes the requirements for the parent object. In the example above, it defines that the brand ID is required. However, you could also specify that you need the IDs of the products as well, such as `Id Products { Id }`. The parent that is injected is guaranteed to have the properties filled with the required data. We evaluate this string representing the requirement in the source generator, and if it does not match the object structure, it would yield a compile-time error. The whole DataLoader projections engine is marked as experimental, and we are looking for feedback.
 
-Apart from this, we have invested a lot into `GreenDonut` to ensure that you can use the source-generated `DataLoader` without any dependencies on `HotChocolate`, since `DataLoader` is ideally used between the business layer and the data layer, and is transparent to the REST or GraphQL layer.
+Apart from this, we have invested a lot into `GreenDonut` to ensure that you can use the source-generated DataLoader without any dependencies on `HotChocolate`, since DataLoader is ideally used between the business layer and the data layer, and is transparent to the REST or GraphQL layer.
 
-With Hot Chocolate 14, you can now add the `HotChocolate.Types.Analyzers` package and the `GreenDonut` package to your data layer. The analyzers package is just the source generator and will not be a dependency of your own package. We will generate the `DataLoader` code plus the dependency injection code for registering your `DataLoader`. You simply need to add the `DataLoaderModuleAttribute` to your project like the following:
+With Hot Chocolate 14, you can now add the `HotChocolate.Types.Analyzers` package and the `GreenDonut` package to your data layer. The analyzers package is just the source generator and will not be a dependency of your own package. We will generate the DataLoader code plus the dependency injection code for registering your DataLoader. You simply need to add the `DataLoaderModuleAttribute` to your project like the following:
 
 ```csharp
 [assembly: DataLoaderModule("CatalogDataLoader")]
@@ -426,12 +445,10 @@ internal static class BrandDataLoader
             .AsNoTracking()
             .Where(t => names.Contains(t.Name))
             .ToDictionaryAsync(t => t.Name, ct);
-
-    private static string CreateBrandByNameLookup(Brand brand) => brand.Name;
 }
 ```
 
-This can be easily done by writing two observer methods that create a new cache lookup for the same object. So, at the moment one of the `DataLoader` instances is instantiated, it will subscribe for `Brand` entities on the cache and create lookups. After that, the `DataLoader` will receive real-time notifications if any other `DataLoader` has fetched a `Brand` entity and will be able to use the cached entity.
+This can be easily done by writing two observer methods that create a new cache lookup for the same object. So, at the moment one of the DataLoader instances is instantiated, it will subscribe for `Brand` entities on the cache and create lookups. After that, the DataLoader will receive real-time notifications if any other DataLoader has fetched a `Brand` entity and will be able to use the cached entity.
 
 ```csharp
 internal static class BrandDataLoader
@@ -462,7 +479,7 @@ internal static class BrandDataLoader
 }
 ```
 
-Where this really shines is with optional includes. For instance, when using the `BrandByIdDataLoader`, we could include the products in one request because we know that we will need them.
+Where this really shines is with optional includes. For instance, when using the `BrandByIdDataLoader`, we could include the products in one request because we know that we will need them later.
 
 ```csharp
 public sealed class BrandService(CatalogContext context)
@@ -478,6 +495,8 @@ public sealed class BrandService(CatalogContext context)
 }
 ```
 
+In this case, we can subscribe to `Brand` entities on the cache and check if they have the products list populated. If they do, we can create lookups for the products.
+
 ```csharp
 internal static class ProductDataLoader
 {
@@ -490,13 +509,11 @@ internal static class ProductDataLoader
 }
 ```
 
-In this case, we can subscribe to `Brand` entities on the cache and check if they have the products list populated. If they do, we can create lookups for the products.
-
 ## Source Generators
 
-With Hot Chocolate 14, we have started to expand our use of source-generated code. We have already used source generators in the past to automatically register types or generate the boilerplate code for `DataLoader`. With Hot Chocolate 14, we are now beginning to use source generators to generate resolvers. This feature is opt-in and, at the moment, only available for our new type extension API.
+With Hot Chocolate 14, we have started to expand our use of source-generated code. We have already used source generators in the past to automatically register types or generate the boilerplate code for DataLoader. With Hot Chocolate 14, we are now beginning to use source generators to generate resolvers. This feature is opt-in and, at the moment, only available for our new type extension API.
 
-The new `ObjectType<T>` attribute will, over the next few versions, replace the `ExtendObjectType` attribute. The new attribute works only in combination with the source generator and combines the power of the implementation-first approach with the code-first fluent API.
+The new `ObjectTypeAttribute<T>` will, over the next few versions, replace the `ExtendObjectType` attribute. The new attribute works only in combination with the source generator and combines the power of the implementation-first approach with the code-first fluent API.
 
 ```csharp
 [ObjectType<Brand>]
@@ -513,13 +530,15 @@ public static partial class BrandNode
         PagingArguments pagingArguments,
         ProductService productService,
         CancellationToken cancellationToken)
-        => await productService.GetProductsByBrandAsync(brand.Id, pagingArguments, cancellationToken).ToConnectionAsync();
+        => await productService
+            .GetProductsByBrandAsync(brand.Id, pagingArguments, cancellationToken)
+            .ToConnectionAsync();
 }
 ```
 
 The beauty of the source generator is that, in contrast to expression compilation, the results are fully inspectable, and we can guide you by issuing compile-time warnings and errors. The source generator output can be viewed within your IDE and is debuggable.
 
-IMAGE
+![Rider - Source Generators](screen-source-generator-1.png)
 
 With the new type extension API, we also allow for new ways to declare root fields and colocate queries, mutations, and subscriptions.
 
@@ -542,7 +561,7 @@ public static class Operations
 }
 ```
 
-Operation fields can also be colocated into extension types.
+Operation fields can even be colocated into extension types.
 
 ```csharp
 [ObjectType<Brand>]
@@ -559,7 +578,9 @@ public static partial class BrandNode
         PagingArguments pagingArguments,
         ProductService productService,
         CancellationToken cancellationToken)
-        => await productService.GetProductsByBrandAsync(brand.Id, pagingArguments, cancellationToken).ToConnectionAsync();
+        => await productService
+            .GetProductsByBrandAsync(brand.Id, pagingArguments, cancellationToken)
+            .ToConnectionAsync();
 
     [Query]
     public static async Task<Connection<Brand>> GetBrandsAsync(
@@ -577,7 +598,7 @@ public static partial class BrandNode
 }
 ```
 
-This allows for more flexibility in addition to the already established `QueryTypeAttribute`, `MutationTypeAttribute`, and `SubscriptionTypeAttribute`.
+This allows for more flexibility in addition to the already established `QueryTypeAttribute`, `MutationTypeAttribute`, and `SubscriptionTypeAttribute` we now have the new `QueryAttribute`, `MutationAttribute` and the `SubscriptionAttribute`.
 
 With the new version of Hot Chocolate, we are also introducing a new type extension API for interfaces, which allows you to add base resolvers for common functionality. Think of this like base classes.
 
@@ -601,12 +622,20 @@ This API is also available through the fluent API, where you now have `Resolve` 
 
 ## Relay Support
 
-With Hot Chocolate 14, we have also improved our Relay support. We have made it easier to integrate aggregations into the connection type and to add custom data to edges. You now have more control over the shape of the connection type, allowing you to disable the `nodes` field—either to remove it as unnecessary or to replace it with a custom field.
+With Hot Chocolate 14, we have also improved our Relay support. We have made it easier to integrate aggregations into the connection type and to add custom data to edges. You now have more control over the shape of the connection type, allowing you to disable the `nodes` field — either to remove it as unnecessary or to replace it with a custom field.
+
+```csharp
+builder
+    .AddGraphQL()
+    .ModifyPagingOptions(o => o.IncludeNodesField = false)
+```
 
 Additionally, we have reworked the node ID serializers to be extendable and support composite identifiers.
 
 ```csharp
-EXAMPLE NODE ID SERIALIZER REGISTRATION
+builder
+    .AddGraphQL()
+    .AddNodeIdValueSerializer<SomeTypeSerializer>()
 ```
 
 The new serializer is more efficient and aligns better with the ID serialization format of other GraphQL servers, where the encoded ID has the following format: `{TypeName}:{Id}`.
@@ -621,9 +650,9 @@ We have been working on a solution to this problem for years now within the Grap
 
 However, there is now a new push called the true-nullability proposal, which allows smart clients to simply disable null bubbling. In this case, a smart client could create a sort of fragment isolation on the client side by only deleting the fragment affected by an error or non-null violation.
 
-With Hot Chocolate 14, we have decided to remove CCN and add a new HTTP header `hc-disable-null-bubbling` that allows you to disable null bubbling for a request. This is a first step towards true-nullability, which would also introduce a new semantic nullability kind.
+With Hot Chocolate 14, we have decided to remove CCN and add a new HTTP header `hc-disable-null-bubbling` that allows you to disable null bubbling for a request. This is a first step towards true-nullability, which would also introduce a new semantic nullability type to the type system.
 
-We have prefixed the header with `hc-` to signal that this is a Hot Chocolate-specific header and to avoid collision with the eventual GraphQL specification.
+We have prefixed the header with `hc-` to signal that this is a Hot Chocolate-specific header and to avoid collision with the eventual GraphQL specification header.
 
 ## Data
 
@@ -653,7 +682,7 @@ However, if you are already trying out EF Core 9, you should give the new Cosmos
 
 Our mutation conventions were very well received by the community when we introduced them. They help to implement a complex GraphQL pattern around mutations and errors. With mutation conventions, we provided consistency and removed the boilerplate from your code.
 
-Ever since we introduced the mutation conventions, we have been asked to provide a similar pattern for queries. While in most cases, I would not recommend resorting to error patterns like those used for mutations—because queries are typically side-effect-free and should be easily queried without concern for complex result types—there are cases where you want to return a domain error as part of your query. For these situations, we recognized the need for a consistent pattern.
+Ever since we introduced the mutation conventions, we have been asked to provide a similar pattern for queries. While in most cases, I would not recommend resorting to error patterns like those used for mutations — because queries are typically side-effect-free and should be easily queried without concern for complex result types — there are cases where you want to return a domain error as part of your query. For these situations, we recognized the need for a consistent pattern.
 
 However, queries are different from mutations, and there is a better pattern than introducing payload-esque types. With our new query conventions, we are embracing a union type as the result type, where the first entry in the union represents success, and the following entries represent errors.
 
@@ -665,7 +694,7 @@ type Query {
 union BookResult = Book | BookNotFound | BookAccessDenied
 ```
 
-This allows as to query like the following:
+This allows us to query like the following:
 
 ```graphql
 query {
@@ -696,7 +725,7 @@ builder
   .AddQueryConventions();
 ```
 
-This in turn allows you like with mutations to annotate errors on your resolver or use the `FieldResult<TResult, TError>` type.
+This in turn allows you, like with mutation conventions, to annotate errors on your resolver or use the `FieldResult<TResult, TError>` type.
 
 ```csharp
 public class Query
@@ -721,13 +750,15 @@ We have also reintroduced the error code for not authenticated errors to make it
 
 <Video videoId="NK0Y1Y9NQrU" />
 
-Apart from these smaller bits and pieces, we have completely rewritten our persisted operation, aka trusted document pipeline, to introduce end-to-end traceability across the entire transport layer. We have done this by implementing a feature we call semantic routes. The idea here is that each operation has a unique URI that is derived from the document hash and the operation name.
+Apart from these smaller bits and pieces, we have completely rewritten our persisted operation pipeline, aka trusted document pipeline, to introduce end-to-end traceability across the entire transport layer. We have done this by implementing a feature we call semantic routes. The idea here is that each operation has a unique URI that is derived from the document hash and the operation name.
 
 This new persisted operation transport pipeline can be mapped separately, as shown in the following example:
 
 ```csharp
 app.MapGraphQLPersistedOperations();
 ```
+
+> In production you could drop the the standard GraphQL middleware and only map the persisted operations middleware.
 
 By default, we would map the persisted operations to `/graphql/persisted/{documentHash}/{operationName}`, but you can change the root for this path.
 
@@ -739,7 +770,7 @@ GET /graphql/persisted/1234/GetBook?variables={id:1}
 
 This also makes it much easier to work with CDNs or to reroute certain operations to different servers.
 
-For this release, we have also reimplemented our batching transport layer and now support both variable batching and request batching. Variable batching is a new batching proposal we have created for the upcoming Composite Schema Specification to transparently use batching in combination with standard GraphQL queries, instead of relying on special fields like the `_entities` field.
+For this release, we have also reimplemented our batching transport layer and now support both variable batching and request batching. Variable batching is a new batching proposal we have created for the upcoming Composite Schema Specification to transparently use batching in combination with standard GraphQL queries, instead of relying on special fields like the `_entities` field or the batching fields in Fusion.
 
 With variable batching, you can batch multiple sets of variables for the same operation.
 
@@ -750,7 +781,7 @@ With variable batching, you can batch multiple sets of variables for the same op
 }
 ```
 
-Since a variable batch request has the same structure as a standard GraphQL request, except for the `variable` field, which in this case is a list, we can also batch these within a batch request.
+Since a variable batch request has the same structure as a standard GraphQL request, except for the `variables` field, which in this case is a list, we can also batch these within a batch request.
 
 ```json
 [
@@ -769,9 +800,9 @@ This new batching API within your backend allows for new use cases and is a grea
 
 ## Security
 
-We have seen countless GraphQL servers over the last year as part of our consulting engagements, and in many cases, they were not configured in a secure way. This was not due to a lack of functionality in Hot Chocolate but because engineers transitioning to GraphQL often did not know good security practices in GraphQL.
+We have seen countless GraphQL servers over the last year as part of our consulting engagements, and in many cases, they were not configured in a secure way. This was not due to a lack of functionality in Hot Chocolate but because engineers transitioning to GraphQL often did not know good security practices for GraphQL.
 
-GraphQL, as Facebook created and used it, was built around flexibility during development and persisted operations in production. This means that when Facebook deploys to production, the GraphQL server essentially becomes a REST server—there is no open GraphQL in production. The GraphQL server is only able to execute trusted operations that were exported from the various frontends into an operation store. In the build pipeline, operations are stripped from the frontend code and replaced with a unique identifier. The stripped operation documents are stored in an operation store. In production, the frontend sends the unique identifier to the GraphQL server instead of a full operation, and the GraphQL server only executes operations stored in the operations store.
+GraphQL, as Facebook created and used it, was built around flexibility during development and persisted operations in production. This means that when Facebook deploys to production, the GraphQL server essentially becomes a REST server — there is no open GraphQL endpoint in production. The GraphQL server is only able to execute trusted operations that were exported from the various frontends into an operation store. In the build pipeline, operations are stripped from the frontend code and replaced with a unique identifier. The stripped operation documents are stored in an operation store. In production, the frontend sends the unique identifier to the GraphQL server instead of a full operation, and the GraphQL server only executes operations stored in the operations store.
 
 This is the best way to do GraphQL and provides the best approach for schema evolvability, as used operations are centrally known and can be statically analyzed. It also ensures that you know the performance characteristics and impact of operations on your backend. With Banana Cake Pop, you can set up a schema registry and an operation store in less than 5 minutes. Have a look [here](https://chillicream.com/docs/bananacakepop/v2/apis/schema-registry) for more information.
 
@@ -953,9 +984,9 @@ Apart from the in-depth workshop at DomeTrain we have also reworked our Getting 
 
 Lastly, let's talk about the roadmap ahead. We have already started work on Hot Chocolate 15, which is slated for release in December/January. Hot Chocolate 15 will have a heavy focus on Hot Chocolate Fusion and will introduce a brand new gateway and new composition tooling. As I outlined in the Fusion section, we are working on three areas that will reinvent what Fusion is.
 
-Other areas we will focus on include `DataLoader`, with a new batch scheduler that uses its own `TaskScheduler` to better track `DataLoader` promises in batching and defer scenarios. We already have a PR up for this but had stability concerns for version 14. With version 15, we will have the time to get this right and provide a much more efficient `DataLoader` implementation.
+Other areas we will focus on include DataLoader, with a new batch scheduler that uses its own `TaskScheduler` to better track DataLoader promises in batching and defer scenarios. We already have a PR up for this but had stability concerns for version 14. With version 15, we will have the time to get this right and provide a much more efficient DataLoader implementation.
 
-Projections is another area where we are all in, working on a brand new projections engine. You can already see bits and pieces in Hot Chocolate 14 with the experimental features we've introduced around `DataLoader` projections. The new projection engine in `HotChocolate.Data` will be built on top of `DataLoader` and will offer a much more efficient way to project your data with proper data requirements.
+Projections is another area where we are all in, working on a brand new projections engine. You can already see bits and pieces in Hot Chocolate 14 with the experimental features we've introduced around DataLoader projections. The new projection engine in `HotChocolate.Data` will be built on top of DataLoader and will offer a much more efficient way to project your data with proper data requirements.
 
 With Hot Chocolate 15, we are dropping support for `.NETStandard 2.0`, `.NET 6.0`, and `.NET 7`. Going forward, you will need to run on `.NET 8.0` or `.NET 9.0`. This change will allow us to modernize a lot of code and eliminate many precompile directives.
 
