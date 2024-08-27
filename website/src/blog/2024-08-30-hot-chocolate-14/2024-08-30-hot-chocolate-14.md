@@ -216,7 +216,7 @@ public sealed class ProductDataLoader
 
 The `ToBatchPageAsync` extension would rewrite the paging query so that each `brandId` would be a separate page, allowing us to make one database call to get, in this case, 10 products per brand for 10 brands.
 
-An important aspect of keyset pagination is maintaining a stable order, which requires a unique key at the end. In the above case, we order by `Name` and then chain the primary key `Id` at the end. This ensures that the order remains stable even if the `Name` is not unique.
+An important aspect of keyset pagination is maintaining a stable order, which requires a unique key. In the above case, we order by `Name` and then chain the primary key `Id` at the end. This ensures that the order remains stable even if the `Name` is not unique.
 
 > If you want to read more about keyset pagination, you can do so [here](https://use-the-index-luke.com/no-offset).
 
