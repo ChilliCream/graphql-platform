@@ -121,9 +121,9 @@ If you want to go all in and have the full power of the operation executor, you 
 
 ## Pagination
 
-Pagination is a common requirement in GraphQL APIs, and Hot Chocolate 14 makes it easier than ever to implement, no matter if you are building layered applications or using `DbContext` right in your resolver.
+Pagination is a common requirement in GraphQL APIs, and Hot Chocolate 14 makes it easier than ever to implement, no matter if you are building layered applications or using `DbContext` right in your resolvers.
 
-For layered application patterns like DDD, CQRS, or Clean Architecture, we have built a brand new paging API that is completely separate from the Hot Chocolate GraphQL core. When building layered applications, pagination should be a business concern and handled in your repository or services layer. Doing so brings some unique concerns, like how the abstraction of a page looks. For this, we have introduced a couple of new primitives like `Page<T>`, `PagingArguments`, and others that allow you to build your own paging API that fits your needs and interfaces well with GraphQL.
+For layered application patterns like DDD, CQRS, or Clean Architecture, we have built a brand new paging API that is completely separate from the Hot Chocolate GraphQL core. When building layered applications, pagination should be a business concern and be handled in your repository or services layer. Doing so brings some unique concerns, like how the abstraction of a page looks. For this, we have introduced a couple of new primitives like `Page<T>`, `PagingArguments`, and others that allow you to build your own paging API that fits your needs and interfaces well with GraphQL and REST.
 
 We have also implemented keyset pagination for Entity Framework Core, which you can use in your infrastructure layer. The Entity Framework team is planning to have, at some point, a paging API for keyset pagination natively integrated into EF Core ([Holistic end-to-end pagination feature](https://github.com/dotnet/efcore/issues/33160)). Until then, you can use our API to get the best performance out of your EF Core queries when using pagination.
 
@@ -141,11 +141,11 @@ public sealed class BrandService(CatalogContext context)
 }
 ```
 
-We are focusing on keyset pagination because it’s the better way to do pagination, as performance is constant per progression to the pages, as opposed to growing linearly with offset pagination. Apart from the better performance, keyset pagination also allows for stable pagination results even if the underlying data changes.
+We are focusing on keyset pagination because it’s the better way to do pagination, as performance is constant per progression through pages, as opposed to a linearly growing performance impact with offset pagination. Apart from the better performance, keyset pagination also allows for stable pagination results even if the underlying data changes.
 
 We also worked hard to allow for pagination in your DataLoader. In GraphQL, where nested pagination is a common requirement, having the capability to batch multiple nested paging requests into one database query is essential.
 
-Let’s assume we have the following query and we are using a layered architecture approach.
+Let’s assume we have the following GraphQL query and we are using a layered architecture approach.
 
 ```graphql
 query GetBrands {
@@ -232,7 +232,7 @@ public static async IQueryable<Brand> GetBrands(
     => context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id);
 ```
 
-By default, this would emulate cursor pagination by using `skip/take` underneath. However, as I mentioned, we now have a new keyset pagination provider for EF Core that you can opt-in to. It's not the default, by the way, as it is not compatible with SQLite.
+By default, this would emulate cursor pagination by using `skip/take` underneath. However, as I mentioned, we have now a new keyset pagination provider for EF Core that you can opt-in to. It's not the default, by the way, as it is not compatible with SQLite.
 
 ```csharp
 builder.Services
@@ -283,7 +283,7 @@ public static async IQueryable<Brand> GetBrands(
 }
 ```
 
-You even could go further and bake it into a custom middleware.
+You even could go further and bake this into a custom middleware.
 
 ```csharp
 [UsePaging]
@@ -300,7 +300,7 @@ With the new paging providers, we now also inline the total count into the datab
 
 Let's talk about `DataLoader`. As we already touched on how `DataLoader` is now more flexible with pagination, what's underneath is the new state that can be associated with `DataLoader`. Since `DataLoader` can be accessed from multiple threads concurrently and also be dispatched at multiple points during execution, you have unreliable state that can be used when it's available but should not cause the `DataLoader` to fail. However, you can also have state that is used to branch a `DataLoader`, where the state is guaranteed within that branch.
 
-Let me give you some examples. In the following example, we are fetching brands for ID 1 and 2. We also provide some state when we ask for brand 2. The state is guaranteed to be there when I fetch the second brand, but it could be there for the first brand—this all depends on the dispatcher.
+Let me give you some examples. In the following example, we are fetching brands for ID 1 and 2. We also provide some state when we ask for brand 2. The state is guaranteed to be there when I fetch the second brand, but it could be there for the first brand — this all depends on the dispatcher in this case.
 
 ```csharp
 var task1 = brandById.LoadAsync(1);
@@ -308,7 +308,7 @@ var task2 = brandById.SetState("some-state", "some-value").LoadAsync(2);
 Task.WaitAll(task1, task2);
 ```
 
-However, in some cases like paging, I want the state to be guaranteed. In these cases, we can branch a `DataLoader`, and into this branch, we pass in some data that make up the context of this branch.
+However, in some cases like paging, I want the state to be guaranteed. In these cases. This is where branching comes in. We can branch a `DataLoader`, and into this branch, we pass in some data that represents the context of this branch.
 
 ```csharp
 var branch = brandById
@@ -342,7 +342,7 @@ public class Query
 }
 ```
 
-You can pass an `ISelection` into the `DataLoader`. Any selection that is structurally equivalent will point to the same `DataLoader` branch and be batched together. We can even add to that state things we might want to include on top, like elements we want to be guaranteed when fetching the entity.
+You can pass an `ISelection` into the `DataLoader`. Any selection that is structurally equivalent will point to the same `DataLoader` branch and be batched together. We can even chain other things to that branched state like properties we want include even if they were not requested by the user and even if they are not part of the schema.
 
 ```csharp
 public class Query
@@ -392,7 +392,7 @@ public static class ProductExtensions
 }
 ```
 
-The optional argument on the `ParentAttribute` specifies a selection set that describes the requirements for the parent object. In the example above, it defines that the brand ID is required. However, you could also specify that you need the IDs of the products as well, such as `Id Products { Id }`. The parent we inject is guaranteed to have the properties filled with the required data. We evaluate this string in the source generator, and if it does not match the object structure, it would yield a compile-time error. The whole `DataLoader` projections engine is marked as experimental, and we are looking for feedback.
+The optional argument on the `ParentAttribute` specifies a selection set that describes the requirements for the parent object. In the example above, it defines that the brand ID is required. However, you could also specify that you need the IDs of the products as well, such as `Id Products { Id }`. The parent that is injected is guaranteed to have the properties filled with the required data. We evaluate this string representing the requirement in the source generator, and if it does not match the object structure, it would yield a compile-time error. The whole `DataLoader` projections engine is marked as experimental, and we are looking for feedback.
 
 Apart from this, we have invested a lot into `GreenDonut` to ensure that you can use the source-generated `DataLoader` without any dependencies on `HotChocolate`. Since `DataLoader` is ideally used between the business layer and the data layer and is transparent to the REST or GraphQL layer.
 
