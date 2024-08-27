@@ -716,7 +716,7 @@ query {
 }
 ```
 
-To opt-in to the query conventions you can chain into the configuration builder `AddQueryConventions`.
+To opt into the query conventions you can chain into the configuration builder `AddQueryConventions`.
 
 ```csharp
 builder
