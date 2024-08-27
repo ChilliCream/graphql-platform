@@ -758,7 +758,7 @@ This new persisted operation transport pipeline can be mapped separately, as sho
 app.MapGraphQLPersistedOperations();
 ```
 
-> In production you could drop the the standard GraphQL middleware and only map the persisted operations middleware.
+> In production you could drop the standard GraphQL middleware and only map the persisted operations middleware.
 
 By default, we would map the persisted operations to `/graphql/persisted/{documentHash}/{operationName}`, but you can change the root for this path.
 
