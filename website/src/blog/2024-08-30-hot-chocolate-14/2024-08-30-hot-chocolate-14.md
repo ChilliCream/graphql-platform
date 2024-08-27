@@ -579,7 +579,7 @@ public static partial class BrandNode
 
 This allows for more flexibility in addition to the already established `QueryTypeAttribute`, `MutationTypeAttribute`, and `SubscriptionTypeAttribute`.
 
-With the new version of Hot Chocolate, we are also introducing a new type extension for interfaces, which allows you to introduce base resolvers for common functionality. Think of this like base classes.
+With the new version of Hot Chocolate, we are also introducing a new type extension API for interfaces, which allows you to add base resolvers for common functionality. Think of this like base classes.
 
 ```csharp
 public interface IEntity
