@@ -911,7 +911,6 @@ var variables = new Dictionary<string, object?>
     ["episode"] = "JEDI",
 };
 
-
 var response = await client.PostAsync(query, variables);
 
 using var body = await response.ReadAsResultAsync(cts.Token);
