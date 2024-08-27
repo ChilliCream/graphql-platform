@@ -124,57 +124,40 @@ internal sealed class DefaultAuthorizationHandler : IAuthorizationHandler
         bool authenticated,
         object context)
     {
-        var checkRoles = roles is { Count: > 0, };
-        var checkPolicy = !string.IsNullOrWhiteSpace(policyName);
+        var policyBuilder = new AuthorizationPolicyBuilder();
 
-        // if the current directive has neither roles nor policies specified we will check if there
-        // is a default policy specified.
-        if (!checkRoles && !checkPolicy)
+        if (!string.IsNullOrWhiteSpace(policyName))
         {
-            var policy = await _policyProvider.GetDefaultPolicyAsync().ConfigureAwait(false);
+            var policy = await _policyProvider.GetPolicyAsync(policyName).ConfigureAwait(false);
 
-            // if there is no default policy specified we will check if at least one of the
-            // identities are authenticated to authorize the user.
-            if (policy is null)
+            if (policy is not null)
             {
-                return authenticated
-                    ? AuthorizeResult.Allowed
-                    : AuthorizeResult.NoDefaultPolicy;
+                policyBuilder = policyBuilder.Combine(policy);
             }
-
-            // if we find a default policy we will use this to authorize the access to a resource.
-            var result = await _authSvc.AuthorizeAsync(user, context, policy).ConfigureAwait(false);
-            return result.Succeeded
-                ? AuthorizeResult.Allowed
-                : authenticated ? AuthorizeResult.NotAllowed : AuthorizeResult.NotAuthenticated;
-        }
-
-        // We first check if the user fulfills any of the specified roles.
-        // If no role was specified the user fulfills them.
-        if (!checkRoles || FulfillsAnyRole(user, roles!))
-        {
-            if (!checkPolicy)
-            {
-                // The user fulfills one or all of the roles and no policy check was required.
-                return AuthorizeResult.Allowed;
-            }
-
-            // If a policy name was supplied we will try to resolve the policy
-            // and authorize with it.
-            var policy = await _policyProvider.GetPolicyAsync(policyName!).ConfigureAwait(false);
-
-            if (policy is null)
+            else
             {
                 return AuthorizeResult.PolicyNotFound;
             }
+        }
+        else
+        {
+            var defaultPolicy = await _policyProvider.GetDefaultPolicyAsync().ConfigureAwait(false);
 
-            var result = await _authSvc.AuthorizeAsync(user, context, policy).ConfigureAwait(false);
-            return result.Succeeded
-                ? AuthorizeResult.Allowed
-                : authenticated ? AuthorizeResult.NotAllowed : AuthorizeResult.NotAuthenticated;
+            policyBuilder = policyBuilder.Combine(defaultPolicy);
         }
 
-        return authenticated ? AuthorizeResult.NotAllowed : AuthorizeResult.NotAuthenticated;
+        if (roles is not null)
+        {
+            policyBuilder = policyBuilder.RequireRole(roles);
+        }
+
+        var finalPolicy = policyBuilder.Build();
+
+        var result = await _authSvc.AuthorizeAsync(user, context, finalPolicy).ConfigureAwait(false);
+
+        return result.Succeeded
+            ? AuthorizeResult.Allowed
+            : authenticated ? AuthorizeResult.NotAllowed : AuthorizeResult.NotAuthenticated;
     }
 
     private static UserState GetUserState(IDictionary<string, object?> contextData)
