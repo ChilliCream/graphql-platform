@@ -618,7 +618,7 @@ public static partial class EntityInterface
 
 The field definition and the resolver are inherited by all implementing object types. So, if an object type does not declare `someField`, it will inherit the resolver from the interface declaration.
 
-This API is also available through the fluent API, where you now have `Resolve` descriptors on interface fields.
+This is also available through the fluent API, where you now have `Resolve` descriptors on interface fields.
 
 ## Relay Support
 
