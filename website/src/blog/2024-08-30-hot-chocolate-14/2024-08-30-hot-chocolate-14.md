@@ -394,7 +394,7 @@ public static class ProductExtensions
 
 The optional argument on the `ParentAttribute` specifies a selection set that describes the requirements for the parent object. In the example above, it defines that the brand ID is required. However, you could also specify that you need the IDs of the products as well, such as `Id Products { Id }`. The parent that is injected is guaranteed to have the properties filled with the required data. We evaluate this string representing the requirement in the source generator, and if it does not match the object structure, it would yield a compile-time error. The whole `DataLoader` projections engine is marked as experimental, and we are looking for feedback.
 
-Apart from this, we have invested a lot into `GreenDonut` to ensure that you can use the source-generated `DataLoader` without any dependencies on `HotChocolate`. Since `DataLoader` is ideally used between the business layer and the data layer and is transparent to the REST or GraphQL layer.
+Apart from this, we have invested a lot into `GreenDonut` to ensure that you can use the source-generated `DataLoader` without any dependencies on `HotChocolate`, since `DataLoader` is ideally used between the business layer and the data layer, and is transparent to the REST or GraphQL layer.
 
 With Hot Chocolate 14, you can now add the `HotChocolate.Types.Analyzers` package and the `GreenDonut` package to your data layer. The analyzers package is just the source generator and will not be a dependency of your own package. We will generate the `DataLoader` code plus the dependency injection code for registering your `DataLoader`. You simply need to add the `DataLoaderModuleAttribute` to your project like the following:
 
