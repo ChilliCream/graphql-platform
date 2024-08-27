@@ -708,7 +708,7 @@ public class Query
         BookService bookService,
         CancellationToken ct)
         => await bookService.GetBookAsync(id, ct);
-
+}
 ```
 
 ## Transport
