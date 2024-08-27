@@ -396,13 +396,13 @@ The optional argument on the `ParentAttribute` specifies a selection set that de
 
 Apart from this, we have invested a lot into `GreenDonut` to ensure that you can use the source-generated `DataLoader` without any dependencies on `HotChocolate`. Since `DataLoader` is ideally used between the business layer and the data layer and is transparent to the REST or GraphQL layer.
 
-With Hot Chocolate 14, you can now add the `HotChocolate.Types.Analyzers` package and the `GreenDonut` package to your data layer. The analyzers package is just the source generator and will not be a dependency of your package. We will generate the `DataLoader` code plus the dependency injection code for registering your `DataLoader`. You simply need to add the `DataLoaderModuleAttribute` to your project like the following:
+With Hot Chocolate 14, you can now add the `HotChocolate.Types.Analyzers` package and the `GreenDonut` package to your data layer. The analyzers package is just the source generator and will not be a dependency of your own package. We will generate the `DataLoader` code plus the dependency injection code for registering your `DataLoader`. You simply need to add the `DataLoaderModuleAttribute` to your project like the following:
 
 ```csharp
 [assembly: DataLoaderModule("CatalogDataLoader")]
 ```
 
-Lastly, on the topic of DataLoader we have made the DataLoader cache observable allowing you to share entities between DataLoader for even more efficient caching. Lets for say that we have two brand DataLoader, one fetches the entity by id and the other one by name.
+Lastly, on the topic of DataLoader we have made the DataLoader cache observable allowing you to share entities between DataLoader for even more efficient caching. Lets for instance say that we have two brand DataLoader, one fetches the entity by id and the other one by name. How can we make sure that we do not fetch the same entity twice just because we have different keys?
 
 ```csharp
 internal static class BrandDataLoader
@@ -431,7 +431,7 @@ internal static class BrandDataLoader
 }
 ```
 
-Lastly, on the topic of `DataLoader`, we have made the `DataLoader` cache observable, allowing you to share entities between `DataLoader` instances for even more efficient caching. Let's say that we have two brand `DataLoader` instances: one fetches the entity by ID, and the other one by name.
+This can be easily done by writing two observer methods that create a new cache lookup for the same object. So, at the moment one of the `DataLoader` instances is instantiated, it will subscribe for `Brand` entities on the cache and create lookups. After that, the `DataLoader` will receive real-time notifications if any other `DataLoader` has fetched a `Brand` entity and will be able to use the cached entity.
 
 ```csharp
 internal static class BrandDataLoader
@@ -461,8 +461,6 @@ internal static class BrandDataLoader
     private static string CreateBrandByNameLookup(Brand brand) => brand.Name;
 }
 ```
-
-This can be easily done by writing two observer methods that create a new cache lookup for the same object. So, at the moment one of the `DataLoader` instances is instantiated, it will subscribe for `Brand` entities on the cache and create lookups. After that, the `DataLoader` will receive real-time notifications if any other `DataLoader` has fetched a `Brand` entity and will be able to use the cached entity.
 
 Where this really shines is with optional includes. For instance, when using the `BrandByIdDataLoader`, we could include the products in one request because we know that we will need them.
 
