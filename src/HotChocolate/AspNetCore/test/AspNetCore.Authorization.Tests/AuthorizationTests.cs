@@ -325,6 +325,149 @@ public class AuthorizationTests : ServerTestBase
     [Theory]
     [ClassData(typeof(AuthorizationTestData))]
     [ClassData(typeof(AuthorizationAttributeTestData))]
+    public async Task Roles_And_Policy_UserNeitherHasRoleOrMatchesPolicy_NotAuthorized(
+        Action<IRequestExecutorBuilder> configure)
+    {
+        // arrange
+        var server = CreateTestServer(
+            builder =>
+            {
+                configure(builder);
+                builder.Services.AddAuthorization(options =>
+                {
+                    options.AddPolicy("HasAgeDefined", policy =>
+                        policy.RequireAssertion(context =>
+                            context.User.HasClaim(c =>
+                                c.Type == ClaimTypes.DateOfBirth)));
+                });
+            },
+            context =>
+            {
+                context.User = new ClaimsPrincipal(new ClaimsIdentity("testauth"));
+            });
+
+        // act
+        var result =
+            await server.PostAsync(new ClientQueryRequest { Query = "{ rolesAndPolicy }", });
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, result.StatusCode);
+        result.MatchSnapshot();
+    }
+
+    [Theory]
+    [ClassData(typeof(AuthorizationTestData))]
+    [ClassData(typeof(AuthorizationAttributeTestData))]
+    public async Task Roles_And_Policy_UserHasOneOfTheRolesAndMatchesPolicy_Authorized(
+        Action<IRequestExecutorBuilder> configure)
+    {
+        // arrange
+        var server = CreateTestServer(
+            builder =>
+            {
+                configure(builder);
+                builder.Services.AddAuthorization(options =>
+                {
+                    options.AddPolicy("HasAgeDefined", policy =>
+                        policy.RequireAssertion(context =>
+                            context.User.HasClaim(c =>
+                                c.Type == ClaimTypes.DateOfBirth)));
+                });
+            },
+            context =>
+            {
+                var identity = new ClaimsIdentity("testauth");
+                identity.AddClaim(new Claim(
+                    ClaimTypes.DateOfBirth,
+                    "2013-05-30"));
+                identity.AddClaim(new Claim(ClaimTypes.Role, "a"));
+                context.User = new ClaimsPrincipal(identity);
+            });
+
+        // act
+        var result =
+            await server.PostAsync(new ClientQueryRequest { Query = "{ rolesAndPolicy }", });
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, result.StatusCode);
+        result.MatchSnapshot();
+    }
+
+    [Theory]
+    [ClassData(typeof(AuthorizationTestData))]
+    [ClassData(typeof(AuthorizationAttributeTestData))]
+    public async Task Roles_And_Policy_UserHasOneOfTheRolesAndMissesPolicy_NotAuthorized(
+        Action<IRequestExecutorBuilder> configure)
+    {
+        // arrange
+        var server = CreateTestServer(
+            builder =>
+            {
+                configure(builder);
+                builder.Services.AddAuthorization(options =>
+                {
+                    options.AddPolicy("HasAgeDefined", policy =>
+                        policy.RequireAssertion(context =>
+                            context.User.HasClaim(c =>
+                                c.Type == ClaimTypes.DateOfBirth)));
+                });
+            },
+            context =>
+            {
+                var identity = new ClaimsIdentity("testauth");
+                identity.AddClaim(new Claim(ClaimTypes.Role, "a"));
+                context.User = new ClaimsPrincipal(identity);
+            });
+
+        // act
+        var result =
+            await server.PostAsync(new ClientQueryRequest { Query = "{ rolesAndPolicy }", });
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, result.StatusCode);
+        result.MatchSnapshot();
+    }
+
+    [Theory]
+    [ClassData(typeof(AuthorizationTestData))]
+    [ClassData(typeof(AuthorizationAttributeTestData))]
+    public async Task Roles_And_Policy_UserMatchesPolicyButIsntInOneOfTheRoles_NotAuthorized(
+        Action<IRequestExecutorBuilder> configure)
+    {
+        // arrange
+        var server = CreateTestServer(
+            builder =>
+            {
+                configure(builder);
+                builder.Services.AddAuthorization(options =>
+                {
+                    options.AddPolicy("HasAgeDefined", policy =>
+                        policy.RequireAssertion(context =>
+                            context.User.HasClaim(c =>
+                                c.Type == ClaimTypes.DateOfBirth)));
+                });
+            },
+            context =>
+            {
+                var identity = new ClaimsIdentity("testauth");
+                identity.AddClaim(new Claim(
+                    ClaimTypes.DateOfBirth,
+                    "2013-05-30"));
+                context.User = new ClaimsPrincipal(identity);
+            });
+
+        // act
+        var result =
+            await server.PostAsync(new ClientQueryRequest { Query = "{ rolesAndPolicy }", });
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, result.StatusCode);
+        result.MatchSnapshot();
+    }
+
+    [Theory]
+    [ClassData(typeof(AuthorizationTestData))]
+    [ClassData(typeof(AuthorizationAttributeTestData))]
     public async Task Roles_UserHasNoRoles_NotAuthorized(
         Action<IRequestExecutorBuilder> configure)
     {
