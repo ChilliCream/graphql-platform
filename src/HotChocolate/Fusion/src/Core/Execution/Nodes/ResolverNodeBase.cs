@@ -4,6 +4,7 @@ using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Clients;
+using HotChocolate.Fusion.Planning;
 using HotChocolate.Language;
 using static HotChocolate.Fusion.Utilities.Utf8QueryPlanPropertyNames;
 using ThrowHelper = HotChocolate.Fusion.Utilities.ThrowHelper;
@@ -20,6 +21,7 @@ internal abstract partial class ResolverNodeBase : QueryPlanNode
     private readonly string _document;
     private readonly ISelection? _parent;
     private readonly SelectionSet _selectionSet;
+    private readonly List<RootSelection> _rootSelections;
     private readonly string[] _provides;
     private readonly string[] _requires;
     private readonly string[] _forwardedVariables;
@@ -44,6 +46,7 @@ internal abstract partial class ResolverNodeBase : QueryPlanNode
         _document = config.Document;
         _parent = config.Parent;
         _selectionSet = config.SelectionSet;
+        _rootSelections = config.RootSelections;
         _provides = config.Provides;
         _requires = config.Requires;
         _forwardedVariables = config.ForwardedVariables;
@@ -66,6 +69,11 @@ internal abstract partial class ResolverNodeBase : QueryPlanNode
     /// Gets the selection set for which data is being resolved.
     /// </summary>
     protected internal SelectionSet SelectionSet => _selectionSet;
+
+    /// <summary>
+    /// Gets the root selections of this resolver.
+    /// </summary>
+    protected internal List<RootSelection> RootSelections => _rootSelections;
 
     /// <summary>
     /// Gets the state that is being required by this resolver to be executed.
