@@ -9,17 +9,17 @@ authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
 
-We are almost ready to release a new major version of Hot Chocolate, and with it come many exciting new features. We have been working on this release for quite some time, and we are thrilled to share it with you. In this blog post, we will give you a sneak peek at what you can expect with Hot Chocolate 14.
+We are almost ready to release a new major version of Hot Chocolate, and with it come many new exciting features. We have been working on this release for quite some time, and we are thrilled to share it with you. In this blog post, we will give you a sneak peek at what you can expect with Hot Chocolate 14.
 
-In this post, I will be focusing on the Hot Chocolate server, but we have also been busy working on Hot Chocolate Fusion and the Composite Schema Specification. We will be releasing more information on these projects in the coming weeks.
+I will be focusing mainly on the Hot Chocolate server, but we have also been busy working on Hot Chocolate Fusion and the Composite Schema Specification. We will be releasing more information on these projects in the coming weeks.
 
-## Ease of use
+## Ease of Use
 
-We have focused on making Hot Chocolate easier to use and more intuitive. To achieve this, we have added many new features that will simplify your work. This will be apparent right from the start when you begin using Hot Chocolate 14. One major area where you can see this improvement is in dependency injection. Hot Chocolate 13 was incredibly flexible in this area, allowing you to configure which dependencies could be used by the GraphQL execution engine with multiple resolvers simultaneously, and to specify which services the execution engine needed to synchronize or pool. While this was a powerful feature, it could be somewhat complex to use, especially when incorporating DataLoader into the mix.
+We have focused on making Hot Chocolate easier to use and more intuitive. To achieve this, we have added many new features that will simplify your workflow. This will be apparent right from the start when you begin using Hot Chocolate 14. One major area where you can see this improvement is in dependency injection. Hot Chocolate 13 was incredibly flexible in this area, allowing you to specify which services are multi-thread capable, which services are pooled resources, or which services must be synchronized. While this was a powerful feature, it could be somewhat complex to use, especially for newcomers to our platform.
 
-You either ended up with lengthy configuration code that essentially re-declared all dependencies, or you ended up with very cluttered resolvers.
+You either ended up with lengthy configuration code that essentially re-declared all services, or you ended up with very cluttered resolvers.
 
-With Hot Chocolate 14, we have simplified this process by putting dependency injection on auto-pilot. Now, when you write your resolvers, you can simply inject services without needing to explicitly tell Hot Chocolate that they are services.
+With Hot Chocolate 14, we have simplified this process by putting dependency injection on auto-pilot. Now, when you write your resolvers, you can simply inject services without the need to explicitly tell Hot Chocolate that they are services or what kind of services they are.
 
 ```csharp
 public static IQueryable<Session> GetSessions(
@@ -27,15 +27,15 @@ public static IQueryable<Session> GetSessions(
     => context.Sessions.OrderBy(s => s.Title);
 ```
 
-This leads to clearer code that is more understandable and easier to maintain. For instance, the resolver above injects the `ApplicationDbContext`. There is no need to tell Hot Chocolate that this is a service or what characteristics this service has; it will just work. This is because we have simplified the way Hot Chocolate interacts with the dependency injection system.
+This leads to dramatically clearer code that is more understandable and easier to maintain. For instance, the resolver above injects the `ApplicationDbContext`. There is no need to tell Hot Chocolate that this is a service or what characteristics this service has; it will just work. This is because we have simplified the way Hot Chocolate interacts with the dependency injection system.
 
 In GraphQL, we essentially have two execution algorithms. The first, used for queries, allows for parallelization to optimize data fetching. This enables us to enqueue data fetching requests transparently and execute them in parallel. The second algorithm, used for mutations, is a sequential algorithm that executes one mutation after another.
 
-So, how is this related to DI? In Hot Chocolate 14, if we have an async resolver that requires services from the DI, we create a service scope around it, ensuring that the services you use in the resolver are not used concurrently by other resolvers. Since query resolvers are, by specification, defined as side-effect-free, this is an excellent default behavior where you as the developer can just focus on writing code without concerning your self with concurrency.
+So, how is this related to DI? In Hot Chocolate 14, if we have an async resolver that requires services from the DI, we create a service scope around it, ensuring that the services you use in the resolver are not used concurrently used by other resolvers. Since query resolvers are, by specification, defined as side-effect-free, this is an excellent default behavior where you as the developer can just focus on writing code without concerning your self with concurrency between resolver instances.
 
-For mutations, the situation is different, as mutations inherently cause side effects. For instance, you might want to use a shared DbContext between two mutations. When execution mutations Hot Chocolate will use the default request scope as its guaranteed that when a mutation is execution only this mutation resolver is really running for the operation that is being executed.
+For mutations, the situation is different, as mutations inherently cause side effects. For instance, you might want to use a shared DbContext between two mutations. When executing a mutation Hot Chocolate will use the default request scope as its guaranteed by the execution algorithm that there ever will be a single mutation resolver executed at the same time for a request.
 
-So, the new default execution behavior is much more opinionated but leads to an easier default experience. However, we recognize that there are reasons to maybe use the request DI scope everywhere and you can, as you can configure the default DI scope behavior with the default schema options.
+While the new default execution behavior is much more opinionated it leads to a dramatically easier experience when implementing resolvers. However, we recognize that there are reasons you maybe want to use the request DI scope everywhere. Thats why you can change the default configuration with the default schema options.
 
 ```csharp
 builder
@@ -43,12 +43,12 @@ builder
     .AddTypes()
     .ModifyOptions(o =>
     {
-        o.DefaultQueryDependencyInjectionScope = DependencyInjectionScope.Request;
+        o.DefaultQueryDependencyInjectionScope = DependencyInjectionScope.Resolver;
         o.DefaultMutationDependencyInjectionScope = DependencyInjectionScope.Request;
     });
 ```
 
-Also, you can override the default, whatever your default may be on a per resolver basis.
+Also, you can override the defaults configured in the schema options, on a per resolver basis.
 
 ```csharp
 [UseRequestScope]
