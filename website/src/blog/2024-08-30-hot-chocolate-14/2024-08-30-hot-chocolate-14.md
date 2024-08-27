@@ -35,7 +35,7 @@ So, how is this related to DI? In Hot Chocolate 14, if we have an async resolver
 
 For mutations, the situation is different, as mutations inherently cause side effects. For instance, you might want to use a shared DbContext between two mutations. When executing a mutation Hot Chocolate will use the default request scope as it's guaranteed by the execution algorithm that there will only ever be a single mutation resolver executed at the same time for a request.
 
-While the new default execution behavior is much more opinionated it leads to a dramatically easier experience when implementing resolvers. However, we recognize that there are reasons you maybe want to use the request DI scope everywhere. Thats why you can change the default configuration with the default schema options.
+While the new default execution behavior is much more opinionated, it leads to a dramatically easier experience when implementing resolvers. However, we recognize that there are reasons you may want to use the request scope everywhere. That's why you can change the default configuration with the default schema options.
 
 ```csharp
 builder
