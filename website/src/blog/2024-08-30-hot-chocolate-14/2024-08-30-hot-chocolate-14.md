@@ -747,18 +747,90 @@ This new batching API with in your backend allows for new use-cases and is a gre
 
 ## Security
 
-One of our greatest investments we have done with version 14 is into security. We have seen countless GraphQL servers with our customers and in 90% of the cases they were not configured in a secure way. This was not for the lack of functionality in Hot Chocolate but for the lack of knowledge how to configure things. Often there is also a lack of understanding why certain things are important with GraphQL.
+We have seen countless GraphQL servers over the last year as part of our consulting engagements and in many cases they were not configured in a secure way. This was not for the lack of functionality in Hot Chocolate but because engineers that were transitioning to GraphQL often did not know good security practices in GraphQL.
 
-GraphQL as facebook created and used it was built around flexibility at dev time and persisted operations at production. This means the moment facebook deploys to production the GraphQL server becomes in essence a REST server that has now way to freely create new operations. The GraphQL server is only able to execute whatever frontend engineers used within in their frontends. On production build the operations were stripped from the frontend code and stored in an operations store. The frontend on production would send to the GraphQL server a hash instead of a full operation and the GraphQL server would only execute operations that are stored in the operations store.
+GraphQL as facebook created and used it was built around flexibility at dev time and persisted operations at production. This means the moment facebook deploys to production the GraphQL server becomes in essence a REST server. There is no GraphQL in production. The GraphQL server is only able to execute trusted operations that were exported from the various frontends into an operation store. The way this works is that in the build pipeline operations are stripped from the frontend code and replaced with a unique identifier. The stripped operation documents are stored in an operation store. The frontend on production would send to the GraphQL server the unique identifier instead of a full operation and the GraphQL server would only execute operations that are stored in the operations store.
 
-This is as of today still the best way to do GraphQL and with Banana Cake Pop you can setup a schema registry and an operation store in less than 5 minutes. Have a look [here](LINK) for more information.
+This is the best way to do GraphQL and gives you the best story for schema evolvability as used operations are centrally known and can be statically analyzed. It also makes sure that you know the performance characteristics and the impact of operations to your backend, With Banana Cake Pop you can setup a schema registry and an operation store in less than 5 minutes. Have a look [here](LINK) for more information.
 
-But we wanted to create a new setup for Hot Chocolate no matter if you have any clue about all of this you will end up with a secure GraphQL server. This is why we have implemented the IBM cost specification to weight your request and restrict expensive operations right from the start. With Hot Chocolate 14 you basically have two profiles to run the server, with IBM cost spec or with persisted operations.
+However, most new developers are not aware how to do this or do not understand why they should. The other problem is that there is now easy path from an open GraphQL server to a closed system once you have clients working against your API.
 
+With Hot Chocolate 14 we wanted to make sure that your servers are secure even if you do not configure a single setting, and even if you do not know about persisted operations or you explicitly want an open GraphQL server. Going forward we have built into the core of Hot Chocolate the IBM cost specification to weight the impact of your requests and to restrict expensive operations right from the start.
 
+When you export your schema with Hot Chocolate 14 you will see that we have added cost directives to certain fields. We estimate cost automatically so that you do not have to do this manually. You can override where we are wrong. The IBM cost spec has to weights it calculates. The type cost, which estimates the objects being produced, in essence the data cost. Secondly, it estimates the field cost, this basically is the computational cost.
 
-- Cost Analysis
-- Introspection
+> With Hot Chocolate 14 we have implemented the static analysis but will add runtime analysis and result analysis as opt-ins with Hot Chocolate 15.
+
+The static analysis will go for maximums, which means if you say you want 50 elements in a list it will estimate 50 elements on not the actual number of elements. This makes sure that you do not overwhelm your server with a single request and have a good estimate what the request could mean to your backend.
+
+You can combine the cost analysis scores with rate limiting to ensure that a use stays in cost boundaries over time.
+
+```csharp
+.UseRequest(next =>
+{
+    var rateLimiter = new SlidingWindowRateLimiter(
+        new SlidingWindowRateLimiterOptions
+        {
+            PermitLimit = 10000,
+            Window = TimeSpan.FromHours(1),
+            SegmentsPerWindow = 6, // 10-minute segments
+            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+            QueueLimit = 1,
+        });
+
+    return async context =>
+    {
+        if (context.ContextData.TryGetValue(WellKnownContextData.CostMetrics, out var value)
+            && value is CostMetrics metrics)
+        {
+            using RateLimitLease lease = await rateLimiter.AcquireAsync(
+                permitCount: (int)metrics.TypeCost,
+                context.RequestAborted);
+
+            if (!lease.IsAcquired)
+            {
+                context.Result =
+                    OperationResultBuilder.New()
+                        .AddError(ErrorBuilder.New()
+                            .SetMessage("Rate limit exceeded.")
+                            .SetCode("RATE_LIMIT_EXCEEDED")
+                            .Build())
+                        .SetContextData(
+                            WellKnownContextData.HttpStatusCode,
+                            HttpStatusCode.TooManyRequests)
+                        .Build();
+                return;
+            }
+        }
+
+        await next(context);
+    };
+})
+```
+
+While you would need it a bit more sophisticated in production, with redis to have a distributed rate limiter, this is a good start to ensure that your server is not overwhelmed.
+
+With the cost spec you can also estimate a request impact without doing the actual request by sending in the header `GraphQL-Cost:validate` or if you want the request to be executed but to still the the cost even if the request is valid then you can send in the header `GraphQL-Cost:report`.
+
+With the IBM cost spec backed into the core its always on and this will make your GraphQL server more secure and more predictable. But this also will tell you the truth about your requests which might hurt when you migrate.
+
+What we also have made sure of is that when you want to migrate from an open GraphQL server to trusted documents that this can now be done in a couple of minutes by slapping Banana Cake Pop in. Over a time frame of 30,60 or 90 days the GraphQL server will report operations that were executed and will store them in the operation store. You can manually decide which queries not to take in. After that period you can switch trusted operations on and only operations tracked in the operation store will be allowed form this day forward.
+
+One other thing we have changed with Hot Chocolate 14 is around introspection. When we detect a production environment in ASP.NET core we will automatically disable introspection and provide a schema file on the route `/graphql?sdl` which is one time computed schema file that will server as a simple file from your server. The misunderstanding with introsection is often that people think its about hiding the schema. This is actually not the case since it quite simple to infer the schema from the request observed in a web application. The problem with introspection is that it is easy to produce very large results in your GraphQL server. When I say large than I mean 200 - 300 MB large. This depends on your schema. Most tools will work fine with a schema file which is much smaller than the introspection result and costs literally no compute and memory. You can override this behavior like the following.
+
+```csharp
+builder
+    .AddGraphQLServer()
+    .ModifyRequestOptions(o => o.EnableIntrospection = true);
+```
+
+Also the schema file can be disabled like the following.
+
+```csharp
+builder
+    .AddGraphQLServer()
+    .ModifyRequestOptions(o => o.EnableSchemaFile = false);
+```
 
 ## Fusion
 
