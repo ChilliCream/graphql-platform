@@ -3,6 +3,7 @@ path: "/blog/2024/08/30/hot-chocolate-14"
 date: "2024-08-30"
 title: "What's new for Hot Chocolate 14"
 tags: ["hotchocolate", "graphql", "dotnet", "aspnetcore"]
+featuredImage: "hot-chocolate-14.png"
 author: Michael Staib
 authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
