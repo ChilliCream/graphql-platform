@@ -36,13 +36,30 @@ For mutations, the situation is different, as mutations inherently cause side ef
 
 So, the new default execution behavior is much more opinionated but leads to an easier default experience. However, we recognize that there are reasons to maybe use the request DI scope everywhere and you can, as you can configure the default DI scope behavior with the default schema options.
 
-EXAMPLE.
+```csharp
+builder
+    .AddGraphQL()
+    .AddTypes()
+    .ModifyOptions(o =>
+    {
+        o.DefaultQueryDependencyInjectionScope = DependencyInjectionScope.Request;
+        o.DefaultMutationDependencyInjectionScope = DependencyInjectionScope.Request;
+    });
+```
 
 Also, you can override the default, whatever your default may be on a per resolver basis.
 
-EXAMPLE.
+```csharp
+[UseRequestScope]
+[UsePaging]
+public static async Task<Connection<Brand>> GetBrandsAsync(
+    PagingArguments pagingArguments,
+    BrandService brandService,
+    CancellationToken cancellationToken)
+    => await brandService.GetBrandsAsync(pagingArguments, cancellationToken).ToConnectionAsync();
+```
 
-TODO : Mention DataLoader DI handling!!!
+> We have applied the same DI handling to source generated DataLoader which by default will now use an explicit DI scope for each DataLoader fetch.
 
 ## Query Inspection
 
