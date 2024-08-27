@@ -392,8 +392,8 @@
                 "title": "Authorization"
               },
               {
-                "path": "operation-complexity",
-                "title": "Operation Complexity"
+                "path": "cost-analysis",
+                "title": "Cost Analysis"
               }
             ]
           },

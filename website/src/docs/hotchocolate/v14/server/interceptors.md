@@ -206,8 +206,8 @@ requestBuilder.SetProperties(properties);
 
 ```csharp
 var provider = new ServiceCollection()
-                .AddSingleton<ExampleService>()
-                .BuildServiceProvider();
+    .AddSingleton<ExampleService>()
+    .BuildServiceProvider();
 
 requestBuilder.SetServices(provider);
 ```
@@ -220,20 +220,4 @@ If we have disabled introspection globally, `AllowIntrospection` allows us to en
 
 ```csharp
 requestBuilder.AllowIntrospection();
-```
-
-## SkipComplexityAnalysis
-
-When using the [operation complexity feature](/docs/hotchocolate/v14/security/operation-complexity), we can skip the complexity analysis for specific requests.
-
-```csharp
-requestBuilder.SkipComplexityAnalysis();
-```
-
-## SetMaximumAllowedComplexity
-
-When using the [operation complexity feature](/docs/hotchocolate/v14/security/operation-complexity), we can overwrite the global complexity limit for specific requests.
-
-```csharp
-requestBuilder.SetMaximumAllowedComplexity(5000);
 ```
