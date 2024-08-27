@@ -5,10 +5,12 @@ using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace HotChocolate.AspNetCore.Authorization;
 
@@ -507,6 +509,50 @@ public class AuthorizationTests(TestServerFactory serverFactory) : ServerTestBas
     [Theory]
     [ClassData(typeof(AuthorizationTestData))]
     [ClassData(typeof(AuthorizationAttributeTestData))]
+    public async Task AuthorizationService_CalledWith_RolesAuthorizationRequirement(
+        Action<IRequestExecutorBuilder> configure)
+    {
+        // arrange
+        var server = CreateTestServer(
+            builder =>
+            {
+                configure(builder);
+
+                builder.Services.AddAuthorization(options =>
+                {
+                    options.AddPolicy("HasAgeDefined", policy =>
+                        policy.RequireAssertion(context =>
+                            context.User.HasClaim(c =>
+                                c.Type == ClaimTypes.DateOfBirth)));
+                });
+
+                builder.Services.RemoveAll<IAuthorizationService>();
+                builder.Services.AddTransient<DefaultAuthorizationService>();
+                builder.Services.AddTransient<IAuthorizationService, FallbackRoleAuthorizationService>();
+            },
+            context =>
+            {
+                var identity = new ClaimsIdentity("testauth");
+
+                identity.AddClaim(new Claim(
+                    ClaimTypes.DateOfBirth,
+                    "2013-05-30"));
+                identity.AddClaim(new Claim(ClaimTypes.Role, "a"));
+                context.User = new ClaimsPrincipal(identity);
+            });
+
+        // act
+        var result =
+            await server.PostAsync(new ClientQueryRequest { Query = "{ rolesAndPolicy }", });
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, result.StatusCode);
+        result.MatchSnapshot();
+    }
+
+    [Theory]
+    [ClassData(typeof(AuthorizationTestData))]
+    [ClassData(typeof(AuthorizationAttributeTestData))]
     public async Task Roles_UserHasNoRoles_NotAuthorized(
         Action<IRequestExecutorBuilder> configure)
     {
@@ -886,5 +932,23 @@ public class AuthorizationTests(TestServerFactory serverFactory) : ServerTestBas
                 app.UseRouting();
                 app.UseEndpoints(b => b.MapGraphQL());
             });
+    }
+
+    private sealed class FallbackRoleAuthorizationService(DefaultAuthorizationService defaultAuthorizationService) : IAuthorizationService
+    {
+        public async Task<AuthorizationResult> AuthorizeAsync(ClaimsPrincipal user, object? resource, IEnumerable<IAuthorizationRequirement> requirements)
+        {
+            var effectiveRequirements = requirements.ToList();
+
+            if (!effectiveRequirements.OfType<RolesAuthorizationRequirement>().Any()) {
+                effectiveRequirements.Add(new RolesAuthorizationRequirement(allowedRoles: ["b"]));
+            }
+
+            return await defaultAuthorizationService.AuthorizeAsync(user, resource, effectiveRequirements);
+        }
+
+        public Task<AuthorizationResult> AuthorizeAsync(ClaimsPrincipal user, object? resource, string policyName) {
+            throw new NotImplementedException();
+        }
     }
 }
