@@ -184,11 +184,13 @@ scalar UUID @specifiedBy(url: "https://tools.ietf.org/html/rfc4122")
 
 A custom GraphQL scalar which represents an exact point in time. This point in time is specified by having an offset to UTC and does not use time zone.
 
-The DateTime scalar is based RFC3339.
+The DateTime scalar is based on [RFC 3339](https://datatracker.ietf.org/doc/html/rfc3339).
 
 ```sdl
 scalar DateTime @specifiedBy(url: "https://www.graphql-scalars.com/date-time/")
 ```
+
+> Note: The Hot Chocolate implementation diverges slightly from the DateTime Scalar specification, and allows fractional seconds of 0-7 digits, as opposed to exactly 3.
 
 <Video videoId="gO3bNKBmXZM" />
 
