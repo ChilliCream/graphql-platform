@@ -133,7 +133,7 @@ If you want to go all in and have the full power of the operation executor, you 
 
 ## Pagination
 
-Pagination is a common requirement in GraphQL APIs, and Hot Chocolate 14 makes it easier than ever to implement pagination, no matter if you are building layered applications or using `DbContext` right in your resolvers.
+Pagination is a common requirement in GraphQL APIs, and Hot Chocolate 14 makes it easier than ever to implement, no matter if you are building layered applications or using `DbContext` right in your resolvers.
 
 For layered application patterns like DDD, CQRS, or Clean Architecture, we have built a brand new paging API that is completely separate from the Hot Chocolate GraphQL core. When building layered applications, pagination should be a business concern and should be handled in your repository or service layer. Doing so brings some unique concerns, like how the abstraction of a page looks. For this, we have introduced a couple of new primitives like `Page<T>`, `PagingArguments`, and others that allow you to build your own paging API that fits your needs and interfaces well with GraphQL and REST.
 
