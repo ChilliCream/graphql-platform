@@ -598,7 +598,7 @@ public static partial class BrandNode
 }
 ```
 
-This allows for more flexibility in addition to the already established `QueryTypeAttribute`, `MutationTypeAttribute`, and `SubscriptionTypeAttribute` we now have the new `QueryAttribute`, `MutationAttribute` and the `SubscriptionAttribute`.
+This allows for more flexibility in addition to the already established `QueryTypeAttribute`, `MutationTypeAttribute`, and `SubscriptionTypeAttribute`, we now have the new `QueryAttribute`, `MutationAttribute`, and `SubscriptionAttribute`.
 
 With the new version of Hot Chocolate, we are also introducing a new type extension API for interfaces, which allows you to add base resolvers for common functionality. Think of this like base classes.
 
