@@ -250,7 +250,7 @@ public static async IQueryable<Brand> GetBrands(
     => context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id);
 ```
 
-By default, Hot Chocolate would emulate cursor pagination by using `skip/take` underneath. However, as I mentioned, we have now a new keyset pagination provider for EF Core that you can opt into. It's not the default, as it is not compatible with SQLite for instance.
+By default, Hot Chocolate would emulate cursor pagination by using `skip/take` underneath. However, as I mentioned, we now have a new keyset pagination provider for EF Core that you can opt into. It's not the default, as it is not compatible with SQLite for instance.
 
 ```csharp
 builder.Services
