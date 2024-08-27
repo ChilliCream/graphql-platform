@@ -60,7 +60,7 @@ public static async Task<Connection<Brand>> GetBrandsAsync(
     => await brandService.GetBrandsAsync(pagingArguments, cancellationToken).ToConnectionAsync();
 ```
 
-> We have applied the same DI handling to source generated DataLoader which by default will now use an explicit DI scope for each DataLoader fetch.
+> We have applied the same DI handling to source generated DataLoader which by default will now use an explicit service scope for each DataLoader fetch.
 
 ## Query Inspection
 
