@@ -402,7 +402,7 @@ With Hot Chocolate 14, you can now add the `HotChocolate.Types.Analyzers` packag
 [assembly: DataLoaderModule("CatalogDataLoader")]
 ```
 
-Lastly, on the topic of DataLoader we have made the DataLoader cache observable allowing you to share entities between DataLoader for even more efficient caching. Lets for instance say that we have two brand DataLoader, one fetches the entity by id and the other one by name. How can we make sure that we do not fetch the same entity twice just because we have different keys?
+Lastly, on the topic of DataLoader, we have made the DataLoader cache observable, allowing you to share entities between DataLoader for even more efficient caching. Let's for instance say that we have two Brand DataLoader, one fetches the entity by ID and the other one by name. How can we make sure that we do not fetch the same entity twice just because we have different keys?
 
 ```csharp
 internal static class BrandDataLoader
