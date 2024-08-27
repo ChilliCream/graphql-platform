@@ -110,7 +110,7 @@ public class IntrospectionRuleTests
     private ISchema CreateSchema()
     {
         return SchemaBuilder.New()
-            .AddDocumentFromString(FileResource.Open("CostSchema.graphql"))
+            .AddDocumentFromString(FileResource.Open("IntrospectionSchema.graphql"))
             .Use(_ => _ => default)
             .Create();
     }

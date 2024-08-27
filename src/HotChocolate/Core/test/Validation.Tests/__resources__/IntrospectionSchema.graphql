@@ -10,7 +10,7 @@ interface Foo {
 
 type Bar implements Foo {
   field: String
-  baz: Baz @cost(complexity: 5)
+  baz: Baz
 }
 
 type Baz {
@@ -18,5 +18,3 @@ type Baz {
 }
 
 union BazOrBar = Baz | Bar
-
-directive @cost(complexity: Int!) on FIELD_DEFINITION
