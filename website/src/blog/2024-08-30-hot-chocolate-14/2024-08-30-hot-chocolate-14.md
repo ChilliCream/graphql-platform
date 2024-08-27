@@ -325,7 +325,7 @@ var task2 = brandById.SetState("some-state", "some-value").LoadAsync(2);
 Task.WaitAll(task1, task2);
 ```
 
-However, in some cases like paging, I want the state to be guaranteed. In these cases. This is where branching comes in. We can branch a DataLoader, and into this branch, we pass in some data that represents the context of this branch.
+However, in some cases like paging, we want the state to be guaranteed. This is where branching comes in. We can branch a DataLoader, and into this branch, we pass in some data that represents the context.
 
 ```csharp
 var branch = brandById
@@ -725,7 +725,7 @@ builder
   .AddQueryConventions();
 ```
 
-This in turn allows you, like with mutation conventions, to annotate errors on your resolver or use the `FieldResult<TResult, TError>` type.
+This in turn allows you, as with mutation conventions, to annotate errors on your resolver or use the `FieldResult<TResult, TError>` type.
 
 ```csharp
 public class Query
