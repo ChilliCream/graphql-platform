@@ -63,6 +63,8 @@ public static async Task<Connection<Brand>> GetBrandsAsync(
 
 ## Query Inspection
 
+<Video videoId="XZVpimb6sKg" />
+
 Another area where we have made significant improvements is in query inspection. With Hot Chocolate 14, it’s now incredibly simple to check which fields are being requested within the resolver without the need for complex syntax tree traversals. You can now formulate a pattern with the GraphQL selection syntax and let the executor inject a simple boolean that tells you if your pattern matched the user query.
 
 ```csharp
@@ -122,7 +124,7 @@ Pagination is a common requirement in GraphQL APIs, and Hot Chocolate 14 makes i
 
 For layered application patterns like DDD, CQRS, or Clean Architecture, we have built a brand new paging API that is completely separate from the Hot Chocolate GraphQL core. When building layered applications, pagination should be a business concern and handled in your repository or services layer. Doing so brings some unique concerns, like how the abstraction of a page looks. For this, we have introduced a couple of new primitives like `Page<T>`, `PagingArguments`, and others that allow you to build your own paging API that fits your needs and interfaces well with GraphQL.
 
-We have also implemented keyset pagination for Entity Framework Core, which you can use in your infrastructure layer. The Entity Framework team is planning to have, at some point, a paging API for keyset pagination natively integrated into EF Core (LINK). Until then, you can use our API to get the best performance out of your EF Core queries when using pagination.
+We have also implemented keyset pagination for Entity Framework Core, which you can use in your infrastructure layer. The Entity Framework team is planning to have, at some point, a paging API for keyset pagination natively integrated into EF Core ([Holistic end-to-end pagination feature](https://github.com/dotnet/efcore/issues/33160)). Until then, you can use our API to get the best performance out of your EF Core queries when using pagination.
 
 ```csharp
 public sealed class BrandService(CatalogContext context)
@@ -215,7 +217,7 @@ The `ToBatchPageAsync` extension would rewrite the paging query so that each `br
 
 An important aspect of keyset pagination is maintaining a stable order, which requires a unique key at the end. In the above case, we order by `Name` and then chain the primary key `Id` at the end. This ensures that the order remains stable even if the `Name` is not unique.
 
-> If you want to read more about keyset pagination, you can do so [here](LINK).
+> If you want to read more about keyset pagination, you can do so [here](https://use-the-index-luke.com/no-offset).
 
 We have brought the same capabilities to non-layered applications, where you now have a new paging provider for EF Core that allows for transparent keyset pagination.
 
@@ -648,6 +650,8 @@ However, if you are already trying out EF Core 9, you should give the new Cosmos
 
 ## Query Conventions
 
+<Video videoId="yoW2Mt6C0Cg" />
+
 Our mutation conventions were very well received by the community when we introduced them. They help to implement a complex GraphQL pattern around mutations and errors. With mutation conventions, we provided consistency and removed the boilerplate from your code.
 
 Ever since we introduced the mutation conventions, we have been asked to provide a similar pattern for queries. While in most cases, I would not recommend resorting to error patterns like those used for mutations—because queries are typically side-effect-free and should be easily queried without concern for complex result types—there are cases where you want to return a domain error as part of your query. For these situations, we recognized the need for a consistent pattern.
@@ -712,9 +716,11 @@ public class Query
 
 Let's talk about the GraphQL transport layer and what has changed with Hot Chocolate 14. The GraphQL over HTTP spec is now in its final stages, and we have been adopting the latest changes. This means that we no longer return status code 500 when the full result has been erased due to a non-null violation. Instead, we return status code 200 with a JSON body that contains the error information and `data` as null.
 
-If you are interested in the spec, you can find the current version [here](LINK).
+If you are interested in the spec, you can find the current version [here](https://github.com/graphql/graphql-over-http).
 
 We have also reintroduced the error code for not authenticated errors to make it easier for authentication flows. This was something we originally dropped in Hot Chocolate 13, but because many of you struggled with this, we have reintroduced it.
+
+<Video videoId="NK0Y1Y9NQrU" />
 
 Apart from these smaller bits and pieces, we have completely rewritten our persisted operation, aka trusted document pipeline, to introduce end-to-end traceability across the entire transport layer. We have done this by implementing a feature we call semantic routes. The idea here is that each operation has a unique URI that is derived from the document hash and the operation name.
 
@@ -768,11 +774,13 @@ We have seen countless GraphQL servers over the last year as part of our consult
 
 GraphQL, as Facebook created and used it, was built around flexibility during development and persisted operations in production. This means that when Facebook deploys to production, the GraphQL server essentially becomes a REST server—there is no open GraphQL in production. The GraphQL server is only able to execute trusted operations that were exported from the various frontends into an operation store. In the build pipeline, operations are stripped from the frontend code and replaced with a unique identifier. The stripped operation documents are stored in an operation store. In production, the frontend sends the unique identifier to the GraphQL server instead of a full operation, and the GraphQL server only executes operations stored in the operations store.
 
-This is the best way to do GraphQL and provides the best approach for schema evolvability, as used operations are centrally known and can be statically analyzed. It also ensures that you know the performance characteristics and impact of operations on your backend. With Banana Cake Pop, you can set up a schema registry and an operation store in less than 5 minutes. Have a look [here](LINK) for more information.
+This is the best way to do GraphQL and provides the best approach for schema evolvability, as used operations are centrally known and can be statically analyzed. It also ensures that you know the performance characteristics and impact of operations on your backend. With Banana Cake Pop, you can set up a schema registry and an operation store in less than 5 minutes. Have a look [here](https://chillicream.com/docs/bananacakepop/v2/apis/schema-registry) for more information.
 
 However, most new developers are not aware of how to do this or do not understand why they should. Another problem is that there is no easy path from an open GraphQL server to a closed system once you have clients working against your API.
 
 With Hot Chocolate 14, we wanted to ensure that your servers are secure even if you do not configure a single setting, even if you do not know about persisted operations, or even if you explicitly want an open GraphQL server. Going forward, we have built into the core of Hot Chocolate the IBM cost specification to weigh the impact of your requests and to restrict expensive operations right from the start.
+
+<Video videoId="R6Rq4kU_GfM" />
 
 When you export your schema with Hot Chocolate 14, you will see that we have added cost directives to certain fields. We estimate costs automatically so that you do not have to do this manually. You can override these estimates where necessary. The IBM cost spec has two weights it calculates: type cost, which estimates the objects being produced (essentially the data cost), and field cost, which estimates the computational cost.
 
@@ -919,6 +927,8 @@ SCREENSHOT
 
 With Banana Cake Pop you have the best solution to manage you distributed GraphQL setup.
 
+<Video videoId="KfBV3GQ3760" />
+
 ## Community
 
 In this release, we had a staggering **30** new contributors who helped alongside the team of core contributors. Overall, we had 46 contributors working on Hot Chocolate 14. These contributions ranged from fixing typos to optimizing our filter expressions, like the [pull request](https://github.com/ChilliCream/graphql-platform/pull/7311) from @nikolai-mb. We are very grateful to have such a vibrant community that helps us make Hot Chocolate better every day.
@@ -938,6 +948,8 @@ If you want to learn all about the new features of Hot Chocolate, I have made a 
 If you use the code `STAIB`, you will get a 20% discount on the course.
 
 [https://dometrain.com/course/getting-started-graphql-in-dotnet/](https://dometrain.com/course/getting-started-graphql-in-dotnet/)
+
+Apart from the in-depth workshop at DomeTrain we have also reworked our Getting Started workshop that you can now find [here](https://github.com/ChilliCream/graphql-workshop).
 
 ## Hot Chocolate 15
 
