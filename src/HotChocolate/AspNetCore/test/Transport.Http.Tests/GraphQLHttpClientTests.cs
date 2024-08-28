@@ -33,7 +33,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         var client = new DefaultGraphQLHttpClient(httpClient);
 
         // act
-        var response = await client.PostAsync(query, "/graphql");
+        var response = await client.PostAsync(query, "http://localhost:5000/graphql");
 
         async Task Error() => await response.ReadAsResultAsync();
 
@@ -59,7 +59,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         var client = new DefaultGraphQLHttpClient(httpClient);
 
         // act
-        var response = await client.PostAsync(query, "/graphql");
+        var response = await client.PostAsync(query, "http://localhost:5000/graphql");
 
         async Task Error() => await response.ReadAsResultAsync();
 
@@ -84,7 +84,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         var client = new DefaultGraphQLHttpClient(httpClient);
 
         // act
-        async Task Error() => await client.PostAsync(query, "/graphql");
+        async Task Error() => await client.PostAsync(query, "http://localhost:5000/graphql");
 
         // assert
         var exception = await Assert.ThrowsAsync<Exception>(Error);
