@@ -13,37 +13,60 @@ public sealed class EventStreamResultFormatterEventSource : EventSource
         eventId: 1,
         Level = EventLevel.Informational,
         Message = "Started formatting operation result.")]
-    public void FormatOperationResultStart()
+    public OperationScope? FormatOperationResultStart()
     {
-        WriteEvent(1);
+        if(IsEnabled())
+        {
+            var correlationId = Guid.NewGuid();
+            WriteEvent(1, correlationId);
+            return new OperationScope(correlationId, this);
+        }
+
+        return null;
     }
 
     [Event(
         eventId: 2,
         Level = EventLevel.Informational,
         Message = "Finished formatting operation result.")]
-    public void FormatOperationResultStop()
+    private void FormatOperationResultStop(Guid correlationId)
     {
-        WriteEvent(2);
+        WriteEvent(2, correlationId);
     }
 
     [Event(
         eventId: 3,
         Level = EventLevel.Error,
-        Message = "An error occurred during formatting: {0}")]
-    public void FormatOperationResultError(string message, string stackTrace)
+        Message = "An error occurred during formatting: {0}.")]
+    private void FormatOperationResultError(string message, string stackTrace, Guid correlationId)
     {
-        WriteEvent(3, message, stackTrace);
+        WriteEvent(3, message, stackTrace, correlationId);
     }
 
     [NonEvent]
-    public void FormatOperationResultError(Exception ex)
+    private void FormatOperationResultError(Exception ex, Guid correlationId)
     {
         if (ex == null)
         {
             throw new ArgumentNullException(nameof(ex));
         }
 
-        FormatOperationResultError(ex.Message, ex.StackTrace ?? string.Empty);
+        FormatOperationResultError(ex.Message, ex.StackTrace ?? string.Empty, correlationId);
+    }
+
+    public sealed class OperationScope(
+        Guid correlationId,
+        EventStreamResultFormatterEventSource eventSource)
+        : IDisposable
+    {
+        public void AddError(Exception ex)
+        {
+            eventSource.FormatOperationResultError(ex, correlationId);
+        }
+
+        public void Dispose()
+        {
+            eventSource.FormatOperationResultStop(correlationId);
+        }
     }
 }

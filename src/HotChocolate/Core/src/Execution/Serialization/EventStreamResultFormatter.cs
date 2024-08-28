@@ -154,7 +154,8 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
                 .WithCancellation(ct)
                 .ConfigureAwait(false))
             {
-                Log.FormatOperationResultStart();
+                var scope = Log.FormatOperationResultStart();
+
                 try
                 {
                     MessageHelper.WriteNextMessage(payloadFormatter, result, buffer);
@@ -165,14 +166,14 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
                 }
                 catch (Exception ex)
                 {
-                    Log.FormatOperationResultError(ex);
+                    scope?.AddError(ex);
                     Debug.WriteLine(ex);
                     break;
                 }
                 finally
                 {
                     await result.DisposeAsync().ConfigureAwait(false);
-                    Log.FormatOperationResultStop();
+                    scope?.Dispose();
                 }
             }
         }
