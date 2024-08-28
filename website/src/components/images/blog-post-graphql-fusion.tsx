@@ -3,13 +3,13 @@ import { GatsbyImage } from "gatsby-plugin-image";
 import React, { FC } from "react";
 import styled from "styled-components";
 
-import { GetBlogPostGraphQLFusionImageQuery } from "@/graphql-types";
+import { GetBlogPostHotChocolate14ImageQuery } from "@/graphql-types";
 
-export const BlogPostGraphQLFusion: FC = () => {
-  const data = useStaticQuery<GetBlogPostGraphQLFusionImageQuery>(graphql`
-    query getBlogPostGraphQLFusionImage {
+export const BlogPostHotChocolate14: FC = () => {
+  const data = useStaticQuery<GetBlogPostHotChocolate14ImageQuery>(graphql`
+    query getBlogPostHotChocolate14Image {
       file(
-        relativePath: { eq: "2023-08-15-fusion/fusion-banner.png" }
+        relativePath: { eq: "2024-08-30-hot-chocolate-14/hot-chocolate-14.png" }
         sourceInstanceName: { eq: "blog" }
       ) {
         childImageSharp {
@@ -23,7 +23,7 @@ export const BlogPostGraphQLFusion: FC = () => {
     <Container>
       <GatsbyImage
         image={data.file?.childImageSharp?.gatsbyImageData}
-        alt="Hot Chocolate Version 13"
+        alt="Hot Chocolate Version 14"
       />
     </Container>
   );
