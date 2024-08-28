@@ -85,11 +85,11 @@ builder.Services.AddGraphQLServer()
     .ModifyOptions(o => o.MaxAllowedNodeBatchSize = 1);
 ```
 
-# Operation complexity
+# Cost analysis
 
-With technologies like REST, it was easy to scale servers and measure the impact of a single request on our server infrastructure. With GraphQL, we need to do a bit more to enforce that requests have a consistent impact on our servers. Hot Chocolate can track the cost of fields and deny the execution of requests that exceed the allowed impact on our system.
+With technologies like [REST](https://en.wikipedia.org/wiki/REST), it was easy to scale servers and measure the impact of a single request on our server infrastructure. With GraphQL, we need to do a bit more to enforce that requests have a consistent impact on our servers. Hot Chocolate can track the cost of fields and deny the execution of requests that exceed the allowed impact on our system.
 
-[Learn more about the operation complexity analyzer](/docs/hotchocolate/v14/security/operation-complexity).
+[Learn more about cost analysis](/docs/hotchocolate/v14/security/cost-analysis)
 
 # FIPS compliance
 

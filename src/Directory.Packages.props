@@ -14,8 +14,8 @@
     <PackageVersion Include="BananaCakePop.Middleware" Version="$(BananaCakePopVersion)" />
     <PackageVersion Include="Basic.Reference.Assemblies" Version="1.6.0" />
     <PackageVersion Include="ChilliCream.Testing.Utilities" Version="0.2.0" />
-    <PackageVersion Include="coverlet.msbuild" Version="3.1.2" />
-    <PackageVersion Include="DiffPlex" Version="1.7.1" />
+    <PackageVersion Include="coverlet.msbuild" Version="6.0.2" />
+    <PackageVersion Include="DiffPlex" Version="1.7.2" />
     <PackageVersion Include="FsCheck.Xunit" Version="3.0.0-rc3" />
     <PackageVersion Include="FSharp.Core" Version="8.0.100" />
     <PackageVersion Include="Glob" Version="1.1.9" />
@@ -31,13 +31,12 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.1.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.1.0" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.8" />
     <PackageVersion Include="Microsoft.Extensions.Identity.Core" Version="7.0.3" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.11.0" />
     <PackageVersion Include="Microsoft.OpenApi" Version="1.6.14" />
     <PackageVersion Include="Microsoft.OpenApi.Readers" Version="1.6.14" />
     <PackageVersion Include="MongoDB.Driver" Version="2.24.0" />
-    <PackageVersion Include="Moq" Version="4.18.1" />
+    <PackageVersion Include="Moq" Version="4.20.70" />
     <PackageVersion Include="NetTopologySuite" Version="2.0.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageVersion Include="NodaTime" Version="3.0.0" />
@@ -51,12 +50,12 @@
     <PackageVersion Include="sqlite-net-pcl" Version="1.9.172" />
     <PackageVersion Include="SQLitePCLRaw.bundle_green" Version="2.1.8" />
     <PackageVersion Include="SQLitePCLRaw.core" Version="2.1.8" />
-    <PackageVersion Include="Squadron.Mongo" Version="0.15.0" />
-    <PackageVersion Include="Squadron.Nats" Version="0.18.0-preview.6" />
+    <PackageVersion Include="Squadron.Mongo" Version="0.18.0" />
+    <PackageVersion Include="Squadron.Nats" Version="0.18.0" />
     <PackageVersion Include="Squadron.PostgreSql" Version="0.18.0" />
-    <PackageVersion Include="Squadron.RabbitMQ" Version="0.18.0-preview.6" />
-    <PackageVersion Include="Squadron.RavenDB" Version="0.17.0" />
-    <PackageVersion Include="Squadron.Redis" Version="0.15.0" />
+    <PackageVersion Include="Squadron.RabbitMQ" Version="0.18.0" />
+    <PackageVersion Include="Squadron.RavenDB" Version="0.18.0" />
+    <PackageVersion Include="Squadron.Redis" Version="0.18.0" />
     <PackageVersion Include="StackExchange.Redis" Version="2.6.80" />
     <PackageVersion Include="System.Collections.Immutable" Version="8.0.0" />
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
@@ -158,8 +157,8 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)' == 'debug'">
-    <PackageVersion Include="Roslynator.Analyzers" Version="4.12.3" />
-    <PackageVersion Include="Roslynator.CodeAnalysis.Analyzers" Version="4.12.3" />
-    <PackageVersion Include="Roslynator.Formatting.Analyzers" Version="4.12.3" />
+    <PackageVersion Include="Roslynator.Analyzers" Version="4.12.4" />
+    <PackageVersion Include="Roslynator.CodeAnalysis.Analyzers" Version="4.12.4" />
+    <PackageVersion Include="Roslynator.Formatting.Analyzers" Version="4.12.4" />
   </ItemGroup>
 </Project>

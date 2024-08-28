@@ -2,9 +2,8 @@ import { graphql, useStaticQuery } from "gatsby";
 import React, { FC } from "react";
 import { Carousel } from "react-responsive-carousel";
 import styled from "styled-components";
-
 import { BananaCakePop } from "@/components/images/banana-cake-pop";
-import { BlogPostGraphQLFusion } from "@/components/images/blog-post-graphql-fusion";
+import { BlogPostHotChocolate14 } from "@/components/images/blog-post-graphql-fusion";
 import { NewsletterMay2024 } from "@/components/images/newsletter-may-2024";
 import { Layout } from "@/components/layout";
 import { Link } from "@/components/misc/link";
@@ -76,6 +75,11 @@ const IndexPage: FC = () => {
           showThumbs={false}
         >
           <Slide>
+            <Link to="/blog/2024/08/30/hot-chocolate-14">
+              <BlogPostHotChocolate14 />
+            </Link>
+          </Slide>
+          <Slide>
             <Link to="/blog/2024/08/11/logging">
               <LoggingInBananaCakePop />
             </Link>
@@ -88,11 +92,6 @@ const IndexPage: FC = () => {
           <Slide>
             <Link to="/blog/2024/04/01/fullstack-workshop">
               <FullstackWorkshop />
-            </Link>
-          </Slide>
-          <Slide>
-            <Link to="/blog/2023/08/15/graphql-fusion">
-              <BlogPostGraphQLFusion />
             </Link>
           </Slide>
           <Slide>
