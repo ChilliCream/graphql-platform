@@ -66,13 +66,27 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
         Stream outputStream,
         CancellationToken ct)
     {
-        using var buffer = new ArrayWriter();
+        var buffer = new ArrayWriter();
 
-        MessageHelper.WriteNextMessage(_payloadFormatter, operationResult, buffer);
-        MessageHelper.WriteCompleteMessage(buffer);
+        var scope = Log.FormatOperationResultStart();
+        try
+        {
+            MessageHelper.WriteNextMessage(_payloadFormatter, operationResult, buffer);
+            MessageHelper.WriteCompleteMessage(buffer);
 
-        await outputStream.WriteAsync(buffer.GetInternalBuffer(), 0, buffer.Length, ct).ConfigureAwait(false);
-        await outputStream.FlushAsync(ct).ConfigureAwait(false);
+            await outputStream.WriteAsync(buffer.GetInternalBuffer(), 0, buffer.Length, ct).ConfigureAwait(false);
+            await outputStream.FlushAsync(ct).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            scope?.AddError(ex);
+            Debug.WriteLine(ex);
+        }
+        finally
+        {
+            scope?.Dispose();
+            buffer.Dispose();
+        }
     }
 
     private async ValueTask FormatResultBatchAsync(
@@ -92,12 +106,27 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
                 switch (result)
                 {
                     case IOperationResult operationResult:
-                        buffer ??= new ArrayWriter();
-                        MessageHelper.WriteNextMessage(_payloadFormatter, operationResult, buffer);
-                        writer.Write(buffer.GetWrittenSpan());
-                        await writer.FlushAsync(ct).ConfigureAwait(false);
-                        keepAlive?.Reset();
-                        buffer.Reset();
+                        var scope = Log.FormatOperationResultStart();
+                        try
+                        {
+                            buffer ??= new ArrayWriter();
+                            MessageHelper.WriteNextMessage(_payloadFormatter, operationResult, buffer);
+                            writer.Write(buffer.GetWrittenSpan());
+                            await writer.FlushAsync(ct).ConfigureAwait(false);
+                            keepAlive?.Reset();
+                            buffer.Reset();
+                        }
+                        catch (Exception ex)
+                        {
+                            scope?.AddError(ex);
+                            Debug.WriteLine(ex);
+                        }
+                        finally
+                        {
+                            await operationResult.DisposeAsync().ConfigureAwait(false);
+                            scope?.Dispose();
+                        }
+
                         break;
 
                     case IResponseStream responseStream:
@@ -148,33 +177,40 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
     {
         public async Task ProcessAsync(CancellationToken ct)
         {
-            using var buffer = new ArrayWriter();
-
-            await foreach (var result in responseStream.ReadResultsAsync()
-                .WithCancellation(ct)
-                .ConfigureAwait(false))
+            var buffer = new ArrayWriter();
+            try
             {
-                var scope = Log.FormatOperationResultStart();
+                await foreach (var result in responseStream.ReadResultsAsync()
+                    .WithCancellation(ct)
+                    .ConfigureAwait(false))
+                {
+                    var scope = Log.FormatOperationResultStart();
 
-                try
-                {
-                    MessageHelper.WriteNextMessage(payloadFormatter, result, buffer);
-                    writer.Write(buffer.GetWrittenSpan());
-                    await writer.FlushAsync(ct).ConfigureAwait(false);
-                    keepAliveJob.Reset();
-                    buffer.Reset();
+                    try
+                    {
+                        MessageHelper.WriteNextMessage(payloadFormatter, result, buffer);
+                        writer.Write(buffer.GetWrittenSpan());
+                        await writer.FlushAsync(ct).ConfigureAwait(false);
+                        keepAliveJob.Reset();
+                        buffer.Reset();
+                    }
+                    catch (Exception ex)
+                    {
+                        scope?.AddError(ex);
+                        Debug.WriteLine(ex);
+                        return;
+                    }
+                    finally
+                    {
+                        await result.DisposeAsync().ConfigureAwait(false);
+                        scope?.Dispose();
+                    }
                 }
-                catch (Exception ex)
-                {
-                    scope?.AddError(ex);
-                    Debug.WriteLine(ex);
-                    break;
-                }
-                finally
-                {
-                    await result.DisposeAsync().ConfigureAwait(false);
-                    scope?.Dispose();
-                }
+            }
+            finally
+            {
+                await responseStream.DisposeAsync().ConfigureAwait(false);
+                buffer.Dispose();
             }
         }
     }
