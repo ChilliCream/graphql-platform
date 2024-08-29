@@ -7,33 +7,22 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Shared;
 
-public record TestSubgraph(TestServer TestServer, ISchema Schema, string SchemaExtensions = "", bool IsOffline = false)
+public record TestSubgraph(
+    TestServer TestServer,
+    ISchema Schema,
+    SubgraphTestContext Context,
+    string SchemaExtensions = "",
+    bool IsOffline = false)
 {
-    public static async Task<TestSubgraph> CreateAsync(
+    public static Task<TestSubgraph> CreateAsync(
         string schemaText,
         bool isOffline = false)
-    {
-        var testServerFactory = new TestServerFactory();
-
-        var testServer = testServerFactory.Create(
-            services =>
-            {
-                services
-                    .AddRouting()
-                    .AddGraphQLServer()
-                    .AddDocumentFromString(schemaText)
-                    .AddResolverMocking()
-                    .AddTestDirectives();
-            },
-            app =>
-            {
-                app.UseRouting().UseEndpoints(endpoints => endpoints.MapGraphQL());
-            });
-
-        var schema = await testServer.Services.GetSchemaAsync();
-
-        return new TestSubgraph(testServer, schema, IsOffline: isOffline);
-    }
+        => CreateAsync(
+            configureBuilder: builder => builder
+                .AddDocumentFromString(schemaText)
+                .AddResolverMocking()
+                .AddTestDirectives(),
+            isOffline: isOffline);
 
     public static async Task<TestSubgraph> CreateAsync(
         Action<IRequestExecutorBuilder> configureBuilder,
@@ -41,6 +30,7 @@ public record TestSubgraph(TestServer TestServer, ISchema Schema, string SchemaE
         bool isOffline = false)
     {
         var testServerFactory = new TestServerFactory();
+        var testContext = new SubgraphTestContext();
 
         var testServer = testServerFactory.Create(
             services =>
@@ -53,11 +43,24 @@ public record TestSubgraph(TestServer TestServer, ISchema Schema, string SchemaE
             },
             app =>
             {
+                app.Use(next => context =>
+                {
+                    testContext.HasReceivedRequest = true;
+                    return next(context);
+                });
+
                 app.UseRouting().UseEndpoints(endpoints => endpoints.MapGraphQL());
             });
 
         var schema = await testServer.Services.GetSchemaAsync();
 
-        return new TestSubgraph(testServer, schema, extensions, isOffline);
+        return new TestSubgraph(testServer, schema, testContext, extensions, isOffline);
     }
+
+    public bool HasReceivedRequest => Context.HasReceivedRequest;
+}
+
+public class SubgraphTestContext
+{
+    public bool HasReceivedRequest { get; set; }
 }

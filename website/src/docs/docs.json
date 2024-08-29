@@ -59,8 +59,18 @@
               {
                 "path": "operation-reporting",
                 "title": "Operation Reporting"
+              }
+            ]
+          },
+          {
+            "path": "open-telemetry",
+            "title": "Open Telemetry",
+            "items": [
+              {
+                "path": "operation-monitoring",
+                "title": "Operation Monitoring"
               },
-              { "path": "open-telemetry", "title": "Open Telemetry" }
+              { "path": "logging", "title": "Logging" }
             ]
           },
           {
@@ -120,8 +130,8 @@
             "title": "Introduction"
           },
           {
-            "path": "get-started-with-graphql-in-net-core",
-            "title": "Get Started"
+            "path": "getting-started",
+            "title": "Getting Started"
           },
           {
             "path": "defining-a-schema",
@@ -278,10 +288,6 @@
                 "title": "MongoDB"
               },
               {
-                "path": "neo4j",
-                "title": "Neo4J"
-              },
-              {
                 "path": "spatial-data",
                 "title": "Spatial Data"
               },
@@ -386,8 +392,8 @@
                 "title": "Authorization"
               },
               {
-                "path": "operation-complexity",
-                "title": "Operation Complexity"
+                "path": "cost-analysis",
+                "title": "Cost Analysis"
               }
             ]
           },
@@ -425,6 +431,10 @@
             "path": "migrating",
             "title": "Migrating",
             "items": [
+              {
+                "path": "migrate-from-13-to-14",
+                "title": "Migrate from 13 to 14"
+              },
               {
                 "path": "migrate-from-12-to-13",
                 "title": "Migrate from 12 to 13"

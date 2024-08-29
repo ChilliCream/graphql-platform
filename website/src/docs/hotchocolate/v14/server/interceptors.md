@@ -167,7 +167,7 @@ It has many capabilities, but most of them are only used internally. In the foll
 
 We can set `Properties`, also called Global State, on the `OperationRequestBuilder`, which can then be referenced in middleware, field resolvers, etc.
 
-[Learn more about Global State](/docs/hotchocolate/v13/server/global-state)
+[Learn more about Global State](/docs/hotchocolate/v14/server/global-state)
 
 ### SetProperty
 
@@ -206,8 +206,8 @@ requestBuilder.SetProperties(properties);
 
 ```csharp
 var provider = new ServiceCollection()
-                .AddSingleton<ExampleService>()
-                .BuildServiceProvider();
+    .AddSingleton<ExampleService>()
+    .BuildServiceProvider();
 
 requestBuilder.SetServices(provider);
 ```
@@ -220,20 +220,4 @@ If we have disabled introspection globally, `AllowIntrospection` allows us to en
 
 ```csharp
 requestBuilder.AllowIntrospection();
-```
-
-## SkipComplexityAnalysis
-
-When using the [operation complexity feature](/docs/hotchocolate/v13/security/operation-complexity), we can skip the complexity analysis for specific requests.
-
-```csharp
-requestBuilder.SkipComplexityAnalysis();
-```
-
-## SetMaximumAllowedComplexity
-
-When using the [operation complexity feature](/docs/hotchocolate/v13/security/operation-complexity), we can overwrite the global complexity limit for specific requests.
-
-```csharp
-requestBuilder.SetMaximumAllowedComplexity(5000);
 ```

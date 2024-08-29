@@ -18,6 +18,9 @@ public static partial class RequestExecutorBuilderExtensions
     /// <param name="maxIdLength">
     /// The maximum allowed length of a node id.
     /// </param>
+    /// <param name="outputNewIdFormat">
+    /// Whether the new ID format shall be used when serializing IDs.
+    /// </param>
     /// <returns>
     /// Returns the request executor builder.
     /// </returns>
@@ -26,7 +29,8 @@ public static partial class RequestExecutorBuilderExtensions
     /// </exception>
     public static IRequestExecutorBuilder AddDefaultNodeIdSerializer(
         this IRequestExecutorBuilder builder,
-        int maxIdLength = 1024)
+        int maxIdLength = 1024,
+        bool outputNewIdFormat = true)
     {
         if (builder == null)
         {
@@ -47,7 +51,7 @@ public static partial class RequestExecutorBuilderExtensions
         builder.Services.TryAddSingleton<INodeIdSerializer>(sp =>
         {
             var allSerializers = sp.GetServices<INodeIdValueSerializer>().ToArray();
-            return new DefaultNodeIdSerializer(allSerializers, maxIdLength);
+            return new DefaultNodeIdSerializer(allSerializers, maxIdLength, outputNewIdFormat);
         });
 
         builder.ConfigureSchemaServices(
@@ -76,7 +80,7 @@ public static partial class RequestExecutorBuilderExtensions
                         }
                     }
 
-                    return new OptimizedNodeIdSerializer(boundSerializers, allSerializers, maxIdLength);
+                    return new OptimizedNodeIdSerializer(boundSerializers, allSerializers, maxIdLength, outputNewIdFormat);
                 });
             });
         return builder;

@@ -90,14 +90,17 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
             // query plan nodes be interested in it.
             lock (executionState)
             {
-                ProcessResult(context, response, batchExecutionState);
+                ProcessResult(context, response, batchExecutionState, SubgraphName);
             }
         }
         catch (Exception ex)
         {
             context.DiagnosticEvents.ResolveByKeyBatchError(ex);
-            var error = context.OperationContext.ErrorHandler.CreateUnexpectedError(ex);
-            context.Result.AddError(error.Build());
+
+            var errorHandler = context.ErrorHandler;
+            var error = errorHandler.CreateUnexpectedError(ex).Build();
+            error = errorHandler.Handle(error);
+            context.Result.AddError(error);
         }
     }
 
@@ -139,13 +142,29 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
     private void ProcessResult(
         FusionExecutionContext context,
         GraphQLResponse response,
-        BatchExecutionState[] batchExecutionState)
+        BatchExecutionState[] batchExecutionState,
+        string subgraphName)
     {
         var result = UnwrapResult(response, Requires);
         ref var batchState = ref MemoryMarshal.GetArrayDataReference(batchExecutionState);
         ref var end = ref Unsafe.Add(ref batchState, batchExecutionState.Length);
         var pathLength = Path.Length;
         var first = true;
+
+        if (response.TransportException is not null)
+        {
+            foreach (var state in batchExecutionState)
+            {
+                CreateTransportErrors(
+                    response.TransportException,
+                    context.Result,
+                    context.ErrorHandler,
+                    state.SelectionSetResult,
+                    RootSelections,
+                    subgraphName,
+                    context.ShowDebugInfo);
+            }
+        }
 
         while (Unsafe.IsAddressLessThan(ref batchState, ref end))
         {
@@ -155,6 +174,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
                     context.Operation.Document,
                     context.Operation.Definition,
                     context.Result,
+                    context.ErrorHandler,
                     response.Errors,
                     batchState.SelectionSetResult,
                     pathLength + 1,

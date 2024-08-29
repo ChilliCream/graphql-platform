@@ -156,7 +156,7 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                         }
 
                         _writer.WriteLine();
-                        _writer.WriteIndentedLine("});");
+                        _writer.WriteIndentedLine("})!;");
                     }
                 }
 
@@ -562,12 +562,13 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                 case ResolverParameterKind.GetGlobalState when parameter.Parameter.HasExplicitDefaultValue:
                 {
                     var defaultValue = parameter.Parameter.ExplicitDefaultValue;
-                    var defaultValueString = ConvertDefaultValueToString(defaultValue, parameter.Type);
+                    var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(defaultValue, parameter.Type);
 
                     _writer.WriteIndentedLine(
-                        "var args{0} = context.GetGlobalStateOrDefault<{1}>(\"{2}\", {3});",
+                        "var args{0} = context.GetGlobalStateOrDefault<{1}{2}>(\"{3}\", {4});",
                         i,
                         parameter.Type.ToFullyQualified(),
+                        parameter.Type.IsNullableRefType() ? "?" : string.Empty,
                         parameter.Key,
                         defaultValueString);
                     break;
@@ -601,12 +602,13 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                 case ResolverParameterKind.GetScopedState when parameter.Parameter.HasExplicitDefaultValue:
                 {
                     var defaultValue = parameter.Parameter.ExplicitDefaultValue;
-                    var defaultValueString = ConvertDefaultValueToString(defaultValue, parameter.Type);
+                    var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(defaultValue, parameter.Type);
 
                     _writer.WriteIndentedLine(
-                        "var args{0} = context.GetScopedStateOrDefault<{1}>(\"{2}\", {3});",
+                        "var args{0} = context.GetScopedStateOrDefault<{1}{2}>(\"{3}\", {4});",
                         i,
                         parameter.Type.ToFullyQualified(),
+                        parameter.Type.IsNullableRefType() ? "?" : string.Empty,
                         parameter.Key,
                         defaultValueString);
                     break;
@@ -640,12 +642,13 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                 case ResolverParameterKind.GetLocalState when parameter.Parameter.HasExplicitDefaultValue:
                 {
                     var defaultValue = parameter.Parameter.ExplicitDefaultValue;
-                    var defaultValueString = ConvertDefaultValueToString(defaultValue, parameter.Type);
+                    var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(defaultValue, parameter.Type);
 
                     _writer.WriteIndentedLine(
-                        "var args{0} = context.GetLocalStateOrDefault<{1}>(\"{2}\", {3});",
+                        "var args{0} = context.GetLocalStateOrDefault<{1}{2}>(\"{3}\", {4});",
                         i,
                         parameter.Type.ToFullyQualified(),
+                        parameter.Type.IsNullableRefType() ? "?" : string.Empty,
                         parameter.Key,
                         defaultValueString);
                     break;
@@ -713,47 +716,5 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
         }
 
         return arguments.ToString();
-    }
-
-    private static string ConvertDefaultValueToString(object? defaultValue, ITypeSymbol type)
-    {
-        if (defaultValue == null)
-        {
-            return "null";
-        }
-
-        if (type.SpecialType == SpecialType.System_String)
-        {
-            return $"\"{defaultValue}\"";
-        }
-
-        if (type.SpecialType == SpecialType.System_Char)
-        {
-            return $"'{defaultValue}'";
-        }
-
-        if (type.SpecialType == SpecialType.System_Boolean)
-        {
-            return defaultValue.ToString().ToLower();
-        }
-
-        if (type.SpecialType == SpecialType.System_Double ||
-            type.SpecialType == SpecialType.System_Single)
-        {
-            return $"{defaultValue}d";
-        }
-
-        if (type.SpecialType == SpecialType.System_Decimal)
-        {
-            return $"{defaultValue}m";
-        }
-
-        if (type.SpecialType == SpecialType.System_Int64 ||
-            type.SpecialType == SpecialType.System_UInt64)
-        {
-            return $"{defaultValue}L";
-        }
-
-        return defaultValue.ToString();
     }
 }

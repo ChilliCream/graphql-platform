@@ -176,6 +176,7 @@ public static class RequestExecutorServiceCollectionExtensions
             });
 
         builder.TryAddNoOpTransactionScopeHandler();
+        builder.TryAddTypeInterceptor<DataLoaderRootFieldTypeInterceptor>();
 
         return builder;
     }

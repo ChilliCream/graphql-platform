@@ -58,21 +58,6 @@ public static class WellKnownContextData
     public const string IntrospectionMessage = "HotChocolate.Execution.Introspection.Message";
 
     /// <summary>
-    /// Signals that the complexity analysis shall be skipped.
-    /// </summary>
-    public const string SkipComplexityAnalysis = "HotChocolate.Execution.NoComplexityAnalysis";
-
-    /// <summary>
-    /// The key for setting the operation complexity.
-    /// </summary>
-    public const string OperationComplexity = "HotChocolate.Execution.OperationComplexity";
-
-    /// <summary>
-    /// The key for setting the maximum operation complexity.
-    /// </summary>
-    public const string MaximumAllowedComplexity = "HotChocolate.Execution.AllowedComplexity";
-
-    /// <summary>
     /// Includes the query plan into the response.
     /// </summary>
     public const string IncludeQueryPlan = "HotChocolate.Execution.EmitQueryPlan";
@@ -334,4 +319,6 @@ public static class WellKnownContextData
     /// The key to set the flag that only the cost should be validated and the request should not be executed.
     /// </summary>
     public const string ValidateCost = "HotChocolate.CostAnalysis.ValidateCost";
+
+    public const string PagingObserver = "HotChocolate.Types.PagingObserver";
 }

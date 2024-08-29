@@ -20,12 +20,17 @@ public interface ISelectionSet
     bool IsConditional { get; }
 
     /// <summary>
-    /// This list contains the selections that shall be executed.
+    /// Gets the selections that shall be executed.
     /// </summary>
     IReadOnlyList<ISelection> Selections { get; }
 
     /// <summary>
-    /// This list contains fragments if any were preserved for execution.
+    /// Gets the deferred fragments if any were preserved for execution.
     /// </summary>
     IReadOnlyList<IFragment> Fragments { get; }
+
+    /// <summary>
+    /// Gets the declaring operation.
+    /// </summary>
+    IOperation DeclaringOperation { get; }
 }

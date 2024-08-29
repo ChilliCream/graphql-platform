@@ -93,6 +93,41 @@ public class DateTimeTypeTests
         Assert.Equal(expectedDateTime, dateTime);
     }
 
+    [Theory]
+    [MemberData(nameof(ValidDateTimeScalarStrings))]
+    public void ParseLiteral_StringValueNode_Valid(string dateTime, DateTimeOffset result)
+    {
+        // arrange
+        var dateTimeType = new DateTimeType();
+        var literal = new StringValueNode(dateTime);
+
+        // act
+        var dateTimeOffset = (DateTimeOffset?)dateTimeType.ParseLiteral(literal);
+
+        // assert
+        Assert.Equal(result, dateTimeOffset);
+    }
+
+    [Theory]
+    [MemberData(nameof(InvalidDateTimeScalarStrings))]
+    public void ParseLiteral_StringValueNode_Invalid(string dateTime)
+    {
+        // arrange
+        var dateTimeType = new DateTimeType();
+        var literal = new StringValueNode(dateTime);
+
+        // act
+        void Act()
+        {
+            dateTimeType.ParseLiteral(literal);
+        }
+
+        // assert
+        Assert.Equal(
+            "DateTime cannot parse the given literal of type `StringValueNode`.",
+            Assert.Throws<SerializationException>(Act).Message);
+    }
+
     [InlineData("en-US")]
     [InlineData("en-AU")]
     [InlineData("en-GB")]
@@ -384,5 +419,67 @@ public class DateTimeTypeTests
     public class DefaultDateTime
     {
         public DateTime Test => default;
+    }
+
+    // https://www.graphql-scalars.com/date-time/#test-cases (valid strings)
+    public static TheoryData<string, DateTimeOffset> ValidDateTimeScalarStrings()
+    {
+        return new TheoryData<string, DateTimeOffset>
+        {
+            {
+                // A DateTime with UTC offset (+00:00).
+                "2011-08-30T13:22:53.108Z",
+                new(2011, 8, 30, 13, 22, 53, 108, new TimeSpan())
+            },
+            {
+                // A DateTime with +00:00 which is the same as UTC.
+                "2011-08-30T13:22:53.108+00:00",
+                new(2011, 8, 30, 13, 22, 53, 108, new TimeSpan())
+            },
+            {
+                // The z and t may be lower case.
+                "2011-08-30t13:22:53.108z",
+                new(2011, 8, 30, 13, 22, 53, 108, new TimeSpan())
+            },
+            {
+                // A DateTime with -3h offset.
+                "2011-08-30T13:22:53.108-03:00",
+                new(2011, 8, 30, 13, 22, 53, 108, new TimeSpan(-3, 0, 0))
+            },
+            {
+                // A DateTime with +3h 30min offset.
+                "2011-08-30T13:22:53.108+03:30",
+                new(2011, 8, 30, 13, 22, 53, 108, new TimeSpan(3, 30, 0))
+            }
+        };
+    }
+
+    // https://www.graphql-scalars.com/date-time/#test-cases (invalid strings)
+    public static TheoryData<string> InvalidDateTimeScalarStrings()
+    {
+        return new TheoryData<string>
+        {
+            // The minutes of the offset are missing.
+            "2011-08-30T13:22:53.108-03",
+            // Too many digits for fractions of a second. Exactly three expected.
+            // -> We diverge from the specification here, and allow 0-7 fractional digits.
+            // Fractions of a second are missing.
+            "2011-08-30T24:22:53Z",
+            // No offset provided.
+            "2011-08-30T13:22:53.108",
+            // No time provided.
+            "2011-08-30",
+            // Negative offset (-00:00) is not allowed.
+            "2011-08-30T13:22:53.108-00:00",
+            // Seconds are not allowed for the offset.
+            "2011-08-30T13:22:53.108+03:30:15",
+            // 24 is not allowed as hour of the time.
+            "2011-08-30T24:22:53.108Z",
+            // ReSharper disable once GrammarMistakeInComment
+            // 30th of February is not a valid date.
+            "2010-02-30T21:22:53.108Z",
+            // 25 is not a valid hour for offset.
+            "2010-02-11T21:22:53.108Z+25:11"
+        };
     }
 }

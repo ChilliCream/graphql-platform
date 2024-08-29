@@ -1,4 +1,7 @@
 using System.Buffers;
+#if NET6_0_OR_GREATER
+using System.Runtime.InteropServices;
+#endif
 using static HotChocolate.Utilities.Properties.UtilityResources;
 
 namespace HotChocolate.Utilities;
@@ -57,7 +60,11 @@ internal sealed class ArrayWriter : IBufferWriter<byte>, IDisposable
     /// A <see cref="ReadOnlySpan{T}"/> of the written portion of the buffer.
     /// </returns>
     public ReadOnlySpan<byte> GetWrittenSpan()
+#if NET6_0_OR_GREATER
+        => MemoryMarshal.CreateSpan(ref _buffer[0], _start);
+#else
         => _buffer.AsSpan().Slice(0, _start);
+#endif
 
     /// <summary>
     /// Advances the writer by the specified number of bytes.
@@ -149,11 +156,14 @@ internal sealed class ArrayWriter : IBufferWriter<byte>, IDisposable
             throw new ArgumentOutOfRangeException(nameof(sizeHint));
         }
 
-        var size = sizeHint < 1
-            ? _initialBufferSize
-            : sizeHint;
+        var size = sizeHint < 1 ? _initialBufferSize : sizeHint;
         EnsureBufferCapacity(size);
+
+#if NET6_0_OR_GREATER
+        return MemoryMarshal.CreateSpan(ref _buffer[_start], size);
+#else
         return _buffer.AsSpan().Slice(_start, size);
+#endif
     }
 
     /// <summary>

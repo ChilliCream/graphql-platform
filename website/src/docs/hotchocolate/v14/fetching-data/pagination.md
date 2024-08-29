@@ -340,7 +340,7 @@ public class UsersEdge
 }
 ```
 
-[Learn more about extending types](/docs/hotchocolate/v13/defining-a-schema/extending-types)
+[Learn more about extending types](/docs/hotchocolate/v14/defining-a-schema/extending-types)
 
 ## Adding fields to a Connection
 
@@ -359,7 +359,7 @@ public class UsersConnectionExtension
 }
 ```
 
-[Learn more about extending types](/docs/hotchocolate/v13/defining-a-schema/extending-types)
+[Learn more about extending types](/docs/hotchocolate/v14/defining-a-schema/extending-types)
 
 These additional fields are great to perform aggregations either on the entire dataset, by for example issuing a second database call, or on top of the paginated result.
 
@@ -378,7 +378,7 @@ public class UsersConnectionExtension
 }
 ```
 
-> Note: If you are using [Projections](/docs/hotchocolate/v13/fetching-data/projections), be aware that some properties on your model might not be set, depending on what the user queried for.
+> Note: If you are using [Projections](/docs/hotchocolate/v14/fetching-data/projections), be aware that some properties on your model might not be set, depending on what the user queried for.
 
 ## Total count
 
@@ -681,7 +681,7 @@ public class UserCollectionSegmentExtension
 }
 ```
 
-[Learn more about extending types](/docs/hotchocolate/v13/defining-a-schema/extending-types)
+[Learn more about extending types](/docs/hotchocolate/v14/defining-a-schema/extending-types)
 
 These additional fields are great to perform aggregations either on the entire dataset, by for example issuing a second database call, or on top of the paginated result.
 
@@ -700,7 +700,7 @@ public class UserCollectionSegmentExtension
 }
 ```
 
-> Note: If you are using [Projections](/docs/hotchocolate/v13/fetching-data/projections), be aware that some properties on your model might not be set, depending on what the user queried for.
+> Note: If you are using [Projections](/docs/hotchocolate/v14/fetching-data/projections), be aware that some properties on your model might not be set, depending on what the user queried for.
 
 ## Total count
 
@@ -766,7 +766,7 @@ services
     .AddMongoDbPagingProviders();
 ```
 
-[Consult the specific integration documentation for more details](/docs/hotchocolate/v13/integrations)
+[Consult the specific integration documentation for more details](/docs/hotchocolate/v14/integrations)
 
 When registering paging providers we can name them to be able to explicitly reference them.
 
@@ -834,7 +834,7 @@ The following options can be configured.
 
 # Pagination defaults
 
-If we want to enforce consistent pagination defaults throughout our app, we can do so by setting the global `PagingOptions`.
+If we want to enforce consistent pagination defaults throughout our app, we can do so by modifying the global `PagingOptions`.
 
 ```csharp
 public class Startup
@@ -843,10 +843,7 @@ public class Startup
     {
         services
             .AddGraphQLServer()
-            .SetPagingOptions(new PagingOptions
-            {
-                MaxPageSize = 100
-            });
+            .ModifyPagingOptions(opt => opt.MaxPageSize = 100);
     }
 }
 ```

@@ -1,8 +1,6 @@
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
 
-#nullable enable
-
 namespace HotChocolate.Data.Projections.Context;
 
 /// <summary>

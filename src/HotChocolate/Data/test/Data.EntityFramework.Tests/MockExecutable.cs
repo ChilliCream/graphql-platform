@@ -52,6 +52,11 @@ public class MockExecutable<T>(IQueryable<T> set) : IExecutable<T>
     async ValueTask<object?> IExecutable.SingleOrDefaultAsync(CancellationToken cancellationToken)
         => await set.SingleOrDefaultAsync(cancellationToken);
 
+    public ValueTask<int> CountAsync(CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
+
     public async ValueTask<T?> SingleOrDefaultAsync(CancellationToken cancellationToken)
         => await set.SingleOrDefaultAsync(cancellationToken);
 

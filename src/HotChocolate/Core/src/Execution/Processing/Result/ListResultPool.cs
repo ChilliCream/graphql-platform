@@ -3,24 +3,16 @@ using static HotChocolate.Execution.Processing.ResultPoolDefaults;
 
 namespace HotChocolate.Execution.Processing;
 
-internal sealed class ListResultPool : DefaultObjectPool<ResultBucket<ListResult>>
+internal sealed class ListResultPool(int maximumRetained, int maxAllowedCapacity, int bucketSize)
+    : DefaultObjectPool<ResultBucket<ListResult>>(new BufferPolicy(maxAllowedCapacity, bucketSize), maximumRetained)
 {
-    public ListResultPool(int maximumRetained, int maxAllowedCapacity)
-        : base(new BufferPolicy(maxAllowedCapacity), maximumRetained)
+    private sealed class BufferPolicy(int maxAllowedCapacity, int bucketSize)
+        : PooledObjectPolicy<ResultBucket<ListResult>>
     {
-    }
-
-    private sealed class BufferPolicy : PooledObjectPolicy<ResultBucket<ListResult>>
-    {
-        private readonly ObjectPolicy _objectPolicy;
-
-        public BufferPolicy(int maxAllowedCapacity)
-        {
-            _objectPolicy = new ObjectPolicy(maxAllowedCapacity);
-        }
+        private readonly ObjectPolicy _objectPolicy = new(maxAllowedCapacity);
 
         public override ResultBucket<ListResult> Create()
-            => new(BucketSize, _objectPolicy);
+            => new(bucketSize, _objectPolicy);
 
         public override bool Return(ResultBucket<ListResult> obj)
         {
@@ -29,20 +21,14 @@ internal sealed class ListResultPool : DefaultObjectPool<ResultBucket<ListResult
         }
     }
 
-    private sealed class ObjectPolicy : PooledObjectPolicy<ListResult>
+    private sealed class ObjectPolicy(int maxAllowedCapacity)
+        : PooledObjectPolicy<ListResult>
     {
-        private readonly int _maxAllowedCapacity;
-
-        public ObjectPolicy(int maxAllowedCapacity)
-        {
-            _maxAllowedCapacity = maxAllowedCapacity;
-        }
-
         public override ListResult Create() => new();
 
         public override bool Return(ListResult obj)
         {
-            if (obj.Count > _maxAllowedCapacity)
+            if (obj.Count > maxAllowedCapacity)
             {
                 obj.Reset();
                 return false;

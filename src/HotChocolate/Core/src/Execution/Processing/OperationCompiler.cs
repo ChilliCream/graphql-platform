@@ -141,6 +141,12 @@ public sealed partial class OperationCompiler
 
     private Operation CreateOperation(OperationCompilerRequest request)
     {
+        var operation = new Operation(
+            request.Id,
+            request.Document,
+            request.Definition,
+            request.RootType);
+
         var variants = new SelectionVariants[_selectionVariants.Count];
 
         if (_operationOptimizers.Length == 0)
@@ -152,7 +158,7 @@ public sealed partial class OperationCompiler
             foreach (var item in _selectionVariants)
             {
                 variants[item.Key] = item.Value;
-                item.Value.Seal();
+                item.Value.Seal(operation);
             }
         }
         else
@@ -187,7 +193,7 @@ public sealed partial class OperationCompiler
 
             while (Unsafe.IsAddressLessThan(ref variantsStart, ref variantsEnd))
             {
-                variantsStart.Complete();
+                variantsStart.Complete(operation);
                 variantsStart = ref Unsafe.Add(ref variantsStart, 1)!;
             }
 
@@ -216,20 +222,13 @@ public sealed partial class OperationCompiler
 
             while (Unsafe.IsAddressLessThan(ref variantsStart, ref variantsEnd))
             {
-                variantsStart.Seal();
+                variantsStart.Seal(operation);
                 variantsStart = ref Unsafe.Add(ref variantsStart, 1)!;
             }
         }
 
-        return new Operation(
-            request.Id,
-            request.Document,
-            request.Definition,
-            request.RootType,
-            variants,
-            _includeConditions,
-            new Dictionary<string, object?>(_contextData),
-            _hasIncrementalParts);
+        operation.Seal(_contextData, variants, _hasIncrementalParts, _includeConditions);
+        return operation;
     }
 
     private void CompleteResolvers(ISchema schema)

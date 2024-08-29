@@ -7,9 +7,9 @@ public sealed class GraphQLResponse : IDisposable
 {
     private readonly IDisposable? _resource;
 
-    internal GraphQLResponse(JsonElement errors)
+    internal GraphQLResponse(Exception transportException)
     {
-        Errors = errors;
+        TransportException = transportException;
     }
 
     internal GraphQLResponse(OperationResult result)
@@ -20,32 +20,16 @@ public sealed class GraphQLResponse : IDisposable
         Extensions = result.Extensions;
     }
 
-    public GraphQLResponse(JsonDocument document)
-    {
-        _resource = document;
-
-        if (document.RootElement.TryGetProperty(ResponseProperties.Data, out var value))
-        {
-            Data = value;
-        }
-
-        if (document.RootElement.TryGetProperty(ResponseProperties.Errors, out value))
-        {
-            Errors = value;
-        }
-
-        if (document.RootElement.TryGetProperty(ResponseProperties.Extensions, out value))
-        {
-            Extensions = value;
-        }
-    }
-
     public JsonElement Data { get; }
 
     public JsonElement Errors { get; }
 
     public JsonElement Extensions { get; }
 
+    public Exception? TransportException { get; private set; }
+
     public void Dispose()
-        => _resource?.Dispose();
+    {
+        _resource?.Dispose();
+    }
 }

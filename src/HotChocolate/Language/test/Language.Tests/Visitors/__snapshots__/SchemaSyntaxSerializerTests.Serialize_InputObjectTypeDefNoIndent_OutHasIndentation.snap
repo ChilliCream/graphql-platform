@@ -1,5 +1,0 @@
-﻿input A {
-  b: String
-  c: [String!]!
-  d: Int = 1
-}

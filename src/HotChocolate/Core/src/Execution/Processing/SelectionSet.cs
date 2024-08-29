@@ -56,27 +56,34 @@ internal sealed class SelectionSet : ISelectionSet
     /// <inheritdoc />
     public IReadOnlyList<IFragment> Fragments => _fragments;
 
+    /// <inheritdoc />
+    public IOperation DeclaringOperation { get; private set; } = default!;
+
     /// <summary>
     /// Completes the selection set without sealing it.
     /// </summary>
-    internal void Complete()
+    internal void Complete(IOperation declaringOperation)
     {
         if ((_flags & Flags.Sealed) != Flags.Sealed)
         {
+            DeclaringOperation = declaringOperation;
+
             for (var i = 0; i < _selections.Length; i++)
             {
-                _selections[i].Complete(this);
+                _selections[i].Complete(declaringOperation, this);
             }
         }
     }
 
-    internal void Seal()
+    internal void Seal(IOperation declaringOperation)
     {
         if ((_flags & Flags.Sealed) != Flags.Sealed)
         {
+            DeclaringOperation = declaringOperation;
+
             for (var i = 0; i < _selections.Length; i++)
             {
-                _selections[i].Seal(this);
+                _selections[i].Seal(declaringOperation, this);
             }
 
             _flags |= Flags.Sealed;

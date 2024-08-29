@@ -8,7 +8,7 @@ public class CancellationTokenSourceExtensionsTests
     public void CreateLinkedCancellationTokenSourceNull()
     {
         // arrange
-        CancellationTokenSource source = null;
+        CancellationTokenSource source = null!;
         var token = new CancellationTokenSource().Token;
 
         // act

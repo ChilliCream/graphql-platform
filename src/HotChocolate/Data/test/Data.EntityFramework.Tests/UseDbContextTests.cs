@@ -679,18 +679,20 @@ public class UseDbContextTests
 
         // act
         var result = await executor.ExecuteAsync(
-            @"query Test {
-                    queryableExtensionsCursor {
-                        nodes {
-                            name
-                        }
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                        }
-                        totalCount
+            """
+            query Test {
+                queryableExtensionsCursor {
+                    nodes {
+                        name
                     }
-                }");
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                    }
+                    totalCount
+                }
+            }
+            """);
 
         // assert
         result.MatchSnapshot();

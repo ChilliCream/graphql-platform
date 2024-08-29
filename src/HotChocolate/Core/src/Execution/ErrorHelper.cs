@@ -201,35 +201,6 @@ internal static class ErrorHelper
                 ErrorHelper_OperationCanceled_Message,
                 ErrorCodes.Execution.Canceled));
 
-    public static IOperationResult MaxComplexityReached(
-        int complexity,
-        int allowedComplexity) =>
-        OperationResultBuilder.CreateError(
-            new Error(
-                ErrorHelper_MaxComplexityReached,
-                ErrorCodes.Execution.CostExceeded,
-                extensions: new Dictionary<string, object?>
-                {
-                    { nameof(complexity), complexity },
-                    { nameof(allowedComplexity), allowedComplexity },
-                }),
-            contextData: new Dictionary<string, object?>
-            {
-                { WellKnownContextData.ValidationErrors, true },
-            });
-
-    public static IError MaxComplexityReached() =>
-        new Error(
-            ErrorHelper_MaxComplexityReached,
-            ErrorCodes.Execution.CostExceeded);
-
-    public static IOperationResult StateInvalidForComplexityAnalyzer() =>
-        OperationResultBuilder.CreateError(
-            ErrorBuilder.New()
-                .SetMessage(ErrorHelper_StateInvalidForComplexityAnalyzer_Message)
-                .SetCode(ErrorCodes.Execution.CostStateInvalid)
-                .Build());
-
     public static IError NonNullOutputFieldViolation(Path? path, FieldNode selection)
         => ErrorBuilder.New()
             .SetMessage("Cannot return null for non-nullable field.")

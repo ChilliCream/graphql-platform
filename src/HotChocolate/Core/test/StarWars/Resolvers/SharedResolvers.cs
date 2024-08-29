@@ -19,7 +19,7 @@ public class SharedResolvers
         }
     }
 
-    public Human GetOtherHuman(
+    public Human? GetOtherHuman(
         [Parent] ICharacter character,
         [Service] CharacterRepository repository)
     {
