@@ -4,7 +4,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageVersion Include="AlterNats.Hosting" Version="1.0.6" />
     <PackageVersion Include="Aspire.Hosting" Version="8.0.0" />
     <PackageVersion Include="Aspire.Hosting.AppHost" Version="8.0.0" />
     <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="8.0.0" />
@@ -37,6 +36,8 @@
     <PackageVersion Include="Microsoft.OpenApi.Readers" Version="1.6.14" />
     <PackageVersion Include="MongoDB.Driver" Version="2.24.0" />
     <PackageVersion Include="Moq" Version="4.20.70" />
+    <PackageVersion Include="NATS.Client.Core" Version="2.3.3" />
+    <PackageVersion Include="NATS.Extensions.Microsoft.DependencyInjection" Version="2.3.3" />
     <PackageVersion Include="NetTopologySuite" Version="2.0.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageVersion Include="NodaTime" Version="3.0.0" />

@@ -1,6 +1,6 @@
-using AlterNats;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution.Configuration;
+using NATS.Client.Hosting;
 using Squadron;
 using Xunit.Abstractions;
 

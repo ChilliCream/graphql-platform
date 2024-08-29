@@ -1,5 +1,5 @@
-using AlterNats;
 using HotChocolate.Subscriptions.Diagnostics;
+using NATS.Client.Core;
 
 namespace HotChocolate.Subscriptions.Nats;
 
@@ -34,7 +34,11 @@ internal sealed class NatsPubSub : DefaultPubSub
         CancellationToken cancellationToken = default)
     {
         var serialized = _serializer.Serialize(message);
-        await _connection.PublishAsync(formattedTopic, serialized).ConfigureAwait(false);
+
+        await _connection.PublishAsync(
+            formattedTopic,
+            serialized,
+            cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
     protected override async ValueTask OnCompleteAsync(string formattedTopic)

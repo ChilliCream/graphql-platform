@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AlterNats.Hosting" />
+    <PackageReference Include="NATS.Client.Core" />
   </ItemGroup>
 
   <ItemGroup>
