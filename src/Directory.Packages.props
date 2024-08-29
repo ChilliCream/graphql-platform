@@ -50,7 +50,7 @@
     <PackageVersion Include="sqlite-net-pcl" Version="1.9.172" />
     <PackageVersion Include="SQLitePCLRaw.bundle_green" Version="2.1.8" />
     <PackageVersion Include="SQLitePCLRaw.core" Version="2.1.8" />
-    <PackageVersion Include="Squadron.Mongo" Version="0.18.0" />
+    <PackageVersion Include="Squadron.Mongo" Version="0.21.0" />
     <PackageVersion Include="Squadron.Nats" Version="0.18.0" />
     <PackageVersion Include="Squadron.PostgreSql" Version="0.18.0" />
     <PackageVersion Include="Squadron.RabbitMQ" Version="0.18.0" />
