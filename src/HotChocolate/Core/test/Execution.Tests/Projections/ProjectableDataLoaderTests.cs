@@ -464,8 +464,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
 
             var query = catalogContext.Brands
                 .Where(t => keys.Contains(t.Id))
-                .Select(context.GetSelector())
-                .SelectKey(b => b.Id);
+                .Select(context.GetSelector(), b => b.Id);
 
             lock (_queries)
             {
@@ -494,8 +493,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
 
             var query = catalogContext.Products
                 .Where(t => keys.Contains(t.Id))
-                .Select(context.GetSelector())
-                .SelectKey(b => b.Id);
+                .Select(context.GetSelector(), b => b.Id);
 
             lock (queries)
             {
