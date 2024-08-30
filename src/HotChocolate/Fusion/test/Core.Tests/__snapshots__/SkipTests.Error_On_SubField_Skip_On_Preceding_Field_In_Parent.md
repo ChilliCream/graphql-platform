@@ -1,4 +1,4 @@
-# Reproduction
+# Error_On_SubField_Skip_On_Preceding_Field_In_Parent
 
 ## Result
 
@@ -6,7 +6,18 @@
 {
   "errors": [
     {
-      "message": "Unexpected Execution Error"
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 5,
+          "column": 7
+        }
+      ],
+      "path": [
+        "productById",
+        "brand",
+        "errorField"
+      ]
     }
   ],
   "data": {
