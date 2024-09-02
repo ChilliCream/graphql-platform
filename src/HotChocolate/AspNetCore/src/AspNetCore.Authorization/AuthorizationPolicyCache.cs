@@ -49,9 +49,3 @@ internal sealed class AuthorizationPolicyCache(IAuthorizationPolicyProvider poli
         return policyBuilder.Build();
     }
 }
-
-internal sealed class MissingAuthorizationPolicyException(string policyName)
-    : Exception($"The policy `{policyName}` does not exist.")
-{
-    public string PolicyName { get; } = policyName;
-}
