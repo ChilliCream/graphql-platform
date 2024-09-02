@@ -42,7 +42,6 @@
     <LibraryTargetFrameworks>net8.0; net7.0; net6.0; netstandard2.0</LibraryTargetFrameworks>
     <Library2TargetFrameworks>net8.0; net7.0; net6.0</Library2TargetFrameworks>
     <Library3TargetFrameworks>net8.0; net7.0</Library3TargetFrameworks>
-    <Library4TargetFrameworks>net8.0</Library4TargetFrameworks>
     <TestTargetFrameworks>net8.0; net7.0; net6.0</TestTargetFrameworks>
     <AspNetTargetFrameworks>net8.0; net7.0; net6.0</AspNetTargetFrameworks>
     <AzfTargetFrameworks>net7.0; net6.0</AzfTargetFrameworks>
