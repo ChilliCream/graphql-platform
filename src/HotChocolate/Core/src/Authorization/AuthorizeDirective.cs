@@ -79,7 +79,11 @@ public sealed class AuthorizeDirective
     /// </summary>
     public ApplyPolicy Apply { get; }
 
-    internal string GetCacheKey() => _cacheKey;
+    /// <summary>
+    /// Gets a cache key that uniquely identifies the combined authorization policy,
+    /// of the specified <see cref="Roles"/> and <see cref="Policy"/>.
+    /// </summary>
+    internal string GetPolicyCacheKey() => _cacheKey;
 
     private static string BuildCacheKey(string? policy, IReadOnlyList<string>? roles)
     {

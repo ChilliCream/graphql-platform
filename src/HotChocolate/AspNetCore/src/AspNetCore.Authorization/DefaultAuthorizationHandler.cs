@@ -121,13 +121,20 @@ internal sealed class DefaultAuthorizationHandler : IAuthorizationHandler
         bool authenticated,
         object context)
     {
-        var policy = await _policyCache.GetOrCreatePolicyAsync(directive);
+        try
+        {
+            var combinedPolicy = await _policyCache.GetOrCreatePolicyAsync(directive);
 
-        var result = await _authSvc.AuthorizeAsync(user, context, policy).ConfigureAwait(false);
+            var result = await _authSvc.AuthorizeAsync(user, context, combinedPolicy).ConfigureAwait(false);
 
-        return result.Succeeded
-            ? AuthorizeResult.Allowed
-            : authenticated ? AuthorizeResult.NotAllowed : AuthorizeResult.NotAuthenticated;
+            return result.Succeeded
+                ? AuthorizeResult.Allowed
+                : authenticated ? AuthorizeResult.NotAllowed : AuthorizeResult.NotAuthenticated;
+        }
+        catch (MissingAuthorizationPolicyException)
+        {
+            return AuthorizeResult.PolicyNotFound;
+        }
     }
 
     private static UserState GetUserState(IDictionary<string, object?> contextData)

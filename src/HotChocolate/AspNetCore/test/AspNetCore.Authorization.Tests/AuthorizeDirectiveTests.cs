@@ -89,7 +89,7 @@ public class AuthorizeDirectiveTests
             policy: "policy");
 
         // act
-        var cacheKey = authorizeDirective.GetCacheKey();
+        var cacheKey = authorizeDirective.GetPolicyCacheKey();
 
         // assert
         Assert.Equal("policy;", cacheKey);
@@ -104,7 +104,7 @@ public class AuthorizeDirectiveTests
             roles: ["a", "b"]);
 
         // act
-        var cacheKey = authorizeDirective.GetCacheKey();
+        var cacheKey = authorizeDirective.GetPolicyCacheKey();
 
         // assert
         Assert.Equal(";a,b", cacheKey);
@@ -119,7 +119,7 @@ public class AuthorizeDirectiveTests
             roles: ["a", "b"]);
 
         // act
-        var cacheKey = authorizeDirective.GetCacheKey();
+        var cacheKey = authorizeDirective.GetPolicyCacheKey();
 
         // assert
         Assert.Equal("policy;a,b", cacheKey);
@@ -134,7 +134,7 @@ public class AuthorizeDirectiveTests
             roles: null);
 
         // act
-        var cacheKey = authorizeDirective.GetCacheKey();
+        var cacheKey = authorizeDirective.GetPolicyCacheKey();
 
         // assert
         Assert.Equal("", cacheKey);
@@ -153,8 +153,8 @@ public class AuthorizeDirectiveTests
             roles: ["policy"]);
 
         // act
-        var cacheKey1 = authorizeDirective1.GetCacheKey();
-        var cacheKey2 = authorizeDirective2.GetCacheKey();
+        var cacheKey1 = authorizeDirective1.GetPolicyCacheKey();
+        var cacheKey2 = authorizeDirective2.GetPolicyCacheKey();
 
         // assert
         Assert.NotEqual(cacheKey1, cacheKey2);
@@ -173,8 +173,8 @@ public class AuthorizeDirectiveTests
             roles: ["c", "b", "a"]);
 
         // act
-        var cacheKey1 = authorizeDirective1.GetCacheKey();
-        var cacheKey2 = authorizeDirective2.GetCacheKey();
+        var cacheKey1 = authorizeDirective1.GetPolicyCacheKey();
+        var cacheKey2 = authorizeDirective2.GetPolicyCacheKey();
 
         // assert
         Assert.Equal(cacheKey1, cacheKey2);

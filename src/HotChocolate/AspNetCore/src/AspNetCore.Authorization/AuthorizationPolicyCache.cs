@@ -10,7 +10,7 @@ internal sealed class AuthorizationPolicyCache(IAuthorizationPolicyProvider poli
 
     public Task<AuthorizationPolicy> GetOrCreatePolicyAsync(AuthorizeDirective directive)
     {
-        var cacheKey = directive.GetCacheKey();
+        var cacheKey = directive.GetPolicyCacheKey();
 
         return _cache.GetOrAdd(cacheKey, _ => BuildAuthorizationPolicy(directive.Policy, directive.Roles));
     }
@@ -31,7 +31,7 @@ internal sealed class AuthorizationPolicyCache(IAuthorizationPolicyProvider poli
             }
             else
             {
-                throw new InvalidOperationException("TODO");
+                throw new MissingAuthorizationPolicyException(policyName);
             }
         }
         else
@@ -48,4 +48,10 @@ internal sealed class AuthorizationPolicyCache(IAuthorizationPolicyProvider poli
 
         return policyBuilder.Build();
     }
+}
+
+internal sealed class MissingAuthorizationPolicyException(string policyName)
+    : Exception($"The policy `{policyName}` does not exist.")
+{
+    public string PolicyName { get; } = policyName;
 }
