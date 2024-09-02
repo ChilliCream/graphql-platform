@@ -175,12 +175,10 @@ internal static class ExecutionUtils
                 return;
             }
 
-            // REMEMBER: this counter needs to be only raised if the selection is included.
-            // ALSO: data ref needs to change once we do this.
-            responseIndex++;
-
             // move our pointers
             NEXT_SELECTION:
+            responseIndex++;
+
             selection = ref Unsafe.Add(ref selection, 1)!;
             result = ref Unsafe.Add(ref result, 1)!;
             data = ref Unsafe.Add(ref data, 1);
