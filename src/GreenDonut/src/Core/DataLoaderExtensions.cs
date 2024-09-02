@@ -339,6 +339,54 @@ public static class DataLoaderExtensions
         return dataLoader;
     }
 
+    public static TState GetOrSetState<TKey, TValue, TState>(
+        this IDataLoader<TKey, TValue> dataLoader,
+        Func<string, TState> createValue)
+        where TKey : notnull
+    {
+        if (dataLoader is null)
+        {
+            throw new ArgumentNullException(nameof(dataLoader));
+        }
+
+        var key = typeof(TState).FullName ?? typeof(TState).Name;
+
+        if(!dataLoader.ContextData.TryGetValue(key, out var internalValue))
+        {
+            internalValue = createValue(key);
+            dataLoader.ContextData = dataLoader.ContextData.SetItem(key, internalValue);
+        }
+
+        return (TState)internalValue!;
+    }
+
+    public static TState GetOrSetState<TKey, TValue, TState>(
+        this IDataLoader<TKey, TValue> dataLoader,
+        string key,
+        Func<string, TState> createValue)
+        where TKey : notnull
+    {
+        if (dataLoader is null)
+        {
+            throw new ArgumentNullException(nameof(dataLoader));
+        }
+
+        if (string.IsNullOrEmpty(key))
+        {
+            throw new ArgumentException(
+                "The key must not be null or empty.",
+                nameof(key));
+        }
+
+        if(!dataLoader.ContextData.TryGetValue(key, out var internalValue))
+        {
+            internalValue = createValue(key);
+            dataLoader.ContextData = dataLoader.ContextData.SetItem(key, internalValue);
+        }
+
+        return (TState)internalValue!;
+    }
+
     /// <summary>
     /// Adds the value to a collection that is stored on the DataLoader state.
     /// </summary>

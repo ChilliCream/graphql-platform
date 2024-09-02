@@ -1,6 +1,8 @@
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 #if NET8_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
+#if NET6_0_OR_GREATER
 using GreenDonut.Projections;
 #endif
 
@@ -93,7 +95,7 @@ public readonly struct DataLoaderFetchContext<TValue>(
 
         return defaultValue;
     }
-#if NET8_0_OR_GREATER
+#if NET6_0_OR_GREATER
 
     /// <summary>
     /// Gets the selector builder from the DataLoader state snapshot.
@@ -102,7 +104,9 @@ public readonly struct DataLoaderFetchContext<TValue>(
     /// <returns>
     /// Returns the selector builder if it exists.
     /// </returns>
+#if NET8_0_OR_GREATER
     [Experimental(Experiments.Projections)]
+#endif
     public ISelectorBuilder GetSelector()
     {
         DefaultSelectorBuilder<TValue> context;
