@@ -28,11 +28,7 @@ public sealed class ListSizeDirective
         AssumedSize = assumedSize;
         SlicingArguments = slicingArguments ?? ImmutableArray<string>.Empty;
         SizedFields = sizedFields ?? ImmutableArray<string>.Empty;
-
-        // https://ibm.github.io/graphql-specs/cost-spec.html#sec-requireOneSlicingArgument
-        // Per default, requireOneSlicingArgument is enabled,
-        // and has to be explicitly disabled if not desired for a field.
-        RequireOneSlicingArgument = SlicingArguments is { Length: > 0 } && (requireOneSlicingArgument ?? true);
+        RequireOneSlicingArgument = requireOneSlicingArgument;
     }
 
     /// <summary>
@@ -73,5 +69,5 @@ public sealed class ListSizeDirective
     /// <seealso href="https://ibm.github.io/graphql-specs/cost-spec.html#sec-requireOneSlicingArgument">
     /// Specification URL
     /// </seealso>
-    public bool RequireOneSlicingArgument { get; }
+    public bool? RequireOneSlicingArgument { get; }
 }

@@ -144,7 +144,10 @@ public sealed class ListSizeDirectiveType : DirectiveType<ListSizeDirective>
             arguments.Add(new ArgumentNode(SizedFields, directive.SizedFields.ToListValueNode()));
         }
 
-        arguments.Add(new ArgumentNode(RequireOneSlicingArgument, directive.RequireOneSlicingArgument));
+        if (directive.RequireOneSlicingArgument is not null)
+        {
+            arguments.Add(new ArgumentNode(RequireOneSlicingArgument, directive.RequireOneSlicingArgument.Value));
+        }
 
         return new DirectiveNode(_name, arguments.ToImmutableArray());
     }
