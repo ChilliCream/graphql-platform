@@ -101,9 +101,6 @@ public readonly struct DataLoaderFetchContext<TValue>(
     /// <summary>
     /// Gets a value from the DataLoader state snapshot or returns a default value.
     /// </summary>
-    /// <param name="key">
-    /// The key to look up the value.
-    /// </param>
     /// <param name="defaultValue">
     /// The default value to return if the state value does not exist.
     /// </param>
