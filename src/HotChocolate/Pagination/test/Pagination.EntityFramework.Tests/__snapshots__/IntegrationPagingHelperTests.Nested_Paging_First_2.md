@@ -2,38 +2,6 @@
 
 ```json
 {
-  "errors": [
-    {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 7,
-          "column": 13
-        }
-      ],
-      "path": [
-        "brands",
-        "nodes",
-        1,
-        "products"
-      ]
-    },
-    {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 7,
-          "column": 13
-        }
-      ],
-      "path": [
-        "brands",
-        "nodes",
-        0,
-        "products"
-      ]
-    }
-  ],
   "data": {
     "brands": {
       "edges": [
@@ -46,10 +14,40 @@
       ],
       "nodes": [
         {
-          "products": null
+          "products": {
+            "nodes": [
+              {
+                "name": "Product 0-0"
+              },
+              {
+                "name": "Product 0-1"
+              }
+            ],
+            "pageInfo": {
+              "hasNextPage": true,
+              "hasPreviousPage": false,
+              "startCursor": "UHJvZHVjdCAwLTA6MQ==",
+              "endCursor": "UHJvZHVjdCAwLTE6Mg=="
+            }
+          }
         },
         {
-          "products": null
+          "products": {
+            "nodes": [
+              {
+                "name": "Product 1-0"
+              },
+              {
+                "name": "Product 1-1"
+              }
+            ],
+            "pageInfo": {
+              "hasNextPage": true,
+              "hasPreviousPage": false,
+              "startCursor": "UHJvZHVjdCAxLTA6MTAx",
+              "endCursor": "UHJvZHVjdCAxLTE6MTAy"
+            }
+          }
         }
       ]
     }

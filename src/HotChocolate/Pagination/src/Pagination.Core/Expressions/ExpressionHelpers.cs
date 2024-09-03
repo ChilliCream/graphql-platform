@@ -379,6 +379,10 @@ public static class ExpressionHelpers
         public (Expression, List<LambdaExpression>, List<string>) Rewrite(Expression expression)
         {
             var result = Visit(expression);
+
+            _orderExpressions.Reverse();
+            _orderMethods.Reverse();
+
             return (result, _orderExpressions, _orderMethods);
         }
 
