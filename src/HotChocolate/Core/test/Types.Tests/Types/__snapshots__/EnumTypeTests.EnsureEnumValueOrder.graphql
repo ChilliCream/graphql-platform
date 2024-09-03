@@ -1,0 +1,13 @@
+schema {
+  query: QueryWithEnum
+}
+
+type QueryWithEnum {
+  criticalityLevel: CriticalityLevel!
+}
+
+enum CriticalityLevel {
+  INFO
+  WARNING
+  CRITICAL
+}

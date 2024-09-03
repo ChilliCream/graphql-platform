@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
@@ -11,10 +12,11 @@ namespace HotChocolate.Types;
 
 public partial class EnumType
 {
-    private Dictionary<string, IEnumValue> _enumValues = default!;
+    private Dictionary<string, IEnumValue> _nameLookup = default!;
     private Dictionary<object, IEnumValue> _valueLookup = default!;
-    private Action<IEnumTypeDescriptor>? _configure;
+    private ImmutableArray<IEnumValue> _values;
     private INamingConventions _naming = default!;
+    private Action<IEnumTypeDescriptor>? _configure;
 
     /// <summary>
     /// Initializes a new instance of <see cref="EnumType"/>.
@@ -94,9 +96,10 @@ public partial class EnumType
     {
         base.OnCompleteType(context, definition);
 
-        _enumValues = new Dictionary<string, IEnumValue>(definition.NameComparer);
-        _valueLookup = new Dictionary<object, IEnumValue>(definition.ValueComparer);
+        var builder = ImmutableArray.CreateBuilder<IEnumValue>(definition.Values.Count);
 
+        _nameLookup = new Dictionary<string, IEnumValue>(definition.NameComparer);
+        _valueLookup = new Dictionary<object, IEnumValue>(definition.ValueComparer);
         _naming = context.DescriptorContext.Naming;
 
         foreach (var enumValueDefinition in definition.Values)
@@ -108,12 +111,13 @@ public partial class EnumType
 
             if (TryCreateEnumValue(context, enumValueDefinition, out var enumValue))
             {
-                _enumValues[enumValue.Name] = enumValue;
+                _nameLookup[enumValue.Name] = enumValue;
                 _valueLookup[enumValue.Value] = enumValue;
+                builder.Add(enumValue);
             }
         }
 
-        if (Values.Count == 0)
+        if (builder.Count == 0)
         {
             context.ReportError(
                 SchemaErrorBuilder.New()
@@ -122,6 +126,8 @@ public partial class EnumType
                     .SetTypeSystemObject(this)
                     .Build());
         }
+
+        _values = builder.ToImmutable();
     }
 
     protected virtual bool TryCreateEnumValue(
