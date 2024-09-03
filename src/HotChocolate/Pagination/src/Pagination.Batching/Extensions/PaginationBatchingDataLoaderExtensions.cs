@@ -5,7 +5,7 @@ using HotChocolate.Pagination;
 
 namespace GreenDonut.Projections;
 
-public static class BatchingDataLoaderExtensions
+public static class PaginationBatchingDataLoaderExtensions
 {
     public static IPagingDataLoader<TKey, TValue> WithPagingArguments<TKey, TValue>(
         this IDataLoader<TKey, TValue> dataLoader,
@@ -25,15 +25,11 @@ public static class BatchingDataLoaderExtensions
             IDataLoader<TKey, TValue> root,
             PagingArguments pagingArguments)
         {
-            return new PagingDataLoader<TKey, TValue>(
+            var branch = new PagingDataLoader<TKey, TValue>(
                 (DataLoaderBase<TKey, TValue>)root,
-                branchKey)
-            {
-                ContextData =
-                {
-                    { typeof(PagingArguments).FullName!, pagingArguments }
-                }
-            };
+                branchKey);
+            branch.SetState(pagingArguments);
+            return branch;
         }
     }
 
