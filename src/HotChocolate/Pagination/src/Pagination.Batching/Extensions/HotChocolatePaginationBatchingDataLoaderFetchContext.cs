@@ -1,8 +1,8 @@
 using HotChocolate.Pagination;
 
-namespace GreenDonut.Projections;
+namespace GreenDonut;
 
-public static class PaginationBatchingDataLoaderFetchContext
+public static class HotChocolatePaginationBatchingDataLoaderFetchContext
 {
     public static PagingArguments GetPagingArguments<TValue>(this DataLoaderFetchContext<TValue> context)
         => context.GetRequiredState<PagingArguments>();

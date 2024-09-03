@@ -1,12 +1,37 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Text;
+using GreenDonut.Projections;
 using HotChocolate.Pagination;
 
-namespace GreenDonut.Projections;
+namespace GreenDonut;
 
-public static class PaginationBatchingDataLoaderExtensions
+/// <summary>
+/// Provides extension methods to pass a pagination context to a DataLoader.
+/// </summary>
+public static class HotChocolatePaginationBatchingDataLoaderExtensions
 {
+    /// <summary>
+    /// Branches a DataLoader with the provided <see cref="PagingArguments"/>.
+    /// </summary>
+    /// <param name="dataLoader">
+    /// The DataLoader that shall be branched.
+    /// </param>
+    /// <param name="pagingArguments">
+    /// The paging arguments that shall be exist as state in the branched DataLoader.
+    /// </param>
+    /// <typeparam name="TKey">
+    /// The key type of the DataLoader.
+    /// </typeparam>
+    /// <typeparam name="TValue">
+    /// The value type of the DataLoader.
+    /// </typeparam>
+    /// <returns>
+    /// Returns a branched DataLoader with the provided <see cref="PagingArguments"/>.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// Throws if the <paramref name="dataLoader"/> is <c>null</c>.
+    /// </exception>
     public static IPagingDataLoader<TKey, TValue> WithPagingArguments<TKey, TValue>(
         this IDataLoader<TKey, TValue> dataLoader,
         PagingArguments pagingArguments)
@@ -33,6 +58,27 @@ public static class PaginationBatchingDataLoaderExtensions
         }
     }
 
+    /// <summary>
+    /// Adds a projection as state to the DataLoader.
+    /// </summary>
+    /// <param name="dataLoader">
+    /// The DataLoader.
+    /// </param>
+    /// <param name="selector">
+    /// The projection that shall be added as state to the DataLoader.
+    /// </param>
+    /// <typeparam name="TKey">
+    /// The key type of the DataLoader.
+    /// </typeparam>
+    /// <typeparam name="TValue">
+    /// The value type of the DataLoader.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the DataLoader with the added projection.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// Throws if the <paramref name="dataLoader"/> is <c>null</c>.
+    /// </exception>
 #if NET8_0_OR_GREATER
     [Experimental(Experiments.Projections)]
 #endif
