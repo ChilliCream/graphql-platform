@@ -5,6 +5,7 @@ using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Server.HttpSys;
 
 namespace HotChocolate.AspNetCore;
 
@@ -116,6 +117,37 @@ public class PersistedQueryTests : ServerTestBase
         // act
         var result = await server.PostAsync(
             new ClientQueryRequest { Id = key, },
+            path: "/starwars");
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task HotChocolateStyle_Sha256Hash_Query_Empty_String_Success()
+    {
+        // arrange
+        var storage = new QueryStorage();
+        var hashProvider = new Sha256DocumentHashProvider(HashFormat.Hex);
+
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddSha256DocumentHashProvider(HashFormat.Hex)
+                .AddGraphQL("StarWars")
+                .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
+                .UsePersistedQueryPipeline());
+
+        var query = "{ __typename }";
+        var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
+        storage.AddQuery(key, query);
+
+        // act
+        var result = await server.PostAsync(
+            new ClientQueryRequest
+            {
+                Id = key,
+                Query = string.Empty
+            },
             path: "/starwars");
 
         // assert
