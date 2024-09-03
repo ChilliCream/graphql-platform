@@ -82,7 +82,7 @@ public static class HotChocolateExecutionDataLoaderExtensions
                 key,
                 (_, b) => b.BuildExpression<TValue>(selection),
                 _builder);
-        return dataLoader.Select(expression);
+        return HotChocolatePaginationBatchingDataLoaderExtensions.Select(dataLoader, expression);
     }
 }
 #endif
