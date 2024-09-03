@@ -1,7 +1,6 @@
 using System.Collections.Immutable;
 using System.Linq.Expressions;
 using HotChocolate.Pagination.Expressions;
-using Microsoft.EntityFrameworkCore.Query;
 using static HotChocolate.Pagination.Expressions.ExpressionHelpers;
 
 namespace HotChocolate.Pagination;
@@ -183,117 +182,6 @@ public static class PagingQueryableExtensions
     /// <param name="cancellationToken">
     /// The cancellation token.
     /// </param>
-    /// <typeparam name="T">
-    /// The type of the items in the queryable.
-    /// </typeparam>
-    /// <typeparam name="TKey">
-    /// The type of the parent key.
-    /// </typeparam>
-    /// <typeparam name="TProperty">
-    /// The type of the property that is being paged.
-    /// </typeparam>
-    /// <returns>
-    /// Returns a dictionary of pages for each parent.
-    /// </returns>
-    /// <exception cref="InvalidOperationException">
-    /// If the result is not a list or an enumerable.
-    /// </exception>
-    public static async ValueTask<Dictionary<PageKey<TKey>, Page<TProperty>>> ToBatchPageAsync<T, TKey, TProperty>(
-        this IIncludableQueryable<T, IOrderedEnumerable<TProperty>> source,
-        Func<T, TKey> keySelector,
-        PagingArguments arguments,
-        CancellationToken cancellationToken = default)
-        where TKey : notnull
-    {
-        if (source == null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
-
-        if (keySelector == null)
-        {
-            throw new ArgumentNullException(nameof(keySelector));
-        }
-
-        if (arguments.Last is not null && arguments.First is not null)
-        {
-            throw new ArgumentException(
-                "You can specify either `first` or `last`, but not both as this can lead to unpredictable results.",
-                nameof(arguments));
-        }
-
-        var rewriter = new BatchQueryRewriter<TProperty>(arguments);
-        var expression = rewriter.Visit(source.Expression);
-        var list = await source.Provider.CreateQuery<T>(expression).ToListAsync(cancellationToken);
-        var result = new Dictionary<PageKey<TKey>, Page<TProperty>>();
-        var requestedItems = int.MaxValue;
-
-        if (arguments.First.HasValue)
-        {
-            requestedItems = arguments.First.Value;
-        }
-
-        if (arguments.Last.HasValue)
-        {
-            requestedItems = arguments.Last.Value;
-        }
-
-        foreach (var group in list)
-        {
-            var key = new PageKey<TKey>(keySelector(group), arguments);
-            var builder = ImmutableArray.CreateBuilder<TProperty>();
-
-            switch (rewriter.ResultProperty.GetValue(group))
-            {
-                case IReadOnlyList<TProperty> resultList:
-                    builder.AddRange(resultList);
-
-                    // if we over-fetched we remove the last item.
-                    if (requestedItems < builder.Count)
-                    {
-                        builder.RemoveAt(builder.Count - 1);
-                    }
-
-                    result.Add(key, CreatePage(builder.ToImmutable(), arguments, rewriter.Keys, resultList.Count));
-                    break;
-
-                case IEnumerable<TProperty> resultEnumerable:
-                    builder.AddRange(resultEnumerable);
-                    var fetchCount = builder.Count;
-
-                    // if we over-fetched we remove the last item.
-                    if (requestedItems < fetchCount)
-                    {
-                        builder.RemoveAt(builder.Count - 1);
-                    }
-
-                    result.Add(key, CreatePage(builder.ToImmutable(), arguments, rewriter.Keys, fetchCount));
-                    break;
-
-                default:
-                    throw new InvalidOperationException(
-                        "The result must be a list or an enumerable.");
-            }
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// Executes a batch query with paging and returns the selected pages for each parent.
-    /// </summary>
-    /// <param name="source">
-    /// The queryable to be paged.
-    /// </param>
-    /// <param name="keySelector">
-    /// A function to select the key of the parent.
-    /// </param>
-    /// <param name="arguments">
-    /// The paging arguments.
-    /// </param>
-    /// <param name="cancellationToken">
-    /// The cancellation token.
-    /// </param>
     /// <typeparam name="TKey">
     /// The type of the parent key.
     /// </typeparam>
@@ -393,7 +281,7 @@ public static class PagingQueryableExtensions
             hasPrevious = true;
         }
 
-        // if we required the last 5 items of a dataset and overfetch by 1
+        // if we required the last 5 items of a dataset and over-fetch by 1
         // than we have a previous page.
         if (arguments.Last is not null && fetchCount > arguments.Last)
         {
