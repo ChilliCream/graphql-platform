@@ -38,7 +38,6 @@ public static class PagingQueryableExtensions
         CancellationToken cancellationToken = default)
         => await source.ToPageAsync(arguments, includeTotalCount: false, cancellationToken);
 
-
     /// <summary>
     /// Executes a query with paging and returns the selected page.
     /// </summary>
@@ -287,7 +286,7 @@ public static class PagingQueryableExtensions
         CancellationToken cancellationToken = default)
         where TKey : notnull
     {
-        CursorKey[] keys = ParseDataSetKeys(source);
+        var keys = ParseDataSetKeys(source);
 
         if (keys.Length == 0)
         {
@@ -303,213 +302,41 @@ public static class PagingQueryableExtensions
                 nameof(arguments));
         }
 
-        var originalQuery = source;
         var forward = arguments.Last is null;
         var requestedCount = int.MaxValue;
-        var selectExpression = BuildBatchSelectExpression<TKey, TValue>(arguments, keys, ref requestedCount);
-
+        var selectExpression = BuildBatchSelectExpression<TKey, TValue>(arguments, keys, forward, ref requestedCount);
         var map = new Dictionary<TKey, Page<TValue>>();
-        var builder = ImmutableArray.CreateBuilder<>();
-        int? totalCount = null;
-        var fetchCount = 0;
 
-        var x = source
+        await foreach (var item in source
             .GroupBy(keySelector)
             .Select(selectExpression)
-            .ToQueryString();
-
-
-
-
-
-        return default!;
-    }
-
-    private class Group<TKey, TValue>
-    {
-        public TKey Key { get; set; }
-
-        public List<TValue> Items { get; set; }
-    }
-
-    private static Expression<Func<IGrouping<TK, TV>, Group<TK, TV>>> BuildBatchSelectExpression<TK, TV>(
-        PagingArguments arguments,
-        CursorKey[] keys,
-        ref int requestedCount)
-    {
-        var forward = true;
-        var group = Expression.Parameter(typeof(IGrouping<TK, TV>), "g");
-        var groupKey = Expression.Property(group, "Key");
-        Expression source = group;
-
-
-        if (arguments.After is not null)
+            .AsAsyncEnumerable()
+            .WithCancellation(cancellationToken).ConfigureAwait(false))
         {
-            var cursor = CursorParser.Parse(arguments.After, keys);
-            source = BuildBatchWhereExpression<TV>(source, keys, cursor, forward);
-        }
-
-        if (arguments.Before is not null)
-        {
-            var cursor = CursorParser.Parse(arguments.Before, keys);
-            source = BuildBatchWhereExpression<TV>(source, keys, cursor, forward);
-        }
-
-        if (arguments.First is not null)
-        {
-            source = Expression.Call(
-                typeof(Enumerable),
-                "Take",
-                [typeof(TV)],
-                source,
-                Expression.Constant(arguments.First.Value + 1));
-            requestedCount = arguments.First.Value;
-        }
-
-        if (arguments.Last is not null)
-        {
-            source = Expression.Call(
-                typeof(Enumerable),
-                "Reverse",
-                [typeof(TV)],
-                source);
-            source = Expression.Call(
-                typeof(Enumerable),
-                "Take",
-                [typeof(TV)],
-                source,
-                Expression.Constant(arguments.Last.Value + 1));
-            requestedCount = arguments.Last.Value;
-        }
-
-        source = Expression.Call(
-            typeof(Enumerable),
-            "ToList",
-            [typeof(TV)],
-            source);
-
-        var groupType = typeof(Group<TK, TV>);
-        var bindings = new MemberBinding[]
-        {
-            Expression.Bind(groupType.GetProperty(nameof(Group<TK, TV>.Key))!, groupKey),
-            Expression.Bind(groupType.GetProperty(nameof(Group<TK, TV>.Items))!, source)
-        };
-
-        var createGroup = Expression.MemberInit(Expression.New(groupType), bindings);
-        return Expression.Lambda<Func<IGrouping<TK, TV>, Group<TK, TV>>>(createGroup, group);
-    }
-
-    private static MethodCallExpression BuildBatchWhereExpression<T>(
-        Expression enumerable,
-        CursorKey[] keys,
-        object?[] cursor,
-        bool forward)
-    {
-        var cursorExpr = new Expression[cursor.Length];
-
-        for (var i = 0; i < cursor.Length; i++)
-        {
-            cursorExpr[i] = CreateParameter(cursor[i], keys[i].Expression.ReturnType);
-        }
-
-        var handled = new List<CursorKey>();
-        Expression? expression = null;
-
-        var parameter = Expression.Parameter(typeof(T), "t");
-        var zero = Expression.Constant(0);
-
-        for (var i = 0; i < keys.Length; i++)
-        {
-            var key = keys[i];
-            Expression? current = null;
-            Expression keyExpr;
-
-            for (var j = 0; j < handled.Count; j++)
+            if(item.Items.Count == 0)
             {
-                var handledKey = handled[j];
-
-                keyExpr =
-                    Expression.Equal(
-                        Expression.Call(
-                            ReplaceParameter(handledKey.Expression, parameter),
-                            handledKey.CompareMethod,
-                            cursorExpr[j]),
-                        zero);
-
-                current = current is null
-                    ? keyExpr
-                    : Expression.AndAlso(current, keyExpr);
+                map.Add(item.Key, Page<TValue>.Empty);
+                continue;
             }
 
-            var greaterThan = forward
-                ? key.Direction is CursorKeyDirection.Ascending
-                : key.Direction is CursorKeyDirection.Descending;
+            if (!forward)
+            {
+                item.Items.Reverse();
+            }
 
-            keyExpr =
-                greaterThan
-                    ? Expression.GreaterThan(
-                        Expression.Call(
-                            ReplaceParameter(key.Expression, parameter),
-                            key.CompareMethod,
-                            cursorExpr[i]),
-                        zero)
-                    : Expression.LessThan(
-                        Expression.Call(
-                            ReplaceParameter(key.Expression, parameter),
-                            key.CompareMethod,
-                            cursorExpr[i]),
-                        zero);
+            var itemCount = requestedCount > item.Items.Count ? item.Items.Count : requestedCount;
+            var builder = ImmutableArray.CreateBuilder<TValue>(itemCount);
 
-            current = current is null
-                ? keyExpr
-                : Expression.AndAlso(current, keyExpr);
-            expression = expression is null
-                ? current
-                : Expression.OrElse(expression, current);
-            handled.Add(key);
+            for(var i = 0; i < itemCount; i++)
+            {
+                builder.Add(item.Items[i]);
+            }
+
+            var page = CreatePage(builder.ToImmutable(), arguments, keys, item.Items.Count);
+            map.Add(item.Key, page);
         }
 
-        return Expression.Call(
-            typeof(Enumerable),
-            "Where",
-            [typeof(T)],
-            enumerable,
-            Expression.Lambda<Func<T, bool>>(expression!, parameter));
-    }
-
-    private static IQueryable<TValue> ApplyPaging<TValue>(
-        IQueryable<TValue> query,
-        PagingArguments arguments,
-        CursorKey[] keys)
-    {
-        var forward = true;
-        var requestedCount = int.MaxValue;
-
-        if (arguments.After is not null)
-        {
-            var cursor = CursorParser.Parse(arguments.After, keys);
-            query = query.Where(BuildWhereExpression<TValue>(keys, cursor, forward));
-        }
-
-        if (arguments.Before is not null)
-        {
-            var cursor = CursorParser.Parse(arguments.Before, keys);
-            query = query.Where(BuildWhereExpression<TValue>(keys, cursor, forward));
-        }
-
-        if (arguments.First is not null)
-        {
-            query = query.Take(arguments.First.Value + 1);
-            requestedCount = arguments.First.Value;
-        }
-
-        if (arguments.Last is not null)
-        {
-            query = query.Reverse().Take(arguments.Last.Value + 1);
-            requestedCount = arguments.Last.Value;
-        }
-
-        return query;
+        return map;
     }
 
     private static Page<T> CreatePage<T>(

@@ -11,6 +11,7 @@ public static class ExpressionHelpers
 {
     private static readonly MethodInfo _createAndConvert = typeof(ExpressionHelpers)
         .GetMethod(nameof(CreateAndConvertParameter), BindingFlags.NonPublic | BindingFlags.Static)!;
+
     private static readonly ConcurrentDictionary<Type, Func<object?, Expression>> _cachedConverters = new();
 
     /// <summary>
@@ -128,7 +129,151 @@ public static class ExpressionHelpers
         return Expression.Lambda<Func<T, bool>>(expression!, parameter);
     }
 
-    public static Expression CreateParameter(object? value, Type type)
+    public static Expression<Func<IGrouping<TK, TV>, Group<TK, TV>>> BuildBatchSelectExpression<TK, TV>(
+        PagingArguments arguments,
+        CursorKey[] keys,
+        bool forward,
+        ref int requestedCount)
+    {
+        var group = Expression.Parameter(typeof(IGrouping<TK, TV>), "g");
+        var groupKey = Expression.Property(group, "Key");
+        Expression source = group;
+
+        if (arguments.After is not null)
+        {
+            var cursor = CursorParser.Parse(arguments.After, keys);
+            source = BuildBatchWhereExpression<TV>(source, keys, cursor, forward);
+        }
+
+        if (arguments.Before is not null)
+        {
+            var cursor = CursorParser.Parse(arguments.Before, keys);
+            source = BuildBatchWhereExpression<TV>(source, keys, cursor, forward);
+        }
+
+        if (arguments.First is not null)
+        {
+            source = Expression.Call(
+                typeof(Enumerable),
+                "Take",
+                [typeof(TV)],
+                source,
+                Expression.Constant(arguments.First.Value + 1));
+            requestedCount = arguments.First.Value;
+        }
+
+        if (arguments.Last is not null)
+        {
+            source = Expression.Call(
+                typeof(Enumerable),
+                "Reverse",
+                [typeof(TV)],
+                source);
+            source = Expression.Call(
+                typeof(Enumerable),
+                "Take",
+                [typeof(TV)],
+                source,
+                Expression.Constant(arguments.Last.Value + 1));
+            requestedCount = arguments.Last.Value;
+        }
+
+        source = Expression.Call(
+            typeof(Enumerable),
+            "ToList",
+            [typeof(TV)],
+            source);
+
+        var groupType = typeof(Group<TK, TV>);
+        var bindings = new MemberBinding[]
+        {
+            Expression.Bind(groupType.GetProperty(nameof(Group<TK, TV>.Key))!, groupKey),
+            Expression.Bind(groupType.GetProperty(nameof(Group<TK, TV>.Items))!, source)
+        };
+
+        var createGroup = Expression.MemberInit(Expression.New(groupType), bindings);
+        return Expression.Lambda<Func<IGrouping<TK, TV>, Group<TK, TV>>>(createGroup, group);
+    }
+
+    private static MethodCallExpression BuildBatchWhereExpression<T>(
+        Expression enumerable,
+        CursorKey[] keys,
+        object?[] cursor,
+        bool forward)
+    {
+        var cursorExpr = new Expression[cursor.Length];
+
+        for (var i = 0; i < cursor.Length; i++)
+        {
+            cursorExpr[i] = CreateParameter(cursor[i], keys[i].Expression.ReturnType);
+        }
+
+        var handled = new List<CursorKey>();
+        Expression? expression = null;
+
+        var parameter = Expression.Parameter(typeof(T), "t");
+        var zero = Expression.Constant(0);
+
+        for (var i = 0; i < keys.Length; i++)
+        {
+            var key = keys[i];
+            Expression? current = null;
+            Expression keyExpr;
+
+            for (var j = 0; j < handled.Count; j++)
+            {
+                var handledKey = handled[j];
+
+                keyExpr =
+                    Expression.Equal(
+                        Expression.Call(
+                            ReplaceParameter(handledKey.Expression, parameter),
+                            handledKey.CompareMethod,
+                            cursorExpr[j]),
+                        zero);
+
+                current = current is null
+                    ? keyExpr
+                    : Expression.AndAlso(current, keyExpr);
+            }
+
+            var greaterThan = forward
+                ? key.Direction is CursorKeyDirection.Ascending
+                : key.Direction is CursorKeyDirection.Descending;
+
+            keyExpr =
+                greaterThan
+                    ? Expression.GreaterThan(
+                        Expression.Call(
+                            ReplaceParameter(key.Expression, parameter),
+                            key.CompareMethod,
+                            cursorExpr[i]),
+                        zero)
+                    : Expression.LessThan(
+                        Expression.Call(
+                            ReplaceParameter(key.Expression, parameter),
+                            key.CompareMethod,
+                            cursorExpr[i]),
+                        zero);
+
+            current = current is null
+                ? keyExpr
+                : Expression.AndAlso(current, keyExpr);
+            expression = expression is null
+                ? current
+                : Expression.OrElse(expression, current);
+            handled.Add(key);
+        }
+
+        return Expression.Call(
+            typeof(Enumerable),
+            "Where",
+            [typeof(T)],
+            enumerable,
+            Expression.Lambda<Func<T, bool>>(expression!, parameter));
+    }
+
+    private static Expression CreateParameter(object? value, Type type)
     {
         var converter = _cachedConverters.GetOrAdd(
             type,
@@ -147,7 +292,7 @@ public static class ExpressionHelpers
         return lambda.Body;
     }
 
-    public static Expression ReplaceParameter(
+    private static Expression ReplaceParameter(
         LambdaExpression expression,
         ParameterExpression replacement)
     {
@@ -162,5 +307,12 @@ public static class ExpressionHelpers
         {
             return node == parameter ? replacement : base.VisitParameter(node);
         }
+    }
+
+    public class Group<TKey, TValue>
+    {
+        public TKey Key { get; set; }
+
+        public List<TValue> Items { get; set; }
     }
 }
