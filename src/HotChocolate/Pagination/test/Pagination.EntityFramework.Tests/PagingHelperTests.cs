@@ -86,7 +86,9 @@ public class PagingHelperTests(PostgreSqlResource resource)
         // Act
         var arguments = new PagingArguments(last: 2);
         await using var context = new CatalogContext(connectionString);
-        var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id)
+        var page = await context.Products
+            .OrderBy(t => t.Name)
+            .ThenBy(t => t.Id)
             .ToPageAsync(arguments);
 
         // Assert
@@ -103,7 +105,9 @@ public class PagingHelperTests(PostgreSqlResource resource)
         // .. get last page
         var arguments = new PagingArguments(last: 2);
         await using var context = new CatalogContext(connectionString);
-        var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id)
+        var page = await context.Products
+            .OrderBy(t => t.Name)
+            .ThenBy(t => t.Id)
             .ToPageAsync(arguments);
 
         // Act
@@ -144,12 +148,16 @@ public class PagingHelperTests(PostgreSqlResource resource)
         var arguments = new PagingArguments(2);
         await using var context = new CatalogContext(connectionString);
         var page = await context.Products
-            .Where(t => brandIds.Contains(t.Id))
-            .OrderBy(p => p.Name).ThenBy(p => p.Id)
-            .ToBatchPageAsync(t => t.Id, arguments);
+            .Where(t => brandIds.Contains(t.BrandId))
+            .OrderBy(p => p.Name)
+            .ThenBy(p => p.Id)
+            .ToBatchPageAsync(t => t.BrandId, arguments);
 
         // Assert
-        page.MatchMarkdownSnapshot();
+        var snapshot = Snapshot.Create();
+        var first = page.First();
+        snapshot.Add(first.Value.CreateCursor(first.Value.Last!));
+        snapshot.MatchMarkdownSnapshot();
     }
 
     [Fact]
@@ -221,7 +229,9 @@ public class PagingHelperTests(PostgreSqlResource resource)
             {
                 var product = new Product
                 {
-                    Name = $"Product {i}-{j}", Type = type, Brand = brand,
+                    Name = $"Product {i}-{j}",
+                    Type = type,
+                    Brand = brand,
                 };
                 context.Products.Add(product);
             }
