@@ -128,7 +128,7 @@ public static class ExpressionHelpers
         return Expression.Lambda<Func<T, bool>>(expression!, parameter);
     }
 
-    private static Expression CreateParameter(object? value, Type type)
+    public static Expression CreateParameter(object? value, Type type)
     {
         var converter = _cachedConverters.GetOrAdd(
             type,
@@ -147,7 +147,7 @@ public static class ExpressionHelpers
         return lambda.Body;
     }
 
-    private static Expression ReplaceParameter(
+    public static Expression ReplaceParameter(
         LambdaExpression expression,
         ParameterExpression replacement)
     {
