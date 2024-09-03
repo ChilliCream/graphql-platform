@@ -222,7 +222,7 @@ internal static class ErrorHelper
             .SetCode(ErrorCodes.Execution.OnlyPersistedQueriesAllowed)
             .Build();
 
-    public static IError ReadPersistedQueryMiddleware_PersistedQueryNotFound()
+    public static IError ReadPersistedOperationMiddleware_PersistedOperationNotFound()
         => ErrorBuilder.New()
             // this string is defined in the APQ spec!
             .SetMessage("PersistedQueryNotFound")

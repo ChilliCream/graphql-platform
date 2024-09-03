@@ -35,7 +35,7 @@ public class IntegrationTests
                             .Build();
                     }
                 })
-                .UsePersistedQueryPipeline()
+                .UsePersistedOperationPipeline()
                 .BuildRequestExecutorAsync();
 
         // act
@@ -73,7 +73,7 @@ public class IntegrationTests
                             .Build();
                     }
                 })
-                .UsePersistedQueryPipeline()
+                .UsePersistedOperationPipeline()
                 .BuildRequestExecutorAsync();
 
         // act

@@ -19,7 +19,8 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
         string pattern = "/graphql",
         Action<IServiceCollection>? configureServices = default,
         Action<GraphQLEndpointConventionBuilder>? configureConventions = default,
-        ITestOutputHelper? output = null)
+        ITestOutputHelper? output = null,
+        bool requireOperationName = false)
     {
         return ServerFactory.Create(
             services =>
@@ -37,9 +38,9 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                     .UseExceptions()
                     .UseTimeout()
                     .UseDocumentCache()
-                    .UseReadPersistedQuery()
-                    .UseAutomaticPersistedQueryNotFound()
-                    .UseWritePersistedQuery()
+                    .UseReadPersistedOperation()
+                    .UseAutomaticPersistedOperationNotFound()
+                    .UseWritePersistedOperation()
                     .UseDocumentParser()
                     .UseDocumentValidation()
 #if NET7_0_OR_GREATER
@@ -98,7 +99,7 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                         c.Name("Query");
                         c.Field("error")
                             .Type<NonNullType<StringType>>()
-                            .Resolve(_ => Task.FromResult<object?>(null!));
+                            .Resolve(_ => Task.FromResult<object?>(null));
                     });
 
                 configureServices?.Invoke(services);
@@ -110,7 +111,7 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                     endpoints =>
                     {
 #if NET8_0_OR_GREATER
-                        endpoints.MapGraphQLPersistedOperations();
+                        endpoints.MapGraphQLPersistedOperations(requireOperationName: requireOperationName);
 #endif
 
                         var builder = endpoints.MapGraphQL(pattern)
