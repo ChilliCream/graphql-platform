@@ -279,6 +279,31 @@ public static class PagingQueryableExtensions
         return result;
     }
 
+    /// <summary>
+    /// Executes a batch query with paging and returns the selected pages for each parent.
+    /// </summary>
+    /// <param name="source">
+    /// The queryable to be paged.
+    /// </param>
+    /// <param name="keySelector">
+    /// A function to select the key of the parent.
+    /// </param>
+    /// <param name="arguments">
+    /// The paging arguments.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <typeparam name="TKey">
+    /// The type of the parent key.
+    /// </typeparam>
+    /// <typeparam name="TValue">
+    /// The type of the items in the queryable.
+    /// </typeparam>
+    /// <returns></returns>
+    /// <exception cref="ArgumentException">
+    /// If the queryable does not have any keys specified.
+    /// </exception>
     public static async ValueTask<Dictionary<TKey, Page<TValue>>> ToBatchPageAsync<TKey, TValue>(
         this IQueryable<TValue> source,
         Expression<Func<TValue, TKey>> keySelector,
