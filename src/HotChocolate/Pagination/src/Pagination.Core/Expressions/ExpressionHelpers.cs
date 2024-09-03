@@ -120,6 +120,38 @@ public static class ExpressionHelpers
         return Expression.Lambda<Func<T, bool>>(expression!, parameter);
     }
 
+    /// <summary>
+    /// Build the select expression for a batch paging expression that uses grouping.
+    /// </summary>
+    /// <param name="arguments">
+    /// The paging arguments.
+    /// </param>
+    /// <param name="keys">
+    /// The key definitions that represent the cursor.
+    /// </param>
+    /// <param name="orderExpressions">
+    /// The order expressions that are used to sort the dataset.
+    /// </param>
+    /// <param name="orderMethods">
+    /// The order methods that are used to sort the dataset.
+    /// </param>
+    /// <param name="forward">
+    /// Defines how the dataset is sorted.
+    /// </param>
+    /// <param name="requestedCount">
+    /// The number of items that are requested.
+    /// </param>
+    /// <typeparam name="TK">
+    /// The key type.
+    /// </typeparam>
+    /// <typeparam name="TV">
+    /// The value type.
+    /// </typeparam>
+    /// <returns></returns>
+    /// <exception cref="ArgumentException">
+    /// If the number of keys is less than one or
+    /// the number of order expressions does not match the number of order methods.
+    /// </exception>
     public static Expression<Func<IGrouping<TK, TV>, Group<TK, TV>>> BuildBatchSelectExpression<TK, TV>(
         PagingArguments arguments,
         ReadOnlySpan<CursorKey> keys,
@@ -128,6 +160,20 @@ public static class ExpressionHelpers
         bool forward,
         ref int requestedCount)
     {
+        if (keys.Length == 0)
+        {
+            throw new ArgumentException(
+                "At least one key must be specified.",
+                nameof(keys));
+        }
+
+        if (orderExpressions.Length != orderMethods.Length)
+        {
+            throw new ArgumentException(
+                "The number of order expressions must match the number of order methods.",
+                nameof(orderExpressions));
+        }
+
         var group = Expression.Parameter(typeof(IGrouping<TK, TV>), "g");
         var groupKey = Expression.Property(group, "Key");
         Expression source = group;
@@ -300,11 +346,22 @@ public static class ExpressionHelpers
             Expression.Lambda<Func<T, bool>>(expression!, parameter));
     }
 
-    public static QueryOrdering ExtractAndRemoveOrder(Expression expression)
+    /// <summary>
+    /// Extracts and removes the orderBy and thenBy expressions from the given expression tree.
+    /// </summary>
+    /// <param name="expression"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    public static OrderRewriterResult ExtractAndRemoveOrder(Expression expression)
     {
+        if(expression is null)
+        {
+            throw new ArgumentNullException(nameof(expression));
+        }
+
         var rewriter = new OrderByRemovalRewriter();
         var (result, orderExpressions, orderMethods) = rewriter.Rewrite(expression);
-        return new QueryOrdering(result, orderExpressions, orderMethods);
+        return new OrderRewriterResult(result, orderExpressions, orderMethods);
     }
 
     private static Expression CreateParameter(object? value, Type type)
@@ -350,24 +407,16 @@ public static class ExpressionHelpers
         public List<TValue> Items { get; set; } = default!;
     }
 
-    public readonly struct QueryOrdering
+    public readonly struct OrderRewriterResult(
+        Expression expression,
+        List<LambdaExpression> orderExpressions,
+        List<string> orderMethods)
     {
-        private readonly List<LambdaExpression> _orderExpressions;
-        private readonly List<string> _orderMethods;
-        private readonly Expression _expression;
+        public Expression Expression => expression;
 
-        public QueryOrdering(Expression expression, List<LambdaExpression> orderExpressions, List<string> orderMethods)
-        {
-            _expression = expression;
-            _orderExpressions = orderExpressions;
-            _orderMethods = orderMethods;
-        }
+        public ReadOnlySpan<LambdaExpression> OrderExpressions => CollectionsMarshal.AsSpan(orderExpressions);
 
-        public Expression Expression => _expression;
-
-        public ReadOnlySpan<LambdaExpression> OrderExpressions => CollectionsMarshal.AsSpan(_orderExpressions);
-
-        public ReadOnlySpan<string> OrderMethods => CollectionsMarshal.AsSpan(_orderMethods);
+        public ReadOnlySpan<string> OrderMethods => CollectionsMarshal.AsSpan(orderMethods);
     }
 
     private sealed class OrderByRemovalRewriter : ExpressionVisitor
