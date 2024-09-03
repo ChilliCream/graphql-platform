@@ -44,7 +44,11 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
+#if NET8_0_OR_GREATER
         Snapshot.Create()
+#else
+        Snapshot.Create(postFix: "NET7_0")
+#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -75,7 +79,11 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
+#if NET8_0_OR_GREATER
         Snapshot.Create()
+#else
+        Snapshot.Create(postFix: "NET7_0")
+#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -110,7 +118,11 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
+#if NET8_0_OR_GREATER
         Snapshot.Create()
+#else
+        Snapshot.Create(postFix: "NET7_0")
+#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -141,7 +153,11 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
+#if NET8_0_OR_GREATER
         Snapshot.Create()
+#else
+        Snapshot.Create(postFix: "NET7_0")
+#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -175,7 +191,11 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
+#if NET8_0_OR_GREATER
         Snapshot.Create()
+#else
+        Snapshot.Create(postFix: "NET7_0")
+#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -209,7 +229,11 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
+#if NET8_0_OR_GREATER
         Snapshot.Create()
+#else
+        Snapshot.Create(postFix: "NET7_0")
+#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -249,7 +273,11 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
+#if NET8_0_OR_GREATER
         Snapshot.Create()
+#else
+        Snapshot.Create(postFix: "NET7_0")
+#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -289,7 +317,11 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
+#if NET8_0_OR_GREATER
         Snapshot.Create()
+#else
+        Snapshot.Create(postFix: "NET7_0")
+#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -325,7 +357,11 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
+#if NET8_0_OR_GREATER
         Snapshot.Create()
+#else
+        Snapshot.Create(postFix: "NET7_0")
+#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -362,7 +398,11 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
+#if NET8_0_OR_GREATER
         Snapshot.Create()
+#else
+        Snapshot.Create(postFix: "NET7_0")
+#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
