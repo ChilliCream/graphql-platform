@@ -152,6 +152,17 @@ public class LegacyNodeIdSerializerTests
     {
         var serializer = CreateSerializer();
 
+        var internalId = new Guid("1ae27b14-8cf6-440d-9a46-09090a4af6f3");
+        var id = serializer.Format("Foo", internalId);
+
+        Assert.Equal("Rm9vCmcxYWUyN2IxNDhjZjY0NDBkOWE0NjA5MDkwYTRhZjZmMw==", id);
+    }
+
+    [Fact]
+    public void Serialize_Empty_Guid()
+    {
+        var serializer = CreateSerializer();
+
         var id = serializer.Format("Foo", Guid.Empty);
 
         Assert.Equal("Rm9vCmcwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMA==", id);

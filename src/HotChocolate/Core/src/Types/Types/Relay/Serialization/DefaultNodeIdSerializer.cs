@@ -43,11 +43,6 @@ public sealed class DefaultNodeIdSerializer(
             throw new ArgumentNullException(nameof(internalId));
         }
 
-        if (!outputNewIdFormat)
-        {
-            return LegacyNodeIdSerializer.FormatInternal(typeName, internalId);
-        }
-
         var runtimeType = internalId.GetType();
         var serializer = TryResolveSerializer(runtimeType);
 
@@ -59,13 +54,15 @@ public sealed class DefaultNodeIdSerializer(
         return Format(
             _names.GetOrAdd(typeName, static n => _utf8.GetBytes(n)),
             internalId,
-            serializer);
+            serializer,
+            outputNewIdFormat);
     }
 
     private static unsafe string Format(
         ReadOnlySpan<byte> typeName,
         object internalId,
-        INodeIdValueSerializer serializer)
+        INodeIdValueSerializer serializer,
+        bool outputNewIdFormat)
     {
         var minLength = typeName.Length + 128;
         byte[]? rentedBuffer = null;
@@ -74,10 +71,8 @@ public sealed class DefaultNodeIdSerializer(
             : rentedBuffer = ArrayPool<byte>.Shared.Rent(minLength);
         var capacity = span.Length;
 
-        typeName.CopyTo(span);
-        var valueSpan = span.Slice(typeName.Length);
-        valueSpan[0] = _delimiter;
-        valueSpan = valueSpan.Slice(1);
+        var valueSpan = WriteIdHeader(span, typeName, internalId, outputNewIdFormat);
+
         var result = serializer.Format(valueSpan, internalId, out var written);
 
         while (result == NodeIdFormatterResult.BufferTooSmall)
@@ -94,16 +89,15 @@ public sealed class DefaultNodeIdSerializer(
 
             rentedBuffer = newBuffer;
 
-            typeName.CopyTo(span);
-            valueSpan = span.Slice(typeName.Length);
-            valueSpan[0] = _delimiter;
-            valueSpan = valueSpan.Slice(1);
+            valueSpan = WriteIdHeader(span, typeName, internalId, outputNewIdFormat);
+
             result = serializer.Format(valueSpan, internalId, out written);
         }
 
         if (result == NodeIdFormatterResult.Success)
         {
-            var dataLength = typeName.Length + 1 + written;
+            var delimiterLength = outputNewIdFormat ? 1 : 2;
+            var dataLength = typeName.Length + delimiterLength + written;
 
             while (Base64.EncodeToUtf8InPlace(span, dataLength, out written) == OperationStatus.DestinationTooSmall)
             {
@@ -130,6 +124,27 @@ public sealed class DefaultNodeIdSerializer(
         Clear(rentedBuffer);
 
         throw new NodeIdInvalidFormatException(internalId);
+    }
+
+    private static Span<byte> WriteIdHeader(
+        Span<byte> span,
+        ReadOnlySpan<byte> typeName,
+        object value,
+        bool outputNewIdFormat)
+    {
+        typeName.CopyTo(span);
+
+        var valueSpan = span.Slice(typeName.Length);
+
+        if (outputNewIdFormat)
+        {
+            valueSpan[0] = _delimiter;
+            return valueSpan.Slice(1);
+        }
+
+        valueSpan[0] = _legacyDelimiter;
+        valueSpan[1] = LegacyNodeIdSerializer.GetLegacyValueCode(value);
+        return valueSpan.Slice(2);
     }
 
     public NodeId Parse(string formattedId, INodeIdRuntimeTypeLookup runtimeTypeLookup)
