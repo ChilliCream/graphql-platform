@@ -539,37 +539,25 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
 
         var pagingArgs = new PagingArguments { First = 2 };
 
-        var results = await context.Brands
-            .Where(t => t.Id == 1 || t.Id == 2 || t.Id == 3)
-            .Include(t => t.Products.OrderBy(p => p.Id))
-            .ToBatchPageAsync(k => k.Id, pagingArgs);
+        var results = await context.Products
+            .Where(t => t.BrandId == 1 || t.BrandId == 2 || t.BrandId == 3)
+            .OrderBy(p => p.Id)
+            .ToBatchPageAsync(k => k.BrandId, pagingArgs);
 
         // Assert
-        var snapshot = new Snapshot();
-
-        foreach (var result in results)
+        var snapshot = Snapshot.Create();
+        foreach (var page in results)
         {
-            var key = result.Key.Key;
-            foreach (var product in result.Value.Items)
-            {
-                product.Brand = null;
-            }
-
             snapshot.Add(
                 new
                 {
-                    result.Value.HasNextPage,
-                    result.Value.HasPreviousPage,
-                    First = result.Value.First?.Id,
-                    FirstCursor = result.Value.First is not null ? result.Value.CreateCursor(result.Value.First) : null,
-                    Last = result.Value.Last?.Id,
-                    LastCursor = result.Value.Last is not null ? result.Value.CreateCursor(result.Value.Last) : null,
-                    result.Value.Items
+                    First = page.Value.CreateCursor(page.Value.First!),
+                    Last = page.Value.CreateCursor(page.Value.Last!),
+                    page.Value.Items
                 },
-                "Brand " + key);
+                name: page.Key.ToString());
         }
-
-        await snapshot.MatchMarkdownAsync();
+        snapshot.MatchMarkdownSnapshot();
     }
 
     [Fact]
@@ -584,37 +572,25 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
 
         var pagingArgs = new PagingArguments { Last = 2 };
 
-        var results = await context.Brands
-            .Where(t => t.Id == 1 || t.Id == 2 || t.Id == 3)
-            .Include(t => t.Products.OrderBy(p => p.Id))
-            .ToBatchPageAsync(k => k.Id, pagingArgs);
+        var results = await context.Products
+            .Where(t => t.BrandId == 1 || t.BrandId == 2 || t.BrandId == 3)
+            .OrderBy(p => p.Id)
+            .ToBatchPageAsync(k => k.BrandId, pagingArgs);
 
         // Assert
-        var snapshot = new Snapshot();
-
-        foreach (var result in results)
+        var snapshot = Snapshot.Create();
+        foreach (var page in results)
         {
-            var key = result.Key.Key;
-            foreach (var product in result.Value.Items)
-            {
-                product.Brand = null;
-            }
-
             snapshot.Add(
                 new
                 {
-                    result.Value.HasNextPage,
-                    result.Value.HasPreviousPage,
-                    First = result.Value.First?.Id,
-                    FirstCursor = result.Value.First is not null ? result.Value.CreateCursor(result.Value.First) : null,
-                    Last = result.Value.Last?.Id,
-                    LastCursor = result.Value.Last is not null ? result.Value.CreateCursor(result.Value.Last) : null,
-                    result.Value.Items
+                    First = page.Value.CreateCursor(page.Value.First!),
+                    Last = page.Value.CreateCursor(page.Value.Last!),
+                    page.Value.Items
                 },
-                "Brand " + key);
+                name: page.Key.ToString());
         }
-
-        await snapshot.MatchMarkdownAsync();
+        snapshot.MatchMarkdownSnapshot();
     }
 
     private static async Task SeedAsync(string connectionString)

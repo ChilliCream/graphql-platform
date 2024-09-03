@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace HotChocolate.Pagination.Expressions;
 
@@ -39,20 +40,10 @@ public static class ExpressionHelpers
     /// If the number of keys does not match the number of values.
     /// </exception>
     public static Expression<Func<T, bool>> BuildWhereExpression<T>(
-        CursorKey[] keys,
-        object?[] cursor,
+        ReadOnlySpan<CursorKey> keys,
+        ReadOnlySpan<object?> cursor,
         bool forward)
     {
-        if (keys == null)
-        {
-            throw new ArgumentNullException(nameof(keys));
-        }
-
-        if (cursor == null)
-        {
-            throw new ArgumentNullException(nameof(cursor));
-        }
-
         if (keys.Length == 0)
         {
             throw new ArgumentException("At least one key must be specified.", nameof(keys));
@@ -131,13 +122,36 @@ public static class ExpressionHelpers
 
     public static Expression<Func<IGrouping<TK, TV>, Group<TK, TV>>> BuildBatchSelectExpression<TK, TV>(
         PagingArguments arguments,
-        CursorKey[] keys,
+        ReadOnlySpan<CursorKey> keys,
+        ReadOnlySpan<LambdaExpression> orderExpressions,
+        ReadOnlySpan<string> orderMethods,
         bool forward,
         ref int requestedCount)
     {
         var group = Expression.Parameter(typeof(IGrouping<TK, TV>), "g");
         var groupKey = Expression.Property(group, "Key");
         Expression source = group;
+
+        for (var i = 0; i < orderExpressions.Length; i++)
+        {
+            var methodName = orderMethods[i];
+            var orderExpression = orderExpressions[i];
+
+            if (!forward)
+            {
+                methodName = ReverseOrder(methodName);
+            }
+
+            var delegateType = typeof(Func<,>).MakeGenericType(typeof(TV), orderExpression.Body.Type);
+            var typedOrderExpression = Expression.Lambda(delegateType, orderExpression.Body, orderExpression.Parameters);
+
+            var method = GetEnumerableMethod(methodName, typeof(TV), typedOrderExpression);
+
+            source = Expression.Call(
+                method,
+                source,
+                typedOrderExpression);
+        }
 
         if (arguments.After is not null)
         {
@@ -166,11 +180,6 @@ public static class ExpressionHelpers
         {
             source = Expression.Call(
                 typeof(Enumerable),
-                "Reverse",
-                [typeof(TV)],
-                source);
-            source = Expression.Call(
-                typeof(Enumerable),
                 "Take",
                 [typeof(TV)],
                 source,
@@ -193,11 +202,29 @@ public static class ExpressionHelpers
 
         var createGroup = Expression.MemberInit(Expression.New(groupType), bindings);
         return Expression.Lambda<Func<IGrouping<TK, TV>, Group<TK, TV>>>(createGroup, group);
+
+        static string ReverseOrder(string method)
+            => method switch
+            {
+                nameof(Queryable.OrderBy) => nameof(Queryable.OrderByDescending),
+                nameof(Queryable.OrderByDescending) => nameof(Queryable.OrderBy),
+                nameof(Queryable.ThenBy) => nameof(Queryable.ThenByDescending),
+                nameof(Queryable.ThenByDescending) => nameof(Queryable.ThenBy),
+                _ => method
+            };
+
+        static MethodInfo GetEnumerableMethod(string methodName, Type elementType, LambdaExpression keySelector)
+        {
+            return typeof(Enumerable)
+                .GetMethods(BindingFlags.Static | BindingFlags.Public)
+                .First(m => m.Name == methodName && m.GetParameters().Length == 2)
+                .MakeGenericMethod(elementType, keySelector.Body.Type);
+        }
     }
 
     private static MethodCallExpression BuildBatchWhereExpression<T>(
         Expression enumerable,
-        CursorKey[] keys,
+        ReadOnlySpan<CursorKey> keys,
         object?[] cursor,
         bool forward)
     {
@@ -273,6 +300,13 @@ public static class ExpressionHelpers
             Expression.Lambda<Func<T, bool>>(expression!, parameter));
     }
 
+    public static QueryOrdering ExtractAndRemoveOrder(Expression expression)
+    {
+        var rewriter = new OrderByRemovalRewriter();
+        var (result, orderExpressions, orderMethods) = rewriter.Rewrite(expression);
+        return new QueryOrdering(result, orderExpressions, orderMethods);
+    }
+
     private static Expression CreateParameter(object? value, Type type)
     {
         var converter = _cachedConverters.GetOrAdd(
@@ -311,8 +345,81 @@ public static class ExpressionHelpers
 
     public class Group<TKey, TValue>
     {
-        public TKey Key { get; set; }
+        public TKey Key { get; set; } = default!;
 
-        public List<TValue> Items { get; set; }
+        public List<TValue> Items { get; set; } = default!;
+    }
+
+    public readonly struct QueryOrdering
+    {
+        private readonly List<LambdaExpression> _orderExpressions;
+        private readonly List<string> _orderMethods;
+        private readonly Expression _expression;
+
+        public QueryOrdering(Expression expression, List<LambdaExpression> orderExpressions, List<string> orderMethods)
+        {
+            _expression = expression;
+            _orderExpressions = orderExpressions;
+            _orderMethods = orderMethods;
+        }
+
+        public Expression Expression => _expression;
+
+        public ReadOnlySpan<LambdaExpression> OrderExpressions => CollectionsMarshal.AsSpan(_orderExpressions);
+
+        public ReadOnlySpan<string> OrderMethods => CollectionsMarshal.AsSpan(_orderMethods);
+    }
+
+    private sealed class OrderByRemovalRewriter : ExpressionVisitor
+    {
+        private readonly List<LambdaExpression> _orderExpressions = new();
+        private readonly List<string> _orderMethods = new();
+        private bool _insideSelectProjection;
+
+        public (Expression, List<LambdaExpression>, List<string>) Rewrite(Expression expression)
+        {
+            var result = Visit(expression);
+            return (result, _orderExpressions, _orderMethods);
+        }
+
+        protected override Expression VisitMethodCall(MethodCallExpression node)
+        {
+            // we are not interested in nested order by calls
+            if (node.Method.DeclaringType == typeof(Queryable) && node.Method.Name == nameof(Queryable.Select))
+            {
+                var previousState = _insideSelectProjection;
+                _insideSelectProjection = true;
+                var result = base.VisitMethodCall(node);
+                _insideSelectProjection = previousState;
+                return result;
+            }
+
+            if (node.Method.DeclaringType == typeof(Queryable)
+                && (node.Method.Name == nameof(Queryable.OrderBy)
+                    || node.Method.Name == nameof(Queryable.OrderByDescending)
+                    || node.Method.Name == nameof(Queryable.ThenBy)
+                    || node.Method.Name == nameof(Queryable.ThenByDescending)))
+            {
+                if (!_insideSelectProjection)
+                {
+                    var lambda = (LambdaExpression)StripQuotes(node.Arguments[1]);
+                    _orderExpressions.Add(lambda);
+                    _orderMethods.Add(node.Method.Name);
+                    return Visit(node.Arguments[0]);
+                }
+            }
+
+            return base.VisitMethodCall(node);
+        }
+
+        private static Expression StripQuotes(Expression e)
+        {
+            while (e.NodeType == ExpressionType.Quote)
+            {
+                e = ((UnaryExpression)e).Operand;
+            }
+
+            return e;
+        }
     }
 }

@@ -291,7 +291,7 @@ public static class PagingQueryableExtensions
         if (keys.Length == 0)
         {
             throw new ArgumentException(
-                "In order to use cursor pagination, you must specify at least on key using the `OrderBy` method.",
+                "In order to use cursor pagination, you must specify at least one key using the `OrderBy` method.",
                 nameof(source));
         }
 
@@ -302,32 +302,43 @@ public static class PagingQueryableExtensions
                 nameof(arguments));
         }
 
+        // we need to move the ordering into the select expression we are constructing
+        // so that the groupBy will not remove it. The first thing we do here is to extract the order expressions
+        // and to create a new expression that will not contain it anymore.
+        var ordering = ExtractAndRemoveOrder(source.Expression);
+
         var forward = arguments.Last is null;
         var requestedCount = int.MaxValue;
-        var selectExpression = BuildBatchSelectExpression<TKey, TValue>(arguments, keys, forward, ref requestedCount);
+        var selectExpression =
+            BuildBatchSelectExpression<TKey, TValue>(
+                arguments,
+                keys,
+                ordering.OrderExpressions,
+                ordering.OrderMethods,
+                forward,
+                ref requestedCount);
         var map = new Dictionary<TKey, Page<TValue>>();
+
+        // we apply our new expression here.
+        source = source.Provider.CreateQuery<TValue>(ordering.Expression);
 
         await foreach (var item in source
             .GroupBy(keySelector)
             .Select(selectExpression)
             .AsAsyncEnumerable()
-            .WithCancellation(cancellationToken).ConfigureAwait(false))
+            .WithCancellation(cancellationToken)
+            .ConfigureAwait(false))
         {
-            if(item.Items.Count == 0)
+            if (item.Items.Count == 0)
             {
                 map.Add(item.Key, Page<TValue>.Empty);
                 continue;
             }
 
-            if (!forward)
-            {
-                item.Items.Reverse();
-            }
-
             var itemCount = requestedCount > item.Items.Count ? item.Items.Count : requestedCount;
             var builder = ImmutableArray.CreateBuilder<TValue>(itemCount);
 
-            for(var i = 0; i < itemCount; i++)
+            for (var i = 0; i < itemCount; i++)
             {
                 builder.Add(item.Items[i]);
             }

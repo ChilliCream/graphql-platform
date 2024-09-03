@@ -126,28 +126,10 @@ public class PagingHelperTests(PostgreSqlResource resource)
         await SeedAsync(connectionString);
 
         // Act
-        var arguments = new PagingArguments(2);
-        await using var context = new CatalogContext(connectionString);
-        var page = await context.Brands
-            .Include(t => t.Products.OrderBy(p => p.Name).ThenBy(p => p.Id))
-            .ToBatchPageAsync(t => t.Id, arguments);
-
-        // Assert
-        page.MatchMarkdownSnapshot();
-    }
-
-    [Fact]
-    public async Task Batch_Fetch_First_2_Items_V2()
-    {
-        // Arrange
-        var connectionString = CreateConnectionString();
-        await SeedAsync(connectionString);
-
-        // Act
         int[] brandIds = [1, 2, 3];
         var arguments = new PagingArguments(2);
         await using var context = new CatalogContext(connectionString);
-        var page = await context.Products
+        var pages = await context.Products
             .Where(t => brandIds.Contains(t.BrandId))
             .OrderBy(p => p.Name)
             .ThenBy(p => p.Id)
@@ -155,8 +137,17 @@ public class PagingHelperTests(PostgreSqlResource resource)
 
         // Assert
         var snapshot = Snapshot.Create();
-        var first = page.First();
-        snapshot.Add(first.Value.CreateCursor(first.Value.Last!));
+        foreach (var page in pages)
+        {
+            snapshot.Add(
+                new
+                {
+                    First = page.Value.CreateCursor(page.Value.First!),
+                    Last = page.Value.CreateCursor(page.Value.Last!),
+                    page.Value.Items
+                },
+                name: page.Key.ToString());
+        }
         snapshot.MatchMarkdownSnapshot();
     }
 
