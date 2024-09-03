@@ -46,7 +46,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
                             .Build();
                     }
                 })
-                .UsePersistedQueryPipeline()
+                .UsePersistedOperationPipeline()
                 .BuildRequestExecutorAsync();
 
         // act
@@ -79,7 +79,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
                             .Build();
                     }
                 })
-                .UsePersistedQueryPipeline()
+                .UsePersistedOperationPipeline()
                 .BuildRequestExecutorAsync();
 
         // ... write query to cache
@@ -127,7 +127,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
                             .Build();
                     }
                 })
-                .UsePersistedQueryPipeline()
+                .UsePersistedOperationPipeline()
                 .BuildRequestExecutorAsync();
 
         // act
@@ -166,7 +166,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
                             .Build();
                     }
                 })
-                .UsePersistedQueryPipeline()
+                .UsePersistedOperationPipeline()
                 .BuildRequestExecutorAsync();
 
         // act
@@ -205,7 +205,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
                             .Build();
                     }
                 })
-                .UsePersistedQueryPipeline()
+                .UsePersistedOperationPipeline()
                 .BuildRequestExecutorAsync();
 
         // act
@@ -241,7 +241,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
                             .Build();
                     }
                 })
-                .UsePersistedQueryPipeline()
+                .UsePersistedOperationPipeline()
                 .BuildRequestExecutorAsync();
 
         // act

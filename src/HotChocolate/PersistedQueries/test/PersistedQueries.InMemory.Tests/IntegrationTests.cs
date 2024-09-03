@@ -34,7 +34,7 @@ public class IntegrationTests
                             .Build();
                     }
                 })
-                .UsePersistedQueryPipeline()
+                .UsePersistedOperationPipeline()
                 .Services
                 .BuildServiceProvider();
 
@@ -72,7 +72,7 @@ public class IntegrationTests
                             .Build();
                     }
                 })
-                .UsePersistedQueryPipeline()
+                .UsePersistedOperationPipeline()
                 .Services
                 .BuildServiceProvider();
 

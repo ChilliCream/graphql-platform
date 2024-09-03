@@ -497,7 +497,7 @@ public static class EndpointRouteBuilderExtensions
         var schemaNameOrDefault = schemaName ?? Schema.DefaultName;
 
         var group = endpointRouteBuilder.MapGroup(path);
-        group.MapPersistedQueryMiddleware(schemaNameOrDefault, requireOperationName);
+        group.MapPersistedOperationMiddleware(schemaNameOrDefault, requireOperationName);
         return group;
     }
 #endif

@@ -8,9 +8,9 @@ using Microsoft.AspNetCore.Routing;
 
 namespace HotChocolate.AspNetCore;
 
-internal static class PersistedQueryMiddleware
+internal static class PersistedOperationMiddleware
 {
-    internal static void MapPersistedQueryMiddleware(
+    internal static void MapPersistedOperationMiddleware(
         this RouteGroupBuilder groupBuilder,
         string schemaName,
         bool requireOperationName)
