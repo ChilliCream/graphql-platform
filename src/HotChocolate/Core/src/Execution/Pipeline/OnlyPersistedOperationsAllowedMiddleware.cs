@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Pipeline;
 
-internal sealed class OnlyPersistedQueriesAllowedMiddleware
+internal sealed class OnlyPersistedOperationsAllowedMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly IExecutionDiagnosticEvents _diagnosticEvents;
@@ -13,7 +13,7 @@ internal sealed class OnlyPersistedQueriesAllowedMiddleware
     private readonly GraphQLException _exception;
     private readonly Dictionary<string, object?> _statusCode = new() { { WellKnownContextData.HttpStatusCode, 400 }, };
 
-    private OnlyPersistedQueriesAllowedMiddleware(
+    private OnlyPersistedOperationsAllowedMiddleware(
         RequestDelegate next,
         [SchemaService] IExecutionDiagnosticEvents diagnosticEvents,
         [SchemaService] IPersistedQueryOptionsAccessor options)
@@ -57,7 +57,7 @@ internal sealed class OnlyPersistedQueriesAllowedMiddleware
         {
             var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
             var options = core.SchemaServices.GetRequiredService<IRequestExecutorOptionsAccessor>();
-            var middleware = new OnlyPersistedQueriesAllowedMiddleware(next, diagnosticEvents, options);
+            var middleware = new OnlyPersistedOperationsAllowedMiddleware(next, diagnosticEvents, options);
             return context => middleware.InvokeAsync(context);
         };
 }

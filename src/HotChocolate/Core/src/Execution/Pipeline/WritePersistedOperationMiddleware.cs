@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Pipeline;
 
-internal sealed class WritePersistedQueryMiddleware
+internal sealed class WritePersistedOperationMiddleware
 {
     private const string _persistedQuery = "persistedQuery";
     private const string _persisted = "persisted";
@@ -15,7 +15,7 @@ internal sealed class WritePersistedQueryMiddleware
     private readonly IDocumentHashProvider _hashProvider;
     private readonly IOperationDocumentStorage _operationDocumentStorage;
 
-    private WritePersistedQueryMiddleware(RequestDelegate next,
+    private WritePersistedOperationMiddleware(RequestDelegate next,
         IDocumentHashProvider documentHashProvider,
         [SchemaService] IOperationDocumentStorage operationDocumentStorage)
     {
@@ -100,7 +100,7 @@ internal sealed class WritePersistedQueryMiddleware
         {
             var documentHashProvider = core.Services.GetRequiredService<IDocumentHashProvider>();
             var persistedQueryStore = core.SchemaServices.GetRequiredService<IOperationDocumentStorage>();
-            var middleware = new WritePersistedQueryMiddleware(next, documentHashProvider, persistedQueryStore);
+            var middleware = new WritePersistedOperationMiddleware(next, documentHashProvider, persistedQueryStore);
             return context => middleware.InvokeAsync(context);
         };
 }

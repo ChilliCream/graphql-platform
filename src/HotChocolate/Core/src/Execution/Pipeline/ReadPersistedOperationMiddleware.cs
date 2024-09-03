@@ -5,13 +5,13 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Pipeline;
 
-internal sealed class ReadPersistedQueryMiddleware
+internal sealed class ReadPersistedOperationMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly IExecutionDiagnosticEvents _diagnosticEvents;
     private readonly IOperationDocumentStorage _operationDocumentStorage;
 
-    private ReadPersistedQueryMiddleware(RequestDelegate next,
+    private ReadPersistedOperationMiddleware(RequestDelegate next,
         [SchemaService] IExecutionDiagnosticEvents diagnosticEvents,
         [SchemaService] IOperationDocumentStorage operationDocumentStorage)
     {
@@ -76,7 +76,7 @@ internal sealed class ReadPersistedQueryMiddleware
         {
             var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
             var persistedQueryStore = core.SchemaServices.GetRequiredService<IOperationDocumentStorage>();
-            var middleware = new ReadPersistedQueryMiddleware(next, diagnosticEvents, persistedQueryStore);
+            var middleware = new ReadPersistedOperationMiddleware(next, diagnosticEvents, persistedQueryStore);
             return context => middleware.InvokeAsync(context);
         };
 }

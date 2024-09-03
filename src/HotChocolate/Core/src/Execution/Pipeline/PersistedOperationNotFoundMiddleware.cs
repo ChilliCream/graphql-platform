@@ -4,13 +4,13 @@ using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Execution.Pipeline;
 
-internal sealed class PersistedQueryNotFoundMiddleware
+internal sealed class PersistedOperationNotFoundMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly IExecutionDiagnosticEvents _diagnosticEvents;
     private readonly Dictionary<string, object?> _statusCode = new() { { HttpStatusCode, 400 }, };
 
-    private PersistedQueryNotFoundMiddleware(
+    private PersistedOperationNotFoundMiddleware(
         RequestDelegate next,
         [SchemaService] IExecutionDiagnosticEvents diagnosticEvents)
     {
@@ -46,7 +46,7 @@ internal sealed class PersistedQueryNotFoundMiddleware
         => (core, next) =>
         {
             var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
-            var middleware = new PersistedQueryNotFoundMiddleware(next, diagnosticEvents);
+            var middleware = new PersistedOperationNotFoundMiddleware(next, diagnosticEvents);
             return context => middleware.InvokeAsync(context);
         };
 }

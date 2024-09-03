@@ -27,7 +27,7 @@ public class PersistedQueryTests : ServerTestBase
             configureServices: s => s
                 .AddGraphQL("StarWars")
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
-                .UsePersistedQueryPipeline());
+                .UsePersistedOperationPipeline());
 
         var query = "{ __typename }";
         var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
@@ -53,7 +53,7 @@ public class PersistedQueryTests : ServerTestBase
             configureServices: s => s
                 .AddGraphQL("StarWars")
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
-                .UsePersistedQueryPipeline());
+                .UsePersistedOperationPipeline());
 
         var query = "{ __typename }";
         var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
@@ -81,7 +81,7 @@ public class PersistedQueryTests : ServerTestBase
                 .AddSha1DocumentHashProvider(HashFormat.Hex)
                 .AddGraphQL("StarWars")
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
-                .UsePersistedQueryPipeline());
+                .UsePersistedOperationPipeline());
 
         var query = "{ __typename }";
         var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
@@ -108,7 +108,7 @@ public class PersistedQueryTests : ServerTestBase
                 .AddSha256DocumentHashProvider(HashFormat.Hex)
                 .AddGraphQL("StarWars")
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
-                .UsePersistedQueryPipeline());
+                .UsePersistedOperationPipeline());
 
         var query = "{ __typename }";
         var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
@@ -135,7 +135,7 @@ public class PersistedQueryTests : ServerTestBase
                 .AddSha256DocumentHashProvider(HashFormat.Hex)
                 .AddGraphQL("StarWars")
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
-                .UsePersistedQueryPipeline());
+                .UsePersistedOperationPipeline());
 
         var query = "{ __typename }";
         var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
@@ -165,7 +165,7 @@ public class PersistedQueryTests : ServerTestBase
             configureServices: s => s
                 .AddGraphQL("StarWars")
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
-                .UsePersistedQueryPipeline());
+                .UsePersistedOperationPipeline());
 
         var query = "{ __typename }";
         var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
@@ -191,7 +191,7 @@ public class PersistedQueryTests : ServerTestBase
             configureServices: s => s
                 .AddGraphQL("StarWars")
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
-                .UsePersistedQueryPipeline());
+                .UsePersistedOperationPipeline());
 
         var query = "{ __typename }";
         var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
@@ -219,7 +219,7 @@ public class PersistedQueryTests : ServerTestBase
                 .AddSha1DocumentHashProvider(HashFormat.Hex)
                 .AddGraphQL("StarWars")
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
-                .UsePersistedQueryPipeline());
+                .UsePersistedOperationPipeline());
 
         var query = "{ __typename }";
         var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
@@ -246,7 +246,7 @@ public class PersistedQueryTests : ServerTestBase
                 .AddSha256DocumentHashProvider(HashFormat.Hex)
                 .AddGraphQL("StarWars")
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
-                .UsePersistedQueryPipeline());
+                .UsePersistedOperationPipeline());
 
         var query = "{ __typename }";
         var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
@@ -271,7 +271,7 @@ public class PersistedQueryTests : ServerTestBase
             configureServices: s => s
                 .AddGraphQL("StarWars")
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
-                .UsePersistedQueryPipeline());
+                .UsePersistedOperationPipeline());
 
         var query = "{ __typename }";
 
@@ -295,7 +295,7 @@ public class PersistedQueryTests : ServerTestBase
                 .AddGraphQL("StarWars")
                 .ModifyRequestOptions(o => o.OnlyAllowPersistedQueries = true)
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
-                .UsePersistedQueryPipeline());
+                .UsePersistedOperationPipeline());
 
         var query = "{ __typename }";
 
@@ -326,7 +326,7 @@ public class PersistedQueryTests : ServerTestBase
                             .Build();
                 })
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
-                .UsePersistedQueryPipeline());
+                .UsePersistedOperationPipeline());
 
         var query = "{ __typename }";
 
@@ -353,7 +353,7 @@ public class PersistedQueryTests : ServerTestBase
                     o.OnlyAllowPersistedQueries = true;
                 })
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
-                .UsePersistedQueryPipeline()
+                .UsePersistedOperationPipeline()
                 .AddHttpRequestInterceptor<AllowPersistedQueryInterceptor>());
 
         var query = "{ __typename }";

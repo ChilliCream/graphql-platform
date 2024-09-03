@@ -25,7 +25,7 @@ public ref partial struct Utf8GraphQLRequestParser
         _useCache = cache is not null;
     }
 
-    public GraphQLRequest ParsePersistedOperation(string operationId)
+    public GraphQLRequest ParsePersistedOperation(string operationId, string? operationName)
     {
         _reader.MoveNext();
 
@@ -38,7 +38,7 @@ public ref partial struct Utf8GraphQLRequestParser
                 null,
                 request.QueryId,
                 null,
-                request.OperationName,
+                operationName ?? request.OperationName,
                 request.Variables,
                 request.Extensions
             );
