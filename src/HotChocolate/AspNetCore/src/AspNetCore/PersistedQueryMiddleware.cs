@@ -10,7 +10,10 @@ namespace HotChocolate.AspNetCore;
 
 internal static class PersistedQueryMiddleware
 {
-    internal static void MapPersistedQueryMiddleware(this RouteGroupBuilder groupBuilder, string schemaName)
+    internal static void MapPersistedQueryMiddleware(
+        this RouteGroupBuilder groupBuilder,
+        string schemaName,
+        bool requireOperationName)
     {
         var state = new State(schemaName);
 
@@ -18,33 +21,33 @@ internal static class PersistedQueryMiddleware
             .MapGet(
                 "/{OperationId}",
                 ([AsParameters] Services services, string operationId)
-                    => ExecuteGetRequestAsync(state, services, operationId, null));
+                    => ExecuteGetRequestAsync(state, services, operationId, null, requireOperationName));
 
         groupBuilder
             .MapGet(
-                "/{OperationId}/{DisplayName}",
-                ([AsParameters] Services services, string operationId, string displayName)
-                    => ExecuteGetRequestAsync(state, services, operationId, displayName));
+                "/{OperationId}/{OperationName}",
+                ([AsParameters] Services services, string operationId, string operationName)
+                    => ExecuteGetRequestAsync(state, services, operationId, operationName, requireOperationName));
 
         groupBuilder
             .MapPost(
                 "/{OperationId}",
                 ([AsParameters] Services services, string operationId)
-                    => ExecutePostRequestAsync(state, services, operationId, null));
+                    => ExecutePostRequestAsync(state, services, operationId, null, requireOperationName));
 
         groupBuilder
             .MapPost(
-                "/{OperationId}/{DisplayName}",
-                ([AsParameters] Services services, string operationId, string displayName)
-                    => ExecutePostRequestAsync(state, services, operationId, displayName));
+                "/{OperationId}/{OperationName}",
+                ([AsParameters] Services services, string operationId, string operationName)
+                    => ExecutePostRequestAsync(state, services, operationId, operationName, requireOperationName));
     }
 
     private static async Task ExecuteGetRequestAsync(
         State state,
         Services services,
         string operationId,
-        // ReSharper disable once UnusedParameter.Local
-        string? displayName)
+        string? operationName,
+        bool requireOperationName)
     {
         HttpStatusCode? statusCode;
         IExecutionResult? result;
@@ -65,14 +68,23 @@ internal static class PersistedQueryMiddleware
             goto HANDLE_RESULT;
         }
 
+        // validate if the operation name is required.
+        if(requireOperationName && string.IsNullOrWhiteSpace(operationName))
+        {
+            statusCode = HttpStatusCode.BadRequest;
+            result = ErrorHelper.OperationNameRequired();
+            goto HANDLE_RESULT;
+        }
+
         // next we parse the GraphQL request.
-        var executor = state.CurrentExecutor ??
-            await state.GetExecutorAsync(services.ExecutorResolver, services.RequestAborted);
+        var executor = state.CurrentExecutor
+            ?? await state.GetExecutorAsync(services.ExecutorResolver, services.RequestAborted);
         var errorHandler = executor.GetErrorHandler();
 
         var parserResult =
             MiddlewareHelper.ParseVariablesAndExtensionsFromParams(
                 operationId,
+                operationName,
                 services.Context,
                 services.RequestParser,
                 errorHandler,
@@ -119,8 +131,8 @@ internal static class PersistedQueryMiddleware
         State state,
         Services services,
         string operationId,
-        // ReSharper disable once UnusedParameter.Local
-        string? displayName)
+        string? operationName,
+        bool requireOperationName)
     {
         HttpStatusCode? statusCode;
         IExecutionResult? result;
@@ -141,14 +153,23 @@ internal static class PersistedQueryMiddleware
             goto HANDLE_RESULT;
         }
 
+        // validate if the operation name is required.
+        if(requireOperationName && string.IsNullOrWhiteSpace(operationName))
+        {
+            statusCode = HttpStatusCode.BadRequest;
+            result = ErrorHelper.OperationNameRequired();
+            goto HANDLE_RESULT;
+        }
+
         // next we parse the GraphQL request.
-        var executor = state.CurrentExecutor ??
-            await state.GetExecutorAsync(services.ExecutorResolver, services.RequestAborted);
+        var executor = state.CurrentExecutor
+            ?? await state.GetExecutorAsync(services.ExecutorResolver, services.RequestAborted);
         var errorHandler = executor.GetErrorHandler();
 
         var parserResult =
             await MiddlewareHelper.ParseSingleRequestFromBodyAsync(
                 operationId,
+                operationName,
                 services.Context,
                 services.RequestParser,
                 errorHandler,
