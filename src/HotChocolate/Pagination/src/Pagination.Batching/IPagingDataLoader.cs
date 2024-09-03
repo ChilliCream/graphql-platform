@@ -21,5 +21,8 @@ public interface IPagingDataLoader<in TKey, TValue>
     /// </summary>
     IDataLoader<TKey, TValue> Root { get; }
 
+    /// <summary>
+    /// Gets the paging arguments for this DataLoader.
+    /// </summary>
     PagingArguments PagingArguments { get; }
 }
