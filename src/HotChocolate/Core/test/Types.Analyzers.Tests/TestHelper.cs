@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using Basic.Reference.Assemblies;
 using CookieCrumble;
 using GreenDonut;
+using HotChocolate.Pagination;
 using HotChocolate.Types.Analyzers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -29,6 +30,9 @@ internal static partial class TestHelper
 
             // HotChocolate.Abstractions
             MetadataReference.CreateFromFile(typeof(ParentAttribute).Assembly.Location),
+
+            // HotChocolate.Pagination.Primitives
+            MetadataReference.CreateFromFile(typeof(PagingArguments).Assembly.Location),
 
             // GreenDonut
             MetadataReference.CreateFromFile(typeof(DataLoaderAttribute).Assembly.Location)

@@ -1,7 +1,4 @@
 using System.Collections.Immutable;
-#if NET8_0_OR_GREATER
-using GreenDonut.Projections;
-#endif
 using static GreenDonut.NoopDataLoaderDiagnosticEventListener;
 using static GreenDonut.Errors;
 
@@ -33,9 +30,9 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     private readonly int _maxBatchSize;
     private readonly IDataLoaderDiagnosticEvents _diagnosticEvents;
     private readonly CancellationToken _ct;
-#if NET8_0_OR_GREATER
-    private ImmutableDictionary<string, ISelectionDataLoader<TKey, TValue>> _branches =
-        ImmutableDictionary<string, ISelectionDataLoader<TKey, TValue>>.Empty;
+#if NET6_0_OR_GREATER
+    private ImmutableDictionary<string, IDataLoader> _branches =
+        ImmutableDictionary<string, IDataLoader>.Empty;
 #endif
     private Batch<TKey>? _currentBatch;
 
@@ -80,14 +77,27 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     public IImmutableDictionary<string, object?> ContextData { get; set; } =
         ImmutableDictionary<string, object?>.Empty;
 
-    private protected virtual bool AllowCachePropagation => true;
+    /// <summary>
+    /// Specifies if the values fetched by this DataLoader
+    /// are propagated through the cache.
+    /// </summary>
+    protected virtual bool AllowCachePropagation => true;
 
-    private protected virtual bool AllowBranching => true;
+    /// <summary>
+    /// Specifies if this DataLoader allows branching.
+    /// </summary>
+    protected virtual bool AllowBranching => true;
 
-    internal IBatchScheduler BatchScheduler
+    /// <summary>
+    /// Gets the batch scheduler of this DataLoader.
+    /// </summary>
+    protected internal IBatchScheduler BatchScheduler
         => _batchScheduler;
 
-    internal DataLoaderOptions Options
+    /// <summary>
+    /// Gets the options of this DataLoader.
+    /// </summary>
+    protected internal DataLoaderOptions Options
         => new()
         {
             MaxBatchSize = _maxBatchSize,
@@ -252,11 +262,24 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             Cache.TryAdd(cacheKey, new Promise<TValue?>(value));
         }
     }
-#if NET8_0_OR_GREATER
+#if NET6_0_OR_GREATER
 
     /// <inheritdoc />
-    public ISelectionDataLoader<TKey, TValue> Branch(string key)
+    public IDataLoader Branch<TState>(
+        string key,
+        CreateDataLoaderBranch<TKey, TValue, TState> createBranch,
+        TState state)
     {
+        if (string.IsNullOrEmpty(key))
+        {
+            throw new ArgumentException("Value cannot be null or empty.", nameof(key));
+        }
+
+        if (createBranch == null)
+        {
+            throw new ArgumentNullException(nameof(createBranch));
+        }
+
         if(!AllowBranching)
         {
             throw new InvalidOperationException(
@@ -269,7 +292,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             {
                 if (!_branches.TryGetValue(key, out branch))
                 {
-                    var newBranch = new SelectionDataLoader<TKey, TValue>(this, key);
+                    var newBranch = createBranch(key, this, state);
                     _branches = _branches.Add(key, newBranch);
                     return newBranch;
                 }

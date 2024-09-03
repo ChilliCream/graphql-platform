@@ -1,10 +1,12 @@
-#if NET8_0_OR_GREATER
+#if NET6_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
 namespace GreenDonut.Projections;
 
+#if NET8_0_OR_GREATER
 [Experimental(Experiments.Projections)]
+#endif
 internal sealed class DefaultSelectorBuilder<TValue> : ISelectorBuilder
 {
     private LambdaExpression? _expression;

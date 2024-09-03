@@ -175,6 +175,17 @@ public sealed class DataLoaderInfo : SyntaxInfo
                 continue;
             }
 
+            if (IsPagingArguments(parameter))
+            {
+                builder.Add(
+                    new DataLoaderParameterInfo(
+                        $"p{i}",
+                        parameter,
+                        DataLoaderParameterKind.PagingArguments,
+                        WellKnownTypes.PagingArguments));
+                continue;
+            }
+
             var stateKey = parameter.GetDataLoaderStateKey();
 
             // if the parameter is annotated as a state attribute we will get here a state key.
@@ -210,6 +221,12 @@ public sealed class DataLoaderInfo : SyntaxInfo
     {
         var typeName = parameter.Type.ToDisplayString();
         return string.Equals(typeName, WellKnownTypes.SelectorBuilder, StringComparison.Ordinal);
+    }
+
+    private static bool IsPagingArguments(IParameterSymbol parameter)
+    {
+        var typeName = parameter.Type.ToDisplayString();
+        return string.Equals(typeName, WellKnownTypes.PagingArguments, StringComparison.Ordinal);
     }
 
     public static bool IsKeyValuePair(ITypeSymbol returnTypeSymbol, ITypeSymbol keyType, ITypeSymbol valueType)

@@ -254,7 +254,8 @@ public sealed class DataLoaderFileBuilder : IDisposable
                         isScoped ? "scope.ServiceProvider" : "_services",
                         parameter.Type.ToFullyQualified());
                 }
-                else if (parameter.Kind is DataLoaderParameterKind.SelectorBuilder)
+                else if (parameter.Kind is DataLoaderParameterKind.SelectorBuilder
+                    || parameter.Kind is DataLoaderParameterKind.PagingArguments)
                 {
                     _writer.WriteIndentedLine(
                         "var {0} = context.GetRequiredState<{1}>(\"{2}\");",

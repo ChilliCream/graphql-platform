@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 
 namespace GreenDonut;
 
@@ -337,6 +336,110 @@ public static class DataLoaderExtensions
         }
 
         return dataLoader;
+    }
+
+    /// <summary>
+    /// Gets a state value from the <paramref name="dataLoader"/> or
+    /// creates a new one and stores it as state on the <paramref name="dataLoader"/>.
+    /// </summary>
+    /// <param name="dataLoader">
+    /// The data loader instance.
+    /// </param>
+    /// <param name="createValue">
+    /// A factory that creates the new state value.
+    /// </param>
+    /// <typeparam name="TKey">
+    /// The key type of the DataLoader.
+    /// </typeparam>
+    /// <typeparam name="TValue">
+    /// The value type of the DataLoader.
+    /// </typeparam>
+    /// <typeparam name="TState">
+    /// The state type.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the state value.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// Throws if <paramref name="dataLoader"/> is <c>null</c>.
+    /// </exception>
+    public static TState GetOrSetState<TKey, TValue, TState>(
+        this IDataLoader<TKey, TValue> dataLoader,
+        Func<string, TState> createValue)
+        where TKey : notnull
+    {
+        if (dataLoader is null)
+        {
+            throw new ArgumentNullException(nameof(dataLoader));
+        }
+
+        var key = typeof(TState).FullName ?? typeof(TState).Name;
+
+        if(!dataLoader.ContextData.TryGetValue(key, out var internalValue))
+        {
+            internalValue = createValue(key);
+            dataLoader.ContextData = dataLoader.ContextData.SetItem(key, internalValue);
+        }
+
+        return (TState)internalValue!;
+    }
+
+    /// <summary>
+    /// Gets a state value from the <paramref name="dataLoader"/> or
+    /// creates a new one and stores it as state on the <paramref name="dataLoader"/>.
+    /// </summary>
+    /// <param name="dataLoader">
+    /// The data loader instance.
+    /// </param>
+    /// <param name="key">
+    /// The state key.
+    /// </param>
+    /// <param name="createValue">
+    /// A factory that creates the new state value.
+    /// </param>
+    /// <typeparam name="TKey">
+    /// The key type of the DataLoader.
+    /// </typeparam>
+    /// <typeparam name="TValue">
+    /// The value type of the DataLoader.
+    /// </typeparam>
+    /// <typeparam name="TState">
+    /// The state type.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the state value.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// Throws if <paramref name="dataLoader"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentException">
+    /// Throws if <paramref name="key"/> is <c>null</c> or empty.
+    /// </exception>
+    public static TState GetOrSetState<TKey, TValue, TState>(
+        this IDataLoader<TKey, TValue> dataLoader,
+        string key,
+        Func<string, TState> createValue)
+        where TKey : notnull
+    {
+        if (dataLoader is null)
+        {
+            throw new ArgumentNullException(nameof(dataLoader));
+        }
+
+        if (string.IsNullOrEmpty(key))
+        {
+            throw new ArgumentException(
+                "The key must not be null or empty.",
+                nameof(key));
+        }
+
+        if(!dataLoader.ContextData.TryGetValue(key, out var internalValue))
+        {
+            internalValue = createValue(key);
+            dataLoader.ContextData = dataLoader.ContextData.SetItem(key, internalValue);
+        }
+
+        return (TState)internalValue!;
     }
 
     /// <summary>

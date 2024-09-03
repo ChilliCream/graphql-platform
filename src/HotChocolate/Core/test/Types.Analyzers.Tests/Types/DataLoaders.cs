@@ -1,5 +1,6 @@
 using GreenDonut;
 using GreenDonut.Projections;
+using HotChocolate.Pagination;
 
 namespace HotChocolate.Types;
 
@@ -64,7 +65,6 @@ public static class DataLoaders
         CancellationToken ct = default)
         => await Task.FromResult(keys.ToDictionary(k => k, k => k + " - some info"));
 
-#if NET8_0_OR_GREATER
     [DataLoader]
     public static async Task<IDictionary<int, Author>> GetAuthorById(
         IReadOnlyList<int> keys,
@@ -72,5 +72,12 @@ public static class DataLoaders
         ISelectorBuilder selector,
         CancellationToken ct)
         => await Task.FromResult(query.Select(selector, t => t.Id).ToDictionary(t => t.Id));
-#endif
+
+    [DataLoader]
+    public static async Task<IDictionary<int, Author>> GetAuthorWithPagingById(
+        IReadOnlyList<int> keys,
+        IQueryable<Author> query,
+        PagingArguments paging,
+        CancellationToken ct)
+        => await Task.FromResult(query.ToDictionary(t => t.Id));
 }

@@ -1,23 +1,28 @@
-#if NET6_0_OR_GREATER
-namespace GreenDonut.Projections;
+using GreenDonut;
+using GreenDonut.Internals;
 
-internal sealed class SelectionDataLoader<TKey, TValue>
+namespace HotChocolate.Pagination;
+
+internal sealed class PagingDataLoader<TKey, TValue>
     : DataLoaderBase<TKey, TValue>
-    , ISelectionDataLoader<TKey, TValue>
+    , IPagingDataLoader<TKey, TValue>
     where TKey : notnull
 {
     private readonly DataLoaderBase<TKey, TValue> _root;
 
-    public SelectionDataLoader(
+    public PagingDataLoader(
         DataLoaderBase<TKey, TValue> root,
-        string selectionKey)
-        : base(root.BatchScheduler, root.Options)
+        string pagingKey)
+        : base(DataLoaderHelper.GetBatchScheduler(root), DataLoaderHelper.GetOptions(root))
     {
         _root = root;
-        CacheKeyType = $"{root.CacheKeyType}:{selectionKey}";
+        CacheKeyType = $"{DataLoaderHelper.GetCacheKeyType(root)}:{pagingKey}";
     }
 
     public IDataLoader<TKey, TValue> Root => _root;
+
+    public PagingArguments PagingArguments
+        => (PagingArguments)ContextData[typeof(PagingArguments).FullName!]!;
 
     protected internal override string CacheKeyType { get; }
 
@@ -30,6 +35,5 @@ internal sealed class SelectionDataLoader<TKey, TValue>
         Memory<Result<TValue?>> results,
         DataLoaderFetchContext<TValue> context,
         CancellationToken cancellationToken)
-        => _root.FetchAsync(keys, results, context, cancellationToken);
+        => DataLoaderHelper.FetchAsync(_root, keys, results, context, cancellationToken);
 }
-#endif
