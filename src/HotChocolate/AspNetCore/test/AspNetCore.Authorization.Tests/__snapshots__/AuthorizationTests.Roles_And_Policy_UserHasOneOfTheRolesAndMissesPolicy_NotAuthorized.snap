@@ -2,11 +2,11 @@
   "ContentType": "application/graphql-response+json; charset=utf-8",
   "StatusCode": "OK",
   "Data": {
-    "default": null
+    "rolesAndPolicy": null
   },
   "Errors": [
     {
-      "message": "The default authorization policy does not exist.",
+      "message": "The current user is not authorized to access this resource.",
       "locations": [
         {
           "line": 1,
@@ -14,10 +14,10 @@
         }
       ],
       "path": [
-        "default"
+        "rolesAndPolicy"
       ],
       "extensions": {
-        "code": "AUTH_NO_DEFAULT_POLICY"
+        "code": "AUTH_NOT_AUTHORIZED"
       }
     }
   ],

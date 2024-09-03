@@ -2,7 +2,7 @@
   "ContentType": "application/graphql-response+json; charset=utf-8",
   "StatusCode": "OK",
   "Data": {
-    "default": "foo"
+    "rolesAndPolicy": "foo"
   },
   "Errors": null,
   "Extensions": null
