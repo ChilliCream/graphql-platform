@@ -16,11 +16,6 @@ public static class WellKnownContextData
     public const string Subscription = "HotChocolate.Execution.Subscription";
 
     /// <summary>
-    /// The key for storing the enable tracing flag to the context data.
-    /// </summary>
-    public const string EnableTracing = "HotChocolate.Execution.EnableTracing";
-
-    /// <summary>
     /// The key for setting a flag the a document was saved to the persisted query storage.
     /// </summary>
     public const string DocumentSaved = "HotChocolate.Execution.DocumentSaved";
