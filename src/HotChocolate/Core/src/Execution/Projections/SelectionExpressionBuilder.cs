@@ -3,7 +3,10 @@ using System.Collections.Immutable;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Features;
+using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Types.Relay.Descriptors;
 
 namespace HotChocolate.Execution.Projections;
 
@@ -13,7 +16,8 @@ internal sealed class SelectionExpressionBuilder
     {
         var rootType = typeof(TRoot);
         var parameter = Expression.Parameter(rootType, "root");
-        var context = new Context(selection.DeclaringOperation, parameter, rootType);
+        var requirements = selection.DeclaringOperation.Schema.Features.GetRequired<FieldRequirementsMetadata>();
+        var context = new Context(selection.DeclaringOperation, parameter, rootType, requirements);
         var selectionSet = context.GetSelectionSet(selection);
         var selectionSetExpression = BuildSelectionSetExpression(selectionSet, context);
 
@@ -29,25 +33,44 @@ internal sealed class SelectionExpressionBuilder
         ISelectionSet selectionSet,
         Context context)
     {
-        var assignments = ImmutableArray.CreateBuilder<MemberAssignment>();
+        var allAssignments = ImmutableArray.CreateBuilder<MemberAssignment>();
+        var allRequirements = ImmutableList<ImmutableArray<PropertyNode>>.Empty;
 
         foreach (var selection in selectionSet.Selections)
         {
+            var requirements = context.GetRequirements(selection);
+            if (requirements is not null)
+            {
+                allRequirements = allRequirements.Add(requirements.Value);
+            }
+
             var assignment = BuildSelectionExpression(selection, context);
             if (assignment is not null)
             {
-                assignments.Add(assignment);
+                allAssignments.Add(assignment);
             }
         }
 
-        if (assignments.Count == 0)
+        foreach (var properties in allRequirements)
+        {
+            foreach (var property in properties)
+            {
+                var assignment = BuildRequirementExpression(property, context);
+                if (assignment is not null)
+                {
+                    allAssignments.Add(assignment);
+                }
+            }
+        }
+
+        if (allAssignments.Count == 0)
         {
             return null;
         }
 
         return Expression.MemberInit(
             Expression.New(context.ParentType),
-            assignments.ToImmutable());
+            allAssignments.ToImmutable());
     }
 
     private MemberAssignment? BuildSelectionExpression(
@@ -81,10 +104,76 @@ internal sealed class SelectionExpressionBuilder
         return selectionSetExpression is null ? null : Expression.Bind(property, selectionSetExpression);
     }
 
-    private readonly record struct Context(IOperation Operation, Expression Parent, Type ParentType)
+    private MemberAssignment? BuildRequirementExpression(
+        PropertyNode node,
+        Context context)
     {
+        var propertyAccessor = Expression.Property(context.Parent, node.Property);
+
+        if (node.Nodes.Length == 0)
+        {
+            return Expression.Bind(node.Property, propertyAccessor);
+        }
+
+        var newContext = context with { Parent = propertyAccessor, ParentType = node.Property.PropertyType };
+        var requirementsExpression = BuildRequirementsExpression(node.Nodes, newContext);
+        return requirementsExpression is null ? null : Expression.Bind(node.Property, requirementsExpression);
+    }
+
+    private MemberInitExpression? BuildRequirementsExpression(
+        ImmutableArray<PropertyNode> properties,
+        Context context)
+    {
+        var allAssignments = ImmutableArray.CreateBuilder<MemberAssignment>();
+
+        foreach (var property in properties)
+        {
+            var assignment = BuildRequirementExpression(property, context);
+            if (assignment is not null)
+            {
+                allAssignments.Add(assignment);
+            }
+        }
+
+        if (allAssignments.Count == 0)
+        {
+            return null;
+        }
+
+        return Expression.MemberInit(
+            Expression.New(context.ParentType),
+            allAssignments.ToImmutable());
+    }
+
+    private readonly record struct Context(
+        IOperation Operation,
+        Expression Parent,
+        Type ParentType,
+        FieldRequirementsMetadata Requirements)
+    {
+        public ImmutableArray<PropertyNode>? GetRequirements(ISelection selection)
+            => Requirements.GetRequirements(selection.Field);
+
         public ISelectionSet GetSelectionSet(ISelection selection)
             => Operation.GetSelectionSet(selection, (ObjectType)selection.Type.NamedType());
     }
 }
+
+public sealed class PropertyNode(
+    PropertyInfo property,
+    ImmutableArray<PropertyNode> nodes)
+{
+    public PropertyInfo Property { get; } = property;
+
+    public ImmutableArray<PropertyNode> Nodes { get; } = nodes;
+}
+
+public sealed class FieldRequirementsMetadata
+{
+    public ImmutableArray<PropertyNode>? GetRequirements(IObjectField field)
+    {
+        return null;
+    }
+}
+
 #endif
