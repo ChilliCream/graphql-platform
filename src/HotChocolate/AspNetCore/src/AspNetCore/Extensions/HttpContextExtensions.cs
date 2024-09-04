@@ -27,6 +27,19 @@ internal static class HttpContextExtensions
         return false;
     }
 
+    public static bool IsNullBubblingDisabled(this HttpContext context)
+    {
+        var headers = context.Request.Headers;
+
+        if (headers.TryGetValue(HttpHeaderKeys.DisableNullBubbling, out var values) &&
+            values.Any(v => v == HttpHeaderValues.DisableNullBubbling))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
     public static string? TryGetCostSwitch(this HttpContext context)
     {
         var headers = context.Request.Headers;

@@ -9,4 +9,6 @@ internal static class HttpHeaderKeys
     public const string Preflight = "GraphQL-Preflight";
 
     public const string Cost = "GraphQL-Cost";
+
+    public const string DisableNullBubbling = "HC-Disable-Null-Bubbling";
 }

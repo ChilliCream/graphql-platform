@@ -316,4 +316,9 @@ public static class WellKnownContextData
     public const string ValidateCost = "HotChocolate.CostAnalysis.ValidateCost";
 
     public const string PagingObserver = "HotChocolate.Types.PagingObserver";
+
+    /// <summary>
+    /// The key to set the flag that null bubbling should be disabled.
+    /// </summary>
+    public const string DisableNullBubbling = "HotChocolate.Execution.DisableNullBubbling";
 }
