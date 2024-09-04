@@ -51,7 +51,7 @@ public class IntrospectionTests(TestServerFactory serverFactory) : ServerTestBas
         // assert
         response.HttpResponseMessage.MatchMarkdownSnapshot();
     }
-    
+
 #endif
     private GraphQLHttpClient GetClient(string environment)
     {
