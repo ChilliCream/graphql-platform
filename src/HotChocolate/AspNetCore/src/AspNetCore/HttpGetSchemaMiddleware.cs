@@ -143,7 +143,13 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
     {
         context.Response.ContentType = ContentType.GraphQL;
         context.Response.Headers.SetContentDisposition(GetSchemaFileName(schema));
+        context.Response.Headers.ETag = "";
         await PrintAsync(schema, context.Response.Body, indent, context.RequestAborted);
+    }
+
+    private static async Task TryCacheAsync(IRequestExecutor executor)
+    {
+        var cacheFile = System.IO.Path.GetTempPath()
     }
 
     private string GetTypesFileName(List<INamedType> types)
@@ -152,7 +158,26 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
             : "types.graphql";
 
     private string GetSchemaFileName(ISchema schema)
-        => schema.Name is null || schema.Name.EqualsOrdinal(Schema.DefaultName)
+        => schema.Name.EqualsOrdinal(Schema.DefaultName)
             ? "schema.graphql"
             : schema.Name + ".schema.graphql";
+}
+
+public interface ISchemaPrinter
+{
+    Task GetOrAddAsync(
+        long version,
+        string fileName,
+        ISchema schema,
+        HttpResponse response);
+}
+
+public sealed class InMemoryCacheSchemaPrinter : ISchemaPrinter
+{
+
+
+    public Task GetOrAddAsync(long version, string fileName, ISchema schema, HttpResponse response)
+    {
+
+    }
 }

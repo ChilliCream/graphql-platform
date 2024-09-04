@@ -1,8 +1,12 @@
+using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using HotChocolate.Execution.Serialization;
+using HotChocolate.Utilities;
 using Microsoft.AspNetCore.Http;
 #if !NET6_0_OR_GREATER
 using Microsoft.Net.Http.Headers;
@@ -21,6 +25,7 @@ namespace HotChocolate.AspNetCore.Serialization;
 /// </summary>
 public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 {
+    private readonly ConcurrentDictionary<string, CachedSchemaOutput> _schemaCache = new(StringComparer.Ordinal);
     private readonly FormatInfo _defaultFormat;
     private readonly FormatInfo _graphqlResponseFormat;
     private readonly FormatInfo _multiPartFormat;
@@ -46,11 +51,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         : this(
             new HttpResponseFormatterOptions
             {
-                Json = new JsonResultFormatterOptions
-                {
-                    Indented = indented,
-                    Encoder = encoder,
-                },
+                Json = new JsonResultFormatterOptions { Indented = indented, Encoder = encoder, },
             })
     {
     }
@@ -154,7 +155,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         {
             // we should not hit this point except if a middleware did not validate the
             // GraphQL request flags which would indicate that there is no way to execute
-            // the GraphQL request with the specified accept header content types.
+            // the GraphQL request with the specified accept-header content types.
             throw ThrowHelper.Formatter_InvalidAcceptMediaType();
         }
 
@@ -167,9 +168,9 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 response.ContentType = format.ContentType;
                 response.StatusCode = statusCode;
 
-                if (result.ContextData is not null &&
-                    result.ContextData.TryGetValue(CacheControlHeaderValue, out var value) &&
-                    value is string cacheControlHeaderValue)
+                if (result.ContextData is not null
+                    && result.ContextData.TryGetValue(CacheControlHeaderValue, out var value)
+                    && value is string cacheControlHeaderValue)
                 {
                     response.Headers.CacheControl = cacheControlHeaderValue;
                 }
@@ -215,6 +216,41 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         }
     }
 
+    public async ValueTask FormatAsync(
+        HttpResponse response,
+        ulong version,
+        ISchema schema,
+        CancellationToken cancellationToken)
+    {
+        var output = _schemaCache.GetOrAdd(schema.Name, Update);
+
+        if (output.Version < version)
+        {
+            lock (_schemaCache)
+            {
+                if (!_schemaCache.TryGetValue(schema.Name, out output)
+                    || output.Version < version)
+                {
+                    _schemaCache[schema.Name] = output = Update(schema.Name);
+                }
+            }
+        }
+
+        var memory = output.AsMemory();
+        response.ContentType = ContentType.GraphQL;
+        response.Headers.SetContentDisposition(output.FileName);
+        response.Headers.ETag = output.ETag;
+        response.Headers.LastModified = output.LastModifiedTime.ToString("R");
+        response.Headers.CacheControl = "public, max-age=3600, must-revalidate";
+        response.Headers.Vary = "Accept-Encoding";
+        response.Headers.ContentLength = memory.Length;
+        await response.Body.WriteAsync(memory, cancellationToken);
+        return;
+
+        CachedSchemaOutput Update(string _) => new(schema, version);
+    }
+
+
     /// <summary>
     /// Determines which status code shall be returned for this result.
     /// </summary>
@@ -244,7 +280,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
         // if we are sending a single result with the multipart/mixed header or
         // with a text/event-stream response content-type we as well will just
-        // respond with a OK status code.
+        // respond with an OK status code.
         if (format.Kind is ResponseContentType.MultiPartMixed or ResponseContentType.EventStream)
         {
             return HttpStatusCode.OK;
@@ -263,7 +299,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             }
 
             // if the GraphQL result has context data we will check if some middleware provided
-            // a status code or indicated an error that should be interpreted as an status code.
+            // a status code or indicated an error that should be interpreted as a status code.
             if (result.ContextData is not null)
             {
                 var contextData = result.ContextData;
@@ -320,7 +356,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
     /// <summary>
     /// Override to write response headers to the response message before
-    /// the the formatter starts writing the response body.
+    /// the formatter starts writing the response body.
     /// </summary>
     /// <param name="result">
     /// The <see cref="IOperationResult"/>.
@@ -334,7 +370,9 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     protected virtual void OnWriteResponseHeaders(
         IOperationResult result,
         FormatInfo format,
-        IHeaderDictionary headers) { }
+        IHeaderDictionary headers)
+    {
+    }
 
     /// <summary>
     /// Determines which status code shall be returned for this response stream.
@@ -358,7 +396,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     {
         // if we are sending a response stream with the multipart/mixed header or
         // with a text/event-stream response content-type we as well will just
-        // respond with a OK status code.
+        // respond with an OK status code.
         if (format.Kind is ResponseContentType.MultiPartMixed or ResponseContentType.EventStream)
         {
             return HttpStatusCode.OK;
@@ -372,7 +410,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
     /// <summary>
     /// Override to write response headers to the response message before
-    /// the the formatter starts writing the response body.
+    /// the formatter starts writing the response body.
     /// </summary>
     /// <param name="responseStream">
     /// The <see cref="IResponseStream"/>.
@@ -386,7 +424,9 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     protected virtual void OnWriteResponseHeaders(
         IResponseStream responseStream,
         FormatInfo format,
-        IHeaderDictionary headers) { }
+        IHeaderDictionary headers)
+    {
+    }
 
     /// <summary>
     /// Determines which status code shall be returned for a result batch.
@@ -411,7 +451,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
     /// <summary>
     /// Override to write response headers to the response message before
-    /// the the formatter starts writing the response body.
+    /// the formatter starts writing the response body.
     /// </summary>
     /// <param name="resultBatch">
     /// The <see cref="OperationResultBatch"/>.
@@ -425,7 +465,9 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     protected virtual void OnWriteResponseHeaders(
         OperationResultBatch resultBatch,
         FormatInfo format,
-        IHeaderDictionary headers) { }
+        IHeaderDictionary headers)
+    {
+    }
 
     private FormatInfo? TryGetFormatter(
         IExecutionResult result,
@@ -473,26 +515,23 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         {
             var mediaType = start;
 
-            if (resultKind is ResultKind.Single &&
-                mediaType.Kind is ApplicationGraphQL)
+            if (resultKind is ResultKind.Single && mediaType.Kind is ApplicationGraphQL)
             {
                 return _graphqlResponseFormat;
             }
 
-            if (resultKind is ResultKind.Single &&
-                mediaType.Kind is ApplicationJson)
+            if (resultKind is ResultKind.Single && mediaType.Kind is ApplicationJson)
             {
                 return _legacyFormat;
             }
 
-            if (resultKind is ResultKind.Single &&
-                mediaType.Kind is AllApplication or All)
+            if (resultKind is ResultKind.Single && mediaType.Kind is AllApplication or All)
             {
                 return _defaultFormat;
             }
 
-            if (resultKind is ResultKind.Stream or ResultKind.Single &&
-                mediaType.Kind is MultiPartMixed or AllMultiPart or All)
+            if (resultKind is ResultKind.Stream or ResultKind.Single
+                && mediaType.Kind is MultiPartMixed or AllMultiPart or All)
             {
                 return _multiPartFormat;
             }
@@ -505,21 +544,19 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             return null;
         }
 
-        // If we have more than one specified Accept header value we will try to find the best for
+        // If we have more than one specified accept-header value we will try to find the best for
         // our GraphQL result.
         ref var end = ref Unsafe.Add(ref start, length);
         FormatInfo? possibleFormat = null;
 
         while (Unsafe.IsAddressLessThan(ref start, ref end))
         {
-            if (resultKind is ResultKind.Single &&
-                start.Kind is AllApplication or All)
+            if (resultKind is ResultKind.Single && start.Kind is AllApplication or All)
             {
                 return _defaultFormat;
             }
 
-            if (resultKind is ResultKind.Single &&
-                start.Kind is ApplicationJson)
+            if (resultKind is ResultKind.Single && start.Kind is ApplicationJson)
             {
                 // application/json is a legacy response content-type.
                 // We will create a formatInfo but keep on validating for
@@ -527,14 +564,13 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 possibleFormat = _legacyFormat;
             }
 
-            if (resultKind is ResultKind.Single &&
-                start.Kind is ApplicationGraphQL)
+            if (resultKind is ResultKind.Single && start.Kind is ApplicationGraphQL)
             {
                 return _graphqlResponseFormat;
             }
 
-            if (resultKind is ResultKind.Stream or ResultKind.Single &&
-                start.Kind is MultiPartMixed or AllMultiPart or All)
+            if (resultKind is ResultKind.Stream or ResultKind.Single
+                && start.Kind is MultiPartMixed or AllMultiPart or All)
             {
                 // if the result is a stream we consider this a perfect match and
                 // will use this format.
@@ -543,7 +579,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                     possibleFormat = _multiPartFormat;
                 }
 
-                // if the format is a event-stream or not set we will create a
+                // if the format is an event-stream or not set we will create a
                 // multipart/mixed formatInfo for the current result but also keep
                 // on validating for a better suited format.
                 if (possibleFormat?.Kind is not ResponseContentType.Json)
@@ -607,7 +643,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
         /// <summary>
         /// Gets an enum value representing well-known response content types.
-        /// This prop is an optimization that helps avoiding comparing strings.
+        /// This prop is an optimization that helps to avoid comparing strings.
         /// </summary>
         public ResponseContentType Kind { get; }
 
@@ -626,4 +662,41 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
     private sealed class SealedDefaultHttpResponseFormatter(HttpResponseFormatterOptions options)
         : DefaultHttpResponseFormatter(options);
+
+    private sealed class CachedSchemaOutput
+    {
+        private readonly byte[] _schema;
+
+        public CachedSchemaOutput(ISchema schema, ulong version)
+        {
+            _schema = Encoding.UTF8.GetBytes(schema.ToString());
+            FileName = GetSchemaFileName(schema);
+            ETag = CreateETag(_schema, version);
+            LastModifiedTime = DateTimeOffset.UtcNow;
+            Version = version;
+        }
+
+        public string FileName { get; }
+
+        public string ETag { get; }
+
+        public ulong Version { get; }
+
+        public DateTimeOffset LastModifiedTime { get; }
+
+        public ReadOnlyMemory<byte> AsMemory() => _schema;
+
+        private static string CreateETag(byte[] schema, ulong version)
+        {
+            using var sha256 = SHA256.Create();
+            var hashBytes = sha256.ComputeHash(schema);
+            var hash = Convert.ToBase64String(hashBytes);
+            return $"\"{version}-{hash}\"";
+        }
+
+        private static string GetSchemaFileName(ISchema schema)
+            => schema.Name.EqualsOrdinal(Schema.DefaultName)
+                ? "schema.graphql"
+                : schema.Name + ".schema.graphql";
+    }
 }
