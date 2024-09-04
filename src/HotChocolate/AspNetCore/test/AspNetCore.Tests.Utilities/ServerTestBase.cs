@@ -17,6 +17,8 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
 {
     protected TestServerFactory ServerFactory { get; } = serverFactory;
 
+    protected Uri Url { get; } = new("http://localhost:5000/graphql");
+
     protected virtual TestServer CreateStarWarsServer(
         string pattern = "/graphql",
         Action<IServiceCollection>? configureServices = default,
