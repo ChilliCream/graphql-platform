@@ -4,8 +4,6 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Transport.Http;
-using HotChocolate.Utilities;
-using StrawberryShake.Json;
 using static StrawberryShake.Properties.Resources;
 using static StrawberryShake.Transport.Http.ResponseEnumerable;
 
@@ -25,13 +23,7 @@ public sealed class HttpConnection : IHttpConnection
 
     private static GraphQLHttpRequest MapRequest(OperationRequest request)
     {
-        var (id, name, document, variables, extensions, _, files, _) = request;
-
-#if NETSTANDARD2_0
-        var body = Encoding.UTF8.GetString(document.Body.ToArray());
-#else
-        var body = Encoding.UTF8.GetString(document.Body);
-#endif
+        var (id, name, document, variables, extensions, _, files, strategy) = request;
 
         var hasFiles = files is { Count: > 0, };
 
@@ -41,8 +33,22 @@ public sealed class HttpConnection : IHttpConnection
             variables = MapFilesToVariables(variables, files!);
         }
 
-        var operation =
-            new HotChocolate.Transport.OperationRequest(body, id, name, variables, extensions);
+        HotChocolate.Transport.OperationRequest operation;
+
+        if (strategy == RequestStrategy.PersistedQuery)
+        {
+            operation = new HotChocolate.Transport.OperationRequest(null, id, name, variables, extensions);
+        }
+        else
+        {
+#if NETSTANDARD2_0
+            var body = Encoding.UTF8.GetString(document.Body.ToArray());
+#else
+            var body = Encoding.UTF8.GetString(document.Body);
+#endif
+
+            operation = new HotChocolate.Transport.OperationRequest(body, null, name, variables, extensions);
+        }
 
         return new GraphQLHttpRequest(operation) { EnableFileUploads = hasFiles, };
     }
