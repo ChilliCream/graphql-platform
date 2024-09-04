@@ -169,6 +169,24 @@ public static partial class HotChocolateValidationBuilderExtensions
     }
 
     /// <summary>
+    /// Removes the specified validation visitor from the configuration.
+    /// </summary>
+    public static IValidationBuilder TryRemoveValidationVisitor<T>(
+        this IValidationBuilder builder)
+        where T : DocumentValidatorVisitor
+    {
+        return builder.ConfigureValidation((_, m) =>
+            m.Modifiers.Add(o =>
+            {
+                var entries = o.Rules.Where(t => t.GetType() == typeof(DocumentValidatorRule<T>)).ToList();
+                foreach (var entry in entries)
+                {
+                    o.Rules.Remove(entry);
+                }
+            }));
+    }
+
+    /// <summary>
     /// Registers the specified validation rule,
     /// if the same type of validation rule was not yet registered.
     /// </summary>
