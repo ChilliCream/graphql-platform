@@ -215,8 +215,9 @@ public static partial class RequestExecutorBuilderExtensions
     /// if the request carries an introspection allowed flag.
     /// </summary>
     public static IRequestExecutorBuilder AddIntrospectionAllowedRule(
-        this IRequestExecutorBuilder builder) =>
-        ConfigureValidation(builder, b => b.AddIntrospectionAllowedRule());
+        this IRequestExecutorBuilder builder,
+        Func<IServiceProvider, ValidationOptions, bool>? isEnabled = null) =>
+        ConfigureValidation(builder, b => b.AddIntrospectionAllowedRule(isEnabled));
 
     /// <summary>
     /// Toggle whether introspection is allow or not.
