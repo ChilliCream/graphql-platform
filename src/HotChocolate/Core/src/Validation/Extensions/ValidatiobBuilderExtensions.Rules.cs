@@ -339,6 +339,16 @@ public static partial class HotChocolateValidationBuilderExtensions
     /// if the request carries an introspection allowed flag.
     /// </summary>
     public static IValidationBuilder AddIntrospectionAllowedRule(
-        this IValidationBuilder builder) =>
-        builder.TryAddValidationVisitor((_, _) => new IntrospectionVisitor(), false);
+        this IValidationBuilder builder,
+        Func<IServiceProvider, ValidationOptions, bool>? isEnabled = null)
+        => builder.TryAddValidationVisitor((_, _) => new IntrospectionVisitor(), false, isEnabled);
+
+    /// <summary>
+    /// Removes a validation rule that only allows requests to use `__schema` or `__type`
+    /// if the request carries an introspection allowed flag.
+    /// </summary>
+    public static IValidationBuilder RemoveIntrospectionAllowedRule(
+        this IValidationBuilder builder,
+        Func<IServiceProvider, ValidationOptions, bool>? isEnabled = null)
+        => builder.TryRemoveValidationVisitor<IntrospectionVisitor>();
 }
