@@ -4,10 +4,10 @@ using HotChocolate.Language;
 namespace HotChocolate;
 
 internal sealed class AggregateSchemaDocumentFormatter(
-    IEnumerable<ISchemaDocumentFormatter> formatters)
+    IEnumerable<ISchemaDocumentFormatter>? formatters)
     : ISchemaDocumentFormatter
 {
-    private readonly ISchemaDocumentFormatter[] _formatters = formatters.ToArray();
+    private readonly ISchemaDocumentFormatter[] _formatters = formatters?.ToArray() ?? [];
 
     public DocumentNode Format(DocumentNode schema)
     {

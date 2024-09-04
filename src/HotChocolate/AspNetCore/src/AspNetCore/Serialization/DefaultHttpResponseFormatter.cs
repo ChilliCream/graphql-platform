@@ -26,6 +26,7 @@ namespace HotChocolate.AspNetCore.Serialization;
 public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 {
     private readonly ConcurrentDictionary<string, CachedSchemaOutput> _schemaCache = new(StringComparer.Ordinal);
+    private readonly ITimeProvider _timeProvider;
     private readonly FormatInfo _defaultFormat;
     private readonly FormatInfo _graphqlResponseFormat;
     private readonly FormatInfo _multiPartFormat;
@@ -45,14 +46,19 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     /// <param name="encoder">
     /// Gets or sets the encoder to use when escaping strings, or null to use the default encoder.
     /// </param>
+    /// <param name="timeProvider">
+    /// The time provider.
+    /// </param>
     public DefaultHttpResponseFormatter(
         bool indented = false,
-        JavaScriptEncoder? encoder = null)
+        JavaScriptEncoder? encoder = null,
+        ITimeProvider? timeProvider = null)
         : this(
             new HttpResponseFormatterOptions
             {
                 Json = new JsonResultFormatterOptions { Indented = indented, Encoder = encoder, },
-            })
+            },
+            timeProvider)
     {
     }
 
@@ -62,8 +68,13 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     /// <param name="options">
     /// The JSON result formatter options
     /// </param>
-    public DefaultHttpResponseFormatter(HttpResponseFormatterOptions options)
+    /// <param name="timeProvider">
+    /// The time provider.
+    /// </param>
+    public DefaultHttpResponseFormatter(HttpResponseFormatterOptions options, ITimeProvider? timeProvider = null)
     {
+        _timeProvider = timeProvider ?? new DefaultTimeProvider();
+
         var jsonFormatter = new JsonResultFormatter(options.Json);
         var multiPartFormatter = new MultiPartResultFormatter(jsonFormatter);
         var eventStreamResultFormatter = new EventStreamResultFormatter(options.Json);
@@ -218,8 +229,8 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
     public async ValueTask FormatAsync(
         HttpResponse response,
-        ulong version,
         ISchema schema,
+        ulong version,
         CancellationToken cancellationToken)
     {
         var output = _schemaCache.GetOrAdd(schema.Name, Update);
@@ -242,12 +253,11 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         response.Headers.ETag = output.ETag;
         response.Headers.LastModified = output.LastModifiedTime.ToString("R");
         response.Headers.CacheControl = "public, max-age=3600, must-revalidate";
-        response.Headers.Vary = "Accept-Encoding";
         response.Headers.ContentLength = memory.Length;
         await response.Body.WriteAsync(memory, cancellationToken);
         return;
 
-        CachedSchemaOutput Update(string _) => new(schema, version);
+        CachedSchemaOutput Update(string _) => new(schema, version, _timeProvider.UtcNow);
     }
 
 
@@ -615,8 +625,10 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         return possibleFormat;
     }
 
-    internal static DefaultHttpResponseFormatter Create(HttpResponseFormatterOptions options)
-        => new SealedDefaultHttpResponseFormatter(options);
+    internal static DefaultHttpResponseFormatter Create(
+        HttpResponseFormatterOptions options,
+        ITimeProvider timeProvider)
+        => new SealedDefaultHttpResponseFormatter(options, timeProvider);
 
     /// <summary>
     /// Representation of a resolver format, containing the formatter and the content type.
@@ -660,19 +672,21 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         Subscription,
     }
 
-    private sealed class SealedDefaultHttpResponseFormatter(HttpResponseFormatterOptions options)
-        : DefaultHttpResponseFormatter(options);
+    private sealed class SealedDefaultHttpResponseFormatter(
+        HttpResponseFormatterOptions options,
+        ITimeProvider timeProvider)
+        : DefaultHttpResponseFormatter(options, timeProvider);
 
     private sealed class CachedSchemaOutput
     {
         private readonly byte[] _schema;
 
-        public CachedSchemaOutput(ISchema schema, ulong version)
+        public CachedSchemaOutput(ISchema schema, ulong version, DateTimeOffset lastModifiedTime)
         {
             _schema = Encoding.UTF8.GetBytes(schema.ToString());
             FileName = GetSchemaFileName(schema);
             ETag = CreateETag(_schema, version);
-            LastModifiedTime = DateTimeOffset.UtcNow;
+            LastModifiedTime = lastModifiedTime;
             Version = version;
         }
 

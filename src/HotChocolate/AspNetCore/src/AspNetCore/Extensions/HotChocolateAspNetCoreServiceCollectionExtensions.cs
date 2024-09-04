@@ -43,11 +43,9 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
 
         services.AddGraphQLCore();
         services.TryAddSingleton<IHttpResponseFormatter>(
-            DefaultHttpResponseFormatter.Create(
-                new HttpResponseFormatterOptions
-                {
-                    HttpTransportVersion = HttpTransportVersion.Latest,
-                }));
+            sp => DefaultHttpResponseFormatter.Create(
+                new HttpResponseFormatterOptions { HttpTransportVersion = HttpTransportVersion.Latest },
+                sp.GetRequiredService<ITimeProvider>()));
         services.TryAddSingleton<IHttpRequestParser>(
             sp => new DefaultHttpRequestParser(
                 sp.GetRequiredService<IDocumentCache>(),

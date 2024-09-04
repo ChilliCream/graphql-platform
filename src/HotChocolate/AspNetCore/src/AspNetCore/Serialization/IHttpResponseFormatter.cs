@@ -49,7 +49,7 @@ public interface IHttpResponseFormatter
 
     ValueTask FormatAsync(
         HttpResponse response,
-        ulong version,
         ISchema schema,
+        ulong version,
         CancellationToken cancellationToken);
 }

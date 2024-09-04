@@ -245,7 +245,7 @@ public partial class Schema
     public DocumentNode ToDocument(bool includeSpecScalars = false)
     {
         _formatter ??= new AggregateSchemaDocumentFormatter(
-            Services.GetServices<ISchemaDocumentFormatter>());
+            Services.GetService<IEnumerable<ISchemaDocumentFormatter>>());
         var document = SchemaPrinter.PrintSchema(this, includeSpecScalars);
         return _formatter.Format(document);
     }
