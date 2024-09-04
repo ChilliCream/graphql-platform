@@ -28,6 +28,7 @@ public class IntrospectionTests(TestServerFactory serverFactory) : ServerTestBas
         response.HttpResponseMessage.MatchMarkdownSnapshot();
     }
 
+#if NET7_0_OR_GREATER
     [Theory]
     [InlineData("Staging")]
     [InlineData("Production")]
@@ -50,7 +51,8 @@ public class IntrospectionTests(TestServerFactory serverFactory) : ServerTestBas
         // assert
         response.HttpResponseMessage.MatchMarkdownSnapshot();
     }
-
+    
+#endif
     private GraphQLHttpClient GetClient(string environment)
     {
         var server = CreateStarWarsServer(environment: environment);
