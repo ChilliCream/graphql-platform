@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Moq;
 using Xunit.Abstractions;
 
 namespace HotChocolate.AspNetCore.Tests.Utilities;
@@ -15,17 +17,24 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
 {
     protected TestServerFactory ServerFactory { get; } = serverFactory;
 
+    protected Uri Url { get; } = new("http://localhost:5000/graphql");
+
     protected virtual TestServer CreateStarWarsServer(
         string pattern = "/graphql",
         Action<IServiceCollection>? configureServices = default,
         Action<GraphQLEndpointConventionBuilder>? configureConventions = default,
         ITestOutputHelper? output = null,
-        bool requireOperationName = false)
+        bool requireOperationName = false,
+        string? environment = null)
     {
+        var mockHostEnvironment = new Mock<IHostEnvironment>();
+        mockHostEnvironment.Setup(env => env.EnvironmentName).Returns(environment ?? Environments.Development);
+
         return ServerFactory.Create(
             services =>
             {
                 services
+                    .AddSingleton(mockHostEnvironment.Object)
                     .AddRouting()
                     .AddHttpResponseFormatter()
                     .AddGraphQLServer()

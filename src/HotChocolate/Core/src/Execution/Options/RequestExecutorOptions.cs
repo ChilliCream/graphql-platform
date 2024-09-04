@@ -72,4 +72,9 @@ public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
                     nameof(OnlyPersistedQueriesAreAllowedError));
         }
     }
+
+    /// <summary>
+    /// Specifies that the transport is allowed to provide the schema SDL document as a file.
+    /// </summary>
+    public bool EnableSchemaFileSupport { get; set; } = true;
 }

@@ -123,7 +123,7 @@ public static class EndpointRouteBuilderExtensions
             .UseMiddleware<HttpPostMiddleware>(schemaName)
             .UseMiddleware<HttpMultipartMiddleware>(schemaName)
             .UseMiddleware<HttpGetMiddleware>(schemaName)
-            .UseMiddleware<HttpGetSchemaMiddleware>(schemaName, Integrated)
+            .UseMiddleware<HttpGetSchemaMiddleware>(schemaName, path, Integrated)
             .UseBananaCakePop(path)
             .Use(
                 _ => context =>
@@ -359,7 +359,7 @@ public static class EndpointRouteBuilderExtensions
 
         requestPipeline
             .UseCancellation()
-            .UseMiddleware<HttpGetSchemaMiddleware>(schemaNameOrDefault, Explicit)
+            .UseMiddleware<HttpGetSchemaMiddleware>(schemaNameOrDefault, PathString.Empty, Explicit)
             .Use(
                 _ => context =>
                 {
