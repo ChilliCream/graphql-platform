@@ -8,9 +8,7 @@ using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
-using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
 using static HotChocolate.Execution.Processing.Selection;
 using IType = HotChocolate.Types.IType;
 using ObjectType = HotChocolate.Types.ObjectType;
@@ -24,8 +22,6 @@ internal static class ExecutionUtils
 
     private const CustomOptionsFlags _typeNameFlag =
         (CustomOptionsFlags)ObjectFieldFlags.TypeName;
-
-    private static readonly ErrorPathVisitor _errorPathVisitor = new();
 
     public static void ComposeResult(
         FusionExecutionContext context,
@@ -524,12 +520,8 @@ internal static class ExecutionUtils
     }
 
     public static List<IError>? ExtractErrors(
-        DocumentNode document,
-        OperationDefinitionNode operation,
         IErrorHandler errorHandler,
         JsonElement rawErrors,
-        ObjectResult selectionSetResult,
-        int pathDepth,
         bool addDebugInfo)
     {
         if (rawErrors.ValueKind is not JsonValueKind.Array)
@@ -537,12 +529,10 @@ internal static class ExecutionUtils
             return null;
         }
 
-        var parentPath = PathHelper.CreatePathFromContext(selectionSetResult);
-
         var errors = new List<IError>();
         foreach (var rawError in rawErrors.EnumerateArray())
         {
-            var error = ExtractError(document, operation, errorHandler, rawError, parentPath, pathDepth, addDebugInfo);
+            var error = ExtractError(errorHandler, rawError, addDebugInfo);
 
             if (error is null)
             {
@@ -556,12 +546,8 @@ internal static class ExecutionUtils
     }
 
     private static IError? ExtractError(
-        DocumentNode document,
-        OperationDefinitionNode operation,
         IErrorHandler errorHandler,
         JsonElement error,
-        Path parentPath,
-        int pathDepth,
         bool addDebugInfo)
     {
         if (error.ValueKind is not JsonValueKind.Object)
@@ -587,14 +573,10 @@ internal static class ExecutionUtils
                 }
             }
 
-            FieldNode? field = null;
-
             if (error.TryGetProperty("path", out var remotePath) && remotePath.ValueKind is JsonValueKind.Array)
             {
-                var path = PathHelper.CombinePath(parentPath, remotePath, pathDepth);
+                var path = PathHelper.CreatePathFromJson(remotePath);
                 errorBuilder.SetPath(path);
-
-                field = _errorPathVisitor.GetFieldForPath(document, operation, path);
 
                 if (addDebugInfo)
                 {
@@ -602,8 +584,7 @@ internal static class ExecutionUtils
                 }
             }
 
-            if (field is null
-                && error.TryGetProperty("locations", out var locations)
+            if (error.TryGetProperty("locations", out var locations)
                 && locations.ValueKind is JsonValueKind.Array)
             {
                 foreach (var location in locations.EnumerateArray())
@@ -616,11 +597,6 @@ internal static class ExecutionUtils
                         errorBuilder.AddLocation(line, column);
                     }
                 }
-            }
-
-            if (field is not null)
-            {
-                errorBuilder.AddLocation(field);
             }
 
             return errorHandler.Handle(errorBuilder.Build());
@@ -715,126 +691,5 @@ internal static class ExecutionUtils
         var path = PathHelper.CreatePathFromContext(selection, selectionSetResult, responseIndex);
         resultBuilder.AddNonNullViolation(selection, path);
         ValueCompletion.PropagateNullValues(selectionSetResult);
-    }
-
-    private sealed class ErrorPathContext
-    {
-        public string Current { get; set; } = string.Empty;
-
-        public Stack<string> Path { get; } = new();
-
-        public Dictionary<string, FragmentDefinitionNode> Fragments { get; } = new();
-
-        public FieldNode? Field { get; set; }
-
-        public void Reset()
-        {
-            Path.Clear();
-            Fragments.Clear();
-            Current = string.Empty;
-            Field = null;
-        }
-    }
-
-    private sealed class ErrorPathVisitor : SyntaxWalker<ErrorPathContext>
-    {
-        private static ErrorPathContext? _errorPathContext = null;
-
-        public FieldNode? GetFieldForPath(
-            DocumentNode document,
-            OperationDefinitionNode operation,
-            Path path)
-        {
-            if (path.IsRoot)
-            {
-                return null;
-            }
-
-            var context = Interlocked.Exchange(ref _errorPathContext, null) ?? new ErrorPathContext();
-
-            InitializePath(path, context.Path);
-            InitializeFragments(document, context.Fragments);
-
-            if (context.Path.Count > 0)
-            {
-                context.Current = context.Path.Pop();
-            }
-
-            Visit(operation, context);
-
-            var field = context.Field;
-
-            context.Reset();
-            Interlocked.Exchange(ref _errorPathContext, context);
-
-            return field;
-        }
-
-        private static void InitializeFragments(
-            DocumentNode document,
-            Dictionary<string, FragmentDefinitionNode> fragments)
-        {
-            foreach (var definition in document.Definitions)
-            {
-                if (definition is FragmentDefinitionNode fragment)
-                {
-                    fragments.TryAdd(fragment.Name.Value, fragment);
-                }
-            }
-        }
-
-        private static void InitializePath(
-            Path path,
-            Stack<string> pathStack)
-        {
-            while (!path.IsRoot)
-            {
-                if (path is NamePathSegment namePath)
-                {
-                    pathStack.Push(namePath.Name);
-                }
-
-                path = path.Parent;
-            }
-        }
-
-        protected override ISyntaxVisitorAction Enter(
-            FieldNode node,
-            ErrorPathContext context)
-        {
-            if (context.Current.EqualsOrdinal(node.Name.Value))
-            {
-                if (context.Path.Count == 0)
-                {
-                    context.Field = node;
-                    return Break;
-                }
-
-                context.Current = context.Path.Pop();
-                return base.Enter(node, context);
-            }
-
-            return Skip;
-        }
-
-        protected override ISyntaxVisitorAction Enter(
-            FragmentSpreadNode node,
-            ErrorPathContext context)
-        {
-            if (base.VisitChildren(node, context).IsBreak())
-            {
-                return Break;
-            }
-
-            if (context.Fragments.TryGetValue(node.Name.Value, out var fragment))
-            {
-                if (Visit(fragment, node, context).IsBreak())
-                {
-                    return Break;
-                }
-            }
-
-            return DefaultAction;
-        }
     }
 }

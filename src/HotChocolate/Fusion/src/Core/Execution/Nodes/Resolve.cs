@@ -157,12 +157,8 @@ internal sealed class Resolve(int id, Config config) : ResolverNodeBase(id, conf
                     subgraphName,
                     context.ShowDebugInfo)
                 : ExtractErrors(
-                    context.Operation.Document,
-                    context.Operation.Definition,
                     context.ErrorHandler,
                     response.Errors,
-                    selectionSetResult,
-                    pathLength,
                     context.ShowDebugInfo);
 
             if (errors is not null)

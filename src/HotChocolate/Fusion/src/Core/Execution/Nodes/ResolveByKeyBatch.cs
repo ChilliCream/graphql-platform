@@ -164,12 +164,8 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
                         subgraphName,
                         context.ShowDebugInfo)
                     : ExtractErrors(
-                        context.Operation.Document,
-                        context.Operation.Definition,
                         context.ErrorHandler,
                         response.Errors,
-                        batchState.SelectionSetResult,
-                        pathLength + 1,
                         context.ShowDebugInfo);;
 
                 if (errors is not null)
