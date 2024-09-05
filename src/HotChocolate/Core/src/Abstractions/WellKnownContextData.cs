@@ -327,5 +327,5 @@ public static class WellKnownContextData
     /// <summary>
     /// The key to access the compiled requirements.
     /// </summary>
-    public const string FieldRequirements = "HotChocolate.Types.ObjectField.Requirements.EntityType";
+    public const string FieldRequirements = "HotChocolate.Types.ObjectField.Requirements";
 }

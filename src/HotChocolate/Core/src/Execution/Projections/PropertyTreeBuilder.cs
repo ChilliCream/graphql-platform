@@ -17,16 +17,16 @@ internal static class PropertyTreeBuilder
         }
 
         var selectionSet = Utf8GraphQLParser.Syntax.ParseSelectionSet(requirements);
-        return Build(fieldCoordinate, type, selectionSet, Path.Root);
+        return Build(fieldCoordinate, type, selectionSet, Path.Root).ToImmutableArray();
     }
 
-    private static ImmutableArray<PropertyNode> Build(
+    private static List<PropertyNode> Build(
         SchemaCoordinate fieldCoordinate,
         Type type,
         SelectionSetNode selectionSet,
         Path path)
     {
-        var builder = ImmutableArray.CreateBuilder<PropertyNode>();
+        var nodes = new List<PropertyNode>();
 
         foreach (var selection in selectionSet.Selections)
         {
@@ -71,12 +71,14 @@ internal static class PropertyTreeBuilder
                             .Build());
                 }
 
-                var nodes =
+                var children =
                     field.SelectionSet is not null
                         ? Build(fieldCoordinate, property.PropertyType, field.SelectionSet, fieldPath)
-                        : ImmutableArray<PropertyNode>.Empty;
+                        : null;
 
-                builder.Add(new PropertyNode(property, nodes));
+                var node = new PropertyNode(property, children);
+                nodes.Add(node);
+                node.Seal();
             }
             else
             {
@@ -87,7 +89,7 @@ internal static class PropertyTreeBuilder
             }
         }
 
-        return builder.ToImmutable();
+        return nodes;
     }
 }
 #endif

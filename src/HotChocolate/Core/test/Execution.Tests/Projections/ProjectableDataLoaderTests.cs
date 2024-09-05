@@ -444,6 +444,81 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             .MatchMarkdownSnapshot();
     }
 
+    [Fact]
+    public async Task Brand_Products_TypeName()
+    {
+        // Arrange
+        var queries = new List<string>();
+        var connectionString = CreateConnectionString();
+        await CatalogContext.SeedAsync(connectionString);
+
+        // Act
+        var result = await new ServiceCollection()
+            .AddScoped(_ => queries)
+            .AddTransient(_ => new CatalogContext(connectionString))
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddPagingArguments()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .ExecuteRequestAsync(
+                """
+                {
+                    brandById(id: 1) {
+                        products {
+                            __typename
+                        }
+                    }
+                }
+                """);
+
+        // at the moment we do not support projections on lists
+        // so products will be empty and we will just select the brand.Id
+#if NET8_0_OR_GREATER
+        Snapshot.Create()
+#else
+        Snapshot.Create(postFix: "NET7_0")
+#endif
+            .AddSql(queries)
+            .AddResult(result)
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Brand_Only_TypeName()
+    {
+        // Arrange
+        var queries = new List<string>();
+        var connectionString = CreateConnectionString();
+        await CatalogContext.SeedAsync(connectionString);
+
+        // Act
+        var result = await new ServiceCollection()
+            .AddScoped(_ => queries)
+            .AddTransient(_ => new CatalogContext(connectionString))
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddTypeExtension<BrandExtensionsWithRequirement>()
+            .AddPagingArguments()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .ExecuteRequestAsync(
+                """
+                {
+                    brandById(id: 1) {
+                        __typename
+                    }
+                }
+                """);
+
+#if NET8_0_OR_GREATER
+        Snapshot.Create()
+#else
+        Snapshot.Create(postFix: "NET7_0")
+#endif
+            .AddSql(queries)
+            .AddResult(result)
+            .MatchMarkdownSnapshot();
+    }
+
     public class Query
     {
         public async Task<Brand?> GetBrandByIdAsync(
