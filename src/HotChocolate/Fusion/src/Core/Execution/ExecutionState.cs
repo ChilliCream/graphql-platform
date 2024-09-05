@@ -58,6 +58,11 @@ internal sealed class ExecutionState
     /// </summary>
     public bool IsInitialized { get; set; }
 
+    /// <summary>
+    /// Gets the errors that were collected from the subgraphs during execution.
+    /// </summary>
+    public ErrorTrie? ErrorTrie { get; set; }
+
     private string GetDebuggerDisplay()
     {
         var displayName = $"State {SelectionSet.Id}";

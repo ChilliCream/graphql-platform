@@ -163,18 +163,22 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
                 subgraphName,
                 context.ShowDebugInfo);
 
+        ErrorTrie? errorTrie = null;
         if (errors is not null)
         {
-            foreach (var error in errors)
-            {
-                context.Result.AddError(error);
-            }
+            errorTrie = ErrorTrie.FromErrors(errors);
         }
 
         while (Unsafe.IsAddressLessThan(ref batchState, ref end))
         {
             if (result.TryGetValue(batchState.Key, out var data))
             {
+                if (errorTrie is not null)
+                {
+                    // TODO: Drill down into trie so starting paths match
+                    batchState.SetErrorTrie(errorTrie);
+                }
+
                 ExtractSelectionResults(SelectionSet, SubgraphName, data, batchState.SelectionSetData);
                 ExtractVariables(data, context.QueryPlan, SelectionSet, batchState.Requires, batchState.VariableValues);
             }
@@ -436,5 +440,10 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
         /// from the subgraphs for the <see cref="ExecutionState.SelectionSet"/>.
         /// </summary>
         public SelectionData[] SelectionSetData { get; } = executionState.SelectionSetData;
+
+        public void SetErrorTrie(ErrorTrie errorTrie)
+        {
+            executionState.ErrorTrie = errorTrie;
+        }
     }
 }

@@ -163,10 +163,9 @@ internal sealed class Resolve(int id, Config config) : ResolverNodeBase(id, conf
 
             if (errors is not null)
             {
-                foreach (var error in errors)
-                {
-                    context.Result.AddError(error);
-                }
+                var errorTrie = ErrorTrie.FromErrors(errors);
+                // TODO: Drill down into trie so starting paths match
+                state.ErrorTrie = errorTrie;
             }
 
             // we extract the selection data from the request and add it to the

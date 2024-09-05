@@ -30,13 +30,15 @@ internal static class ExecutionUtils
             context,
             executionState.SelectionSet,
             executionState.SelectionSetData,
-            executionState.SelectionSetResult);
+            executionState.SelectionSetResult,
+            executionState.ErrorTrie);
 
     private static void ComposeResult(
         FusionExecutionContext context,
         SelectionSet selectionSet,
         SelectionData[] selectionSetData,
         ObjectResult selectionSetResult,
+        ErrorTrie? errorTrie,
         bool partialResult = false)
     {
         if (selectionSetResult.IsInvalidated)
@@ -70,6 +72,8 @@ internal static class ExecutionUtils
 
                 if (!data.HasValue)
                 {
+                    AddErrors(context.Result, errorTrie, responseName, selection, selectionSetResult, responseIndex);
+
                     if (!partialResult)
                     {
                         if (!nullable)
@@ -83,6 +87,8 @@ internal static class ExecutionUtils
                 }
                 else if (namedType.IsType(TypeKind.Scalar))
                 {
+                    AddErrors(context.Result, errorTrie, responseName, selection, selectionSetResult, responseIndex);
+
                     var value = data.Single.Element;
 
                     if (value.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined && !nullable)
@@ -103,6 +109,8 @@ internal static class ExecutionUtils
                 }
                 else if (namedType.IsType(TypeKind.Enum))
                 {
+                    AddErrors(context.Result, errorTrie, responseName, selection, selectionSetResult, responseIndex);
+
                     // we might need to map the enum value!
                     var value = data.Single.Element;
 
@@ -122,12 +130,18 @@ internal static class ExecutionUtils
                         // there is a value here.
                         result.Set(responseName, null, nullable);
 
+                        AddErrors(context.Result, errorTrie, responseName, selection, selectionSetResult, responseIndex);
+
+                        ErrorTrie? errorTrieForObject = null;
+                        errorTrie?.TryGetValue(responseName, out errorTrieForObject);
+
                         var value = ComposeObject(
                             context,
                             selectionSetResult,
                             responseIndex,
                             selection,
-                            data);
+                            data,
+                            errorTrieForObject);
 
                         if (value is null && !nullable)
                         {
@@ -142,13 +156,19 @@ internal static class ExecutionUtils
                 {
                     if (!result.IsInitialized)
                     {
+                        AddErrors(context.Result, errorTrie, responseName, selection, selectionSetResult, responseIndex);
+
+                        ErrorTrie? errorTrieForList = null;
+                        errorTrie?.TryGetValue(responseName, out errorTrieForList);
+
                         var value = ComposeList(
                             context,
                             selectionSetResult,
                             responseIndex,
                             selection,
                             data,
-                            selectionType);
+                            selectionType,
+                            errorTrieForList);
 
                         if (value is null && !nullable)
                         {
@@ -187,7 +207,8 @@ internal static class ExecutionUtils
         int parentIndex,
         Selection selection,
         SelectionData selectionData,
-        IType type)
+        IType type,
+        ErrorTrie? errorTrie)
     {
         if (selectionData.IsNull())
         {
@@ -206,12 +227,29 @@ internal static class ExecutionUtils
 
         result.IsNullable = nullable;
         result.SetParent(parent, parentIndex);
-
         foreach (var item in json.EnumerateArray())
         {
             // we add a placeholder here so if the ComposeElement propagates an error
             // there is a value here.
             result.AddUnsafe(null);
+
+            ErrorTrie? errorTrieForArrayItem = null;
+            if (errorTrie?.TryGetValue(index, out errorTrieForArrayItem) == true)
+            {
+                if (errorTrieForArrayItem.Errors is not null)
+                {
+                    foreach (var error in errorTrieForArrayItem.Errors)
+                    {
+                        var transformedError = CreateErrorForSelectionFromError(
+                            error,
+                            selection,
+                            result,
+                            index);
+
+                        context.Result.AddError(transformedError);
+                    }
+                }
+            }
 
             var element = ComposeElement(
                 context,
@@ -219,7 +257,8 @@ internal static class ExecutionUtils
                 index,
                 selection,
                 new SelectionData(new JsonResult(schemaName, item)),
-                elementType);
+                elementType,
+                errorTrieForArrayItem);
 
             if (!nullable && element is null)
             {
@@ -244,7 +283,8 @@ internal static class ExecutionUtils
         int parentIndex,
         Selection selection,
         SelectionData selectionData,
-        IType valueType)
+        IType valueType,
+        ErrorTrie? errorTrie)
     {
         var namedType = valueType.NamedType();
 
@@ -285,8 +325,8 @@ internal static class ExecutionUtils
         }
 
         return TypeExtensions.IsCompositeType(valueType)
-            ? ComposeObject(context, parent, parentIndex, selection, selectionData)
-            : ComposeList(context, parent, parentIndex, selection, selectionData, valueType);
+            ? ComposeObject(context, parent, parentIndex, selection, selectionData, errorTrie)
+            : ComposeList(context, parent, parentIndex, selection, selectionData, valueType, errorTrie);
     }
 
     private static ObjectResult? ComposeObject(
@@ -294,7 +334,8 @@ internal static class ExecutionUtils
         ResultData parent,
         int parentIndex,
         ISelection selection,
-        SelectionData selectionData)
+        SelectionData selectionData,
+        ErrorTrie? errorTrie)
     {
         if (selectionData.IsNull())
         {
@@ -326,16 +367,59 @@ internal static class ExecutionUtils
 
             var childSelectionResults = new SelectionData[selectionCount];
             ExtractSelectionResults(selectionData, selectionSet, childSelectionResults);
-            ComposeResult(context, selectionSet, childSelectionResults, result, true);
+            ComposeResult(context, selectionSet, childSelectionResults, result, errorTrie, true);
         }
         else
         {
             var childSelectionResults = new SelectionData[selectionCount];
             ExtractSelectionResults(selectionData, selectionSet, childSelectionResults);
-            ComposeResult(context, selectionSet, childSelectionResults, result);
+            ComposeResult(context, selectionSet, childSelectionResults, result, errorTrie);
         }
 
         return result.IsInvalidated ? null : result;
+    }
+
+    private static void AddErrors(
+        ResultBuilder resultBuilder,
+        ErrorTrie? errorTrie,
+        string responseName,
+        ISelection selection,
+        ResultData selectionSetResult,
+        int responseIndex)
+    {
+        if (errorTrie is null || !errorTrie.TryGetValue(responseName, out var errorTrieOfField))
+        {
+            return;
+        }
+
+        if (errorTrieOfField.Errors is not null)
+        {
+            foreach (var error in errorTrieOfField.Errors)
+            {
+                var transformedError = CreateErrorForSelectionFromError(
+                    error,
+                    selection,
+                    selectionSetResult,
+                    responseIndex);
+
+                resultBuilder.AddError(transformedError);
+            }
+        }
+    }
+
+    private static IError CreateErrorForSelectionFromError(
+        IError error,
+        ISelection selection,
+        ResultData selectionSetResult,
+        int responseIndex)
+    {
+        var errorBuilder = ErrorBuilder.FromError(error);
+        var path = PathHelper.CreatePathFromContext(selection, selectionSetResult, responseIndex);
+        errorBuilder.SetPath(path);
+        errorBuilder.ClearLocations();
+        errorBuilder.AddLocation(selection.SyntaxNode);
+
+        return errorBuilder.Build();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
