@@ -148,37 +148,31 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
         var result = UnwrapResult(response, Requires);
         ref var batchState = ref MemoryMarshal.GetArrayDataReference(batchExecutionState);
         ref var end = ref Unsafe.Add(ref batchState, batchExecutionState.Length);
-        var pathLength = Path.Length;
-        var first = true;
+
+        var errors = response.TransportException is not null
+            ? CreateTransportErrors(
+                response.TransportException,
+                context.ErrorHandler,
+                batchState.SelectionSetResult,
+                RootSelections,
+                subgraphName,
+                context.ShowDebugInfo)
+            : ExtractErrors(
+                context.ErrorHandler,
+                response.Errors,
+                subgraphName,
+                context.ShowDebugInfo);
+
+        if (errors is not null)
+        {
+            foreach (var error in errors)
+            {
+                context.Result.AddError(error);
+            }
+        }
 
         while (Unsafe.IsAddressLessThan(ref batchState, ref end))
         {
-            if (first)
-            {
-                var errors = response.TransportException is not null
-                    ? CreateTransportErrors(
-                        response.TransportException,
-                        context.ErrorHandler,
-                        batchState.SelectionSetResult,
-                        RootSelections,
-                        subgraphName,
-                        context.ShowDebugInfo)
-                    : ExtractErrors(
-                        context.ErrorHandler,
-                        response.Errors,
-                        context.ShowDebugInfo);;
-
-                if (errors is not null)
-                {
-                    foreach (var error in errors)
-                    {
-                        context.Result.AddError(error);
-                    }
-                }
-
-                first = false;
-            }
-
             if (result.TryGetValue(batchState.Key, out var data))
             {
                 ExtractSelectionResults(SelectionSet, SubgraphName, data, batchState.SelectionSetData);

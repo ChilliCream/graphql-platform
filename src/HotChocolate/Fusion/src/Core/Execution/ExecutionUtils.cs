@@ -522,6 +522,7 @@ internal static class ExecutionUtils
     public static List<IError>? ExtractErrors(
         IErrorHandler errorHandler,
         JsonElement rawErrors,
+        string subgraphName,
         bool addDebugInfo)
     {
         if (rawErrors.ValueKind is not JsonValueKind.Array)
@@ -532,7 +533,7 @@ internal static class ExecutionUtils
         var errors = new List<IError>();
         foreach (var rawError in rawErrors.EnumerateArray())
         {
-            var error = ExtractError(errorHandler, rawError, addDebugInfo);
+            var error = ExtractError(errorHandler, rawError, subgraphName, addDebugInfo);
 
             if (error is null)
             {
@@ -548,6 +549,7 @@ internal static class ExecutionUtils
     private static IError? ExtractError(
         IErrorHandler errorHandler,
         JsonElement error,
+        string subgraphName,
         bool addDebugInfo)
     {
         if (error.ValueKind is not JsonValueKind.Object)
@@ -597,6 +599,11 @@ internal static class ExecutionUtils
                         errorBuilder.AddLocation(line, column);
                     }
                 }
+            }
+
+            if (addDebugInfo)
+            {
+                errorBuilder.SetExtension("subgraphName", subgraphName);
             }
 
             return errorHandler.Handle(errorBuilder.Build());

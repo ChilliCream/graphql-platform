@@ -137,7 +137,6 @@ internal sealed class Resolve(int id, Config config) : ResolverNodeBase(id, conf
         ref var request = ref MemoryMarshal.GetArrayDataReference(requests);
         ref var response = ref MemoryMarshal.GetArrayDataReference(responses);
         ref var end = ref Unsafe.Add(ref state, executionStates.Count);
-        var pathLength = Path.Length;
 
         while (Unsafe.IsAddressLessThan(ref state, ref end))
         {
@@ -159,6 +158,7 @@ internal sealed class Resolve(int id, Config config) : ResolverNodeBase(id, conf
                 : ExtractErrors(
                     context.ErrorHandler,
                     response.Errors,
+                    subgraphName,
                     context.ShowDebugInfo);
 
             if (errors is not null)
