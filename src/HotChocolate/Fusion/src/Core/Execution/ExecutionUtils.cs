@@ -493,15 +493,16 @@ internal static class ExecutionUtils
         executionState.IsInitialized = true;
     }
 
-    public static void CreateTransportErrors(
+    public static List<IError> CreateTransportErrors(
         Exception transportException,
-        ResultBuilder resultBuilder,
         IErrorHandler errorHandler,
         ObjectResult selectionSetResult,
         List<RootSelection> rootSelections,
         string subgraphName,
         bool addDebugInfo)
     {
+        var errors = new List<IError>();
+
         foreach (var rootSelection in rootSelections)
         {
             var errorBuilder = errorHandler.CreateUnexpectedError(transportException);
@@ -516,48 +517,56 @@ internal static class ExecutionUtils
 
             var error = errorHandler.Handle(errorBuilder.Build());
 
-            resultBuilder.AddError(error);
+            errors.Add(error);
         }
+
+        return errors;
     }
 
-    public static void ExtractErrors(
+    public static List<IError>? ExtractErrors(
         DocumentNode document,
         OperationDefinitionNode operation,
-        ResultBuilder resultBuilder,
         IErrorHandler errorHandler,
-        JsonElement errors,
+        JsonElement rawErrors,
         ObjectResult selectionSetResult,
         int pathDepth,
         bool addDebugInfo)
     {
-        if (errors.ValueKind is not JsonValueKind.Array)
+        if (rawErrors.ValueKind is not JsonValueKind.Array)
         {
-            return;
+            return null;
         }
 
         var parentPath = PathHelper.CreatePathFromContext(selectionSetResult);
 
-        foreach (var error in errors.EnumerateArray())
+        var errors = new List<IError>();
+        foreach (var rawError in rawErrors.EnumerateArray())
         {
-            ExtractError(document, operation, resultBuilder, errorHandler, error, parentPath, pathDepth, addDebugInfo);
+            var error = ExtractError(document, operation, errorHandler, rawError, parentPath, pathDepth, addDebugInfo);
+
+            if (error is null)
+            {
+                continue;
+            }
+
+            errors.Add(error);
         }
+
+        return errors;
     }
 
-    private static void ExtractError(
+    private static IError? ExtractError(
         DocumentNode document,
         OperationDefinitionNode operation,
-        ResultBuilder resultBuilder,
         IErrorHandler errorHandler,
         JsonElement error,
         Path parentPath,
         int pathDepth,
         bool addDebugInfo)
     {
-        FieldNode? field = null;
-
         if (error.ValueKind is not JsonValueKind.Object)
         {
-            return;
+            return null;
         }
 
         if (error.TryGetProperty("message", out var message) && message.ValueKind is JsonValueKind.String)
@@ -577,6 +586,8 @@ internal static class ExecutionUtils
                     errorBuilder.SetExtension(property.Name, property.Value);
                 }
             }
+
+            FieldNode? field = null;
 
             if (error.TryGetProperty("path", out var remotePath) && remotePath.ValueKind is JsonValueKind.Array)
             {
@@ -612,10 +623,10 @@ internal static class ExecutionUtils
                 errorBuilder.AddLocation(field);
             }
 
-            var handledError = errorHandler.Handle(errorBuilder.Build());
-
-            resultBuilder.AddError(handledError);
+            return errorHandler.Handle(errorBuilder.Build());
         }
+
+        return null;
     }
 
     public static void ExtractVariables(

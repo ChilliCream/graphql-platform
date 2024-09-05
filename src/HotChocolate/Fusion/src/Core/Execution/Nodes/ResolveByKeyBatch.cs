@@ -151,34 +151,35 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
         var pathLength = Path.Length;
         var first = true;
 
-        if (response.TransportException is not null)
-        {
-            foreach (var state in batchExecutionState)
-            {
-                CreateTransportErrors(
-                    response.TransportException,
-                    context.Result,
-                    context.ErrorHandler,
-                    state.SelectionSetResult,
-                    RootSelections,
-                    subgraphName,
-                    context.ShowDebugInfo);
-            }
-        }
-
         while (Unsafe.IsAddressLessThan(ref batchState, ref end))
         {
             if (first)
             {
-                ExtractErrors(
-                    context.Operation.Document,
-                    context.Operation.Definition,
-                    context.Result,
-                    context.ErrorHandler,
-                    response.Errors,
-                    batchState.SelectionSetResult,
-                    pathLength + 1,
-                    context.ShowDebugInfo);
+                var errors = response.TransportException is not null
+                    ? CreateTransportErrors(
+                        response.TransportException,
+                        context.ErrorHandler,
+                        batchState.SelectionSetResult,
+                        RootSelections,
+                        subgraphName,
+                        context.ShowDebugInfo)
+                    : ExtractErrors(
+                        context.Operation.Document,
+                        context.Operation.Definition,
+                        context.ErrorHandler,
+                        response.Errors,
+                        batchState.SelectionSetResult,
+                        pathLength + 1,
+                        context.ShowDebugInfo);;
+
+                if (errors is not null)
+                {
+                    foreach (var error in errors)
+                    {
+                        context.Result.AddError(error);
+                    }
+                }
+
                 first = false;
             }
 

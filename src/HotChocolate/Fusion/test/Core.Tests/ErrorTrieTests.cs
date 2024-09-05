@@ -23,7 +23,7 @@ public class ErrorTrieTests
         ];
 
         // act
-        var trie = ErrorTrie.BuildFromErrors(errors);
+        var trie = ErrorTrie.FromErrors(errors);
 
         // assert
         trie.MatchInlineSnapshot(

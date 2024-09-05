@@ -148,27 +148,30 @@ internal sealed class Resolve(int id, Config config) : ResolverNodeBase(id, conf
             var exportKeys = state.Requires;
             var variableValues = state.VariableValues;
 
-            if (response.TransportException is not null)
-            {
-                CreateTransportErrors(
+            var errors = response.TransportException is not null
+                ? CreateTransportErrors(
                     response.TransportException,
-                    context.Result,
                     context.ErrorHandler,
                     selectionSetResult,
                     RootSelections,
                     subgraphName,
+                    context.ShowDebugInfo)
+                : ExtractErrors(
+                    context.Operation.Document,
+                    context.Operation.Definition,
+                    context.ErrorHandler,
+                    response.Errors,
+                    selectionSetResult,
+                    pathLength,
                     context.ShowDebugInfo);
-            }
 
-            ExtractErrors(
-                context.Operation.Document,
-                context.Operation.Definition,
-                context.Result,
-                context.ErrorHandler,
-                response.Errors,
-                selectionSetResult,
-                pathLength,
-                context.ShowDebugInfo);
+            if (errors is not null)
+            {
+                foreach (var error in errors)
+                {
+                    context.Result.AddError(error);
+                }
+            }
 
             // we extract the selection data from the request and add it to the
             // workItem results.
