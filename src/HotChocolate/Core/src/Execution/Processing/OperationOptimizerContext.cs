@@ -125,7 +125,7 @@ public readonly ref struct OperationOptimizerContext
     /// </summary>
     public IOperation CreateOperation()
     {
-        var operation = new Operation(Id, Document, Definition, _rootType);
+        var operation = new Operation(Id, Document, Definition, _rootType, Schema);
         operation.Seal(_contextData, _variants, _hasIncrementalParts, _includeConditions);
         return operation;
     }

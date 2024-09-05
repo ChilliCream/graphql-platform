@@ -131,7 +131,6 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
 
                 var resolverMember = d.ResolverMember ?? d.Member;
                 d.Type = CreateTypeRef(c, resolverMember, collectionSegmentName, typeRef, options);
-                d.CustomSettings.Add(typeof(CollectionSegment));
             });
 
         return descriptor;

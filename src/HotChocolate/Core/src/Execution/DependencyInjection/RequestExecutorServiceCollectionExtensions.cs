@@ -6,6 +6,9 @@ using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Processing;
+#if NET6_0_OR_GREATER
+using HotChocolate.Execution.Projections;
+#endif
 using HotChocolate.Fetching;
 using HotChocolate.Internal;
 using HotChocolate.Language;
@@ -123,12 +126,8 @@ public static class RequestExecutorServiceCollectionExtensions
             throw new ArgumentNullException(nameof(services));
         }
 
+        services.AddGraphQLCore();
         schemaName ??= Schema.DefaultName;
-
-        services
-            .AddGraphQLCore()
-            .AddValidation(schemaName);
-
         return CreateBuilder(services, schemaName);
     }
 
@@ -155,9 +154,6 @@ public static class RequestExecutorServiceCollectionExtensions
         }
 
         schemaName ??= Schema.DefaultName;
-
-        builder.Services.AddValidation(schemaName);
-
         return CreateBuilder(builder.Services, schemaName);
     }
 
@@ -166,6 +162,8 @@ public static class RequestExecutorServiceCollectionExtensions
         string schemaName)
     {
         var builder = new DefaultRequestExecutorBuilder(services, schemaName);
+
+        builder.Services.AddValidation(schemaName);
 
         builder.Configure(
             (sp, e) =>
@@ -178,6 +176,9 @@ public static class RequestExecutorServiceCollectionExtensions
 
         builder.TryAddNoOpTransactionScopeHandler();
         builder.TryAddTypeInterceptor<DataLoaderRootFieldTypeInterceptor>();
+#if NET6_0_OR_GREATER
+        builder.TryAddTypeInterceptor<RequirementsTypeInterceptor>();
+#endif
 
         return builder;
     }
