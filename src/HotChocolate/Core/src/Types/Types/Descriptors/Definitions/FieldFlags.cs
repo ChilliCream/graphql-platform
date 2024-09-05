@@ -22,4 +22,9 @@ internal enum FieldFlags
     SkipArgument = 32768,
     TotalCount = 65536,
     SourceGenerator = 131072,
+    MutationQueryField = 262144,
+    EdgesField = 524288,
+    NodesField = 1048576,
+    ItemsField = 2097152,
+    WithRequirements = 4194304,
 }

@@ -210,12 +210,6 @@ public static class WellKnownContextData
     public const string SkipDepthAnalysis = "HotChocolate.Execution.SkipDepthAnalysis";
 
     /// <summary>
-    /// The key of the marker setting that a field on the mutation type represents
-    /// the query field.
-    /// </summary>
-    public const string MutationQueryField = "HotChocolate.Relay.Mutations.QueryField";
-
-    /// <summary>
     /// The key to the name of the data field when using the mutation convention.
     /// </summary>
     public const string MutationConventionDataField = "HotChocolate.Types.Mutations.Conventions.DataField";
@@ -315,5 +309,18 @@ public static class WellKnownContextData
     /// </summary>
     public const string ValidateCost = "HotChocolate.CostAnalysis.ValidateCost";
 
+    /// <summary>
+    /// The key to access the paging observers stored on the local resolver state.
+    /// </summary>
     public const string PagingObserver = "HotChocolate.Types.PagingObserver";
+
+    /// <summary>
+    /// The key to access the requirements syntax on an object field definition.
+    /// </summary>
+    public const string FieldRequirementsSyntax = "HotChocolate.Types.ObjectField.Requirements.Syntax";
+
+    /// <summary>
+    /// The key to access the requirements entity type on an object field definition.
+    /// </summary>
+    public const string FieldRequirementsEntity = "HotChocolate.Types.ObjectField.Requirements.EntityType";
 }
