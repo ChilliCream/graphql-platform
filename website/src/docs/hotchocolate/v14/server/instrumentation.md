@@ -179,7 +179,7 @@ The following methods can be overridden.
 | RetrievedDocumentFromCache          | Called once a document has been retrieved from the `DocumentCache`.                                                                            |
 | AddedOperationToCache               | Called once an operation has been added to the `OperationCache`.                                                                               |
 | RetrievedOperationFromCache         | Called once an operation has been retrieved from the `OperationCache`.                                                                         |
-| RetrievedDocumentFromStorage        | Called once a document has been retrieved from a persisted query storage.                                                                      |
+| RetrievedDocumentFromStorage        | Called once a document has been retrieved from an operation document storage.                                                                  |
 | ExecutorCreated                     | Called once a request executor has been created. Executors are created once for a schema (includes stitched schemas) during the first request. |
 | ExecutorEvicted                     | Called once a request executor is evicted. This can happen if the schema or the configuration of the executor changes.                         |
 

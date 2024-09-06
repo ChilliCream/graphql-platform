@@ -81,7 +81,7 @@ public class JsonOperationRequestSerializerTests
                 "abc",
                 new EmptyDocument(),
                 new Dictionary<string, object?> { { "abc", json.RootElement }, },
-                strategy: RequestStrategy.PersistedQuery),
+                strategy: RequestStrategy.PersistedOperation),
             jsonWriter);
         jsonWriter.Flush();
 

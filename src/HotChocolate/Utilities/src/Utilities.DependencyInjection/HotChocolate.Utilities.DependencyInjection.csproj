@@ -11,8 +11,8 @@
     <InternalsVisibleTo Include="HotChocolate.AspNetCore" />
     <InternalsVisibleTo Include="HotChocolate.Execution" />
     <InternalsVisibleTo Include="HotChocolate.Types" />
-    <InternalsVisibleTo Include="HotChocolate.PersistedQueries.FileSystem" />
-    <InternalsVisibleTo Include="HotChocolate.PersistedQueries.InMemory" />
+    <InternalsVisibleTo Include="HotChocolate.PersistedOperations.FileSystem" />
+    <InternalsVisibleTo Include="HotChocolate.PersistedOperations.InMemory" />
   </ItemGroup>
 
   <ItemGroup>

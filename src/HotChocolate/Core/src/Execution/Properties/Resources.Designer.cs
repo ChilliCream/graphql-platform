@@ -105,11 +105,11 @@ namespace HotChocolate.Execution.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Only persisted queries are allowed..
+        ///   Looks up a localized string similar to Only persisted operations are allowed..
         /// </summary>
-        internal static string ErrorHelper_OnlyPersistedQueriesAreAllowed {
+        internal static string ErrorHelper_OnlyPersistedOperationsAreAllowed {
             get {
-                return ResourceManager.GetString("ErrorHelper_OnlyPersistedQueriesAreAllowed", resourceCulture);
+                return ResourceManager.GetString("ErrorHelper_OnlyPersistedOperationsAreAllowed", resourceCulture);
             }
         }
         
@@ -123,11 +123,11 @@ namespace HotChocolate.Execution.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The specified persisted query key is invalid..
+        ///   Looks up a localized string similar to The specified persisted operation key is invalid..
         /// </summary>
-        internal static string ErrorHelper_PersistedQueryNotFound {
+        internal static string ErrorHelper_PersistedOperationNotFound {
             get {
-                return ResourceManager.GetString("ErrorHelper_PersistedQueryNotFound", resourceCulture);
+                return ResourceManager.GetString("ErrorHelper_PersistedOperationNotFound", resourceCulture);
             }
         }
         

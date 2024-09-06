@@ -347,7 +347,7 @@ public interface IExecutionDiagnosticEvents
     void RetrievedDocumentFromCache(IRequestContext context);
 
     /// <summary>
-    /// Called when the document for a persisted query has been read from storage.
+    /// Called when the document for a persisted operation has been read from storage.
     /// </summary>
     /// <param name="context"></param>
     void RetrievedDocumentFromStorage(IRequestContext context);

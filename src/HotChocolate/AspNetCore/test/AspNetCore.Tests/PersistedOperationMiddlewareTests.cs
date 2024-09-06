@@ -11,7 +11,7 @@ namespace HotChocolate.AspNetCore;
 public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) : ServerTestBase(serverFactory)
 {
     [Fact]
-    public async Task ExecutePersistedQuery_Success()
+    public async Task ExecutePersistedOperation_Success()
     {
         // arrange
         var server = CreateStarWarsServer();
@@ -28,7 +28,7 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
     }
 
     [Fact]
-    public async Task ExecutePersistedQuery_NotFound()
+    public async Task ExecutePersistedOperation_NotFound()
     {
         // arrange
         var server = CreateStarWarsServer();
@@ -45,7 +45,7 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
     }
 
     [Fact]
-    public async Task ExecutePersistedQuery_InvalidId()
+    public async Task ExecutePersistedOperation_InvalidId()
     {
         // arrange
         var server = CreateStarWarsServer();
@@ -62,7 +62,7 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
     }
 
     [Fact]
-    public async Task ExecutePersistedQuery_HttpPost_Empty_Body_Success()
+    public async Task ExecutePersistedOperation_HttpPost_Empty_Body_Success()
     {
         // arrange
         var server = CreateStarWarsServer();
@@ -89,7 +89,7 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
     }
 
     [Fact]
-    public async Task ExecutePersistedQuery_Require_OperationName_Fail()
+    public async Task ExecutePersistedOperation_Require_OperationName_Fail()
     {
         // arrange
         var server = CreateStarWarsServer(requireOperationName: true);
@@ -116,7 +116,7 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
     }
 
     [Fact]
-    public async Task ExecutePersistedQuery_OperationName_Is_Optional_Success()
+    public async Task ExecutePersistedOperation_OperationName_Is_Optional_Success()
     {
         // arrange
         var server = CreateStarWarsServer(requireOperationName: false);
@@ -143,7 +143,7 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
     }
 
     [Fact]
-    public async Task ExecutePersistedQuery_HttpPost_Empty_Body_NotFound()
+    public async Task ExecutePersistedOperation_HttpPost_Empty_Body_NotFound()
     {
         // arrange
         var server = CreateStarWarsServer();
@@ -170,7 +170,7 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
     }
 
     [Fact]
-    public async Task ExecutePersistedQuery_HttpPost_Empty_Body_InvalidId()
+    public async Task ExecutePersistedOperation_HttpPost_Empty_Body_InvalidId()
     {
         // arrange
         var server = CreateStarWarsServer();
@@ -197,7 +197,7 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
     }
 
     [Fact]
-    public async Task ExecutePersistedQuery_HttpPost_With_Variables_Success()
+    public async Task ExecutePersistedOperation_HttpPost_With_Variables_Success()
     {
         // arrange
         var server = CreateStarWarsServer();
