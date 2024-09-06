@@ -21,8 +21,17 @@ public class DefinitionBase : IDefinition
     /// </summary>
     public string Name
     {
-        get => _name;
-        set => _name = string.Intern(value.EnsureGraphQLName());
+        get => string.Intern(_name);
+        set
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                throw new ArgumentException(
+                    "A type system members name cannot be set to null or empty.");
+            }
+
+            _name = value;
+        }
     }
 
     /// <summary>

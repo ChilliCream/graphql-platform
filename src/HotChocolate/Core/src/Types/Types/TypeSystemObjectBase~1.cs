@@ -1,8 +1,9 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using HotChocolate.Configuration;
-using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
+using static HotChocolate.Properties.TypeResources;
 
 #nullable enable
 
@@ -35,7 +36,7 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
         if (_definition is null)
         {
             throw new InvalidOperationException(
-                TypeResources.TypeSystemObjectBase_DefinitionIsNull);
+                TypeSystemObjectBase_DefinitionIsNull);
         }
 
         // if we at this point already know the name we will just commit it.
@@ -78,9 +79,22 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
             context.ReportError(
                 SchemaErrorBuilder.New()
                     .SetMessage(
-                        TypeResources.TypeSystemObjectBase_NameIsNull,
+                        TypeSystemObjectBase_NameIsNull,
                         GetType().FullName)
                     .SetCode(ErrorCodes.Schema.NoName)
+                    .SetTypeSystemObject(this)
+                    .Build());
+        }
+
+        if (!Name.IsValidGraphQLName())
+        {
+            context.ReportError(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        TypeSystemObjectBase_CompleteName_InvalidName,
+                        Name,
+                        GetType().FullName)
+                    .SetCode(ErrorCodes.Schema.InvalidName)
                     .SetTypeSystemObject(this)
                     .Build());
         }
@@ -256,7 +270,7 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
         if (_definition is null)
         {
             throw new InvalidOperationException(
-                TypeResources.TypeSystemObjectBase_DefinitionIsNull);
+                TypeSystemObjectBase_DefinitionIsNull);
         }
     }
 
@@ -278,7 +292,7 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
         if (_definition is null)
         {
             throw new InvalidOperationException(
-                TypeResources.TypeSystemObjectBase_DefinitionIsNull);
+                TypeSystemObjectBase_DefinitionIsNull);
         }
     }
 

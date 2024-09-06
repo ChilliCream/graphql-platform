@@ -209,6 +209,7 @@ public static class ErrorCodes
         public const string NoResolver = "TS_NO_FIELD_RESOLVER";
         public const string UnresolvedTypes = "TS_UNRESOLVED_TYPES";
         public const string NoName = "TS_NO_NAME_DEFINED";
+        public const string InvalidName = "HCXXXX";
         public const string NoFieldType = "TS_NO_FIELD_TYPE";
         public const string InvalidArgument = "TS_INVALID_ARG";
         public const string InterfaceNotImplemented = "SCHEMA_INTERFACE_NO_IMPL";

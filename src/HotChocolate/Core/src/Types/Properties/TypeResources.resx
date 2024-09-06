@@ -1003,4 +1003,16 @@ Type: `{0}`</value>
   <data name="ObjectToDictionaryConverter_CycleInObjectGraph" xml:space="preserve">
     <value>Cycle in object graph detected.</value>
   </data>
+  <data name="TypeSystemObjectBase_CompleteName_InvalidName" xml:space="preserve">
+    <value>The type `{0}` (`1`) has an invalid name. Names in GraphQL are limited to the Latin ASCII subset of SourceCharacter in order to support interoperation with as many other systems as possible. Check https://spec.graphql.org/October2021/#sec-Names for more information.</value>
+  </data>
+  <data name="FieldBase_OnCompleteField_InvalidName" xml:space="preserve">
+    <value>The {0} `{1}` has an invalid name. Names in GraphQL are limited to the Latin ASCII subset of SourceCharacter in order to support interoperation with as many other systems as possible. Check https://spec.graphql.org/October2021/#sec-Names for more information.</value>
+  </data>
+  <data name="EnumValue_OnComplete_InvalidName" xml:space="preserve">
+    <value>The enum value `{0}.{1}` has an invalid name. Names in GraphQL are limited to the Latin ASCII subset of SourceCharacter in order to support interoperation with as many other systems as possible. Check https://spec.graphql.org/October2021/#sec-Names for more information.</value>
+  </data>
+  <data name="DefinitionBase_Name_CannotBeSetNullOrEmpty" xml:space="preserve">
+    <value>A type system members name cannot be set to null or empty.</value>
+  </data>
 </root>

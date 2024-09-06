@@ -1,0 +1,3 @@
+For more details look at the `Errors` property.
+
+1. The enum value `UnitsEnum.RØR` has an invalid name. Names in GraphQL are limited to the Latin ASCII subset of SourceCharacter in order to support interoperation with as many other systems as possible. Check https://spec.graphql.org/October2021/#sec-Names for more information. (HotChocolate.Types.EnumType<HotChocolate.Types.EnumTypeTests.UnitsEnum>)

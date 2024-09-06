@@ -1,6 +1,7 @@
 using HotChocolate.Configuration;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -42,6 +43,19 @@ public sealed class EnumValue : IEnumValue
             completionContext,
             this,
             enumValueDefinition.GetDirectives());
+
+        if (!Name.IsValidGraphQLName())
+        {
+            completionContext.ReportError(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        TypeResources.EnumValue_OnComplete_InvalidName,
+                        completionContext.Type.Name,
+                        Name)
+                    .SetCode(ErrorCodes.Schema.InvalidName)
+                    .SetTypeSystemObject(completionContext.Type)
+                    .Build());
+        }
     }
 
     public string Name { get; }

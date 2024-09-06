@@ -692,6 +692,39 @@ public class EnumTypeTests : TypeTestBase
         result.MatchMarkdownSnapshot();
     }
 
+    [Fact]
+    public async Task Invalid_Characters_Are_Overriden()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .AddEnumType<UnitsEnum>(d => d.Value(UnitsEnum.RØR).Name("ROR"))
+                .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Invalid_Characters()
+    {
+        async Task Error()
+            => await new ServiceCollection()
+                .AddGraphQLServer()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .AddEnumType<UnitsEnum>(d => d.Value(UnitsEnum.RØR))
+                .BuildSchemaAsync();
+
+        var error = await Assert.ThrowsAsync<SchemaException>(Error);
+
+        error.Message.MatchSnapshot();
+    }
+
+    public enum UnitsEnum
+    {
+        RØR
+    }
+
     public enum Foo
     {
         Bar1,

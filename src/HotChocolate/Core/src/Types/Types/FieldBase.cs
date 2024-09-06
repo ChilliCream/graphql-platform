@@ -1,4 +1,5 @@
 using HotChocolate.Configuration;
+using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
@@ -10,7 +11,7 @@ namespace HotChocolate.Types;
 
 public abstract class FieldBase
     : IField
-    , IFieldCompletion
+        , IFieldCompletion
 {
     private FieldDefinitionBase? _definition;
     private FieldFlags _flags;
@@ -88,6 +89,19 @@ public abstract class FieldBase
         Directives = DirectiveCollection.CreateAndComplete(
             context, this, definition.GetDirectives());
         Flags = definition.Flags;
+
+        if (!Name.IsValidGraphQLName())
+        {
+            context.ReportError(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        TypeResources.FieldBase_OnCompleteField_InvalidName,
+                        Coordinate.ArgumentName is null ? "field" : "argument",
+                        Coordinate.ToString())
+                    .SetCode(ErrorCodes.Schema.InvalidName)
+                    .SetTypeSystemObject(context.Type)
+                    .Build());
+        }
     }
 
     void IFieldCompletion.CompleteField(
