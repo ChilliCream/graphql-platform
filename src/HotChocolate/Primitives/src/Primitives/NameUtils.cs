@@ -24,9 +24,9 @@ public static class NameUtils
     /// </returns>
     public static string EnsureGraphQLName(
         this string? name,
-        #if NET6_0_OR_GREATER
+#if NET6_0_OR_GREATER
         [CallerArgumentExpression("name")]
-        #endif
+#endif
         string argumentName = "name")
     {
         if (name.IsValidGraphQLName())
@@ -126,6 +126,26 @@ public static class NameUtils
             return name;
         }
 
+        var span = name.AsSpan();
+        var valid = span[0].IsLetterOrUnderscore();
+
+        if (valid && span.Length > 1)
+        {
+            for (var i = 1; i < span.Length; i++)
+            {
+                if (!span[i].IsLetterOrDigitOrUnderscore())
+                {
+                    valid = false;
+                }
+            }
+        }
+
+        if (valid)
+        {
+            return name;
+        }
+
+        // if the name is invalid we will rewrite it.
         var nameArray = name.ToCharArray();
 
         if (!nameArray[0].IsLetterOrUnderscore())
