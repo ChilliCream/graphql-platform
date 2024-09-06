@@ -88,7 +88,14 @@ public readonly struct Promise<TValue> : IPromise
 
     /// <inheritdoc />
     public void TryCancel()
-        => _completionSource?.TrySetCanceled();
+    {
+        if (_completionSource?.Task.IsCompleted ?? true)
+        {
+            return;
+        }
+
+        _completionSource?.TrySetCanceled();
+    }
 
     /// <summary>
     /// Registers a callback that will be called when the promise is completed.

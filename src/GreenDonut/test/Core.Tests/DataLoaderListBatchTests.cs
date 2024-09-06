@@ -16,12 +16,16 @@ public static class DataLoaderListBatchTests
         var dataLoader = services.GetRequiredService<TestDataLoader>();
 
         // act
-        var result = await dataLoader.LoadAsync(
+        var result = await dataLoader.LoadRequiredAsync(
             Enumerable.Range(0, 5000).ToArray(),
             CancellationToken.None);
 
         // assert
         Assert.Equal(5000, result.Count);
+        foreach (var items in result)
+        {
+            Assert.Equal(Enumerable.Range(0, 500).ToArray(), items.ToArray());
+        }
     }
 
     [Fact]
@@ -54,8 +58,84 @@ public static class DataLoaderListBatchTests
         await Task.WhenAll(tasks);
     }
 
+    [Fact]
+    public static async Task Ensure_No_Buffer_Leakage_When_Batch_Is_Overrun_Async()
+    {
+        using var cts = new CancellationTokenSource(5000);
+        var services = new ServiceCollection()
+            .AddDataLoader<TestDataLoader>()
+            .BuildServiceProvider();
 
-    public sealed class TestDataLoader(
+        await using (var scope1 = services.CreateAsyncScope())
+        {
+            var dataLoader = scope1.ServiceProvider.GetRequiredService<TestDataLoader>();
+            await dataLoader.LoadRequiredAsync(
+                Enumerable.Range(0, 5000).ToArray(),
+                CancellationToken.None);
+        }
+
+        await using (var scope2 = services.CreateAsyncScope())
+        {
+            var dataLoader = scope2.ServiceProvider.GetRequiredService<TestDataLoader>();
+            await dataLoader.LoadRequiredAsync(
+                Enumerable.Range(0, 5000).ToArray(),
+                CancellationToken.None);
+        }
+    }
+
+    [Fact]
+    public static async Task Ensure_No_Buffer_Leakage_With_Single_Calls_Async()
+    {
+        using var cts = new CancellationTokenSource(5000);
+        var services = new ServiceCollection()
+            .AddDataLoader<TestDataLoader>()
+            .BuildServiceProvider();
+
+        await using (var scope1 = services.CreateAsyncScope())
+        {
+            var dataLoader = scope1.ServiceProvider.GetRequiredService<TestDataLoader>();
+            await dataLoader.LoadRequiredAsync(1, cts.Token);
+        }
+
+        await using (var scope2 = services.CreateAsyncScope())
+        {
+            var dataLoader = scope2.ServiceProvider.GetRequiredService<TestDataLoader>();
+            await dataLoader.LoadRequiredAsync(2, cts.Token);
+        }
+
+        await using (var scope3 = services.CreateAsyncScope())
+        {
+            var dataLoader = scope3.ServiceProvider.GetRequiredService<TestDataLoader>();
+            await dataLoader.LoadRequiredAsync(1, cts.Token);
+        }
+    }
+
+    [Fact]
+    public static async Task Ensure_No_Buffer_Leakage_With_Batch_Calls_Async()
+    {
+        using var cts = new CancellationTokenSource(5000);
+        var services = new ServiceCollection()
+            .AddDataLoader<TestDataLoader>()
+            .BuildServiceProvider();
+
+        await using (var scope1 = services.CreateAsyncScope())
+        {
+            var dataLoader = scope1.ServiceProvider.GetRequiredService<TestDataLoader>();
+            await dataLoader.LoadRequiredAsync(
+                Enumerable.Range(0, 1).ToArray(),
+                CancellationToken.None);
+        }
+
+        await using (var scope2 = services.CreateAsyncScope())
+        {
+            var dataLoader = scope2.ServiceProvider.GetRequiredService<TestDataLoader>();
+            await dataLoader.LoadRequiredAsync(
+                Enumerable.Range(0, 1).ToArray(),
+                CancellationToken.None);
+        }
+    }
+
+    private sealed class TestDataLoader(
         IBatchScheduler batchScheduler,
         DataLoaderOptions options)
         : BatchDataLoader<int, int[]>(batchScheduler, options)
