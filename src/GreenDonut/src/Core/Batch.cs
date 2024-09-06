@@ -33,5 +33,6 @@ internal class Batch<TKey> where TKey : notnull
     {
         _keys.Clear();
         _items.Clear();
+        IsScheduled = false;
     }
 }
