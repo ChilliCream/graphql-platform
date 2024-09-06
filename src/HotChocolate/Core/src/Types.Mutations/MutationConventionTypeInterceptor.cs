@@ -359,7 +359,8 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             {
                 // if the field is the query mutation field we will allow it to stay non-nullable
                 // since it does not need the parent.
-                if (resultField.Type is null || resultField.CustomSettingExists(MutationQueryField))
+                if (resultField.Type is null
+                    || (resultField.Flags & FieldFlags.MutationQueryField) == FieldFlags.MutationQueryField)
                 {
                     continue;
                 }

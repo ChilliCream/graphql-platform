@@ -17,12 +17,12 @@ public static partial class AuthorNode
         => await dataLoader.LoadAsync(author.Id, cancellationToken);
 
     public static string GetAdditionalInfo(
-        [HotChocolate.Parent] Author author,
+        [Parent("Id")] Author author,
         string someArg)
         => someArg;
 
     public static string GetAdditionalInfo1(
-        [HotChocolate.Parent] Author author,
+        [Parent] Author author,
         string someArg1,
         string someArg2)
         => someArg1 + someArg2;
@@ -43,3 +43,4 @@ public static partial class AuthorNode
     [Query]
     public static string QueryFieldCollocatedWithAuthor() => "hello";
 }
+

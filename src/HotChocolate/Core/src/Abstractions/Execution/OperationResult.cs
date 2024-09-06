@@ -3,7 +3,7 @@ using HotChocolate.Properties;
 namespace HotChocolate.Execution;
 
 /// <summary>
-/// Represents a query result object.
+/// Represents a operation result object.
 /// </summary>
 public sealed class OperationResult : ExecutionResult, IOperationResult
 {

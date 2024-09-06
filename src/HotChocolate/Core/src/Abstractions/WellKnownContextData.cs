@@ -16,11 +16,6 @@ public static class WellKnownContextData
     public const string Subscription = "HotChocolate.Execution.Subscription";
 
     /// <summary>
-    /// The key for storing the enable tracing flag to the context data.
-    /// </summary>
-    public const string EnableTracing = "HotChocolate.Execution.EnableTracing";
-
-    /// <summary>
     /// The key for setting a flag the a document was saved to the persisted query storage.
     /// </summary>
     public const string DocumentSaved = "HotChocolate.Execution.DocumentSaved";
@@ -215,12 +210,6 @@ public static class WellKnownContextData
     public const string SkipDepthAnalysis = "HotChocolate.Execution.SkipDepthAnalysis";
 
     /// <summary>
-    /// The key of the marker setting that a field on the mutation type represents
-    /// the query field.
-    /// </summary>
-    public const string MutationQueryField = "HotChocolate.Relay.Mutations.QueryField";
-
-    /// <summary>
     /// The key to the name of the data field when using the mutation convention.
     /// </summary>
     public const string MutationConventionDataField = "HotChocolate.Types.Mutations.Conventions.DataField";
@@ -320,5 +309,23 @@ public static class WellKnownContextData
     /// </summary>
     public const string ValidateCost = "HotChocolate.CostAnalysis.ValidateCost";
 
+    /// <summary>
+    /// The key to access the paging observers stored on the local resolver state.
+    /// </summary>
     public const string PagingObserver = "HotChocolate.Types.PagingObserver";
+
+    /// <summary>
+    /// The key to access the requirements syntax on an object field definition.
+    /// </summary>
+    public const string FieldRequirementsSyntax = "HotChocolate.Types.ObjectField.Requirements.Syntax";
+
+    /// <summary>
+    /// The key to access the requirements entity type on an object field definition.
+    /// </summary>
+    public const string FieldRequirementsEntity = "HotChocolate.Types.ObjectField.Requirements.EntityType";
+
+    /// <summary>
+    /// The key to access the compiled requirements.
+    /// </summary>
+    public const string FieldRequirements = "HotChocolate.Types.ObjectField.Requirements";
 }

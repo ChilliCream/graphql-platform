@@ -60,6 +60,11 @@ public interface IOperation : IHasReadOnlyContextData, IEnumerable<ISelectionSet
     bool HasIncrementalParts { get; }
 
     /// <summary>
+    /// Gets the schema for which this operation is compiled.
+    /// </summary>
+    ISchema Schema { get; }
+
+    /// <summary>
     /// Gets the selection set for the specified <paramref name="selection"/> and
     /// <paramref name="typeContext"/>.
     /// </summary>
