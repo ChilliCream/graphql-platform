@@ -145,7 +145,8 @@ public sealed partial class OperationCompiler
             request.Id,
             request.Document,
             request.Definition,
-            request.RootType);
+            request.RootType,
+            request.Schema);
 
         var variants = new SelectionVariants[_selectionVariants.Count];
 
