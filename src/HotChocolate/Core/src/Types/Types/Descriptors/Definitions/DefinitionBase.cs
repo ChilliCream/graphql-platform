@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Properties;
 using HotChocolate.Utilities;
 
 #nullable enable
@@ -27,7 +28,7 @@ public class DefinitionBase : IDefinition
             if (string.IsNullOrWhiteSpace(value))
             {
                 throw new ArgumentException(
-                    "A type system members name cannot be set to null or empty.");
+                    TypeResources.DefinitionBase_Name_CannotBeSetNullOrEmpty);
             }
 
             _name = value;
