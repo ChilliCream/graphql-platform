@@ -45,11 +45,11 @@ public static class OperationRequestBuilderExtensions
     }
 
     /// <summary>
-    /// Marks the current request to allow non-persisted queries.
+    /// Marks the current request to allow non-persisted operations.
     /// </summary>
-    public static OperationRequestBuilder AllowNonPersistedQuery(
+    public static OperationRequestBuilder AllowNonPersistedOperation(
         this OperationRequestBuilder builder)
-        => builder.SetGlobalState(WellKnownContextData.NonPersistedQueryAllowed, true);
+        => builder.SetGlobalState(WellKnownContextData.NonPersistedOperationAllowed, true);
 
     /// <summary>
     /// Skips the request execution depth analysis.

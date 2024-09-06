@@ -366,12 +366,12 @@
                 "title": "Overview"
               },
               {
-                "path": "persisted-queries",
-                "title": "Persisted queries"
+                "path": "persisted-operations",
+                "title": "Persisted operations"
               },
               {
-                "path": "automatic-persisted-queries",
-                "title": "Automatic persisted queries"
+                "path": "automatic-persisted-operations",
+                "title": "Automatic persisted operations"
               }
             ]
           },
@@ -1669,8 +1669,8 @@
                 "title": "Overview"
               },
               {
-                "path": "persisted-queries",
-                "title": "Persisted Queries"
+                "path": "persisted-operations",
+                "title": "Persisted Operations"
               },
               {
                 "path": "persisted-state",

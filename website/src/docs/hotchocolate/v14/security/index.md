@@ -18,11 +18,11 @@ Authorization is one of the most basic security concepts. It builds on top of au
 
 [Learn more about authorization](/docs/hotchocolate/v14/security/authorization)
 
-# Persisted Queries
+# Persisted Operations
 
-Depending on our setup and requirements, the simplest way to make our server secure and control the request impact is to use persisted queries. With this approach, we can export the request from our client applications at development time and only allow the set of known queries to be executed in our production environment.
+Depending on our setup and requirements, the simplest way to make our server secure and control the request impact is to use persisted operations. With this approach, we can export the request from our client applications at development time and only allow the set of known operations to be executed in our production environment.
 
-[Learn more about persisted queries](/docs/hotchocolate/v14/performance/persisted-queries)
+[Learn more about persisted operations](/docs/hotchocolate/v14/performance/persisted-operations)
 
 # Introspection
 
@@ -101,4 +101,4 @@ Fortunately, we offer the option to use the FIPS compliant SHA256 hashing algori
 builder.Services.AddSha256DocumentHashProvider();
 ```
 
-[Learn more about document hashing providers](/docs/hotchocolate/v14/performance/persisted-queries#hashing-algorithms)
+[Learn more about document hashing providers](/docs/hotchocolate/v14/performance/persisted-operations#hashing-algorithms)

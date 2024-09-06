@@ -209,24 +209,24 @@ internal static class ErrorHelper
             .SetLocations([selection])
             .Build();
 
-    public static IError PersistedQueryNotFound(OperationDocumentId requestedKey)
+    public static IError PersistedOperationNotFound(OperationDocumentId requestedKey)
         => ErrorBuilder.New()
-            .SetMessage(ErrorHelper_PersistedQueryNotFound)
-            .SetCode(ErrorCodes.Execution.PersistedQueryNotFound)
+            .SetMessage(ErrorHelper_PersistedOperationNotFound)
+            .SetCode(ErrorCodes.Execution.PersistedOperationNotFound)
             .SetExtension(nameof(requestedKey), requestedKey)
             .Build();
 
-    public static IError OnlyPersistedQueriesAreAllowed()
+    public static IError OnlyPersistedOperationsAreAllowed()
         => ErrorBuilder.New()
-            .SetMessage(ErrorHelper_OnlyPersistedQueriesAreAllowed)
-            .SetCode(ErrorCodes.Execution.OnlyPersistedQueriesAllowed)
+            .SetMessage(ErrorHelper_OnlyPersistedOperationsAreAllowed)
+            .SetCode(ErrorCodes.Execution.OnlyPersistedOperationsAllowed)
             .Build();
 
     public static IError ReadPersistedOperationMiddleware_PersistedOperationNotFound()
         => ErrorBuilder.New()
             // this string is defined in the APQ spec!
             .SetMessage("PersistedQueryNotFound")
-            .SetCode(ErrorCodes.Execution.PersistedQueryNotFound)
+            .SetCode(ErrorCodes.Execution.PersistedOperationNotFound)
             .Build();
 
     public static IError NoNullBubbling_ArgumentValue_NotAllowed(

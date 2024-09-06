@@ -34,8 +34,8 @@ internal sealed class PersistedOperationNotFoundMiddleware
             context.Request.DocumentHash;
 
         // we know that the key is not null since otherwise the request would have
-        // failed already since no query is specified.
-        var error = ErrorHelper.PersistedQueryNotFound(requestedKey!.Value);
+        // failed already since no operation is specified.
+        var error = ErrorHelper.PersistedOperationNotFound(requestedKey!.Value);
         _diagnosticEvents.RequestError(context, new GraphQLException(error));
         context.Result = OperationResultBuilder.CreateError(error, _statusCode);
 

@@ -10,10 +10,10 @@
     <GraphQLRequestHash>md5</GraphQLRequestHash>
     <!--intermediate/project-->
     <GraphQLOutput>intermediate</GraphQLOutput>
-    <!--A relative path from the project root to where the persisted queries output dir-->
-    <GraphQLPersistedQueryOutput></GraphQLPersistedQueryOutput>
+    <!--A relative path from the project root to where the persisted operations output dir-->
+    <GraphQLPersistedOperationOutput></GraphQLPersistedOperationOutput>
     <!--default/relay-->
-    <GraphQLPersistedQueryFormat>default</GraphQLPersistedQueryFormat>
+    <GraphQLPersistedOperationFormat>default</GraphQLPersistedOperationFormat>
     <!--enable/disable-->
     <GraphQLDebug>disable</GraphQLDebug>
   </PropertyGroup>
