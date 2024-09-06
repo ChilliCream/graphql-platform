@@ -262,7 +262,7 @@ internal sealed partial class RequestExecutorResolver
             static s => s.GetRequiredService<RequestExecutorOptions>());
         serviceCollection.AddSingleton<IRequestTimeoutOptionsAccessor>(
             static s => s.GetRequiredService<RequestExecutorOptions>());
-        serviceCollection.AddSingleton<IPersistedQueryOptionsAccessor>(
+        serviceCollection.AddSingleton<IPersistedOperationOptionsAccessor>(
             static s => s.GetRequiredService<RequestExecutorOptions>());
 
         serviceCollection.AddSingleton<IErrorHandler, DefaultErrorHandler>();

@@ -303,11 +303,11 @@
   <data name="ResultBuilder_DataAndItemsNotAllowed" xml:space="preserve">
     <value>Its not allowed to set `items` and `data` at the same time.</value>
   </data>
-  <data name="ErrorHelper_PersistedQueryNotFound" xml:space="preserve">
-    <value>The specified persisted query key is invalid.</value>
+  <data name="ErrorHelper_PersistedOperationNotFound" xml:space="preserve">
+    <value>The specified persisted operation key is invalid.</value>
   </data>
-  <data name="ErrorHelper_OnlyPersistedQueriesAreAllowed" xml:space="preserve">
-    <value>Only persisted queries are allowed.</value>
+  <data name="ErrorHelper_OnlyPersistedOperationsAreAllowed" xml:space="preserve">
+    <value>Only persisted operations are allowed.</value>
   </data>
   <data name="MiddlewareContext_ReplaceArgument_InvalidKey" xml:space="preserve">
     <value>There is no argument with the name `{0}`.</value>

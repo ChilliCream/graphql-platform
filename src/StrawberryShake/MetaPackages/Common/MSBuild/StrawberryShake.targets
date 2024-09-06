@@ -49,7 +49,7 @@
       Condition="'$(DotNetMajor)' != '6' AND '$(DotNetMajor)' != '7' AND '$(DotNetMajor)' != '8'" />
 
     <PropertyGroup>
-      <GraphQLQueryGenerationRoot>$(MSBuildProjectDirectory)\$(GraphQLPersistedQueryOutput.TrimEnd('/').TrimEnd('\'))</GraphQLQueryGenerationRoot>
+      <GraphQLOperationGenerationRoot>$(MSBuildProjectDirectory)\$(GraphQLPersistedOperationOutput.TrimEnd('/').TrimEnd('\'))</GraphQLOperationGenerationRoot>
       <GenTool Condition="'$(DotNetMajor)' == '6'">$([System.IO.Path]::Combine($(MSBuildThisFileDirectory), "..", "tools", "net6", "dotnet-graphql.dll"))</GenTool>
       <GenTool Condition="'$(DotNetMajor)' == '7'">$([System.IO.Path]::Combine($(MSBuildThisFileDirectory), "..", "tools", "net7", "dotnet-graphql.dll"))</GenTool>
       <GenTool Condition="'$(DotNetMajor)' == '8'">$([System.IO.Path]::Combine($(MSBuildThisFileDirectory), "..", "tools", "net8", "dotnet-graphql.dll"))</GenTool>
@@ -59,12 +59,12 @@
       <GenCommand>dotnet &quot;$(GenTool)&quot; generate &quot;$(MSBuildProjectDirectory)&quot;</GenCommand>
       <GenCommand>$(GenCommand) -o &quot;$(GraphQLCodeGenerationRoot)&quot;</GenCommand>
       <GenCommand Condition="'$(RootNamespace)' != ''">$(GenCommand) -n $(RootNamespace)</GenCommand>
-      <GenCommand Condition="'$(GraphQLPersistedQueryOutput)' != ''">$(GenCommand) -q &quot;$(GraphQLQueryGenerationRoot)&quot;</GenCommand>
+      <GenCommand Condition="'$(GraphQLPersistedOperationOutput)' != ''">$(GenCommand) -q &quot;$(GraphQLOperationGenerationRoot)&quot;</GenCommand>
       <GenCommand Condition="'$(GraphQLRequestHash)' != ''">$(GenCommand) -a $(GraphQLRequestHash)</GenCommand>
       <GenCommand Condition="'$(GraphQLStrictSchemaValidation)' != 'enable'">$(GenCommand) -s</GenCommand>
       <GenCommand Condition="'$(GraphQLClientStore)' != 'enable'">$(GenCommand) -t</GenCommand>
       <GenCommand Condition="'$(GraphQLRazorComponents)' == 'enable'">$(GenCommand) -r</GenCommand>
-      <GenCommand Condition="'$(GraphQLPersistedQueryFormat)' == 'relay'">$(GenCommand) --relayFormat</GenCommand>
+      <GenCommand Condition="'$(GraphQLPersistedOperationFormat)' == 'relay'">$(GenCommand) --relayFormat</GenCommand>
     </PropertyGroup>
 
     <Message Text="MSBuildProjectDirectory: $(MSBuildProjectDirectory)" Importance="High" Condition="'$(GraphQLDebug)' == 'enable'" />
