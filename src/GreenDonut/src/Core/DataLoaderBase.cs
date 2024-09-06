@@ -179,9 +179,9 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             }
 
             // we dispatch after everything is enqueued.
-            if (_currentBatch is not null)
+            if (_currentBatch is { IsScheduled: false })
             {
-                _batchScheduler.Schedule(() => DispatchBatchAsync(_currentBatch, _ct));
+                ScheduleBatch(_currentBatch);
             }
         }
 
@@ -398,20 +398,31 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             return _currentBatch.GetOrCreatePromise<TValue?>(key, allowCachePropagation);
         }
 
+        // if there is a current batch and if that current batch was not scheduled for efficiency reasons
+        // we will schedule it before issuing a new batch.
+        if (!(_currentBatch?.IsScheduled ?? true))
+        {
+            ScheduleBatch(_currentBatch);
+        }
+
         var newBatch = BatchPool<TKey>.Shared.Get();
         var newPromise = newBatch.GetOrCreatePromise<TValue?>(key, allowCachePropagation);
 
         // set the batch before enqueueing to avoid concurrency issues.
         _currentBatch = newBatch;
-        if (scheduleOnNewBatch || (_maxBatchSize > 0 && _currentBatch.Size >= _maxBatchSize))
+        if (scheduleOnNewBatch)
         {
-            _batchScheduler.Schedule(() => DispatchBatchAsync(newBatch, _ct));
+            ScheduleBatch(newBatch);
         }
 
         return newPromise;
     }
 
-    // ReSharper restore InconsistentlySynchronizedField
+    private void ScheduleBatch(Batch<TKey> batch)
+    {
+        batch.IsScheduled = true;
+        _batchScheduler.Schedule(() => DispatchBatchAsync(batch, _ct));
+    }
 
     private void SetSingleResult(
         Promise<TValue?> promise,
