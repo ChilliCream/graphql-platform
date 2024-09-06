@@ -19,7 +19,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             var result = _testExecutor.Execute("query { test: one }");
 
-            Assert.Equal("5780-05-25 (Hebrew Civil)", result.ExpectQueryResult().Data!["test"]);
+            Assert.Equal("5780-05-25 (Hebrew Civil)", result.ExpectSingleResult().Data!["test"]);
         }
 
         [Fact]
@@ -32,7 +32,7 @@ namespace HotChocolate.Types.NodaTime.Tests
                         .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-02-21 (Hebrew Civil)" }, })
                         .Build());
 
-            Assert.Equal("2020-02-24 (Hebrew Civil)", result.ExpectQueryResult().Data!["test"]);
+            Assert.Equal("2020-02-24 (Hebrew Civil)", result.ExpectSingleResult().Data!["test"]);
         }
 
         [Fact]
@@ -46,8 +46,8 @@ namespace HotChocolate.Types.NodaTime.Tests
                             new Dictionary<string, object?> { { "arg", "2020-02-20T17:42:59 (Hebrew Civil)" }, })
                         .Build());
 
-            Assert.Null(result.ExpectQueryResult().Data);
-            Assert.Single(result.ExpectQueryResult().Errors!);
+            Assert.Null(result.ExpectSingleResult().Data);
+            Assert.Single(result.ExpectSingleResult().Errors!);
         }
 
         [Fact]
@@ -59,7 +59,7 @@ namespace HotChocolate.Types.NodaTime.Tests
                         .SetDocument("mutation { test(arg: \"2020-02-20 (Hebrew Civil)\") }")
                         .Build());
 
-            Assert.Equal("2020-02-23 (Hebrew Civil)", result.ExpectQueryResult().Data!["test"]);
+            Assert.Equal("2020-02-23 (Hebrew Civil)", result.ExpectSingleResult().Data!["test"]);
         }
 
         [Fact]
@@ -71,12 +71,12 @@ namespace HotChocolate.Types.NodaTime.Tests
                         .SetDocument("mutation { test(arg: \"2020-02-20T17:42:59 (Hebrew Civil)\") }")
                         .Build());
 
-            Assert.Null(result.ExpectQueryResult().Data);
-            Assert.Single(result.ExpectQueryResult().Errors!);
-            Assert.Null(result.ExpectQueryResult().Errors![0].Code);
+            Assert.Null(result.ExpectSingleResult().Data);
+            Assert.Single(result.ExpectSingleResult().Errors!);
+            Assert.Null(result.ExpectSingleResult().Errors![0].Code);
             Assert.Equal(
                 "Unable to deserialize string to LocalDate",
-                result.ExpectQueryResult().Errors![0].Message);
+                result.ExpectSingleResult().Errors![0].Message);
         }
     }
 }

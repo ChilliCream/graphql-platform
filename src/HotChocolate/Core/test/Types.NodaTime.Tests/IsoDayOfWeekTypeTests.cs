@@ -39,7 +39,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             var result = _testExecutor.Execute("query { test: monday }");
 
-            Assert.Equal(1, result.ExpectQueryResult().Data!["test"]);
+            Assert.Equal(1, result.ExpectSingleResult().Data!["test"]);
         }
 
         [Fact]
@@ -47,7 +47,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             var result = _testExecutor.Execute("query { test: sunday }");
 
-            Assert.Equal(7, result.ExpectQueryResult().Data!["test"]);
+            Assert.Equal(7, result.ExpectSingleResult().Data!["test"]);
         }
 
         [Fact]
@@ -55,7 +55,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             var result = _testExecutor.Execute("query { test: friday }");
 
-            Assert.Equal(5, result.ExpectQueryResult().Data!["test"]);
+            Assert.Equal(5, result.ExpectSingleResult().Data!["test"]);
         }
 
         [Fact]
@@ -63,8 +63,8 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             var result = _testExecutor.Execute("query { test: none }");
 
-            Assert.Null(result.ExpectQueryResult().Data);
-            Assert.NotEmpty(result.ExpectQueryResult().Errors!);
+            Assert.Null(result.ExpectSingleResult().Data);
+            Assert.NotEmpty(result.ExpectSingleResult().Errors!);
         }
 
         [Fact]
@@ -76,7 +76,7 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", 1 }, })
                     .Build());
 
-            Assert.Equal(2, result.ExpectQueryResult().Data!["test"]);
+            Assert.Equal(2, result.ExpectSingleResult().Data!["test"]);
         }
 
         [Fact]
@@ -88,7 +88,7 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", 7 }, })
                     .Build());
 
-            Assert.Equal(1, result.ExpectQueryResult().Data!["test"]);
+            Assert.Equal(1, result.ExpectSingleResult().Data!["test"]);
         }
 
         [Fact]
@@ -100,8 +100,8 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", 0 }, })
                     .Build());
 
-            Assert.Null(result.ExpectQueryResult().Data);
-            Assert.Single(result.ExpectQueryResult().Errors!);
+            Assert.Null(result.ExpectSingleResult().Data);
+            Assert.Single(result.ExpectSingleResult().Errors!);
         }
 
         [Fact]
@@ -113,8 +113,8 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", 8 }, })
                     .Build());
 
-            Assert.Null(result.ExpectQueryResult().Data);
-            Assert.Single(result.ExpectQueryResult().Errors!);
+            Assert.Null(result.ExpectSingleResult().Data);
+            Assert.Single(result.ExpectSingleResult().Errors!);
         }
 
         [Fact]
@@ -126,8 +126,8 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", -2 }, })
                     .Build());
 
-            Assert.Null(result.ExpectQueryResult().Data);
-            Assert.Single(result.ExpectQueryResult().Errors!);
+            Assert.Null(result.ExpectSingleResult().Data);
+            Assert.Single(result.ExpectSingleResult().Errors!);
         }
     }
 }

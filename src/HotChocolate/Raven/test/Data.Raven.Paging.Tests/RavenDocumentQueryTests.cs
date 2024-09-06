@@ -428,7 +428,7 @@ public class RavenQueryableTests
                     if (context.ContextData.TryGetValue("query", out var queryString))
                     {
                         context.Result = OperationResultBuilder
-                            .FromResult(context.Result!.ExpectQueryResult())
+                            .FromResult(context.Result!.ExpectSingleResult())
                             .SetContextData("query", queryString)
                             .Build();
                     }

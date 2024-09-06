@@ -21,7 +21,7 @@ namespace HotChocolate.Types.NodaTime.Tests
 
             Assert.Equal(
                 "2020-12-31T18:30:13.000001234+02:00",
-                result.ExpectQueryResult().Data!["test"]);
+                result.ExpectSingleResult().Data!["test"]);
         }
 
         [Fact]
@@ -31,7 +31,7 @@ namespace HotChocolate.Types.NodaTime.Tests
 
             Assert.Equal(
                 "2020-12-31T18:30:13.000001234+02:30",
-                result.ExpectQueryResult().Data!["test"]);
+                result.ExpectSingleResult().Data!["test"]);
         }
 
         [Fact]
@@ -45,7 +45,7 @@ namespace HotChocolate.Types.NodaTime.Tests
 
             Assert.Equal(
                 "2020-12-31T18:40:13.000001234+02:00",
-                result.ExpectQueryResult().Data!["test"]);
+                result.ExpectSingleResult().Data!["test"]);
         }
 
         [Fact]
@@ -57,7 +57,7 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-12-31T18:30:13+02:35" }, })
                     .Build());
 
-            Assert.Equal("2020-12-31T18:40:13+02:35", result.ExpectQueryResult().Data!["test"]);
+            Assert.Equal("2020-12-31T18:40:13+02:35", result.ExpectSingleResult().Data!["test"]);
         }
 
         [Fact]
@@ -69,8 +69,8 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-12-31T18:30:13" }, })
                     .Build());
 
-            Assert.Null(result.ExpectQueryResult().Data);
-            Assert.Single(result.ExpectQueryResult().Errors!);
+            Assert.Null(result.ExpectSingleResult().Data);
+            Assert.Single(result.ExpectSingleResult().Errors!);
         }
 
         [Fact]
@@ -83,7 +83,7 @@ namespace HotChocolate.Types.NodaTime.Tests
 
             Assert.Equal(
                 "2020-12-31T18:40:13.000001234+02:00",
-                result.ExpectQueryResult().Data!["test"]);
+                result.ExpectSingleResult().Data!["test"]);
         }
 
         [Fact]
@@ -94,7 +94,7 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetDocument("mutation { test(arg: \"2020-12-31T18:30:13+02:35\") }")
                     .Build());
 
-            Assert.Equal("2020-12-31T18:40:13+02:35", result.ExpectQueryResult().Data!["test"]);
+            Assert.Equal("2020-12-31T18:40:13+02:35", result.ExpectSingleResult().Data!["test"]);
         }
 
         [Fact]
@@ -105,12 +105,12 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetDocument("mutation { test(arg: \"2020-12-31T18:30:13\") }")
                     .Build());
 
-            Assert.Null(result.ExpectQueryResult().Data);
-            Assert.Single(result.ExpectQueryResult().Errors!);
-            Assert.Null(result.ExpectQueryResult().Errors![0].Code);
+            Assert.Null(result.ExpectSingleResult().Data);
+            Assert.Single(result.ExpectSingleResult().Errors!);
+            Assert.Null(result.ExpectSingleResult().Errors![0].Code);
             Assert.Equal(
                 "Unable to deserialize string to OffsetDateTime",
-                result.ExpectQueryResult().Errors![0].Message);
+                result.ExpectSingleResult().Errors![0].Message);
         }
     }
 }

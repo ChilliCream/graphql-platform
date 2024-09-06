@@ -32,7 +32,7 @@ public class NestedOptionalInt_2114
         var result = await executor.ExecuteAsync(Query);
 
         // assert
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectSingleResult().Errors);
         Verify(input);
     }
 
@@ -86,7 +86,7 @@ public class NestedOptionalInt_2114
             });
 
         // assert
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectSingleResult().Errors);
         Verify(input);
     }
 

@@ -17,7 +17,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void QueryReturns()
         {
             var result = _testExecutor.Execute("query { test: one }");
-            Assert.Equal("P-17DT-23H-59M-59.9999861S", result.ExpectQueryResult().Data!["test"]);
+            Assert.Equal("P-17DT-23H-59M-59.9999861S", result.ExpectSingleResult().Data!["test"]);
         }
 
         [Fact]
@@ -28,7 +28,7 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetDocument("mutation($arg: Period!) { test(arg: $arg) }")
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", "P-17DT-23H-59M-59.9999861S" }, })
                     .Build());
-            Assert.Equal("P-18DT-9M-59.9999861S", result.ExpectQueryResult().Data!["test"]);
+            Assert.Equal("P-18DT-9M-59.9999861S", result.ExpectSingleResult().Data!["test"]);
         }
 
         [Fact]
@@ -39,8 +39,8 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetDocument("mutation($arg: Period!) { test(arg: $arg) }")
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", "-P-17DT-23H-59M-59.9999861S" }, })
                     .Build());
-            Assert.Null(result.ExpectQueryResult().Data);
-            Assert.Single(result.ExpectQueryResult().Errors!);
+            Assert.Null(result.ExpectSingleResult().Data);
+            Assert.Single(result.ExpectSingleResult().Errors!);
         }
 
         [Fact]
@@ -50,7 +50,7 @@ namespace HotChocolate.Types.NodaTime.Tests
                 .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation { test(arg: \"P-17DT-23H-59M-59.9999861S\") }")
                     .Build());
-            Assert.Equal("P-18DT-9M-59.9999861S", result.ExpectQueryResult().Data!["test"]);
+            Assert.Equal("P-18DT-9M-59.9999861S", result.ExpectSingleResult().Data!["test"]);
         }
 
         [Fact]
@@ -60,12 +60,12 @@ namespace HotChocolate.Types.NodaTime.Tests
                 .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation { test(arg: \"-P-17DT-23H-59M-59.9999861S\") }")
                     .Build());
-            Assert.Null(result.ExpectQueryResult().Data);
-            Assert.Single(result.ExpectQueryResult().Errors!);
-            Assert.Null(result.ExpectQueryResult().Errors![0].Code);
+            Assert.Null(result.ExpectSingleResult().Data);
+            Assert.Single(result.ExpectSingleResult().Errors!);
+            Assert.Null(result.ExpectSingleResult().Errors![0].Code);
             Assert.Equal(
                 "Unable to deserialize string to Period",
-                result.ExpectQueryResult().Errors![0].Message);
+                result.ExpectSingleResult().Errors![0].Message);
         }
     }
 }

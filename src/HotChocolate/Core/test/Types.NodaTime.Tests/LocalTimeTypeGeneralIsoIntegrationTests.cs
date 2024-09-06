@@ -19,7 +19,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             var result = _testExecutor.Execute("query { test: one }");
 
-            Assert.Equal("12:42:13", result.ExpectQueryResult().Data!["test"]);
+            Assert.Equal("12:42:13", result.ExpectSingleResult().Data!["test"]);
         }
 
         [Fact]
@@ -31,7 +31,7 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", "12:42:13" }, })
                     .Build());
 
-            Assert.Equal("12:52:13", result.ExpectQueryResult().Data!["test"]);
+            Assert.Equal("12:52:13", result.ExpectSingleResult().Data!["test"]);
         }
 
         [Fact]
@@ -43,8 +43,8 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", "12:42" }, })
                     .Build());
 
-            Assert.Null(result.ExpectQueryResult().Data);
-            Assert.Single(result.ExpectQueryResult().Errors!);
+            Assert.Null(result.ExpectSingleResult().Data);
+            Assert.Single(result.ExpectSingleResult().Errors!);
         }
 
         [Fact]
@@ -55,7 +55,7 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetDocument("mutation { test(arg: \"12:42:13\") }")
                     .Build());
 
-            Assert.Equal("12:52:13", result.ExpectQueryResult().Data!["test"]);
+            Assert.Equal("12:52:13", result.ExpectSingleResult().Data!["test"]);
         }
 
         [Fact]
@@ -66,12 +66,12 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetDocument("mutation { test(arg: \"12:42\") }")
                     .Build());
 
-            Assert.Null(result.ExpectQueryResult().Data);
-            Assert.Single(result.ExpectQueryResult().Errors!);
-            Assert.Null(result.ExpectQueryResult().Errors![0].Code);
+            Assert.Null(result.ExpectSingleResult().Data);
+            Assert.Single(result.ExpectSingleResult().Errors!);
+            Assert.Null(result.ExpectSingleResult().Errors![0].Code);
             Assert.Equal(
                 "Unable to deserialize string to LocalTime",
-                result.ExpectQueryResult().Errors![0].Message);
+                result.ExpectSingleResult().Errors![0].Message);
         }
     }
 }
