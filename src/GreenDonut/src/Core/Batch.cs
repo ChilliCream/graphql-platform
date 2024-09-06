@@ -5,6 +5,8 @@ internal class Batch<TKey> where TKey : notnull
     private readonly List<TKey> _keys = [];
     private readonly Dictionary<TKey, IPromise> _items = new();
 
+    public bool IsScheduled { get; set; }
+
     public int Size => _keys.Count;
 
     public IReadOnlyList<TKey> Keys => _keys;
