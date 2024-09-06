@@ -100,10 +100,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     protected internal DataLoaderOptions Options
         => new()
         {
-            MaxBatchSize = _maxBatchSize,
-            Cache = Cache,
-            DiagnosticEvents = _diagnosticEvents,
-            CancellationToken = _ct,
+            MaxBatchSize = _maxBatchSize, Cache = Cache, DiagnosticEvents = _diagnosticEvents, CancellationToken = _ct,
         };
 
     /// <inheritdoc />
@@ -180,12 +177,12 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             {
                 Initialize();
             }
-        }
 
-        // we dispatch after everything is enqueued.
-        if (_currentBatch is not null)
-        {
-            _batchScheduler.Schedule(() => DispatchBatchAsync(_currentBatch, _ct));
+            // we dispatch after everything is enqueued.
+            if (_currentBatch is not null)
+            {
+                _batchScheduler.Schedule(() => DispatchBatchAsync(_currentBatch, _ct));
+            }
         }
 
         return WhenAll();
@@ -280,13 +277,13 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             throw new ArgumentNullException(nameof(createBranch));
         }
 
-        if(!AllowBranching)
+        if (!AllowBranching)
         {
             throw new InvalidOperationException(
                 "Branching is not allowed for this DataLoader.");
         }
 
-        if(!_branches.TryGetValue(key, out var branch))
+        if (!_branches.TryGetValue(key, out var branch))
         {
             lock (_sync)
             {
@@ -406,7 +403,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
         // set the batch before enqueueing to avoid concurrency issues.
         _currentBatch = newBatch;
-        if (scheduleOnNewBatch)
+        if (scheduleOnNewBatch || (_maxBatchSize > 0 && _currentBatch.Size >= _maxBatchSize))
         {
             _batchScheduler.Schedule(() => DispatchBatchAsync(newBatch, _ct));
         }
@@ -415,6 +412,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     }
 
     // ReSharper restore InconsistentlySynchronizedField
+
     private void SetSingleResult(
         Promise<TValue?> promise,
         TKey key,
