@@ -1,5 +1,6 @@
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Net.Http.Headers;
 using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Caching;
@@ -28,34 +29,25 @@ internal sealed class QueryCacheMiddleware
             return;
         }
 
-        if (context.Operation?.ContextData is null ||
-            !context.Operation.ContextData.TryGetValue(CacheControlHeaderValue, out var value) ||
-            value is not string cacheControlHeaderValue)
+        if (context.Operation?.ContextData is null
+            || !context.Operation.ContextData.TryGetValue(WellKnownContextData.CacheControlHeaderValue, out var value)
+            || value is not CacheControlHeaderValue cacheControlHeaderValue)
         {
             return;
         }
 
-        var queryResult = context.Result?.ExpectQueryResult();
+        // only single operation results can be cached.
+        var operationResult = context.Result?.ExpectSingleResult();
 
-        if (queryResult is { Errors: null })
+        if (operationResult is { Errors: null })
         {
             var contextData =
-                queryResult.ContextData is not null
-                    ? new ExtensionData(queryResult.ContextData)
+                operationResult.ContextData is not null
+                    ? new ExtensionData(operationResult.ContextData)
                     : new ExtensionData();
 
-            contextData.Add(CacheControlHeaderValue, cacheControlHeaderValue);
-
-            context.Result = new OperationResult(
-                queryResult.Data,
-                queryResult.Errors,
-                queryResult.Extensions,
-                contextData,
-                queryResult.Items,
-                queryResult.Incremental,
-                queryResult.Label,
-                queryResult.Path,
-                queryResult.HasNext);
+            contextData.Add(WellKnownContextData.CacheControlHeaderValue, cacheControlHeaderValue);
+            context.Result = operationResult.WithContextData(contextData);
         }
     }
 

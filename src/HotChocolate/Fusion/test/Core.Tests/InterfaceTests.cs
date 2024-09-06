@@ -66,7 +66,7 @@ public class InterfaceTests
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectSingleResult().Errors);
     }
 
     [Fact]
@@ -119,7 +119,7 @@ public class InterfaceTests
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectSingleResult().Errors);
     }
 
     [Fact]
@@ -174,6 +174,6 @@ public class InterfaceTests
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectSingleResult().Errors);
     }
 }

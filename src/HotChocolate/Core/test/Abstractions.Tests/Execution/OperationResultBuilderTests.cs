@@ -50,7 +50,7 @@ public class OperationResultBuilderTests
             .Build();
 
         // act
-        var queryResult = result.ExpectQueryResult();
+        var queryResult = result.ExpectSingleResult();
 
         // assert
         Assert.NotNull(queryResult);

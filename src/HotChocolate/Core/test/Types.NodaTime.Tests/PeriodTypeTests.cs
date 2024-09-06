@@ -32,7 +32,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void QueryReturns()
         {
             var result = _testExecutor.Execute("query { test: one }");
-            Assert.Equal("P-3W3DT139t", result.ExpectQueryResult().Data!["test"]);
+            Assert.Equal("P-3W3DT139t", result.ExpectSingleResult().Data!["test"]);
         }
 
         [Fact]
@@ -43,7 +43,7 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetDocument("mutation($arg: Period!) { test(arg: $arg) }")
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", "P-3W15DT139t" }, })
                     .Build());
-            Assert.Equal("P-3W15DT-10M139t", result.ExpectQueryResult().Data!["test"]);
+            Assert.Equal("P-3W15DT-10M139t", result.ExpectSingleResult().Data!["test"]);
         }
 
         [Fact]
@@ -54,8 +54,8 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetDocument("mutation($arg: Period!) { test(arg: $arg) }")
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", "-3W3DT-10M139t" }, })
                     .Build());
-            Assert.Null(result.ExpectQueryResult().Data);
-            Assert.Single(result.ExpectQueryResult().Errors!);
+            Assert.Null(result.ExpectSingleResult().Data);
+            Assert.Single(result.ExpectSingleResult().Errors!);
         }
 
         [Fact]
@@ -65,7 +65,7 @@ namespace HotChocolate.Types.NodaTime.Tests
                 .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation { test(arg: \"P-3W15DT139t\") }")
                     .Build());
-            Assert.Equal("P-3W15DT-10M139t", result.ExpectQueryResult().Data!["test"]);
+            Assert.Equal("P-3W15DT-10M139t", result.ExpectSingleResult().Data!["test"]);
         }
 
         [Fact]
@@ -75,12 +75,12 @@ namespace HotChocolate.Types.NodaTime.Tests
                 .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation { test(arg: \"-3W3DT-10M139t\") }")
                     .Build());
-            Assert.Null(result.ExpectQueryResult().Data);
-            Assert.Single(result.ExpectQueryResult().Errors!);
-            Assert.Null(result.ExpectQueryResult().Errors![0].Code);
+            Assert.Null(result.ExpectSingleResult().Data);
+            Assert.Single(result.ExpectSingleResult().Errors!);
+            Assert.Null(result.ExpectSingleResult().Errors![0].Code);
             Assert.Equal(
                 "Unable to deserialize string to Period",
-                result.ExpectQueryResult().Errors![0].Message);
+                result.ExpectSingleResult().Errors![0].Message);
         }
 
         [Fact]

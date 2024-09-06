@@ -62,7 +62,7 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
                     {
                         context.Result =
                             OperationResultBuilder
-                                .FromResult(context.Result!.ExpectQueryResult())
+                                .FromResult(context.Result!.ExpectSingleResult())
                                 .SetContextData("sql", queryString)
                                 .Build();
                     }
