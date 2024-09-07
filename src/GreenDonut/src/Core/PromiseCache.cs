@@ -1,7 +1,6 @@
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
 
 namespace GreenDonut;
 
@@ -174,17 +173,17 @@ public sealed class PromiseCache : IPromiseCache
     }
 
     /// <inheritdoc />
-    public void PublishMany<T>(IReadOnlyList<T> values)
+    public void PublishMany<T>(ReadOnlySpan<T> values)
     {
-        var buffer = ArrayPool<Promise<T>>.Shared.Rent(values.Count);
-        var span = buffer.AsSpan().Slice(values.Count);
+        var buffer = ArrayPool<Promise<T>>.Shared.Rent(values.Length);
+        var bufferedPromises = buffer.AsSpan().Slice(values.Length);
 
         lock (_promises)
         {
-            for (var i = 0; i < values.Count; i++)
+            for (var i = 0; i < values.Length; i++)
             {
                 var promise = Promise<T>.Create(values[i], cloned: true);
-                span[i] = promise;
+                bufferedPromises[i] = promise;
                 _promises.Add(promise);
             }
         }
@@ -195,15 +194,15 @@ public sealed class PromiseCache : IPromiseCache
             {
                 if (subscription is Subscription<T> casted)
                 {
-                    for (var i = 0; i < span.Length; i++)
+                    for (var i = 0; i < bufferedPromises.Length; i++)
                     {
-                        casted.OnNext(span[i]);
+                        casted.OnNext(bufferedPromises[i]);
                     }
                 }
             }
         }
 
-        span.Clear();
+        bufferedPromises.Clear();
         ArrayPool<Promise<T>>.Shared.Return(buffer);
     }
 
@@ -332,7 +331,6 @@ public sealed class PromiseCache : IPromiseCache
         }
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ClearSpaceForNewEntryUnsafe()
     {
         while (_head is not null && _usage > _size)
@@ -343,7 +341,6 @@ public sealed class PromiseCache : IPromiseCache
         }
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void TouchEntryUnsafe(Entry touched)
     {
         if (_order > _usage || _head == touched)

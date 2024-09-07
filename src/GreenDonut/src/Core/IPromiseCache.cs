@@ -101,7 +101,7 @@ public interface IPromiseCache
     /// <typeparam name="T">
     /// The value type.
     /// </typeparam>
-    void PublishMany<T>(IReadOnlyList<T> values);
+    void PublishMany<T>(ReadOnlySpan<T> values);
 
     /// <summary>
     /// Subscribes to the cache and gets notified when a new task is added.
