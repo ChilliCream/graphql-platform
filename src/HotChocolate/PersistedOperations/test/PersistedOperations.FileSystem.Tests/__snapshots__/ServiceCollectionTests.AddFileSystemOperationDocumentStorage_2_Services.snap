@@ -1,0 +1,4 @@
+﻿{
+  "HotChocolate.Execution.IOperationDocumentStorage": "HotChocolate.PersistedOperations.FileSystem.FileSystemOperationDocumentStorage",
+  "HotChocolate.PersistedOperations.FileSystem.IOperationDocumentFileMap": null
+}

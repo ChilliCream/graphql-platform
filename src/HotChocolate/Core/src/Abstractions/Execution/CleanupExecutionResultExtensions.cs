@@ -97,25 +97,39 @@ public static class CleanupExecutionResultExtensions
         => result.Kind is BatchResult or DeferredResult or SubscriptionResult;
 
     /// <summary>
-    /// Expect a query result.
+    /// Expects a single GraphQL operation result.
     /// </summary>
-    public static IOperationResult ExpectQueryResult(this IExecutionResult result)
+    public static OperationResult ExpectSingleResult(this IExecutionResult result)
     {
-        if (result is IOperationResult qr)
+        if (result is OperationResult qr)
         {
             return qr;
         }
 
         throw new ArgumentException(
-            ExecutionResultExtensions_ExpectQueryResult_NotQueryResult);
+            ExecutionResultExtensions_ExpectOperationResult_NotOperationResult);
+    }
+
+    /// <summary>
+    /// Expects a batch of operation results.
+    /// </summary>
+    public static OperationResultBatch ExpectOperationResultBatch(this IExecutionResult result)
+    {
+        if (result is OperationResultBatch qr)
+        {
+            return qr;
+        }
+
+        throw new ArgumentException(
+            ExecutionResultExtensions_ExpectOperationResultBatch_NotOperationResultBatch);
     }
 
     /// <summary>
     /// Expect a stream result.
     /// </summary>
-    public static IResponseStream ExpectResponseStream(this IExecutionResult result)
+    public static ResponseStream ExpectResponseStream(this IExecutionResult result)
     {
-        if (result is IResponseStream rs)
+        if (result is ResponseStream rs)
         {
             return rs;
         }

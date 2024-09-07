@@ -38,7 +38,7 @@ public sealed class SpecificationExampleTests
 
         // act
         var result = await requestExecutor.ExecuteAsync(request);
-        var queryResult = result.ExpectQueryResult();
+        var queryResult = result.ExpectSingleResult();
 
         // assert
         await snapshot

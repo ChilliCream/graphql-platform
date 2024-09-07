@@ -101,7 +101,7 @@ public class ProjectionVisitorTestBase
                     if (context.ContextData.TryGetValue("sql", out var queryString))
                     {
                         context.Result = OperationResultBuilder
-                            .FromResult(context.Result!.ExpectQueryResult())
+                            .FromResult(context.Result!.ExpectSingleResult())
                             .SetContextData("sql", queryString)
                             .Build();
                     }

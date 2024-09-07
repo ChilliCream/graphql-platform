@@ -50,7 +50,7 @@ namespace HotChocolate.Types.NodaTime.Tests
 
             Assert.Equal(
                 "2020-02-20T17:42:59.000001234Z",
-                result.ExpectQueryResult().Data!["test"]);
+                result.ExpectSingleResult().Data!["test"]);
         }
 
         [Fact]
@@ -64,7 +64,7 @@ namespace HotChocolate.Types.NodaTime.Tests
 
             Assert.Equal(
                 "2020-02-21T17:52:59.000001234Z",
-                result.ExpectQueryResult().Data!["test"]);
+                result.ExpectSingleResult().Data!["test"]);
         }
 
         [Fact]
@@ -76,7 +76,7 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-02-20T17:42:59" }, })
                     .Build());
 
-            Assert.Equal("2020-02-20T17:52:59Z", result.ExpectQueryResult().Data!["test"]);
+            Assert.Equal("2020-02-20T17:52:59Z", result.ExpectSingleResult().Data!["test"]);
         }
 
         [Fact]
@@ -89,7 +89,7 @@ namespace HotChocolate.Types.NodaTime.Tests
 
             Assert.Equal(
                 "2020-02-20T17:52:59.000001234Z",
-                result.ExpectQueryResult().Data!["test"]);
+                result.ExpectSingleResult().Data!["test"]);
         }
 
         [Fact]
@@ -100,7 +100,7 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetDocument("mutation { test(arg: \"2020-02-20T17:42:59\") }")
                     .Build());
 
-            Assert.Equal("2020-02-20T17:52:59Z", result.ExpectQueryResult().Data!["test"]);
+            Assert.Equal("2020-02-20T17:52:59Z", result.ExpectSingleResult().Data!["test"]);
         }
     }
 }

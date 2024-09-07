@@ -155,6 +155,32 @@ public sealed class OperationResult : ExecutionResult, IOperationResult
             requestIndex: RequestIndex,
             variableIndex: VariableIndex);
 
+    /// <summary>
+    /// Creates a new <see cref="OperationResult"/> with the specified context data.
+    /// </summary>
+    /// <param name="contextData">
+    /// The context data that shall be added to the result.
+    /// </param>
+    /// <returns>
+    /// Returns a new <see cref="OperationResult"/> that represents the result.
+    /// </returns>
+    public OperationResult WithContextData(
+        IReadOnlyDictionary<string, object?>? contextData)
+        => new OperationResult(
+            data: Data,
+            errors: Errors,
+            extensions: Extensions,
+            contextData: contextData,
+            items: Items,
+            incremental: Incremental,
+            label: Label,
+            path: Path,
+            hasNext: HasNext,
+            cleanupTasks: CleanupTasks,
+            isDataSet: IsDataSet,
+            requestIndex: RequestIndex,
+            variableIndex: VariableIndex);
+
     /// <inheritdoc />
     public IReadOnlyDictionary<string, object?> ToDictionary()
         => OperationResultHelper.ToDictionary(this);
