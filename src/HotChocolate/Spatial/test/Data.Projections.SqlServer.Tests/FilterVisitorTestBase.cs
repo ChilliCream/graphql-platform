@@ -74,7 +74,7 @@ public class ProjectionVisitorTestBase(PostgreSqlResource<PostgisConfig> resourc
                 {
                     context.Result =
                         OperationResultBuilder
-                            .FromResult(context.Result!.ExpectSingleResult())
+                            .FromResult(context.Result!.ExpectOperationResult())
                             .SetContextData("sql", queryString)
                             .Build();
                 }
