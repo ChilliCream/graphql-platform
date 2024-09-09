@@ -5,6 +5,7 @@ using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Data.Filters;
@@ -115,6 +116,39 @@ public class QueryableFilteringExtensionsTests
             .MatchAsync();
     }
 
+
+    [Fact]
+    public async Task RelayIds_Should_Work()
+    {
+        // arrange
+        var bars = new BarQuery().GetBars.First();
+        var id =  new DefaultNodeIdSerializer().Format("Bar", bars.Id);
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<BarQuery>()
+            .AddFiltering()
+            .BuildRequestExecutorAsync();
+
+        // act
+//         var query = $$"""
+//                       { getBars(where: { id: { in: ["{{id}}"] } }) {  id  } }
+//                       """;
+        var query = $$"""
+                      { getBars(where: { id: { in: ["{{id}}"] } }) {  id  } }
+                      """;
+        var res1 = await executor.ExecuteAsync(
+            OperationRequestBuilder
+                .New()
+                .SetDocument(query)
+                .Build());
+
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(res1)
+            .MatchAsync();
+    }
+
     public class Query
     {
         [UseFiltering]
@@ -149,6 +183,23 @@ public class QueryableFilteringExtensionsTests
         public string Computed() => "Foo";
 
         public string? NotSettable { get; }
+    }
+
+    public class BarQuery
+    {
+        public Bar GetBar([ID<Bar>] Guid id) => new() { Id = id };
+
+        [UseFiltering]
+        public IQueryable<Bar> GetBars => new List<Bar>{
+            new() { Id = Guid.Parse("2a874c44944c463a9eaf47191813266d") },
+            new() { Id = Guid.Parse("6872d2a0e0954e2db96958ded680b3cc") }
+            }.AsQueryable();
+    }
+
+    public class Bar
+    {
+        [ID]
+        public Guid Id { get; set; }
     }
 
     public class AddTypeMismatchMiddlewareAttribute : ObjectFieldDescriptorAttribute
