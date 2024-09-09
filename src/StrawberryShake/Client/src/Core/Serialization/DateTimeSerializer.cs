@@ -49,7 +49,7 @@ public class DateTimeSerializer : ScalarSerializer<string, DateTimeOffset>
             && DateTime.TryParse(
                 serialized,
                 CultureInfo.InvariantCulture,
-                DateTimeStyles.AssumeUniversal,
+                DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal,
                 out var zuluTime))
         {
             value = new DateTimeOffset(

@@ -192,7 +192,7 @@ public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
             && DateTime.TryParse(
                 serialized,
                 CultureInfo.InvariantCulture,
-                DateTimeStyles.AssumeUniversal,
+                DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal,
                 out var zuluTime))
         {
             value = new DateTimeOffset(
