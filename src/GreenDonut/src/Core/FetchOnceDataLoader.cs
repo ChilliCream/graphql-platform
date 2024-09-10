@@ -1,14 +1,11 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace GreenDonut;
 
 /// <summary>
 /// The <see cref="FetchOnceDataLoader{TValue}"/> fetches a single object and caches it.
 /// </summary>
 /// <typeparam name="TValue">A value type.</typeparam>
-public abstract class FetchOnceDataLoader<TValue> : CacheDataLoader<string, TValue>
+public abstract class FetchOnceDataLoader<TValue>
+    : CacheDataLoader<string, TValue>
 {
     protected FetchOnceDataLoader(DataLoaderOptions options)
         : base(options)
@@ -21,7 +18,7 @@ public abstract class FetchOnceDataLoader<TValue> : CacheDataLoader<string, TVal
         if (options.Cache is null)
         {
             throw new ArgumentException(
-                "A cache must be provided when using the FetchOnceDataLoader.", 
+                "A cache must be provided when using the FetchOnceDataLoader.",
                 nameof(options));
         }
     }
@@ -35,7 +32,7 @@ public abstract class FetchOnceDataLoader<TValue> : CacheDataLoader<string, TVal
     /// A single result which may contain a value or information about the
     /// error which may occurred during the call.
     /// </returns>
-    public Task<TValue> LoadAsync(CancellationToken cancellationToken)
+    public Task<TValue?> LoadAsync(CancellationToken cancellationToken)
         => LoadAsync("default", cancellationToken);
 
     protected sealed override Task<TValue> LoadSingleAsync(

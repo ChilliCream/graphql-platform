@@ -12,5 +12,5 @@
   </metadata>
     <files>
     <file src="**\*.*" exclude=".vs\**\*.*" target="Content" />
-  </files>  
+  </files>
 </package>

@@ -7,7 +7,7 @@ namespace HotChocolate.Types;
 /// <summary>
 /// This interface aggregates the most important attributes of a input-field.
 /// </summary>
-public interface IInputFieldInfo : IHasName, IHasFieldCoordinate, IHasRuntimeType
+public interface IInputFieldInfo : IHasName, IHasSchemaCoordinate, IHasRuntimeType
 {
     /// <summary>
     /// Gets the type of this input field.

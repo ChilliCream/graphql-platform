@@ -1,4 +1,4 @@
-using System.Collections;
+using System.Runtime.CompilerServices;
 using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb;
@@ -19,6 +19,20 @@ public class MongoDbFindFluentExecutable<T>(IFindFluent<T, T> findFluent) : Mong
             .ConfigureAwait(false);
 
     /// <inheritdoc />
+    public override async IAsyncEnumerable<T> ToAsyncEnumerable(
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var cursor = await BuildPipeline().ToCursorAsync(cancellationToken).ConfigureAwait(false);
+        while (await cursor.MoveNextAsync(cancellationToken).ConfigureAwait(false))
+        {
+            foreach (var document in cursor.Current)
+            {
+                yield return document;
+            }
+        }
+    }
+
+    /// <inheritdoc />
     public override async ValueTask<T?> FirstOrDefaultAsync(
         CancellationToken cancellationToken) =>
         await BuildPipeline()
@@ -31,6 +45,10 @@ public class MongoDbFindFluentExecutable<T>(IFindFluent<T, T> findFluent) : Mong
         await BuildPipeline()
             .SingleOrDefaultAsync(cancellationToken)
             .ConfigureAwait(false);
+
+    public override async ValueTask<int> CountAsync(
+        CancellationToken cancellationToken) =>
+        (int)await findFluent.CountDocumentsAsync(cancellationToken);
 
     /// <inheritdoc />
     public override string Print() => BuildPipeline().ToString() ?? "";

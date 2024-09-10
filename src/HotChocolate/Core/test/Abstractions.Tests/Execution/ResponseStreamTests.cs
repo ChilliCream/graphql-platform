@@ -1,6 +1,3 @@
-using System;
-using System.Threading.Tasks;
-
 namespace HotChocolate.Execution;
 
 public class ResponseStreamTests
@@ -158,7 +155,7 @@ public class ResponseStreamTests
         IExecutionResult result = new ResponseStream(() => default!);
 
         // act
-        void Fail() => result.ExpectQueryResult();
+        void Fail() => result.ExpectSingleResult();
 
         // assert
         Assert.Throws<ArgumentException>(Fail);

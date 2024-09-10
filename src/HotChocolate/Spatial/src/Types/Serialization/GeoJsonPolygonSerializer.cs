@@ -134,7 +134,6 @@ internal class GeoJsonPolygonSerializer
         throw Serializer_CouldNotParseValue(type);
     }
 
-
     public override IValueNode ParseCoordinateValue(IType type, object? runtimeValue)
     {
         if (runtimeValue is Polygon p)

@@ -8,7 +8,7 @@ internal static class CollectionUtils
     {
         if (list.Count == 0)
         {
-            return Array.Empty<string>();
+            return [];
         }
 
         var array = new string[list.Count];
@@ -30,7 +30,7 @@ internal static class CollectionUtils
         // not allocate empty arrays for every empty enumeration.
         if (!next)
         {
-            return Array.Empty<string>();
+            return [];
         }
 
         // now that we know we have items we will allocate our temp
@@ -62,7 +62,7 @@ internal static class CollectionUtils
         {
             usedBufferCapacity = array.Length;
         }
-    
+
         return array;
     }
 }

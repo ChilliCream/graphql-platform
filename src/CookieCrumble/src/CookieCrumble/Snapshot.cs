@@ -1,4 +1,4 @@
-﻿using System.Buffers;
+using System.Buffers;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -31,14 +31,13 @@ public class Snapshot
             new HttpResponseSnapshotValueFormatter(),
             new OperationResultSnapshotValueFormatter(),
             new JsonElementSnapshotValueFormatter(),
-#if NET7_0_OR_GREATER
+#if NET8_0_OR_GREATER
             new QueryPlanSnapshotValueFormatter(),
-            new SkimmedSchemaSnapshotValueFormatter(),
 #endif
         });
     private static readonly JsonSnapshotValueFormatter _defaultFormatter = new();
 
-    private readonly List<SnapshotSegment> _segments = [];
+    private readonly List<ISnapshotSegment> _segments = [];
     private readonly string _title;
     private readonly string _fileName;
     private string _extension;
@@ -159,6 +158,31 @@ public class Snapshot
         return this;
     }
 
+    public Snapshot Add(
+        object? value,
+        string name,
+        string markdownLanguage)
+    {
+        _segments.Add(
+            new SnapshotSegment(
+                name,
+                value,
+                new PlainTextSnapshotValueFormatter(markdownLanguage)));
+
+        return this;
+    }
+
+    public Snapshot Add(SnapshotValue value)
+    {
+        if (value == null)
+        {
+            throw new ArgumentNullException(nameof(value));
+        }
+
+        _segments.Add(value);
+        return this;
+    }
+
     public Snapshot SetExtension(string extension)
     {
         if (string.IsNullOrEmpty(extension))
@@ -202,6 +226,7 @@ public class Snapshot
     {
         var writer = new ArrayBufferWriter<byte>();
         WriteSegments(writer);
+        EnsureEndOfBufferNewline(writer);
 
         var snapshotFile = Combine(CreateSnapshotDirectoryName(), CreateSnapshotFileName());
 
@@ -233,6 +258,7 @@ public class Snapshot
     {
         var writer = new ArrayBufferWriter<byte>();
         WriteSegments(writer);
+        EnsureEndOfBufferNewline(writer);
 
         var snapshotFile = Combine(CreateSnapshotDirectoryName(), CreateSnapshotFileName());
 
@@ -350,8 +376,17 @@ public class Snapshot
     {
         if (_segments.Count == 1)
         {
-            var segment = _segments[0];
-            segment.Formatter.Format(writer, segment.Value);
+            switch (_segments[0])
+            {
+                case SnapshotSegment segment:
+                    segment.Formatter.Format(writer, segment.Value);
+                    break;
+                case SnapshotValue value:
+                    writer.Write(value.Value);
+                    break;
+                default:
+                    throw new NotSupportedException();
+            }
             return;
         }
 
@@ -373,7 +408,17 @@ public class Snapshot
             writer.AppendSeparator();
             writer.AppendLine();
 
-            segment.Formatter.Format(writer, segment.Value);
+            switch (segment)
+            {
+                case SnapshotSegment s:
+                    s.Formatter.Format(writer, s.Value);
+                    break;
+                case SnapshotValue v:
+                    writer.Write(v.Value);
+                    break;
+                default:
+                    throw new NotSupportedException();
+            }
 
             writer.AppendLine();
             writer.AppendSeparator();
@@ -389,18 +434,28 @@ public class Snapshot
         {
             var segment = _segments[0];
 
-            if (segment.Formatter is IMarkdownSnapshotValueFormatter markdownFormatter)
+            switch (segment)
             {
-                markdownFormatter.FormatMarkdown(writer, segment.Value);
-            }
-            else
-            {
-                writer.Append("```text");
-                writer.AppendLine();
-                segment.Formatter.Format(writer, segment.Value);
-                writer.AppendLine();
-                writer.Append("```");
-                writer.AppendLine();
+                case SnapshotSegment s:
+                    if (s.Formatter is IMarkdownSnapshotValueFormatter markdownFormatter)
+                    {
+                        markdownFormatter.FormatMarkdown(writer, s.Value);
+                    }
+                    else
+                    {
+                        writer.Append("```text");
+                        writer.AppendLine();
+                        s.Formatter.Format(writer, s.Value);
+                        writer.AppendLine();
+                        writer.Append("```");
+                        writer.AppendLine();
+                    }
+                    break;
+                case SnapshotValue v:
+                    v.FormatMarkdown(writer);
+                    break;
+                default:
+                    throw new NotSupportedException();
             }
             return;
         }
@@ -416,19 +471,30 @@ public class Snapshot
             writer.AppendLine();
             writer.AppendLine();
 
-            if (segment.Formatter is IMarkdownSnapshotValueFormatter markdownFormatter)
+            switch (segment)
             {
-                markdownFormatter.FormatMarkdown(writer, segment.Value);
+                case SnapshotSegment s:
+                    if (s.Formatter is IMarkdownSnapshotValueFormatter markdownFormatter)
+                    {
+                        markdownFormatter.FormatMarkdown(writer, s.Value);
+                    }
+                    else
+                    {
+                        writer.Append("```text");
+                        writer.AppendLine();
+                        s.Formatter.Format(writer, s.Value);
+                        writer.AppendLine();
+                        writer.Append("```");
+                        writer.AppendLine();
+                    }
+                    break;
+                case SnapshotValue v:
+                    v.FormatMarkdown(writer);
+                    break;
+                default:
+                    throw new NotSupportedException();
             }
-            else
-            {
-                writer.Append("```text");
-                writer.AppendLine();
-                segment.Formatter.Format(writer, segment.Value);
-                writer.AppendLine();
-                writer.Append("```");
-                writer.AppendLine();
-            }
+
             writer.AppendLine();
         }
     }
@@ -491,6 +557,17 @@ public class Snapshot
         return mismatch
             ? Combine(directoryName, "__snapshots__", "__MISMATCH__")
             : Combine(directoryName, "__snapshots__");
+    }
+
+    /// <summary>
+    /// Ensure that the specified writer's underlying buffer ends with a newline.
+    /// </summary>
+    private static void EnsureEndOfBufferNewline(ArrayBufferWriter<byte> writer)
+    {
+        if (writer.WrittenSpan.Length > 0 && writer.WrittenSpan[^1] != (byte)'\n')
+        {
+            writer.Append("\n");
+        }
     }
 
     private static void EnsureDirectoryExists(string file)
@@ -642,6 +719,7 @@ public class Snapshot
         => method?.GetCustomAttributes(typeof(TheoryAttribute)).Any() ?? false;
 
     private readonly struct SnapshotSegment(string? name, object? value, ISnapshotValueFormatter formatter)
+        : ISnapshotSegment
     {
         public string? Name { get; } = name;
 
@@ -656,4 +734,24 @@ public sealed class DisposableSnapshot(string? postFix = null, string? extension
     , IDisposable
 {
     public void Dispose() => Match();
+}
+
+public abstract class SnapshotValue : ISnapshotSegment
+{
+    public abstract string? Name { get; }
+
+    public abstract ReadOnlySpan<byte> Value { get; }
+
+    protected virtual string MarkdownType => "text";
+
+    public virtual void FormatMarkdown(IBufferWriter<byte> snapshot)
+    {
+        snapshot.Append("```");
+        snapshot.Append(MarkdownType);
+        snapshot.AppendLine();
+        snapshot.Write(Value);
+        snapshot.AppendLine();
+        snapshot.Append("```");
+        snapshot.AppendLine();
+    }
 }

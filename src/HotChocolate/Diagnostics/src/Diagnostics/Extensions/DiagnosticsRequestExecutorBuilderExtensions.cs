@@ -1,4 +1,3 @@
-using System;
 using System.Text;
 using HotChocolate.Diagnostics;
 using HotChocolate.Diagnostics.Listeners;

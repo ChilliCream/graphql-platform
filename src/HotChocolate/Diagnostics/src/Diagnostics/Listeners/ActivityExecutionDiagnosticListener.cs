@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using HotChocolate.Diagnostics.Scopes;
@@ -165,7 +163,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         }
     }
 
-    public override IDisposable AnalyzeOperationComplexity(IRequestContext context)
+    public override IDisposable AnalyzeOperationCost(IRequestContext context)
     {
         if (_options.SkipAnalyzeComplexity)
         {
@@ -184,19 +182,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         return new AnalyzeOperationComplexityScope(_enricher, context, activity);
     }
 
-    public override void OperationComplexityAnalyzerCompiled(IRequestContext context)
-    {
-        if (context.ContextData.TryGetValue(ComplexityActivity, out var activity))
-        {
-            Debug.Assert(activity is not null, "The activity mustn't be null!");
-            ((Activity)activity).AddEvent(new(nameof(OperationComplexityAnalyzerCompiled)));
-        }
-    }
-
-    public override void OperationComplexityResult(
-        IRequestContext context,
-        int complexity,
-        int allowedComplexity)
+    public override void OperationCost(IRequestContext context, double fieldCost, double typeCost)
     {
         if (context.ContextData.TryGetValue(ComplexityActivity, out var value))
         {
@@ -204,20 +190,9 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
 
             var activity = (Activity)value;
 
-            activity.SetTag("graphql.document.id", context.DocumentId?.Value);
-            activity.SetTag("graphql.document.complexity", complexity);
-            activity.SetTag("graphql.executor.allowedComplexity", allowedComplexity);
-
-            if (complexity <= allowedComplexity)
-            {
-                activity.SetStatus(Status.Ok);
-                activity.SetStatus(ActivityStatusCode.Ok);
-            }
-            else
-            {
-                activity.SetStatus(Status.Error);
-                activity.SetStatus(ActivityStatusCode.Error);
-            }
+            activity.SetTag("graphql.operation.id", context.DocumentId?.Value);
+            activity.SetTag("graphql.operation.fieldCost", fieldCost);
+            activity.SetTag("graphql.operation.typeCost", typeCost);
         }
     }
 

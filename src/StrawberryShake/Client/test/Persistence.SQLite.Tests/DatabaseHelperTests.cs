@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 
 namespace StrawberryShake.Persistence.SQLite;
@@ -59,7 +57,6 @@ public class DatabaseHelperTests
                 Type = "def",
                 Value = "ghi",
             }));
-
 
         // assert
         var entities = new List<EntityDto>();
@@ -179,7 +176,6 @@ public class DatabaseHelperTests
                 ResultType = "ghi",
                 DataInfo = "jkl",
             }));
-
 
         // assert
         var collections = new List<OperationDto>();

@@ -215,7 +215,7 @@ public class Mutation
 
         // If the user is allowed to upload the profile picture
         // we generate the token
-        var token = "myuploadtoken";
+        var token = "myUploadToken";
 
         var uploadUrl = QueryHelpers.AddQueryString(baseUrl, "token", token);
 
@@ -250,7 +250,7 @@ mutation {
 {
   "data": {
     "uploadProfilePicture": {
-      "uploadUrl": "https://blob.chillicream.com/upload?token=myuploadtoken"
+      "uploadUrl": "https://blob.chillicream.com/upload?token=myUploadToken"
     }
   }
 }

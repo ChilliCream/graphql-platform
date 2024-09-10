@@ -30,7 +30,7 @@ public class MongoDbFilterCombinatorTests
         // act
         // assert
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { }){ bar }}")
                 .Build());
 

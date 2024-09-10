@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading.Tasks;
 using HotChocolate.Types;
 
 #nullable enable
@@ -66,7 +63,7 @@ internal sealed partial class TypeInfo
                         ? current
                         : ExtendedType.Tools.ChangeNullability(
                             current,
-                            new bool?[] { true, },
+                            [true,],
                             cache);
 
                     list.Add((TypeComponentKind.List, rewritten));
@@ -78,7 +75,7 @@ internal sealed partial class TypeInfo
                         ? current
                         : ExtendedType.Tools.ChangeNullability(
                             current,
-                            new bool?[] { true, },
+                            [true,],
                             cache);
 
                     list.Add((TypeComponentKind.Named, rewritten));

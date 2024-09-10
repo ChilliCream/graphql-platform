@@ -1,9 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Tests;
@@ -156,7 +152,6 @@ public class InterfaceTypeTests : TypeTestBase
                     a => Assert.Equal("a", a.Name));
             });
     }
-
 
     [Fact]
     public void UnIgnoreFieldsFromClrInterface()
@@ -532,7 +527,7 @@ public class InterfaceTypeTests : TypeTestBase
     {
         SchemaBuilder.New()
             .AddQueryType<PetQuery>()
-            .AddType<Canina>()
+            .AddType<Canine>()
             .AddType<Dog>()
             .Create()
             .Print()
@@ -739,7 +734,7 @@ public class InterfaceTypeTests : TypeTestBase
                 .Name("Query")
                 .Field("foo")
                 .Type<InterfaceType<IFooNaming>>()
-                .Resolve(() => null))
+                .Resolve(() => null!))
             .AddResolver("Foo", "bar", x => 1)
             .ModifyOptions(o => o.StrictValidation = false)
             .BuildSchemaAsync()
@@ -755,7 +750,7 @@ public class InterfaceTypeTests : TypeTestBase
                 .Name("Query")
                 .Field("foo")
                 .Type<InterfaceType<IFooNaming>>()
-                .Resolve(() => null))
+                .Resolve(() => null!))
             .AddResolver("Foo", "bar", x => 1)
             .ModifyOptions(o => o.StrictValidation = false)
             .ModifyOptions(o => o.StripLeadingIFromInterface = true)
@@ -886,12 +881,12 @@ public class InterfaceTypeTests : TypeTestBase
         public string Name { get; set; }
     }
 
-    public class Canina : Pet
+    public class Canine : Pet
     {
     }
 
     [ObjectType]
-    public class Dog : Canina
+    public class Dog : Canine
     {
     }
 }

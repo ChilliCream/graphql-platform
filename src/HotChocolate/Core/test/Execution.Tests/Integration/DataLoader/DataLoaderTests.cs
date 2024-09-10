@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using CookieCrumble;
 using GreenDonut;
@@ -10,8 +10,6 @@ using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Tests.TestHelper;
 using Snapshot = CookieCrumble.Snapshot;
-
-#nullable enable
 
 namespace HotChocolate.Execution.Integration.DataLoader;
 
@@ -35,7 +33,7 @@ public class DataLoaderTests
                         async ctx => await ctx.FetchOnceAsync(_ => Task.FromResult("fooBar")))
             ));
 
-        snapshot.MatchMarkdown();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -58,7 +56,7 @@ public class DataLoaderTests
                             .LoadAsync("fooBar"))
             ));
 
-        snapshot.MatchMarkdown();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [LocalFact]
@@ -82,7 +80,7 @@ public class DataLoaderTests
                             .LoadAsync("fooBar"))
             ));
 
-        snapshot.MatchMarkdown();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -106,7 +104,7 @@ public class DataLoaderTests
                             .LoadAsync("fooBar"))
             ));
 
-        snapshot.MatchMarkdown();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -195,7 +193,7 @@ public class DataLoaderTests
 
         snapshot.Add(
             await executor.ExecuteAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument(
                         @"{
                             a: withDataLoader(key: ""a"")
@@ -207,7 +205,7 @@ public class DataLoaderTests
                     .Build()));
         snapshot.Add(
             await executor.ExecuteAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument(
                         @"{
                             a: withDataLoader(key: ""a"")
@@ -215,7 +213,7 @@ public class DataLoaderTests
                     .Build()));
         snapshot.Add(
             await executor.ExecuteAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument(
                         @"{
                             c: withDataLoader(key: ""c"")
@@ -223,7 +221,7 @@ public class DataLoaderTests
                     .Build()));
 
         // assert
-        snapshot.MatchMarkdown();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -349,7 +347,7 @@ public class DataLoaderTests
         // act
         snapshot.Add(
             await executor.ExecuteAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument(
                         @"{
                             a: withStackedDataLoader(key: ""a"")
@@ -359,7 +357,7 @@ public class DataLoaderTests
 
         snapshot.Add(
             await executor.ExecuteAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument(
                         @"{
                             a: withStackedDataLoader(key: ""a"")
@@ -368,7 +366,7 @@ public class DataLoaderTests
 
         snapshot.Add(
             await executor.ExecuteAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument(
                         @"{
                             c: withStackedDataLoader(key: ""c"")
@@ -376,7 +374,7 @@ public class DataLoaderTests
                     .Build()));
 
         // assert
-        snapshot.MatchMarkdown();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -407,7 +405,7 @@ public class DataLoaderTests
         // act
         snapshot.Add(
             await executor.ExecuteAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument(
                         @"{
                             a: dataLoaderWithInterface(key: ""a"")
@@ -417,7 +415,7 @@ public class DataLoaderTests
 
         snapshot.Add(
             await executor.ExecuteAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument(
                         @"{
                             a: dataLoaderWithInterface(key: ""a"")
@@ -426,7 +424,7 @@ public class DataLoaderTests
 
         snapshot.Add(
             await executor.ExecuteAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument(
                         @"{
                             c: dataLoaderWithInterface(key: ""c"")
@@ -434,7 +432,7 @@ public class DataLoaderTests
                     .Build()));
 
         // assert
-        snapshot.MatchMarkdown();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [LocalFact]
@@ -452,7 +450,7 @@ public class DataLoaderTests
                 .AddDataLoader<FooNestedDataLoader>()
                 .ExecuteRequestAsync("query Foo { foo { id field } }", cancellationToken: cts.Token));
 
-        snapshot.MatchMarkdown();
+        await snapshot.MatchMarkdownAsync(cts.Token);
     }
 
     [Fact]
@@ -476,7 +474,7 @@ public class DataLoaderTests
                     b: doSomething(key: ""b"")
                 }"));
 
-        snapshot.MatchMarkdown();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -507,7 +505,7 @@ public class DataLoaderTests
                 """,
                 cancellationToken: ct));
 
-        snapshot.MatchMarkdown();
+        await snapshot.MatchMarkdownAsync(ct);
     }
 
     public class DataLoaderListener : DataLoaderDiagnosticEventListener
@@ -518,7 +516,7 @@ public class DataLoaderTests
         public bool BatchErrorTouched;
         public bool BatchItemErrorTouched;
 
-        public override void ResolvedTaskFromCache(IDataLoader dataLoader, TaskCacheKey cacheKey, Task task)
+        public override void ResolvedTaskFromCache(IDataLoader dataLoader, PromiseCacheKey cacheKey, Task task)
         {
             ResolvedTaskFromCacheTouched = true;
         }
@@ -531,7 +529,8 @@ public class DataLoaderTests
 
         public override void BatchResults<TKey, TValue>(
             IReadOnlyList<TKey> keys,
-            ReadOnlySpan<Result<TValue>> values)
+            ReadOnlySpan<Result<TValue?>> values)
+            where TValue : default
         {
             BatchResultsTouched = true;
         }
@@ -557,14 +556,10 @@ public class DataLoaderTests
     [SuppressMessage("ReSharper", "InconsistentNaming")]
     [GraphQLName("Foo")]
     [Node]
-    public class FooObject
-    {
-        public FooObject(string field)
-        {
-            id = field;
-        }
+    public class FooObject(string field)
 
-        public string id { get; }
+    {
+        public string id { get; } = field;
 
         public string field => id;
 
@@ -572,9 +567,7 @@ public class DataLoaderTests
             IResolverContext context,
             string id,
             CancellationToken ct)
-        {
-            return new((await context.DataLoader<FooDataLoader>().LoadAsync(id, ct)).Field);
-        }
+            => new((await context.DataLoader<FooDataLoader>().LoadRequiredAsync(id, ct)).Field);
     }
 
     public class FooDataLoader : BatchDataLoader<string, FooRecord>
@@ -594,8 +587,8 @@ public class DataLoaderTests
             IReadOnlyList<string> keys,
             CancellationToken cancellationToken)
         {
-            return (await _nestedDataLoader.LoadAsync(keys, cancellationToken))
-                .ToImmutableDictionary(x => x.Field);
+            return (await _nestedDataLoader.LoadRequiredAsync(keys, cancellationToken))
+                .ToImmutableDictionary(t => t.Field);
         }
     }
 
@@ -615,20 +608,15 @@ public class DataLoaderTests
         }
     }
 
-    public class FooRecord
+    public class FooRecord(string field)
     {
-        public FooRecord(string field)
-        {
-            Field = field;
-        }
-
-        public string Field { get; }
+        public string Field { get; } = field;
     }
 
     public class SerialMutation
     {
         [Serial]
-        public async Task<string> DoSomethingAsync(
+        public async Task<string?> DoSomethingAsync(
             CustomDataLoader dataLoader,
             string key,
             CancellationToken cancellationToken)
@@ -660,20 +648,13 @@ public class DataLoaderTests
 
     public class CounterQuery
     {
-        public Task<string> Do(CounterService service)
+        public Task<string?> Do(CounterService service)
             => service.Do();
     }
 
-    public class CounterService
+    public class CounterService(CounterDataLoader dataLoader)
     {
-        private readonly CounterDataLoader _dataLoader;
-
-        public CounterService(CounterDataLoader dataLoader)
-        {
-            _dataLoader = dataLoader;
-        }
-
-        public async Task<string> Do() => await _dataLoader.LoadAsync("abc");
+        public async Task<string?> Do() => await dataLoader.LoadAsync("abc");
     }
 
     public class CounterDataLoader : CacheDataLoader<string, string>

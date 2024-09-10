@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Immutable;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -9,14 +8,13 @@ using static HotChocolate.Properties.TypeResources;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
-internal sealed class EventMessageParameterExpressionBuilder
-    : LambdaParameterExpressionBuilder<IResolverContext, object>
+internal sealed class EventMessageParameterExpressionBuilder()
+    : LambdaParameterExpressionBuilder<object>(
+        ctx => GetEventMessage(ctx.ScopedContextData),
+        isPure: true)
+    , IParameterBindingFactory
+    , IParameterBinding
 {
-    public EventMessageParameterExpressionBuilder()
-        : base(ctx => GetEventMessage(ctx.ScopedContextData))
-    {
-    }
-
     public override ArgumentKind Kind => ArgumentKind.EventMessage;
 
     public override bool CanHandle(ParameterInfo parameter)
@@ -25,14 +23,23 @@ internal sealed class EventMessageParameterExpressionBuilder
     public override Expression Build(ParameterExpressionBuilderContext context)
         => Expression.Convert(base.Build(context), context.Parameter.ParameterType);
 
+    public IParameterBinding Create(ParameterBindingContext context)
+        => this;
+
+    public T Execute<T>(IResolverContext context)
+        => GetEventMessage<T>(context);
+
     private static object GetEventMessage(IImmutableDictionary<string, object?> contextData)
     {
         if (!contextData.TryGetValue(WellKnownContextData.EventMessage, out var message) ||
             message is null)
         {
-            throw new InvalidOperationException(
-                EventMessageParameterExpressionBuilder_MessageNotFound);
+            throw new InvalidOperationException(EventMessageParameterExpressionBuilder_MessageNotFound);
         }
         return message;
     }
+
+    private static T GetEventMessage<T>(IResolverContext context)
+        => context.GetScopedStateOrDefault<T>(WellKnownContextData.EventMessage) ??
+            throw new InvalidOperationException(EventMessageParameterExpressionBuilder_MessageNotFound);
 }

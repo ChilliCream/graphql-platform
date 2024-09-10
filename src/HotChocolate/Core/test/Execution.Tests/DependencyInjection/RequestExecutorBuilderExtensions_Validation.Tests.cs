@@ -80,7 +80,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
             .AddIntrospectionAllowedRule()
             .ExecuteRequestAsync(
                 OperationRequestBuilder
-                    .Create()
+                    .New()
                     .SetDocument("{ __schema { description } }")
                     .Build())
             .MatchSnapshotAsync();
@@ -97,7 +97,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
             .AllowIntrospection(false)
             .ExecuteRequestAsync(
                 OperationRequestBuilder
-                    .Create()
+                    .New()
                     .SetDocument("{ __schema { description } }")
                     .Build())
             .MatchSnapshotAsync();
@@ -114,7 +114,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
             .AllowIntrospection(true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder
-                    .Create()
+                    .New()
                     .SetDocument("{ __schema { description } }")
                     .Build())
             .MatchSnapshotAsync();
@@ -131,7 +131,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
             .AllowIntrospection(false)
             .ExecuteRequestAsync(
                 OperationRequestBuilder
-                    .Create()
+                    .New()
                     .SetDocument("{ __schema { description } }")
                     .SetIntrospectionNotAllowedMessage("Bar")
                     .Build())
@@ -149,7 +149,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
             .AddIntrospectionAllowedRule()
             .ExecuteRequestAsync(
                 OperationRequestBuilder
-                    .Create()
+                    .New()
                     .SetDocument("{ __schema { description } }")
                     .SetIntrospectionNotAllowedMessage(() => "Bar")
                     .Build())
@@ -167,7 +167,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
             .AddIntrospectionAllowedRule()
             .ExecuteRequestAsync(
                 OperationRequestBuilder
-                    .Create()
+                    .New()
                     .SetDocument("{ __schema { description } }")
                     .SetIntrospectionNotAllowedMessage("Baz")
                     .Build())
@@ -191,7 +191,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
         var result =
             await executor.ExecuteAsync(
                 OperationRequestBuilder
-                    .Create()
+                    .New()
                     .SetDocument("{ __schema { description } }")
                     .AllowIntrospection()
                     .Build());
@@ -200,7 +200,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
         result =
             await executor.ExecuteAsync(
                 OperationRequestBuilder
-                    .Create()
+                    .New()
                     .SetDocument("{ __schema { description } }")
                     .Build());
         results.Add(result.ToJson());

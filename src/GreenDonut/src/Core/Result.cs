@@ -1,5 +1,3 @@
-using System;
-
 namespace GreenDonut;
 
 /// <summary>
@@ -49,20 +47,37 @@ public readonly record struct Result<TValue>
     /// otherwise <c>null</c>.
     /// </summary>
     public Exception? Error { get; }
-    
+
     /// <summary>
     /// Creates a new error result.
     /// </summary>
     /// <param name="error">An arbitrary error.</param>
     /// <returns>An error result.</returns>
-    public static Result<TValue> Reject(Exception error) => new(error);
+    public static Result<TValue> Reject(Exception error)
+        => new(error);
+
+    /// <summary>
+    /// Creates a new error result.
+    /// </summary>
+    /// <param name="key">
+    /// The ket that could not be resolved.
+    /// </param>
+    /// <typeparam name="TKey">
+    /// The key type.
+    /// </typeparam>
+    /// <returns>
+    /// An error result.
+    /// </returns>
+    public static Result<TValue> Reject<TKey>(TKey key)
+        => new(new KeyNotFoundException($"The key {key} could not be resolved."));
 
     /// <summary>
     /// Creates a new value result.
     /// </summary>
     /// <param name="value">An arbitrary value.</param>
     /// <returns>A value result.</returns>
-    public static Result<TValue> Resolve(TValue value) => new(value);
+    public static Result<TValue> Resolve(TValue value)
+        => new(value);
 
     /// <summary>
     /// Creates a new error result or a null result.
@@ -92,3 +107,5 @@ public readonly record struct Result<TValue>
     public static implicit operator TValue(Result<TValue> result)
         => result.Value;
 }
+
+public class KeyNotFoundException(string message) : Exception(message);

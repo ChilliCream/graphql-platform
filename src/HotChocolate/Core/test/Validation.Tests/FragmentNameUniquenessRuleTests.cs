@@ -66,9 +66,9 @@ public class FragmentNameUniquenessRuleTests
                 {
                     ...fragA
                 }
-                
+
                 fragment fragA on Query {
-                    arguments { 
+                    arguments {
                         idArgField
                     }
                 }
@@ -85,19 +85,19 @@ public class FragmentNameUniquenessRuleTests
                     ...fragB
                     ...fragC
                 }
-                
+
                 fragment fragA on Query {
-                    arguments { 
+                    arguments {
                         idArgField
                     }
                 }
-                
+
                 fragment fragB on Query {
                     dog {
                         name
                     }
                 }
-                
+
                 fragment fragC on Query {
                     anyArg
                 }
@@ -111,7 +111,7 @@ public class FragmentNameUniquenessRuleTests
         ExpectValid(@"
                 {
                     ...on Query {
-                        arguments { 
+                        arguments {
                             idArgField
                         }
                     }
@@ -132,7 +132,7 @@ public class FragmentNameUniquenessRuleTests
                 query Foo {
                     ...Foo
                 }
-                
+
                 fragment Foo on Query {
                     dog {
                         name
@@ -149,13 +149,13 @@ public class FragmentNameUniquenessRuleTests
                 {
                     ...fragA
                 }
-                
+
                 fragment fragA on Query {
-                    arguments { 
+                    arguments {
                         idArgField
                     }
                 }
-                
+
                 fragment fragA on Query {
                     dog {
                         name
@@ -170,11 +170,11 @@ public class FragmentNameUniquenessRuleTests
         // arrange
         ExpectErrors(@"
                 fragment fragA on Query {
-                    arguments { 
+                    arguments {
                         idArgField
                     }
                 }
-                
+
                 fragment fragA on Query {
                     dog {
                         name

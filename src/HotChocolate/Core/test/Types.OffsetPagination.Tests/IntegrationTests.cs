@@ -1,8 +1,5 @@
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
@@ -78,7 +75,7 @@ namespace HotChocolate.Types.Pagination
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
-                    .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = true, })
+                    .ModifyPagingOptions(o => o.RequirePagingBoundaries = true)
                     .Services
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
@@ -106,7 +103,7 @@ namespace HotChocolate.Types.Pagination
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
-                    .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = true, })
+                    .ModifyPagingOptions(o => o.RequirePagingBoundaries = true)
                     .Services
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
@@ -269,7 +266,7 @@ namespace HotChocolate.Types.Pagination
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
-                    .SetPagingOptions(new PagingOptions { DefaultPageSize = 2, })
+                    .ModifyPagingOptions(o => o.DefaultPageSize = 2)
                     .Services
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
@@ -297,7 +294,7 @@ namespace HotChocolate.Types.Pagination
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
-                    .SetPagingOptions(new PagingOptions { DefaultPageSize = 50, })
+                    .ModifyPagingOptions(o => o.DefaultPageSize = 50)
                     .Services
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
@@ -325,7 +322,7 @@ namespace HotChocolate.Types.Pagination
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryAttr>()
-                    .SetPagingOptions(new PagingOptions { DefaultPageSize = 2, })
+                    .ModifyPagingOptions(o => o.DefaultPageSize = 2)
                     .Services
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
@@ -560,10 +557,7 @@ namespace HotChocolate.Types.Pagination
                     .AddInterfaceType<ISome>(d => d
                         .Field(t => t.ExplicitType())
                         .UseOffsetPaging(
-                            options: new PagingOptions
-                            {
-                                InferCollectionSegmentNameFromField = false,
-                            }))
+                            options: new PagingOptions { InferCollectionSegmentNameFromField = false, }))
                     .ModifyOptions(o =>
                     {
                         o.RemoveUnreachableTypes = false;
@@ -775,6 +769,28 @@ namespace HotChocolate.Types.Pagination
         public ValueTask<List<T>> ToListAsync(CancellationToken cancellationToken)
             => new(source.ToList());
 
+        public async IAsyncEnumerable<T> ToAsyncEnumerable(
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            var queryable = await new ValueTask<IQueryable<T>>(source);
+
+            foreach (var item in queryable)
+            {
+                yield return item;
+            }
+        }
+
+        async IAsyncEnumerable<object?> IExecutable.ToAsyncEnumerable(
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            var queryable = await new ValueTask<IQueryable<T>>(source);
+
+            foreach (var item in queryable)
+            {
+                yield return item;
+            }
+        }
+
         ValueTask<object?> IExecutable.FirstOrDefaultAsync(CancellationToken cancellationToken)
             => new(source.FirstOrDefault());
 
@@ -783,6 +799,9 @@ namespace HotChocolate.Types.Pagination
 
         ValueTask<object?> IExecutable.SingleOrDefaultAsync(CancellationToken cancellationToken)
             => new(source.SingleOrDefault());
+
+        public ValueTask<int> CountAsync(CancellationToken cancellationToken = default)
+            => new(source.Count());
 
         public ValueTask<T?> SingleOrDefaultAsync(CancellationToken cancellationToken)
             => new(source.SingleOrDefault());

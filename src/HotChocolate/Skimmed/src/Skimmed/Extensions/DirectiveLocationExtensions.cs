@@ -1,4 +1,5 @@
-using HotChocolate.Language;
+
+using HotChocolate.Types;
 
 namespace HotChocolate.Skimmed;
 
@@ -265,9 +266,9 @@ internal static class DirectiveLocationExtensions
         }
     }
 
-    public static IReadOnlyList<NameNode> ToNameNodes(
+    public static IReadOnlyList<Language.NameNode> ToNameNodes(
         this DirectiveLocation locations)
         => AsEnumerable(locations)
-            .Select(t => new NameNode(null, _typeToLang[t].Value))
+            .Select(t => new Language.NameNode(null, _typeToLang[t].Value))
             .ToArray();
 }

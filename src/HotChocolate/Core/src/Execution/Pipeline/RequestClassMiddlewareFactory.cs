@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Execution.Instrumentation;
@@ -82,10 +79,7 @@ internal static class RequestClassMiddlewareFactory
                 _createValidator,
                 schemaName);
 
-        var list = new List<IParameterHandler>
-        {
-            new TypeParameterHandler(typeof(IDocumentValidator), getValidator),
-        };
+        var list = new List<IParameterHandler> { new TypeParameterHandler(typeof(IDocumentValidator), getValidator) };
 
         var constructor = middleware.GetConstructors().SingleOrDefault(t => t.IsPublic);
 
@@ -97,7 +91,7 @@ internal static class RequestClassMiddlewareFactory
                 AddService(list, schemaServices, parameter.ParameterType);
             }
         }
-        
+
         AddService<IErrorHandler>(list, schemaServices);
         AddService<IExecutionDiagnosticEvents>(list, schemaServices);
         AddService<IOperationDocumentStorage>(list, schemaServices);
@@ -147,7 +141,7 @@ internal static class RequestClassMiddlewareFactory
             typeof(IRequestExecutorOptionsAccessor),
             Expression.Constant(options)));
         parameterHandlers.Add(new TypeParameterHandler(
-            typeof(IPersistedQueryOptionsAccessor),
+            typeof(IPersistedOperationOptionsAccessor),
             Expression.Constant(options)));
     }
 
@@ -162,8 +156,7 @@ internal static class RequestClassMiddlewareFactory
 
         public bool CanHandle(ParameterInfo parameter)
         {
-            return parameter.ParameterType == typeof(string) &&
-                parameter.Name == "schemaName";
+            return parameter.ParameterType == typeof(string) && parameter.Name == "schemaName";
         }
 
         public Expression CreateExpression(ParameterInfo parameter)

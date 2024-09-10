@@ -1,4 +1,3 @@
-using System;
 using Snapshooter.Xunit;
 using Xunit;
 

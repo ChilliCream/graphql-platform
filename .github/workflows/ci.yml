@@ -1,7 +1,7 @@
 name: CI
 
 on:
-  pull_request_target:
+  pull_request:
     branches:
       - main
 
@@ -13,7 +13,6 @@ jobs:
   check-changes:
     name: Check for Changes
     runs-on: ubuntu-latest
-    if: github.event.pull_request.draft == false
     outputs:
       website_changes: ${{ steps.check-website.outputs.website_changes }}
       library_changes: ${{ steps.check-library.outputs.library_changes }}
@@ -55,15 +54,6 @@ jobs:
             echo "::set-output name=src_changes::false"
           fi
 
-  pr-labeler:
-    name: Apply Labels
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
-    steps:
-      - uses: actions/labeler@v5
-
   spellcheck:
     name: "Spellcheck Documentation"
     runs-on: ubuntu-latest
@@ -86,7 +76,7 @@ jobs:
         run: npm install -g cspell
 
       - name: run cspell
-        run: cspell --config ./cSpell.json "website/src/**/*.md" --no-progress --no-cache
+        run: cspell --config ./cspell.json "website/src/**/*.md" --no-progress --no-cache
 
   linting:
     name: "Markdown linting"
@@ -196,7 +186,7 @@ jobs:
 
       - name: Run Build
         id: run-build
-        run: dotnet build ${{ matrix.path }} --framework net8.0 --verbosity q --property WarningLevel=0
+        run: dotnet build ${{ matrix.path }} --framework net8.0 --verbosity q
         timeout-minutes: 5
 
       - name: Create directory for test results
@@ -267,7 +257,7 @@ jobs:
 
       - name: Run Build
         id: run-build
-        run: dotnet build ${{ matrix.path }} --framework net8.0 --verbosity q --property WarningLevel=0
+        run: dotnet build ${{ matrix.path }} --framework net8.0 --verbosity q
         timeout-minutes: 5
 
       - name: Create directory for test results

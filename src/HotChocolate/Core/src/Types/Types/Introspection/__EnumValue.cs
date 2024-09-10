@@ -1,5 +1,4 @@
 #pragma warning disable IDE1006 // Naming Styles
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -50,19 +49,19 @@ internal sealed class __EnumValue : ObjectType<IEnumValue>
 
     private static class Resolvers
     {
-        public static object Name(IPureResolverContext context)
+        public static object Name(IResolverContext context)
             => context.Parent<IEnumValue>().Name;
 
-        public static object? Description(IPureResolverContext context)
+        public static object? Description(IResolverContext context)
             => context.Parent<IEnumValue>().Description;
 
-        public static object IsDeprecated(IPureResolverContext context)
+        public static object IsDeprecated(IResolverContext context)
             => context.Parent<IEnumValue>().IsDeprecated;
 
-        public static string? DeprecationReason(IPureResolverContext context)
+        public static string? DeprecationReason(IResolverContext context)
             => context.Parent<IEnumValue>().DeprecationReason;
 
-        public static object AppliedDirectives(IPureResolverContext context)
+        public static object AppliedDirectives(IResolverContext context)
             => context.Parent<IEnumValue>().Directives
                 .Where(t => t.Type.IsPublic)
                 .Select(d => d.AsSyntaxNode());

@@ -1,7 +1,4 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -80,7 +77,7 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
 
             if (field.IsIntrospectionField)
             {
-                // Introspection fields do not need to be declared as cachable.
+                // Introspection fields do not need to be declared as cacheable.
                 continue;
             }
 
@@ -149,7 +146,7 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
 
         return false;
     }
-    
+
     /// <summary>
     /// Defines if a resolver is possible fetching data and causing higher impact on the system.
     /// </summary>

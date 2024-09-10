@@ -41,7 +41,7 @@ internal  sealed class EnrichEntityMiddleware : IMergeMiddleware
             foreach (var schema in context.Subgraphs)
             {
                 if (schema.Types.TryGetType(typeName, out var type) &&
-                    type is ObjectType objectType)
+                    type is ObjectTypeDefinition objectType)
                 {
                     objectTypes.Add(new EntityPart(objectType, schema));
                 }

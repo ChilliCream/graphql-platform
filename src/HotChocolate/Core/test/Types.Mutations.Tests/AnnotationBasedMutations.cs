@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
@@ -517,7 +514,7 @@ public class AnnotationBasedMutations
                 .AddGlobalObjectIdentification()
                 .ExecuteRequestAsync(
                     OperationRequestBuilder
-                        .Create()
+                        .New()
                         .SetDocument(
                             """
                             mutation($id: ID!) {
@@ -1286,7 +1283,7 @@ public class AnnotationBasedMutations
 
     public class SimpleMutationReturnList
     {
-        public System.Collections.Generic.List<string> DoSomething(string something)
+        public List<string> DoSomething(string something)
             => [something,];
     }
 
@@ -1736,7 +1733,6 @@ public class AnnotationBasedMutations
         public ErrorNotAnnotated NotAnnotated(string something) => default!;
 
         public ErrorAnnotatedAndNot Both(string something) => default!;
-
     }
 
     public class ErrorNotAnnotated : IErrorInterface

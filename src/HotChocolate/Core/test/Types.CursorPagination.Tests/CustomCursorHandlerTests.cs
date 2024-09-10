@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using Snapshooter.Xunit;
@@ -26,7 +25,7 @@ public class CustomCursorHandlerTests
         Snapshot.FullName();
 
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ items { nodes } }")
                 .Build();
 

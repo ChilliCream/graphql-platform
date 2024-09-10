@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
@@ -24,7 +21,6 @@ internal sealed class FragmentRewriter : SyntaxRewriter<FragmentRewriter.Context
                     null,
                     new("__typename"),
                     new NameNode($"_is{node.Name.Value}Fulfilled"),
-                    null,
                     Array.Empty<DirectiveNode>(),
                     Array.Empty<ArgumentNode>(),
                     null));

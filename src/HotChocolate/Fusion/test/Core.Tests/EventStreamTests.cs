@@ -55,14 +55,14 @@ public class EventStreamTests(ITestOutputHelper output)
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build(),
             cts.Token);
 
         // assert
         var snapshot = new Snapshot();
-        await CollectStreamSnapshotData(snapshot, request, result, fusionGraph, cts.Token);
+        await CollectStreamSnapshotData(snapshot, request, result, cts.Token);
         await snapshot.MatchMarkdownAsync(cts.Token);
     }
 

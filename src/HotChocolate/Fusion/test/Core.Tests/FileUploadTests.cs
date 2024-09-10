@@ -82,7 +82,7 @@ public class FileUploadTests
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { {"file", new StreamFile("abc", () => stream) }, })
                 .Build(),
@@ -90,7 +90,7 @@ public class FileUploadTests
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync(cts.Token);
     }
 
@@ -138,7 +138,7 @@ public class FileUploadTests
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { {"input", input }, })
                 .Build(),
@@ -146,7 +146,7 @@ public class FileUploadTests
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync(cts.Token);
     }
 
@@ -202,7 +202,7 @@ public class FileUploadTests
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { { "input", input } })
                 .Build(),
@@ -210,7 +210,7 @@ public class FileUploadTests
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync(cts.Token);
     }
 

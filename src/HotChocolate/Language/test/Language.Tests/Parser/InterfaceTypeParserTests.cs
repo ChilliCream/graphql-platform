@@ -43,7 +43,7 @@ public class InterfaceTypeParserTests
         var def = (document.Definitions[0] as InterfaceTypeDefinitionNode);
         Assert.NotNull(def);
         Assert.Equal("a", def.Name.Value);
-        Assert.Equal("test", def.Description.Value);
+        Assert.Equal("test", def.Description?.Value);
         Assert.Single(def.Fields);
         Assert.Equal("b", def.Fields[0].Name.Value);
         Assert.Empty(def.Directives);
@@ -211,7 +211,6 @@ public class InterfaceTypeParserTests
             });
         Assert.Equal(SyntaxKind.InterfaceTypeDefinition, def.Kind);
     }
-
 
     [Fact]
     public void Parser__Should_Fail_WhenDirectivesBeforeInterface()

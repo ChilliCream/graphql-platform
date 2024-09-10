@@ -4,7 +4,6 @@ namespace HotChocolate.Skimmed.Tests;
 
 public class ArgumentTests
 {
-
     [Fact]
     public void Argument_WithStringValueNode_CreatesInstanceWithNameAndValueNode()
     {
@@ -13,7 +12,7 @@ public class ArgumentTests
         var value = "value";
 
         // act
-        var argument = new Argument(name, value);
+        var argument = new ArgumentAssignment(name, value);
 
         // assert
         Assert.Equal(name, argument.Name);
@@ -29,7 +28,7 @@ public class ArgumentTests
         var value = 42;
 
         // act
-        var argument = new Argument(name, value);
+        var argument = new ArgumentAssignment(name, value);
 
         // assert
         Assert.Equal(name, argument.Name);
@@ -45,7 +44,7 @@ public class ArgumentTests
         var value = 3.14;
 
         // act
-        var argument = new Argument(name, value);
+        var argument = new ArgumentAssignment(name, value);
 
         // assert
         Assert.Equal(name, argument.Name);
@@ -61,7 +60,7 @@ public class ArgumentTests
         var value = true;
 
         // act
-        var argument = new Argument(name, value);
+        var argument = new ArgumentAssignment(name, value);
 
         // assert
         Assert.Equal(name, argument.Name);
@@ -77,7 +76,7 @@ public class ArgumentTests
         var value = new StringValueNode("value");
 
         // act
-        var argument = new Argument(name, value);
+        var argument = new ArgumentAssignment(name, value);
 
         // assert
         Assert.Equal(name, argument.Name);

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -36,7 +35,7 @@ public interface IEnumTypeDescriptor
     IEnumValueDescriptor Value<T>(T value);
 
     /// <summary>
-    /// Specifies if the enum values shall be inferred or explicitly specfied.
+    /// Specifies if the enum values shall be inferred or explicitly specified.
     /// </summary>
     /// <param name="behavior">
     /// The binding behavior.

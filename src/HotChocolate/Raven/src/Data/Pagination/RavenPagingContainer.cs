@@ -1,18 +1,14 @@
+using System.Collections.Immutable;
 using HotChocolate.Types.Pagination;
 using Raven.Client.Documents.Commands;
 using Raven.Client.Documents.Session;
 
 namespace HotChocolate.Data.Raven.Pagination;
 
-internal sealed class RavenPagingContainer<TEntity>
+internal sealed class RavenPagingContainer<TEntity>(IAsyncDocumentQuery<TEntity> query)
 {
-    private IAsyncDocumentQuery<TEntity> _query;
-    private TaskHolder? _totalCount = null;
-
-    public RavenPagingContainer(IAsyncDocumentQuery<TEntity> query)
-    {
-        _query = query.NoTracking();
-    }
+    private IAsyncDocumentQuery<TEntity> _query = query.NoTracking();
+    private TaskHolder? _totalCount;
 
     public Task<int> CountAsync(CancellationToken cancellationToken)
     {
@@ -26,7 +22,7 @@ internal sealed class RavenPagingContainer<TEntity>
         return _totalCount.Execute();
     }
 
-    public async ValueTask<IReadOnlyList<Edge<TEntity>>> ExecuteQueryAsync(
+    public async Task<ImmutableArray<Edge<TEntity>>> QueryAsync(
         int offset,
         CancellationToken cancellationToken)
     {
@@ -45,7 +41,7 @@ internal sealed class RavenPagingContainer<TEntity>
             {
                 totalCountCompletionSource = new TaskCompletionSource<int>();
 
-                // capture the source so it is not in the outer scope
+                // capture the source, so it is not in the outer scope
                 var source = totalCountCompletionSource;
                 var originalTotalCount =
                     Interlocked.CompareExchange(ref _totalCount, new TaskHolder(source.Task), null);
@@ -62,13 +58,13 @@ internal sealed class RavenPagingContainer<TEntity>
 
             // We only load the query stats when we not already have fetched them.
             IAsyncEnumerator<StreamResult<TEntity>> cursor;
-            if (totalCountCompletionSource is { })
+            if (totalCountCompletionSource is not null)
             {
                 cursor = await _query
                     .AsAsyncEnumerable(out var stats, cancellationToken)
                     .ConfigureAwait(false);
 
-                totalCountCompletionSource?.SetResult(stats.TotalResults);
+                totalCountCompletionSource.SetResult(stats.TotalResults);
             }
             else
             {
@@ -78,14 +74,14 @@ internal sealed class RavenPagingContainer<TEntity>
             }
 
             // page through the response and create the array
-            var list = new List<IndexEdge<TEntity>>();
+            var list = ImmutableArray.CreateBuilder<Edge<TEntity>>();
             var index = offset;
             while (await cursor.MoveNextAsync().ConfigureAwait(false))
             {
                 list.Add(IndexEdge<TEntity>.Create(cursor.Current.Document, index++));
             }
 
-            return list;
+            return list.ToImmutable();
         }
         catch (OperationCanceledException)
         {
@@ -146,10 +142,7 @@ internal sealed class RavenPagingContainer<TEntity>
             {
                 lock (_lock)
                 {
-                    if (_task is null)
-                    {
-                        _task = _factory();
-                    }
+                    _task ??= _factory();
                 }
             }
 
@@ -158,7 +151,7 @@ internal sealed class RavenPagingContainer<TEntity>
     }
 }
 
-static file class LocalExtensions
+file static class LocalExtensions
 {
     public static Task<IAsyncEnumerator<StreamResult<T>>> AsAsyncEnumerable<T>(
         this IAsyncDocumentQuery<T> self,

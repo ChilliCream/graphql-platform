@@ -8,8 +8,8 @@ type ListItem {
 }
 
 type Query {
-  root(where: TypeWithListFilterInput): [TypeWithList]
-  rootExecutable(where: TypeWithListFilterInput): [TypeWithList]
+  root(where: TypeWithListFilterInput @cost(weight: "10")): [TypeWithList] @cost(weight: "10")
+  rootExecutable(where: TypeWithListFilterInput @cost(weight: "10")): [TypeWithList] @cost(weight: "10")
 }
 
 type TypeWithList {
@@ -18,9 +18,9 @@ type TypeWithList {
 }
 
 input ListFilterInputTypeOfListItemFilterInput {
-  none: ListItemFilterInput
-  some: ListItemFilterInput
-  any: Boolean
+  none: ListItemFilterInput @cost(weight: "10")
+  some: ListItemFilterInput @cost(weight: "10")
+  any: Boolean @cost(weight: "10")
 }
 
 input ListItemFilterInput {
@@ -33,16 +33,16 @@ input ListItemFilterInput {
 input StringOperationFilterInput {
   and: [StringOperationFilterInput!]
   or: [StringOperationFilterInput!]
-  eq: String
-  neq: String
-  contains: String
-  ncontains: String
-  in: [String]
-  nin: [String]
-  startsWith: String
-  nstartsWith: String
-  endsWith: String
-  nendsWith: String
+  eq: String @cost(weight: "10")
+  neq: String @cost(weight: "10")
+  contains: String @cost(weight: "20")
+  ncontains: String @cost(weight: "20")
+  in: [String] @cost(weight: "10")
+  nin: [String] @cost(weight: "10")
+  startsWith: String @cost(weight: "20")
+  nstartsWith: String @cost(weight: "20")
+  endsWith: String @cost(weight: "20")
+  nendsWith: String @cost(weight: "20")
 }
 
 input TypeWithListFilterInput {
@@ -51,3 +51,6 @@ input TypeWithListFilterInput {
   id: StringOperationFilterInput
   list: ListFilterInputTypeOfListItemFilterInput
 }
+
+"The purpose of the `cost` directive is to define a `weight` for GraphQL types, fields, and arguments. Static analysis can use these weights when calculating the overall cost of a query or response."
+directive @cost("The `weight` argument defines what value to add to the overall cost for every appearance, or possible appearance, of a type, field, argument, etc." weight: String!) on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION

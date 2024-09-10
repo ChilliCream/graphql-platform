@@ -130,7 +130,7 @@
     <value>Unable to create DataLoader `{0}`.</value>
   </data>
   <data name="DataLoaderResolverContextExtensions_RegistryIsNull" xml:space="preserve">
-    <value>No DataLoader registry was registerd with your dependency injection.</value>
+    <value>No DataLoader registry was registered with your dependency injection.</value>
   </data>
   <data name="DataLoaderResolverContextExtensions_UnableToRegister" xml:space="preserve">
     <value>Unable to register a DataLoader with your DataLoader registry.</value>

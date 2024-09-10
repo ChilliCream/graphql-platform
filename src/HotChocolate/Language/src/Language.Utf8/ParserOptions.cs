@@ -19,7 +19,7 @@ public sealed class ParserOptions
     /// however in extreme cases it becomes quadratic due to memory exhaustion.
     /// Parsing happens before validation so even invalid queries can burn lots of
     /// CPU time and memory.
-    /// 
+    ///
     /// To prevent this you can set a maximum number of nodes allowed within a document.
     /// </param>
     /// <param name="maxAllowedTokens">
@@ -27,7 +27,7 @@ public sealed class ParserOptions
     /// however in extreme cases it becomes quadratic due to memory exhaustion.
     /// Parsing happens before validation so even invalid queries can burn lots of
     /// CPU time and memory.
-    /// 
+    ///
     /// To prevent this you can set a maximum number of tokens allowed within a document.
     /// </param>
     /// <param name="maxAllowedFields">

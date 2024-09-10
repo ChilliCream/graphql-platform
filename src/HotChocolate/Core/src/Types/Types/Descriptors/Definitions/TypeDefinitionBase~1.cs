@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 #nullable  enable
 
 namespace HotChocolate.Types.Descriptors.Definitions;
@@ -27,7 +24,7 @@ public class TypeDefinitionBase : DefinitionBase, ITypeDefinition
     public bool NeedsNameCompletion { get; set; }
 
     /// <summary>
-    /// Gets or sets the .net type representation of this type.
+    /// Gets or sets the .NET type representation of this type.
     /// </summary>
     public virtual Type RuntimeType
     {
@@ -58,7 +55,7 @@ public class TypeDefinitionBase : DefinitionBase, ITypeDefinition
     {
         if (_directives is null)
         {
-            return Array.Empty<DirectiveDefinition>();
+            return [];
         }
 
         return _directives;

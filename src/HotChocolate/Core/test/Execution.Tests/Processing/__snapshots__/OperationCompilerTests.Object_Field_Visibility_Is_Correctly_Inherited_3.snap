@@ -9,10 +9,10 @@
 query foo($v: Boolean!, $q: Boolean!) @includeCondition(flag: 2) @includeCondition(flag: 3) {
   ... on Query {
     hero(episode: EMPIRE) @conditional @__execute(id: 0, kind: PURE, type: COMPOSITE) {
-      ... on Human {
+      ... on Droid {
         name @conditional @__execute(id: 1, kind: PURE, type: LEAF)
       }
-      ... on Droid {
+      ... on Human {
         name @conditional @__execute(id: 2, kind: PURE, type: LEAF)
       }
     }

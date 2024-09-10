@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Globalization;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -86,6 +84,10 @@ internal sealed class DirectiveTypeFactory : ITypeFactory<DirectiveDefinitionNod
                 Language.DirectiveLocation.InputFieldDefinition,
                 DirectiveLocation.InputFieldDefinition
             },
+            {
+                Language.DirectiveLocation.VariableDefinition,
+                DirectiveLocation.VariableDefinition
+            }
         };
 
     public DirectiveType Create(IDescriptorContext context, DirectiveDefinitionNode node)

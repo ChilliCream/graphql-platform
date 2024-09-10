@@ -1,19 +1,13 @@
-using System;
-using System.Collections.Generic;
 using System.Net;
 #if NET6_0_OR_GREATER
 using System.Diagnostics;
-using System.IO;
 #endif
-using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
 #if NET6_0_OR_GREATER
 using System.Text;
 #endif
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Transport.Http;
@@ -140,8 +134,9 @@ public sealed class GraphQLHttpResponse : IDisposable
 #endif
         }
 
-        // if the media type is anything else we will return a transport error.
-        return new ValueTask<OperationResult>(_transportError);
+        _message.EnsureSuccessStatusCode();
+
+        throw new InvalidOperationException("Received a successful response with an unexpected content type.");
     }
 
 #if NET6_0_OR_GREATER

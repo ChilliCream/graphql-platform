@@ -6,11 +6,6 @@
 #pragma warning disable CS0618 // Type or member is obsolete
 #nullable enable
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Subscriptions;
@@ -290,7 +285,7 @@ public class SubscriptionTypeTests : TypeTestBase
                     var mutationResult = await executor.ExecuteAsync(
                         "mutation { writeBoolean(userId: \"1\" message: true) }",
                         ct);
-                    Assert.Null(mutationResult.ExpectQueryResult().Errors);
+                    Assert.Null(mutationResult.ExpectSingleResult().Errors);
 
                     await foreach (var queryResult in subscriptionResult.ExpectResponseStream()
                         .ReadResultsAsync().WithCancellation(ct))
@@ -421,7 +416,7 @@ public class SubscriptionTypeTests : TypeTestBase
                     var mutationResult = await executor.ExecuteAsync(
                         "mutation { writeMessage(userId: \"abc\" message: \"def\") }",
                         ct);
-                    Assert.Null(mutationResult.ExpectQueryResult().Errors);
+                    Assert.Null(mutationResult.ExpectSingleResult().Errors);
 
                     await foreach (var queryResult in
                         results.WithCancellation(ct).ConfigureAwait(false))
@@ -455,7 +450,7 @@ public class SubscriptionTypeTests : TypeTestBase
                     var mutationResult = await executor.ExecuteAsync(
                         "mutation { writeFixedMessage(message: \"def\") }",
                         ct);
-                    Assert.Null(mutationResult.ExpectQueryResult().Errors);
+                    Assert.Null(mutationResult.ExpectSingleResult().Errors);
 
                     await foreach (var queryResult in
                         results.WithCancellation(ct).ConfigureAwait(false))
@@ -489,7 +484,7 @@ public class SubscriptionTypeTests : TypeTestBase
                     var mutationResult = await executor.ExecuteAsync(
                         "mutation { writeSysMessage(message: \"def\") }",
                         ct);
-                    Assert.Null(mutationResult.ExpectQueryResult().Errors);
+                    Assert.Null(mutationResult.ExpectSingleResult().Errors);
 
                     await foreach (var queryResult in
                         results.WithCancellation(ct).ConfigureAwait(false))
@@ -523,7 +518,7 @@ public class SubscriptionTypeTests : TypeTestBase
                     var mutationResult = await executor.ExecuteAsync(
                         "mutation { writeOnInferTopic(message: \"def\") }",
                         ct);
-                    Assert.Null(mutationResult.ExpectQueryResult().Errors);
+                    Assert.Null(mutationResult.ExpectSingleResult().Errors);
 
                     await foreach (var queryResult in
                         results.WithCancellation(ct).ConfigureAwait(false))
@@ -557,7 +552,7 @@ public class SubscriptionTypeTests : TypeTestBase
                     var mutationResult = await executor.ExecuteAsync(
                         "mutation { writeOnExplicit(message: \"def\") }",
                         ct);
-                    Assert.Null(mutationResult.ExpectQueryResult().Errors);
+                    Assert.Null(mutationResult.ExpectSingleResult().Errors);
 
                     await foreach (var queryResult in
                         results.WithCancellation(ct).ConfigureAwait(false))
@@ -573,7 +568,7 @@ public class SubscriptionTypeTests : TypeTestBase
     {
         // arrange
         var snapshot = new Snapshot();
-        
+
         // act
         var executor = await TestHelper.CreateExecutorAsync(
             r => r
@@ -593,7 +588,7 @@ public class SubscriptionTypeTests : TypeTestBase
     {
         // arrange
         var snapshot = new Snapshot();
-        
+
         // act
         var executor = await TestHelper.CreateExecutorAsync(
             r => r
@@ -613,7 +608,7 @@ public class SubscriptionTypeTests : TypeTestBase
     {
         // arrange
         var snapshot = new Snapshot();
-        
+
         // act
         var executor = await TestHelper.CreateExecutorAsync(
             r => r

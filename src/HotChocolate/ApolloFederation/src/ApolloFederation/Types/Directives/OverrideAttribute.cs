@@ -41,18 +41,17 @@ namespace HotChocolate.ApolloFederation.Types;
 /// Name of the subgraph to be overridden
 /// </param>
 /// <param name="label">
-/// Optional label that will be evaulated at runtime to determine whether field should be overriden
+/// Optional label that will be evaluated at runtime to determine whether field should be overridden
 /// </param>
 public sealed class OverrideAttribute(string from, string? label = null) : ObjectFieldDescriptorAttribute
 {
-
     /// <summary>
     /// Get name of the subgraph to be overridden.
     /// </summary>
     public string From { get; } = from;
 
     /// <summary>
-    /// Get optional label that will be evaulated at runtime to determine whether field should be overriden.
+    /// Get optional label that will be evaluated at runtime to determine whether field should be overridden.
     /// </summary>
     public string? Label { get; } = label;
 

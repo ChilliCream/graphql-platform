@@ -145,7 +145,7 @@ Next, we'll need to define an [entity reference resolver](https://www.apollograp
 
 <Annotation>
 
-In an annotation-based implementation, a reference resolver will work just like a [regular resolver](/docs/hotchocolate/v12/fetching-data/resolvers) with some key differences:
+In an annotation-based implementation, a reference resolver will work just like a [regular resolver](/docs/hotchocolate/v13/fetching-data/resolvers) with some key differences:
 
 1. It must be annotated with the `[ReferenceResolver]` attribute
 1. It must be a `public static` method _within_ the type it is resolving
@@ -208,7 +208,7 @@ public class Product
 
 <Code>
 
-We'll now chain a `ResolveReferenceWith()` method call off of the `Key()` method call from the previous step. This will create a [resolver](/docs/hotchocolate/v12/fetching-data/resolvers) that the Hot Chocolate engine can invoke.
+We'll now chain a `ResolveReferenceWith()` method call off of the `Key()` method call from the previous step. This will create a [resolver](/docs/hotchocolate/v13/fetching-data/resolvers) that the Hot Chocolate engine can invoke.
 
 ```csharp
 public class Product
@@ -282,7 +282,7 @@ public class ProductType : ObjectType<Product>
 
 > ### A note about reference resolvers
 >
-> It's recommended to use a [dataloader](/docs/hotchocolate/v12/fetching-data/dataloader) to fetch the data in a reference resolver. This helps the API avoid [an N+1 problem](https://www.apollographql.com/docs/federation/entities-advanced#handling-the-n1-problem) when a query resolves multiple items from a given subgraph.
+> It's recommended to use a [dataloader](/docs/hotchocolate/v13/fetching-data/dataloader) to fetch the data in a reference resolver. This helps the API avoid [an N+1 problem](https://www.apollographql.com/docs/federation/entities-advanced#handling-the-n1-problem) when a query resolves multiple items from a given subgraph.
 
 ## Register the entity
 
@@ -325,7 +325,7 @@ services.AddGraphQLServer()
 
 ## Testing and executing your reference resolvers
 
-After creating an entity, you'll likely wonder "how do I invoke and test this reference resolver?" Entities that define a reference resolver can be queried through the [auto-generated `_entites` query](https://www.apollographql.com/docs/federation/subgraph-spec#understanding-query_entities) at the subgraph level.
+After creating an entity, you'll likely wonder "how do I invoke and test this reference resolver?" Entities that define a reference resolver can be queried through the [auto-generated `_entities` query](https://www.apollographql.com/docs/federation/subgraph-spec#understanding-query_entities) at the subgraph level.
 
 You'll invoke the query by providing an array of representations using a combination of a `__typename` and key field values to invoke the appropriate resolver. An example query for our `Product` would look something like the following.
 
@@ -435,7 +435,7 @@ services.AddGraphQLServer()
 
 </ExampleTabs>
 
-Next, we'll create our `Review` type that has a reference to the `Product` entity. Similar to our first class, we'll need to denote the type's key(s) and the corresponding entity reference resovler(s).
+Next, we'll create our `Review` type that has a reference to the `Product` entity. Similar to our first class, we'll need to denote the type's key(s) and the corresponding entity reference resolver(s).
 
 <ExampleTabs>
 
@@ -545,7 +545,7 @@ As a reminder, you can create and configure a supergraph by following either the
 
 ## Contributing fields through resolvers
 
-Now that our new subgraph has the `Product` reference we can [contribute additional fields to the type](https://www.apollographql.com/docs/federation/entities#contributing-entity-fields). Similar to other types in Hot Chocolate, you can create new fields by defining different method or property resolvers. For a full set of details and examples on creating resolvers, you can read our [documentation on resolvers](/docs/hotchocolate/v12/fetching-data/resolvers).
+Now that our new subgraph has the `Product` reference we can [contribute additional fields to the type](https://www.apollographql.com/docs/federation/entities#contributing-entity-fields). Similar to other types in Hot Chocolate, you can create new fields by defining different method or property resolvers. For a full set of details and examples on creating resolvers, you can read our [documentation on resolvers](/docs/hotchocolate/v13/fetching-data/resolvers).
 
 For now, we'll focus on giving our supergraph the ability to retrieve all reviews for a given product by adding a `reviews: [Review!]!` property to the type.
 

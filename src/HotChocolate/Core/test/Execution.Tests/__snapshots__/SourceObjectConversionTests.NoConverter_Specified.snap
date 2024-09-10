@@ -1,20 +1,18 @@
 ﻿{
   "errors": [
     {
-      "message": "The resolver parent type of field \u0060Baz.qux\u0060 is \u0060HotChocolate.Execution.SourceObjectConversionTests\u002BFoo\u0060 but the resolver requested the type \u0060HotChocolate.Execution.SourceObjectConversionTests\u002BBaz\u0060. The resolver was unable to cast the parent type to the requested type.",
+      "message": "The resolver parent type of field `Baz.qux` is `HotChocolate.Execution.SourceObjectConversionTests+Foo` but the resolver requested the type `HotChocolate.Execution.SourceObjectConversionTests+Baz`. The resolver was unable to cast the parent type to the requested type.",
       "path": [
         "foo",
         "qux"
       ],
       "extensions": {
-        "field": "Baz.qux",
+        "fieldCoordinate": "Baz.qux",
         "code": "HC0053"
       }
     }
   ],
   "data": {
-    "foo": {
-      "qux": null
-    }
+    "foo": null
   }
 }

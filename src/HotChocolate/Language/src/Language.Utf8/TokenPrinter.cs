@@ -31,7 +31,7 @@ internal static class TokenPrinter
             { TokenKind.Dot, "." },
         };
 
-    public static string Print(in Utf8GraphQLReader reader)
+    public static string Print(ref Utf8GraphQLReader reader)
         => _cachedStrings[reader.Kind];
 
     public static string Print(TokenKind tokenKind)

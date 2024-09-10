@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Text.Json;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
@@ -35,8 +33,8 @@ public partial class JsonResultBuilderGenerator
         methodBuilder.AddCode(
             AssignmentBuilder
                 .New()
-                .SetLefthandSide($"var {_typename}")
-                .SetRighthandSide(MethodCallBuilder
+                .SetLeftHandSide($"var {_typename}")
+                .SetRightHandSide(MethodCallBuilder
                     .Inline()
                     .SetMethodName(
                         _obj,
@@ -55,8 +53,8 @@ public partial class JsonResultBuilderGenerator
                     .AddCode(
                         AssignmentBuilder
                             .New()
-                            .SetLefthandSide($"{TypeNames.EntityId} {_entityId}")
-                            .SetRighthandSide(
+                            .SetLeftHandSide($"{TypeNames.EntityId} {_entityId}")
+                            .SetRightHandSide(
                                 MethodCallBuilder
                                     .Inline()
                                     .SetMethodName(GetFieldName(_idSerializer), "Parse")

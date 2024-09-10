@@ -1,4 +1,5 @@
 using HotChocolate.AspNetCore.Tests.Utilities;
+using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.State;
 using StrawberryShake.Transport.WebSockets;
@@ -173,7 +174,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
             var name2 = name;
             name = null;
 
-
             session.Dispose();
 
             // assert
@@ -248,7 +248,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
                     var name2 = name;
                     name = null;
 
-
                     session.Dispose();
 
                     // assert
@@ -299,6 +298,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
             {
                 if (File.Exists(fileName))
                 {
+                    SqliteConnection.ClearAllPools();
                     File.Delete(fileName);
                 }
             }
@@ -377,6 +377,5 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
             // assert
             Assert.Equal(1, count);
         }
-
     }
 }

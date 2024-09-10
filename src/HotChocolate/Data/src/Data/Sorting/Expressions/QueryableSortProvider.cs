@@ -48,10 +48,16 @@ public class QueryableSortProvider : SortProvider<QueryableSortContext>
     public const string ContextApplySortingKey = nameof(ApplySorting);
 
     /// <summary>
-    /// The key for <see cref="IHasContextData.ContextData"/> on <see cref="IResolverContext"/>
+    /// The key for <see cref="IResolverContext.LocalContextData"/> on <see cref="IResolverContext"/>
     /// that defines if sorting is already applied and should be skipped
     /// </summary>
     public const string SkipSortingKey = "SkipSorting";
+
+    /// <summary>
+    /// The key for <see cref="IResolverContext.LocalContextData"/> on <see cref="IResolverContext"/>
+    /// that holds the post sorting action.
+    /// </summary>
+    public const string PostSortingActionKey = "PostSortingAction";
 
     /// <summary>
     /// Creates a new instance
@@ -92,7 +98,7 @@ public class QueryableSortProvider : SortProvider<QueryableSortContext>
     /// </returns>
     protected virtual bool IsInMemoryQuery<TEntityType>(object? input)
     {
-        if (input is QueryableExecutable<TEntityType> { InMemory: var inMemory, })
+        if (input is IQueryableExecutable<TEntityType> { IsInMemory: var inMemory, })
         {
             return inMemory;
         }
@@ -162,7 +168,19 @@ public class QueryableSortProvider : SortProvider<QueryableSortContext>
         {
             IQueryable<TEntityType> q => sort(q),
             IEnumerable<TEntityType> q => sort(q.AsQueryable()),
-            QueryableExecutable<TEntityType> q => q.WithSource(sort(q.Source)),
+            IQueryableExecutable<TEntityType> q => q.WithSource(sort(q.Source)),
+            _ => input,
+        };
+
+    private object? ApplyPostActionToResult<TEntityType>(
+        object? input,
+        bool sortingApplied,
+        PostSortingAction<IQueryable<TEntityType>> postAction)
+        => input switch
+        {
+            IQueryable<TEntityType> q => postAction(sortingApplied, q),
+            IEnumerable<TEntityType> q => postAction(sortingApplied, q.AsQueryable()),
+            IQueryableExecutable<TEntityType> q => q.WithSource(postAction(sortingApplied, q.Source)),
             _ => input,
         };
 
@@ -175,15 +193,19 @@ public class QueryableSortProvider : SortProvider<QueryableSortContext>
 
             // if no sort is defined we can stop here and yield back control.
             var skipSorting = context.GetLocalStateOrDefault<bool>(SkipSortingKey);
-            
+            var postSortingAction = context.GetLocalStateOrDefault<PostSortingAction<IQueryable<TEntityType>>?>(PostSortingActionKey);
+
             // ensure sorting is only applied once
             context.SetLocalState(SkipSortingKey, true);
 
             if (sort.IsNull() || skipSorting)
             {
-                return input;
+                return postSortingAction is not null
+                    ? ApplyPostActionToResult(input, false, postSortingAction)
+                    : input;
             }
 
+            var sortingIsDefined = false;
             if (argument.Type is ListType lt &&
                 lt.ElementType is NonNullType nn &&
                 nn.NamedType() is ISortInputType sortInput &&
@@ -198,15 +220,24 @@ public class QueryableSortProvider : SortProvider<QueryableSortContext>
                 if (visitorContext.Errors.Count == 0)
                 {
                     input = ApplyToResult<TEntityType>(input, q => visitorContext.Sort(q));
+                    sortingIsDefined = true;
                 }
                 else
                 {
-                    input = Array.Empty<TEntityType>();
+                    var exceptions = new List<GraphQLException>(visitorContext.Errors.Count);
+
                     foreach (var error in visitorContext.Errors)
                     {
-                        context.ReportError(error.WithPath(context.Path));
+                        exceptions.Add(new GraphQLException(error));
                     }
+
+                    throw new AggregateException(exceptions);
                 }
+            }
+
+            if (postSortingAction is not null)
+            {
+                input = ApplyPostActionToResult(input, sortingIsDefined, postSortingAction);
             }
 
             return input;

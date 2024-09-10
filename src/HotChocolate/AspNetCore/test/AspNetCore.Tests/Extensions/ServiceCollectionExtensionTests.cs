@@ -2,7 +2,7 @@ using HotChocolate.AspNetCore.Serialization;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
-public class ServiceCollectionExtensionTests
+public static class ServiceCollectionExtensionTests
 {
     [Fact]
     public static void AddHttpRequestSerializer_OfT()

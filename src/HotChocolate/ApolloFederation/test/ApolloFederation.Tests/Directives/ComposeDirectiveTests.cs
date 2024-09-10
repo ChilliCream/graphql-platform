@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Execution;
@@ -45,6 +44,7 @@ public class ComposeDirectiveTests
     [DirectiveType(DirectiveLocation.FieldDefinition)]
     public sealed class Custom;
 
+    [AttributeUsage(AttributeTargets.All, AllowMultiple = false)]
     public sealed class CustomDirectiveAttribute()
         : DirectiveAttribute<Custom>(new Custom());
 }

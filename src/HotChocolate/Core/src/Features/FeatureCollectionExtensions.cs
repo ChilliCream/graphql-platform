@@ -14,7 +14,7 @@ public static class FeatureCollectionExtensions
     /// <param name="featureCollection">The <see cref="IFeatureCollection"/>.</param>
     /// <typeparam name="TFeature">The feature key.</typeparam>
     /// <returns>The requested feature.</returns>
-    public static TFeature GetRequiredFeature<TFeature>(this IFeatureCollection featureCollection)
+    public static TFeature GetRequired<TFeature>(this IFeatureCollection featureCollection)
         where TFeature : notnull
     {
         if(featureCollection is null)
@@ -33,7 +33,7 @@ public static class FeatureCollectionExtensions
     /// <param name="featureCollection">feature collection</param>
     /// <param name="key">The feature key.</param>
     /// <returns>The requested feature.</returns>
-    public static object GetRequiredFeature(this IFeatureCollection featureCollection, Type key)
+    public static object GetRequired(this IFeatureCollection featureCollection, Type key)
     {
         if(featureCollection is null)
         {

@@ -4,9 +4,12 @@
     <PackageId>StrawberryShake.Transport.InMemory</PackageId>
     <AssemblyName>StrawberryShake.Transport.InMemory</AssemblyName>
     <RootNamespace>StrawberryShake.Transport.InMemory</RootNamespace>
-    <Nullable>enable</Nullable>
     <Description>Hot Chocolate in-memory connection for StrawberryShake GraphQL clients.</Description>
   </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="StrawberryShake.Transport.InMemory.Tests" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\HotChocolate\Core\src\Core\HotChocolate.Core.csproj" />

@@ -1,4 +1,3 @@
-using System;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -70,7 +69,7 @@ public class InputField : FieldBase, IInputField, IHasProperty
         ITypeSystemMember declaringMember,
         FieldDefinitionBase definition)
         => OnCompleteField(context, declaringMember, (InputFieldDefinition)definition);
-    
+
     protected virtual void OnCompleteField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,

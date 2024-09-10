@@ -979,7 +979,6 @@ public class RequestPlannerTests
         await snapshot.MatchMarkdownAsync();
     }
 
-
     [Fact]
     public async Task Query_Plan_25_Variables_Are_Passed_Through()
     {
@@ -1495,8 +1494,83 @@ public class RequestPlannerTests
         await snapshot.MatchMarkdownAsync();
     }
 
+    [Fact]
+    public async Task Query_Plan_36_Requires_CommonField_Multiple_Times()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
+            new[]
+            {
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+            },
+            new FusionFeatureCollection(FusionFeatures.NodeField));
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query Requires {
+                users {
+                  id
+                  username
+                  productConfigurationByUsername {
+                    id
+                  }
+                  productBookmarkByUsername {
+                    id
+                  }
+                }
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Query_Plan_37_Requires_CommonField_Once()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
+            new[]
+            {
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+            },
+            new FusionFeatureCollection(FusionFeatures.NodeField));
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query Requires {
+                users {
+                  id
+                  username
+                  productConfigurationByUsername {
+                    id
+                  }
+                }
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchMarkdownAsync();
+    }
+
     private static async Task<(DocumentNode UserRequest, Execution.Nodes.QueryPlan QueryPlan)> CreateQueryPlanAsync(
-        Skimmed.Schema fusionGraph,
+        Skimmed.SchemaDefinition fusionGraph,
         [StringSyntax("graphql")] string query)
     {
         var document = SchemaFormatter.FormatAsDocument(fusionGraph);
@@ -1522,11 +1596,12 @@ public class RequestPlannerTests
         var operationCompiler = new OperationCompiler(new());
         var operationDef = (OperationDefinitionNode)request.Definitions[0];
         var operation = operationCompiler.Compile(
-            "abc",
-            operationDef,
-            schema.GetOperationType(operationDef.Operation)!,
-            request,
-            schema);
+            new OperationCompilerRequest(
+                "abc",
+                request,
+                operationDef,
+                schema.GetOperationType(operationDef.Operation)!,
+                schema));
 
         var queryPlanner = new QueryPlanner(serviceConfig, schema);
         var queryPlan = queryPlanner.Plan(operation);

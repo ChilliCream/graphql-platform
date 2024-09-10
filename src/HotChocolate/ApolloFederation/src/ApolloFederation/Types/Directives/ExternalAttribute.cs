@@ -29,11 +29,30 @@ namespace HotChocolate.ApolloFederation.Types;
 /// }
 /// </example>
 /// </summary>
-public sealed class ExternalAttribute : ObjectFieldDescriptorAttribute
+[AttributeUsage(
+AttributeTargets.Class
+    | AttributeTargets.Struct
+    | AttributeTargets.Method
+    | AttributeTargets.Property)]
+public sealed class ExternalAttribute : DescriptorAttribute
 {
-    protected override void OnConfigure(
+    protected internal override void TryConfigure(
         IDescriptorContext context,
-        IObjectFieldDescriptor descriptor,
-        MemberInfo member)
-        => descriptor.External();
+        IDescriptor descriptor,
+        ICustomAttributeProvider element)
+    {
+        switch (descriptor)
+        {
+            case IObjectTypeDescriptor objectTypeDescriptor:
+            {
+                objectTypeDescriptor.External();
+                break;
+            }
+            case IObjectFieldDescriptor objectFieldDescriptor:
+            {
+                objectFieldDescriptor.External();
+                break;
+            }
+        }
+    }
 }

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using HotChocolate.Configuration.Validation;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -65,7 +63,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .AddQueryType<Query>()
             .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument("query($var: String!) { example(input: { a: $var, b: 123 }) }")
                     .SetVariableValues(new Dictionary<string, object?> { { "var", null }, })
                     .Build())
@@ -82,7 +80,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .AddQueryType<Query>()
             .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument("query($var: Int!) { example(input: { b: $var }) }")
                     .SetVariableValues(new Dictionary<string, object?> { { "var", 123 }, })
                     .Build())
@@ -99,7 +97,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .AddQueryType<Query>()
             .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument("query($var: ExampleInput!) { example(input: $var) }")
                     .SetVariableValues(
                         new Dictionary<string, object?>
@@ -120,7 +118,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .AddQueryType<Query>()
             .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument("{ example(input: \"abc123\") }")
                     .Build())
             .MatchSnapshotAsync();
@@ -138,7 +136,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .AddQueryType<Query>()
             .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument("query($var: String!) { example(input: $var) }")
                     .SetVariableValues(new Dictionary<string, object?> { { "var", "abc123" }, })
                     .Build())
@@ -198,7 +196,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .AddQueryType<Query>()
             .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument("query($var: Int!) { example(input: { b: $var }) }")
                     .Build())
             .MatchSnapshotAsync();
@@ -214,7 +212,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .AddQueryType<Query>()
             .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument("query($var: ExampleInput!) { example(input: $var) }")
                     .SetVariableValues(
                         new Dictionary<string, object?>
@@ -247,7 +245,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .AddQueryType<Query>()
             .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument("query($var: Int) { example(input: { b: $var }) }")
                     .SetVariableValues(new Dictionary<string, object?> { { "var", null }, })
                     .Build())
@@ -336,7 +334,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .Create()
             .Print()
             .MatchSnapshot();
-
 
     [Fact]
     public async Task Oneof_introspection()

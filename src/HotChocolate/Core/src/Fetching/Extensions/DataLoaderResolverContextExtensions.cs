@@ -1,6 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using GreenDonut;
 using GreenDonut.DependencyInjection;
 using HotChocolate.Fetching;
@@ -33,7 +30,7 @@ public static class DataLoaderResolverContextExtensions
     /// <returns>
     /// Returns the value for the requested key.
     /// </returns>
-    public static Task<TValue> BatchAsync<TKey, TValue>(
+    public static Task<TValue?> BatchAsync<TKey, TValue>(
         this IResolverContext context,
         FetchBatch<TKey, TValue> fetch,
         TKey key,
@@ -75,7 +72,7 @@ public static class DataLoaderResolverContextExtensions
         var services = context.RequestServices;
         var scope = services.GetRequiredService<IDataLoaderScope>();
         return scope.GetDataLoader(Create, name);
-        
+
         IDataLoader<TKey, TValue> Create(IServiceProvider sp)
             => new AdHocBatchDataLoader<TKey, TValue>(
                 name ?? "default",
@@ -105,7 +102,7 @@ public static class DataLoaderResolverContextExtensions
     /// <returns>
     /// Returns the value for the requested key.
     /// </returns>
-    public static Task<TValue[]> GroupAsync<TKey, TValue>(
+    public static Task<TValue[]?> GroupAsync<TKey, TValue>(
         this IResolverContext context,
         FetchGroup<TKey, TValue> fetch,
         TKey key,
@@ -177,7 +174,7 @@ public static class DataLoaderResolverContextExtensions
     /// <returns>
     /// Returns the value for the requested key.
     /// </returns>
-    public static Task<TValue> CacheAsync<TKey, TValue>(
+    public static Task<TValue?> CacheAsync<TKey, TValue>(
         this IResolverContext context,
         FetchCache<TKey, TValue> fetch,
         TKey key,
@@ -212,13 +209,13 @@ public static class DataLoaderResolverContextExtensions
                 services.GetRequiredService<DataLoaderOptions>());
     }
 
-    public static Task<TValue> CacheAsync<TValue>(
+    public static Task<TValue?> CacheAsync<TValue>(
         this IResolverContext context,
         Func<CancellationToken, Task<TValue>> fetch,
         string? name = null)
         => FetchOnceAsync(context, fetch, name);
 
-    public static Task<TValue> FetchOnceAsync<TValue>(
+    public static Task<TValue?> FetchOnceAsync<TValue>(
         this IResolverContext context,
         Func<CancellationToken, Task<TValue>> fetch,
         string? name = null)

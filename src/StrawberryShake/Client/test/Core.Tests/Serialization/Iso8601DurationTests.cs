@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace StrawberryShake.Serialization
 {
     public class Iso8601DurationTests

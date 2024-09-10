@@ -529,4 +529,32 @@ public class SchemaGeneratorTests
             "extend schema @key(fields: \"id\")",
             FileResource.Open("HasuraSchema.graphql"));
     }
+
+    [Fact]
+    public void EnumWithUnderscorePrefixedValues()
+    {
+        AssertResult(
+            """
+            schema {
+                query: Query
+            }
+
+            type Query {
+                field1: Enum1
+            }
+
+            enum Enum1 {
+                _a   # -> "_A"
+                _a_b # -> "_AB"
+                _1   # -> "_1"
+                _1_2 # -> "_12"
+                __2  # -> "_2"
+            }
+            """,
+            """
+            query GetField1 {
+                field1
+            }
+            """);
+    }
 }

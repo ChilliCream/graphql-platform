@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using SyntaxVisitor = HotChocolate.Language.Visitors.SyntaxVisitor;

@@ -4,7 +4,6 @@
     <AssemblyName>HotChocolate.Subscriptions.Postgres.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Subscriptions.Postgres</RootNamespace>
     <TargetFrameworks>net7.0;net8.0</TargetFrameworks>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Squadron.PostgreSql" Version="0.18.0-preview.6" />
+    <PackageReference Include="Squadron.PostgreSql" />
   </ItemGroup>
 
 </Project>

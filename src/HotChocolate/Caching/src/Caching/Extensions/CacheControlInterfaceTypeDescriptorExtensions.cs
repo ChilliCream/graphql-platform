@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Caching;
 
 namespace HotChocolate.Types;

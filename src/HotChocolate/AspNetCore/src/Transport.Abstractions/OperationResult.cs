@@ -1,6 +1,5 @@
-using System;
 using System.Text.Json;
-using static HotChocolate.Transport.Properties.TransportAbstractionResoucrces;
+using static HotChocolate.Transport.Properties.TransportAbstractionResources;
 using static HotChocolate.Transport.Serialization.Utf8GraphQLResultProperties;
 
 namespace HotChocolate.Transport;
@@ -126,4 +125,3 @@ public sealed class OperationResult : IDisposable
             root.TryGetProperty(VariableIndexProp, out var variableIndex) ? variableIndex.GetInt32() : null);
     }
 }
-

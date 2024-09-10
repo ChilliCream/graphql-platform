@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using GreenDonut;
 
 namespace HotChocolate.Fetching;
@@ -25,6 +21,6 @@ internal sealed class AdHocBatchDataLoader<TKey, TValue> : BatchDataLoader<TKey,
 
     protected override Task<IReadOnlyDictionary<TKey, TValue>> LoadBatchAsync(
         IReadOnlyList<TKey> keys,
-        CancellationToken cancellationToken) 
+        CancellationToken cancellationToken)
         => _fetch(keys, cancellationToken);
 }

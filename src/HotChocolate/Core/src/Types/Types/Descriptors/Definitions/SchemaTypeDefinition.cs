@@ -1,11 +1,10 @@
-using System;
-using System.Collections.Generic;
+using HotChocolate.Features;
 
 #nullable enable
 
 namespace HotChocolate.Types.Descriptors.Definitions;
 
-public class SchemaTypeDefinition : DefinitionBase
+public class SchemaTypeDefinition : DefinitionBase, IFeatureProvider
 {
     private List<DirectiveDefinition>? _directives;
 
@@ -20,6 +19,8 @@ public class SchemaTypeDefinition : DefinitionBase
     /// </summary>
     internal bool HasDirectives => _directives is { Count: > 0, };
 
+    public IFeatureCollection Features { get; } = new FeatureCollection();
+
     /// <summary>
     /// Gets the list of directives that are annotated to this schema.
     /// </summary>
@@ -32,8 +33,8 @@ public class SchemaTypeDefinition : DefinitionBase
 
         return _directives;
     }
-    
-    internal IHasDirectiveDefinition GetLegacyDefinition() 
+
+    internal IHasDirectiveDefinition GetLegacyDefinition()
         => new CompatibilityLayer(this);
 
     private class CompatibilityLayer(SchemaTypeDefinition definition) : IHasDirectiveDefinition

@@ -1,7 +1,4 @@
-using System;
 using System.IO.Pipelines;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace StrawberryShake.Transport.WebSockets;
 
@@ -12,9 +9,9 @@ namespace StrawberryShake.Transport.WebSockets;
 public interface ISocketClient : IAsyncDisposable
 {
     /// <summary>
-    /// An event that is called when the message receiving cycle stoped
+    /// An event that is called when the message receiving cycle stopped
     /// </summary>
-    event EventHandler ReceiveFinished;
+    event EventHandler OnConnectionClosed;
 
     /// <summary>
     /// The URI where the socket should connect to

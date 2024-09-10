@@ -11,12 +11,9 @@ using static HotChocolate.StarWars.Types.Subscriptions;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubCompletion
 {
-    public class StarWarsOnReviewSubCompletionTest : ServerTestBase
+    public class StarWarsOnReviewSubCompletionTest(TestServerFactory serverFactory)
+        : ServerTestBase(serverFactory)
     {
-        public StarWarsOnReviewSubCompletionTest(TestServerFactory serverFactory) : base(serverFactory)
-        {
-        }
-
         [Fact]
         public async Task Watch_StarWarsOnReviewSubCompletion_Test()
         {
@@ -52,7 +49,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubC
             {
                 await topicEventSender.SendAsync(
                     $"{OnReview}_{topic}",
-                    new Review { Stars = 1, Commentary = "Commentary", });
+                    new Review(stars: 1, commentary: "Commentary"));
                 await Task.Delay(1_000);
             }
 
@@ -111,7 +108,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubC
             {
                 await topicEventSender.SendAsync(
                     $"{OnReview}_{topic}",
-                    new Review { Stars = 1, Commentary = "Commentary", });
+                    new Review(stars: 1, commentary: "Commentary"));
                 await Task.Delay(1_000);
             }
 

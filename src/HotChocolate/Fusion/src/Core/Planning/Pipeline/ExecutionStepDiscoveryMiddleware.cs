@@ -602,7 +602,6 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                     ? PreferredResolverKind.Batch
                     : PreferredResolverKind.Query;
 
-
     private static bool TryGetResolver(
         ObjectFieldInfo fieldInfo,
         string schemaName,

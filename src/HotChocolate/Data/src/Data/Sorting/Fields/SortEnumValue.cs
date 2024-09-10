@@ -27,7 +27,7 @@ public sealed class SortEnumValue : ISortEnumValue
                 DataResources.SortEnumValue_ValueIsNull,
                 nameof(enumValueDefinition));
         }
-        
+
         Name = !string.IsNullOrEmpty(enumValueDefinition.Name)
             ? enumValueDefinition.Name
             : enumValueDefinition.Value.ToString()!;

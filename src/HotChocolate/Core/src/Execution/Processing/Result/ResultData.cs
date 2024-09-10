@@ -1,7 +1,3 @@
-#nullable enable
-
-using System;
-
 namespace HotChocolate.Execution.Processing;
 
 /// <summary>
@@ -32,12 +28,12 @@ public abstract class ResultData
     /// non-null propagation.
     /// </summary>
     public uint PatchId { get; set; }
-    
+
     /// <summary>
     /// Gets an internal patch path that specifies from where this result was branched of.
     /// </summary>
     protected internal Path? PatchPath { get; set; }
-    
+
     /// <summary>
     /// Connects this result to the parent result.
     /// </summary>
@@ -53,7 +49,7 @@ public abstract class ResultData
         {
             throw new ArgumentOutOfRangeException(nameof(index));
         }
-        
+
         Parent = parent ?? throw new ArgumentNullException(nameof(parent));
         ParentIndex = index;
     }

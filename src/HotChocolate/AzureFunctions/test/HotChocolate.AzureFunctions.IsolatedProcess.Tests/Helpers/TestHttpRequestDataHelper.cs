@@ -1,4 +1,3 @@
-using System;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Functions.Worker.Http;
 using static HotChocolate.AzureFunctions.Tests.Helpers.TestHttpContextHelper;
@@ -7,7 +6,7 @@ using IO = System.IO;
 
 namespace HotChocolate.AzureFunctions.IsolatedProcess.Tests.Helpers;
 
-public class TestHttpRequestDataHelper
+public static class TestHttpRequestDataHelper
 {
     public static HttpRequestData NewGraphQLHttpRequestData(
         IServiceProvider serviceProvider,

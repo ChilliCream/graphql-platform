@@ -8,8 +8,6 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
     <TargetFrameworks>$(Library2TargetFrameworks)</TargetFrameworks>
   </PropertyGroup>
 
@@ -23,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AlterNats.Hosting" Version="1.0.6" />
+    <PackageReference Include="AlterNats.Hosting" />
   </ItemGroup>
 
   <ItemGroup>

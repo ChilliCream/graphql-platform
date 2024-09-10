@@ -287,3 +287,5 @@ type Bar {
 ```
 
 Compared to the generic descriptor interface you are loosing the generic field descriptor that is able to bind a field to a .NET property or method.
+
+<!-- spell-checker:ignore amet, consectetur, adipiscing, elit -->

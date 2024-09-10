@@ -126,7 +126,7 @@ You first need to add the new `HotChocolate.Data` package to the project.
 It is also required to register filtering on the schema builder:
 
 ```csharp
-public void ConfigureServcies(IServiceCollection services) {
+public void ConfigureServices(IServiceCollection services) {
     services.AddGraphQLServer()
         .AddQueryType<Query>()
         .AddFiltering();
@@ -247,7 +247,7 @@ public static class ObjectFieldDescriptorExtensions
 
 public class ExampleObjectType : ObjectType<Foo> {
     protected override void Configure(IObjectTypeDescriptor<Foo> descriptor){
-        descriptor.Field(x => x.AvaiableForAll);
+        descriptor.Field(x => x.AvailableForAll);
         descriptor.Field(x => x.OnlyForAdmins).IsAdmin();
     }
 }

@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 using HotChocolate.Execution;
@@ -23,7 +21,7 @@ public class CustomResolverCompilerTests
             .AddQueryType<QueryWellKnownState>()
             .AddParameterExpressionBuilder(ctx => (SayHelloState)ctx.ContextData["someState"]!)
             .ExecuteRequestAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument("{ sayHello }")
                     .AddGlobalState("someState", new SayHelloState("Hello"))
                     .Build())

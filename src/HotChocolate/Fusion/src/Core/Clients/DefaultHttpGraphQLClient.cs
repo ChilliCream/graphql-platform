@@ -7,7 +7,6 @@ namespace HotChocolate.Fusion.Clients;
 
 internal sealed class DefaultHttpGraphQLClient : IGraphQLClient
 {
-    private static readonly GraphQLResponse _transportError = new(CreateTransportError());
     private readonly HttpClientConfiguration _config;
     private readonly DefaultGraphQLHttpClient _client;
 
@@ -19,7 +18,7 @@ internal sealed class DefaultHttpGraphQLClient : IGraphQLClient
         {
             throw new ArgumentNullException(nameof(httpClient));
         }
-        
+
         _config = configuration ?? throw new ArgumentNullException(nameof(configuration));
         _client = new DefaultGraphQLHttpClient(httpClient);
     }
@@ -46,23 +45,15 @@ internal sealed class DefaultHttpGraphQLClient : IGraphQLClient
             {
                 request.EnableFileUploads = true;
             }
-            
+
             using var response = await _client.SendAsync(request, ct).ConfigureAwait(false);
             var result = await response.ReadAsResultAsync(ct).ConfigureAwait(false);
             return new GraphQLResponse(result);
         }
-        catch
+        catch (Exception exception)
         {
-            return _transportError;
+            return new GraphQLResponse(exception);
         }
-    }
-
-    private static JsonElement CreateTransportError()
-    {
-        return JsonDocument.Parse(
-            """
-            [{"message": "Internal Execution Error"}]
-            """).RootElement;
     }
 
     public ValueTask DisposeAsync()

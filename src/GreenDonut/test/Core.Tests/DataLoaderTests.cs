@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
@@ -39,12 +34,12 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        var cache = new TaskCache(10);
+        var cache = new PromiseCache(10);
         var options = new DataLoaderOptions { Cache = cache, };
         var loader = new DataLoader<string, string>(fetch, batchScheduler, options);
 
-        loader.Set("Foo", Task.FromResult("Bar"));
-        loader.Set("Bar", Task.FromResult("Baz"));
+        loader.Set("Foo", Task.FromResult<string?>("Bar"));
+        loader.Set("Bar", Task.FromResult<string?>("Baz"));
 
         // act
         loader.Clear();
@@ -62,7 +57,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         var loader = new DataLoader<string, string>(fetch, batchScheduler);
 
         // act
-        Task<string> Verify() => loader.LoadAsync(default(string)!, CancellationToken.None);
+        Task<string?> Verify() => loader.LoadAsync(default(string)!, CancellationToken.None);
 
         // assert
         await Assert.ThrowsAsync<ArgumentNullException>("key", Verify);
@@ -135,12 +130,10 @@ public class DataLoaderTests(ITestOutputHelper output)
         var key = "Foo";
 
         // act
-        Task<string> Verify() => loader.LoadAsync(key, CancellationToken.None);
+        Task<string?> Verify() => loader.LoadAsync(key, CancellationToken.None);
 
         // assert
-        var task = Assert
-            .ThrowsAsync<InvalidOperationException>((Func<Task<string>>)Verify);
-
+        var task = Assert.ThrowsAsync<InvalidOperationException>(Verify);
         await Task.Delay(25);
         batchScheduler.Dispatch();
 
@@ -156,10 +149,10 @@ public class DataLoaderTests(ITestOutputHelper output)
         var loader = new DataLoader<string, string>(fetch, batchScheduler);
 
         // act
-        Task<IReadOnlyList<string>> Verify() => loader.LoadAsync(default(string[])!);
+        Task<IReadOnlyList<string?>> Verify() => loader.LoadAsync(default(string[])!);
 
         // assert
-        await Assert.ThrowsAsync<ArgumentNullException>("keys", (Func<Task<IReadOnlyList<string>>>)Verify);
+        await Assert.ThrowsAsync<ArgumentNullException>("keys", Verify);
     }
 
     [Fact(DisplayName = "LoadAsync: Should allow empty list of keys")]
@@ -208,7 +201,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         var loader = new DataLoader<string, string>(fetch, batchScheduler);
 
         // act
-        Task<IReadOnlyList<string>> Verify()
+        Task<IReadOnlyList<string?>> Verify()
             => loader.LoadAsync(default(List<string>)!, CancellationToken.None);
 
         // assert
@@ -293,7 +286,7 @@ public class DataLoaderTests(ITestOutputHelper output)
     public async Task LoadWithNullValues()
     {
         // arrange
-        var repository = new Dictionary<string, string>
+        var repository = new Dictionary<string, string?>
         {
             { "Foo", "Bar" },
             { "Bar", null },
@@ -303,7 +296,7 @@ public class DataLoaderTests(ITestOutputHelper output)
 
         ValueTask Fetch(
             IReadOnlyList<string> keys,
-            Memory<Result<string>> results,
+            Memory<Result<string?>> results,
             CancellationToken cancellationToken)
         {
             var span = results.Span;
@@ -320,7 +313,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         }
 
         var batchScheduler = new ManualBatchScheduler();
-        var loader = new DataLoader<string, string>(Fetch, batchScheduler);
+        var loader = new DataLoader<string, string?>(Fetch, batchScheduler);
         var requestKeys = new[] { "Foo", "Bar", "Baz", "Qux", };
 
         // act
@@ -348,7 +341,7 @@ public class DataLoaderTests(ITestOutputHelper output)
 
         ValueTask Fetch(
             IReadOnlyList<string> keys,
-            Memory<Result<string>> results,
+            Memory<Result<string?>> results,
             CancellationToken cancellationToken)
         {
             var span = results.Span;
@@ -382,7 +375,6 @@ public class DataLoaderTests(ITestOutputHelper output)
         Assert.Equal(expectedException.Message, actualException.Message);
     }
 
-
     [Fact(DisplayName = "LoadAsync: Should handle batching error")]
     public async Task LoadBatchingError()
     {
@@ -394,7 +386,7 @@ public class DataLoaderTests(ITestOutputHelper output)
 
         ValueTask Fetch(
             IReadOnlyList<string> keys,
-            Memory<Result<string>> results,
+            Memory<Result<string?>> results,
             CancellationToken cancellationToken)
             => throw expectedException;
 
@@ -452,10 +444,10 @@ public class DataLoaderTests(ITestOutputHelper output)
 
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         var ct = cts.Token;
-        using var cacheOwner = caching 
-            ? new TaskCacheOwner()
+        using var cacheOwner = caching
+            ? new PromiseCacheOwner()
             : null;
-        
+
         var options = new DataLoaderOptions
         {
             Cache = cacheOwner?.Cache,
@@ -516,7 +508,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         var batchScheduler = new ManualBatchScheduler();
         var loader = new DataLoader<string, string>(fetch, batchScheduler);
 
-        loader.Set("Foo", Task.FromResult("Bar"));
+        loader.Set("Foo", Task.FromResult<string?>("Bar"));
 
         // act
         void Verify() => loader.Remove(default!);
@@ -547,12 +539,12 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        var cache = new TaskCache(10);
+        var cache = new PromiseCache(10);
         var options = new DataLoaderOptions { Cache = cache, };
         var loader = new DataLoader<string, string>(fetch, batchScheduler, options);
         var key = "Foo";
 
-        loader.Set(key, Task.FromResult("Bar"));
+        loader.Set(key, Task.FromResult<string?>("Bar"));
 
         // act
         loader.Remove(key);
@@ -568,7 +560,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
         var loader = new DataLoader<string, string>(fetch, batchScheduler);
-        var value = Task.FromResult("Foo");
+        var value = Task.FromResult<string?>("Foo");
 
         // act
         void Verify() => loader.Set(null!, value);
@@ -599,11 +591,11 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        var cache = new TaskCache(10);
+        var cache = new PromiseCache(10);
         var options = new DataLoaderOptions { Cache = cache, };
         var loader = new DataLoader<string, string>(fetch, batchScheduler, options);
         var key = "Foo";
-        var value = Task.FromResult("Bar");
+        var value = Task.FromResult<string?>("Bar");
 
         // act
         loader.Set(key, value);
@@ -618,12 +610,12 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        var cache = new TaskCache(10);
+        var cache = new PromiseCache(10);
         var options = new DataLoaderOptions { Cache = cache, };
         var loader = new DataLoader<string, string>(fetch, batchScheduler, options);
         var key = "Foo";
-        var first = Task.FromResult("Bar");
-        var second = Task.FromResult("Baz");
+        var first = Task.FromResult<string?>("Bar");
+        var second = Task.FromResult<string?>("Baz");
 
         // act
         loader.Set(key, first);
@@ -642,7 +634,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
 
         // act
-        Task<object> Verify() => loader.LoadAsync(default(object)!);
+        Task<object?> Verify() => loader.LoadAsync(default(object)!);
 
         // assert
         await Assert.ThrowsAsync<ArgumentNullException>("key", Verify);
@@ -676,7 +668,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         object key = "Foo";
 
         // act
-        Task<object> Verify() => loader.LoadAsync(key);
+        Task<object?> Verify() => loader.LoadAsync(key);
 
         // assert
         var task =
@@ -697,7 +689,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
 
         // act
-        Task<IReadOnlyList<object>> Verify() => loader.LoadAsync(default(object[])!);
+        Task<IReadOnlyList<object?>> Verify() => loader.LoadAsync(default(object[])!);
 
         // assert
         await Assert.ThrowsAsync<ArgumentNullException>("keys", Verify);
@@ -746,7 +738,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
 
         // act
-        Task<IReadOnlyList<object>> Verify()
+        Task<IReadOnlyList<object?>> Verify()
             => loader.LoadAsync(default(List<object>)!);
 
         // assert
@@ -795,7 +787,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         var batchScheduler = new ManualBatchScheduler();
         IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
 
-        loader.Set("Foo", Task.FromResult((object)"Bar"));
+        loader.Set("Foo", Task.FromResult((object?)"Bar"));
 
         // act
         void Verify() => loader.Remove(null!);
@@ -826,12 +818,12 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        var cache = new TaskCache(10);
+        var cache = new PromiseCache(10);
         var options = new DataLoaderOptions { Cache = cache, };
         IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler, options);
         object key = "Foo";
 
-        loader.Set(key, Task.FromResult((object)"Bar"));
+        loader.Set(key, Task.FromResult((object?)"Bar"));
 
         // act
         loader.Remove(key);
@@ -847,7 +839,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
         IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
-        var value = Task.FromResult<object>("Foo");
+        var value = Task.FromResult<object?>("Foo");
 
         // act
         void Verify() => loader.Set(null!, value);
@@ -880,7 +872,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         var batchScheduler = new ManualBatchScheduler();
         IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
         object key = "Foo";
-        var value = Task.FromResult<object>("Bar");
+        var value = Task.FromResult<object?>("Bar");
 
         // act
         void Verify() => loader.Set(key, value);
@@ -895,11 +887,11 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        var cache = new TaskCache(10);
+        var cache = new PromiseCache(10);
         var options = new DataLoaderOptions { Cache = cache, };
         IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler, options);
         object key = "Foo";
-        var value = Task.FromResult<object>("Bar");
+        var value = Task.FromResult<object?>("Bar");
 
         // act
         loader.Set(key, value);
@@ -912,14 +904,14 @@ public class DataLoaderTests(ITestOutputHelper output)
     public void IDataLoaderSetTwice()
     {
         // arrange
-        var fetch = TestHelpers.CreateFetch<string, string>();
+        var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        var cache = new TaskCache(10);
+        var cache = new PromiseCache(10);
         var options = new DataLoaderOptions { Cache = cache, };
         IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler, options);
         const string key = "Foo";
-        var first = Task.FromResult((object)"Bar");
-        var second = Task.FromResult((object)"Baz");
+        var first = Task.FromResult((object?)"Bar");
+        var second = Task.FromResult((object?)"Baz");
 
         // act
         loader.Set(key, first);
@@ -927,5 +919,83 @@ public class DataLoaderTests(ITestOutputHelper output)
 
         // assert
         Assert.Equal(1, cache.Usage);
+    }
+
+    [Fact]
+    public async Task Add_Additional_Lookup_With_CacheObserver()
+    {
+        // arrange
+        var cache = new PromiseCache(10);
+
+        var dataLoader1 = new TestDataLoader1(
+            new AutoBatchScheduler(),
+            new DataLoaderOptions { Cache = cache });
+        var entity1 = await dataLoader1.LoadAsync(1, CancellationToken.None);
+        await Task.Delay(500);
+
+        // act
+        var dataLoader2 = new TestDataLoader2(
+            new AutoBatchScheduler(),
+            new DataLoaderOptions { Cache = cache });
+        var entity2 = await dataLoader2.LoadAsync(2, CancellationToken.None);
+
+        // assert
+        Assert.Same(entity1, entity2);
+    }
+
+    private class TestDataLoader1(
+        IBatchScheduler batchScheduler,
+        DataLoaderOptions? options = null)
+        : DataLoaderBase<int, Entity>(batchScheduler, options)
+    {
+        protected internal override ValueTask FetchAsync(
+            IReadOnlyList<int> keys,
+            Memory<Result<Entity?>> results,
+            DataLoaderFetchContext<Entity> context,
+            CancellationToken cancellationToken)
+        {
+            for (var i = 0; i < keys.Count; i++)
+            {
+                var key = keys[i];
+                results.Span[i] = new Entity { Id = key, OtherId = key + 1 };
+            }
+
+            return default;
+        }
+    }
+
+    private class TestDataLoader2 : DataLoaderBase<int, Entity>
+    {
+        public TestDataLoader2(
+            IBatchScheduler batchScheduler,
+            DataLoaderOptions? options = null)
+            : base(batchScheduler, options)
+        {
+            PromiseCacheObserver
+                .Create(value => value.OtherId, this)
+                .Accept(this);
+        }
+
+        protected internal override ValueTask FetchAsync(
+            IReadOnlyList<int> keys,
+            Memory<Result<Entity?>> results,
+            DataLoaderFetchContext<Entity> context,
+            CancellationToken cancellationToken)
+        {
+            for (var i = 0; i < keys.Count; i++)
+            {
+                var key = keys[i];
+                results.Span[i] = new Entity { Id = key + 1, OtherId = key };
+            }
+
+            return default;
+        }
+    }
+
+    public class Entity
+    {
+        public int Id { get; set; }
+
+        public int OtherId { get; set; }
     }
 }

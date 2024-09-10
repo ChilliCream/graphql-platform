@@ -1,7 +1,11 @@
+using System.Net;
 using System.Text.Json;
 using CookieCrumble;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Language;
+using HotChocolate.Types;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.AspNetCore.Tests.Utilities.TestServerExtensions;
 
 namespace HotChocolate.Transport.Http.Tests;
@@ -10,6 +14,82 @@ public class GraphQLHttpClientTests : ServerTestBase
 {
     /// <inheritdoc />
     public GraphQLHttpClientTests(TestServerFactory serverFactory) : base(serverFactory) { }
+
+    [Fact]
+    public async Task Post_Http_200_Wrong_Content_Type()
+    {
+        // arrange
+        var httpClient = new HttpClient(new CustomHttpClientHandler(HttpStatusCode.OK));
+
+        var query =
+            """
+            query {
+              hero(episode: JEDI) {
+                name
+              }
+            }
+            """;
+
+        var client = new DefaultGraphQLHttpClient(httpClient);
+
+        // act
+        var response = await client.PostAsync(query, "http://localhost:5000/graphql");
+
+        async Task Error() => await response.ReadAsResultAsync();
+
+        // assert
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(Error);
+        Assert.Equal("Received a successful response with an unexpected content type.", exception.Message);
+    }
+
+    [Fact]
+    public async Task Post_Http_404_Wrong_Content_Type()
+    {
+        var httpClient = new HttpClient(new CustomHttpClientHandler(HttpStatusCode.NotFound));
+
+        var query =
+            """
+            query {
+              hero(episode: JEDI) {
+                name
+              }
+            }
+            """;
+
+        var client = new DefaultGraphQLHttpClient(httpClient);
+
+        // act
+        var response = await client.PostAsync(query, "http://localhost:5000/graphql");
+
+        async Task Error() => await response.ReadAsResultAsync();
+
+        // assert
+        await Assert.ThrowsAsync<HttpRequestException>(Error);
+    }
+
+    [Fact]
+    public async Task Post_Transport_Error()
+    {
+        var httpClient = new HttpClient(new CustomHttpClientHandler());
+
+        var query =
+            """
+            query {
+              hero(episode: JEDI) {
+                name
+              }
+            }
+            """;
+
+        var client = new DefaultGraphQLHttpClient(httpClient);
+
+        // act
+        async Task Error() => await client.PostAsync(query, "http://localhost:5000/graphql");
+
+        // assert
+        var exception = await Assert.ThrowsAsync<Exception>(Error);
+        Assert.Equal("Something went wrong", exception.Message);
+    }
 
     [Fact]
     public async Task Post_GraphQL_Query_With_RequestUri()
@@ -642,6 +722,55 @@ public class GraphQLHttpClientTests : ServerTestBase
     }
 
     [Fact]
+    public async Task Get_Subscription_Over_SSE_With_Errors()
+    {
+        // arrange
+        var snapshot = new Snapshot();
+
+        using var cts = TestEnvironment.CreateCancellationTokenSource();
+        using var server = ServerFactory.Create(
+            services => services
+                .AddRouting()
+                .AddHttpResponseFormatter()
+                .AddGraphQLServer()
+                .AddQueryType(desc =>
+                {
+                    desc.Name("Query");
+
+                    desc.Field("foo")
+                        .Type<StringType>()
+                        .Resolve(_ => new ValueTask<object?>("bar"));
+                })
+                .AddSubscriptionType<ErrorSubscription>(),
+            app => app
+                .UseRouting()
+                .UseEndpoints(e => e.MapGraphQL()));
+
+        var httpClient = server.CreateClient();
+        httpClient.BaseAddress = new Uri(CreateUrl("/graphql"));
+
+        const string subscriptionRequest =
+            """
+            subscription {
+              onError
+            }
+            """;
+
+        var client = new DefaultGraphQLHttpClient(httpClient);
+
+        // act
+        var subscriptionResponse = await client.PostAsync(subscriptionRequest, cts.Token);
+
+        // assert
+        await foreach (var result in subscriptionResponse.ReadAsResultStreamAsync(cts.Token))
+        {
+            snapshot.Add(result);
+        }
+
+        await snapshot.MatchMarkdownAsync(cts.Token);
+    }
+
+    [Fact]
     public async Task Post_GraphQL_FileUpload()
     {
         // arrange
@@ -724,5 +853,38 @@ public class GraphQLHttpClientTests : ServerTestBase
             """
             Data: {"singleUpload":"abc"}
             """);
+    }
+
+    private class CustomHttpClientHandler(HttpStatusCode? httpStatusCode = null) : HttpClientHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            if (httpStatusCode.HasValue)
+            {
+                return Task.FromResult(new HttpResponseMessage(httpStatusCode.Value));
+            }
+
+            throw new Exception("Something went wrong");
+        }
+    }
+
+    public class ErrorSubscription
+    {
+        public async IAsyncEnumerable<string> CreateStream()
+        {
+            yield return "hello1";
+
+            yield return "hello2";
+
+            await Task.Delay(1000);
+
+            throw new Exception("Boom!");
+        }
+
+        [Subscribe(With = nameof(CreateStream))]
+        public string OnError([EventMessage] string message)
+            => message;
     }
 }

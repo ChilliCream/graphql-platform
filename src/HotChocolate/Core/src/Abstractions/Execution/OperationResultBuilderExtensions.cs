@@ -1,6 +1,3 @@
-using System;
-using System.Security.Claims;
-
 namespace HotChocolate.Execution;
 
 /// <summary>

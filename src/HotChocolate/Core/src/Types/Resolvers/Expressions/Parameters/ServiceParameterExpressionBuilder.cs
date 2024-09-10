@@ -13,6 +13,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters;
 /// </summary>
 internal sealed class ServiceParameterExpressionBuilder
     : IParameterExpressionBuilder
+    , IParameterBindingFactory
 {
     public ArgumentKind Kind => ArgumentKind.Service;
 
@@ -27,6 +28,7 @@ internal sealed class ServiceParameterExpressionBuilder
     {
 #if NET8_0_OR_GREATER
         var attribute = context.Parameter.GetCustomAttribute<ServiceAttribute>()!;
+
         if (!string.IsNullOrEmpty(attribute.Key))
         {
             return ServiceExpressionHelper.Build(context.Parameter, context.ResolverContext, attribute.Key);
@@ -34,5 +36,41 @@ internal sealed class ServiceParameterExpressionBuilder
 
 #endif
         return ServiceExpressionHelper.Build(context.Parameter, context.ResolverContext);
+    }
+
+    public IParameterBinding Create(ParameterBindingContext context)
+#if NET8_0_OR_GREATER
+        => new ServiceParameterBinding(context.Parameter);
+#else
+        => new ServiceParameterBinding();
+#endif
+
+    private sealed class ServiceParameterBinding : IParameterBinding
+    {
+#if NET8_0_OR_GREATER
+        public ServiceParameterBinding(ParameterInfo parameter)
+        {
+            var attribute = parameter.GetCustomAttribute<ServiceAttribute>();
+            Key = attribute?.Key;
+        }
+
+        public string? Key { get; }
+#endif
+
+        public ArgumentKind Kind => ArgumentKind.Service;
+
+        public bool IsPure => true;
+
+        public T Execute<T>(IResolverContext context) where T : notnull
+        {
+#if NET8_0_OR_GREATER
+            if (Key is not null)
+            {
+                return context.Service<T>(Key)!;
+            }
+
+#endif
+            return context.Service<T>();
+        }
     }
 }

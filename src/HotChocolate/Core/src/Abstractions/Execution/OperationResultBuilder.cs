@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
 namespace HotChocolate.Execution;
 
 public sealed class OperationResultBuilder
@@ -18,7 +14,7 @@ public sealed class OperationResultBuilder
     private bool? _isDataSet;
     private int? _requestIndex;
     private int? _variableIndex;
-    private Func<ValueTask>[] _cleanupTasks = Array.Empty<Func<ValueTask>>();
+    private Func<ValueTask>[] _cleanupTasks = [];
 
     public OperationResultBuilder SetData(IReadOnlyDictionary<string, object?>? data)
     {

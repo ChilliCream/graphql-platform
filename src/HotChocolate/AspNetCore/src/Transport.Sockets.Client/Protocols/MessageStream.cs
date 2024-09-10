@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Immutable;
 
 namespace HotChocolate.Transport.Sockets.Client.Protocols;
@@ -59,18 +58,13 @@ internal sealed class MessageStream : IObservable<IOperationMessage>, IObserver<
         }
     }
 
-    private sealed class Subscription : IDisposable
+    private sealed class Subscription(IObserver<IOperationMessage> observer) : IDisposable
     {
         private bool _disposed;
 
         public event EventHandler? Disposed;
 
-        public Subscription(IObserver<IOperationMessage> observer)
-        {
-            Observer = observer;
-        }
-
-        public IObserver<IOperationMessage> Observer { get; }
+        public IObserver<IOperationMessage> Observer { get; } = observer;
 
         public void Dispose()
         {

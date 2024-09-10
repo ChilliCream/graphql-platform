@@ -258,7 +258,7 @@ descriptor
         await next(context);
 
         // It only makes sense to access the result after calling
-        // next(context), i.e. after the field resovler and any later
+        // next(context), i.e. after the field resolver and any later
         // middleware has finished executing.
         object? result = context.Result;
 

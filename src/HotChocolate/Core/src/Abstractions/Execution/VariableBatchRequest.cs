@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using static HotChocolate.Properties.AbstractionResources;
 
 namespace HotChocolate.Execution;
@@ -57,7 +55,7 @@ public sealed class VariableBatchRequest : IOperationRequest
         {
             throw new InvalidOperationException(OperationRequest_DocumentOrIdMustBeSet);
         }
-        
+
         Document = document;
         DocumentId = documentId;
         DocumentHash = documentHash;
@@ -68,7 +66,7 @@ public sealed class VariableBatchRequest : IOperationRequest
         Services = services;
         Flags = flags;
     }
-    
+
     /// <summary>
     /// Gets the GraphQL request document.
     /// </summary>
@@ -89,7 +87,7 @@ public sealed class VariableBatchRequest : IOperationRequest
     /// or, <c>null</c> if the document only contains a single operation.
     /// </summary>
     public string? OperationName { get; }
-    
+
     /// <summary>
     /// Gets a list of variable values for the GraphQL request.
     /// </summary>
@@ -99,7 +97,7 @@ public sealed class VariableBatchRequest : IOperationRequest
     /// Gets the GraphQL request extension data.
     /// </summary>
     public IReadOnlyDictionary<string, object?>? Extensions { get; }
-    
+
     /// <summary>
     /// Gets the initial request state.
     /// </summary>

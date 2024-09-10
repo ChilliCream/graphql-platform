@@ -51,7 +51,7 @@ Adding pagination capabilities to our fields is a breeze. All we have to do is a
 public class Query
 {
     [UsePaging]
-    public IEnumerable<User> GetUsers([Service] IUserRespository repository)
+    public IEnumerable<User> GetUsers([Service] IUserRepository repository)
         => repository.GetUsers();
 }
 ```
@@ -69,7 +69,7 @@ public class QueryType : ObjectType
             .UsePaging()
             .Resolve(context =>
             {
-                var repository = context.Service<IUserRespository>();
+                var repository = context.Service<IUserRepository>();
 
                 return repository.GetUsers();
             });
@@ -88,7 +88,7 @@ To make our life easier, we do not have to write out the _Connection_ types in o
 public class Query
 {
     [UsePaging]
-    public IEnumerable<User> GetUsers([Service] IUserRespository repository)
+    public IEnumerable<User> GetUsers([Service] IUserRepository repository)
         => repository.GetUsers();
 }
 
@@ -130,7 +130,7 @@ We can also specify a custom name for our _Connection_ like the following.
 public class Query
 {
     [UsePaging(ConnectionName = "CustomUsers")]
-    public IEnumerable<User> GetUsers([Service] IUserRespository repository)
+    public IEnumerable<User> GetUsers([Service] IUserRepository repository)
     {
         // Omitted code for brevity
     }
@@ -466,7 +466,7 @@ To add _offset-based_ pagination capabilities to our fields we have to add the `
 public class Query
 {
     [UseOffsetPaging]
-    public IEnumerable<User> GetUsers([Service] IUserRespository repository)
+    public IEnumerable<User> GetUsers([Service] IUserRepository repository)
         => repository.GetUsers();
 }
 ```
@@ -484,7 +484,7 @@ public class QueryType : ObjectType
             .UseOffsetPaging()
             .Resolve(context =>
             {
-                var repository = context.Service<IUserRespository>();
+                var repository = context.Service<IUserRepository>();
 
                 return repository.GetUsers();
             });

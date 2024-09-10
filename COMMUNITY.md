@@ -33,3 +33,5 @@ Various libraries, packages, etc. that developers can add to their own project a
 - [FairyBread](https://github.com/benmccallum/fairybread) - Input validation for HotChocolate (FluentValidation)
 - [FluentChoco](https://github.com/dalrankov/FluentChoco) - FluentValidation middleware for HotChocolate
 - [Graph.ArgumentValidator](https://github.com/VarunSaiTeja/Graph.ArgumentValidator) - Adds input argument validation to HotChocolate (DataAnnotations)
+
+<!-- spell-checker:ignore Choco, Cloudey -->

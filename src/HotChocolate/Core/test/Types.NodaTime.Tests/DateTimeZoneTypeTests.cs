@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Execution;
 using NodaTime;
 
@@ -57,7 +55,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void ParsesVariable()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation($arg: DateTimeZone!) { test(arg: $arg) }")
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", "Europe/Amsterdam" }, })
                     .Build());
@@ -68,19 +66,19 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void DoesntParseIncorrectVariable()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation($arg: DateTimeZone!) { test(arg: $arg) }")
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", "Europe/Hamster" }, })
                     .Build());
             Assert.Null(Assert.IsType<OperationResult>(result).Data);
-            Assert.Equal(1, Assert.IsType<OperationResult>(result).Errors!.Count);
+            Assert.Single(Assert.IsType<OperationResult>(result).Errors!);
         }
 
         [Fact]
         public void ParsesLiteral()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation { test(arg: \"Europe/Amsterdam\") }")
                     .Build());
             Assert.Equal("Europe/Amsterdam", Assert.IsType<OperationResult>(result).Data!["test"]);
@@ -90,11 +88,11 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void DoesntParseIncorrectLiteral()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation { test(arg: \"Europe/Hamster\") }")
                     .Build());
             Assert.Null(Assert.IsType<OperationResult>(result).Data);
-            Assert.Equal(1, Assert.IsType<OperationResult>(result).Errors!.Count);
+            Assert.Single(Assert.IsType<OperationResult>(result).Errors!);
             Assert.Null(Assert.IsType<OperationResult>(result).Errors!.First().Code);
             Assert.Equal(
                 "Unable to deserialize string to DateTimeZone",

@@ -30,6 +30,15 @@ public sealed class ReadOnlyFeatureCollection : IFeatureCollection
 #else
         _features = features.ToDictionary(t => t.Key, t => t.Value);
 #endif
+
+        foreach (var feature in _features.Values)
+        {
+            if (feature is ISealable sealable)
+            {
+                sealable.Seal();
+            }
+        }
+
         _containerRevision = features.Revision;
     }
 
@@ -42,7 +51,7 @@ public sealed class ReadOnlyFeatureCollection : IFeatureCollection
     /// <inheritdoc />
     public object? this[Type key]
     {
-        get => _features[key];
+        get => _features.TryGetValue(key, out var value) ? value : null;
         set => throw new NotSupportedException("The feature collection is read-only.");
     }
 
@@ -66,8 +75,8 @@ public sealed class ReadOnlyFeatureCollection : IFeatureCollection
     }
 
     /// <inheritdoc />
-    public void Set<TFeature>(TFeature? instance) =>
-        throw new NotSupportedException("The feature collection is read-only.");
+    public void Set<TFeature>(TFeature? instance)
+        => throw new NotSupportedException("The feature collection is read-only.");
 
     /// <inheritdoc />
     public IEnumerator<KeyValuePair<Type, object>> GetEnumerator() => _features.GetEnumerator();

@@ -1,5 +1,0 @@
-﻿input A @a @b(c: 1) {
-  b: String @a @b(c: 1)
-  c: [String!]! @a @b(c: 1)
-  d: Int = 1 @a @b(c: 1)
-}

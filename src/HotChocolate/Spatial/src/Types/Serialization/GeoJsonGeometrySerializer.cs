@@ -82,7 +82,6 @@ internal sealed class GeoJsonGeometrySerializer : IGeoJsonSerializer
             throw Serializer_Parse_ValueKindInvalid(type, valueSyntax.Kind);
         }
 
-
         return GetGeometrySerializer(type, (ObjectValueNode)valueSyntax)
             .ParseLiteral(type, valueSyntax);
     }

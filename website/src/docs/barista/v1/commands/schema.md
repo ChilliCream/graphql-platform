@@ -61,3 +61,5 @@ barista schema upload \
 - `--api-id <api-id>` **(required)**: Specifies the ID of the API to which you are uploading the schema. This ID can be retrieved with the `barista api list` command. You can set it from the environment variable `BARISTA_API_ID`.
 
 - `--api-key <api-key>`: Specifies the API key used for authentication. It doesn't have to be provided when you are logged in. Otherwise, it's the secret that `barista api-key create` returns. You can set it from the environment variable `BARISTA_API_KEY`.
+
+<!-- spell-checker:ignore Cmdi, Yjdh -->

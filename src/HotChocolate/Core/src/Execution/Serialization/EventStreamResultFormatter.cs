@@ -1,12 +1,8 @@
-using System;
 using System.Buffers;
-using System.Collections.Generic;
-using System.IO;
+using System.Diagnostics;
 using System.IO.Pipelines;
-using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Utilities;
+using static HotChocolate.Execution.Serialization.EventStreamResultFormatterEventSource;
 
 namespace HotChocolate.Execution.Serialization;
 
@@ -17,8 +13,7 @@ namespace HotChocolate.Execution.Serialization;
 public sealed class EventStreamResultFormatter : IExecutionResultFormatter
 {
     private readonly JsonResultFormatter _payloadFormatter;
-    private readonly JsonWriterOptions _options;
-    
+
     /// <summary>
     /// Initializes a new instance of <see cref="EventStreamResultFormatter"/>.
     /// </summary>
@@ -27,12 +22,11 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
     /// </param>
     public EventStreamResultFormatter(JsonResultFormatterOptions options)
     {
-        _options = options.CreateWriterOptions();
         _payloadFormatter = new JsonResultFormatter(options);
     }
 
     /// <summary>
-    /// Formats an <see cref="IExecutionResult"/> into a SSE stream.
+    /// Formats an <see cref="IExecutionResult"/> into an SSE stream.
     /// </summary>
     /// <param name="result"></param>
     /// <param name="outputStream"></param>
@@ -54,14 +48,14 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
         {
             throw new ArgumentNullException(nameof(outputStream));
         }
-        
+
         return result switch
         {
-            IOperationResult operationResult 
+            IOperationResult operationResult
                 => FormatOperationResultAsync(operationResult, outputStream, cancellationToken),
-            OperationResultBatch resultBatch 
+            OperationResultBatch resultBatch
                 => FormatResultBatchAsync(resultBatch, outputStream, cancellationToken),
-            IResponseStream responseStream 
+            IResponseStream responseStream
                 => FormatResponseStreamAsync(responseStream, outputStream, cancellationToken),
             _ => throw new NotSupportedException()
         };
@@ -72,13 +66,27 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
         Stream outputStream,
         CancellationToken ct)
     {
-        using var buffer = new ArrayWriter();
-        
-        MessageHelper.WriteNextMessage(_payloadFormatter, operationResult, buffer);
-        MessageHelper.WriteCompleteMessage(buffer);
-        
-        await outputStream.WriteAsync(buffer.GetInternalBuffer(), 0, buffer.Length, ct).ConfigureAwait(false);
-        await outputStream.FlushAsync(ct).ConfigureAwait(false);
+        var buffer = new ArrayWriter();
+
+        var scope = Log.FormatOperationResultStart();
+        try
+        {
+            MessageHelper.WriteNextMessage(_payloadFormatter, operationResult, buffer);
+            MessageHelper.WriteCompleteMessage(buffer);
+
+            await outputStream.WriteAsync(buffer.GetInternalBuffer(), 0, buffer.Length, ct).ConfigureAwait(false);
+            await outputStream.FlushAsync(ct).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            scope?.AddError(ex);
+            Debug.WriteLine(ex);
+        }
+        finally
+        {
+            scope?.Dispose();
+            buffer.Dispose();
+        }
     }
 
     private async ValueTask FormatResultBatchAsync(
@@ -98,12 +106,27 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
                 switch (result)
                 {
                     case IOperationResult operationResult:
-                        buffer ??= new ArrayWriter();
-                        MessageHelper.WriteNextMessage(_payloadFormatter, operationResult, buffer);
-                        writer.Write(buffer.GetWrittenSpan());
-                        await writer.FlushAsync(ct).ConfigureAwait(false);
-                        keepAlive?.Reset();
-                        buffer.Reset();
+                        var scope = Log.FormatOperationResultStart();
+                        try
+                        {
+                            buffer ??= new ArrayWriter();
+                            MessageHelper.WriteNextMessage(_payloadFormatter, operationResult, buffer);
+                            writer.Write(buffer.GetWrittenSpan());
+                            await writer.FlushAsync(ct).ConfigureAwait(false);
+                            keepAlive?.Reset();
+                            buffer.Reset();
+                        }
+                        catch (Exception ex)
+                        {
+                            scope?.AddError(ex);
+                            Debug.WriteLine(ex);
+                        }
+                        finally
+                        {
+                            await operationResult.DisposeAsync().ConfigureAwait(false);
+                            scope?.Dispose();
+                        }
+
                         break;
 
                     case IResponseStream responseStream:
@@ -124,7 +147,7 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
             keepAlive?.Dispose();
             buffer?.Dispose();
         }
-        
+
         MessageHelper.WriteCompleteMessage(writer);
         await writer.FlushAsync(ct).ConfigureAwait(false);
     }
@@ -141,7 +164,7 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
             var formatter = new StreamFormatter(_payloadFormatter, keepAlive, responseStream, writer);
             await formatter.ProcessAsync(ct).ConfigureAwait(false);
         }
-        
+
         MessageHelper.WriteCompleteMessage(writer);
         await writer.FlushAsync(ct).ConfigureAwait(false);
     }
@@ -154,32 +177,48 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
     {
         public async Task ProcessAsync(CancellationToken ct)
         {
-            using var buffer = new ArrayWriter();
-
-            await foreach (var result in responseStream.ReadResultsAsync()
-                .WithCancellation(ct)
-                .ConfigureAwait(false))
+            var buffer = new ArrayWriter();
+            try
             {
-                try
+                await foreach (var result in responseStream.ReadResultsAsync()
+                    .WithCancellation(ct)
+                    .ConfigureAwait(false))
                 {
-                    MessageHelper.WriteNextMessage(payloadFormatter, result, buffer);
-                    writer.Write(buffer.GetWrittenSpan());
-                    await writer.FlushAsync(ct).ConfigureAwait(false);
-                    keepAliveJob.Reset();
-                    buffer.Reset();
+                    var scope = Log.FormatOperationResultStart();
+
+                    try
+                    {
+                        MessageHelper.WriteNextMessage(payloadFormatter, result, buffer);
+                        writer.Write(buffer.GetWrittenSpan());
+                        await writer.FlushAsync(ct).ConfigureAwait(false);
+                        keepAliveJob.Reset();
+                        buffer.Reset();
+                    }
+                    catch (Exception ex)
+                    {
+                        scope?.AddError(ex);
+                        Debug.WriteLine(ex);
+                        return;
+                    }
+                    finally
+                    {
+                        await result.DisposeAsync().ConfigureAwait(false);
+                        scope?.Dispose();
+                    }
                 }
-                finally
-                {
-                    await result.DisposeAsync().ConfigureAwait(false);
-                }
+            }
+            finally
+            {
+                await responseStream.DisposeAsync().ConfigureAwait(false);
+                buffer.Dispose();
             }
         }
     }
 
     private sealed class KeepAliveJob : IDisposable
     {
-        private static readonly TimeSpan _timeout = TimeSpan.FromSeconds(12);
-        private static readonly TimeSpan _timeout1 = TimeSpan.FromSeconds(8);
+        private static readonly TimeSpan _timerPeriod = TimeSpan.FromSeconds(12);
+        private static readonly TimeSpan _keepAlivePeriod = TimeSpan.FromSeconds(8);
         private readonly PipeWriter _writer;
         private readonly Timer _keepAliveTimer;
         private DateTime _lastWriteTime = DateTime.UtcNow;
@@ -188,17 +227,18 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
         public KeepAliveJob(PipeWriter writer)
         {
             _writer = writer;
-            _keepAliveTimer = new Timer(_ => EnsureKeepAlive(), null, _timeout, _timeout);
+            _keepAliveTimer = new Timer(_ => EnsureKeepAlive(), null, _timerPeriod, _timerPeriod);
         }
 
         public void Reset() => _lastWriteTime = DateTime.UtcNow;
 
         private void EnsureKeepAlive()
         {
-            if (DateTime.UtcNow - _lastWriteTime >= _timeout1)
+            if (DateTime.UtcNow - _lastWriteTime >= _keepAlivePeriod)
             {
                 Task.Run(WriteKeepAliveAsync);
             }
+
             return;
 
             async Task WriteKeepAliveAsync()
@@ -232,7 +272,6 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
         private static readonly byte[] _nextEvent = "event: next\ndata: "u8.ToArray();
         private static readonly byte[] _completeEvent = "event: complete\n\n"u8.ToArray();
         private static readonly byte[] _keepAlive = ":\n\n"u8.ToArray();
-        private static readonly byte[] _newLine = "\n"u8.ToArray();
         private static readonly byte[] _newLine2 = "\n\n"u8.ToArray();
 
         public static void WriteNextMessage(

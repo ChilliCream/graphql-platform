@@ -3,7 +3,7 @@ namespace HotChocolate.Types;
 /// <summary>
 /// Represents the global mutation convention settings.
 /// The global convention settings will be applied to all
-/// mutations and can be overriden on a per field basis.
+/// mutations and can be overridden on a per field basis.
 /// </summary>
 public struct MutationConventionOptions
 {

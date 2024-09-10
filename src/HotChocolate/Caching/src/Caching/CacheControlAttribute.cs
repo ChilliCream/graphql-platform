@@ -1,4 +1,3 @@
-using System;
 using System.Reflection;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -23,6 +22,9 @@ public sealed class CacheControlAttribute : DescriptorAttribute
     {
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CacheControlAttribute"/> class with the specified maximum age.
+    /// </summary>
     /// <param name="maxAge">
     /// The maximum time, in seconds, the resource can be cached.
     /// </param>

@@ -1,4 +1,3 @@
-using System.Linq;
 using HotChocolate.ApolloFederation.Properties;
 using HotChocolate.Language;
 using HotChocolate.Utilities;

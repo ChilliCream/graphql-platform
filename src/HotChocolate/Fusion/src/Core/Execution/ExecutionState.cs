@@ -33,7 +33,7 @@ internal sealed class ExecutionState
     /// required to fetch data for the associated <see cref="SelectionSet"/>.
     /// </summary>
     public IReadOnlyList<string> Requires { get; }
-    
+
     /// <summary>
     /// Gets the selection set that is being executed.
     /// </summary>

@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Types.Descriptors.Definitions;
 
 // we put this in the descriptor namespace so that not everyone get these by default.

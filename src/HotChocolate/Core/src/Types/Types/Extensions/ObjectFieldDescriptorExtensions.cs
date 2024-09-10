@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types;
@@ -110,9 +109,9 @@ public static class ObjectFieldDescriptorExtensions
 
         return descriptor.Type(Utf8GraphQLParser.Syntax.ParseTypeReference(typeSyntax));
     }
-    
+
     /// <summary>
-    /// Specifies that the resolver of this field shall use services from the request service scope. 
+    /// Specifies that the resolver of this field shall use services from the request service scope.
     /// </summary>
     /// <param name="descriptor">
     /// The object field descriptor.
@@ -134,7 +133,7 @@ public static class ObjectFieldDescriptorExtensions
         descriptor.Extend().Definition.DependencyInjectionScope = DependencyInjectionScope.Request;
         return descriptor;
     }
-    
+
     /// <summary>
     /// Specifies that the resolver of this field shall use services from the resolver service scope.
     /// </summary>

@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 
@@ -28,7 +25,7 @@ public class ErrorBuilderTests
         // arrange
         IError error = new Error (
             "123",
-            extensions: new OrderedDictionary<string, object>
+            extensions: new OrderedDictionary<string, object?>
             {
                 {"foo", "bar"},
             });
@@ -50,7 +47,7 @@ public class ErrorBuilderTests
         IError error = new Error
         (
             "123",
-            extensions: new OrderedDictionary<string, object>
+            extensions: new OrderedDictionary<string, object?>
             {
                 {"foo", "bar"},
             }
@@ -71,7 +68,7 @@ public class ErrorBuilderTests
         IError error = new Error
         (
             "123",
-            extensions: new OrderedDictionary<string, object>
+            extensions: new OrderedDictionary<string, object?>
             {
                 {"foo", "bar"},
                 {"bar", "foo"},
@@ -275,7 +272,7 @@ public class ErrorBuilderTests
         // act
         var error = ErrorBuilder.New()
             .SetMessage("bar")
-            .AddLocation([syntaxNode])
+            .AddLocation(syntaxNode)
             .Build();
 
         // assert
@@ -293,7 +290,7 @@ public class ErrorBuilderTests
         // act
         var error = ErrorBuilder.New()
             .SetMessage("bar")
-            .AddLocation([syntaxNode])
+            .AddLocation(syntaxNode)
             .Build();
 
         // assert

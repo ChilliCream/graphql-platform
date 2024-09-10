@@ -11,7 +11,7 @@ internal sealed class RegisterClientsMiddleware : IMergeMiddleware
     public async ValueTask InvokeAsync(CompositionContext context, MergeDelegate next)
     {
         var defaultClientName = context.Features.GetDefaultClientName();
-        
+
         foreach (var configuration in context.Configurations)
         {
             foreach (var client in configuration.Clients)

@@ -36,7 +36,6 @@ public class QueryableFilterVisitorTimeOnlyTests
         // act
         var func = tester.Build<Foo>(value);
 
-
         // assert
         var a = new Foo { Value = new TimeOnly(1, 59, 59), };
         Assert.True(func(a));

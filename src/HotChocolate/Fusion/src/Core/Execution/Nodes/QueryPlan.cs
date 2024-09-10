@@ -85,7 +85,7 @@ internal sealed class QueryPlan
         }
         else
         {
-            _exportKeyToVariableName = Array.Empty<(string, string)>();
+            _exportKeyToVariableName = [];
         }
     }
 
@@ -125,14 +125,10 @@ internal sealed class QueryPlan
         => _selectionSets.Contains(selectionSet);
 
     public IReadOnlyList<string> GetExportKeys(ISelectionSet selectionSet)
-        => _exportKeysLookup.TryGetValue(selectionSet, out var keys)
-            ? keys
-            : Array.Empty<string>();
+        => _exportKeysLookup.TryGetValue(selectionSet, out var keys) ? keys : [];
 
     public IReadOnlyList<string> GetExportPath(ISelectionSet selectionSet, string key)
-        => _exportPathsLookup.TryGetValue((selectionSet, key), out var path)
-            ? path
-            : Array.Empty<string>();
+        => _exportPathsLookup.TryGetValue((selectionSet, key), out var path) ? path : [];
 
     /// <summary>
     /// Executes the query plan.
@@ -194,7 +190,7 @@ internal sealed class QueryPlan
 
             if (context.Result.Errors.Count == 0)
             {
-                var errorHandler = context.OperationContext.ErrorHandler;
+                var errorHandler = context.ErrorHandler;
                 var error = errorHandler.CreateUnexpectedError(ex).Build();
                 error = errorHandler.Handle(error);
                 context.Result.AddError(error);

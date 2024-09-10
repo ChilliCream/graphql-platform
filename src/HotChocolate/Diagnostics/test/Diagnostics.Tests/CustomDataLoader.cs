@@ -1,7 +1,4 @@
-using System.Threading.Tasks;
 using GreenDonut;
-using System.Collections.Generic;
-using System.Threading;
 
 namespace HotChocolate.Diagnostics;
 
@@ -24,5 +21,4 @@ public partial class QueryInstrumentationTests
             return Task.FromResult<IReadOnlyDictionary<string, string>>(dict);
         }
     }
-
 }

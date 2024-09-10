@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Types.Descriptors
 {
 #pragma warning disable 1591

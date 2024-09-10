@@ -11,7 +11,7 @@ public enum RequestStrategy
     Default,
 
     /// <summary>
-    /// An id is send representing the query that is stored on the server.
+    /// An id is send representing the operation that is stored on the server.
     /// </summary>
-    PersistedQuery,
+    PersistedOperation,
 }

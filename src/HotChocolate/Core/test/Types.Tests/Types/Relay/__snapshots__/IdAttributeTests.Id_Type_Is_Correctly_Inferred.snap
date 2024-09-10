@@ -27,24 +27,36 @@ type Query {
   intIdList(id: [ID!]!): String!
   nullableIntId(id: ID): String!
   nullableIntIdList(id: [ID]!): String!
+  optionalIntId(id: ID = "UXVlcnk6MA=="): String!
+  optionalIntIdList(id: [ID!] = [  ]): String!
   stringId(id: ID!): String!
   stringIdList(id: [ID!]!): String!
   nullableStringId(id: ID): String!
   nullableStringIdList(id: [ID]!): String!
+  optionalStringId(id: ID = "UXVlcnk6"): String!
+  optionalStringIdList(id: [ID] = [  ]): String!
   guidId(id: ID!): String!
   guidIdList(id: [ID!]!): String!
   nullableGuidId(id: ID): String!
   nullableGuidIdList(id: [ID]!): String!
+  optionalGuidId(id: ID = "UXVlcnk6AAAAAAAAAAAAAAAAAAAAAA=="): String!
+  optionalGuidIdList(id: [ID] = [  ]): String!
   interceptedId(id: ID!): String!
   interceptedIds(id: [ID!]!): String!
+  customId(id: ID!): String!
+  nullableCustomId(id: ID): String!
+  customIds(ids: [ID!]!): String!
+  nullableCustomIds(ids: [ID]!): String!
   foo(input: FooInput!): IFooPayload!
 }
 
 input FooInput {
   someId: ID!
   someNullableId: ID
+  someOptionalId: ID = "U29tZTo="
   someIds: [ID!]!
   someNullableIds: [ID]
+  someOptionalIds: [ID!] = [  ]
   interceptedId: ID
   interceptedIds: [ID!]
 }

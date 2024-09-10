@@ -26,7 +26,7 @@ public struct FeatureReferences<TCache>
     /// </summary>
     /// <param name="collection">The <see cref="IFeatureCollection"/> to initialize with.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Initalize(IFeatureCollection collection)
+    public void Initialize(IFeatureCollection collection)
     {
         Revision = collection.Revision;
         Collection = collection;
@@ -38,7 +38,7 @@ public struct FeatureReferences<TCache>
     /// <param name="collection">The <see cref="IFeatureCollection"/> to initialize with.</param>
     /// <param name="revision">The version of the <see cref="IFeatureCollection"/>.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Initalize(IFeatureCollection collection, int revision)
+    public void Initialize(IFeatureCollection collection, int revision)
     {
         Revision = revision;
         Collection = collection;

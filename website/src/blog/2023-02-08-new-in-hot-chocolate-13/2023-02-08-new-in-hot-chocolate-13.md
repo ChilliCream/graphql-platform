@@ -105,7 +105,7 @@ public static class Query
 }
 ```
 
-The GraphQL cache-control header will collect the allowed amount of time the response is cachable and exposes this as a cache-control header which consequently can be used by CDNs or browsers to cache the result.
+The GraphQL cache-control header will collect the allowed amount of time the response is cacheable and exposes this as a cache-control header which consequently can be used by CDNs or browsers to cache the result.
 
 ### Null Values
 

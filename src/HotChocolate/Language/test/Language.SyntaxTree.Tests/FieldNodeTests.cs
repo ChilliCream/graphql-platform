@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Xunit;
 
 namespace HotChocolate.Language.SyntaxTree;
@@ -13,7 +12,6 @@ public class FieldNodeTests
             new Location(1, 1, 1, 1),
             new("aa"),
             new("cc"),
-            default,
             new List<DirectiveNode>(0),
             new List<ArgumentNode>(0),
             default);
@@ -21,7 +19,6 @@ public class FieldNodeTests
             new Location(1, 1, 1, 1),
             new("aa"),
             new("cc"),
-            default,
             new List<DirectiveNode>(0),
             new List<ArgumentNode>(0),
             default);
@@ -29,7 +26,6 @@ public class FieldNodeTests
             new Location(1, 1, 1, 1),
             new("aa"),
             new("dd"),
-            default,
             new List<DirectiveNode>(0),
             new List<ArgumentNode>(0),
             default);
@@ -55,7 +51,6 @@ public class FieldNodeTests
             new Location(1, 1, 1, 1),
             new("aa"),
             new("cc"),
-            default,
             new List<DirectiveNode>(0),
             new List<ArgumentNode>(0),
             default);
@@ -63,7 +58,6 @@ public class FieldNodeTests
             new Location(2, 2, 2, 2),
             new("aa"),
             new("cc"),
-            default,
             new List<DirectiveNode>(0),
             new List<ArgumentNode>(0),
             default);
@@ -71,7 +65,6 @@ public class FieldNodeTests
             new Location(3, 3, 3, 3),
             new("aa"),
             new("dd"),
-            default,
             new List<DirectiveNode>(0),
             new List<ArgumentNode>(0),
             default);
@@ -97,7 +90,6 @@ public class FieldNodeTests
             new Location(1, 1, 1, 1),
             new("aa"),
             new("cc"),
-            default,
             new List<DirectiveNode>(0),
             new List<ArgumentNode>(0),
             default);
@@ -105,7 +97,6 @@ public class FieldNodeTests
             new Location(2, 2, 2, 2),
             new("aa"),
             new("cc"),
-            default,
             new List<DirectiveNode>(0),
             new List<ArgumentNode>(0),
             default);
@@ -113,7 +104,6 @@ public class FieldNodeTests
             new Location(1, 1, 1, 1),
             new("aa"),
             new("dd"),
-            default,
             new List<DirectiveNode>(0),
             new List<ArgumentNode>(0),
             default);
@@ -121,7 +111,6 @@ public class FieldNodeTests
             new Location(2, 2, 2, 2),
             new("aa"),
             new("dd"),
-            default,
             new List<DirectiveNode>(0),
             new List<ArgumentNode>(0),
             default);

@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using static StrawberryShake.Properties.Resources;
 
 namespace StrawberryShake;

@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Utilities.CompilerServices;
 
 internal sealed class NullableAttribute

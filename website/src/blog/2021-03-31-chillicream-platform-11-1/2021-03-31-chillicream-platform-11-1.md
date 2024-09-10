@@ -274,7 +274,7 @@ The new collection of scalars are published in the package [HotChocolate.Types.S
 | Isbn             | The `ISBN` scalar type is a ISBN-10 or ISBN-13 number: https:\/\/en.wikipedia.org\/wiki\/International_Standard_Book_Number.                                                                                            |
 | LocalDate        | The `LocalDate` scalar type represents a ISO date string, represented as UTF-8 character sequences yyyy-mm-dd. The scalar follows the specification defined in RFC3339.                                                 |
 | LocalTime        | The `LocalTime` scalar type is a local time string (i.e., with no associated timezone) in 24-hr `HH:mm:ss]`.                                                                                                            |
-| MacAddress       | The `MacAddess` scalar type represents a IEEE 802 48-bit Mac address, represented as UTF-8 character sequences. The scalar follows the specification defined in [RFC7042](https://tools.ietf.org/html/rfc7042#page-19). |
+| MacAddress       | The `MacAddress` scalar type represents a IEEE 802 48-bit Mac address, represented as UTF-8 character sequences. The scalar follows the specification defined in [RFC7042](https://tools.ietf.org/html/rfc7042#page-19). |
 | NegativeFloat    | The `NegativeFloat` scalar type represents a double‐precision fractional value less than 0.                                                                                                                             |
 | NegativeInt      | The `NegativeIntType` scalar type represents a signed 32-bit numeric non-fractional with a maximum of -1.                                                                                                               |
 | NonEmptyString   | The `NonNullString` scalar type represents non-empty textual data, represented as UTF‐8 character sequences with at least one character.                                                                                |
@@ -712,3 +712,5 @@ We are doing as before a community gathering where we will walk you through all 
 [pascal]: https://twitter.com/Pascal_Senn
 [fred]: https://github.com/fredericbirke
 [documentation]: /products/strawberryshake
+
+<!-- spell-checker:ignore lvbgpp, mydb, Shorton -->

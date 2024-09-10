@@ -1,7 +1,5 @@
 #nullable enable
 
-using System;
-using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -62,6 +60,11 @@ public interface IOperation : IHasReadOnlyContextData, IEnumerable<ISelectionSet
     bool HasIncrementalParts { get; }
 
     /// <summary>
+    /// Gets the schema for which this operation is compiled.
+    /// </summary>
+    ISchema Schema { get; }
+
+    /// <summary>
     /// Gets the selection set for the specified <paramref name="selection"/> and
     /// <paramref name="typeContext"/>.
     /// </summary>
@@ -104,4 +107,20 @@ public interface IOperation : IHasReadOnlyContextData, IEnumerable<ISelectionSet
     /// Returns the include flags for the specified variable values.
     /// </returns>
     long CreateIncludeFlags(IVariableValueCollection variables);
+
+    TState GetOrAddState<TState>(
+        Func<TState> createState);
+
+    TState GetOrAddState<TState, TContext>(
+        Func<TContext, TState> createState,
+        TContext context);
+
+    TState GetOrAddState<TState, TContext>(
+        string key,
+        Func<string, TState> createState);
+
+    TState GetOrAddState<TState, TContext>(
+        string key,
+        Func<string, TContext, TState> createState,
+        TContext context);
 }
