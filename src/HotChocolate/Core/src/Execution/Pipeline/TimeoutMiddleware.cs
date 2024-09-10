@@ -1,7 +1,4 @@
-using System;
 using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution.Options;
 using Microsoft.Extensions.DependencyInjection;
 using static System.Threading.CancellationTokenSource;
@@ -86,7 +83,7 @@ internal sealed class TimeoutMiddleware
             }
         }
     }
-    
+
     public static RequestCoreMiddleware Create()
         => (core, next) =>
         {
@@ -95,4 +92,3 @@ internal sealed class TimeoutMiddleware
             return context => middleware.InvokeAsync(context);
         };
 }
-

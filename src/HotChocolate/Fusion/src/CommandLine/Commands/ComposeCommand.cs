@@ -89,16 +89,15 @@ internal sealed class ComposeCommand : Command
 
         if (settingsFile is null)
         {
-            var settingsFileName = System.IO.Path.GetFileNameWithoutExtension(packageFile.FullName) + "-settings.json";
+            var settingsFileName = IOPath.GetFileNameWithoutExtension(packageFile.FullName) + "-settings.json";
 
             if (packageFile.DirectoryName is not null)
             {
-                settingsFileName = System.IO.Path.Combine(packageFile.DirectoryName, settingsFileName);
+                settingsFileName = IOPath.Combine(packageFile.DirectoryName, settingsFileName);
             }
 
             settingsFile = new FileInfo(settingsFileName);
         }
-
 
         await using var package = FusionGraphPackage.Open(packageFile.FullName);
 
@@ -380,7 +379,7 @@ internal sealed class ComposeCommand : Command
         [JsonPropertyOrder(101)]
         public string[] Exclude
         {
-            get => _exclude ?? Array.Empty<string>();
+            get => _exclude ?? [];
             set => _exclude = value;
         }
     }

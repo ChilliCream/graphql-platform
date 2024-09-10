@@ -45,7 +45,6 @@ public static class QueryableSortVisitorContextExtensions
         return source;
     }
 
-
     // Adapted from internal System.Web.Util.OrderingMethodFinder
     // http://referencesource.microsoft.com/#System.Web/Util/OrderingMethodFinder.cs
     private sealed class OrderingMethodFinder : ExpressionVisitor

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace HotChocolate;
 
 public static class ErrorCodes
@@ -38,12 +36,17 @@ public static class ErrorCodes
         /// <summary>
         /// The operation complexity was exceeded.
         /// </summary>
-        public const string ComplexityExceeded = "HC0047";
+        public const string CostExceeded = "HC0047";
 
         /// <summary>
         /// The analyzer needs a documentId, operationId, document and coerced variables.
         /// </summary>
-        public const string ComplexityStateInvalid = "HC0048";
+        public const string CostStateInvalid = "HC0048";
+
+        /// <summary>
+        /// One slicing argument is required
+        /// </summary>
+        public const string OneSlicingArgumentRequired = "HC0082";
 
         public const string NonNullViolation = "HC0018";
         public const string MustBeInputType = "HC0017";
@@ -51,14 +54,14 @@ public static class ErrorCodes
         public const string QueryNotFound = "HC0015";
 
         /// <summary>
-        /// A persisted query was not found when using the active persisted query pipeline.
+        /// A persisted operation was not found when using the active persisted operation pipeline.
         /// </summary>
-        public const string PersistedQueryNotFound = "HC0020";
+        public const string PersistedOperationNotFound = "HC0020";
 
         /// <summary>
-        /// Only persisted queries are allowed.
+        /// Only persisted operations are allowed.
         /// </summary>
-        public const string OnlyPersistedQueriesAllowed = "HC0067";
+        public const string OnlyPersistedOperationsAllowed = "HC0067";
 
         public const string TaskProcessingError = "HC0008";
         public const string SyntaxError = "HC0014";

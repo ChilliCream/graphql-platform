@@ -21,6 +21,11 @@ internal static class TypeExtensions
         T target)
         where T : ITypeSystemMemberDefinition, IFeatureProvider, IDirectivesProvider
     {
+        if (target.ContainsInternalDirective())
+        {
+            return;
+        }
+
         if (source.TryGetOriginalName(out var originalName))
         {
             target.Directives.Add(
@@ -45,6 +50,11 @@ internal static class TypeExtensions
         T target)
         where T : ITypeSystemMemberDefinition, IFeatureProvider, IDirectivesProvider
     {
+        if (target.ContainsInternalDirective())
+        {
+            return;
+        }
+
         if (source.TryGetOriginalName(out var originalName))
         {
             target.Directives.Add(

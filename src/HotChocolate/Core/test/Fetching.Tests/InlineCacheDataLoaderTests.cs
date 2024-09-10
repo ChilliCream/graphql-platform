@@ -1,5 +1,3 @@
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
@@ -102,7 +100,7 @@ public class InlineCacheDataLoaderTests
 
     public class Query
     {
-        public async Task<string> GetByKey(string key, IResolverContext context)
+        public async Task<string?> GetByKey(string key, IResolverContext context)
         {
             return await context
                 .CacheDataLoader<string, string>(
@@ -114,7 +112,7 @@ public class InlineCacheDataLoaderTests
 
     public class Query2
     {
-        public async Task<string> GetByKey(string key, IResolverContext context)
+        public async Task<string?> GetByKey(string key, IResolverContext context)
         {
             return await context.CacheAsync(FetchAsync, key);
 
@@ -125,7 +123,7 @@ public class InlineCacheDataLoaderTests
 
     public class Query3
     {
-        public async Task<string> GetByKey(string key, IResolverContext context)
+        public async Task<string?> GetByKey(string key, IResolverContext context)
         {
             return await context.CacheAsync(FetchAsync, key);
 

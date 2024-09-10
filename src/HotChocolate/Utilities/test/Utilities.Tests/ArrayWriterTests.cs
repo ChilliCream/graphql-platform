@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using Xunit;
 
 namespace HotChocolate.Utilities;
@@ -144,7 +142,6 @@ public class ArrayWriterTests
     [Fact]
     public void GetMemory_ShouldThrowWhenNegativeSizeHint()
     {
-
         // Arrange
         using var writer = new ArrayWriter();
 

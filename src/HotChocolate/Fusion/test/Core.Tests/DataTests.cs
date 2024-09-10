@@ -51,7 +51,7 @@ public class DataTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build());
 
@@ -60,6 +60,6 @@ public class DataTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectSingleResult().Errors);
     }
 }

@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
 using HotChocolate.Types.Analyzers.Filters;
 using HotChocolate.Types.Analyzers.Generators;
 using HotChocolate.Types.Analyzers.Inspectors;
@@ -17,10 +17,11 @@ public class GraphQLServerGenerator : IIncrementalGenerator
         new ModuleInspector(),
         new DataLoaderInspector(),
         new DataLoaderDefaultsInspector(),
+        new DataLoaderModuleInspector(),
         new OperationInspector(),
         new ObjectTypeExtensionInfoInspector(),
-        new ObjectTypeExtensionInfoInspector(),
-        new RequestMiddlewareInspector(),
+        new InterfaceTypeInfoInspector(),
+        new RequestMiddlewareInspector()
     ];
 
     private static readonly ISyntaxGenerator[] _generators =
@@ -28,6 +29,8 @@ public class GraphQLServerGenerator : IIncrementalGenerator
         new TypeModuleSyntaxGenerator(),
         new TypesSyntaxGenerator(),
         new MiddlewareGenerator(),
+        new DataLoaderModuleGenerator(),
+        new DataLoaderGenerator()
     ];
 
     private static readonly Func<SyntaxNode, bool> _predicate;

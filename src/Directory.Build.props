@@ -4,18 +4,15 @@
     <LangVersion>preview</LangVersion>
     <Version Condition="$(Version) == ''">0.0.0</Version>
     <NoWarn>$(NoWarn);CS0436;RS0026;RS0027;RS0041;AD0001;CS1591;NU5104;NU5128;NU5501</NoWarn>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)' == 'debug'">
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  <PropertyGroup Condition="'$(CI)' == 'true'">
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)' == 'release'">
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
+    <WarningsNotAsErrors>NU1901;NU1902;NU1903;NU1904</WarningsNotAsErrors>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -65,15 +62,15 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)' == 'debug'">
-    <PackageReference Include="Roslynator.Analyzers" Version="4.12.3">
+    <PackageReference Include="Roslynator.Analyzers">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Roslynator.CodeAnalysis.Analyzers" Version="4.12.3">
+    <PackageReference Include="Roslynator.CodeAnalysis.Analyzers">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Roslynator.Formatting.Analyzers" Version="4.12.3">
+    <PackageReference Include="Roslynator.Formatting.Analyzers">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>

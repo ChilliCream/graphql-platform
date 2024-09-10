@@ -1,11 +1,10 @@
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.ApolloFederation.Resolvers;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.ApolloFederation.Directives;
 
@@ -27,7 +26,7 @@ public class OverrideDirectiveTests
 
         // act
         var value = await sdlResolver(TestHelper.CreateResolverContext(schema));
-        value!.ToString().MatchSnapshot();
+        value!.MatchSnapshot();
     }
 
     [Fact]
@@ -46,7 +45,7 @@ public class OverrideDirectiveTests
 
         // act
         var value = await sdlResolver(TestHelper.CreateResolverContext(schema));
-        value!.ToString().MatchSnapshot();
+        value!.MatchSnapshot();
     }
 
     [Key("id")]

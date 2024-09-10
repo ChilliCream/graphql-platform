@@ -1,7 +1,7 @@
-using System.Data;
 using System.Threading.Channels;
 using HotChocolate.Subscriptions.Diagnostics;
 using Npgsql;
+using NpgsqlTypes;
 using static HotChocolate.Subscriptions.Postgres.PostgresResources;
 
 namespace HotChocolate.Subscriptions.Postgres;
@@ -46,7 +46,7 @@ internal sealed class PostgresChannelWriter : IAsyncDisposable
             throw new InvalidOperationException("Connection was not yet initialized.");
 
         // on connection we start a task that will read from the channel and send the messages
-        _task = new ContinuousTask(ct => HandleMessage(connection, ct));
+        _task = new ContinuousTask(ct => HandleMessage(connection, ct), TimeProvider.System);
 
         _diagnosticEvents.ProviderInfo(ChannelWriter_ConnectionEstablished);
 
@@ -69,6 +69,7 @@ internal sealed class PostgresChannelWriter : IAsyncDisposable
     private async Task HandleMessage(NpgsqlConnection connection, CancellationToken ct)
     {
         PostgresMessageEnvelope firstItem;
+
         while (!_channel.Reader.TryRead(out firstItem))
         {
             if (ct.IsCancellationRequested)
@@ -79,7 +80,7 @@ internal sealed class PostgresChannelWriter : IAsyncDisposable
             await _channel.Reader.WaitToReadAsync(ct);
         }
 
-        var messages = new List<PostgresMessageEnvelope> { firstItem, };
+        var messages = new List<PostgresMessageEnvelope> { firstItem };
         while (!ct.IsCancellationRequested &&
                _maxSendBatchSize > messages.Count &&
                _channel.Reader.TryRead(out var item))
@@ -93,30 +94,37 @@ internal sealed class PostgresChannelWriter : IAsyncDisposable
             // firstMessage that was already read from the channel
             ct.ThrowIfCancellationRequested();
 
-            await using var batch = connection.CreateBatch();
+            var payloads = new string[messages.Count];
 
-            foreach (var message in messages)
+            for (var i = 0; i < messages.Count; i++)
             {
-                var command = batch.CreateBatchCommand();
-
-                command.CommandText = "SELECT pg_notify(@channel, @message);";
-
-                var channel = new NpgsqlParameter("channel", DbType.String)
-                {
-                    Value = _channelName,
-                };
-                var msg = new NpgsqlParameter("message", DbType.String)
-                {
-                    Value = message.FormattedPayload,
-                };
-                command.Parameters.Add(channel);
-                command.Parameters.Add(msg);
-
-                batch.BatchCommands.Add(command);
+                payloads[i] = messages[i].FormattedPayload;
             }
 
-            await batch.PrepareAsync(ct);
-            await batch.ExecuteNonQueryAsync(ct);
+            const string sql =
+                """
+                SELECT pg_notify(t.channel, t.message)
+                FROM (SELECT @channel AS channel, unnest(@messages) AS message ) AS t;
+                """;
+
+            await using var command = connection.CreateCommand();
+
+            command.CommandText = sql;
+
+            command.Parameters.Add(
+                new NpgsqlParameter("channel", NpgsqlDbType.Text)
+                {
+                    Value = _channelName
+                });
+
+            command.Parameters.Add(
+                new NpgsqlParameter("messages", NpgsqlDbType.Array | NpgsqlDbType.Varchar)
+                {
+                    Value = payloads
+                });
+
+            await command.PrepareAsync(ct);
+            await command.ExecuteNonQueryAsync(ct);
         }
         catch (Exception ex)
         {
@@ -124,9 +132,22 @@ internal sealed class PostgresChannelWriter : IAsyncDisposable
             _diagnosticEvents.ProviderInfo(msg);
 
             // if we cannot send the message we put it back into the channel
+            // however as the channel is bounded, we might not able to requeue the message and will
+            // be forced to drop them if they can't be written
+            var failedCount = 0;
+
             foreach (var message in messages)
             {
-                await _channel.Writer.WriteAsync(message, ct);
+                if (!_channel.Writer.TryWrite(message))
+                {
+                    failedCount++;
+                }
+            }
+
+            if (failedCount > 0)
+            {
+                _diagnosticEvents.ProviderInfo(
+                    string.Format(ChannelWriter_FailedToRequeueMessage, failedCount));
             }
         }
     }

@@ -13,18 +13,21 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
         SourceProductionContext context,
         Compilation compilation,
         ImmutableArray<SyntaxInfo> syntaxInfos)
-        => Execute(context, syntaxInfos);
-
-    private static void Execute(
-        SourceProductionContext context,
-        ImmutableArray<SyntaxInfo> syntaxInfos)
     {
         if (syntaxInfos.IsEmpty)
         {
             return;
         }
 
-        var sb = StringBuilderPool.Get();
+        var module = syntaxInfos.GetModuleInfo(compilation.AssemblyName, out _);
+
+        // the generator is disabled.
+        if(module.Options == ModuleOptions.Disabled)
+        {
+            return;
+        }
+
+        var sb = PooledObjects.GetStringBuilder();
 
         WriteTypes(context, syntaxInfos, sb);
 
@@ -32,7 +35,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
 
         WriteResolvers(context, syntaxInfos, sb);
 
-        StringBuilderPool.Return(sb);
+        PooledObjects.Return(sb);
     }
 
     private static void WriteTypes(
@@ -40,9 +43,10 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
         ImmutableArray<SyntaxInfo> syntaxInfos,
         StringBuilder sb)
     {
+        var hasTypes = false;
         var firstNamespace = true;
         foreach (var group in syntaxInfos
-            .OfType<ObjectTypeExtensionInfo>()
+            .OfType<IOutputTypeInfo>()
             .GroupBy(t => t.Type.ContainingNamespace.ToDisplayString()))
         {
             var generator = new ObjectTypeExtensionFileBuilder(sb, group.Key);
@@ -56,30 +60,40 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
             generator.WriteBeginNamespace();
 
             var firstClass = true;
-            foreach (var objectTypeExtension in group)
+            foreach (var typeInfo in group)
             {
-                if (objectTypeExtension.Diagnostics.Length > 0)
+                if (typeInfo.Diagnostics.Length > 0)
                 {
                     continue;
                 }
+
+                var classGenerator = typeInfo is ObjectTypeExtensionInfo
+                    ? (IOutputTypeFileBuilder)new ObjectTypeExtensionFileBuilder(sb, group.Key)
+                    : new InterfaceTypeExtensionFileBuilder(sb, group.Key);
 
                 if (!firstClass)
                 {
                     sb.AppendLine();
                 }
+
                 firstClass = false;
 
-                generator.WriteBeginClass(objectTypeExtension.Type.Name);
-                generator.WriteInitializeMethod(objectTypeExtension);
+                classGenerator.WriteBeginClass(typeInfo.Type.Name);
+                classGenerator.WriteInitializeMethod(typeInfo);
                 sb.AppendLine();
-                generator.WriteConfigureMethod(objectTypeExtension);
-                generator.WriteEndClass();
+                classGenerator.WriteConfigureMethod(typeInfo);
+                classGenerator.WriteEndClass();
+                hasTypes = true;
+
             }
 
             generator.WriteEndNamespace();
         }
 
-        context.AddSource(WellKnownFileNames.TypesFile, sb.ToString());
+        if (hasTypes)
+        {
+            context.AddSource(WellKnownFileNames.TypesFile, sb.ToString());
+        }
     }
 
     private static void WriteResolvers(
@@ -87,6 +101,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
         ImmutableArray<SyntaxInfo> syntaxInfos,
         StringBuilder sb)
     {
+        var hasResolvers = false;
         var typeLookup = new DefaultLocalTypeLookup(syntaxInfos);
 
         var generator = new ResolverFileBuilder(sb);
@@ -94,34 +109,36 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
 
         var firstNamespace = true;
         foreach (var group in syntaxInfos
-            .OfType<ObjectTypeExtensionInfo>()
+            .OfType<IOutputTypeInfo>()
             .GroupBy(t => t.Type.ContainingNamespace.ToDisplayString()))
         {
-            if(!firstNamespace)
+            if (!firstNamespace)
             {
                 sb.AppendLine();
             }
+
             firstNamespace = false;
 
             generator.WriteBeginNamespace(group.Key);
 
             var firstClass = true;
-            foreach (var objectTypeExtension in group)
+            foreach (var typeInfo in group)
             {
-                if(!firstClass)
+                if (!firstClass)
                 {
                     sb.AppendLine();
                 }
+
                 firstClass = false;
 
-                var resolvers = objectTypeExtension.Resolvers;
+                var resolvers = typeInfo.Resolvers;
 
-                if (objectTypeExtension.NodeResolver is not null)
+                if (typeInfo is ObjectTypeExtensionInfo { NodeResolver: { } nodeResolver })
                 {
-                    resolvers = resolvers.Add(objectTypeExtension.NodeResolver);
+                    resolvers = resolvers.Add(nodeResolver);
                 }
 
-                generator.WriteBeginClass(objectTypeExtension.Type.Name + "Resolvers");
+                generator.WriteBeginClass(typeInfo.Type.Name + "Resolvers");
 
                 if (generator.AddResolverDeclarations(resolvers))
                 {
@@ -137,11 +154,15 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
                 }
 
                 generator.WriteEndClass();
+                hasResolvers = true;
             }
 
             generator.WriteEndNamespace();
         }
 
-        context.AddSource(WellKnownFileNames.ResolversFile, sb.ToString());
+        if (hasResolvers)
+        {
+            context.AddSource(WellKnownFileNames.ResolversFile, sb.ToString());
+        }
     }
 }

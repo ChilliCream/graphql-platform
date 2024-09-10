@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -31,7 +30,7 @@ public class ResolverServiceTests
 
             result = await executor.ExecuteAsync(
                 OperationRequestBuilder
-                    .Create()
+                    .New()
                     .SetDocument("{ sayHelloAttribute }")
                     .SetServices(requestScope.ServiceProvider)
                     .Build());
@@ -63,7 +62,7 @@ public class ResolverServiceTests
 
             result = await executor.ExecuteAsync(
                 OperationRequestBuilder
-                    .Create()
+                    .New()
                     .SetDocument("{ sayHelloAttribute }")
                     .SetServices(requestScope.ServiceProvider)
                     .Build());
@@ -94,7 +93,7 @@ public class ResolverServiceTests
 
             result = await executor.ExecuteAsync(
                 OperationRequestBuilder
-                    .Create()
+                    .New()
                     .SetDocument("{ sayHelloInferred }")
                     .SetServices(requestScope.ServiceProvider)
                     .Build());
@@ -125,7 +124,7 @@ public class ResolverServiceTests
 
             result = await executor.ExecuteAsync(
                 OperationRequestBuilder
-                    .Create()
+                    .New()
                     .SetDocument("{ sayHelloRequest }")
                     .SetServices(requestScope.ServiceProvider)
                     .Build());
@@ -161,7 +160,7 @@ public class ResolverServiceTests
 
             result = await executor.ExecuteAsync(
                 OperationRequestBuilder
-                    .Create()
+                    .New()
                     .SetDocument("{ sayHelloAttribute }")
                     .SetServices(requestScope.ServiceProvider)
                     .Build());
@@ -193,7 +192,7 @@ public class ResolverServiceTests
 
             result = await executor.ExecuteAsync(
                 OperationRequestBuilder
-                    .Create()
+                    .New()
                     .SetDocument("mutation { doSomethingAttribute }")
                     .SetServices(requestScope.ServiceProvider)
                     .Build());
@@ -226,7 +225,7 @@ public class ResolverServiceTests
 
             result = await executor.ExecuteAsync(
                 OperationRequestBuilder
-                    .Create()
+                    .New()
                     .SetDocument("mutation { doSomethingAttribute }")
                     .SetServices(requestScope.ServiceProvider)
                     .Build());
@@ -258,7 +257,7 @@ public class ResolverServiceTests
 
             result = await executor.ExecuteAsync(
                 OperationRequestBuilder
-                    .Create()
+                    .New()
                     .SetDocument("mutation { doSomethingInferred }")
                     .SetServices(requestScope.ServiceProvider)
                     .Build());
@@ -290,7 +289,7 @@ public class ResolverServiceTests
 
             result = await executor.ExecuteAsync(
                 OperationRequestBuilder
-                    .Create()
+                    .New()
                     .SetDocument("mutation { doSomethingResolver }")
                     .SetServices(requestScope.ServiceProvider)
                     .Build());

@@ -1,6 +1,5 @@
 namespace HotChocolate.Fusion.Shared.Books;
 
-
 public class Author
 {
     public string Id { get; set;}

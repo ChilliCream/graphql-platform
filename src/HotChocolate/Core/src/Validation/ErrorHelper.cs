@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Validation.Properties;
@@ -266,11 +265,11 @@ internal static class ErrorHelper
     {
         return ErrorBuilder.New()
             .SetMessage(Resources.ErrorHelper_FieldsAreNotMergeable)
-            .SetLocations([fieldA.Field, fieldB.Field])
+            .SetLocations([fieldA.SyntaxNode, fieldB.SyntaxNode])
             .SetExtension("declaringTypeA", fieldA.DeclaringType.NamedType().Name)
             .SetExtension("declaringTypeB", fieldB.DeclaringType.NamedType().Name)
-            .SetExtension("fieldA", fieldA.Field.Name.Value)
-            .SetExtension("fieldB", fieldB.Field.Name.Value)
+            .SetExtension("fieldA", fieldA.SyntaxNode.Name.Value)
+            .SetExtension("fieldB", fieldB.SyntaxNode.Name.Value)
             .SetExtension("typeA", fieldA.Type.Print())
             .SetExtension("typeB", fieldB.Type.Print())
             .SetExtension("responseNameA", fieldA.ResponseName)
@@ -595,22 +594,6 @@ internal static class ErrorHelper
             .Build();
     }
 
-    public static IError MaxOperationComplexity(
-        this IDocumentValidatorContext context,
-        OperationDefinitionNode operation,
-        int allowedComplexity,
-        int detectedComplexity)
-    {
-        return ErrorBuilder.New()
-            .SetMessage(
-                Resources.ErrorHelper_MaxOperationComplexity,
-                detectedComplexity, allowedComplexity)
-            .SetLocations([operation])
-            .SetExtension("allowedComplexity", allowedComplexity)
-            .SetExtension("detectedComplexity", detectedComplexity)
-            .Build();
-    }
-
     public static IError MaxExecutionDepth(
         this IDocumentValidatorContext context,
         OperationDefinitionNode operation,
@@ -663,7 +646,7 @@ internal static class ErrorHelper
             .SetLocations([node])
             .SetPath(context.CreateErrorPath())
             .SetExtension(nameof(type), type.Name)
-            .SpecifiedBy("sec-Oneof–Input-Objects-Have-Exactly-One-Field", rfc: 825)
+            .SpecifiedBy("sec-OneOf-Input-Objects-Have-Exactly-One-Field", rfc: 825)
             .Build();
 
     public static IError OneOfVariablesMustBeNonNull(

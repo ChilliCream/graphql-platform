@@ -256,7 +256,8 @@ public class RavenAsyncDocumentQueryTests
 
         // act
         var result = await executor.ExecuteAsync(
-            @"{
+            """
+            {
                 foosOffset(take: 2 skip: 2) {
                     items {
                         bar
@@ -267,7 +268,8 @@ public class RavenAsyncDocumentQueryTests
                         hasPreviousPage
                     }
                 }
-            }");
+            }
+            """);
 
         // assert
         await Snapshot.Create().AddResult(result).MatchAsync();
@@ -431,7 +433,7 @@ public class RavenAsyncDocumentQueryTests
                     {
                         context.Result =
                             OperationResultBuilder
-                                .FromResult(context.Result!.ExpectQueryResult())
+                                .FromResult(context.Result!.ExpectSingleResult())
                                 .SetContextData("query", queryString)
                                 .Build();
                     }

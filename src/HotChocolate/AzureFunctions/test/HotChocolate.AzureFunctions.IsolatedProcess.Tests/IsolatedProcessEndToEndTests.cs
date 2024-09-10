@@ -1,6 +1,4 @@
-using System.IO;
 using System.Text;
-using System.Threading.Tasks;
 using HotChocolate.AzureFunctions.IsolatedProcess.Tests.Helpers;
 using HotChocolate.Types;
 using Microsoft.AspNetCore.Http;
@@ -37,10 +35,10 @@ public class IsolatedProcessEndToEndTests
         // Execute Query Test for end-to-end validation...
         // NOTE: This uses the new Az Func Isolated Process extension to execute
         // via HttpRequestData...
-        var response = await requestExecutor.ExecuteAsync(request).ConfigureAwait(false);
+        var response = await requestExecutor.ExecuteAsync(request);
 
         // Read, Parse & Validate the response...
-        var resultContent = await ReadResponseAsStringAsync(response).ConfigureAwait(false);
+        var resultContent = await ReadResponseAsStringAsync(response);
         Assert.False(string.IsNullOrWhiteSpace(resultContent));
 
         dynamic json = JObject.Parse(resultContent!);
@@ -59,7 +57,6 @@ public class IsolatedProcessEndToEndTests
                 graphQL.AddQueryType(
                     d => d.Name("Query").Field("person").Resolve(ctx =>
                     {
-
                         var darkSideLeader = ctx.ContextData.TryGetValue(
                             nameof(HttpContext),
                             out var httpContext)
@@ -87,10 +84,10 @@ public class IsolatedProcessEndToEndTests
         // Execute Query Test for end-to-end validation...
         // NOTE: This uses the new Az Func Isolated Process extension to execute
         // via HttpRequestData...
-        var response = await requestExecutor.ExecuteAsync(request).ConfigureAwait(false);
+        var response = await requestExecutor.ExecuteAsync(request);
 
         // Read, Parse & Validate the response...
-        var resultContent = await ReadResponseAsStringAsync(response).ConfigureAwait(false);
+        var resultContent = await ReadResponseAsStringAsync(response);
         Assert.False(string.IsNullOrWhiteSpace(resultContent));
 
         dynamic json = JObject.Parse(resultContent!);
@@ -116,10 +113,10 @@ public class IsolatedProcessEndToEndTests
         // Execute Query Test for end-to-end validation...
         // NOTE: This uses the new Az Func Isolated Process extension to execute
         // via HttpRequestData...
-        var httpResponseData = await requestExecutor.ExecuteAsync(httpRequestData).ConfigureAwait(false);
+        var httpResponseData = await requestExecutor.ExecuteAsync(httpRequestData);
 
         // Read, Parse & Validate the response...
-        var resultContent = await ReadResponseAsStringAsync(httpResponseData).ConfigureAwait(false);
+        var resultContent = await ReadResponseAsStringAsync(httpResponseData);
         Assert.NotNull(resultContent);
         Assert.False(string.IsNullOrWhiteSpace(resultContent));
         Assert.True(resultContent!.Contains("<html") && resultContent.Contains("</html>"));

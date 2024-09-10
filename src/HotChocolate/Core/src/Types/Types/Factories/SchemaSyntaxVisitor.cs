@@ -1,14 +1,9 @@
 #nullable enable
 
-using System;
-using System.Collections.Generic;
-using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Factories;
@@ -216,5 +211,4 @@ EXIT:
 
         return base.VisitChildren(node, context);
     }
-
 }

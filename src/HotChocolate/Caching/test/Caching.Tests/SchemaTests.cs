@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -14,7 +13,11 @@ public class SchemaTests
     {
         var schema =
             await new ServiceCollection()
+#if NET7_0_OR_GREATER
+                .AddGraphQLServer(disableCostAnalyzer: true)
+#else
                 .AddGraphQLServer()
+#endif
                 .AddTypeExtension(typeof(Query))
                 .ConfigureSchema(
                     b => b.TryAddRootType(
@@ -72,7 +75,6 @@ public class SchemaTests
     {
         public static Book GetBook()
             => new Book("C# in depth.", "abc");
-
 }
 
     public record Book(

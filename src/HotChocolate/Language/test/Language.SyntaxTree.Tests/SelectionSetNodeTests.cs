@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -24,7 +22,6 @@ public class SelectionSetNodeTests
                 new FieldNode(TestLocations.Location1,
                     new NameNode("bb"),
                     new NameNode("bb"),
-                    default,
                     new List<DirectiveNode>(0),
                     new List<ArgumentNode>(0),
                     new SelectionSetNode(
@@ -62,7 +59,6 @@ public class SelectionSetNodeTests
                 new FieldNode(TestLocations.Location1,
                     new NameNode("bb"),
                     new NameNode("bb"),
-                    default,
                     new List<DirectiveNode>(0),
                     new List<ArgumentNode>(0),
                     new SelectionSetNode(
@@ -94,7 +90,6 @@ public class SelectionSetNodeTests
                 new FieldNode(TestLocations.Location1,
                     new NameNode("aa"),
                     new NameNode("aa"),
-                    default,
                     new List<DirectiveNode>(0),
                     new List<ArgumentNode>(0),
                     new SelectionSetNode(
@@ -108,7 +103,6 @@ public class SelectionSetNodeTests
                 new FieldNode(TestLocations.Location1,
                     new NameNode("aa"),
                     new NameNode("aa"),
-                    default,
                     new List<DirectiveNode>(0),
                     new List<ArgumentNode>(0),
                     new SelectionSetNode(
@@ -122,7 +116,6 @@ public class SelectionSetNodeTests
                 new FieldNode(TestLocations.Location1,
                     new NameNode("bb"),
                     new NameNode("bb"),
-                    default,
                     new List<DirectiveNode>(0),
                     new List<ArgumentNode>(0),
                     new SelectionSetNode(
@@ -136,7 +129,6 @@ public class SelectionSetNodeTests
                 new FieldNode(TestLocations.Location1,
                     new NameNode("bb"),
                     new NameNode("bb"),
-                    default,
                     new List<DirectiveNode>(0),
                     new List<ArgumentNode>(0),
                     new SelectionSetNode(
@@ -169,7 +161,6 @@ public class SelectionSetNodeTests
                     null,
                     new NameNode("bar"),
                     null,
-                    null,
                     Array.Empty<DirectiveNode>(),
                     Array.Empty<ArgumentNode>(),
                     null
@@ -198,7 +189,6 @@ public class SelectionSetNodeTests
                 (
                     null,
                     new NameNode("bar"),
-                    null,
                     null,
                     Array.Empty<DirectiveNode>(),
                     Array.Empty<ArgumentNode>(),
@@ -231,7 +221,6 @@ public class SelectionSetNodeTests
                     null,
                     new NameNode("bar"),
                     null,
-                    null,
                     Array.Empty<DirectiveNode>(),
                     Array.Empty<ArgumentNode>(),
                     null
@@ -252,7 +241,6 @@ public class SelectionSetNodeTests
                     (
                         null,
                         new NameNode("baz"),
-                        null,
                         null,
                         Array.Empty<DirectiveNode>(),
                         Array.Empty<ArgumentNode>(),

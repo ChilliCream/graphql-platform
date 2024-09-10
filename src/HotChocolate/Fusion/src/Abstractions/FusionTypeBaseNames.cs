@@ -80,4 +80,3 @@ internal static class FusionTypeBaseNames
     /// </summary>
     public const string ResolverKind = "ResolverKind";
 }
-

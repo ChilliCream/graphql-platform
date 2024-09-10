@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using Xunit;
 
 namespace GreenDonut;
@@ -134,8 +132,8 @@ public class ResultTests
     {
         // arrange
         // act
-        Result<string> result1 = default(string);
-        Result<string> result2 = default(string);
+        Result<string?> result1 = default(string);
+        Result<string?> result2 = default(string);
 
         // assert
         Assert.Equal(result2.GetHashCode(), result1.GetHashCode());
@@ -217,10 +215,10 @@ public class ResultTests
     [InlineData(null)]
     [InlineData("Foo")]
     [Theory(DisplayName = "ImplicitResolve: Should return a resolved Result")]
-    public void ImplicitResolve(string value)
+    public void ImplicitResolve(string? value)
     {
         // act
-        Result<string> result = value;
+        Result<string?> result = value;
 
         // assert
         Assert.Equal(ResultKind.Value, result.Kind);
@@ -231,10 +229,10 @@ public class ResultTests
     [InlineData(null)]
     [InlineData("Foo")]
     [Theory(DisplayName = "ExplicitResolve: Should return a resolved Result")]
-    public void ExplicitResolve(string value)
+    public void ExplicitResolve(string? value)
     {
         // act
-        var result = Result<string>.Resolve(value);
+        var result = Result<string?>.Resolve(value);
 
         // assert
         Assert.Equal(ResultKind.Value, result.Kind);

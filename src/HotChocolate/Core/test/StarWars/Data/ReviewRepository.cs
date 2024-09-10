@@ -1,5 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
 using HotChocolate.StarWars.Models;
 
 namespace HotChocolate.StarWars.Data;

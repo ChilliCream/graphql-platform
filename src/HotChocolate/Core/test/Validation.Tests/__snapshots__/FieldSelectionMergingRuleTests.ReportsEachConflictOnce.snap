@@ -5,12 +5,12 @@
     "Path": null,
     "Locations": [
       {
-        "Line": 19,
-        "Column": 21
+        "Line": 18,
+        "Column": 5
       },
       {
-        "Line": 23,
-        "Column": 21
+        "Line": 22,
+        "Column": 5
       }
     ],
     "Extensions": {
@@ -32,12 +32,12 @@
     "Path": null,
     "Locations": [
       {
-        "Line": 23,
-        "Column": 21
+        "Line": 22,
+        "Column": 5
       },
       {
-        "Line": 19,
-        "Column": 21
+        "Line": 18,
+        "Column": 5
       }
     ],
     "Extensions": {
@@ -59,12 +59,12 @@
     "Path": null,
     "Locations": [
       {
-        "Line": 19,
-        "Column": 21
+        "Line": 18,
+        "Column": 5
       },
       {
-        "Line": 14,
-        "Column": 25
+        "Line": 13,
+        "Column": 9
       }
     ],
     "Extensions": {
@@ -86,12 +86,12 @@
     "Path": null,
     "Locations": [
       {
-        "Line": 23,
-        "Column": 21
+        "Line": 22,
+        "Column": 5
       },
       {
-        "Line": 14,
-        "Column": 25
+        "Line": 13,
+        "Column": 9
       }
     ],
     "Extensions": {

@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.AspNetCore.Authorization;
 
 public sealed class OpaQueryRequest
@@ -62,5 +60,4 @@ public sealed class OpaQueryRequest
 
         public object? Extensions { get; }
     }
-
 }

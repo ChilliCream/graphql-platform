@@ -1,4 +1,4 @@
-﻿using HotChocolate.Resolvers;
+using HotChocolate.Resolvers;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;

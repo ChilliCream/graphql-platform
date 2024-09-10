@@ -10,8 +10,8 @@ public class QueryableProjectionContext(
     Type runtimeType,
     bool inMemory)
     : ProjectionVisitorContext<Expression>(
-        context, 
-        initialType, 
+        context,
+        initialType,
         new QueryableProjectionScope(runtimeType, "_s1"))
 {
     public bool InMemory { get; } = inMemory;

@@ -26,7 +26,7 @@ internal sealed class GraphQLSnapshotValueFormatter : SnapshotValueFormatter<ISy
 
         ArrayPool<char>.Shared.Return(buffer);
     }
-    
+
     protected override void FormatMarkdown(IBufferWriter<byte> snapshot, ISyntaxNode value)
     {
         snapshot.Append("```graphql");

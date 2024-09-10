@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Text;
 using HotChocolate.Types;
 

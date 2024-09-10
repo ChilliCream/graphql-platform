@@ -1,53 +1,55 @@
-using HotChocolate;
+using HotChocolate.Data;
+using HotChocolate.Data.Pagination;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Types.Pagination;
-using HotChocolate.Pagination;
 using HotChocolate.Internal;
-using HotChocolate.Resolvers;
+using HotChocolate.Types.Pagination;
+using Microsoft.EntityFrameworkCore;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
-/// Extension methods for configuring an <see cref="IRequestExecutorBuilder"/>
+/// This class provides configuration helper methods for the entity framework integration.
 /// </summary>
 public static class EntityFrameworkRequestExecutorBuilderExtensions
 {
     /// <summary>
-    /// Adds resolver compiler mapping for the <see cref="PagingArguments"/> from the EFCore helper lib.
+    /// Registers a DbContext as a pooled DbContext service.
     /// </summary>
     /// <param name="builder">
-    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// The request executor builder.
     /// </param>
+    /// <typeparam name="T">
+    /// The type of the DbContext.
+    /// </typeparam>
     /// <returns>
-    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema
-    /// and its execution.
+    /// Returns the request executor builder.
     /// </returns>
-    public static IRequestExecutorBuilder AddPagingArguments(
+    public static IRequestExecutorBuilder RegisterDbContextFactory<T>(
         this IRequestExecutorBuilder builder)
+        where T : DbContext
     {
-        builder.Services.AddSingleton<IParameterExpressionBuilder, PagingArgumentsParameterExpressionBuilder>();
+        builder.Services.AddSingleton<IParameterExpressionBuilder, ContextFactoryParameterExpressionBuilder<T>>();
         return builder;
     }
 
-    private sealed class PagingArgumentsParameterExpressionBuilder()
-        : CustomParameterExpressionBuilder<PagingArguments>(ctx => MapArguments(ctx))
-        , IParameterBindingFactory
-        , IParameterBinding
-    {
-        public IParameterBinding Create(ParameterBindingContext context)
-            => this;
-
-        public ArgumentKind Kind => ArgumentKind.Custom;
-
-        public bool IsPure => false;
-
-        public T Execute<T>(IResolverContext context)
-            => (T)(object)MapArguments(context);
-
-        private static PagingArguments MapArguments(IResolverContext context)
-            => MapArguments(context.GetLocalState<CursorPagingArguments>(WellKnownContextData.PagingArguments));
-
-        private static PagingArguments MapArguments(CursorPagingArguments arguments)
-            => new(arguments.First, arguments.After, arguments.Last, arguments.Before);
-    }
+    /// <summary>
+    /// Adds a cursor paging provider that uses native keyset pagination.
+    /// </summary>
+    /// <param name="builder">
+    /// The request executor builder.
+    /// </param>
+    /// <param name="providerName">
+    /// The name of the provider.
+    /// </param>
+    /// <param name="defaultProvider">
+    /// Defines if this provider is the default provider.
+    /// </param>
+    /// <returns>
+    /// Returns the request executor builder.
+    /// </returns>
+    public static IRequestExecutorBuilder AddDbContextCursorPagingProvider(
+        this IRequestExecutorBuilder builder,
+        string? providerName = null,
+        bool defaultProvider = false)
+        => builder.AddCursorPagingProvider<EfQueryableCursorPagingProvider>(providerName, defaultProvider);
 }

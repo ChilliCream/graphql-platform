@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
@@ -31,5 +30,5 @@
       <DependentUpon>OffsetResources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
-  
+
 </Project>

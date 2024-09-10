@@ -155,19 +155,11 @@ public sealed class OutputFieldDefinition(string name, ITypeDefinition? type = n
 
         _features = _features is null
             ? EmptyFeatureCollection.Default
-            : new ReadOnlyFeatureCollection(_features);
+            : _features.ToReadOnly();
 
         foreach (var argument in _arguments)
         {
             argument.Seal();
-        }
-
-        foreach (var feature in _features)
-        {
-            if(feature.Value is ISealable sealable)
-            {
-                sealable.Seal();
-            }
         }
 
         _isReadOnly = true;

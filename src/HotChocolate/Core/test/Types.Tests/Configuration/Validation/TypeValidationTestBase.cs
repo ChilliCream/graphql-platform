@@ -1,4 +1,3 @@
-using System;
 using System.Text;
 using Snapshooter.Xunit;
 
@@ -24,7 +23,7 @@ public abstract class TypeValidationTestBase
                 .Use(_ => _ => default)
                 .ModifyOptions(o => o.EnableOneOf = true)
                 .Create();
-            Assert.False(true, "Expected error!");
+            Assert.Fail("Expected error!");
         }
         catch (SchemaException ex)
         {

@@ -20,7 +20,7 @@ public class EnumMergeTests(ITestOutputHelper output) : CompositionTestBase(outp
             type Query {
               field1: Enum1!
             }
-            
+
             enum Enum1 {
               BAZ
             }

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using StrawberryShake.Internal;
@@ -58,7 +55,7 @@ public class JsonResultPatcher : IResultPatcher<JsonDocument>
         var current = _json![Data]!;
 
         if (response.Body is not null &&
-            response.Body.RootElement.TryGetProperty(Path, out var pathProp) &&
+            response.Body.RootElement.TryGetProperty(ResultFields.Path, out var pathProp) &&
             response.Body.RootElement.TryGetProperty(Data, out var dataProp))
         {
             var path = pathProp.EnumerateArray().ToArray();

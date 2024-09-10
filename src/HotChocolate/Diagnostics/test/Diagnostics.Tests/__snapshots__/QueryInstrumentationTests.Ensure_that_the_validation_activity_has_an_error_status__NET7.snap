@@ -56,11 +56,15 @@
           ],
           "event": [
             {
-              "Name": "Error",
+              "Name": "exception",
               "Tags": [
                 {
-                  "Key": "graphql.error.message",
+                  "Key": "exception.message",
                   "Value": "The field `sayHello_` does not exist on the type `SimpleQuery`."
+                },
+                {
+                  "Key": "exception.type",
+                  "Value": "GRAPHQL_ERROR"
                 },
                 {
                   "Key": "graphql.error.location.column",

@@ -18,9 +18,12 @@ MD033:
     - ExampleTabs
     - img
     - InputChoiceTabs
+    - List
     - PackageInstallation
+    - Panel
     - Schema
     - strong
+    - Tab
     - u
     - Video
 MD036: false # Rationale: Possibly too strict, used frequently in documentation.

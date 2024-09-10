@@ -49,6 +49,10 @@ partial class Build
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Core" / "HotChocolate.Core.sln"));
 
+    Target TestHotChocolateCostAnalysis => _ => _
+        .Produces(TestResultDirectory / "*.trx")
+        .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "CostAnalysis" / "HotChocolate.CostAnalysis.sln"));
+
     Target TestHotChocolateData => _ => _
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Data" / "HotChocolate.Data.sln"));
@@ -77,9 +81,9 @@ partial class Build
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "OpenApi" / "HotChocolate.OpenApi.sln"));
 
-    Target TestHotChocolatePersistedQueries => _ => _
+    Target TestHotChocolatePersistedOperations => _ => _
         .Produces(TestResultDirectory / "*.trx")
-        .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "PersistedQueries" / "HotChocolate.PersistedQueries.sln"));
+        .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "PersistedOperations" / "HotChocolate.PersistedOperations.sln"));
 
     Target TestHotChocolateRaven => _ => _
         .Produces(TestResultDirectory / "*.trx")
@@ -129,7 +133,6 @@ partial class Build
             .GetProjects("*.Tests")
             .Where(t => t.Path.ToString().StartsWith(testDirectory))
             .ToArray();
-
 
         Console.WriteLine("╬============================================");
         Console.WriteLine("║ Prepared Tests:");

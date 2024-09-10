@@ -1,0 +1,20 @@
+type Query {
+  foo: Foo
+  bar: Bar
+  bazOrBar: BazOrBar
+}
+
+interface Foo {
+  field: String
+}
+
+type Bar implements Foo {
+  field: String
+  baz: Baz
+}
+
+type Baz {
+  foo: Foo
+}
+
+union BazOrBar = Baz | Bar

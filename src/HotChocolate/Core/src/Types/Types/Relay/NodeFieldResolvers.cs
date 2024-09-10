@@ -1,9 +1,7 @@
 #nullable enable
 
-using System;
 using System.Buffers;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
@@ -27,7 +25,7 @@ internal static class NodeFieldResolvers
         INodeIdSerializer serializer)
     {
         var nodeId = context.ArgumentLiteral<StringValueNode>(Id);
-        var deserializedId = serializer.Parse(nodeId.Value);
+        var deserializedId = serializer.Parse(nodeId.Value, context.Schema);
         var typeName = deserializedId.TypeName;
 
         // if the type has a registered node resolver we will execute it.
@@ -86,7 +84,7 @@ internal static class NodeFieldResolvers
                 ct.ThrowIfCancellationRequested();
 
                 var nodeId = (StringValueNode)list.Items[i];
-                var deserializedId = serializer.Parse(nodeId.Value);
+                var deserializedId = serializer.Parse(nodeId.Value, context.Schema);
                 var typeName = deserializedId.TypeName;
 
                 // if the type has a registered node resolver we will execute it.
@@ -152,7 +150,7 @@ internal static class NodeFieldResolvers
         {
             var result = new object?[1];
             var nodeId = context.ArgumentLiteral<StringValueNode>(Ids);
-            var deserializedId = serializer.Parse(nodeId.Value);
+            var deserializedId = serializer.Parse(nodeId.Value, context.Schema);
             var typeName = deserializedId.TypeName;
 
             // if the type has a registered node resolver we will execute it.
@@ -227,7 +225,7 @@ internal static class NodeFieldResolvers
 
             // Note that in standard middleware we should restore the original
             // argument after we have invoked the next pipeline element.
-            // However, the node field is under our control and we can guarantee
+            // However, the node field is under our control, and we can guarantee
             // that there are no other middleware involved and allowed,
             // meaning we skip the restore.
             context.ReplaceArgument(argumentName, idArg);

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.ApolloFederation.FederationContextData;
@@ -127,11 +126,11 @@ public sealed class KeyAttribute : DescriptorAttribute
         switch (descriptor)
         {
             case IObjectFieldDescriptor fieldDesc:
-                fieldDesc.Extend().Definition.ContextData.TryAdd(KeyMarker, true);
+                fieldDesc.Extend().Definition.ContextData.TryAdd(KeyMarker, Resolvable);
                 break;
 
             case IInterfaceFieldDescriptor fieldDesc:
-                fieldDesc.Extend().Definition.ContextData.TryAdd(KeyMarker, true);
+                fieldDesc.Extend().Definition.ContextData.TryAdd(KeyMarker, Resolvable);
                 break;
         }
     }

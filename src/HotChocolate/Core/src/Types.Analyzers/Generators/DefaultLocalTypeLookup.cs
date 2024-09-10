@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using HotChocolate.Types.Analyzers.FileBuilders;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -10,6 +9,7 @@ namespace HotChocolate.Types.Analyzers.Generators;
 public sealed class DefaultLocalTypeLookup(ImmutableArray<SyntaxInfo> syntaxInfos) : ILocalTypeLookup
 {
     private Dictionary<string, List<string>>? _typeNameLookup;
+    private readonly ImmutableArray<SyntaxInfo> _syntaxInfos = syntaxInfos;
 
     public bool TryGetTypeName(
         ITypeSymbol type,
@@ -39,7 +39,6 @@ public sealed class DefaultLocalTypeLookup(ImmutableArray<SyntaxInfo> syntaxInfo
             }
         }
 
-
         typeDisplayName = type.Name;
         return true;
     }
@@ -49,8 +48,13 @@ public sealed class DefaultLocalTypeLookup(ImmutableArray<SyntaxInfo> syntaxInfo
         if (_typeNameLookup is null)
         {
             _typeNameLookup = new Dictionary<string, List<string>>();
-            foreach (var dataLoaderInfo in syntaxInfos.OfType<DataLoaderInfo>())
+            foreach (var syntaxInfo in _syntaxInfos)
             {
+                if(syntaxInfo is not DataLoaderInfo dataLoaderInfo)
+                {
+                    continue;
+                }
+
                 if (!_typeNameLookup.TryGetValue(dataLoaderInfo.Name, out var typeNames))
                 {
                     typeNames = [];

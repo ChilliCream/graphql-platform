@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace StrawberryShake.Tools.Configuration;
 
 /// <summary>
@@ -38,7 +36,7 @@ public class StrawberryShakeSettings
     public bool? StrictSchemaValidation { get; set; }
 
     /// <summary>
-    /// Gets or sets the persisted query hash algorithm.
+    /// Gets or sets the persisted operation hash algorithm.
     /// </summary>
     public string? HashAlgorithm { get; set; }
 

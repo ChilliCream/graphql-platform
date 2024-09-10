@@ -74,7 +74,8 @@ public class ObjectTypeExtensionInfoInspector : ISyntaxInspector
                         classSymbol.Name,
                         member,
                         ResolverResultKind.Pure,
-                        ImmutableArray<ResolverParameter>.Empty);
+                        ImmutableArray<ResolverParameter>.Empty,
+                        member.GetMemberBindings());
                 }
             }
         }
@@ -163,7 +164,8 @@ public class ObjectTypeExtensionInfoInspector : ISyntaxInspector
             resolverType.Name,
             resolverMethod,
             resolverMethod.GetResultKind(),
-            resolverParameters.ToImmutableArray());
+            resolverParameters.ToImmutableArray(),
+            resolverMethod.GetMemberBindings());
     }
 
     private static Resolver CreateNodeResolver(
@@ -216,6 +218,7 @@ public class ObjectTypeExtensionInfoInspector : ISyntaxInspector
             resolverMethod,
             resolverMethod.GetResultKind(),
             resolverParameters.ToImmutableArray(),
+            resolverMethod.GetMemberBindings(),
             isNodeResolver: true);
     }
 }
@@ -249,4 +252,33 @@ file static class Extensions
 
                 return false;
             });
+
+    public static ImmutableArray<MemberBinding> GetMemberBindings(this ISymbol member)
+    {
+        var bindings = ImmutableArray.CreateBuilder<MemberBinding>();
+
+        foreach (var attribute in member.GetAttributes())
+        {
+            if (attribute.AttributeClass?.ToDisplayString().Equals(BindFieldAttribute, Ordinal) ?? false)
+            {
+                var name = attribute.ConstructorArguments[0].Value?.ToString();
+
+                if (name is not null)
+                {
+                    bindings.Add(new MemberBinding(name, MemberBindingKind.Field));
+                }
+            }
+            else if (attribute.AttributeClass?.ToDisplayString().Equals(BindMemberAttribute, Ordinal) ?? false)
+            {
+                var name = attribute.ConstructorArguments[0].Value?.ToString();
+
+                if (name is not null)
+                {
+                    bindings.Add(new MemberBinding(name, MemberBindingKind.Property));
+                }
+            }
+        }
+
+        return bindings.ToImmutable();
+    }
 }

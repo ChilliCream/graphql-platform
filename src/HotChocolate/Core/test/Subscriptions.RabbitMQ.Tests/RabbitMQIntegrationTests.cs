@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution.Configuration;
 using Squadron;

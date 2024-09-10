@@ -1,20 +1,14 @@
-using System.Collections.Generic;
 using HotChocolate;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;
 
-internal sealed class InputObjectTypeUsageAnalyzer : QuerySyntaxWalker<object?>
+internal sealed class InputObjectTypeUsageAnalyzer(ISchema schema) : SyntaxWalker<object?>
 {
     private readonly HashSet<INamedInputType> _inputTypes = [];
     private readonly HashSet<IInputType> _visitedTypes = [];
-    private readonly ISchema _schema;
-
-    public InputObjectTypeUsageAnalyzer(ISchema schema)
-    {
-        _schema = schema;
-    }
 
     public ISet<INamedInputType> InputTypes => _inputTypes;
 
@@ -23,48 +17,40 @@ internal sealed class InputObjectTypeUsageAnalyzer : QuerySyntaxWalker<object?>
         Visit(document, null);
     }
 
-    protected override void VisitOperationDefinition(
-        OperationDefinitionNode node, object? context)
+    protected override ISyntaxVisitorAction Enter(VariableDefinitionNode node, object? context)
     {
-        var operationType = _schema.GetOperationType(node.Operation)!;
-
-        VisitMany(
-            node.VariableDefinitions,
-            context,
-            VisitVariableDefinition);
-    }
-
-    protected override void VisitVariableDefinition(
-        VariableDefinitionNode node,
-        object? context)
-    {
-        if (_schema.TryGetType<INamedType>(
-                node.Type.NamedType().Name.Value,
-                out var type)
-            && type is IInputType inputType)
+        if (schema.TryGetType<INamedType>(node.Type.NamedType().Name.Value, out var type) &&
+            type is IInputType inputType)
         {
             VisitInputType(inputType);
         }
+
+        return Continue;
     }
 
     private void VisitInputType(IInputType type)
     {
-        if (_visitedTypes.Add(type))
+        while (true)
         {
-            if (type is HotChocolate.Types.ListType listType
-                && listType.ElementType is IInputType elementType)
+            if (_visitedTypes.Add(type))
             {
-                VisitInputType(elementType);
+                switch (type)
+                {
+                    case ListType { ElementType: IInputType elementType }:
+                        type = elementType;
+                        continue;
+
+                    case NonNullType { Type: IInputType innerType }:
+                        type = innerType;
+                        continue;
+
+                    case INamedInputType namedInputType:
+                        VisitNamedInputType(namedInputType);
+                        break;
+                }
             }
-            else if (type is NonNullType nonNullType
-                     && nonNullType.Type is IInputType innerType)
-            {
-                VisitInputType(innerType);
-            }
-            else if (type is INamedInputType namedInputType)
-            {
-                VisitNamedInputType(namedInputType);
-            }
+
+            break;
         }
     }
 

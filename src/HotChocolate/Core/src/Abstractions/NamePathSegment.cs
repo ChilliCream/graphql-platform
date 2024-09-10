@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Utilities;
 using static System.StringComparison;
 
@@ -15,7 +14,7 @@ public sealed class NamePathSegment : Path
         name.EnsureGraphQLName();
         Name = name;
     }
-    
+
     /// <summary>
     ///  Gets the name representing a field on a result map.
     /// </summary>
@@ -23,8 +22,8 @@ public sealed class NamePathSegment : Path
 
     /// <inheritdoc />
     public override bool Equals(Path? other)
-        => base.Equals(other) && 
-            other is NamePathSegment name && 
+        => base.Equals(other) &&
+            other is NamePathSegment name &&
             Name.Equals(name.Name, Ordinal);
 
     /// <inheritdoc />

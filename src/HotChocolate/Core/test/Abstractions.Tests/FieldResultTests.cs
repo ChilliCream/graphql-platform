@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace HotChocolate;
 
 public class FieldResultTests
@@ -8,7 +5,7 @@ public class FieldResultTests
     [Fact]
     public void Union_1_Result_Null()
     {
-        var result = new FieldResult<string>(default(string));
+        var result = new FieldResult<string?>(default(string));
         Assert.Null(result.Value);
     }
 
@@ -131,7 +128,7 @@ public class FieldResultTests
     [Fact]
     public void Union_1_Errors_Enum_Element_Null()
     {
-        void Error() => new FieldResult<string>(new List<object> { default, });
+        void Error() => new FieldResult<string>(new List<object> { default!, });
 
         Assert.Throws<ArgumentException>(Error);
     }
@@ -139,7 +136,7 @@ public class FieldResultTests
     [Fact]
     public void Union_2_Result_Null()
     {
-        var result = new FieldResult<string, ErrorObj1>(default(string));
+        var result = new FieldResult<string?, ErrorObj1>(default(string));
         Assert.Null(result.Value);
     }
 
@@ -190,7 +187,7 @@ public class FieldResultTests
     {
         void Error()
         {
-            FieldResult<string, ErrorObj1> result = default(ErrorObj1);
+            FieldResult<string, ErrorObj1> result = default(ErrorObj1)!;
         }
 
         Assert.Throws<ArgumentNullException>(Error);
@@ -286,7 +283,7 @@ public class FieldResultTests
     [Fact]
     public void Union_2_Errors_Enum_Element_Null()
     {
-        void Error() => new FieldResult<string, ErrorObj1>(new List<ErrorObj1> { default, });
+        void Error() => new FieldResult<string, ErrorObj1>(new List<ErrorObj1> { default!, });
 
         Assert.Throws<ArgumentException>(Error);
     }
@@ -294,7 +291,7 @@ public class FieldResultTests
     [Fact]
     public void Union_3_Result_Null()
     {
-        var result = new FieldResult<string, ErrorObj1, ErrorObj2>(default(string));
+        var result = new FieldResult<string?, ErrorObj1, ErrorObj2>(default(string));
         Assert.Null(result.Value);
     }
 
@@ -410,7 +407,7 @@ public class FieldResultTests
     public void Union_3_Errors_Enum_Element_Null()
     {
         void Error()
-            => new FieldResult<string, ErrorObj1, ErrorObj2>(new List<object> { default, });
+            => new FieldResult<string, ErrorObj1, ErrorObj2>(new List<object> { default!, });
 
         Assert.Throws<ArgumentException>(Error);
     }
@@ -431,7 +428,7 @@ public class FieldResultTests
     {
         void Error()
         {
-            FieldResult<string, ErrorObj1, ErrorObj2> result = default(ErrorObj1);
+            FieldResult<string, ErrorObj1, ErrorObj2> result = default(ErrorObj1)!;
         }
 
         Assert.Throws<ArgumentNullException>(Error);
@@ -529,7 +526,7 @@ public class FieldResultTests
     public void Union_3_Errors_1_Enum_Element_Null()
     {
         void Error()
-            => new FieldResult<string, ErrorObj1, ErrorObj2>(new List<ErrorObj1> { default, });
+            => new FieldResult<string, ErrorObj1, ErrorObj2>(new List<ErrorObj1> { default!, });
 
         Assert.Throws<ArgumentException>(Error);
     }
@@ -550,7 +547,7 @@ public class FieldResultTests
     {
         void Error()
         {
-            FieldResult<string, ErrorObj1, ErrorObj2> result = default(ErrorObj2);
+            FieldResult<string, ErrorObj1, ErrorObj2> result = default(ErrorObj2)!;
         }
 
         Assert.Throws<ArgumentNullException>(Error);
@@ -648,7 +645,7 @@ public class FieldResultTests
     public void Union_3_Errors_2_Enum_Element_Null()
     {
         void Error()
-            => new FieldResult<string, ErrorObj1, ErrorObj2>(new List<ErrorObj2> { default, });
+            => new FieldResult<string, ErrorObj1, ErrorObj2>(new List<ErrorObj2> { default!, });
 
         Assert.Throws<ArgumentException>(Error);
     }
@@ -656,7 +653,7 @@ public class FieldResultTests
     [Fact]
     public void Union_4_Result_Null()
     {
-        var result = new FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3>(default(string));
+        var result = new FieldResult<string?, ErrorObj1, ErrorObj2, ErrorObj3>(default(string));
         Assert.True(result.IsSuccess);
         Assert.False(result.IsError);
         Assert.Null(result.Value);
@@ -782,7 +779,7 @@ public class FieldResultTests
     {
         void Error()
             => new FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3>(
-                new List<object> { default, });
+                new List<object> { default!, });
 
         Assert.Throws<ArgumentException>(Error);
     }
@@ -803,7 +800,7 @@ public class FieldResultTests
     {
         void Error()
         {
-            FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3> result = default(ErrorObj1);
+            FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3> result = default(ErrorObj1)!;
         }
 
         Assert.Throws<ArgumentNullException>(Error);
@@ -910,7 +907,7 @@ public class FieldResultTests
     {
         void Error()
             => new FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3>(
-                new List<ErrorObj1> { default, });
+                new List<ErrorObj1> { default!, });
 
         Assert.Throws<ArgumentException>(Error);
     }
@@ -931,7 +928,7 @@ public class FieldResultTests
     {
         void Error()
         {
-            FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3> result = default(ErrorObj2);
+            FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3> result = default(ErrorObj2)!;
         }
 
         Assert.Throws<ArgumentNullException>(Error);
@@ -1038,7 +1035,7 @@ public class FieldResultTests
     {
         void Error()
             => new FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3>(
-                new List<ErrorObj2> { default, });
+                new List<ErrorObj2> { default!, });
 
         Assert.Throws<ArgumentException>(Error);
     }
@@ -1059,7 +1056,7 @@ public class FieldResultTests
     {
         void Error()
         {
-            FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3> result = default(ErrorObj3);
+            FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3> result = default(ErrorObj3)!;
         }
 
         Assert.Throws<ArgumentNullException>(Error);
@@ -1166,7 +1163,7 @@ public class FieldResultTests
     {
         void Error()
             => new FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3>(
-                new List<ErrorObj3> { default, });
+                new List<ErrorObj3> { default!, });
 
         Assert.Throws<ArgumentException>(Error);
     }
@@ -1174,7 +1171,7 @@ public class FieldResultTests
     [Fact]
     public void Union_5_Result_Null()
     {
-        var result = new FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4>(
+        var result = new FieldResult<string?, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4>(
             default(string));
         Assert.True(result.IsSuccess);
         Assert.False(result.IsError);
@@ -1307,7 +1304,7 @@ public class FieldResultTests
     {
         void Error()
             => new FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4>(
-                new List<object> { default, });
+                new List<object> { default!, });
 
         Assert.Throws<ArgumentException>(Error);
     }
@@ -1329,7 +1326,7 @@ public class FieldResultTests
         void Error()
         {
             FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4> result =
-                default(ErrorObj1);
+                default(ErrorObj1)!;
         }
 
         Assert.Throws<ArgumentNullException>(Error);
@@ -1440,7 +1437,7 @@ public class FieldResultTests
     {
         void Error()
             => new FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4>(
-                new List<ErrorObj1> { default, });
+                new List<ErrorObj1> { default!, });
 
         Assert.Throws<ArgumentException>(Error);
     }
@@ -1462,7 +1459,7 @@ public class FieldResultTests
         void Error()
         {
             FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4> result =
-                default(ErrorObj2);
+                default(ErrorObj2)!;
         }
 
         Assert.Throws<ArgumentNullException>(Error);
@@ -1573,7 +1570,7 @@ public class FieldResultTests
     {
         void Error()
             => new FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4>(
-                new List<ErrorObj2> { default, });
+                new List<ErrorObj2> { default!, });
 
         Assert.Throws<ArgumentException>(Error);
     }
@@ -1595,7 +1592,7 @@ public class FieldResultTests
         void Error()
         {
             FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4> result =
-                default(ErrorObj3);
+                default(ErrorObj3)!;
         }
 
         Assert.Throws<ArgumentNullException>(Error);
@@ -1706,7 +1703,7 @@ public class FieldResultTests
     {
         void Error()
             => new FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4>(
-                new List<ErrorObj3> { default, });
+                new List<ErrorObj3> { default!, });
 
         Assert.Throws<ArgumentException>(Error);
     }
@@ -1728,7 +1725,7 @@ public class FieldResultTests
         void Error()
         {
             FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4> result =
-                default(ErrorObj4);
+                default(ErrorObj4)!;
         }
 
         Assert.Throws<ArgumentNullException>(Error);
@@ -1839,7 +1836,7 @@ public class FieldResultTests
     {
         void Error()
             => new FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4>(
-                new List<ErrorObj4> { default, });
+                new List<ErrorObj4> { default!, });
 
         Assert.Throws<ArgumentException>(Error);
     }
@@ -1847,8 +1844,9 @@ public class FieldResultTests
     [Fact]
     public void Union_6_Result_Null()
     {
-        var result = new FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4, ErrorObj5>(
-            default(string));
+        var result =
+            new FieldResult<string?, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4, ErrorObj5>(
+                default(string));
 
         Assert.True(result.IsSuccess);
         Assert.False(result.IsError);
@@ -1989,7 +1987,7 @@ public class FieldResultTests
     {
         void Error()
             => new FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4, ErrorObj5>(
-                new List<object> { default, });
+                new List<object> { default!, });
 
         Assert.Throws<ArgumentException>(Error);
     }
@@ -2012,7 +2010,7 @@ public class FieldResultTests
         void Error()
         {
             FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4, ErrorObj5> result =
-                default(ErrorObj1);
+                default(ErrorObj1)!;
         }
 
         Assert.Throws<ArgumentNullException>(Error);
@@ -2128,7 +2126,7 @@ public class FieldResultTests
     {
         void Error()
             => new FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4, ErrorObj5>(
-                new List<ErrorObj1> { default, });
+                new List<ErrorObj1> { default!, });
 
         Assert.Throws<ArgumentException>(Error);
     }
@@ -2151,7 +2149,7 @@ public class FieldResultTests
         void Error()
         {
             FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4, ErrorObj5> result =
-                default(ErrorObj2);
+                default(ErrorObj2)!;
         }
 
         Assert.Throws<ArgumentNullException>(Error);
@@ -2267,7 +2265,7 @@ public class FieldResultTests
     {
         void Error()
             => new FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4, ErrorObj5>(
-                new List<ErrorObj2> { default, });
+                new List<ErrorObj2> { default!, });
 
         Assert.Throws<ArgumentException>(Error);
     }
@@ -2290,7 +2288,7 @@ public class FieldResultTests
         void Error()
         {
             FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4, ErrorObj5> result =
-                default(ErrorObj3);
+                default(ErrorObj3)!;
         }
 
         Assert.Throws<ArgumentNullException>(Error);
@@ -2406,7 +2404,7 @@ public class FieldResultTests
     {
         void Error()
             => new FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4, ErrorObj5>(
-                new List<ErrorObj3> { default, });
+                new List<ErrorObj3> { default!, });
 
         Assert.Throws<ArgumentException>(Error);
     }
@@ -2429,7 +2427,7 @@ public class FieldResultTests
         void Error()
         {
             FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4, ErrorObj5> result =
-                default(ErrorObj4);
+                default(ErrorObj4)!;
         }
 
         Assert.Throws<ArgumentNullException>(Error);
@@ -2545,7 +2543,7 @@ public class FieldResultTests
     {
         void Error()
             => new FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4, ErrorObj5>(
-                new List<ErrorObj4> { default, });
+                new List<ErrorObj4> { default!, });
 
         Assert.Throws<ArgumentException>(Error);
     }
@@ -2568,7 +2566,7 @@ public class FieldResultTests
         void Error()
         {
             FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4, ErrorObj5> result =
-                default(ErrorObj5);
+                default(ErrorObj5)!;
         }
 
         Assert.Throws<ArgumentNullException>(Error);
@@ -2684,7 +2682,7 @@ public class FieldResultTests
     {
         void Error()
             => new FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4, ErrorObj5>(
-                new List<ErrorObj5> { default, });
+                new List<ErrorObj5> { default!, });
 
         Assert.Throws<ArgumentException>(Error);
     }

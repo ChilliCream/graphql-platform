@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
 namespace HotChocolate.Execution;
 
 /// <summary>
@@ -9,12 +5,11 @@ namespace HotChocolate.Execution;
 /// </summary>
 public abstract class ExecutionResult : IExecutionResult
 {
-    private Func<ValueTask>[] _cleanupTasks = Array.Empty<Func<ValueTask>>();
+    private Func<ValueTask>[] _cleanupTasks = [];
     private bool _disposed;
 
     protected ExecutionResult()
     {
-
     }
 
     protected ExecutionResult(Func<ValueTask>[] cleanupTasks)
@@ -27,6 +22,8 @@ public abstract class ExecutionResult : IExecutionResult
 
     /// <inheritdoc cref="IExecutionResult" />
     public abstract IReadOnlyDictionary<string, object?>? ContextData { get; }
+
+    private protected Func<ValueTask>[] CleanupTasks => _cleanupTasks;
 
     /// <inheritdoc cref="IExecutionResult" />
     public void RegisterForCleanup(Func<ValueTask> clean)

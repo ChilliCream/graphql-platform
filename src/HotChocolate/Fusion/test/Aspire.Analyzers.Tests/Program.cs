@@ -1,11 +1,8 @@
-
-using Aspire.Hosting;
-using Aspire.Hosting.ApplicationModel;
 using HotChocolate.Fusion.Aspire;
 
 namespace HotChocolate.Fusion.Analyzers.Tests;
 
-public class Program
+public static class Program
 {
     public static void Foo(string[] args)
     {
@@ -78,5 +75,3 @@ public class Program
         builder.Build().Compose().Run();
     }
 }
-
-

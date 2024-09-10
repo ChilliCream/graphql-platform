@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
@@ -96,7 +92,6 @@ public class InputObjectTypeTests : TypeTestBase
             t => Assert.Equal("name", t.Name));
     }
 
-
     [Fact]
     public void Initialize_UnignoreProperty_PropertyIsInSchemaType()
     {
@@ -156,7 +151,6 @@ public class InputObjectTypeTests : TypeTestBase
         // assert
         fooType = CreateType(fooType,
             b => b.AddDirectiveType<FooDirectiveType>());
-
 
         Assert.NotEmpty(fooType.Directives["foo"]);
         Assert.NotEmpty(fooType.Fields["id"].Directives["foo"]);
@@ -559,7 +553,6 @@ public class InputObjectTypeTests : TypeTestBase
             .AddQueryType<QueryWithInterfaceInput>()
             .AddType<InputWithInterfaceType>()
             .BuildSchemaAsync();
-
 
         // assert
         schema.ToString().MatchSnapshot();

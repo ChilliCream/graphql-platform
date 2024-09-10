@@ -1,11 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <PackageId>HotChocolate.Types.Mutations</PackageId>
     <AssemblyName>HotChocolate.Types.Mutations</AssemblyName>
     <RootNamespace>HotChocolate.Types</RootNamespace>

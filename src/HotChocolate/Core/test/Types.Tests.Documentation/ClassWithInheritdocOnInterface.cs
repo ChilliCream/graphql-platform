@@ -1,10 +1,10 @@
 namespace HotChocolate.Types.Descriptors
 {
 #pragma warning disable 1591
-    public class ClassWithInheritdocOnInterface : IBaseInterface
+    public class ClassWithInheritdocOnInterface(string foo) : IBaseInterface
     {
         /// <inheritdoc />
-        public string Foo { get; }
+        public string Foo { get; } = foo;
 
         /// <inheritdoc />
         public void Bar(string baz) { }

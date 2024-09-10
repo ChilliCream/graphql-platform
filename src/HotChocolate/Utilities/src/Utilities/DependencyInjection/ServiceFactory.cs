@@ -1,4 +1,3 @@
-﻿using System;
 using System.Collections.Concurrent;
 #if NET6_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
@@ -28,7 +27,7 @@ public static class ServiceFactory
         {
             throw new ArgumentNullException(nameof(services));
         }
-        
+
         if (type is null)
         {
             throw new ArgumentNullException(nameof(type));
@@ -48,8 +47,8 @@ public static class ServiceFactory
                     type.FullName),
                 ex);
         }
-        
+
         static ObjectFactory CreateFactory(Type instanceType)
-            => ActivatorUtilities.CreateFactory(instanceType, Array.Empty<Type>());
+            => ActivatorUtilities.CreateFactory(instanceType, []);
     }
 }

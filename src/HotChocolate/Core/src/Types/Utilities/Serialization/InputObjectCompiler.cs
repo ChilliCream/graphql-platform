@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -186,7 +184,7 @@ internal static class InputObjectCompiler
 
         if (parameters.Length == 0)
         {
-            return Array.Empty<Expression>();
+            return [];
         }
 
         var expressions = new Expression[parameters.Length];
@@ -206,6 +204,17 @@ internal static class InputObjectCompiler
                 }
 
                 expressions[i] = Expression.Convert(value, parameter.ParameterType);
+            }
+            else if (parameter.HasDefaultValue)
+            {
+                if (parameter.DefaultValue is { } || !parameter.ParameterType.IsValueType)
+                {
+                    expressions[i] = Expression.Constant(parameter.DefaultValue, parameter.ParameterType);
+                }
+                else
+                {
+                    expressions[i] = Expression.Default(parameter.ParameterType);
+                }
             }
             else
             {

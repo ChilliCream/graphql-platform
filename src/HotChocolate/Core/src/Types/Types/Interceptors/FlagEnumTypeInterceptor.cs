@@ -1,6 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using HotChocolate.Configuration;
@@ -254,9 +252,9 @@ public class FlagsEnumInterceptor : TypeInterceptor
             _inputType = inputType;
         }
 
-        public object Format(object? runtimeValue)
+        public object Format(object? originalValue)
         {
-            if (runtimeValue is IDictionary<string, object> dict)
+            if (originalValue is IDictionary<string, object> dict)
             {
                 T? value = null;
                 foreach (var key in dict)
@@ -278,7 +276,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
                 return value ?? throw ThrowHelper.Flags_Parser_NoSelection(_inputType);
             }
 
-            if (runtimeValue is IList l)
+            if (originalValue is IList l)
             {
                 var list = new List<object>(l.Count);
                 for (var i = 0; i < l.Count; i++)
@@ -289,7 +287,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
                 return list;
             }
 
-            return runtimeValue!;
+            return originalValue!;
         }
 
         /// <summary>

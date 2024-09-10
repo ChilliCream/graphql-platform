@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
@@ -113,6 +111,29 @@ public class IntegrationTests
         result.MatchMarkdownSnapshot();
     }
 
+    [Fact]
+    public async Task Inherit_Interface_Fields()
+    {
+        // arrange
+        var services = CreateApplicationServices();
+        var executor = await services.GetRequiredService<IRequestExecutorResolver>().GetRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                books {
+                    nodes {
+                        idString
+                    }
+                }
+            }
+            """);
+
+        // assert
+        result.MatchMarkdownSnapshot();
+    }
+
     private static IServiceProvider CreateApplicationServices(
         Action<IServiceCollection>? configure = null)
     {
@@ -125,7 +146,7 @@ public class IntegrationTests
             .AddSingleton<ChapterRepository>();
 
         serviceCollection
-            .AddGraphQLServer()
+            .AddGraphQLServer(disableCostAnalyzer: true)
             .AddCustomModule()
             .AddGlobalObjectIdentification()
             .AddMutationConventions();

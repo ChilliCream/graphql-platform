@@ -68,7 +68,6 @@ public ref partial struct Utf8GraphQLRequestParser
         return end;
     }
 
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ParseObjectField(IDictionary<string, object?> obj)
     {

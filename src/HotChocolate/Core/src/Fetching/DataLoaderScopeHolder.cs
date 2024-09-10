@@ -1,11 +1,6 @@
-using System;
 #if NET8_0_OR_GREATER
 using System.Collections.Frozen;
-#else
-using System.Linq;
 #endif
-using System.Collections.Generic;
-using System.Threading;
 using GreenDonut;
 using GreenDonut.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,7 +26,7 @@ public sealed class DataLoaderScopeHolder
 #else
         _registrations = CreateRegistrations().ToDictionary(t => t.Item1, t => t.Item2);
 #endif
-        
+
         IEnumerable<(Type, DataLoaderRegistration)> CreateRegistrations()
         {
             foreach (var reg in registrations)
@@ -57,7 +52,7 @@ public sealed class DataLoaderScopeHolder
         scheduler ??= scopedServiceProvider.GetRequiredService<IBatchScheduler>();
         return CurrentScope = new ExecutionDataLoaderScope(scopedServiceProvider, scheduler, _registrations);
     }
-    
+
     public IDataLoaderScope GetOrCreateScope(IServiceProvider scopedServiceProvider, IBatchScheduler? scheduler = null)
     {
         if(_currentScope.Value?.Scope is null)

@@ -2,7 +2,6 @@ using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using Snapshooter.Xunit;
-using System.Threading.Tasks;
 using Snapshooter;
 
 namespace HotChocolate.Types.SDL;

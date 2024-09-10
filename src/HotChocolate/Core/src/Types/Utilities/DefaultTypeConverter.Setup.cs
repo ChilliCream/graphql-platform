@@ -1,8 +1,7 @@
 #nullable enable
 
-using System;
 using System.Buffers;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Text.Json;
 using HotChocolate.Language;
 using static System.DateTimeOffset;
@@ -55,7 +54,7 @@ public partial class DefaultTypeConverter
                 {
                     from = DateTime.SpecifyKind(from, DateTimeKind.Utc);
                 }
-                
+
                 return new DateTimeOffset(from);
             });
 
@@ -366,5 +365,8 @@ public partial class DefaultTypeConverter
 
         registry.Register<List<string>, string>(
             from => string.Join(",", from));
+
+        registry.Register<List<string>, ImmutableArray<string>>(
+            from => from.ToImmutableArray());
     }
 }

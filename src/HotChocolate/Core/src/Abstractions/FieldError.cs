@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using static HotChocolate.Properties.AbstractionResources;
 
 namespace HotChocolate;
@@ -50,7 +48,7 @@ public sealed class FieldError : IFieldResult
     /// Gets the error objects.
     /// </summary>
     public IReadOnlyList<object> Errors { get; }
-    
+
     /// <summary>
     /// Gets the mutation result value.
     /// </summary>

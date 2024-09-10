@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Threading.Tasks;
 using static HotChocolate.Execution.Processing.Tasks.ResolverTaskFactory;
 using static HotChocolate.WellKnownContextData;
 
@@ -61,7 +60,7 @@ internal sealed class DeferredFragment : DeferredExecutionTask
         {
             var operationContext = operationContextOwner.OperationContext;
             var parentResult = operationContext.Result.RentObject(Fragment.SelectionSet.Selections.Count);
-            
+
             parentResult.PatchPath = Path;
 
             EnqueueResolverTasks(

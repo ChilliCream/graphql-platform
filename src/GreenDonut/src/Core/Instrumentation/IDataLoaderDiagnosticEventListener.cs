@@ -6,7 +6,4 @@ namespace GreenDonut;
 /// and they will all be notified in the registration order.
 /// </summary>
 /// <seealso cref="DataLoaderDiagnosticEventListener"/>
-public interface IDataLoaderDiagnosticEventListener : IDataLoaderDiagnosticEvents
-{
-
-}
+public interface IDataLoaderDiagnosticEventListener : IDataLoaderDiagnosticEvents;

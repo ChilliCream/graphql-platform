@@ -128,7 +128,7 @@ public class StreamTests
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(
                     """
                     query ($stream: Boolean!) {
@@ -137,7 +137,7 @@ public class StreamTests
                         }
                     }
                     """)
-                .SetVariableValues(new Dictionary<string, object> { {"stream", false},})
+                .SetVariableValues(new Dictionary<string, object?> { {"stream", false},})
                 .Build());
 
         Assert.IsType<OperationResult>(result).MatchSnapshot();
@@ -152,7 +152,7 @@ public class StreamTests
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(
                     """
                     {

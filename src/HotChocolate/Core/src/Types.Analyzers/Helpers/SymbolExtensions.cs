@@ -7,6 +7,37 @@ namespace HotChocolate.Types.Analyzers.Helpers;
 
 public static class SymbolExtensions
 {
+    public static bool IsNullableType(this ITypeSymbol typeSymbol)
+    {
+        return typeSymbol.IsNullableRefType() ||
+            typeSymbol.IsNullableValueType();
+    }
+
+    public static bool IsNullableRefType(this ITypeSymbol typeSymbol)
+    {
+        return typeSymbol.IsReferenceType
+            && typeSymbol.NullableAnnotation == NullableAnnotation.Annotated;
+    }
+
+    public static bool IsNullableValueType(this ITypeSymbol typeSymbol)
+    {
+        if (typeSymbol is INamedTypeSymbol namedTypeSymbol)
+        {
+            if (namedTypeSymbol.IsGenericType &&
+                namedTypeSymbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static string PrintNullRefQualifier(this ITypeSymbol typeSymbol)
+    {
+        return typeSymbol.IsNullableRefType() ? "?" : string.Empty;
+    }
+
     public static string ToFullyQualified(this ITypeSymbol typeSymbol)
         => typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
@@ -332,5 +363,120 @@ public static class SymbolExtensions
         }
 
         return ResolverResultKind.Pure;
+    }
+
+    public static bool IsListType(this ISymbol member, [NotNullWhen(true)] out string? elementType)
+    {
+        if (member is IMethodSymbol methodSymbol)
+        {
+            return methodSymbol.ReturnType.IsListType(out elementType);
+        }
+
+        if (member is IPropertySymbol propertySymbol)
+        {
+            return propertySymbol.Type.IsListType(out elementType);
+        }
+
+        elementType = null;
+        return false;
+    }
+
+    public static bool IsListType(this ITypeSymbol typeSymbol, [NotNullWhen(true)] out string? elementType)
+    {
+        typeSymbol = UnwrapWrapperTypes(typeSymbol);
+
+        if (typeSymbol is INamedTypeSymbol namedTypeSymbol && namedTypeSymbol.IsGenericType)
+        {
+            var typeDefinition = namedTypeSymbol.ConstructUnboundGenericType().ToDisplayString();
+
+            if (WellKnownTypes.SupportedListInterfaces.Contains(typeDefinition))
+            {
+                elementType = namedTypeSymbol.TypeArguments[0].ToFullyQualified();
+                return true;
+            }
+
+            if(typeDefinition.Equals(WellKnownTypes.EnumerableDefinition, StringComparison.Ordinal))
+            {
+                elementType = namedTypeSymbol.TypeArguments[0].ToFullyQualified();
+                return true;
+            }
+
+            foreach (var interfaceType in namedTypeSymbol.AllInterfaces)
+            {
+                if (interfaceType.IsGenericType)
+                {
+                    var interfaceTypeDefinition = interfaceType.ConstructUnboundGenericType().ToDisplayString();
+                    if (WellKnownTypes.SupportedListInterfaces.Contains(interfaceTypeDefinition))
+                    {
+                        elementType = interfaceType.TypeArguments[0].ToFullyQualified();
+                        return true;
+                    }
+                }
+            }
+        }
+
+        elementType = null;
+        return false;
+    }
+
+    private static ITypeSymbol UnwrapWrapperTypes(ITypeSymbol typeSymbol)
+    {
+        while (typeSymbol is INamedTypeSymbol { IsGenericType: true } namedTypeSymbol)
+        {
+            var typeDefinition = namedTypeSymbol.ConstructUnboundGenericType().ToDisplayString();
+            if (WellKnownTypes.TaskWrapper.Contains(typeDefinition))
+            {
+                typeSymbol = namedTypeSymbol.TypeArguments[0];
+            }
+            else
+            {
+                break;
+            }
+        }
+        return typeSymbol;
+    }
+
+    public static bool HasPostProcessorAttribute(this ISymbol member)
+    {
+        foreach (var attributeData in member.GetAttributes())
+        {
+            if (IsPostProcessorAttribute(attributeData.AttributeClass))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool IsPostProcessorAttribute(INamedTypeSymbol? attributeClass)
+    {
+        if (attributeClass == null)
+        {
+            return false;
+        }
+
+        while (attributeClass != null)
+        {
+            var typeName = attributeClass.ToDisplayString();
+            if (typeName.Equals("HotChocolate.Types.UsePagingAttribute") ||
+                typeName.Equals("HotChocolate.Types.UseOffsetPagingAttribute"))
+            {
+                return true;
+            }
+
+            if (attributeClass.IsGenericType)
+            {
+                var typeDefinition = attributeClass.ConstructUnboundGenericType().ToDisplayString();
+                if (typeDefinition == "HotChocolate.Types.UseResolverResultPostProcessorAttribute<>")
+                {
+                    return true;
+                }
+            }
+
+            attributeClass = attributeClass.BaseType;
+        }
+
+        return false;
     }
 }

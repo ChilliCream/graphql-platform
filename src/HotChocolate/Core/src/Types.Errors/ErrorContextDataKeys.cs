@@ -21,7 +21,7 @@ internal static class ErrorContextDataKeys
     /// Marks the common error type of the schema
     /// </summary>
     public const string ErrorType = "HotChocolate.Errors.ErrorType";
-    
+
     /// <summary>
     /// Signals that error conventions are enabled.
     /// </summary>

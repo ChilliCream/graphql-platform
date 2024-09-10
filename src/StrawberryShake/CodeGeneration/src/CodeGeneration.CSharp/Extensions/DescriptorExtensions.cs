@@ -1,4 +1,3 @@
-using System;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;

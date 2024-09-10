@@ -1,7 +1,5 @@
-using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -179,6 +177,27 @@ public class HttpCachingTests : ServerTestBase
                     .Field("field")
                     .Resolve("")
                     .CacheControl(2000, CacheControlScope.Private));
+        });
+
+        var client = server.CreateClient();
+        var result = await client.PostQueryAsync("{ field }");
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task QueryError_Should_Not_Cache()
+    {
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCachePipeline()
+                .AddCacheControl()
+                .AddQueryType(d =>
+                    d.Name("Query")
+                        .Field("field")
+                        .Type<StringType>()
+                        .Resolve(_ => throw new Exception()));
         });
 
         var client = server.CreateClient();

@@ -30,7 +30,6 @@ public class StarWarsGetFriendsDeferInListTest : ServerTestBase
 
         // act
 
-
         // assert
 
     }

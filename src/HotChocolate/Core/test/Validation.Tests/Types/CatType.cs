@@ -1,9 +1,8 @@
-﻿using HotChocolate.Types;
+using HotChocolate.Types;
 
 namespace HotChocolate.Validation.Types;
 
-public class CatType
-    : ObjectType<Cat>
+public class CatType : ObjectType<Cat>
 {
     protected override void Configure(IObjectTypeDescriptor<Cat> descriptor)
     {
@@ -13,7 +12,7 @@ public class CatType
         descriptor.Field(t => t.Name).Type<NonNullType<StringType>>();
         descriptor.Field(t => t.DoesKnowCommand(default))
             .Argument("catCommand", a => a.Type<NonNullType<EnumType<CatCommand>>>());
-        descriptor.Field("furColor").Type<FurColor>().Resolve(() => null);
+        descriptor.Field("furColor").Type<FurColor>().Resolve(() => null!);
     }
 }
 

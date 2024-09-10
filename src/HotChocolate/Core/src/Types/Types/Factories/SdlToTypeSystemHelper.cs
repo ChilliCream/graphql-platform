@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -26,11 +23,11 @@ internal static class SdlToTypeSystemHelper
                 continue;
             }
 
-            if(directive.IsDeprecationReason() || directive.IsBindingDirective())
+            if (directive.IsDeprecationReason() || directive.IsBindingDirective())
             {
                 continue;
             }
-            
+
             owner.Directives.Add(new(directive));
         }
     }
@@ -47,8 +44,7 @@ internal static class SdlToTypeSystemHelper
         }
 
         if (directive.Arguments.Count != 0
-            && directive.Arguments[0].Name.Value ==
-                WellKnownDirectives.DeprecationReasonArgument
+            && directive.Arguments[0].Name.Value == WellKnownDirectives.DeprecationReasonArgument
             && directive.Arguments[0].Value is StringValueNode s
             && !string.IsNullOrEmpty(s.Value))
         {

@@ -1,5 +1,3 @@
-using System;
-
 namespace StrawberryShake.Extensions;
 
 public static class ObservableExtensions

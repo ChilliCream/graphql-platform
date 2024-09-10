@@ -4,5 +4,5 @@
   <PropertyGroup>
     <TargetFrameworks>$(AspNetTargetFrameworks)</TargetFrameworks>
   </PropertyGroup>
-  
+
 </Project>

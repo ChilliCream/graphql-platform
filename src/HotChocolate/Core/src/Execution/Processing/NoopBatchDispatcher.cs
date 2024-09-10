@@ -1,5 +1,3 @@
-using System;
-using System.Threading;
 using HotChocolate.Fetching;
 
 namespace HotChocolate.Execution.Processing;

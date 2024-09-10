@@ -19,6 +19,17 @@ public interface ISortingContext
     bool IsDefined { get; }
 
     /// <summary>
+    /// Specifies a delegate that is applied after sorting has been applied.
+    /// </summary>
+    /// <param name="action">
+    /// The delegate that is applied after sorting has been applied.
+    /// </param>
+    /// <typeparam name="T">
+    /// The type of the entity.
+    /// </typeparam>
+    void OnAfterSortingApplied<T>(PostSortingAction<T> action);
+
+    /// <summary>
     /// Serializes the input object to a dictionary
     /// </summary>
     IList<IDictionary<string, object?>> ToList();
@@ -28,3 +39,5 @@ public interface ISortingContext
     /// </summary>
     IReadOnlyList<IReadOnlyList<ISortingFieldInfo>> GetFields();
 }
+
+public delegate TQuery PostSortingAction<TQuery>(bool userDefinedSorting, TQuery query);

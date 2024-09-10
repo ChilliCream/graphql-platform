@@ -4,7 +4,6 @@
     <OutputType>Exe</OutputType>
     <IsPackable>true</IsPackable>
     <PackAsTool>true</PackAsTool>
-    <ImplicitUsings>enable</ImplicitUsings>
     <NoWarn>$(NoWarn);CA1062</NoWarn>
     <UseAppHost>false</UseAppHost>
   </PropertyGroup>
@@ -16,9 +15,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Glob" Version="1.1.9" />
-    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="4.0.1" />
-    <PackageReference Include="IdentityModel" Version="4.1.1" />
+    <PackageReference Include="Glob" />
+    <PackageReference Include="IdentityModel" />
+    <PackageReference Include="McMaster.Extensions.CommandLineUtils" />
   </ItemGroup>
 
   <ItemGroup>

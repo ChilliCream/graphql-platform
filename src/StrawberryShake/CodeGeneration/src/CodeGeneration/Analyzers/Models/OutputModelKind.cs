@@ -1,5 +1,3 @@
-using System;
-
 namespace StrawberryShake.CodeGeneration.Analyzers.Models;
 
 [Flags]

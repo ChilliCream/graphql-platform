@@ -13,8 +13,6 @@
     }
   ],
   "data": {
-    "foo": {
-      "qux": null
-    }
+    "foo": null
   }
 }

@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Security;
 using System.Text;
 using HotChocolate.Types;
 
@@ -59,27 +56,34 @@ internal sealed class SelectionSet : ISelectionSet
     /// <inheritdoc />
     public IReadOnlyList<IFragment> Fragments => _fragments;
 
+    /// <inheritdoc />
+    public IOperation DeclaringOperation { get; private set; } = default!;
+
     /// <summary>
     /// Completes the selection set without sealing it.
     /// </summary>
-    internal void Complete()
+    internal void Complete(IOperation declaringOperation)
     {
         if ((_flags & Flags.Sealed) != Flags.Sealed)
         {
+            DeclaringOperation = declaringOperation;
+
             for (var i = 0; i < _selections.Length; i++)
             {
-                _selections[i].Complete(this);
+                _selections[i].Complete(declaringOperation, this);
             }
         }
     }
 
-    internal void Seal()
+    internal void Seal(IOperation declaringOperation)
     {
         if ((_flags & Flags.Sealed) != Flags.Sealed)
         {
+            DeclaringOperation = declaringOperation;
+
             for (var i = 0; i < _selections.Length; i++)
             {
-                _selections[i].Seal(this);
+                _selections[i].Seal(declaringOperation, this);
             }
 
             _flags |= Flags.Sealed;
@@ -107,7 +111,6 @@ internal sealed class SelectionSet : ISelectionSet
     public override string ToString()
     {
         // this produces the rough structure of the selection set for debugging purposes.
-        
         var sb = new StringBuilder();
 
         foreach (var selection in _selections)

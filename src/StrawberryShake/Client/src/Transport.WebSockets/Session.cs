@@ -1,8 +1,4 @@
-using System;
 using System.Collections.Concurrent;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using StrawberryShake.Properties;
 using StrawberryShake.Transport.WebSockets.Messages;
 
@@ -22,10 +18,10 @@ public sealed class Session : ISession
     /// </summary>
     public Session(ISocketClient socketClient)
     {
-        _socketClient = socketClient ??
-                        throw new ArgumentNullException(nameof(socketClient));
+        _socketClient = socketClient
+            ?? throw new ArgumentNullException(nameof(socketClient));
 
-        _socketClient.ReceiveFinished += ReceiveFinishHandler;
+        _socketClient.OnConnectionClosed += ReceiveFinishHandler;
     }
 
     /// <inheritdoc />
@@ -95,7 +91,6 @@ public sealed class Session : ISession
         }
     }
 
-    /// <inheritdoc />
     private async ValueTask CompleteOperation(CancellationToken cancellationToken)
     {
         foreach (var operation in _operations)
@@ -104,11 +99,8 @@ public sealed class Session : ISession
         }
     }
 
-    /// <inheritdoc />
-    private void ReceiveFinishHandler(object? sender, EventArgs args)
-    {
-        _ = CompleteOperation(default);
-    }
+    private void ReceiveFinishHandler(object? sender, EventArgs e)
+        => _ = CompleteOperation(default);
 
     /// <summary>
     /// Opens a session over the socket
@@ -125,7 +117,6 @@ public sealed class Session : ISession
 
         _socketProtocol.Subscribe(ReceiveMessage);
     }
-
 
     /// <summary>
     /// Closes a session over the socket
@@ -161,8 +152,8 @@ public sealed class Session : ISession
 
     private void EnsureSession(out ISocketProtocol socketProtocol)
     {
-        socketProtocol = _socketProtocol ??
-                         throw ThrowHelper.SessionManager_SessionIsNotOpen();
+        socketProtocol = _socketProtocol
+            ?? throw ThrowHelper.SessionManager_SessionIsNotOpen();
     }
 
     /// <inheritdoc />
@@ -173,7 +164,7 @@ public sealed class Session : ISession
             _disposed = true;
             if (_operations.Count > 0)
             {
-                SocketOperation[] operations = _operations.Values.ToArray();
+                var operations = _operations.Values.ToArray();
 
                 for (var i = 0; i < operations.Length; i++)
                 {
@@ -183,7 +174,7 @@ public sealed class Session : ISession
                 _operations.Clear();
             }
 
-            _socketClient.ReceiveFinished -= ReceiveFinishHandler;
+            _socketClient.OnConnectionClosed -= ReceiveFinishHandler;
             _socketProtocol?.Unsubscribe(ReceiveMessage);
             await _socketClient.DisposeAsync();
         }

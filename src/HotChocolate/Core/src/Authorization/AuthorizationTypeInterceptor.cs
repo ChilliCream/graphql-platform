@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 #if NET6_0_OR_GREATER
 using System.Runtime.InteropServices;
@@ -33,7 +31,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
     private ExtensionData _schemaContextData = default!;
     private ITypeCompletionContext _queryContext = default!;
 
-    internal override uint Position => uint.MaxValue;
+    internal override uint Position => uint.MaxValue - 50;
 
     internal override void InitializeContext(
         IDescriptorContext context,

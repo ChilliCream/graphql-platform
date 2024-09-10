@@ -1,4 +1,4 @@
-﻿using System.Buffers;
+using System.Buffers;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -158,6 +158,20 @@ public class Snapshot
         return this;
     }
 
+    public Snapshot Add(
+        object? value,
+        string name,
+        string markdownLanguage)
+    {
+        _segments.Add(
+            new SnapshotSegment(
+                name,
+                value,
+                new PlainTextSnapshotValueFormatter(markdownLanguage)));
+
+        return this;
+    }
+
     public Snapshot Add(SnapshotValue value)
     {
         if (value == null)
@@ -212,6 +226,7 @@ public class Snapshot
     {
         var writer = new ArrayBufferWriter<byte>();
         WriteSegments(writer);
+        EnsureEndOfBufferNewline(writer);
 
         var snapshotFile = Combine(CreateSnapshotDirectoryName(), CreateSnapshotFileName());
 
@@ -243,6 +258,7 @@ public class Snapshot
     {
         var writer = new ArrayBufferWriter<byte>();
         WriteSegments(writer);
+        EnsureEndOfBufferNewline(writer);
 
         var snapshotFile = Combine(CreateSnapshotDirectoryName(), CreateSnapshotFileName());
 
@@ -541,6 +557,17 @@ public class Snapshot
         return mismatch
             ? Combine(directoryName, "__snapshots__", "__MISMATCH__")
             : Combine(directoryName, "__snapshots__");
+    }
+
+    /// <summary>
+    /// Ensure that the specified writer's underlying buffer ends with a newline.
+    /// </summary>
+    private static void EnsureEndOfBufferNewline(ArrayBufferWriter<byte> writer)
+    {
+        if (writer.WrittenSpan.Length > 0 && writer.WrittenSpan[^1] != (byte)'\n')
+        {
+            writer.Append("\n");
+        }
     }
 
     private static void EnsureDirectoryExists(string file)

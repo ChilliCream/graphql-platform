@@ -24,7 +24,7 @@ public class AuthorizationHandlerTests
             .AddAuthorizationHandler<CustomHandler>()
             .ExecuteRequestAsync(
                 OperationRequestBuilder
-                    .Create()
+                    .New()
                     .SetDocument("{ bar }")
                     .AddGlobalState("auth", authResult)
                     .Build());

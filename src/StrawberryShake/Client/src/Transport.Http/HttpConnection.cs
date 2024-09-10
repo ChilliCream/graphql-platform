@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Transport.Http;
@@ -35,7 +32,7 @@ public sealed class HttpConnection : IHttpConnection
 
         HotChocolate.Transport.OperationRequest operation;
 
-        if (strategy == RequestStrategy.PersistedQuery)
+        if (strategy == RequestStrategy.PersistedOperation)
         {
             operation = new HotChocolate.Transport.OperationRequest(null, id, name, variables, extensions);
         }

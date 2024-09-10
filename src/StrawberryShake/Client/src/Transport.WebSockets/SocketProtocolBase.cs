@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using StrawberryShake.Transport.WebSockets.Messages;
 
 namespace StrawberryShake.Transport.WebSockets;
@@ -67,8 +63,8 @@ public abstract class SocketProtocolBase : ISocketProtocol
 
     /// <inheritdoc />
     public async ValueTask NotifyCompletion(
-    string operationId,
-    CancellationToken cancellationToken)
+        string operationId,
+        CancellationToken cancellationToken)
     {
         await Notify(operationId, CompleteOperationMessage.Default, cancellationToken).ConfigureAwait(false);
     }

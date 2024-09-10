@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -237,8 +232,8 @@ public static class CSharpGenerator
             }
         }
 
-        // If persisted queries is enabled we will add the queries as documents.
-        if (settings.RequestStrategy == RequestStrategy.PersistedQuery)
+        // If persisted operations is enabled we will add the operations as documents.
+        if (settings.RequestStrategy == RequestStrategy.PersistedOperation)
         {
             foreach (var operation in context.Operations)
             {

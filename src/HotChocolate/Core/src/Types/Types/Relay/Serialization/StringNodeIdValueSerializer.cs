@@ -1,5 +1,4 @@
 #nullable enable
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using HotChocolate.Language;
@@ -34,6 +33,12 @@ internal sealed class StringNodeIdValueSerializer : INodeIdValueSerializer
 
     public unsafe bool TryParse(ReadOnlySpan<byte> buffer, [NotNullWhen(true)] out object? value)
     {
+        if (buffer.Length == 0)
+        {
+            value = string.Empty;
+            return true;
+        }
+
         fixed (byte* b = buffer)
         {
             value = _utf8.GetString(b, buffer.Length);
