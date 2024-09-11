@@ -10,12 +10,12 @@ declare module "@/images/artwork/*.svg" {
   export default content;
 }
 
-declare module "@/images/brands/*.svg" {
+declare module "@/images/companies/*.svg" {
   const content: Sprite;
   export default content;
 }
 
-declare module "@/images/companies/*.svg" {
+declare module "@/images/icons/*.svg" {
   const content: Sprite;
   export default content;
 }
