@@ -281,6 +281,7 @@ jobs:
           name: graphql-platform
           flags: unittests
           fail_ci_if_error: true
+          disable_search: true
 
   ci-status-check:
     name: "CI Status Check"

@@ -164,3 +164,4 @@ jobs:
         name: graphql-platform
         flags: unittests
         fail_ci_if_error: true
+        disable_search: true
