@@ -143,6 +143,7 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         path: ./output/download
+        pattern: coverage-*
 
     - name: Merge Coverage Files
       if: ${{ !cancelled() }}
