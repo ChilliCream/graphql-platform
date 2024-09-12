@@ -765,6 +765,52 @@ public class IntegrationTests
     }
 
     [Fact]
+    public async Task ExtendedTypeRef_Default_Items()
+    {
+        Snapshot.FullName();
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .Services
+                .BuildServiceProvider()
+                .GetRequestExecutorAsync();
+
+        await executor
+            .ExecuteAsync(@"
+                {
+                    extendedTypeRef {
+                        nodes
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task ExtendedTypeRefNested_Default_Items()
+    {
+        Snapshot.FullName();
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .Services
+                .BuildServiceProvider()
+                .GetRequestExecutorAsync();
+
+        await executor
+            .ExecuteAsync(@"
+                {
+                    extendedTypeRefNested {
+                        nodes
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
     public async Task Interface_With_Paging_Field()
     {
         Snapshot.FullName();
@@ -1047,6 +1093,16 @@ public class IntegrationTests
                         MaxPageSize = 2,
                         IncludeTotalCount = true,
                     });
+
+            descriptor
+                .Field("extendedTypeRef")
+                .Resolve(_ => new List<string>(["one", "two"]))
+                .UsePaging();
+
+            descriptor
+                .Field("extendedTypeRefNested")
+                .Resolve(_ => new List<List<string>>([["one", "two"]]))
+                .UsePaging();
         }
     }
 
