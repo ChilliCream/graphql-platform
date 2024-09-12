@@ -9,7 +9,7 @@ import React, {
 import styled, { css } from "styled-components";
 import { parse } from "yaml";
 
-import { BananaCakePop } from "@/components/images/banana-cake-pop";
+import { BananaCakePopImage } from "@/components/images";
 import { SiteLayout } from "@/components/layout";
 import {
   ContentSection,
@@ -76,7 +76,7 @@ const BananaCakePopPage: FC = () => {
             <ProductDetailsFooter></ProductDetailsFooter>
           </ProductDetails>
           <ProductImage>
-            <BananaCakePop />
+            <BananaCakePopImage />
           </ProductImage>
         </Product>
       </Hero>

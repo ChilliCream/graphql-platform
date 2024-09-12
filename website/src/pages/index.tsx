@@ -35,7 +35,7 @@ import {
   ObserveImage,
   SHIP_WITH_CONFIDENCE_IMAGE_WIDTH,
   ShipWithConfidenceImage,
-} from "./images";
+} from "../components/images";
 
 const IndexPage: FC = () => {
   useAnimationIntersectionObserver();
@@ -73,12 +73,12 @@ const IndexPage: FC = () => {
       <ContentSection
         title="Ship With Confidence"
         text="
-          Deploy APIs with confidence, knowing each update integrates 
-          flawlessly. Ensure that every change is safe, allowing you to ship 
-          your systems without disruption. You can deploy without breaking your 
-          api or causing downtime, and understand the impact of each change 
-          before it happens. Leverage the precision of GraphQL's strong 
-          typing for deployments you can trust, and gain insights into which 
+          Deploy APIs with confidence, knowing each update integrates
+          flawlessly. Ensure that every change is safe, allowing you to ship
+          your systems without disruption. You can deploy without breaking your
+          api or causing downtime, and understand the impact of each change
+          before it happens. Leverage the precision of GraphQL's strong
+          typing for deployments you can trust, and gain insights into which
           features are being used to make informed decisions.
         "
         image={<ShipWithConfidenceImage />}
@@ -89,11 +89,11 @@ const IndexPage: FC = () => {
       <ContentSection
         title="Observe"
         text="
-          Unlock real-time GraphQL insights and elevate your system's 
+          Unlock real-time GraphQL insights and elevate your system's
           performance. Gain a unified view of your API data, see the health of
-          your entire application, and understand the impact of client load. 
-          Delve deep into traces with detailed error analysis and latency 
-          insights. 
+          your entire application, and understand the impact of client load.
+          Delve deep into traces with detailed error analysis and latency
+          insights.
         "
         image={<ObserveImage />}
         imageWidth={OBSERVE_IMAGE_WIDTH}
@@ -101,9 +101,9 @@ const IndexPage: FC = () => {
       <ContentSection
         title="Collaborate"
         text="
-          A central hub for team-based API management, designed to bring 
-          together request documents, testing, authorization settings, and more. 
-          Manage APIs, gateways, and testing from a single point to enhance team 
+          A central hub for team-based API management, designed to bring
+          together request documents, testing, authorization settings, and more.
+          Manage APIs, gateways, and testing from a single point to enhance team
           alignment and efficiency.
         "
         image={<CollaborateImage />}

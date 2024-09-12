@@ -12,9 +12,11 @@ import React, {
 import { useSelector } from "react-redux";
 import styled from "styled-components";
 
-import { WorkshopNdcCopenhagen } from "@/components/images/workshop-ndc-copenhagen";
-import { WorkshopNdcOslo } from "@/components/images/workshop-ndc-oslo";
-import { WorkshopOnline } from "@/components/images/workshop-online";
+import {
+  WorkshopNdcCopenhagenImage,
+  WorkshopNdcOsloImage,
+  WorkshopOnlineImage,
+} from "@/components/images";
 import { IconContainer, Link, SearchModal } from "@/components/misc";
 import { Icon, Logo } from "@/components/sprites";
 import { GitHubStarButton } from "@/components/widgets";
@@ -1416,13 +1418,13 @@ interface WorkshopHeroProps {
 const WorkshopHero: FC<WorkshopHeroProps> = ({ image }) => {
   switch (image) {
     case "ndc-oslo":
-      return <WorkshopNdcOslo />;
+      return <WorkshopNdcOsloImage />;
 
     case "ndc-copenhagen":
-      return <WorkshopNdcCopenhagen />;
+      return <WorkshopNdcCopenhagenImage />;
 
     case "online":
-      return <WorkshopOnline />;
+      return <WorkshopOnlineImage />;
 
     default:
       return null;

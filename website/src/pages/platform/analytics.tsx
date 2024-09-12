@@ -27,7 +27,7 @@ import {
   AnalyticsInsightsImage,
   AnalyticsObservabilityImage,
   AnalyticsOverviewImage,
-} from "../images";
+} from "../../components/images";
 
 const AnalyticsPage: FC = () => {
   useAnimationIntersectionObserver();

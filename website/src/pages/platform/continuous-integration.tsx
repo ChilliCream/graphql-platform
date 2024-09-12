@@ -29,7 +29,7 @@ import {
   ContinuousIntegrationTrackImage,
   SHIP_WITH_CONFIDENCE_IMAGE_WIDTH,
   ShipWithConfidenceImage,
-} from "../images";
+} from "../../components/images";
 
 const ContinuousIntegrationPage: FC = () => {
   useAnimationIntersectionObserver();

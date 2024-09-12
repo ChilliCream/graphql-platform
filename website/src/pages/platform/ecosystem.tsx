@@ -29,7 +29,7 @@ import {
   ECOSYSTEM_CONTINUOUS_EVOLUTION_IMAGE_WIDTH,
   EcosystemBannerImage,
   EcosystemContinuousEvolutionImage,
-} from "../images";
+} from "../../components/images";
 
 const EcosystemPage: FC = () => {
   const data = useStaticQuery<GetEcosystemPageDataQuery>(graphql`
