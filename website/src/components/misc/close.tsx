@@ -20,11 +20,13 @@ export const Close: FC<CloseProps> = (props) => {
 };
 
 export const ButtonContainer = styled.button`
-  fill: #fafafa;
-  stroke: #fafafa;
+  svg {
+    fill: #2e2857;
+    stroke: #2e2857;
 
-  &:hover {
-    fill: #ececec;
-    stroke: #ececec;
+    &:hover {
+      fill: #3b3370;
+      stroke: #3b3370;
+    }
   }
 `;
