@@ -176,8 +176,13 @@ public sealed class PromiseCache : IPromiseCache
     public void PublishMany<T>(ReadOnlySpan<T> values)
     {
         var buffer = ArrayPool<Promise<T>>.Shared.Rent(values.Length);
-        var bufferedPromises = buffer.AsSpan().Slice(values.Length);
+        var bufferedPromises = buffer.AsSpan().Slice(0, values.Length);
 
+        // first we add the promises tp the promise list, which we keep
+        // for DataLoader that are not instantiated yet.
+        // for this we need a quick lock as the list is shared.
+        // once a DataLoader instantiate it can replay all promises that
+        // were published before.
         lock (_promises)
         {
             for (var i = 0; i < values.Length; i++)
@@ -188,6 +193,7 @@ public sealed class PromiseCache : IPromiseCache
             }
         }
 
+        // now we notify all subscribers that are interested in the current promise type.
         if (_subscriptions.TryGetValue(typeof(T), out var subscriptions))
         {
             foreach (var subscription in subscriptions)
@@ -202,6 +208,7 @@ public sealed class PromiseCache : IPromiseCache
             }
         }
 
+        // last we clear the buffer and return it to the pool.
         bufferedPromises.Clear();
         ArrayPool<Promise<T>>.Shared.Return(buffer);
     }
