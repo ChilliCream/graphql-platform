@@ -1,7 +1,12 @@
 import React, { FC, useState } from "react";
 import styled from "styled-components";
 
-import { FONT_FAMILY, THEME_COLORS } from "@/shared-style";
+import { IconContainer } from "@/components/misc";
+import { Icon } from "@/components/sprites";
+import { FONT_FAMILY, THEME_COLORS } from "@/style";
+
+// Icons
+import CopyIconSvg from "@/images/icons/copy.svg";
 
 function copyToClipboard(content: string): void {
   const el = document.createElement(`textarea`);
@@ -34,15 +39,9 @@ export const Copy: FC<CopyProps> = ({ content }) => {
           }, 3000);
         }}
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-        >
-          <path fill="none" d="M0 0h24v24H0V0z" />
-          <path d="M16 1H2v16h2V3h12V1zm-1 4l6 6v12H6V5h9zm-1 7h5.5L14 6.5V12z" />
-        </svg>
+        <IconContainer $size={20}>
+          <Icon {...CopyIconSvg} />
+        </IconContainer>
       </CopyIconButton>
       {showToast && <CopySuccessToast />}
     </>
@@ -70,10 +69,11 @@ const ToastContainer = styled.div`
   bottom: 30px;
   transform: translateX(-50%);
   z-index: 9999;
-  background-color: ${THEME_COLORS.primary};
-  box-shadow: 0px 3px 6px 0px #828282;
+  border: 1px solid ${THEME_COLORS.boxBorder};
+  border-radius: var(--box-border-radius);
   padding: 20px;
-  border-radius: var(--border-radius);
+  backdrop-filter: blur(4px);
+  background-color: ${THEME_COLORS.backdrop};
   opacity: 0;
   animation: animation 3s cubic-bezier(0.98, 0.01, 0.53, 0.47);
 
@@ -94,13 +94,13 @@ const CopyIconButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 0 0 0 var(--border-radius);
-  padding: 8px 8px;
-  background-color: #aaa;
+  border-radius: 0 var(--box-border-radius) 0 var(--button-border-radius);
+  border: 1px solid ${THEME_COLORS.boxBorder};
+  border-top: 0 none;
+  border-right: 0 none;
+  padding: 6px;
 
-  > svg {
-    width: 18px;
-    height: 18px;
-    fill: #2d2d2d;
+  svg {
+    fill: #eb64b9;
   }
 `;

@@ -1,4 +1,3 @@
-import { SrOnly } from "@/components/misc/sr-only";
 import React, {
   FC,
   MouseEventHandler,
@@ -10,17 +9,25 @@ import React, {
 import styled, { css } from "styled-components";
 import { parse } from "yaml";
 
-import { BananaCakePop } from "@/components/images/banana-cake-pop";
-import { Layout } from "@/components/layout";
+import { BananaCakePopImage } from "@/components/images";
+import { SiteLayout } from "@/components/layout";
+import {
+  ContentSection,
+  Hero,
+  Link,
+  SEO,
+  Spinner,
+  SrOnly,
+} from "@/components/misc";
 import { Card, CardOffer, CardsContainer } from "@/components/misc/cards";
-import { Link } from "@/components/misc/link";
-import { Intro } from "@/components/misc/page-elements";
-import { SEO } from "@/components/misc/seo";
-import { Spinner } from "@/components/misc/spinner";
+import { Icon } from "@/components/sprites";
 import {
   CompaniesSection,
+  DeploymentOptionsSection,
   MostRecentBcpBlogPostsSection,
+  NewsletterSection,
 } from "@/components/widgets";
+import { useAnimationIntersectionObserver } from "@/hooks";
 import {
   FONT_FAMILY_HEADING,
   IsDesktop,
@@ -28,18 +35,13 @@ import {
   IsSmallDesktop,
   IsSmallTablet,
   IsTablet,
+  MAX_CONTENT_WIDTH,
   THEME_COLORS,
-} from "@/shared-style";
+} from "@/style";
 
 // Icons
-import {
-  ContentContainer,
-  Section,
-  SectionRow,
-  SectionTitle,
-} from "@/components/misc/marketing-elements";
-import ArrowDownIconSvg from "@/images/arrow-down.svg";
-import CircleDownIconSvg from "@/images/circle-down.svg";
+import ChevronDownIconSvg from "@/images/icons/chevron-down.svg";
+import CircleDownIconSvg from "@/images/icons/circle-down.svg";
 
 const DOWNLOAD_BASE_URL = "https://cdn.bananacakepop.com/app/";
 
@@ -52,46 +54,39 @@ const TITLE = "Banana Cake Pop / GraphQL IDE";
 const BananaCakePopPage: FC = () => {
   const appInfos = useAppInfos();
 
+  useAnimationIntersectionObserver();
+
   return (
-    <Layout>
+    <SiteLayout>
       <SEO
         title={TITLE}
         description="Banana Cake Pop is an incredible, beautiful, and feature-rich GraphQL IDE for developers that works with any GraphQL APIs."
       />
-      <Intro>
+      <Hero>
         <Product>
           <ProductDetails>
             <ProductDetailsHeader>
-              <ProductName>Banana Cake Pop</ProductName>
+              <ProductNameFirstPart>Banana</ProductNameFirstPart>
+              <ProductName>Cake Pop</ProductName>
               <ProductDescription>
-                /* GraphQL IDE for Devs */
+                ~ Next-Level GraphQL IDE ~
               </ProductDescription>
             </ProductDetailsHeader>
             <ProductDownload appInfos={appInfos} />
             <ProductDetailsFooter></ProductDetailsFooter>
           </ProductDetails>
           <ProductImage>
-            <BananaCakePop shadow />
+            <BananaCakePopImage />
           </ProductImage>
         </Product>
-      </Intro>
-      <Section>
-        <SectionRow>
-          <ContentContainer noImage>
-            <SectionTitle centerAlways>Features</SectionTitle>
-            <p>
-              A powerful GraphQL IDE that joins you and your team on your
-              GraphQL journey.
-            </p>
-          </ContentContainer>
-        </SectionRow>
-      </Section>
-      <Section>
-        <CardsContainer dense>
+      </Hero>
+      <CompaniesSection />
+      <ContentSection title="Features" noBackground>
+        <CardsContainer>
           <Card>
             <CardOffer>
               <header>
-                <h2>Authentication Flows</h2>
+                <h5>Authentication Flows</h5>
               </header>
               <p>
                 Choose between various authentication flows like basic, bearer
@@ -102,7 +97,7 @@ const BananaCakePopPage: FC = () => {
           <Card>
             <CardOffer>
               <header>
-                <h2>Organization Workspaces</h2>
+                <h5>Organization Workspaces</h5>
               </header>
               <p>
                 Organize your GraphQL APIs and collaborate with colleagues
@@ -113,7 +108,7 @@ const BananaCakePopPage: FC = () => {
           <Card>
             <CardOffer>
               <header>
-                <h2>Document Synchronization</h2>
+                <h5>Document Synchronization</h5>
               </header>
               <p>
                 Keep your documents safe across all your devices and your teams.
@@ -123,9 +118,9 @@ const BananaCakePopPage: FC = () => {
           <Card>
             <CardOffer>
               <header>
-                <h2>
+                <h5>
                   PWA <SrOnly>(Progressive Web Application)</SrOnly> Support
-                </h2>
+                </h5>
               </header>
               <p>
                 Use your favorite Browser to install Banana Cake Pop as PWA on
@@ -136,7 +131,7 @@ const BananaCakePopPage: FC = () => {
           <Card>
             <CardOffer>
               <header>
-                <h2>Beautiful Themes</h2>
+                <h5>Beautiful Themes</h5>
               </header>
               <p>
                 Choose your single preferred theme or let the system
@@ -147,7 +142,7 @@ const BananaCakePopPage: FC = () => {
           <Card>
             <CardOffer>
               <header>
-                <h2>GraphQL File Upload</h2>
+                <h5>GraphQL File Upload</h5>
               </header>
               <p>
                 Implements the latest version of the{" "}
@@ -161,9 +156,9 @@ const BananaCakePopPage: FC = () => {
           <Card>
             <CardOffer>
               <header>
-                <h2>
+                <h5>
                   Subscriptions over SSE <SrOnly>(Server-Sent Events)</SrOnly>
-                </h2>
+                </h5>
               </header>
               <p>
                 Supports{" "}
@@ -177,7 +172,7 @@ const BananaCakePopPage: FC = () => {
           <Card>
             <CardOffer>
               <header>
-                <h2>Performant GraphQL IDE</h2>
+                <h5>Performant GraphQL IDE</h5>
               </header>
               <p>
                 Lagging apps can be frustrating. We do not accept that and keep
@@ -189,9 +184,9 @@ const BananaCakePopPage: FC = () => {
           <Card>
             <CardOffer>
               <header>
-                <h2>
+                <h5>
                   Subscriptions over WS <SrOnly>(WebSockets)</SrOnly>
-                </h2>
+                </h5>
               </header>
               <p>
                 Supports{" "}
@@ -207,10 +202,11 @@ const BananaCakePopPage: FC = () => {
             </CardOffer>
           </Card>
         </CardsContainer>
-      </Section>
-      <CompaniesSection />
+      </ContentSection>
+      <DeploymentOptionsSection />
+      <NewsletterSection />
       <MostRecentBcpBlogPostsSection />
-    </Layout>
+    </SiteLayout>
   );
 };
 
@@ -318,7 +314,7 @@ const DownloadButton: FC<DownloadButtonProps> = ({
         <span>Stable Build</span>
       </DownloadLink>
       <DropDown onClick={toggleMenu}>
-        <ArrowDownIconSvg />
+        <Icon {...ChevronDownIconSvg} />
       </DropDown>
       <DownloadMatrix ref={menuRef}>
         <table>
@@ -452,21 +448,23 @@ const Product = styled.div`
   flex: 0 0 auto;
   flex-direction: column;
   align-items: center;
+  gap: 128px;
+  max-width: ${MAX_CONTENT_WIDTH}px;
   overflow: visible;
 
-  ${IsDesktop(css`
+  ${IsDesktop(`
     flex-direction: row;
     justify-content: center;
-    width: 1100px;
+    //width: 1100px;
   `)}
 
-  ${IsSmallDesktop(css`
+  ${IsSmallDesktop(`
     flex-direction: row;
     justify-content: center;
-    width: 1100px;
+    //width: 1100px;
   `)}
 
-  ${IsTablet(css`
+  ${IsTablet(`
     flex-direction: row;
     justify-content: center;
     width: 100%;
@@ -483,14 +481,12 @@ const ProductDetails = styled.div`
   display: flex;
   flex: 0 0 auto;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  margin: 20px 30px 100px;
   overflow: visible;
 
   ${IsSmallTablet(css`
     flex-basis: auto;
-    margin: 20px 40px;
   `)}
 `;
 
@@ -498,32 +494,34 @@ const ProductDetailsHeader = styled.div`
   display: flex;
   flex: 0 0 auto;
   flex-direction: column;
-  margin-bottom: 20px;
 `;
 
 export const ProductName = styled.h1`
   flex: 0 0 auto;
-  font-weight: normal;
-  font-size: 2.222em;
-  text-align: center;
+  margin-bottom: 32px;
   color: ${THEME_COLORS.textContrast};
 
   ${IsMobile(css`
-    font-size: 1.625em;
+    //font-size: 1.625em;
   `)}
 `;
 
-export const ProductDescription = styled.p`
+const ProductNameFirstPart = styled(ProductName).attrs({
+  className: "big",
+})`
+  margin-bottom: -10px;
+`;
+
+export const ProductDescription = styled.p.attrs({
+  className: "text-1",
+})`
   flex: 0 0 auto;
-  margin: 0 0 10px;
-  font-weight: normal;
-  font-size: 1.25em;
-  line-height: 1.25em;
-  text-align: center;
+  margin-left: 4px;
   color: ${THEME_COLORS.quaternary};
+  margin-bottom: 48px;
 
   ${IsMobile(css`
-    font-size: 1em;
+    font-size: 1rem;
   `)}
 `;
 
@@ -562,25 +560,28 @@ const DownloadLink = styled.a.attrs({
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border-radius: var(--border-radius) 0 0 var(--border-radius);
-  height: 60px;
+  border: 2px solid ${THEME_COLORS.primaryButtonBorder};
+  border-radius: var(--button-border-radius) 0 0 var(--button-border-radius);
+  height: 64px;
   min-width: 150px;
   padding: 0 15px;
   color: ${THEME_COLORS.primaryButtonText};
   background-color: ${THEME_COLORS.primaryButton};
   font-family: ${FONT_FAMILY_HEADING};
-  font-size: 1em;
+  font-size: 1.125rem;
   font-weight: 500;
   text-decoration: none;
-  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out,
+    color 0.2s ease-in-out;
 
   & > span {
-    margin-top: 0.25em;
-    font-size: 0.833em;
+    margin-top: -8px;
+    font-size: 0.875rem;
     opacity: 0.75;
   }
 
   :hover {
+    border-color: ${THEME_COLORS.primaryButtonBorderHover};
     color: ${THEME_COLORS.primaryButtonHoverText};
     background-color: ${THEME_COLORS.primaryButtonHover};
   }
@@ -592,30 +593,31 @@ const DownloadLinkPlaceholder = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border-radius: var(--border-radius);
-  height: 60px;
+  border: 2px solid ${THEME_COLORS.primaryButtonBorder};
+  border-radius: var(--button-border-radius);
+  height: 64px;
   min-width: 180px;
   padding: 0 15px;
   color: ${THEME_COLORS.primaryButtonText};
   background-color: ${THEME_COLORS.primaryButton};
   font-family: ${FONT_FAMILY_HEADING};
-  font-size: 1em;
+  font-size: 1.125rem;
   font-weight: 500;
   text-decoration: none;
-  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
 `;
 
 const DropDown = styled.div`
   display: flex;
   flex: 0 0 auto;
   align-items: center;
-  margin-left: 2px;
-  border-radius: 0 var(--border-radius) var(--border-radius) 0;
-  height: 60px;
+  border: 2px solid ${THEME_COLORS.primaryButtonBorder};
+  border-left-width: 0;
+  border-radius: 0 var(--button-border-radius) var(--button-border-radius) 0;
+  height: 64px;
   padding: 0 15px;
   background-color: ${THEME_COLORS.primaryButton};
   cursor: pointer;
-  transition: background-color 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
 
   svg {
     width: 16px;
@@ -625,6 +627,7 @@ const DropDown = styled.div`
   }
 
   :hover {
+    border-color: ${THEME_COLORS.primaryButtonBorderHover};
     background-color: ${THEME_COLORS.primaryButtonHover};
 
     svg {
@@ -633,26 +636,36 @@ const DropDown = styled.div`
   }
 `;
 
-const DownloadSvg = styled(CircleDownIconSvg)`
+const DownloadSvg = styled(Icon).attrs(CircleDownIconSvg)`
   width: 16px;
   height: 16px;
   padding: 2px;
   transition: fill 0.2s ease-in-out;
 `;
 
-const DownloadMatrix = styled.div`
+const DownloadMatrix = styled.div.attrs({
+  className: "text-3",
+})`
   position: absolute;
-  top: 62px;
-  left: 0;
+  top: 68px;
+  left: 2px;
   z-index: 2;
   display: none;
   flex-direction: column;
   width: auto;
   min-width: 100%;
   overflow: visible;
-  border-radius: var(--border-radius);
-  background-color: ${THEME_COLORS.background};
-  box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);
+  border: 1px solid ${THEME_COLORS.boxBorder};
+  border-radius: var(--button-border-radius);
+  backdrop-filter: blur(2px);
+  background-image: linear-gradient(
+    to left top,
+    #0a07214d,
+    #1a28464d,
+    #24496f4d,
+    #286d994d,
+    #2493c24d
+  );
   user-select: none;
 
   ${IsSmallTablet(css`
@@ -667,7 +680,7 @@ const DownloadMatrix = styled.div`
     margin: 0;
     border-collapse: collapse;
     width: 100%;
-    color: ${THEME_COLORS.primary};
+    color: ${THEME_COLORS.text};
 
     > thead > tr > th,
     > tbody > tr > td,
@@ -678,7 +691,7 @@ const DownloadMatrix = styled.div`
     }
 
     > tbody > tr:first-of-type > td {
-      border-top: 1px solid ${THEME_COLORS.quaternary};
+      border-top: 1px solid ${THEME_COLORS.boxBorder};
     }
 
     > tbody > tr {
@@ -686,7 +699,7 @@ const DownloadMatrix = styled.div`
     }
 
     > tfoot > tr > td {
-      border-top: 1px solid ${THEME_COLORS.quaternary};
+      border-top: 1px solid ${THEME_COLORS.boxBorder};
       text-align: center;
     }
 
@@ -694,8 +707,7 @@ const DownloadMatrix = styled.div`
     th {
       padding: 5px 10px;
       font-feature-settings: "tnum";
-      font-size: var(--font-size);
-      line-height: 1.667em;
+      line-height: 1.6em;
     }
 
     th {
@@ -721,14 +733,14 @@ const DownloadMatrix = styled.div`
 
     td.insider {
       text-align: center;
-      background-color: ${THEME_COLORS.quaternary};
+      background-color: ${THEME_COLORS.primaryButton};
 
       ${DownloadSvg} {
-        fill: ${THEME_COLORS.primary};
+        fill: ${THEME_COLORS.primaryButtonText};
         transition: fill 0.2s ease-in-out;
 
         &:hover {
-          fill: ${THEME_COLORS.secondary};
+          fill: ${THEME_COLORS.primaryButtonHoverText};
         }
       }
     }
