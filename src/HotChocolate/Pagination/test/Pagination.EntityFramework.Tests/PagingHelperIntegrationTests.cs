@@ -3,9 +3,11 @@ using CookieCrumble;
 using GreenDonut;
 using GreenDonut.Projections;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
 using HotChocolate.Pagination;
+using HotChocolate.Resolvers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Squadron;
@@ -433,6 +435,49 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
     }
 
     [Fact]
+    public async Task Nested_Paging_First_2_With_Projections()
+    {
+        // Arrange
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        // Act
+        var result = await new ServiceCollection()
+            .AddScoped(_ => new CatalogContext(connectionString))
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddTypeExtension(typeof(BrandExtensionsWithSelect))
+            .AddPagingArguments()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .ExecuteRequestAsync(
+                """
+                {
+                    brands(first: 2) {
+                        edges {
+                            cursor
+                        }
+                        nodes {
+                            products(first: 2) {
+                                nodes {
+                                    name
+                                }
+                                pageInfo {
+                                    hasNextPage
+                                    hasPreviousPage
+                                    startCursor
+                                    endCursor
+                                }
+                            }
+                        }
+                    }
+                }
+                """);
+
+        // Assert
+        result.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
     public async Task Paging_Empty_PagingArgs()
     {
         // Arrange
@@ -747,6 +792,36 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                 .ToConnectionAsync();
     }
 
+    [ExtendObjectType<Brand>]
+    public static class BrandExtensionsWithSelect
+    {
+        [UsePaging]
+        public static async Task<Connection<Product>> GetProducts(
+            [Parent] Brand brand,
+            ProductsByBrandDataLoader dataLoader,
+            ISelection selection,
+            PagingArguments arguments,
+            IResolverContext context,
+            CancellationToken cancellationToken)
+        {
+            var sql = new SqlQuery();
+
+            var stateFullDataLoader =
+                dataLoader
+                    .WithPagingArguments(arguments)
+                    .Select(selection)
+                    .SetState(sql);
+
+            var result = await stateFullDataLoader
+                .LoadAsync(brand.Id, cancellationToken)
+                .ToConnectionAsync();
+
+            ((IMiddlewareContext)context).OperationResult.SetExtension("sql", sql.Text);
+
+            return result;
+        }
+    }
+
     public class ProductsByBrandDataLoader : StatefulBatchDataLoader<int, Page<Product>>
     {
         private readonly IServiceProvider _services;
@@ -766,14 +841,27 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
             CancellationToken cancellationToken)
         {
             var pagingArgs = context.GetPagingArguments();
+            var sql = context.GetState<SqlQuery>();
 
             await using var scope = _services.CreateAsyncScope();
             await using var catalogContext = scope.ServiceProvider.GetRequiredService<CatalogContext>();
 
+            sql!.Text = catalogContext.Products
+                .Where(t => keys.Contains(t.BrandId))
+                .Select(context.GetSelector(), b => b.Id)
+                .OrderBy(t => t.Name).ThenBy(t => t.Id)
+                .ToQueryString();
+
             return await catalogContext.Products
                 .Where(t => keys.Contains(t.BrandId))
+                .Select(context.GetSelector(), b => b.Id)
                 .OrderBy(t => t.Name).ThenBy(t => t.Id)
                 .ToBatchPageAsync(t => t.BrandId, pagingArgs, cancellationToken);
         }
+    }
+
+    private class SqlQuery
+    {
+        public string? Text { get; set; }
     }
 }

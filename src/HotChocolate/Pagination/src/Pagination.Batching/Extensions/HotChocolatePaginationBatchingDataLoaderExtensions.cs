@@ -33,8 +33,8 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
     /// <exception cref="ArgumentNullException">
     /// Throws if the <paramref name="dataLoader"/> is <c>null</c>.
     /// </exception>
-    public static IPagingDataLoader<TKey, TValue> WithPagingArguments<TKey, TValue>(
-        this IDataLoader<TKey, TValue> dataLoader,
+    public static IPagingDataLoader<TKey, Page<TValue>> WithPagingArguments<TKey, TValue>(
+        this IDataLoader<TKey, Page<TValue>> dataLoader,
         PagingArguments pagingArguments)
         where TKey : notnull
     {
@@ -44,18 +44,18 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
         }
 
         var branchKey = CreateBranchKey(pagingArguments);
-        return (IPagingDataLoader<TKey, TValue>)dataLoader.Branch(
+        return (IPagingDataLoader<TKey, Page<TValue>>)dataLoader.Branch(
             branchKey,
             CreatePagingDataLoader,
             pagingArguments);
 
         static IDataLoader CreatePagingDataLoader(
             string branchKey,
-            IDataLoader<TKey, TValue> root,
+            IDataLoader<TKey, Page<TValue>> root,
             PagingArguments pagingArguments)
         {
-            var branch = new PagingDataLoader<TKey, TValue>(
-                (DataLoaderBase<TKey, TValue>)root,
+            var branch = new PagingDataLoader<TKey, Page<TValue>>(
+                (DataLoaderBase<TKey, Page<TValue>>)root,
                 branchKey);
             branch.SetState(pagingArguments);
             return branch;
@@ -86,8 +86,8 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
 #if NET8_0_OR_GREATER
     [Experimental(Experiments.Projections)]
 #endif
-    public static IPagingDataLoader<TKey, TValue> Select<TKey, TValue>(
-        this IPagingDataLoader<TKey, TValue> dataLoader,
+    public static IPagingDataLoader<TKey, Page<TValue>> Select<TKey, TValue>(
+        this IPagingDataLoader<TKey, Page<TValue>> dataLoader,
         Expression<Func<TValue, TValue>> selector)
         where TKey : notnull
     {
@@ -190,7 +190,7 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
         var length = (value < 0) ? 1 : 0;
 
         // we add the number of digits the number has to the length of the number.
-        length += (int)Math.Floor(Math.Log10(Math.Abs(value)) + 1);
+        length += (int)Math.Floor(Math.Log10(Math.Abs(value.Value)) + 1);
 
         return length;
     }
