@@ -436,3 +436,37 @@ public class Startup
 ```
 
 [Learn more about interceptors](/docs/hotchocolate/v14/server/interceptors)
+
+# Making @authorize Directives Public
+
+The type definition for the @authorize directive is internal by default. This may be undesirable if you want consumers to understand the roles required for using fields.
+
+In order to make it public in your API, you can use a `TypeInterceptor`.
+
+```csharp
+public class PublicAuthorizeDirectiveTypeInterceptor : TypeInterceptor
+{
+    /// <inheritdoc />
+    public override void OnBeforeRegisterDependencies(ITypeDiscoveryContext discoveryContext, DefinitionBase definition)
+    {
+        if (definition is DirectiveTypeDefinition dtd
+            && dtd.Name == "authorize")
+				    dtd.IsPublic = true;
+
+        base.OnBeforeRegisterDependencies(discoveryContext, definition);
+    }
+}
+
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddAuthorization()
+            .TryAddTypeInterceptor<PublicAuthorizeDirectiveTypeInterceptor>();
+
+        // Omitted code for brevity
+    }
+}
+```
