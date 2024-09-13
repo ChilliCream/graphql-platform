@@ -5,13 +5,7 @@ import styled from "styled-components";
 import { Icon } from "@/components/sprites";
 import { useObservable } from "@/state";
 import { toggleAside, toggleTOC } from "@/state/common";
-import {
-  IsDesktop,
-  IsPhablet,
-  IsSmallDesktop,
-  IsTablet,
-  THEME_COLORS,
-} from "@/style";
+import { IsDesktop, IsSmallDesktop, IsTablet, THEME_COLORS } from "@/style";
 
 // Icons
 import NewspaperIconSvg from "@/images/icons/newspaper.svg";
@@ -73,13 +67,15 @@ const ResponsiveMenuWrapper = styled.div`
 const ResponsiveMenu = styled.div`
   position: fixed;
   top: 71px;
+  right: 16px;
+  left: 16px;
   z-index: 3;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
   box-sizing: border-box;
-  width: 660px;
+  width: auto;
   height: 60px;
   backdrop-filter: blur(2px);
   background-image: linear-gradient(
@@ -89,13 +85,11 @@ const ResponsiveMenu = styled.div`
   );
   transition: all 100ms linear 0s;
 
-  ${IsPhablet(`
-    left: 0;
-    width: auto;
-    right: 0;
-    margin: 0;
-    top: 60px;
-  `)}
+  @media only screen and (min-width: 700px) {
+    right: unset;
+    left: unset;
+    width: 660px;
+  }
 
   ${IsDesktop(`
     display: none;
