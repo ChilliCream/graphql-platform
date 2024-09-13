@@ -6,7 +6,7 @@ Hot Chocolate is an open-source GraphQL server for the [Microsoft .NET platform]
 
 Hot Chocolate takes the complexity away from building a fully-fledged GraphQL server and lets you focus on delivering the next big thing.
 
-![Platform](../../images/platform.png)
+![Platform](../../../images/platform.png)
 
 You can use Hot Chocolate Server as:
 

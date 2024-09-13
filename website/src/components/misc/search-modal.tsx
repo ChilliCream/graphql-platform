@@ -8,7 +8,7 @@ import React, { FC, ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { createGlobalStyle } from "styled-components";
 
-import { THEME_COLORS } from "@/shared-style";
+import { THEME_COLORS } from "@/style";
 import { Link } from "./link";
 
 export interface SearchModalProps {

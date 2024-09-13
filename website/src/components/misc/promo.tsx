@@ -5,9 +5,12 @@ import styled from "styled-components";
 import { Close } from "@/components/misc/close";
 import { State, WorkshopsState } from "@/state";
 import { hidePromo, showPromo } from "@/state/common";
-import { Link } from "./link";
+import { Dialog, DialogContainer, DialogLinkButton } from "./dialog";
 
 export const Promo: FC = () => {
+  const showCookieConsent = useSelector<State, boolean>(
+    (state) => state.common.showCookieConsent
+  );
   const show = useSelector<State, boolean>((state) => state.common.showPromo);
   const workshop = useSelector<State, WorkshopsState[number] | undefined>(
     (state) => state.workshops.find(({ banner, active }) => banner && active)
@@ -43,9 +46,9 @@ export const Promo: FC = () => {
       aria-live="polite"
       aria-label="promo"
       aria-describedby="promo:desc"
-      show={show}
+      show={!showCookieConsent && show}
     >
-      {show && (
+      {!showCookieConsent && show && (
         <Boundary>
           <Container>
             <Message id="promo:desc">
@@ -53,7 +56,9 @@ export const Promo: FC = () => {
               <Description>{workshop.teaser}</Description>
             </Message>
             <Actions>
-              <Tickets to={workshop.url}>Check it out!</Tickets>
+              <DialogLinkButton to={workshop.url}>
+                Check it out!
+              </DialogLinkButton>
               <Dismiss
                 aria-label="dismiss promo message"
                 onClick={handleDismiss}
@@ -66,27 +71,13 @@ export const Promo: FC = () => {
   );
 };
 
-const Dialog = styled.div<{ show: boolean }>`
-  position: fixed;
-  bottom: 0;
-  z-index: 40;
-  width: 100vw;
-  background-color: #ffb806;
-  display: ${({ show }) => (show ? "visible" : "none")};
-`;
-
 const Boundary = styled.div`
   position: relative;
   max-width: 1000px;
   margin: auto;
 `;
 
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 15px 20px;
-
+const Container = styled(DialogContainer)`
   @media only screen and (min-width: 600px) {
     flex-direction: row;
     align-items: flex-end;
@@ -103,13 +94,13 @@ const Message = styled.div`
   }
 `;
 
-const Title = styled.h2`
-  color: #4f3903;
+const Title = styled.h5`
+  color: #0b0722;
 `;
 
 const Description = styled.p`
   line-height: 1.667em;
-  color: #4f3903;
+  color: #0b0722;
 `;
 
 const Actions = styled.div`
@@ -117,28 +108,13 @@ const Actions = styled.div`
   display: flex;
   flex-direction: column-reverse;
   align-items: flex-end;
-`;
-
-const Tickets = styled(Link)`
-  width: 120px;
-  padding: 10px 15px;
-  margin-bottom: 10px;
-  border-radius: var(--border-radius);
-  font-size: 0.833em;
-  font-weight: 500;
-  text-align: center;
-  color: #ffffff;
-
-  background-color: #e55723;
-  transition: background-color 0.2s ease-in-out;
-
-  &:hover {
-    background-color: #d1410c;
-  }
 
   @media only screen and (min-width: 600px) {
-    margin-right: 10px;
-    align-self: flex-end;
+    ${DialogLinkButton} {
+      align-self: flex-end;
+      margin-right: 10px;
+      width: 140px;
+    }
   }
 `;
 
