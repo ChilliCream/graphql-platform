@@ -3,10 +3,9 @@
 ## SQL
 
 ```sql
--- @__keys_0={ '2', '1' } (DbType = Object)
 SELECT p."Id", p."AvailableStock", p."BrandId", p."Description", p."ImageFileName", p."MaxStockThreshold", p."Name", p."OnReorder", p."Price", p."RestockThreshold", p."TypeId"
 FROM "Products" AS p
-WHERE p."BrandId" = ANY (@__keys_0)
+WHERE p."BrandId" IN (2, 1)
 ORDER BY p."Name", p."Id"
 ```
 
