@@ -220,10 +220,6 @@ const BackgroundContainer = styled.div`
     top: 0px;
   }
 
-  @media only screen and (min-width: 835px) {
-    top: 0px;
-  }
-
   @media only screen and (min-width: 870px) {
     top: -20px;
   }
