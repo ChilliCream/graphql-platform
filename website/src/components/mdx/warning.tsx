@@ -52,7 +52,6 @@ const Container = styled.div`
   margin-bottom: 24px;
   padding: 20px;
   border: 1px solid ${THEME_COLORS.boxBorder};
-  border-radius: var(--box-border-radius);
   background-color: ${THEME_COLORS.warning};
   color: ${THEME_COLORS.textContrast};
 
@@ -73,5 +72,9 @@ const Container = styled.div`
 
   > p:last-child {
     margin-bottom: 0;
+  }
+
+  @media only screen and (min-width: 700px) {
+    border-radius: var(--box-border-radius);
   }
 `;

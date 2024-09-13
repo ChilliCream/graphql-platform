@@ -38,7 +38,7 @@ export const GlobalStyle = createGlobalStyle`
     background-size: auto;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    
+
     @media only screen and (min-width: 992px) {
       font-size: 1.25rem;
     }
@@ -61,7 +61,8 @@ export const GlobalStyle = createGlobalStyle`
     font-size: 1rem;
     letter-spacing: 0.025rem;
     line-height: 1.6em;
-    
+    word-break: break-word;
+
     @media only screen and (min-width: 992px) {
       font-size: 1.25rem;
     }
@@ -72,7 +73,8 @@ export const GlobalStyle = createGlobalStyle`
     font-size: 0.875rem;
     letter-spacing: 0.025rem;
     line-height: 1.6em;
-    
+    word-break: break-word;
+
     @media only screen and (min-width: 992px) {
       font-size: 1rem;
     }
@@ -83,6 +85,7 @@ export const GlobalStyle = createGlobalStyle`
     font-size: 0.75rem;
     letter-spacing: 0.025rem;
     line-height: 1.6em;
+    word-break: break-word;
 
     @media only screen and (min-width: 992px) {
       font-size: 0.875rem;
@@ -124,11 +127,13 @@ export const GlobalStyle = createGlobalStyle`
     line-height: 1.2em;
     letter-spacing: normal;
     text-rendering: optimizeLegibility;
+    word-break: break-word;
     color: ${THEME_COLORS.heading};
   }
 
   p {
     margin-bottom: 16px;
+    word-break: break-word;
   }
 
   h1 {
@@ -228,6 +233,7 @@ export const GlobalStyle = createGlobalStyle`
   li {
     margin-bottom: 8px;
     line-height: 1.6em;
+    word-break: break-word;
   }
 
   li > ol {
