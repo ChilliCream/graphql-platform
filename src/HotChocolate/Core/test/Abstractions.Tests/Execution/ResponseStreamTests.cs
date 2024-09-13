@@ -136,7 +136,7 @@ public class ResponseStreamTests
     }
 
     [Fact]
-    public void ExpectQueryResult()
+    public void ExpectOperationResult()
     {
         // arrange
         IExecutionResult result = new ResponseStream(() => default!);
@@ -155,7 +155,7 @@ public class ResponseStreamTests
         IExecutionResult result = new ResponseStream(() => default!);
 
         // act
-        void Fail() => result.ExpectSingleResult();
+        void Fail() => result.ExpectOperationResult();
 
         // assert
         Assert.Throws<ArgumentException>(Fail);

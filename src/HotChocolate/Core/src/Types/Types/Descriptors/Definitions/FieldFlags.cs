@@ -27,4 +27,5 @@ internal enum FieldFlags
     NodesField = 1048576,
     ItemsField = 2097152,
     WithRequirements = 4194304,
+    UsesProjections = 8388608,
 }

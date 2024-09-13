@@ -1,4 +1,4 @@
-# Nested_Paging_First_2
+# Nested_Paging_First_2_With_Projections
 
 ## SQL
 

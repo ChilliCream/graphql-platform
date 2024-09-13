@@ -194,4 +194,10 @@ public interface IReadOnlySchemaOptions
     /// Specifies the default dependency injection scope for mutation fields.
     /// </summary>
     public DependencyInjectionScope DefaultMutationDependencyInjectionScope { get; }
+
+    /// <summary>
+    /// Specifies if the elements of paginated root fields should be published
+    /// to the DataLOader promise cache.
+    /// </summary>
+    bool PublishRootFieldPagesToPromiseCache { get; }
 }
