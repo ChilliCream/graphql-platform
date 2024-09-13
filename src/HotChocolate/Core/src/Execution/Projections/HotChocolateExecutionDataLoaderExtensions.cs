@@ -189,9 +189,8 @@ public static class HotChocolateExecutionDataLoaderExtensions
         var requiredBufferSize = EstimateIntLength(key) + keyPrefix.Length;
         Span<byte> span = stackalloc byte[requiredBufferSize];
         keyPrefix.CopyTo(span);
-        var written = keyPrefix.Length;
-        Utf8Formatter.TryFormat(key, span.Slice(written), out written, 'D');
-        return Encoding.UTF8.GetString(span.Slice(0, written));
+        Utf8Formatter.TryFormat(key, span.Slice(keyPrefix.Length), out var written, 'D');
+        return Encoding.UTF8.GetString(span.Slice(0, written + keyPrefix.Length));
     }
 
     private static ReadOnlySpan<byte> GetKeyPrefix()

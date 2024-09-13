@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Data.TestContext;
 using CookieCrumble;
 using GreenDonut;
@@ -431,7 +432,19 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                 """);
 
         // Assert
-        result.MatchMarkdownSnapshot();
+        var operationResult = result.ExpectOperationResult();
+        var sql = operationResult.Extensions!["sql"]!.ToString();
+
+#if NET8_0_OR_GREATER
+        await Snapshot.Create()
+#elif NET7_0_OR_GREATER
+        await Snapshot.Create("NET7")
+#else
+        await Snapshot.Create("NET6")
+#endif
+            .Add(sql, "SQL", "sql")
+            .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty))
+            .MatchMarkdownAsync();
     }
 
     [Fact]
@@ -474,7 +487,19 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                 """);
 
         // Assert
-        result.MatchMarkdownSnapshot();
+        var operationResult = result.ExpectOperationResult();
+        var sql = operationResult.Extensions!["sql"]!.ToString();
+
+#if NET8_0_OR_GREATER
+        await Snapshot.Create()
+#elif NET7_0_OR_GREATER
+        await Snapshot.Create("NET7")
+#else
+        await Snapshot.Create("NET6")
+#endif
+            .Add(sql, "SQL", "sql")
+            .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty))
+            .MatchMarkdownAsync();
     }
 
     [Fact]
@@ -785,11 +810,26 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
             [Parent] Brand brand,
             ProductsByBrandDataLoader dataLoader,
             PagingArguments arguments,
+            IResolverContext context,
             CancellationToken cancellationToken)
-            => await dataLoader
+        {
+            var sql = new SqlQuery();
+
+            var stateFullDataLoader = dataLoader
                 .WithPagingArguments(arguments)
+                .SetState(sql);
+
+            var result = await stateFullDataLoader
                 .LoadAsync(brand.Id, cancellationToken)
                 .ToConnectionAsync();
+
+            if (!string.IsNullOrEmpty(sql.Text))
+            {
+                ((IMiddlewareContext)context).OperationResult.SetExtension("sql", sql.Text);
+            }
+
+            return result;
+        }
     }
 
     [ExtendObjectType<Brand>]
@@ -805,7 +845,6 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
             CancellationToken cancellationToken)
         {
             var sql = new SqlQuery();
-
             var stateFullDataLoader =
                 dataLoader
                     .WithPagingArguments(arguments)
@@ -816,7 +855,10 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                 .LoadAsync(brand.Id, cancellationToken)
                 .ToConnectionAsync();
 
-            ((IMiddlewareContext)context).OperationResult.SetExtension("sql", sql.Text);
+            if (!string.IsNullOrEmpty(sql.Text))
+            {
+                ((IMiddlewareContext)context).OperationResult.SetExtension("sql", sql.Text);
+            }
 
             return result;
         }
