@@ -1,6 +1,7 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
-using System.Text;
+using System.Runtime.CompilerServices;
 using GreenDonut.Projections;
 using HotChocolate.Pagination;
 
@@ -43,7 +44,10 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
         }
 
         var branchKey = CreateBranchKey(pagingArguments);
-        return (IPagingDataLoader<TKey, TValue>)dataLoader.Branch(branchKey, CreatePagingDataLoader, pagingArguments);
+        return (IPagingDataLoader<TKey, TValue>)dataLoader.Branch(
+            branchKey,
+            CreatePagingDataLoader,
+            pagingArguments);
 
         static IDataLoader CreatePagingDataLoader(
             string branchKey,
@@ -105,11 +109,89 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
     private static string CreateBranchKey(
         PagingArguments pagingArguments)
     {
-        var key = new StringBuilder();
-        key.Append(pagingArguments.First);
-        key.Append(pagingArguments.After);
-        key.Append(pagingArguments.Last);
-        key.Append(pagingArguments.Before);
-        return key.ToString();
+        var requiredBufferSize = 1;
+
+        requiredBufferSize += EstimateIntLength(pagingArguments.First);
+        requiredBufferSize += pagingArguments.After?.Length ?? 0;
+        requiredBufferSize += EstimateIntLength(pagingArguments.Last);
+        requiredBufferSize += pagingArguments.Before?.Length ?? 0;
+
+        if (requiredBufferSize == 1)
+        {
+            return "-";
+        }
+
+        char[]? rentedBuffer = null;
+        Span<char> buffer = requiredBufferSize <= 128
+            ? stackalloc char[requiredBufferSize]
+            : (rentedBuffer = ArrayPool<char>.Shared.Rent(requiredBufferSize));
+
+        var written = 1;
+        buffer[0] = '-';
+
+        if (pagingArguments.First.HasValue)
+        {
+            if (!pagingArguments.First.Value.TryFormat(buffer.Slice(written), out var charsWritten))
+            {
+                throw new InvalidOperationException("Buffer is too small.");
+            }
+            written += charsWritten;
+        }
+
+        if (pagingArguments.After != null)
+        {
+            var after = pagingArguments.After.AsSpan();
+            after.CopyTo(buffer.Slice(written));
+            written += after.Length;
+        }
+
+        if (pagingArguments.Last.HasValue)
+        {
+            if (!pagingArguments.Last.Value.TryFormat(buffer.Slice(written), out var charsWritten))
+            {
+                throw new InvalidOperationException("Buffer is too small.");
+            }
+            written += charsWritten;
+        }
+
+        if (pagingArguments.Before != null)
+        {
+            var before = pagingArguments.Before.AsSpan();
+            before.CopyTo(buffer.Slice(written));
+            written += before.Length;
+        }
+
+        var branchKey = new string(buffer.Slice(0, written));
+
+        if (rentedBuffer != null)
+        {
+            ArrayPool<char>.Shared.Return(rentedBuffer);
+        }
+
+        return branchKey;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int EstimateIntLength(int? value)
+    {
+        // if the value is null we need 0 digits.
+        if(value is null)
+        {
+            return 0;
+        }
+
+        if (value == 0)
+        {
+            // to print 0 we need still 1 digit
+            return 1;
+        }
+
+        // if the number is negative we need one more digit for the sign
+        var length = (value < 0) ? 1 : 0;
+
+        // we add the number of digits the number has to the length of the number.
+        length += (int)Math.Floor(Math.Log10(Math.Abs(value)) + 1);
+
+        return length;
     }
 }
