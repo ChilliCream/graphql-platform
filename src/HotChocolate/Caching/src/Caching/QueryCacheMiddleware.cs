@@ -37,7 +37,7 @@ internal sealed class QueryCacheMiddleware
         }
 
         // only single operation results can be cached.
-        var operationResult = context.Result?.ExpectSingleResult();
+        var operationResult = context.Result?.ExpectOperationResult();
 
         if (operationResult is { Errors: null })
         {

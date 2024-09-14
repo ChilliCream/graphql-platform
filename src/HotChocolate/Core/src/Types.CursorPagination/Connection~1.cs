@@ -1,3 +1,5 @@
+using System.Buffers;
+
 namespace HotChocolate.Types.Pagination;
 
 /// <summary>
@@ -44,17 +46,22 @@ public class Connection<T> : Connection
     {
         if(Edges.Count == 0)
         {
-            observer.OnAfterSliced(Array.Empty<T>(), Info);
+            ReadOnlySpan<T> empty = Array.Empty<T>();
+            observer.OnAfterSliced(empty, Info);
             return;
         }
 
-        var items = new T[Edges.Count];
+        var buffer = ArrayPool<T>.Shared.Rent(Edges.Count);
 
         for (var i = 0; i < Edges.Count; i++)
         {
-            items[i] = Edges[i].Node;
+            buffer[i] = Edges[i].Node;
         }
 
+        ReadOnlySpan<T> items = buffer.AsSpan(0, Edges.Count);
         observer.OnAfterSliced(items, Info);
+
+        buffer.AsSpan().Slice(0, Edges.Count).Clear();
+        ArrayPool<T>.Shared.Return(buffer);
     }
 }

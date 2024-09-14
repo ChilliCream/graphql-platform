@@ -433,7 +433,7 @@ public class RavenAsyncDocumentQueryTests
                     {
                         context.Result =
                             OperationResultBuilder
-                                .FromResult(context.Result!.ExpectSingleResult())
+                                .FromResult(context.Result!.ExpectOperationResult())
                                 .SetContextData("query", queryString)
                                 .Build();
                     }
