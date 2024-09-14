@@ -1,6 +1,6 @@
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
-using Snapshooter.Xunit;
 
 #nullable enable
 
@@ -22,8 +22,6 @@ public class CustomCursorHandlerTests
     public async Task Use_Resolver_Result_If_It_Is_A_Page()
     {
         // arrange
-        Snapshot.FullName();
-
         var request =
             OperationRequestBuilder.New()
                 .SetDocument("{ items { nodes } }")

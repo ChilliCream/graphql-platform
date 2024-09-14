@@ -1,9 +1,9 @@
 using System.Collections;
 using System.Runtime.CompilerServices;
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 #nullable enable
 
@@ -42,8 +42,6 @@ namespace HotChocolate.Types.Pagination
         [Fact]
         public async Task Simple_StringList_Default_Items()
         {
-            Snapshot.FullName();
-
             var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
@@ -52,7 +50,7 @@ namespace HotChocolate.Types.Pagination
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
 
-            await executor
+            (await executor
                 .ExecuteAsync(@"
                 {
                     letters {
@@ -62,15 +60,13 @@ namespace HotChocolate.Types.Pagination
                             hasPreviousPage
                         }
                     }
-                }")
-                .MatchSnapshotAsync();
+                }"))
+                .MatchSnapshot();
         }
 
         [Fact]
         public async Task No_Paging_Boundaries()
         {
-            Snapshot.FullName();
-
             var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
@@ -97,8 +93,6 @@ namespace HotChocolate.Types.Pagination
         [Fact]
         public async Task MaxPageSizeReached()
         {
-            Snapshot.FullName();
-
             var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
@@ -125,8 +119,6 @@ namespace HotChocolate.Types.Pagination
         [Fact]
         public async Task Attribute_Simple_StringList_Default_Items()
         {
-            Snapshot.FullName();
-
             var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
@@ -135,7 +127,7 @@ namespace HotChocolate.Types.Pagination
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
 
-            await executor
+            (await executor
                 .ExecuteAsync(@"
                 {
                     letters {
@@ -145,15 +137,13 @@ namespace HotChocolate.Types.Pagination
                             hasPreviousPage
                         }
                     }
-                }")
-                .MatchSnapshotAsync();
+                }"))
+                .MatchSnapshot();
         }
 
         [Fact]
         public async Task Simple_StringList_Take_2()
         {
-            Snapshot.FullName();
-
             var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
@@ -162,7 +152,7 @@ namespace HotChocolate.Types.Pagination
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
 
-            await executor
+            (await executor
                 .ExecuteAsync(@"
                 {
                     letters(take: 2) {
@@ -172,15 +162,13 @@ namespace HotChocolate.Types.Pagination
                             hasPreviousPage
                         }
                     }
-                }")
-                .MatchSnapshotAsync();
+                }"))
+                .MatchSnapshot();
         }
 
         [Fact]
         public async Task Attribute_Simple_StringList_Take_2()
         {
-            Snapshot.FullName();
-
             var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
@@ -189,7 +177,7 @@ namespace HotChocolate.Types.Pagination
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
 
-            await executor
+            (await executor
                 .ExecuteAsync(@"
                 {
                     letters(take: 2) {
@@ -199,15 +187,13 @@ namespace HotChocolate.Types.Pagination
                             hasPreviousPage
                         }
                     }
-                }")
-                .MatchSnapshotAsync();
+                }"))
+                .MatchSnapshot();
         }
 
         [Fact]
         public async Task Simple_StringList_Take_2_Skip_2()
         {
-            Snapshot.FullName();
-
             var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
@@ -216,7 +202,7 @@ namespace HotChocolate.Types.Pagination
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
 
-            await executor
+            (await executor
                 .ExecuteAsync(@"
                 {
                     letters(take: 2 skip: 2) {
@@ -226,15 +212,13 @@ namespace HotChocolate.Types.Pagination
                             hasPreviousPage
                         }
                     }
-                }")
-                .MatchSnapshotAsync();
+                }"))
+                .MatchSnapshot();
         }
 
         [Fact]
         public async Task Attribute_Simple_StringList_Take_2_Skip_2()
         {
-            Snapshot.FullName();
-
             var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
@@ -243,7 +227,7 @@ namespace HotChocolate.Types.Pagination
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
 
-            await executor
+            (await executor
                 .ExecuteAsync(@"
                 {
                     letters(take: 2 skip: 2) {
@@ -253,15 +237,13 @@ namespace HotChocolate.Types.Pagination
                             hasPreviousPage
                         }
                     }
-                }")
-                .MatchSnapshotAsync();
+                }"))
+                .MatchSnapshot();
         }
 
         [Fact]
         public async Task Simple_StringList_Global_DefaultItem_2()
         {
-            Snapshot.FullName();
-
             var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
@@ -271,7 +253,7 @@ namespace HotChocolate.Types.Pagination
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
 
-            await executor
+            (await executor
                 .ExecuteAsync(@"
                 {
                     letters {
@@ -281,15 +263,13 @@ namespace HotChocolate.Types.Pagination
                             hasPreviousPage
                         }
                     }
-                }")
-                .MatchSnapshotAsync();
+                }"))
+                .MatchSnapshot();
         }
 
         [Fact]
         public async Task Simple_StringList_Global_DefaultItem_50_Page_Larger_Than_Data_List()
         {
-            Snapshot.FullName();
-
             var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
@@ -299,7 +279,7 @@ namespace HotChocolate.Types.Pagination
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
 
-            await executor
+            (await executor
                 .ExecuteAsync(@"
                 {
                     letters {
@@ -309,15 +289,13 @@ namespace HotChocolate.Types.Pagination
                             hasPreviousPage
                         }
                     }
-                }")
-                .MatchSnapshotAsync();
+                }"))
+                .MatchSnapshot();
         }
 
         [Fact]
         public async Task Attribute_Simple_StringList_Global_DefaultItem_2()
         {
-            Snapshot.FullName();
-
             var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
@@ -327,7 +305,7 @@ namespace HotChocolate.Types.Pagination
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
 
-            await executor
+            (await executor
                 .ExecuteAsync(@"
                 {
                     letters(take: 2) {
@@ -337,15 +315,13 @@ namespace HotChocolate.Types.Pagination
                             hasPreviousPage
                         }
                     }
-                }")
-                .MatchSnapshotAsync();
+                }"))
+                .MatchSnapshot();
         }
 
         [Fact]
         public async Task Schema_Type_Is_Explicitly_Specified()
         {
-            Snapshot.FullName();
-
             var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
@@ -354,7 +330,7 @@ namespace HotChocolate.Types.Pagination
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
 
-            await executor
+            (await executor
                 .ExecuteAsync(@"
                 {
                     explicitType(take: 2) {
@@ -364,15 +340,13 @@ namespace HotChocolate.Types.Pagination
                             hasPreviousPage
                         }
                     }
-                }")
-                .MatchSnapshotAsync();
+                }"))
+                .MatchSnapshot();
         }
 
         [Fact]
         public async Task Attribute_Schema_Type_Is_Explicitly_Specified()
         {
-            Snapshot.FullName();
-
             var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
@@ -381,7 +355,7 @@ namespace HotChocolate.Types.Pagination
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
 
-            await executor
+            (await executor
                 .ExecuteAsync(@"
                 {
                     explicitType(take: 2) {
@@ -391,15 +365,13 @@ namespace HotChocolate.Types.Pagination
                             hasPreviousPage
                         }
                     }
-                }")
-                .MatchSnapshotAsync();
+                }"))
+                .MatchSnapshot();
         }
 
         [Fact]
         public async Task Nested_List_With_Field_Settings()
         {
-            Snapshot.FullName();
-
             var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
@@ -408,7 +380,7 @@ namespace HotChocolate.Types.Pagination
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
 
-            await executor
+            (await executor
                 .ExecuteAsync(@"
                 {
                     nestedObjectList {
@@ -421,15 +393,13 @@ namespace HotChocolate.Types.Pagination
                         }
                         totalCount
                     }
-                }")
-                .MatchSnapshotAsync();
+                }"))
+                .MatchSnapshot();
         }
 
         [Fact]
         public async Task Executable_With_Field_Settings()
         {
-            Snapshot.FullName();
-
             var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
@@ -438,7 +408,7 @@ namespace HotChocolate.Types.Pagination
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
 
-            await executor
+            (await executor
                 .ExecuteAsync(@"
                 {
                     fooExecutable {
@@ -451,15 +421,13 @@ namespace HotChocolate.Types.Pagination
                         }
                         totalCount
                     }
-                }")
-                .MatchSnapshotAsync();
+                }"))
+                .MatchSnapshot();
         }
 
         [Fact]
         public async Task Attribute_Nested_List_With_Field_Settings()
         {
-            Snapshot.FullName();
-
             var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
@@ -468,7 +436,7 @@ namespace HotChocolate.Types.Pagination
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
 
-            await executor
+            (await executor
                 .ExecuteAsync(@"
                 {
                     nestedObjectList {
@@ -481,15 +449,12 @@ namespace HotChocolate.Types.Pagination
                         }
                         totalCount
                     }
-                }")
-                .MatchSnapshotAsync();
+                }")).MatchSnapshot();
         }
 
         [Fact]
         public async Task Nested_List_With_Field_Settings_Skip_2()
         {
-            Snapshot.FullName();
-
             var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
@@ -498,7 +463,7 @@ namespace HotChocolate.Types.Pagination
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
 
-            await executor
+            (await executor
                 .ExecuteAsync(@"
                 {
                     nestedObjectList(skip: 2) {
@@ -511,15 +476,13 @@ namespace HotChocolate.Types.Pagination
                         }
                         totalCount
                     }
-                }")
-                .MatchSnapshotAsync();
+                }"))
+                .MatchSnapshot();
         }
 
         [Fact]
         public async Task Attribute_Nested_List_With_Field_Settings_Skip_2()
         {
-            Snapshot.FullName();
-
             var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
@@ -528,7 +491,7 @@ namespace HotChocolate.Types.Pagination
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
 
-            await executor
+            (await executor
                 .ExecuteAsync(@"
                 {
                     nestedObjectList(skip: 2) {
@@ -541,15 +504,13 @@ namespace HotChocolate.Types.Pagination
                         }
                         totalCount
                     }
-                }")
-                .MatchSnapshotAsync();
+                }"))
+                .MatchSnapshot();
         }
 
         [Fact]
         public async Task ExtendedTypeRef_Default_Items()
         {
-            Snapshot.FullName();
-
             var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
@@ -558,21 +519,19 @@ namespace HotChocolate.Types.Pagination
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
 
-            await executor
+            (await executor
                 .ExecuteAsync(@"
                 {
                     extendedTypeRef {
                         items
                     }
-                }")
-                .MatchSnapshotAsync();
+                }"))
+                .MatchSnapshot();
         }
 
         [Fact]
         public async Task ExtendedTypeRefNested_Default_Items()
         {
-            Snapshot.FullName();
-
             var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
@@ -581,21 +540,19 @@ namespace HotChocolate.Types.Pagination
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
 
-            await executor
+            (await executor
                 .ExecuteAsync(@"
                 {
                     extendedTypeRefNested {
                         items
                     }
-                }")
-                .MatchSnapshotAsync();
+                }"))
+                .MatchSnapshot();
         }
 
         [Fact]
         public async Task Interface_With_Paging_Field()
         {
-            Snapshot.FullName();
-
             var schema =
                 await new ServiceCollection()
                     .AddGraphQL()
@@ -619,8 +576,6 @@ namespace HotChocolate.Types.Pagination
         [Fact]
         public async Task Attribute_Interface_With_Paging_Field()
         {
-            Snapshot.FullName();
-
             var schema =
                 await new ServiceCollection()
                     .AddGraphQL()
@@ -641,8 +596,6 @@ namespace HotChocolate.Types.Pagination
         [Fact]
         public async Task FluentPagingTests()
         {
-            Snapshot.FullName();
-
             var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
@@ -665,8 +618,6 @@ namespace HotChocolate.Types.Pagination
         public async Task TotalCountWithCustomCollectionSegment()
         {
             // arrange
-            Snapshot.FullName();
-
             var executor = await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<CustomCollectionSegmentQuery>()

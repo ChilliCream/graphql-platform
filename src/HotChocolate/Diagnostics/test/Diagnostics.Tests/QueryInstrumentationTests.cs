@@ -1,8 +1,7 @@
 using System.Diagnostics;
+using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
-using Snapshooter;
-using Snapshooter.Xunit;
 using static HotChocolate.Diagnostics.ActivityTestHelper;
 
 namespace HotChocolate.Diagnostics;
@@ -24,7 +23,7 @@ public partial class QueryInstrumentationTests
 
             // assert
 #if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+            activities.MatchSnapshot(postFix: "_NET7");
 #else
             activities.MatchSnapshot();
 #endif
@@ -45,7 +44,7 @@ public partial class QueryInstrumentationTests
 
             // assert
 #if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+            activities.MatchSnapshot(postFix: "_NET7");
 #else
             activities.MatchSnapshot();
 #endif
@@ -66,7 +65,7 @@ public partial class QueryInstrumentationTests
 
             // assert
 #if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+            activities.MatchSnapshot(postFix: "_NET7");
 #else
             activities.MatchSnapshot();
 #endif
@@ -155,7 +154,7 @@ public partial class QueryInstrumentationTests
 
             // assert
 #if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+            activities.MatchSnapshot(postFix: "_NET7");
 #else
             activities.MatchSnapshot();
 #endif
@@ -180,7 +179,7 @@ public partial class QueryInstrumentationTests
 
             // assert
 #if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+            activities.MatchSnapshot(postFix: "_NET7");
 #else
             activities.MatchSnapshot();
 #endif
@@ -205,7 +204,7 @@ public partial class QueryInstrumentationTests
 
             // assert
 #if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+            activities.MatchSnapshot(postFix: "_NET7");
 #else
             activities.MatchSnapshot();
 #endif
@@ -230,7 +229,7 @@ public partial class QueryInstrumentationTests
 
             // assert
 #if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+            activities.MatchSnapshot(postFix: "_NET7");
 #else
             activities.MatchSnapshot();
 #endif
@@ -251,7 +250,7 @@ public partial class QueryInstrumentationTests
 
             // assert
 #if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+            activities.MatchSnapshot(postFix: "_NET7");
 #else
             activities.MatchSnapshot();
 #endif
@@ -272,7 +271,7 @@ public partial class QueryInstrumentationTests
 
             // assert
 #if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+            activities.MatchSnapshot(postFix: "_NET7");
 #else
             activities.MatchSnapshot();
 #endif
@@ -297,7 +296,7 @@ public partial class QueryInstrumentationTests
 
             // assert
 #if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+            activities.MatchSnapshot(postFix: "_NET7");
 #else
             activities.MatchSnapshot();
 #endif
@@ -322,7 +321,7 @@ public partial class QueryInstrumentationTests
 
             // assert
 #if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+            activities.MatchSnapshot(postFix: "_NET7");
 #else
             activities.MatchSnapshot();
 #endif
@@ -347,7 +346,7 @@ public partial class QueryInstrumentationTests
 
             // assert
 #if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+            activities.MatchSnapshot(postFix: "_NET7");
 #else
             activities.MatchSnapshot();
 #endif
@@ -385,7 +384,7 @@ public partial class QueryInstrumentationTests
 
             // assert
 #if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+            activities.MatchSnapshot(postFix: "_NET7");
 #else
             activities.MatchSnapshot();
 #endif

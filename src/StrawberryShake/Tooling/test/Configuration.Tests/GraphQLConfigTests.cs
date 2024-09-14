@@ -1,4 +1,4 @@
-using Snapshooter.Xunit;
+using CookieCrumble;
 using Xunit;
 
 namespace StrawberryShake.Tools.Configuration

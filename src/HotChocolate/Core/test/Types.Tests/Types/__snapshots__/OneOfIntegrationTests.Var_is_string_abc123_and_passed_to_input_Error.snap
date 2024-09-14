@@ -1,7 +1,7 @@
-﻿{
+{
   "errors": [
     {
-      "message": "The variable \u0060var\u0060 is not compatible with the type of the current location.",
+      "message": "The variable `var` is not compatible with the type of the current location.",
       "locations": [
         {
           "line": 1,

@@ -555,7 +555,7 @@ public class Snapshot
         var directoryName = GetDirectoryName(_fileName)!;
 
         return mismatch
-            ? Combine(directoryName, "__snapshots__", "__MISMATCH__")
+            ? Combine(directoryName, "__snapshots__", "__mismatch__")
             : Combine(directoryName, "__snapshots__");
     }
 

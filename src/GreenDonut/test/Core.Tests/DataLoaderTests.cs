@@ -1,5 +1,5 @@
+using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 using Xunit;
 using Xunit.Abstractions;
 using static GreenDonut.TestHelpers;

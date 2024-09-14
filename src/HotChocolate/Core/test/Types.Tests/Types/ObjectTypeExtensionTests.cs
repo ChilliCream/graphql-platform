@@ -1,6 +1,7 @@
 #pragma warning disable RCS1102 // Make class static
 
 using System.Reflection;
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -8,7 +9,6 @@ using HotChocolate.Tests;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Snapshooter.Xunit;
 using SnapshotExtensions = CookieCrumble.SnapshotExtensions;
 using static HotChocolate.Types.FieldBindingFlags;
 
@@ -65,8 +65,6 @@ public class ObjectTypeExtensionTests
     [Fact]
     public async Task ObjectTypeExtension_Remove_Field_By_Name()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<FooType>()
@@ -81,8 +79,6 @@ public class ObjectTypeExtensionTests
     [Fact]
     public async Task ObjectTypeExtension_Remove_Field()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<FooType>()
@@ -95,8 +91,6 @@ public class ObjectTypeExtensionTests
     [Fact]
     public async Task ObjectTypeExtension_Execute_Infer_Field()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<FooType>()
@@ -150,8 +144,6 @@ public class ObjectTypeExtensionTests
     [Fact]
     public async Task ObjectTypeExtension_AddMiddleware()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<FooType>()
@@ -172,8 +164,6 @@ public class ObjectTypeExtensionTests
     [Fact]
     public async Task ObjectTypeExtension_DeprecateField_With_Reason()
     {
-        Snapshot.FullName();
-
         var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<FooType>()
@@ -193,8 +183,6 @@ public class ObjectTypeExtensionTests
     [Fact]
     public async Task ObjectTypeExtension_DeprecateField_Without_Reason()
     {
-        Snapshot.FullName();
-
         var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<FooType>()
@@ -421,8 +409,6 @@ public class ObjectTypeExtensionTests
     [Fact]
     public async Task BindByType()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
@@ -436,8 +422,6 @@ public class ObjectTypeExtensionTests
     [Fact]
     public async Task BindByType_With_Generic_Attribute()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
@@ -451,8 +435,6 @@ public class ObjectTypeExtensionTests
     [Fact]
     public async Task BindResolver_With_Property()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<BindResolver_With_Property_PersonDto>()
@@ -464,8 +446,6 @@ public class ObjectTypeExtensionTests
     [Fact]
     public async Task BindResolver_With_Field()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<BindResolver_With_Property_PersonDto>()
@@ -477,8 +457,6 @@ public class ObjectTypeExtensionTests
     [Fact]
     public async Task Remove_Properties_Globally()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Remove_Properties_Globally_PersonDto>()
@@ -490,8 +468,6 @@ public class ObjectTypeExtensionTests
     [Fact]
     public async Task Remove_Fields_Globally()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Remove_Fields_Globally_PersonDto>()
@@ -503,8 +479,6 @@ public class ObjectTypeExtensionTests
     [Fact]
     public async Task Remove_Fields()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Remove_Fields_PersonDto>()
@@ -516,8 +490,6 @@ public class ObjectTypeExtensionTests
     [Fact]
     public async Task Remove_Fields_BindField()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Remove_Fields_BindProperty_PersonDto>()
@@ -529,8 +501,6 @@ public class ObjectTypeExtensionTests
     [Fact]
     public async Task Replace_Field()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Replace_Field_PersonDto>()
@@ -542,8 +512,6 @@ public class ObjectTypeExtensionTests
     [Fact]
     public async Task Replace_Field_With_The_Same_Name()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType()
@@ -556,8 +524,6 @@ public class ObjectTypeExtensionTests
     [Fact]
     public async Task Replace_Field_With_The_Same_Name_Execute()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType()
@@ -570,8 +536,6 @@ public class ObjectTypeExtensionTests
     [Fact]
     public async Task Extended_Field_Overwrites_Extended_Field()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType()
@@ -630,8 +594,6 @@ public class ObjectTypeExtensionTests
     [Fact]
     public async Task Descriptor_Attributes_Are_Applied_On_Resolvers()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<FooQueryType>()

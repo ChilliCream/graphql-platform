@@ -3,7 +3,6 @@ using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types;
 
@@ -347,8 +346,6 @@ public class DateTypeTests
     [Fact]
     public async Task DateOnly_And_TimeOnly_As_Argument_Schema()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryDateTime1>()
@@ -359,8 +356,6 @@ public class DateTypeTests
     [Fact]
     public async Task DateOnly_And_TimeOnly_As_Argument()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryDateTime1>()
@@ -378,8 +373,6 @@ public class DateTypeTests
     [Fact]
     public async Task DateOnly_And_TimeOnly_As_ReturnValue_Schema()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryDateTime2>()
@@ -390,8 +383,6 @@ public class DateTypeTests
     [Fact]
     public async Task DateOnly_And_TimeOnly_As_ReturnValue()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryDateTime2>()

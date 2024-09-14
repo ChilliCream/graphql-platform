@@ -1,10 +1,5 @@
-﻿{
-  "Kind": "SingleResult",
-  "RequestIndex": null,
-  "VariableIndex": null,
-  "Label": null,
-  "Path": null,
-  "Data": {
+{
+  "data": {
     "root": {
       "a": {
         "foo": "./root/a/foo"
@@ -13,12 +8,5 @@
         "foo": "./root/b/foo"
       }
     }
-  },
-  "Items": null,
-  "Errors": null,
-  "Extensions": null,
-  "Incremental": null,
-  "ContextData": null,
-  "HasNext": null,
-  "IsDataSet": true
+  }
 }

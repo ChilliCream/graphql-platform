@@ -1,5 +1,5 @@
 using System.Text;
-using Snapshooter.Xunit;
+using CookieCrumble;
 
 namespace HotChocolate.Configuration.Validation;
 

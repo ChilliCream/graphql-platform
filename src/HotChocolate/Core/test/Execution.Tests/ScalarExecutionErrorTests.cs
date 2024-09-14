@@ -1,3 +1,4 @@
+using CookieCrumble;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Tests;
@@ -23,7 +24,7 @@ public class ScalarExecutionErrorTests
             "{ stringToName(name: \"  \") }");
 
         // assert
-        await result.MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -41,7 +42,7 @@ public class ScalarExecutionErrorTests
             "{ stringToFoo(name: \"  \") }");
 
         // assert
-        await result.MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -59,7 +60,7 @@ public class ScalarExecutionErrorTests
             "{ nameToString(name: \"  \") }");
 
         // assert
-        await result.MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -81,7 +82,7 @@ public class ScalarExecutionErrorTests
             });
 
         // assert
-        await result.MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     public class Query

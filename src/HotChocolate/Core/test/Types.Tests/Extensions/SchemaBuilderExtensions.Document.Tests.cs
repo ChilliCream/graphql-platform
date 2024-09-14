@@ -1,4 +1,4 @@
-using Snapshooter.Xunit;
+using CookieCrumble;
 using IOPath = System.IO.Path;
 
 namespace HotChocolate;

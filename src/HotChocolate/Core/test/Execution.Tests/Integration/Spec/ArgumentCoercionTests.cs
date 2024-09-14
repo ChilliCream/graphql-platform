@@ -1,5 +1,5 @@
+using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 #nullable enable
 
