@@ -19,6 +19,7 @@ public static class HotChocolatePaginationBatchingDataLoaderFetchContext
     /// <returns>
     /// Returns the <see cref="PagingArguments"/> from the DataLoader fetch context.
     /// </returns>
-    public static PagingArguments GetPagingArguments<TValue>(this DataLoaderFetchContext<TValue> context)
+    public static PagingArguments GetPagingArguments<TValue>(
+        this DataLoaderFetchContext<TValue> context)
         => context.GetRequiredState<PagingArguments>();
 }

@@ -18,5 +18,5 @@ public interface IPageObserver
     /// <typeparam name="T">
     /// The item type.
     /// </typeparam>
-    void OnAfterSliced<T>(IReadOnlyList<T> items, IPageInfo pageInfo);
+    void OnAfterSliced<T>(ReadOnlySpan<T> items, IPageInfo pageInfo);
 }

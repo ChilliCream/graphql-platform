@@ -152,7 +152,7 @@ public class MongoDbSortCollectionTests : IClassFixture<MongoResource>
                     {
                         context.Result =
                             OperationResultBuilder
-                                .FromResult(context.Result!.ExpectSingleResult())
+                                .FromResult(context.Result!.ExpectOperationResult())
                                 .SetContextData("query", queryString)
                                 .Build();
                     }

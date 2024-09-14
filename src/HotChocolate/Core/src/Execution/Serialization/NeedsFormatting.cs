@@ -69,4 +69,12 @@ internal sealed class NeedsFormatting<TValue> : NeedsFormatting
     /// </param>
     public override void FormatValue(Utf8JsonWriter writer, JsonSerializerOptions options)
         => JsonSerializer.Serialize(writer, _value, options);
+
+    /// <summary>
+    /// Returns the string representation of the inner value.
+    /// </summary>
+    /// <returns>
+    /// The string representation of the inner value.
+    /// </returns>
+    public override string? ToString() => _value?.ToString();
 }

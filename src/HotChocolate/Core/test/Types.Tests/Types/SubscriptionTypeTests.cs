@@ -285,7 +285,7 @@ public class SubscriptionTypeTests : TypeTestBase
                     var mutationResult = await executor.ExecuteAsync(
                         "mutation { writeBoolean(userId: \"1\" message: true) }",
                         ct);
-                    Assert.Null(mutationResult.ExpectSingleResult().Errors);
+                    Assert.Null(mutationResult.ExpectOperationResult().Errors);
 
                     await foreach (var queryResult in subscriptionResult.ExpectResponseStream()
                         .ReadResultsAsync().WithCancellation(ct))
@@ -416,7 +416,7 @@ public class SubscriptionTypeTests : TypeTestBase
                     var mutationResult = await executor.ExecuteAsync(
                         "mutation { writeMessage(userId: \"abc\" message: \"def\") }",
                         ct);
-                    Assert.Null(mutationResult.ExpectSingleResult().Errors);
+                    Assert.Null(mutationResult.ExpectOperationResult().Errors);
 
                     await foreach (var queryResult in
                         results.WithCancellation(ct).ConfigureAwait(false))
@@ -450,7 +450,7 @@ public class SubscriptionTypeTests : TypeTestBase
                     var mutationResult = await executor.ExecuteAsync(
                         "mutation { writeFixedMessage(message: \"def\") }",
                         ct);
-                    Assert.Null(mutationResult.ExpectSingleResult().Errors);
+                    Assert.Null(mutationResult.ExpectOperationResult().Errors);
 
                     await foreach (var queryResult in
                         results.WithCancellation(ct).ConfigureAwait(false))
@@ -484,7 +484,7 @@ public class SubscriptionTypeTests : TypeTestBase
                     var mutationResult = await executor.ExecuteAsync(
                         "mutation { writeSysMessage(message: \"def\") }",
                         ct);
-                    Assert.Null(mutationResult.ExpectSingleResult().Errors);
+                    Assert.Null(mutationResult.ExpectOperationResult().Errors);
 
                     await foreach (var queryResult in
                         results.WithCancellation(ct).ConfigureAwait(false))
@@ -518,7 +518,7 @@ public class SubscriptionTypeTests : TypeTestBase
                     var mutationResult = await executor.ExecuteAsync(
                         "mutation { writeOnInferTopic(message: \"def\") }",
                         ct);
-                    Assert.Null(mutationResult.ExpectSingleResult().Errors);
+                    Assert.Null(mutationResult.ExpectOperationResult().Errors);
 
                     await foreach (var queryResult in
                         results.WithCancellation(ct).ConfigureAwait(false))
@@ -552,7 +552,7 @@ public class SubscriptionTypeTests : TypeTestBase
                     var mutationResult = await executor.ExecuteAsync(
                         "mutation { writeOnExplicit(message: \"def\") }",
                         ct);
-                    Assert.Null(mutationResult.ExpectSingleResult().Errors);
+                    Assert.Null(mutationResult.ExpectOperationResult().Errors);
 
                     await foreach (var queryResult in
                         results.WithCancellation(ct).ConfigureAwait(false))

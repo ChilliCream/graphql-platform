@@ -13,7 +13,7 @@
 
   <ItemGroup>
     <PackageReference Include="ChilliCream.Testing.Utilities" />
-    <PackageReference Include="coverlet.msbuild">
+    <PackageReference Include="coverlet.collector">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
