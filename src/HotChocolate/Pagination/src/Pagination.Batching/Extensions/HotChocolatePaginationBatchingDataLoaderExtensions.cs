@@ -112,9 +112,18 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
         var requiredBufferSize = 1;
 
         requiredBufferSize += EstimateIntLength(pagingArguments.First);
-        requiredBufferSize += pagingArguments.After?.Length ?? 0;
+        if(pagingArguments.After is not null)
+        {
+            requiredBufferSize += pagingArguments.After?.Length ?? 0;
+            requiredBufferSize += 2;
+        }
         requiredBufferSize += EstimateIntLength(pagingArguments.Last);
-        requiredBufferSize += pagingArguments.Before?.Length ?? 0;
+
+        if(pagingArguments.Before is not null)
+        {
+            requiredBufferSize += pagingArguments.Before?.Length ?? 0;
+            requiredBufferSize += 2;
+        }
 
         if (requiredBufferSize == 1)
         {
@@ -131,6 +140,11 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
 
         if (pagingArguments.First.HasValue)
         {
+            var span = buffer.Slice(written);
+            span[0] = 'f';
+            span[1] = ':';
+            written += 2;
+
             if (!pagingArguments.First.Value.TryFormat(buffer.Slice(written), out var charsWritten))
             {
                 throw new InvalidOperationException("Buffer is too small.");
@@ -138,8 +152,13 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
             written += charsWritten;
         }
 
-        if (pagingArguments.After != null)
+        if (pagingArguments.After is not null)
         {
+            var span = buffer.Slice(written);
+            span[0] = 'a';
+            span[1] = ':';
+            written += 2;
+
             var after = pagingArguments.After.AsSpan();
             after.CopyTo(buffer.Slice(written));
             written += after.Length;
@@ -147,6 +166,11 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
 
         if (pagingArguments.Last.HasValue)
         {
+            var span = buffer.Slice(written);
+            span[0] = 'l';
+            span[1] = ':';
+            written += 2;
+
             if (!pagingArguments.Last.Value.TryFormat(buffer.Slice(written), out var charsWritten))
             {
                 throw new InvalidOperationException("Buffer is too small.");
@@ -154,8 +178,13 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
             written += charsWritten;
         }
 
-        if (pagingArguments.Before != null)
+        if (pagingArguments.Before is not null)
         {
+            var span = buffer.Slice(written);
+            span[0] = 'b';
+            span[1] = ':';
+            written += 2;
+
             var before = pagingArguments.Before.AsSpan();
             before.CopyTo(buffer.Slice(written));
             written += before.Length;
@@ -183,7 +212,7 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
         if (value == 0)
         {
             // to print 0 we need still 1 digit
-            return 1;
+            return 3;
         }
 
         // if the number is negative we need one more digit for the sign
@@ -192,6 +221,6 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
         // we add the number of digits the number has to the length of the number.
         length += (int)Math.Floor(Math.Log10(Math.Abs(value.Value)) + 1);
 
-        return length;
+        return length + 2;
     }
 }
