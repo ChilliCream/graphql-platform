@@ -50,6 +50,12 @@ jobs:
         run: yarn --immutable --network-timeout 100000
         working-directory: website
 
+      - name: Unzip Icons
+        run: |
+          sudo apt-get install -y unzip
+          unzip -P ${{ secrets.ICON_PASSWORD }} src/images/icons.zip -d src/images/
+        working-directory: website
+
       - name: Build Website
         run: yarn build --prefix-paths
         working-directory: website

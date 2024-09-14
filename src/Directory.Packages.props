@@ -14,7 +14,7 @@
     <PackageVersion Include="BananaCakePop.Middleware" Version="$(BananaCakePopVersion)" />
     <PackageVersion Include="Basic.Reference.Assemblies" Version="1.6.0" />
     <PackageVersion Include="ChilliCream.Testing.Utilities" Version="0.2.0" />
-    <PackageVersion Include="coverlet.msbuild" Version="6.0.2" />
+    <PackageVersion Include="coverlet.collector" Version="6.0.2" />
     <PackageVersion Include="DiffPlex" Version="1.7.2" />
     <PackageVersion Include="FsCheck.Xunit" Version="3.0.0-rc3" />
     <PackageVersion Include="FSharp.Core" Version="8.0.100" />
