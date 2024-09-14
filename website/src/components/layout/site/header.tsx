@@ -894,13 +894,13 @@ const CompanyNavItem: FC<CompanyNavItemProps> = ({
   );
 };
 
-const PricingNavItem: FC = () => {
-  return (
-    <NavItemContainer>
-      <NavLink to={"/pricing"}>Pricing</NavLink>
-    </NavItemContainer>
-  );
-};
+// const PricingNavItem: FC = () => {
+//   return (
+//     <NavItemContainer>
+//       <NavLink to={"/pricing"}>Pricing</NavLink>
+//     </NavItemContainer>
+//   );
+// };
 
 const HelpNavItem: FC = () => {
   return (
