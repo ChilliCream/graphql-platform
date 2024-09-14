@@ -29,14 +29,14 @@ public class ZonedDateTimeTypeCustomIntegrationTests
         var result = _testExecutor.Execute("query { test: rome }");
         Assert.Equal(
             "2020-12-31T18:30:13 Asia/Kathmandu (+05:45)",
-            result.ExpectSingleResult().Data!["test"]);
+            result.ExpectOperationResult().Data!["test"]);
     }
 
     [Fact]
     public void QueryReturnsUtc()
     {
         var result = _testExecutor.Execute("query { test: utc }");
-        Assert.Equal("2020-12-31T18:30:13 UTC (+00)", result.ExpectSingleResult().Data!["test"]);
+        Assert.Equal("2020-12-31T18:30:13 UTC (+00)", result.ExpectOperationResult().Data!["test"]);
     }
 
     [Fact]
@@ -50,7 +50,7 @@ public class ZonedDateTimeTypeCustomIntegrationTests
 
         Assert.Equal(
             "2020-12-31T19:40:13 Asia/Kathmandu (+05:45)",
-            result.ExpectSingleResult().Data!["test"]);
+            result.ExpectOperationResult().Data!["test"]);
     }
 
     [Fact]
@@ -62,7 +62,7 @@ public class ZonedDateTimeTypeCustomIntegrationTests
                 .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-12-31T19:30:13 UTC (+00)" }, })
                 .Build());
 
-        Assert.Equal("2020-12-31T19:40:13 UTC (+00)", result.ExpectSingleResult().Data!["test"]);
+        Assert.Equal("2020-12-31T19:40:13 UTC (+00)", result.ExpectOperationResult().Data!["test"]);
     }
 
     [Fact]
@@ -74,8 +74,8 @@ public class ZonedDateTimeTypeCustomIntegrationTests
                 .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-12-31T19:30:13 (UTC)" }, })
                 .Build());
 
-        Assert.Null(result.ExpectSingleResult().Data);
-        Assert.Single(result.ExpectSingleResult().Errors!);
+        Assert.Null(result.ExpectOperationResult().Data);
+        Assert.Single(result.ExpectOperationResult().Errors!);
     }
 
     [Fact]
@@ -92,7 +92,7 @@ public class ZonedDateTimeTypeCustomIntegrationTests
 
         Assert.Equal(
             "2020-12-31T19:40:13 Asia/Kathmandu (+05:45)",
-            result.ExpectSingleResult().Data!["test"]);
+            result.ExpectOperationResult().Data!["test"]);
     }
 
     [Fact]
@@ -103,7 +103,7 @@ public class ZonedDateTimeTypeCustomIntegrationTests
                 .SetDocument("mutation { test(arg: \"2020-12-31T19:30:13 UTC (+00)\") }")
                 .Build());
 
-        Assert.Equal("2020-12-31T19:40:13 UTC (+00)", result.ExpectSingleResult().Data!["test"]);
+        Assert.Equal("2020-12-31T19:40:13 UTC (+00)", result.ExpectOperationResult().Data!["test"]);
     }
 
     [Fact]
@@ -114,11 +114,11 @@ public class ZonedDateTimeTypeCustomIntegrationTests
                 .SetDocument("mutation { test(arg: \"2020-12-31T19:30:13 (UTC)\") }")
                 .Build());
 
-        Assert.Null(result.ExpectSingleResult().Data);
-        Assert.Single(result.ExpectSingleResult().Errors!);
-        Assert.Null(result.ExpectSingleResult().Errors![0].Code);
+        Assert.Null(result.ExpectOperationResult().Data);
+        Assert.Single(result.ExpectOperationResult().Errors!);
+        Assert.Null(result.ExpectOperationResult().Errors![0].Code);
         Assert.Equal(
             "Unable to deserialize string to ZonedDateTime",
-            result.ExpectSingleResult().Errors![0].Message);
+            result.ExpectOperationResult().Errors![0].Message);
     }
 }

@@ -1,0 +1,12 @@
+﻿{
+  "data": {
+    "extendedTypeRefNested": {
+      "nodes": [
+        [
+          "one",
+          "two"
+        ]
+      ]
+    }
+  }
+}

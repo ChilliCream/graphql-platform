@@ -1,12 +1,11 @@
 import React, { FC, useEffect } from "react";
 import { useCookies } from "react-cookie";
 import { useDispatch, useSelector } from "react-redux";
-import styled from "styled-components";
 
-import { Button } from "@/components/misc/button";
 import { State } from "@/state";
 import { hideCookieConsent, showCookieConsent } from "@/state/common";
-import { Link } from "./link";
+import styled from "styled-components";
+import { Dialog, DialogButton, DialogContainer, LearnMoreLink } from "./dialog";
 
 export const CookieConsent: FC = () => {
   const show = useSelector<State, boolean>(
@@ -45,45 +44,31 @@ export const CookieConsent: FC = () => {
         <Container>
           <Message id="cookieconsent:desc">
             This website uses cookies to ensure you get the best experience on
-            our website.
+            our website.{" "}
             <LearnMoreLink prefetch={false} to="/legal/cookie-policy.html">
               Learn more
             </LearnMoreLink>
           </Message>
-          <Button
+          <DialogButton
             aria-label="dismiss cookie message"
             role="button"
             onClick={clickDismiss}
           >
             Got it!
-          </Button>
+          </DialogButton>
         </Container>
-      )}{" "}
+      )}
     </Dialog>
   );
 };
 
-const Dialog = styled.div<{ show: boolean }>`
-  position: fixed;
-  bottom: 0;
-  z-index: 30;
-  width: 100vw;
-  background-color: #ffb806;
-  display: ${({ show }) => (show ? "visible" : "none")};
-`;
-
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+const Container = styled(DialogContainer)`
   justify-content: space-between;
-
-  padding: 15px 20px;
 
   @media only screen and (min-width: 400px) {
     flex-direction: row;
 
-    ${Button} {
+    ${DialogButton} {
       flex: 0 0 160px;
     }
   }
@@ -94,15 +79,10 @@ const Message = styled.div`
   padding-bottom: 20px;
   font-size: var(--font-size);
   line-height: 1.667em;
-  color: #4f3903;
+  color: #0b0722;
 
   @media only screen and (min-width: 400px) {
     padding-bottom: initial;
     padding-right: 20px;
   }
-`;
-
-const LearnMoreLink = styled(Link)`
-  text-decoration: underline;
-  color: #4f3903;
 `;

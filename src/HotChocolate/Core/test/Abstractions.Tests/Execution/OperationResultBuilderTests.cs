@@ -42,7 +42,7 @@ public class OperationResultBuilderTests
     }
 
     [Fact]
-    public void ExpectQueryResult()
+    public void ExpectOperationResult()
     {
         // arrange
         IExecutionResult result = OperationResultBuilder.New()
@@ -50,7 +50,7 @@ public class OperationResultBuilderTests
             .Build();
 
         // act
-        var queryResult = result.ExpectSingleResult();
+        var queryResult = result.ExpectOperationResult();
 
         // assert
         Assert.NotNull(queryResult);
