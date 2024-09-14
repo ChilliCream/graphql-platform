@@ -17,14 +17,14 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void QueryReturns()
         {
             var result = _testExecutor.Execute("query { test: hours }");
-            Assert.Equal("18:30:13.010011234+02:00", result.ExpectSingleResult().Data!["test"]);
+            Assert.Equal("18:30:13.010011234+02:00", result.ExpectOperationResult().Data!["test"]);
         }
 
         [Fact]
         public void QueryReturnsWithMinutes()
         {
             var result = _testExecutor.Execute("query { test: hoursAndMinutes }");
-            Assert.Equal("18:30:13.010011234+02:35", result.ExpectSingleResult().Data!["test"]);
+            Assert.Equal("18:30:13.010011234+02:35", result.ExpectOperationResult().Data!["test"]);
         }
 
         [Fact]
@@ -36,7 +36,7 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", "18:30:13.010011234+02:00" }, })
                     .Build());
 
-            Assert.Equal("18:30:13.010011234+02:00", result.ExpectSingleResult().Data!["test"]);
+            Assert.Equal("18:30:13.010011234+02:00", result.ExpectOperationResult().Data!["test"]);
         }
 
         [Fact]
@@ -47,7 +47,7 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetDocument("mutation($arg: OffsetTime!) { test(arg: $arg) }")
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", "18:30:13.010011234+02:35" }, })
                     .Build());
-            Assert.Equal("18:30:13.010011234+02:35", result.ExpectSingleResult().Data!["test"]);
+            Assert.Equal("18:30:13.010011234+02:35", result.ExpectOperationResult().Data!["test"]);
         }
 
         [Fact]
@@ -58,8 +58,8 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetDocument("mutation($arg: OffsetTime!) { test(arg: $arg) }")
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", "18:30:13.010011234+02" }, })
                     .Build());
-            Assert.Null(result.ExpectSingleResult().Data);
-            Assert.Single(result.ExpectSingleResult().Errors!);
+            Assert.Null(result.ExpectOperationResult().Data);
+            Assert.Single(result.ExpectOperationResult().Errors!);
         }
 
         [Fact]
@@ -69,7 +69,7 @@ namespace HotChocolate.Types.NodaTime.Tests
                 .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation { test(arg: \"18:30:13.010011234+02:00\") }")
                     .Build());
-            Assert.Equal("18:30:13.010011234+02:00", result.ExpectSingleResult().Data!["test"]);
+            Assert.Equal("18:30:13.010011234+02:00", result.ExpectOperationResult().Data!["test"]);
         }
 
         [Fact]
@@ -79,7 +79,7 @@ namespace HotChocolate.Types.NodaTime.Tests
                 .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation { test(arg: \"18:30:13.010011234+02:35\") }")
                     .Build());
-            Assert.Equal("18:30:13.010011234+02:35", result.ExpectSingleResult().Data!["test"]);
+            Assert.Equal("18:30:13.010011234+02:35", result.ExpectOperationResult().Data!["test"]);
         }
 
         [Fact]
@@ -89,12 +89,12 @@ namespace HotChocolate.Types.NodaTime.Tests
                 .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation { test(arg: \"18:30:13.010011234+02\") }")
                     .Build());
-            Assert.Null(result.ExpectSingleResult().Data);
-            Assert.Single(result.ExpectSingleResult().Errors!);
-            Assert.Null(result.ExpectSingleResult().Errors![0].Code);
+            Assert.Null(result.ExpectOperationResult().Data);
+            Assert.Single(result.ExpectOperationResult().Errors!);
+            Assert.Null(result.ExpectOperationResult().Errors![0].Code);
             Assert.Equal(
                 "Unable to deserialize string to OffsetTime",
-                result.ExpectSingleResult().Errors![0].Message);
+                result.ExpectOperationResult().Errors![0].Message);
         }
     }
 }

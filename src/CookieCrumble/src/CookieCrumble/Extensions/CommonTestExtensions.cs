@@ -17,7 +17,7 @@ public static class CommonTestExtensions
                 {
                     context.Result =
                         OperationResultBuilder
-                            .FromResult(context.Result!.ExpectSingleResult())
+                            .FromResult(context.Result!.ExpectOperationResult())
                             .SetContextData("ex", queryString)
                             .Build();
                 }

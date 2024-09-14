@@ -2,7 +2,7 @@ using IOPath = System.IO.Path;
 
 namespace HotChocolate.PersistedOperations.FileSystem;
 
-public class DefaultQueryFileMapTests
+public class DefaultOperationDocumentFileMapTests
 {
     [Fact]
     public void Root_Must_Not_Be_Null()

@@ -36,7 +36,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             var result = _testExecutor.Execute("query { test: one }");
 
-            Assert.Equal("12:42:13.031011234", result.ExpectSingleResult().Data!["test"]);
+            Assert.Equal("12:42:13.031011234", result.ExpectOperationResult().Data!["test"]);
         }
 
         [Fact]
@@ -49,7 +49,7 @@ namespace HotChocolate.Types.NodaTime.Tests
                         .SetVariableValues(new Dictionary<string, object?> { { "arg", "12:42:13.031011234" }, })
                         .Build());
 
-            Assert.Equal("12:52:13.031011234", result.ExpectSingleResult().Data!["test"]);
+            Assert.Equal("12:52:13.031011234", result.ExpectOperationResult().Data!["test"]);
         }
 
         [Fact]
@@ -62,7 +62,7 @@ namespace HotChocolate.Types.NodaTime.Tests
                         .SetVariableValues(new Dictionary<string, object?> { { "arg", "12:42:13" }, })
                         .Build());
 
-            Assert.Equal("12:52:13", result.ExpectSingleResult().Data!["test"]);
+            Assert.Equal("12:52:13", result.ExpectOperationResult().Data!["test"]);
         }
 
         [Fact]
@@ -75,8 +75,8 @@ namespace HotChocolate.Types.NodaTime.Tests
                         .SetVariableValues(new Dictionary<string, object?> { { "arg", "12:42" }, })
                         .Build());
 
-            Assert.Null(result.ExpectSingleResult().Data);
-            Assert.Single(result.ExpectSingleResult().Errors!);
+            Assert.Null(result.ExpectOperationResult().Data);
+            Assert.Single(result.ExpectOperationResult().Errors!);
         }
 
         [Fact]
@@ -88,7 +88,7 @@ namespace HotChocolate.Types.NodaTime.Tests
                         .SetDocument("mutation { test(arg: \"12:42:13.031011234\") }")
                         .Build());
 
-            Assert.Equal("12:52:13.031011234", result.ExpectSingleResult().Data!["test"]);
+            Assert.Equal("12:52:13.031011234", result.ExpectOperationResult().Data!["test"]);
         }
 
         [Fact]
@@ -100,7 +100,7 @@ namespace HotChocolate.Types.NodaTime.Tests
                         .SetDocument("mutation { test(arg: \"12:42:13\") }")
                         .Build());
 
-            Assert.Equal("12:52:13", result.ExpectSingleResult().Data!["test"]);
+            Assert.Equal("12:52:13", result.ExpectOperationResult().Data!["test"]);
         }
 
         [Fact]
@@ -112,12 +112,12 @@ namespace HotChocolate.Types.NodaTime.Tests
                         .SetDocument("mutation { test(arg: \"12:42\") }")
                         .Build());
 
-            Assert.Null(result.ExpectSingleResult().Data);
-            Assert.Single(result.ExpectSingleResult().Errors!);
-            Assert.Null(result.ExpectSingleResult().Errors![0].Code);
+            Assert.Null(result.ExpectOperationResult().Data);
+            Assert.Single(result.ExpectOperationResult().Errors!);
+            Assert.Null(result.ExpectOperationResult().Errors![0].Code);
             Assert.Equal(
                 "Unable to deserialize string to LocalTime",
-                result.ExpectSingleResult().Errors![0].Message);
+                result.ExpectOperationResult().Errors![0].Message);
         }
 
         [Fact]
