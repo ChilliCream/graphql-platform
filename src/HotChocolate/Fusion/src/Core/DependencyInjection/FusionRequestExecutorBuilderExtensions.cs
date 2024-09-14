@@ -136,7 +136,7 @@ public static class FusionRequestExecutorBuilderExtensions
                 (_, sc) =>
                 {
                     sc.RemoveAll<NodeIdParser>();
-                    sc.AddSingleton<NodeIdParser, DefaultNodeIdParser>();
+                    sc.AddSingleton<NodeIdParser, T>();
                 }));
 
         return builder;
