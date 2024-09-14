@@ -1,5 +1,17 @@
 # Nested_Paging_First_2
 
+## SQL
+
+```sql
+-- @__keys_0={ '2', '1' } (DbType = Object)
+SELECT p."Id", p."AvailableStock", p."BrandId", p."Description", p."ImageFileName", p."MaxStockThreshold", p."Name", p."OnReorder", p."Price", p."RestockThreshold", p."TypeId"
+FROM "Products" AS p
+WHERE p."BrandId" = ANY (@__keys_0)
+ORDER BY p."Name", p."Id"
+```
+
+## Result 2
+
 ```json
 {
   "data": {
@@ -54,3 +66,4 @@
   }
 }
 ```
+

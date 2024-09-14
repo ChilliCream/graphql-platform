@@ -36,7 +36,7 @@ namespace HotChocolate.Types.NodaTime.Tests
 
             Assert.Equal(
                 "2020-02-20T17:42:59.000001234Z",
-                result.ExpectSingleResult().Data!["test"]);
+                result.ExpectOperationResult().Data!["test"]);
         }
 
         [Fact]
@@ -50,7 +50,7 @@ namespace HotChocolate.Types.NodaTime.Tests
 
             Assert.Equal(
                 "2020-02-21T17:52:59.000001234Z",
-                result.ExpectSingleResult().Data!["test"]);
+                result.ExpectOperationResult().Data!["test"]);
         }
 
         [Fact]
@@ -62,8 +62,8 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-02-20T17:42:59" }, })
                     .Build());
 
-            Assert.Null(result.ExpectSingleResult().Data);
-            Assert.Single(result.ExpectSingleResult().Errors!);
+            Assert.Null(result.ExpectOperationResult().Data);
+            Assert.Single(result.ExpectOperationResult().Errors!);
         }
 
         [Fact]
@@ -76,7 +76,7 @@ namespace HotChocolate.Types.NodaTime.Tests
 
             Assert.Equal(
                 "2020-02-20T17:52:59.000001234Z",
-                result.ExpectSingleResult().Data!["test"]);
+                result.ExpectOperationResult().Data!["test"]);
         }
 
         [Fact]
@@ -87,12 +87,12 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetDocument("mutation { test(arg: \"2020-02-20T17:42:59\") }")
                     .Build());
 
-            Assert.Null(result.ExpectSingleResult().Data);
-            Assert.Single(result.ExpectSingleResult().Errors!);
-            Assert.Null(result.ExpectSingleResult().Errors![0].Code);
+            Assert.Null(result.ExpectOperationResult().Data);
+            Assert.Single(result.ExpectOperationResult().Errors!);
+            Assert.Null(result.ExpectOperationResult().Errors![0].Code);
             Assert.Equal(
                 "Unable to deserialize string to Instant",
-                result.ExpectSingleResult().Errors![0].Message);
+                result.ExpectOperationResult().Errors![0].Message);
         }
 
         [Fact]

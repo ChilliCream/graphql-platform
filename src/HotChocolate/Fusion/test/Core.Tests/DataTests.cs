@@ -60,6 +60,6 @@ public class DataTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectSingleResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 }

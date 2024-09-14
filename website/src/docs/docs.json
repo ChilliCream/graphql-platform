@@ -2,7 +2,7 @@
   {
     "path": "bananacakepop",
     "title": "Banana Cake Pop",
-    "description": "Use this GUI to get deep insights from any GraphQL API.",
+    "description": "GraphQL IDE / API Management",
     "metaDescription": "Banana Cake Pop is a performant, feature-rich GraphQL IDE that helps developers and data scientists to explore, share, and test any GraphQL API.",
     "latestStableVersion": "v2",
     "versions": [
@@ -59,18 +59,8 @@
               {
                 "path": "operation-reporting",
                 "title": "Operation Reporting"
-              }
-            ]
-          },
-          {
-            "path": "open-telemetry",
-            "title": "Open Telemetry",
-            "items": [
-              {
-                "path": "operation-monitoring",
-                "title": "Operation Monitoring"
               },
-              { "path": "logging", "title": "Logging" }
+              { "path": "open-telemetry", "title": "Open Telemetry" }
             ]
           },
           {
@@ -117,8 +107,8 @@
   {
     "path": "hotchocolate",
     "title": "Hot Chocolate",
+    "description": "GraphQL Server / Gateway",
     "metaDescription": "Hot Chocolate is the most efficient, feature-rich, open-source GraphQL server in the .NET ecosystem, that helps developers to build powerful APIs.",
-    "description": "Build your own thin GraphQL API layer on top of any resource.",
     "latestStableVersion": "v13",
     "versions": [
       {
@@ -1604,7 +1594,7 @@
   {
     "path": "strawberryshake",
     "title": "Strawberry Shake",
-    "description": "The only GraphQL client you will ever need in the .NET ecosystem.",
+    "description": "GraphQL Client for .NET",
     "metaDescription": "Strawberry Shake is an incredible GraphQL client for the .NET ecosystem, that helps developers to build awesome UIs in Blazor, Maui, and more.",
     "latestStableVersion": "v13",
     "versions": [
@@ -1903,7 +1893,7 @@
   {
     "path": "barista",
     "title": "Barista",
-    "description": "The CLI tool for orchestrating your GraphQL cloud services.",
+    "description": "GraphQL CLI",
     "metaDescription": "Barista is a powerful .NET command-line tool used for managing your GraphQL API's schema and client registries. It provides a suite of commands that facilitate the handling of schemas, clients, stages, workspaces, environments, and API keys.",
     "latestStableVersion": "v1",
     "versions": [
