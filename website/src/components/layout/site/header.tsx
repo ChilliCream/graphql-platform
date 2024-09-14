@@ -190,7 +190,7 @@ export const Header: FC = () => {
               onTopNavClose={handleTopNavClose}
               onSearchOpen={handleSearchOpen}
             />
-            <PricingNavItem />
+            {/* <PricingNavItem /> */}
             <HelpNavItem />
             <NavItemContainer className="mobile-only double-height">
               <DemoAndLaunch tools={tools!} />
