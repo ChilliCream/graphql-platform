@@ -194,7 +194,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
         return extendedType.Type.IsDefined(typeof(FlagsAttribute), false);
     }
 
-    private static string GetFlagFieldName(Type type, object value)
+    protected virtual string GetFlagFieldName(Type type, object value)
     {
         var valueName = Enum.GetName(type, value);
         if (string.IsNullOrEmpty(valueName))
