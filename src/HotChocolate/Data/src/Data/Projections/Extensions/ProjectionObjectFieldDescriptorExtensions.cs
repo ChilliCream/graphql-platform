@@ -133,10 +133,12 @@ public static class ProjectionObjectFieldDescriptorExtensions
         FieldMiddlewareDefinition placeholder =
             new(_ => _ => default, key: WellKnownMiddleware.Projection);
 
-        descriptor.Extend().Definition.MiddlewareDefinitions.Add(placeholder);
+        var extension = descriptor.Extend();
 
-        descriptor
-            .Extend()
+        extension.Definition.MiddlewareDefinitions.Add(placeholder);
+        extension.Definition.Flags |= FieldFlags.UsesProjections;
+
+        extension
             .OnBeforeCreate(
                 (context, definition) =>
                 {

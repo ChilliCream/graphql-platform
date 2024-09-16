@@ -4,7 +4,7 @@ import React, { FC } from "react";
 
 import { GetWorkshopNdcCopenhagenImageQuery } from "@/graphql-types";
 
-export const WorkshopNdcCopenhagen: FC = () => {
+export const WorkshopNdcCopenhagenImage: FC = () => {
   const data = useStaticQuery<GetWorkshopNdcCopenhagenImageQuery>(graphql`
     query getWorkshopNdcCopenhagenImage {
       file(

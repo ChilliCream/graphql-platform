@@ -1,7 +1,7 @@
 import React, { FC, ReactNode } from "react";
 import styled from "styled-components";
 
-import { THEME_COLORS } from "@/shared-style";
+import { THEME_COLORS } from "@/style";
 
 type Props = {
   readonly children: ReactNode;
@@ -49,14 +49,11 @@ const Heading = styled.div`
 `;
 
 const Container = styled.div`
-  padding: 20px 20px;
+  margin-bottom: 24px;
+  padding: 20px;
+  border: 1px solid ${THEME_COLORS.boxBorder};
   background-color: ${THEME_COLORS.warning};
   color: ${THEME_COLORS.textContrast};
-  line-height: 1.4;
-
-  @media only screen and (min-width: 860px) {
-    padding: 20px 50px;
-  }
 
   br {
     margin-bottom: 16px;
@@ -75,5 +72,9 @@ const Container = styled.div`
 
   > p:last-child {
     margin-bottom: 0;
+  }
+
+  @media only screen and (min-width: 700px) {
+    border-radius: var(--box-border-radius);
   }
 `;
