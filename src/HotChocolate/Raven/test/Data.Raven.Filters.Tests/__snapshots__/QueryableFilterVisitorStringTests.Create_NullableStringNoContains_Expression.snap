@@ -5,6 +5,9 @@ a Result:
     "root": [
       {
         "bar": "testbtest"
+      },
+      {
+        "bar": null
       }
     ]
   }

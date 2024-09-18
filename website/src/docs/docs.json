@@ -59,8 +59,18 @@
               {
                 "path": "operation-reporting",
                 "title": "Operation Reporting"
+              }
+            ]
+          },
+          {
+            "path": "open-telemetry",
+            "title": "Open Telemetry",
+            "items": [
+              {
+                "path": "operation-monitoring",
+                "title": "Operation Monitoring"
               },
-              { "path": "open-telemetry", "title": "Open Telemetry" }
+              { "path": "logging", "title": "Logging" }
             ]
           },
           {
