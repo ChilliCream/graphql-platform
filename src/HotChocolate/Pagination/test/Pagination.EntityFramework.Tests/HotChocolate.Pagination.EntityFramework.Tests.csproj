@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <RootNamespace>HotChocolate.Data</RootNamespace>
-    <NoWarn>GD0001</NoWarn>
+    <NoWarn>$(NoWarn);GD0001</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

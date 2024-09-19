@@ -343,7 +343,6 @@ public class DateTypeTests
         Assert.IsType<DateTimeType>(dateTimeType);
     }
 
-#if NET6_0_OR_GREATER
     [Fact]
     public async Task DateOnly_And_TimeOnly_As_Argument_Schema()
     {
@@ -405,7 +404,6 @@ public class DateTypeTests
                     }")
             .MatchSnapshotAsync();
     }
-#endif
 
     public class Query
     {
@@ -415,7 +413,6 @@ public class DateTypeTests
         public DateTime? DateTimeField => DateTime.UtcNow;
     }
 
-#if NET6_0_OR_GREATER
     public class QueryDateTime1
     {
         public Foo Foo => new();
@@ -440,5 +437,4 @@ public class DateTypeTests
 
         public DateOnly GetDate() => DateOnly.MaxValue;
     }
-#endif
 }

@@ -1,13 +1,9 @@
 using System.Collections.Concurrent;
-#if NET6_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
-#endif
 using System.Globalization;
 using HotChocolate.Utilities.Properties;
 using Microsoft.Extensions.DependencyInjection;
-#if NET6_0_OR_GREATER
 using static System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes;
-#endif
 
 namespace HotChocolate.Utilities;
 
@@ -15,13 +11,9 @@ public static class ServiceFactory
 {
     private static readonly ConcurrentDictionary<Type, ObjectFactory> _factories = new();
 
-#if NET6_0_OR_GREATER
     public static object CreateInstance(
         IServiceProvider services,
         [DynamicallyAccessedMembers(PublicConstructors)] Type type)
-#else
-    public static object CreateInstance(IServiceProvider services, Type type)
-#endif
     {
         if (services is null)
         {
@@ -49,6 +41,8 @@ public static class ServiceFactory
         }
 
         static ObjectFactory CreateFactory(Type instanceType)
+#pragma warning disable IL2067 // FIXME
             => ActivatorUtilities.CreateFactory(instanceType, []);
+#pragma warning restore IL2067
     }
 }

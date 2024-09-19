@@ -13,7 +13,7 @@ internal static class OperationResultHelper
 
     public static IReadOnlyDictionary<string, object?> ToDictionary(IOperationResult result)
     {
-        var formatted = new OrderedDictionary();
+        var formatted = new OrderedDictionary<string, object?>();
 
         if (result.Errors is { Count: > 0, })
         {
@@ -40,7 +40,7 @@ internal static class OperationResultHelper
 
         foreach (var error in errors)
         {
-            var formattedError = new OrderedDictionary { [_message] = error.Message, };
+            var formattedError = new OrderedDictionary<string, object?> { [_message] = error.Message, };
 
             if (error.Locations is { Count: > 0, })
             {

@@ -291,13 +291,6 @@ internal static class RelayIdFieldHelpers
         }
 
         var mappings = (Dictionary<string, Type>)obj!;
-#if NET6_0_OR_GREATER
         mappings.TryAdd(typeName, runtimeTypeInfo.NamedType);
-#else
-        if (!mappings.ContainsKey(typeName))
-        {
-            mappings.Add(typeName, runtimeTypeInfo.NamedType);
-        }
-#endif
     }
 }

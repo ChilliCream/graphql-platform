@@ -97,11 +97,7 @@ public sealed class DocumentValidator : IDocumentValidator
             PrepareContext(schema, document, documentId, context, contextData);
 
             var length = rules.Length;
-#if NET6_0_OR_GREATER
             ref var start = ref MemoryMarshal.GetArrayDataReference(rules);
-#else
-            ref var start = ref MemoryMarshal.GetReference(rules.AsSpan());
-#endif
 
             for (var i = 0; i < length; i++)
             {

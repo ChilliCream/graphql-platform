@@ -157,10 +157,6 @@ internal static class InputObjectConstructorResolver
 
     private static string GetAlternativeParameterName(string name)
         => name.Length > 1
-#if NET6_0_OR_GREATER
             ? string.Concat(name[..1].ToUpperInvariant(), name.AsSpan(1))
-#else
-            ? string.Concat(name.Substring(0, 1).ToUpperInvariant(), name.Substring(1))
-#endif
             : name.ToUpperInvariant();
 }

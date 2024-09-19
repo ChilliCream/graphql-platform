@@ -94,7 +94,6 @@ namespace Foo.Bar
         }
 
         public global::System.Int32 TotalCount { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFeatsPage_Feats_Items?>? Items { get; }
 
         public virtual global::System.Boolean Equals(GetFeatsPage_Feats_FeatCollectionSegment? other)
@@ -173,13 +172,9 @@ namespace Foo.Bar
         }
 
         public global::System.Guid Id { get; }
-
         public global::System.String Name { get; }
-
         public global::System.Int32 Level { get; }
-
         public global::System.Boolean CanBeLearnedMoreThanOnce { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFeatsPage_Feats_Items_Details> Details { get; }
 
         public virtual global::System.Boolean Equals(GetFeatsPage_Feats_Items_Feat? other)
@@ -315,7 +310,6 @@ namespace Foo.Bar
     public partial interface IGetFeatsPage_Feats
     {
         public global::System.Int32 TotalCount { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFeatsPage_Feats_Items?>? Items { get; }
     }
 
@@ -330,13 +324,9 @@ namespace Foo.Bar
     public partial interface IFeatsPage
     {
         public global::System.Guid Id { get; }
-
         public global::System.String Name { get; }
-
         public global::System.Int32 Level { get; }
-
         public global::System.Boolean CanBeLearnedMoreThanOnce { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFeatsPage_Feats_Items_Details> Details { get; }
     }
 
@@ -519,17 +509,11 @@ namespace Foo.Bar
         }
 
         public global::System.Guid Id { get; }
-
         public global::System.String Name { get; }
-
         public global::System.Int32 Level { get; }
-
         public global::System.String? Special { get; }
-
         public global::System.String? Trigger { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFeatById_Feats_Items_Details> Details { get; }
-
         public global::Foo.Bar.IGetFeatById_Feats_Items_ActionType ActionType { get; }
 
         public virtual global::System.Boolean Equals(GetFeatById_Feats_Items_Feat? other)
@@ -750,17 +734,11 @@ namespace Foo.Bar
     public partial interface IFeatById
     {
         public global::System.Guid Id { get; }
-
         public global::System.String Name { get; }
-
         public global::System.Int32 Level { get; }
-
         public global::System.String? Special { get; }
-
         public global::System.String? Trigger { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFeatById_Feats_Items_Details> Details { get; }
-
         public global::Foo.Bar.IGetFeatById_Feats_Items_ActionType ActionType { get; }
     }
 
@@ -812,6 +790,7 @@ namespace Foo.Bar
         private global::StrawberryShake.Serialization.IInputValueFormatter _frequencySortInputFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _rollableEffectSortInputFormatter = default !;
         public global::System.String TypeName => "FeatSortInput";
+
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _sortEnumTypeFormatter = serializerResolver.GetInputValueFormatter("SortEnumType");
@@ -1240,6 +1219,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IFeatSortInputInfo.IsNameSet => _set_name;
+
         public global::Foo.Bar.SortEnumType? CanBeLearnedMoreThanOnce
         {
             get => _value_canBeLearnedMoreThanOnce;
@@ -1251,6 +1231,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IFeatSortInputInfo.IsCanBeLearnedMoreThanOnceSet => _set_canBeLearnedMoreThanOnce;
+
         public global::Foo.Bar.SortEnumType? Special
         {
             get => _value_special;
@@ -1262,6 +1243,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IFeatSortInputInfo.IsSpecialSet => _set_special;
+
         public global::Foo.Bar.SortEnumType? Trigger
         {
             get => _value_trigger;
@@ -1273,6 +1255,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IFeatSortInputInfo.IsTriggerSet => _set_trigger;
+
         public global::Foo.Bar.SortEnumType? Level
         {
             get => _value_level;
@@ -1284,6 +1267,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IFeatSortInputInfo.IsLevelSet => _set_level;
+
         public global::Foo.Bar.SortEnumType? ActionTypeId
         {
             get => _value_actionTypeId;
@@ -1295,6 +1279,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IFeatSortInputInfo.IsActionTypeIdSet => _set_actionTypeId;
+
         public global::Foo.Bar.ActionTypeSortInput? ActionType
         {
             get => _value_actionType;
@@ -1306,6 +1291,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IFeatSortInputInfo.IsActionTypeSet => _set_actionType;
+
         public global::Foo.Bar.SortEnumType? FeatTypeId
         {
             get => _value_featTypeId;
@@ -1317,6 +1303,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IFeatSortInputInfo.IsFeatTypeIdSet => _set_featTypeId;
+
         public global::Foo.Bar.FeatTypeSortInput? FeatType
         {
             get => _value_featType;
@@ -1328,6 +1315,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IFeatSortInputInfo.IsFeatTypeSet => _set_featType;
+
         public global::Foo.Bar.SortEnumType? FrequencyId
         {
             get => _value_frequencyId;
@@ -1339,6 +1327,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IFeatSortInputInfo.IsFrequencyIdSet => _set_frequencyId;
+
         public global::Foo.Bar.FrequencySortInput? Frequency
         {
             get => _value_frequency;
@@ -1350,6 +1339,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IFeatSortInputInfo.IsFrequencySet => _set_frequency;
+
         public global::Foo.Bar.RollableEffectSortInput? RollableEffect
         {
             get => _value_rollableEffect;
@@ -1361,6 +1351,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IFeatSortInputInfo.IsRollableEffectSet => _set_rollableEffect;
+
         public global::Foo.Bar.SortEnumType? RollableEffectId
         {
             get => _value_rollableEffectId;
@@ -1372,6 +1363,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IFeatSortInputInfo.IsRollableEffectIdSet => _set_rollableEffectId;
+
         public global::Foo.Bar.SortEnumType? Id
         {
             get => _value_id;
@@ -1391,6 +1383,7 @@ namespace Foo.Bar
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _sortEnumTypeFormatter = default !;
         public global::System.String TypeName => "ActionTypeSortInput";
+
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _sortEnumTypeFormatter = serializerResolver.GetInputValueFormatter("SortEnumType");
@@ -1527,6 +1520,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IActionTypeSortInputInfo.IsNameSet => _set_name;
+
         public global::Foo.Bar.SortEnumType? Id
         {
             get => _value_id;
@@ -1546,6 +1540,7 @@ namespace Foo.Bar
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _sortEnumTypeFormatter = default !;
         public global::System.String TypeName => "FeatTypeSortInput";
+
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _sortEnumTypeFormatter = serializerResolver.GetInputValueFormatter("SortEnumType");
@@ -1682,6 +1677,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IFeatTypeSortInputInfo.IsNameSet => _set_name;
+
         public global::Foo.Bar.SortEnumType? Id
         {
             get => _value_id;
@@ -1701,6 +1697,7 @@ namespace Foo.Bar
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _sortEnumTypeFormatter = default !;
         public global::System.String TypeName => "FrequencySortInput";
+
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _sortEnumTypeFormatter = serializerResolver.GetInputValueFormatter("SortEnumType");
@@ -1885,6 +1882,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IFrequencySortInputInfo.IsNameSet => _set_name;
+
         public global::Foo.Bar.SortEnumType? Amount
         {
             get => _value_amount;
@@ -1896,6 +1894,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IFrequencySortInputInfo.IsAmountSet => _set_amount;
+
         public global::Foo.Bar.SortEnumType? TimeSpan
         {
             get => _value_timeSpan;
@@ -1907,6 +1906,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IFrequencySortInputInfo.IsTimeSpanSet => _set_timeSpan;
+
         public global::Foo.Bar.SortEnumType? Id
         {
             get => _value_id;
@@ -1926,6 +1926,7 @@ namespace Foo.Bar
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _sortEnumTypeFormatter = default !;
         public global::System.String TypeName => "RollableEffectSortInput";
+
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _sortEnumTypeFormatter = serializerResolver.GetInputValueFormatter("SortEnumType");
@@ -2134,6 +2135,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IRollableEffectSortInputInfo.IsCriticalSuccessSet => _set_criticalSuccess;
+
         public global::Foo.Bar.SortEnumType? Success
         {
             get => _value_success;
@@ -2145,6 +2147,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IRollableEffectSortInputInfo.IsSuccessSet => _set_success;
+
         public global::Foo.Bar.SortEnumType? Failure
         {
             get => _value_failure;
@@ -2156,6 +2159,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IRollableEffectSortInputInfo.IsFailureSet => _set_failure;
+
         public global::Foo.Bar.SortEnumType? CriticalFailure
         {
             get => _value_criticalFailure;
@@ -2167,6 +2171,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IRollableEffectSortInputInfo.IsCriticalFailureSet => _set_criticalFailure;
+
         public global::Foo.Bar.SortEnumType? Id
         {
             get => _value_id;
@@ -2193,6 +2198,7 @@ namespace Foo.Bar
     public partial class SortEnumTypeSerializer : global::StrawberryShake.Serialization.IInputValueFormatter, global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, SortEnumType>
     {
         public global::System.String TypeName => "SortEnumType";
+
         public SortEnumType Parse(global::System.String serializedValue)
         {
             return serializedValue switch
@@ -2254,8 +2260,503 @@ namespace Foo.Bar
 
         public static GetFeatsPageQueryDocument Instance { get; } = new GetFeatsPageQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x47, 0x65, 0x74, 0x46, 0x65, 0x61, 0x74, 0x73, 0x50, 0x61, 0x67, 0x65, 0x28, 0x24, 0x73, 0x6b, 0x69, 0x70, 0x3a, 0x20, 0x49, 0x6e, 0x74, 0x21, 0x2c, 0x20, 0x24, 0x74, 0x61, 0x6b, 0x65, 0x3a, 0x20, 0x49, 0x6e, 0x74, 0x21, 0x2c, 0x20, 0x24, 0x73, 0x65, 0x61, 0x72, 0x63, 0x68, 0x54, 0x65, 0x72, 0x6d, 0x3a, 0x20, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x21, 0x20, 0x3d, 0x20, 0x22, 0x22, 0x2c, 0x20, 0x24, 0x6f, 0x72, 0x64, 0x65, 0x72, 0x3a, 0x20, 0x5b, 0x46, 0x65, 0x61, 0x74, 0x53, 0x6f, 0x72, 0x74, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x21, 0x5d, 0x20, 0x3d, 0x20, 0x5b, 0x20, 0x7b, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x3a, 0x20, 0x41, 0x53, 0x43, 0x20, 0x7d, 0x20, 0x5d, 0x29, 0x20, 0x7b, 0x20, 0x66, 0x65, 0x61, 0x74, 0x73, 0x28, 0x73, 0x6b, 0x69, 0x70, 0x3a, 0x20, 0x24, 0x73, 0x6b, 0x69, 0x70, 0x2c, 0x20, 0x74, 0x61, 0x6b, 0x65, 0x3a, 0x20, 0x24, 0x74, 0x61, 0x6b, 0x65, 0x2c, 0x20, 0x6f, 0x72, 0x64, 0x65, 0x72, 0x3a, 0x20, 0x24, 0x6f, 0x72, 0x64, 0x65, 0x72, 0x2c, 0x20, 0x77, 0x68, 0x65, 0x72, 0x65, 0x3a, 0x20, 0x7b, 0x20, 0x6f, 0x72, 0x3a, 0x20, 0x5b, 0x20, 0x7b, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x3a, 0x20, 0x7b, 0x20, 0x63, 0x6f, 0x6e, 0x74, 0x61, 0x69, 0x6e, 0x73, 0x3a, 0x20, 0x24, 0x73, 0x65, 0x61, 0x72, 0x63, 0x68, 0x54, 0x65, 0x72, 0x6d, 0x20, 0x7d, 0x20, 0x7d, 0x2c, 0x20, 0x7b, 0x20, 0x74, 0x72, 0x61, 0x69, 0x74, 0x73, 0x3a, 0x20, 0x7b, 0x20, 0x73, 0x6f, 0x6d, 0x65, 0x3a, 0x20, 0x7b, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x3a, 0x20, 0x7b, 0x20, 0x63, 0x6f, 0x6e, 0x74, 0x61, 0x69, 0x6e, 0x73, 0x3a, 0x20, 0x24, 0x73, 0x65, 0x61, 0x72, 0x63, 0x68, 0x54, 0x65, 0x72, 0x6d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x5d, 0x20, 0x7d, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x20, 0x69, 0x74, 0x65, 0x6d, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x46, 0x65, 0x61, 0x74, 0x73, 0x50, 0x61, 0x67, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x46, 0x65, 0x61, 0x74, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x46, 0x65, 0x61, 0x74, 0x73, 0x50, 0x61, 0x67, 0x65, 0x20, 0x6f, 0x6e, 0x20, 0x46, 0x65, 0x61, 0x74, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6c, 0x65, 0x76, 0x65, 0x6c, 0x20, 0x63, 0x61, 0x6e, 0x42, 0x65, 0x4c, 0x65, 0x61, 0x72, 0x6e, 0x65, 0x64, 0x4d, 0x6f, 0x72, 0x65, 0x54, 0x68, 0x61, 0x6e, 0x4f, 0x6e, 0x63, 0x65, 0x20, 0x64, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x74, 0x65, 0x78, 0x74, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x46, 0x65, 0x61, 0x74, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d};
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
+        {
+            0x71,
+            0x75,
+            0x65,
+            0x72,
+            0x79,
+            0x20,
+            0x47,
+            0x65,
+            0x74,
+            0x46,
+            0x65,
+            0x61,
+            0x74,
+            0x73,
+            0x50,
+            0x61,
+            0x67,
+            0x65,
+            0x28,
+            0x24,
+            0x73,
+            0x6b,
+            0x69,
+            0x70,
+            0x3a,
+            0x20,
+            0x49,
+            0x6e,
+            0x74,
+            0x21,
+            0x2c,
+            0x20,
+            0x24,
+            0x74,
+            0x61,
+            0x6b,
+            0x65,
+            0x3a,
+            0x20,
+            0x49,
+            0x6e,
+            0x74,
+            0x21,
+            0x2c,
+            0x20,
+            0x24,
+            0x73,
+            0x65,
+            0x61,
+            0x72,
+            0x63,
+            0x68,
+            0x54,
+            0x65,
+            0x72,
+            0x6d,
+            0x3a,
+            0x20,
+            0x53,
+            0x74,
+            0x72,
+            0x69,
+            0x6e,
+            0x67,
+            0x21,
+            0x20,
+            0x3d,
+            0x20,
+            0x22,
+            0x22,
+            0x2c,
+            0x20,
+            0x24,
+            0x6f,
+            0x72,
+            0x64,
+            0x65,
+            0x72,
+            0x3a,
+            0x20,
+            0x5b,
+            0x46,
+            0x65,
+            0x61,
+            0x74,
+            0x53,
+            0x6f,
+            0x72,
+            0x74,
+            0x49,
+            0x6e,
+            0x70,
+            0x75,
+            0x74,
+            0x21,
+            0x5d,
+            0x20,
+            0x3d,
+            0x20,
+            0x5b,
+            0x20,
+            0x7b,
+            0x20,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x3a,
+            0x20,
+            0x41,
+            0x53,
+            0x43,
+            0x20,
+            0x7d,
+            0x20,
+            0x5d,
+            0x29,
+            0x20,
+            0x7b,
+            0x20,
+            0x66,
+            0x65,
+            0x61,
+            0x74,
+            0x73,
+            0x28,
+            0x73,
+            0x6b,
+            0x69,
+            0x70,
+            0x3a,
+            0x20,
+            0x24,
+            0x73,
+            0x6b,
+            0x69,
+            0x70,
+            0x2c,
+            0x20,
+            0x74,
+            0x61,
+            0x6b,
+            0x65,
+            0x3a,
+            0x20,
+            0x24,
+            0x74,
+            0x61,
+            0x6b,
+            0x65,
+            0x2c,
+            0x20,
+            0x6f,
+            0x72,
+            0x64,
+            0x65,
+            0x72,
+            0x3a,
+            0x20,
+            0x24,
+            0x6f,
+            0x72,
+            0x64,
+            0x65,
+            0x72,
+            0x2c,
+            0x20,
+            0x77,
+            0x68,
+            0x65,
+            0x72,
+            0x65,
+            0x3a,
+            0x20,
+            0x7b,
+            0x20,
+            0x6f,
+            0x72,
+            0x3a,
+            0x20,
+            0x5b,
+            0x20,
+            0x7b,
+            0x20,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x3a,
+            0x20,
+            0x7b,
+            0x20,
+            0x63,
+            0x6f,
+            0x6e,
+            0x74,
+            0x61,
+            0x69,
+            0x6e,
+            0x73,
+            0x3a,
+            0x20,
+            0x24,
+            0x73,
+            0x65,
+            0x61,
+            0x72,
+            0x63,
+            0x68,
+            0x54,
+            0x65,
+            0x72,
+            0x6d,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x2c,
+            0x20,
+            0x7b,
+            0x20,
+            0x74,
+            0x72,
+            0x61,
+            0x69,
+            0x74,
+            0x73,
+            0x3a,
+            0x20,
+            0x7b,
+            0x20,
+            0x73,
+            0x6f,
+            0x6d,
+            0x65,
+            0x3a,
+            0x20,
+            0x7b,
+            0x20,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x3a,
+            0x20,
+            0x7b,
+            0x20,
+            0x63,
+            0x6f,
+            0x6e,
+            0x74,
+            0x61,
+            0x69,
+            0x6e,
+            0x73,
+            0x3a,
+            0x20,
+            0x24,
+            0x73,
+            0x65,
+            0x61,
+            0x72,
+            0x63,
+            0x68,
+            0x54,
+            0x65,
+            0x72,
+            0x6d,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x5d,
+            0x20,
+            0x7d,
+            0x29,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x74,
+            0x6f,
+            0x74,
+            0x61,
+            0x6c,
+            0x43,
+            0x6f,
+            0x75,
+            0x6e,
+            0x74,
+            0x20,
+            0x69,
+            0x74,
+            0x65,
+            0x6d,
+            0x73,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x46,
+            0x65,
+            0x61,
+            0x74,
+            0x73,
+            0x50,
+            0x61,
+            0x67,
+            0x65,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x46,
+            0x65,
+            0x61,
+            0x74,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x66,
+            0x72,
+            0x61,
+            0x67,
+            0x6d,
+            0x65,
+            0x6e,
+            0x74,
+            0x20,
+            0x46,
+            0x65,
+            0x61,
+            0x74,
+            0x73,
+            0x50,
+            0x61,
+            0x67,
+            0x65,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x46,
+            0x65,
+            0x61,
+            0x74,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x6c,
+            0x65,
+            0x76,
+            0x65,
+            0x6c,
+            0x20,
+            0x63,
+            0x61,
+            0x6e,
+            0x42,
+            0x65,
+            0x4c,
+            0x65,
+            0x61,
+            0x72,
+            0x6e,
+            0x65,
+            0x64,
+            0x4d,
+            0x6f,
+            0x72,
+            0x65,
+            0x54,
+            0x68,
+            0x61,
+            0x6e,
+            0x4f,
+            0x6e,
+            0x63,
+            0x65,
+            0x20,
+            0x64,
+            0x65,
+            0x74,
+            0x61,
+            0x69,
+            0x6c,
+            0x73,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x74,
+            0x65,
+            0x78,
+            0x74,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x46,
+            0x65,
+            0x61,
+            0x74,
+            0x44,
+            0x65,
+            0x74,
+            0x61,
+            0x69,
+            0x6c,
+            0x73,
+            0x42,
+            0x6c,
+            0x6f,
+            0x63,
+            0x6b,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d
+        };
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "defcd7f67f31345e43429d1db7aa93bc8ca8af7d");
+
         public override global::System.String ToString()
         {
 #if NETCOREAPP3_1_OR_GREATER
@@ -2315,6 +2816,7 @@ namespace Foo.Bar
         }
 
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IGetFeatsPageResult);
+
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetFeatsPageResult>> ExecuteAsync(global::System.Int32 skip, global::System.Int32 take, global::System.String searchTerm, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.FeatSortInput>? order, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(skip, take, searchTerm, order);
@@ -2480,8 +2982,321 @@ namespace Foo.Bar
 
         public static GetFeatByIdQueryDocument Instance { get; } = new GetFeatByIdQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x47, 0x65, 0x74, 0x46, 0x65, 0x61, 0x74, 0x42, 0x79, 0x49, 0x64, 0x28, 0x24, 0x69, 0x64, 0x3a, 0x20, 0x55, 0x55, 0x49, 0x44, 0x21, 0x29, 0x20, 0x7b, 0x20, 0x66, 0x65, 0x61, 0x74, 0x73, 0x28, 0x77, 0x68, 0x65, 0x72, 0x65, 0x3a, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x3a, 0x20, 0x7b, 0x20, 0x65, 0x71, 0x3a, 0x20, 0x24, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x69, 0x74, 0x65, 0x6d, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x46, 0x65, 0x61, 0x74, 0x42, 0x79, 0x49, 0x64, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x46, 0x65, 0x61, 0x74, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x46, 0x65, 0x61, 0x74, 0x42, 0x79, 0x49, 0x64, 0x20, 0x6f, 0x6e, 0x20, 0x46, 0x65, 0x61, 0x74, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6c, 0x65, 0x76, 0x65, 0x6c, 0x20, 0x73, 0x70, 0x65, 0x63, 0x69, 0x61, 0x6c, 0x20, 0x74, 0x72, 0x69, 0x67, 0x67, 0x65, 0x72, 0x20, 0x64, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x74, 0x65, 0x78, 0x74, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x46, 0x65, 0x61, 0x74, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x54, 0x79, 0x70, 0x65, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x41, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x54, 0x79, 0x70, 0x65, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d};
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
+        {
+            0x71,
+            0x75,
+            0x65,
+            0x72,
+            0x79,
+            0x20,
+            0x47,
+            0x65,
+            0x74,
+            0x46,
+            0x65,
+            0x61,
+            0x74,
+            0x42,
+            0x79,
+            0x49,
+            0x64,
+            0x28,
+            0x24,
+            0x69,
+            0x64,
+            0x3a,
+            0x20,
+            0x55,
+            0x55,
+            0x49,
+            0x44,
+            0x21,
+            0x29,
+            0x20,
+            0x7b,
+            0x20,
+            0x66,
+            0x65,
+            0x61,
+            0x74,
+            0x73,
+            0x28,
+            0x77,
+            0x68,
+            0x65,
+            0x72,
+            0x65,
+            0x3a,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x3a,
+            0x20,
+            0x7b,
+            0x20,
+            0x65,
+            0x71,
+            0x3a,
+            0x20,
+            0x24,
+            0x69,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x29,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x69,
+            0x74,
+            0x65,
+            0x6d,
+            0x73,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x46,
+            0x65,
+            0x61,
+            0x74,
+            0x42,
+            0x79,
+            0x49,
+            0x64,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x46,
+            0x65,
+            0x61,
+            0x74,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x66,
+            0x72,
+            0x61,
+            0x67,
+            0x6d,
+            0x65,
+            0x6e,
+            0x74,
+            0x20,
+            0x46,
+            0x65,
+            0x61,
+            0x74,
+            0x42,
+            0x79,
+            0x49,
+            0x64,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x46,
+            0x65,
+            0x61,
+            0x74,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x6c,
+            0x65,
+            0x76,
+            0x65,
+            0x6c,
+            0x20,
+            0x73,
+            0x70,
+            0x65,
+            0x63,
+            0x69,
+            0x61,
+            0x6c,
+            0x20,
+            0x74,
+            0x72,
+            0x69,
+            0x67,
+            0x67,
+            0x65,
+            0x72,
+            0x20,
+            0x64,
+            0x65,
+            0x74,
+            0x61,
+            0x69,
+            0x6c,
+            0x73,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x74,
+            0x65,
+            0x78,
+            0x74,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x46,
+            0x65,
+            0x61,
+            0x74,
+            0x44,
+            0x65,
+            0x74,
+            0x61,
+            0x69,
+            0x6c,
+            0x73,
+            0x42,
+            0x6c,
+            0x6f,
+            0x63,
+            0x6b,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x61,
+            0x63,
+            0x74,
+            0x69,
+            0x6f,
+            0x6e,
+            0x54,
+            0x79,
+            0x70,
+            0x65,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x41,
+            0x63,
+            0x74,
+            0x69,
+            0x6f,
+            0x6e,
+            0x54,
+            0x79,
+            0x70,
+            0x65,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d
+        };
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "9ebaff788b63cffe97932e6ad7792fa29e168e73");
+
         public override global::System.String ToString()
         {
 #if NETCOREAPP3_1_OR_GREATER
@@ -2544,6 +3359,7 @@ namespace Foo.Bar
         }
 
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IGetFeatByIdResult);
+
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetFeatByIdResult>> ExecuteAsync(global::System.Guid id, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(id);
@@ -2678,19 +3494,12 @@ namespace Foo.Bar.State
         }
 
         public global::System.Guid Id { get; }
-
         public global::System.String Name { get; }
-
         public global::System.Int32 Level { get; }
-
         public global::System.Boolean CanBeLearnedMoreThanOnce { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId> Details { get; }
-
         public global::System.String? Special { get; }
-
         public global::System.String? Trigger { get; }
-
         public global::StrawberryShake.EntityId ActionType { get; }
     }
 
@@ -2733,6 +3542,7 @@ namespace Foo.Bar.State
         }
 
         global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::Foo.Bar.IGetFeatsPageResult);
+
         public GetFeatsPageResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             if (snapshot is null)
@@ -2845,9 +3655,9 @@ namespace Foo.Bar.State
         }
 
         public global::Foo.Bar.State.FeatCollectionSegmentData? Feats { get; }
-
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
         public global::System.UInt64 Version => _version;
+
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new GetFeatsPageResultInfo(Feats, _entityIds, version);
@@ -2871,6 +3681,7 @@ namespace Foo.Bar.State
         }
 
         global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::Foo.Bar.IGetFeatByIdResult);
+
         public GetFeatByIdResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             if (snapshot is null)
@@ -2993,9 +3804,9 @@ namespace Foo.Bar.State
         }
 
         public global::Foo.Bar.State.FeatCollectionSegmentData? Feats { get; }
-
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
         public global::System.UInt64 Version => _version;
+
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new GetFeatByIdResultInfo(Feats, _entityIds, version);
@@ -3568,9 +4379,7 @@ namespace Foo.Bar.State
         }
 
         public global::System.String __typename { get; }
-
         public global::System.Int32? TotalCount { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Items { get; }
     }
 
@@ -3752,7 +4561,9 @@ namespace Foo.Bar.State
     public partial class FooClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
         private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
-        {Indented = false};
+        {
+            Indented = false
+        };
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
             global::System.String __typename = obj.GetProperty("__typename").GetString()!;

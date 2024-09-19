@@ -1,6 +1,3 @@
-#if NET8_0_OR_GREATER
-using System.Collections.Frozen;
-#endif
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 

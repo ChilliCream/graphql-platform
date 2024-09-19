@@ -1,4 +1,3 @@
-#if NET6_0_OR_GREATER
 using System.Collections.Immutable;
 using HotChocolate.Language;
 
@@ -92,4 +91,3 @@ internal static class PropertyTreeBuilder
         return nodes;
     }
 }
-#endif

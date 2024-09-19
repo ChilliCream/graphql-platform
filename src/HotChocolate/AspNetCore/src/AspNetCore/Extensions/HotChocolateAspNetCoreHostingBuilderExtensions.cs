@@ -1,4 +1,3 @@
-#if NET8_0_OR_GREATER
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.AspNetCore.ServerDefaults;
@@ -33,4 +32,3 @@ public static class HotChocolateAspNetCoreHostingBuilderExtensions
         bool disableCostAnalyzer = false)
         => builder.Services.AddGraphQLServer(schemaName, maxAllowedRequestSize, disableCostAnalyzer);
 }
-#endif

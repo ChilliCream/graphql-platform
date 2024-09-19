@@ -80,10 +80,10 @@ public static class SyntaxPrinter
                 _serializerNoIndent.Serialize(node, syntaxWriter);
             }
 
-#if NETSTANDARD2_0 || NETSTANDARD2_1
-                await streamWriter
-                    .WriteAsync(syntaxWriter.ToString())
-                    .ConfigureAwait(false);
+#if NETSTANDARD2_0
+            await streamWriter
+                .WriteAsync(syntaxWriter.ToString())
+                .ConfigureAwait(false);
 #else
             await streamWriter
                 .WriteAsync(syntaxWriter.StringBuilder, cancellationToken)

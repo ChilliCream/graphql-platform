@@ -241,11 +241,7 @@ public sealed class DirectiveCollection : IDirectiveCollection
         => _directives;
 
     internal ref Directive GetReference()
-#if NET6_0_OR_GREATER
         => ref MemoryMarshal.GetArrayDataReference(_directives);
-#else
-        => ref MemoryMarshal.GetReference(_directives.AsSpan());
-#endif
 
     /// <inheritdoc />
     public IEnumerator<Directive> GetEnumerator()

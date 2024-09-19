@@ -53,7 +53,6 @@ public class UseSortingAttribute : ObjectFieldDescriptorAttribute
     }
 }
 
-#if NET6_0_OR_GREATER
 /// <summary>
 /// Specifies the GraphQL type.
 /// </summary>
@@ -64,4 +63,3 @@ public sealed class UseSortingAttribute<T> : UseSortingAttribute
     {
     }
 }
-#endif

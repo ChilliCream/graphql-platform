@@ -6,7 +6,6 @@ partial class Build
     const string Release = "Release";
     const string Net50 = "net5.0";
     const string Net60 = "net6.0";
-    const string Net70 = "net7.0";
 
     readonly int DegreeOfParallelism = 2;
 

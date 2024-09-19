@@ -1,9 +1,7 @@
 #nullable enable
 using System.Buffers;
 using System.Buffers.Text;
-#if NET8_0_OR_GREATER
 using System.Collections.Frozen;
-#endif
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -19,11 +17,7 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
     private const int _stackallocThreshold = 256;
     private static readonly Encoding _utf8 = Encoding.UTF8;
 
-#if NET8_0_OR_GREATER
     private readonly FrozenDictionary<string, Serializer> _stringSerializerMap;
-#else
-    private readonly Dictionary<string, Serializer> _stringSerializerMap;
-#endif
     private readonly SpanSerializerMap _spanSerializerMap;
     private readonly INodeIdValueSerializer[] _serializers;
     private readonly int _maxIdLength;
@@ -35,13 +29,8 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
         int maxIdLength = 1024,
         bool outputNewIdFormat = true)
     {
-#if NET8_0_OR_GREATER
         _stringSerializerMap =
             boundSerializers.ToFrozenDictionary(t => t.TypeName, t => new Serializer(t.TypeName, t.Serializer, outputNewIdFormat));
-#else
-        _stringSerializerMap =
-            boundSerializers.ToDictionary(t => t.TypeName, t => new Serializer(t.TypeName, t.Serializer, outputNewIdFormat));
-#endif
         _serializers = allSerializers;
         _spanSerializerMap = new SpanSerializerMap();
         foreach (var serializer in _stringSerializerMap.Values)
@@ -237,19 +226,13 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
     }
 
     private static readonly byte[] _delimiters = [_delimiter, _legacyDelimiter];
-#if NET8_0_OR_GREATER
     private static readonly SearchValues<byte>
         _delimiterSearchValues = SearchValues.Create(_delimiters);
-#endif
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int FindDelimiterIndex(ReadOnlySpan<byte> span)
     {
-#if NET8_0_OR_GREATER
         return span.IndexOfAny(_delimiterSearchValues);
-#else
-        return span.IndexOfAny(_delimiters);
-#endif
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

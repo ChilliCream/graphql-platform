@@ -1,13 +1,8 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
-
-#if NET6_0_OR_GREATER
 using System.Reflection.Metadata;
-#endif
 using HotChocolate.Configuration;
-#if NET6_0_OR_GREATER
 using HotChocolate.Execution;
-#endif
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Errors;
 using HotChocolate.Execution.Instrumentation;
@@ -23,9 +18,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.Execution.ThrowHelper;
 
-#if NET6_0_OR_GREATER
 [assembly: MetadataUpdateHandler(typeof(RequestExecutorResolver.ApplicationUpdateHandler))]
-#endif
 
 namespace HotChocolate.Execution;
 
@@ -55,11 +48,9 @@ internal sealed partial class RequestExecutorResolver
             throw new ArgumentNullException(nameof(serviceProvider));
         _optionsMonitor.OnChange(EvictRequestExecutor);
 
-#if NET6_0_OR_GREATER
         // we register the schema eviction for application updates when hot reload is used.
         // Whenever a hot reload update is triggered we will evict all executors.
         ApplicationUpdateHandler.RegisterForApplicationUpdate(() => EvictAllRequestExecutors());
-#endif
     }
 
     public IObservable<RequestExecutorEvent> Events => _events;
@@ -162,7 +153,6 @@ internal sealed partial class RequestExecutorResolver
         }
     }
 
-#if NET6_0_OR_GREATER
     private void EvictAllRequestExecutors()
     {
         foreach (var key in _executors.Keys)
@@ -189,7 +179,6 @@ internal sealed partial class RequestExecutorResolver
             }
         }
     }
-#endif
 
     private static void BeginRunEvictionEvents(RegisteredExecutor registeredExecutor)
         => Task.Factory.StartNew(
@@ -724,7 +713,6 @@ internal sealed partial class RequestExecutorResolver
         public IList<RequestCoreMiddleware> Pipeline { get; } = pipeline;
     }
 
-#if NET6_0_OR_GREATER
     /// <summary>
     /// A helper calls that receives hot reload update events from the runtime and triggers
     /// reload of registered components.
@@ -752,5 +740,4 @@ internal sealed partial class RequestExecutorResolver
             }
         }
     }
-#endif
 }

@@ -137,7 +137,6 @@ public sealed class ExtendObjectTypeAttribute
     }
 }
 
-#if NET6_0_OR_GREATER
 /// <summary>
 /// Annotate classes which represent extensions to other object types.
 /// </summary>
@@ -236,4 +235,3 @@ public sealed class ExtendObjectTypeAttribute<T>
         }
     }
 }
-#endif
