@@ -1,31 +1,13 @@
 import styled from "styled-components";
 
 import { Link } from "@/components/misc/link";
-import { THEME_COLORS } from "@/shared-style";
+import { MAX_CONTENT_WIDTH, THEME_COLORS } from "@/style";
 
 export const CardOffer = styled.div`
   padding: 1.5rem 1.5rem 0;
 
   & > header {
-    min-height: 5em;
-
-    & > h2 {
-      margin: 0;
-      font-size: 1.25rem;
-      font-weight: 600;
-      line-height: 1.75em;
-      color: ${THEME_COLORS.primary};
-    }
-
-    & strong {
-      font-size: 1.125em;
-      color: ${THEME_COLORS.secondary};
-    }
-
-    & small {
-      font-size: 0.75em;
-      color: ${THEME_COLORS.tertiary};
-    }
+    margin-bottom: 16px;
   }
 
   & > p {
@@ -38,56 +20,60 @@ export const CardOffer = styled.div`
   }
 `;
 
-export const CardsContainer = styled.div<{ readonly dense?: true }>`
+export const CardsContainer = styled.div`
   display: grid;
   grid-template-columns: minmax(250px, 300px);
-  gap: 1rem;
   align-items: stretch;
   justify-content: center;
+  gap: 16px;
+  max-width: ${MAX_CONTENT_WIDTH}px;
   overflow: visible;
 
-  ${CardOffer} > header {
-    min-height: ${({ dense }) => (dense ? 3.5 : 5)}em;
-  }
-
   @media only screen and (min-width: 400px) {
-    grid-template-columns: minmax(300px, 350px);
+    grid-template-columns: minmax(300px, 400px);
   }
 
   @media only screen and (min-width: 600px) {
-    grid-template-columns: repeat(2, minmax(225px, 275px));
+    grid-template-columns: repeat(2, minmax(225px, 300px));
   }
 
   @media only screen and (min-width: 768px) {
-    grid-template-columns: repeat(2, minmax(250px, 350px));
+    grid-template-columns: repeat(2, minmax(250px, 375px));
   }
 
   @media only screen and (min-width: 992px) {
-    grid-template-columns: repeat(3, minmax(250px, 300px));
+    grid-template-columns: repeat(3, minmax(300px, 350px));
+    gap: 24px;
   }
 
-  @media only screen and (min-width: 1320px) {
-    grid-template-columns: repeat(3, minmax(275px, 375px));
+  @media only screen and (min-width: 1246px) {
+    grid-template-columns: repeat(3, minmax(275px, 400px));
   }
 `;
 
 export const Card = styled.div`
-  background: ${THEME_COLORS.background};
-  box-shadow: rgb(46 41 51 / 8%) 0px 1px 2px, rgb(71 63 79 / 8%) 0px 2px 4px;
-  margin: 0px;
-  box-sizing: border-box;
   position: relative;
-  flex-direction: column;
-  border: 1px solid #d9d7e0;
-  border-radius: var(--border-radius);
-  padding: 0px;
   display: grid;
+  flex-direction: column;
   grid-template-rows: auto 1fr;
+  box-sizing: border-box;
+  margin: 0px;
+  border: 1px solid ${THEME_COLORS.boxBorder};
+  border-radius: var(--box-border-radius);
+  padding: 0px;
+  backdrop-filter: blur(2px);
+  background-image: linear-gradient(
+    to right bottom,
+    #379dc83d,
+    #2b80ad3d,
+    #2263903d,
+    #1a48743d,
+    #112f573d
+  );
   cursor: default;
-  transition: border 0.2 ease-in-out;
 
   &:hover {
-    border-color: ${THEME_COLORS.primary};
+    //border-color: ;
   }
 `;
 

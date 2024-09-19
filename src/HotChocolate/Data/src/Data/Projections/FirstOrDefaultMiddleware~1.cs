@@ -25,6 +25,14 @@ public sealed class FirstOrDefaultMiddleware<T>
         {
             case IAsyncEnumerable<T> ae:
                 {
+                    // Apply limit.
+                    if (ae is IQueryable<T> q)
+                    {
+                        q = q.Take(1);
+
+                        ae = (IAsyncEnumerable<T>)q;
+                    }
+
                     await using var enumerator =
                         ae.GetAsyncEnumerator(context.RequestAborted);
 

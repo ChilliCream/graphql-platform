@@ -10,8 +10,8 @@ public sealed class CustomRavenDBOptions : RavenDBDefaultOptions
         base.Configure(builder);
 
         builder.Image(RuntimeInformation.ProcessArchitecture is Architecture.Arm64
-            ? "ravendb/ravendb:5.4-ubuntu-arm64v8-latest"
-            : "ravendb/ravendb:5.4-ubuntu-latest");
+            ? "ravendb/ravendb:6.2-ubuntu-arm64v8-latest"
+            : "ravendb/ravendb:6.2-ubuntu-latest");
 
         builder.WaitTimeout(120);
     }

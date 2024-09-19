@@ -1,10 +1,18 @@
 import { graphql } from "gatsby";
 import React, { FC } from "react";
 
-import { Layout } from "@/components/layout";
+import { SiteLayout } from "@/components/layout";
 import { SEO } from "@/components/misc/seo";
-import { BlogArticles } from "@/components/widgets";
+import { AllBlogPosts } from "@/components/widgets";
 import { GetBlogArticlesQuery } from "@/graphql-types";
+import { useAnimationIntersectionObserver } from "@/hooks";
+
+interface BlogArticlesTemplatePageContext {
+  readonly limit: number;
+  readonly skip: number;
+  readonly numPages: number;
+  readonly currentPage: number;
+}
 
 interface BlogArticlesTemplateProps {
   readonly data: GetBlogArticlesQuery;
@@ -15,15 +23,19 @@ const BlogArticlesTemplate: FC<BlogArticlesTemplateProps> = ({
   pageContext: { currentPage, numPages },
   data: { allMdx },
 }) => {
+  useAnimationIntersectionObserver();
+
   return (
-    <Layout>
+    <SiteLayout disableStars>
       <SEO title="Blog Articles" />
-      <BlogArticles
+      <AllBlogPosts
+        data={allMdx}
+        description="All the latest news about ChilliCream and its entire GraphQL Platform."
         currentPage={currentPage}
-        data={allMdx!}
         totalPages={numPages}
+        basePath="/blog"
       />
-    </Layout>
+    </SiteLayout>
   );
 };
 
@@ -37,14 +49,7 @@ export const pageQuery = graphql`
       filter: { frontmatter: { path: { glob: "/blog/**/*" } } }
       sort: { fields: [frontmatter___date], order: DESC }
     ) {
-      ...BlogArticles
+      ...AllBlogPosts
     }
   }
 `;
-
-export interface BlogArticlesTemplatePageContext {
-  readonly limit: number;
-  readonly skip: number;
-  readonly numPages: number;
-  readonly currentPage: number;
-}
