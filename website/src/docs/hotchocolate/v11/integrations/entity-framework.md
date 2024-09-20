@@ -34,7 +34,7 @@ pool.
 If you annotate a field with `UseDbContext()` all of this is handled for you
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Query
@@ -46,7 +46,7 @@ public class Query
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp

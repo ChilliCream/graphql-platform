@@ -76,9 +76,9 @@ Finally, resolvers using pagination will have list size settings applied automat
 
 <ExampleTabs>
 
-<Annotation>
+<Implementation>
 
-When using an annotation-based implementation, apply the `Cost` attribute to the query resolver.
+When using an implementation-first approach, apply the `Cost` attribute to the query resolver.
 
 ```csharp
 [QueryType]
@@ -89,7 +89,7 @@ public static class Query
 }
 ```
 
-</Annotation>
+</Implementation>
 
 <Code>
 
@@ -150,9 +150,9 @@ public sealed class Query
 
 <ExampleTabs>
 
-<Annotation>
+<Implementation>
 
-When using an annotation-based implementation, apply the `ListSize` attribute to a query resolver returning a list of items.
+When using an implementation-first approach, apply the `ListSize` attribute to a query resolver returning a list of items.
 
 ```csharp
 [QueryType]
@@ -168,7 +168,7 @@ public static class Query
 }
 ```
 
-</Annotation>
+</Implementation>
 
 <Code>
 

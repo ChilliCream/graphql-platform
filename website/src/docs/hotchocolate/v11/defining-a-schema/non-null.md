@@ -45,7 +45,7 @@ We strongly encourage the use of nullable reference types.
 We can also be explicit about the nullability of our fields.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Query
@@ -66,7 +66,7 @@ public class Book
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
