@@ -9,19 +9,19 @@ internal sealed class AggregateSchemaDocumentFormatter(
 {
     private readonly ISchemaDocumentFormatter[] _formatters = formatters?.ToArray() ?? [];
 
-    public DocumentNode Format(DocumentNode schema)
+    public DocumentNode Format(DocumentNode schemaDocument)
     {
         if(_formatters.Length == 0)
         {
-            return schema;
+            return schemaDocument;
         }
 
         if(_formatters.Length == 1)
         {
-            return _formatters[0].Format(schema);
+            return _formatters[0].Format(schemaDocument);
         }
 
-        var current = schema;
+        var current = schemaDocument;
 
         for (var i = 0; i < _formatters.Length; i++)
         {

@@ -18,7 +18,7 @@ input BookInput {
 Input object types can be defined like the following.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class BookInput
@@ -78,7 +78,7 @@ type Mutation {
 
 > Note: While it is possible, it is not encouraged, as it complicates future extensions of either type.
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -248,7 +248,7 @@ The `DefaultValueAttribute` or the `DefaultValue` method on the field descriptor
 Consider the following scenario where we have a `UserInput` type with different fields like `name`, `active`. By default, we would like `active` to be `true`.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class UserInput
@@ -268,7 +268,7 @@ input UserInput {
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -320,7 +320,7 @@ Like for example objects or lists.
 Consider a scenario where we have a `UserProfileInput` type with a field `preferences`. The `preferences` field itself is an object containing various user preference settings.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Preferences
@@ -352,7 +352,7 @@ input UserProfileInput {
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -480,7 +480,7 @@ builder.Services
 Once activate you can create `Oneof` Input Objects like the following:
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 [OneOf]
@@ -548,7 +548,7 @@ type Mutation {
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
