@@ -46,6 +46,6 @@ public class BuiltInTypesSharableTests
 
     public class Address
     {
-        public string Street { get; set; }
+        public required string Street { get; set; }
     }
 }
