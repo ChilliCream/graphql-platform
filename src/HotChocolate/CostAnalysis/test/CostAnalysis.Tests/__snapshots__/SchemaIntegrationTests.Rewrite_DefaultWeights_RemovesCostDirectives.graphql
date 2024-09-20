@@ -1,0 +1,30 @@
+schema {
+  query: Query
+}
+
+type CompositeType {
+  listField: [ElementType]
+}
+
+type ElementType {
+  scalarField: Scalar
+}
+
+type Query {
+  compositeField(inputArg: Input listArg: [Scalar] scalarArg: Scalar): CompositeType
+}
+
+input Input {
+  inputField: Input
+  listField: [Scalar]
+  scalarField: Scalar
+}
+
+enum Enum {
+  ENUM_VALUE
+}
+
+"The purpose of the `cost` directive is to define a `weight` for GraphQL types, fields, and arguments. Static analysis can use these weights when calculating the overall cost of a query or response."
+directive @cost("The `weight` argument defines what value to add to the overall cost for every appearance, or possible appearance, of a type, field, argument, etc." weight: String!) on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION
+
+scalar Scalar
