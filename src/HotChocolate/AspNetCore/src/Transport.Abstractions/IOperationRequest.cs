@@ -5,7 +5,7 @@ namespace HotChocolate.Transport;
 public interface IOperationRequest : IRequestBody
 {
     /// <summary>
-    /// Gets the ID of a previously persisted query that should be executed.
+    /// Gets the ID of a previously persisted operation that should be executed.
     /// </summary>
     string? Id { get; }
 

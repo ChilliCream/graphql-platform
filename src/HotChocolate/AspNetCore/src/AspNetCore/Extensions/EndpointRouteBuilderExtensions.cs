@@ -446,13 +446,13 @@ public static class EndpointRouteBuilderExtensions
 
 #if NET8_0_OR_GREATER
     /// <summary>
-    /// Adds a persisted query endpoint to the endpoint configurations.
+    /// Adds a persisted operation endpoint to the endpoint configurations.
     /// </summary>
     /// <param name="endpointRouteBuilder">
     /// The <see cref="IEndpointRouteBuilder"/>.
     /// </param>
     /// <param name="path">
-    /// The path to which the persisted query endpoint shall be mapped.
+    /// The path to which the persisted operation endpoint shall be mapped.
     /// </param>
     /// <param name="schemaName">
     /// The name of the schema that shall be used by this endpoint.
@@ -471,13 +471,13 @@ public static class EndpointRouteBuilderExtensions
         => MapGraphQLPersistedOperations(endpointRouteBuilder, Parse(path), schemaName, requireOperationName);
 
     /// <summary>
-    /// Adds a persisted query endpoint to the endpoint configurations.
+    /// Adds a persisted operation endpoint to the endpoint configurations.
     /// </summary>
     /// <param name="endpointRouteBuilder">
     /// The <see cref="IEndpointRouteBuilder"/>.
     /// </param>
     /// <param name="path">
-    /// The path to which the persisted query endpoint shall be mapped.
+    /// The path to which the persisted operation endpoint shall be mapped.
     /// </param>
     /// <param name="schemaName">
     /// The name of the schema that shall be used by this endpoint.

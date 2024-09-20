@@ -75,8 +75,8 @@ internal sealed class ReadPersistedOperationMiddleware
         => (core, next) =>
         {
             var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
-            var persistedQueryStore = core.SchemaServices.GetRequiredService<IOperationDocumentStorage>();
-            var middleware = new ReadPersistedOperationMiddleware(next, diagnosticEvents, persistedQueryStore);
+            var persistedOperationStore = core.SchemaServices.GetRequiredService<IOperationDocumentStorage>();
+            var middleware = new ReadPersistedOperationMiddleware(next, diagnosticEvents, persistedOperationStore);
             return context => middleware.InvokeAsync(context);
         };
 }

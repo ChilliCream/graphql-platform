@@ -100,10 +100,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     protected internal DataLoaderOptions Options
         => new()
         {
-            MaxBatchSize = _maxBatchSize,
-            Cache = Cache,
-            DiagnosticEvents = _diagnosticEvents,
-            CancellationToken = _ct,
+            MaxBatchSize = _maxBatchSize, Cache = Cache, DiagnosticEvents = _diagnosticEvents, CancellationToken = _ct,
         };
 
     /// <inheritdoc />
@@ -180,12 +177,12 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             {
                 Initialize();
             }
-        }
 
-        // we dispatch after everything is enqueued.
-        if (_currentBatch is not null)
-        {
-            _batchScheduler.Schedule(() => DispatchBatchAsync(_currentBatch, _ct));
+            // we dispatch after everything is enqueued.
+            if (_currentBatch is { IsScheduled: false })
+            {
+                ScheduleBatchUnsafe(_currentBatch);
+            }
         }
 
         return WhenAll();
@@ -280,13 +277,13 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             throw new ArgumentNullException(nameof(createBranch));
         }
 
-        if(!AllowBranching)
+        if (!AllowBranching)
         {
             throw new InvalidOperationException(
                 "Branching is not allowed for this DataLoader.");
         }
 
-        if(!_branches.TryGetValue(key, out var branch))
+        if (!_branches.TryGetValue(key, out var branch))
         {
             lock (_sync)
             {
@@ -396,25 +393,41 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         bool allowCachePropagation,
         bool scheduleOnNewBatch = true)
     {
-        if (_currentBatch is not null && (_currentBatch.Size < _maxBatchSize || _maxBatchSize == 0))
+        var current = _currentBatch;
+
+        if (current is not null)
         {
-            return _currentBatch.GetOrCreatePromise<TValue?>(key, allowCachePropagation);
+            // if the batch has space for more keys we just keep adding to it.
+            if (current.Size < _maxBatchSize || _maxBatchSize == 0)
+            {
+                return current.GetOrCreatePromise<TValue?>(key, allowCachePropagation);
+            }
+
+            // if there is a current batch and if that current batch was not scheduled for efficiency reasons
+            // we will schedule it before issuing a new batch.
+            if (!current.IsScheduled)
+            {
+                ScheduleBatchUnsafe(current);
+            }
         }
 
-        var newBatch = BatchPool<TKey>.Shared.Get();
+        var newBatch = _currentBatch = BatchPool<TKey>.Shared.Get();
         var newPromise = newBatch.GetOrCreatePromise<TValue?>(key, allowCachePropagation);
 
-        // set the batch before enqueueing to avoid concurrency issues.
-        _currentBatch = newBatch;
         if (scheduleOnNewBatch)
         {
-            _batchScheduler.Schedule(() => DispatchBatchAsync(newBatch, _ct));
+            ScheduleBatchUnsafe(newBatch);
         }
 
         return newPromise;
     }
 
-    // ReSharper restore InconsistentlySynchronizedField
+    private void ScheduleBatchUnsafe(Batch<TKey> batch)
+    {
+        batch.IsScheduled = true;
+        _batchScheduler.Schedule(() => DispatchBatchAsync(batch, _ct));
+    }
+
     private void SetSingleResult(
         Promise<TValue?> promise,
         TKey key,

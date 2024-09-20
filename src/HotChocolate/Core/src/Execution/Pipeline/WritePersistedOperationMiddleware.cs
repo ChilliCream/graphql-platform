@@ -99,8 +99,8 @@ internal sealed class WritePersistedOperationMiddleware
         => (core, next) =>
         {
             var documentHashProvider = core.Services.GetRequiredService<IDocumentHashProvider>();
-            var persistedQueryStore = core.SchemaServices.GetRequiredService<IOperationDocumentStorage>();
-            var middleware = new WritePersistedOperationMiddleware(next, documentHashProvider, persistedQueryStore);
+            var persistedOperationStore = core.SchemaServices.GetRequiredService<IOperationDocumentStorage>();
+            var middleware = new WritePersistedOperationMiddleware(next, documentHashProvider, persistedOperationStore);
             return context => middleware.InvokeAsync(context);
         };
 }

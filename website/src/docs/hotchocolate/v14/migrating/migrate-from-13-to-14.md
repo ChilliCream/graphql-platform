@@ -91,6 +91,44 @@ The `DateTime` scalar will now enforce a specific format. The time and offset ar
 
 Please ensure that your clients are sending date/time strings in the correct format to avoid errors.
 
+## Persisted Queries renamed to Persisted Operations
+
+### Packages renamed
+
+| Old package name                         | New package name                            |
+|------------------------------------------|---------------------------------------------|
+| HotChocolate.PersistedQueries.FileSystem | HotChocolate.PersistedOperations.FileSystem |
+| HotChocolate.PersistedQueries.InMemory   | HotChocolate.PersistedOperations.InMemory   |
+| HotChocolate.PersistedQueries.Redis      | HotChocolate.PersistedOperations.Redis      |
+
+### Interfaces renamed
+
+| Old interface name             | New interface name                 |
+|--------------------------------|------------------------------------|
+| IPersistedQueryOptionsAccessor | IPersistedOperationOptionsAccessor |
+
+### Methods renamed
+
+| Old method name                     | New method name                        |
+|-------------------------------------|----------------------------------------|
+| UsePersistedQueryPipeline           | UsePersistedOperationPipeline          |
+| UseAutomaticPersistedQueryPipeline  | UseAutomaticPersistedOperationPipeline |
+| AddFileSystemQueryStorage           | AddFileSystemOperationDocumentStorage  |
+| AddInMemoryQueryStorage             | AddInMemoryOperationDocumentStorage    |
+| AddRedisQueryStorage                | AddRedisOperationDocumentStorage       |
+| OnlyAllowPersistedQueries           | OnlyAllowPersistedOperations           |
+| OnlyPersistedQueriesAreAllowedError | OnlyPersistedOperationsAreAllowedError |
+| AllowNonPersistedQuery              | AllowNonPersistedOperation             |
+| UseReadPersistedQuery               | UseReadPersistedOperation              |
+| UseAutomaticPersistedQueryNotFound  | UseAutomaticPersistedOperationNotFound |
+| UseWritePersistedQuery              | UseWritePersistedOperation             |
+
+### Defaults changed
+
+| Parameter      | Old default         | New default            |
+|----------------|---------------------|------------------------|
+| cacheDirectory | "persisted_queries" | "persisted_operations" |
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.

@@ -8,6 +8,7 @@ using System.Text.Json;
 using HotChocolate.Execution.Serialization;
 using HotChocolate.Utilities;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Net.Http.Headers;
 #if !NET6_0_OR_GREATER
 using Microsoft.Net.Http.Headers;
 #endif
@@ -180,10 +181,10 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 response.StatusCode = statusCode;
 
                 if (result.ContextData is not null
-                    && result.ContextData.TryGetValue(CacheControlHeaderValue, out var value)
-                    && value is string cacheControlHeaderValue)
+                    && result.ContextData.TryGetValue(WellKnownContextData.CacheControlHeaderValue, out var value)
+                    && value is CacheControlHeaderValue cacheControlHeaderValue)
                 {
-                    response.Headers.CacheControl = cacheControlHeaderValue;
+                    response.GetTypedHeaders().CacheControl = cacheControlHeaderValue;
                 }
 
                 OnWriteResponseHeaders(operationResult, format, response.Headers);

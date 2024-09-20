@@ -100,6 +100,11 @@ internal partial class MiddlewareContext
             return default!;
         }
 
+        if (value is IOptional optional)
+        {
+            return (T)optional.Value!;
+        }
+
         if (value is T castedValue ||
             _operationContext.Converter.TryConvert(value, out castedValue))
         {

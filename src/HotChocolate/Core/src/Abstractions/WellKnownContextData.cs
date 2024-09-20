@@ -16,15 +16,15 @@ public static class WellKnownContextData
     public const string Subscription = "HotChocolate.Execution.Subscription";
 
     /// <summary>
-    /// The key for setting a flag the a document was saved to the persisted query storage.
+    /// The key for setting a flag the a document was saved to the persisted operation storage.
     /// </summary>
     public const string DocumentSaved = "HotChocolate.Execution.DocumentSaved";
 
     /// <summary>
-    /// The key that specifies that the current context allows standard queries
+    /// The key that specifies that the current context allows standard operations
     /// that are not known to the server.
     /// </summary>
-    public const string NonPersistedQueryAllowed = "HotChocolate.Execution.NonPersistedQueryAllowed";
+    public const string NonPersistedOperationAllowed = "HotChocolate.Execution.NonPersistedOperationAllowed";
 
     /// <summary>
     /// The key for setting a flag that the execution had document validation errors.

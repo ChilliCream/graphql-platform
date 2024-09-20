@@ -18,6 +18,14 @@ public class SingleOrDefaultMiddleware<T>(FieldDelegate next)
         {
             case IAsyncEnumerable<T> ae:
             {
+                // Apply limit.
+                if (ae is IQueryable<T> q)
+                {
+                    q = q.Take(2);
+
+                    ae = (IAsyncEnumerable<T>)q;
+                }
+
                 await using var enumerator = ae.GetAsyncEnumerator(context.RequestAborted);
 
                 if (await enumerator.MoveNextAsync().ConfigureAwait(false))

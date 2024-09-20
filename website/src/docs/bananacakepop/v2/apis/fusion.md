@@ -296,7 +296,7 @@ Now your gateway will send the telemetry data to Banana Cake Pop. To connect you
 
 # Cache
 
-The `BananaCakePop.Services` package provides caching for persisted queries and fusion
+The `BananaCakePop.Services` package provides caching for persisted operations and fusion
 configurations, improving your system's resilience and performance. By first accessing a local cache
 for configurations before querying the server, your infrastructure becomes more robust, minimizing
 dependency on real-time server communications. This approach not only speeds up access to necessary

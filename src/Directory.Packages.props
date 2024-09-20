@@ -14,7 +14,7 @@
     <PackageVersion Include="BananaCakePop.Middleware" Version="$(BananaCakePopVersion)" />
     <PackageVersion Include="Basic.Reference.Assemblies" Version="1.6.0" />
     <PackageVersion Include="ChilliCream.Testing.Utilities" Version="0.2.0" />
-    <PackageVersion Include="coverlet.msbuild" Version="6.0.2" />
+    <PackageVersion Include="coverlet.collector" Version="6.0.2" />
     <PackageVersion Include="DiffPlex" Version="1.7.2" />
     <PackageVersion Include="FsCheck.Xunit" Version="3.0.0-rc3" />
     <PackageVersion Include="FSharp.Core" Version="8.0.100" />
@@ -82,6 +82,7 @@
     <PackageVersion Include="Microsoft.Extensions.Http" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.ObjectPool" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Options" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Net.Http.Headers" Version="8.0.4" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="8.0.0" />
     <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="8.0.0" />
@@ -105,6 +106,7 @@
     <PackageVersion Include="Microsoft.Extensions.Http" Version="7.0.0" />
     <PackageVersion Include="Microsoft.Extensions.ObjectPool" Version="7.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Options" Version="7.0.0" />
+    <PackageVersion Include="Microsoft.Net.Http.Headers" Version="2.2.0" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.0" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="7.0.0" />
     <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="7.0.0" />
@@ -127,6 +129,7 @@
     <PackageVersion Include="Microsoft.Extensions.Http" Version="6.0.0" />
     <PackageVersion Include="Microsoft.Extensions.ObjectPool" Version="6.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Options" Version="6.0.0" />
+    <PackageVersion Include="Microsoft.Net.Http.Headers" Version="2.2.0" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.0" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="6.0.0" />
     <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="6.0.0" />
@@ -143,6 +146,7 @@
     <PackageVersion Include="Microsoft.Extensions.Http" Version="6.0.0" />
     <PackageVersion Include="Microsoft.Extensions.ObjectPool" Version="6.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Options" Version="6.0.0" />
+    <PackageVersion Include="Microsoft.Net.Http.Headers" Version="2.2.0" />
     <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="6.0.0" />
     <PackageVersion Include="System.IO.Pipelines" Version="6.0.0" />
     <PackageVersion Include="System.Net.Http.Json" Version="6.0.0" />
