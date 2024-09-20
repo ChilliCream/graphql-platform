@@ -21,12 +21,12 @@ internal sealed class CostSyntaxRewriter : SyntaxRewriter<CostSyntaxRewriter.Con
         return node;
     }
 
-    protected override InputObjectTypeDefinitionNode RewriteInputObjectTypeDefinition(
-        InputObjectTypeDefinitionNode node,
+    protected override InterfaceTypeDefinitionNode RewriteInterfaceTypeDefinition(
+        InterfaceTypeDefinitionNode node,
         Context context)
     {
         context.Types.Push(context.Schema.GetType<INamedType>(node.Name.Value));
-        node = base.RewriteInputObjectTypeDefinition(node, context)!;
+        node = base.RewriteInterfaceTypeDefinition(node, context)!;
         context.Types.Pop();
 
         return node;
@@ -44,6 +44,18 @@ internal sealed class CostSyntaxRewriter : SyntaxRewriter<CostSyntaxRewriter.Con
 
         return node;
     }
+
+    protected override InputObjectTypeDefinitionNode RewriteInputObjectTypeDefinition(
+        InputObjectTypeDefinitionNode node,
+        Context context)
+    {
+        context.Types.Push(context.Schema.GetType<INamedType>(node.Name.Value));
+        node = base.RewriteInputObjectTypeDefinition(node, context)!;
+        context.Types.Pop();
+
+        return node;
+    }
+
 
     protected override InputValueDefinitionNode RewriteInputValueDefinition(
         InputValueDefinitionNode node,
