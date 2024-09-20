@@ -89,9 +89,9 @@ public static class SchemaDocumentFormatterTests
 
     public class Formatter1 : ISchemaDocumentFormatter
     {
-        public DocumentNode Format(DocumentNode schema)
+        public DocumentNode Format(DocumentNode schemaDocument)
         {
-            var definitions = schema.Definitions.ToList();
+            var definitions = schemaDocument.Definitions.ToList();
 
             definitions.Add(
                 new ScalarTypeDefinitionNode(
@@ -106,9 +106,9 @@ public static class SchemaDocumentFormatterTests
 
     public class Formatter2 : ISchemaDocumentFormatter
     {
-        public DocumentNode Format(DocumentNode schema)
+        public DocumentNode Format(DocumentNode schemaDocument)
         {
-            var definitions = schema.Definitions.ToList();
+            var definitions = schemaDocument.Definitions.ToList();
 
             definitions.Add(
                 new ScalarTypeDefinitionNode(
