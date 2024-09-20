@@ -1,4 +1,3 @@
-using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
@@ -10,21 +9,14 @@ namespace HotChocolate.Resolvers.Expressions.Parameters;
 /// <summary>
 /// This base class allows to specify the argument expression as lambda expression
 /// </summary>
-internal abstract class LambdaParameterExpressionBuilder<TContext, TValue>
+internal abstract class LambdaParameterExpressionBuilder<TValue>(
+    Expression<Func<IResolverContext, TValue>> expression,
+    bool isPure)
     : IParameterExpressionBuilder
-    where TContext : IPureResolverContext
 {
-    private readonly Expression<Func<TContext, TValue>> _expression;
-
-    protected LambdaParameterExpressionBuilder(Expression<Func<TContext, TValue>> expression)
-    {
-        _expression = expression;
-        IsPure = typeof(TContext) == typeof(IPureResolverContext);
-    }
-
     public abstract ArgumentKind Kind { get; }
 
-    public bool IsPure { get; }
+    public bool IsPure { get; } = isPure;
 
     public bool IsDefaultHandler => false;
 
@@ -34,5 +26,5 @@ internal abstract class LambdaParameterExpressionBuilder<TContext, TValue>
         => CreateInvokeExpression(context.ResolverContext);
 
     private InvocationExpression CreateInvokeExpression(Expression context)
-        => Expression.Invoke(_expression, context);
+        => Expression.Invoke(expression, context);
 }

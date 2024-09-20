@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+#pragma warning disable RCS1102 // Make class static
+
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -681,7 +678,6 @@ public class ObjectTypeExtensionTests
         SnapshotExtensions.MatchSnapshot(schema);
     }
 
-
     [Fact]
     public async Task Query_Extension_With_Static_Members_2_Schema()
     {
@@ -743,6 +739,49 @@ public class ObjectTypeExtensionTests
                 .AddGraphQL()
                 .AddQueryType<QueryType>()
                 .AddTypeExtension<QueryExtensions>()
+                .BuildSchemaAsync();
+
+        SnapshotExtensions.MatchSnapshot(schema);
+    }
+
+    [Fact]
+    public async Task AddObjectTypeExtension1_Extends_SchemaType()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .AddObjectTypeExtension<QueryExtensions2>(
+                    d => d.ExtendsType<QueryType>().Field("foo").Type<IntType>())
+                .BuildSchemaAsync();
+
+        SnapshotExtensions.MatchSnapshot(schema);
+    }
+
+    [Fact]
+    public async Task AddObjectTypeExtension2_Extends_SchemaType()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .AddObjectTypeExtension<QueryExtensions2, QueryType>(
+                    d => d.Field("foo").Type<IntType>())
+                .BuildSchemaAsync();
+
+        SnapshotExtensions.MatchSnapshot(schema);
+    }
+
+    [Fact]
+    public async Task AddObjectTypeExtension3_Extends_SchemaType()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .AddObjectTypeExtension<QueryExtensions2>(
+                    "Query",
+                    d => d.Field("foo").Type<IntType>())
                 .BuildSchemaAsync();
 
         SnapshotExtensions.MatchSnapshot(schema);
@@ -919,7 +958,6 @@ public class ObjectTypeExtensionTests
 
     public interface IMarker
     {
-
     }
 
     public class BindResolver_With_Property_PersonDto
@@ -1146,4 +1184,11 @@ public class ObjectTypeExtensionTests
     {
         public string Bar() => "baz";
     }
+
+    public class QueryExtensions2
+    {
+        public int AddedField { get; set; }
+    }
 }
+
+#pragma warning restore RCS1102 // Make class static

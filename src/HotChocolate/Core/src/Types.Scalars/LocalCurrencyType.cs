@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using HotChocolate.Language;
@@ -15,16 +14,6 @@ public class LocalCurrencyType : ScalarType<decimal, StringValueNode>
     /// <summary>
     /// Initializes a new instance of the <see cref="LocalCurrencyType"/> class.
     /// </summary>
-    public LocalCurrencyType()
-        : this(
-            WellKnownScalarTypes.LocalCurrency,
-            description: ScalarResources.LocalCurrencyType_Description)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="LocalCurrencyType"/> class.
-    /// </summary>
     public LocalCurrencyType(
         string name,
         string culture = "en-US",
@@ -36,6 +25,17 @@ public class LocalCurrencyType : ScalarType<decimal, StringValueNode>
     {
         _cultureInfo = CultureInfo.CreateSpecificCulture(culture);
         Description = description;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LocalCurrencyType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public LocalCurrencyType()
+        : this(
+            WellKnownScalarTypes.LocalCurrency,
+            description: ScalarResources.LocalCurrencyType_Description)
+    {
     }
 
     /// <inheritdoc />

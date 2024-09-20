@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using HotChocolate.Language;
@@ -15,13 +14,6 @@ public class DateType : ScalarType<DateTime, StringValueNode>
     /// <summary>
     /// Initializes a new instance of the <see cref="DateTimeType"/> class.
     /// </summary>
-    public DateType() : this(ScalarNames.Date, TypeResources.DateType_Description)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="DateTimeType"/> class.
-    /// </summary>
     public DateType(
         string name,
         string? description = null,
@@ -29,6 +21,14 @@ public class DateType : ScalarType<DateTime, StringValueNode>
         : base(name, bind)
     {
         Description = description;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DateTimeType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public DateType() : this(ScalarNames.Date, TypeResources.DateType_Description)
+    {
     }
 
     protected override DateTime ParseLiteral(StringValueNode valueSyntax)
@@ -131,7 +131,7 @@ public class DateType : ScalarType<DateTime, StringValueNode>
         if (DateTime.TryParse(
            serialized,
            CultureInfo.InvariantCulture,
-           DateTimeStyles.AssumeLocal,
+           DateTimeStyles.None,
            out var dateTime))
         {
             value = dateTime.Date;

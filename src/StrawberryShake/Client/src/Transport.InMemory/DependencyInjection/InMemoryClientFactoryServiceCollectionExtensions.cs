@@ -1,8 +1,4 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Options;
 using StrawberryShake.Transport.InMemory;
 
 namespace Microsoft.Extensions.DependencyInjection;

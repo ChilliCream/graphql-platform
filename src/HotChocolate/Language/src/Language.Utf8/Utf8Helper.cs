@@ -1,4 +1,3 @@
-using System;
 using System.Runtime.CompilerServices;
 using static HotChocolate.Language.Properties.LangUtf8Resources;
 
@@ -139,7 +138,6 @@ internal static class Utf8Helper
             unescapedString[writePosition++] = (byte) (0x80 | (unicodeDecimal & 0x3F));
         }
     }
-
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int HexToDecimal(int a)

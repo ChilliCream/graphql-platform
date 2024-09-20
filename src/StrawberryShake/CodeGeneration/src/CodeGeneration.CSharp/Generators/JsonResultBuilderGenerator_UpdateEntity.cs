@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
@@ -22,8 +20,8 @@ public partial class JsonResultBuilderGenerator
         methodBuilder.AddCode(
             AssignmentBuilder
                 .New()
-                .SetLefthandSide($"{TypeNames.EntityId} {_entityId}")
-                .SetRighthandSide(
+                .SetLeftHandSide($"{TypeNames.EntityId} {_entityId}")
+                .SetRightHandSide(
                     MethodCallBuilder
                         .Inline()
                         .SetMethodName(GetFieldName(_idSerializer), "Parse")

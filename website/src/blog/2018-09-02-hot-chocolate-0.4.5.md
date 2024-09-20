@@ -27,7 +27,7 @@ We now are finished with implementing the query validation rules. The following 
 - Directives Are Defined [124](https://github.com/ChilliCream/graphql-platform/issues/124)
 - Values of Correct Type [120](https://github.com/ChilliCream/graphql-platform/issues/120)
 
-We now also support the `@deprectaed` directive when using schema-first.
+We now also support the `@deprecated` directive when using schema-first.
 
 Furthermore, we fixed a lot of bugs around schema-first. So, at the moment code-first is still the most viable way to create a schema,but we are working hard to get both flavours on par.
 
@@ -81,4 +81,3 @@ With version 0.5 we will focus on subscriptions and custom directives.
 Custom will allow for writing field resolver middlewares that alter or replace the default execution behavior.
 
 Subscriptions is one of our last spec gaps.
-

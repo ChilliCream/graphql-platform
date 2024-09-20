@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
@@ -40,6 +39,8 @@ public class UnionTypeDescriptor
 
     protected override void OnCreateDefinition(UnionTypeDefinition definition)
     {
+        Context.Descriptors.Push(this);
+
         if (!Definition.AttributesAreApplied && Definition.RuntimeType != typeof(object))
         {
             Context.TypeInspector.ApplyAttributes(Context, this, Definition.RuntimeType);
@@ -47,13 +48,8 @@ public class UnionTypeDescriptor
         }
 
         base.OnCreateDefinition(definition);
-    }
 
-    public IUnionTypeDescriptor SyntaxNode(
-        UnionTypeDefinitionNode unionTypeDefinition)
-    {
-        Definition.SyntaxNode = unionTypeDefinition;
-        return this;
+        Context.Descriptors.Pop();
     }
 
     public IUnionTypeDescriptor Name(string value)

@@ -1,7 +1,4 @@
-using System;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using HotChocolate.Types;
@@ -44,6 +41,24 @@ public class CacheControlTypeInterceptorTests
             .UseField(_ => _)
             .AddCacheControl()
             .ModifyCacheControlOptions(o => o.DefaultMaxAge = 100)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task QueryFields_ApplyDefaults_DifferentDefaultScope()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(@"
+                type Query {
+                    field1: String
+                    field2: String @cacheControl(maxAge: 200, scope: PUBLIC)
+                }
+            ")
+            .UseField(_ => _)
+            .AddCacheControl()
+            .ModifyCacheControlOptions(o => o.DefaultScope = CacheControlScope.Private)
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }
@@ -103,6 +118,18 @@ public class CacheControlTypeInterceptorTests
             .AddQueryType<Query>()
             .AddCacheControl()
             .ModifyCacheControlOptions(o => o.DefaultMaxAge = 100)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task DataResolvers_ApplyDefaults_DifferentDefaultScope()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddCacheControl()
+            .ModifyCacheControlOptions(o => o.DefaultScope = CacheControlScope.Private)
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }
@@ -262,7 +289,7 @@ public class CacheControlTypeInterceptorTests
 
             builder.Create();
 
-            Assert.False(true, "Expected error!");
+            Assert.Fail("Expected error!");
         }
         catch (SchemaException ex)
         {

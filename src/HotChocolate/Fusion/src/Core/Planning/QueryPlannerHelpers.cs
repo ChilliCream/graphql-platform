@@ -1,6 +1,5 @@
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
-using static HotChocolate.Fusion.FusionResources;
 
 namespace HotChocolate.Fusion.Planning;
 

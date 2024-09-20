@@ -7,7 +7,7 @@ namespace HotChocolate.Language.Visitors;
 /// <typeparam name="TContext">
 /// The context type.
 /// </typeparam>
-public interface ISyntaxRewriter<in TContext> where TContext : ISyntaxVisitorContext
+public interface ISyntaxRewriter<in TContext>
 {
     /// <summary>
     /// Rewrite the syntax node.

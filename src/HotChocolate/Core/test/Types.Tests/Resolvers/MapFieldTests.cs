@@ -1,10 +1,8 @@
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Resolvers;
 

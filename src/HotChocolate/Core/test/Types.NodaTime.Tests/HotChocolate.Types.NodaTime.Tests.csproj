@@ -3,12 +3,10 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Types.NodaTime.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Types.NodaTime</RootNamespace>
-    <Nullable>enable</Nullable>
-    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+    <PackageReference Include="System.ComponentModel.Annotations" />
   </ItemGroup>
 
   <ItemGroup>

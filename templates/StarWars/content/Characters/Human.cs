@@ -10,11 +10,11 @@ namespace StarWars.Characters
     public class Human : ICharacter
     {
         public Human(
-            int id, 
-            string name, 
-            IReadOnlyList<int> friends, 
-            IReadOnlyList<Episode> appearsIn, 
-            string? homePlanet = null, 
+            int id,
+            string name,
+            IReadOnlyList<int> friends,
+            IReadOnlyList<Episode> appearsIn,
+            string? homePlanet = null,
             double height = 1.72d)
         {
             Id = id;

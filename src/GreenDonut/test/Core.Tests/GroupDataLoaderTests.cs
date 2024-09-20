@@ -1,7 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace GreenDonut;
@@ -17,7 +13,7 @@ public class GroupDataLoaderTests
             new DataLoaderOptions());
 
         // act
-        var result = await dataLoader.LoadAsync("abc");
+        var result = await dataLoader.LoadRequiredAsync("abc");
 
         // assert
         Assert.Collection(result, t => Assert.Equal("Value:abc", t));
@@ -32,8 +28,8 @@ public class GroupDataLoaderTests
             new DataLoaderOptions());
 
         // act
-        var result1 = dataLoader.LoadAsync("1abc");
-        var result2 = dataLoader.LoadAsync("0abc");
+        var result1 = dataLoader.LoadRequiredAsync("1abc");
+        var result2 = dataLoader.LoadRequiredAsync("0abc");
 
         // assert
         Assert.Collection(await result1, t => Assert.Equal("Value:1abc", t));

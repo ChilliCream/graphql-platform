@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -11,7 +9,7 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 /// <summary>
 /// Defines the properties of a GraphQL argument type.
 /// </summary>
-public class ArgumentDefinition : FieldDefinitionBase<InputValueDefinitionNode>
+public class ArgumentDefinition : FieldDefinitionBase
 {
     /// <summary>
     /// Initializes a new instance of <see cref="ArgumentDefinition"/>.
@@ -47,6 +45,8 @@ public class ArgumentDefinition : FieldDefinitionBase<InputValueDefinitionNode>
 
     public IList<IInputValueFormatter> Formatters =>
         _formatters ??= [];
+
+    public virtual Type? GetRuntimeType() => RuntimeType ?? Parameter?.ParameterType;
 
     public IReadOnlyList<IInputValueFormatter> GetFormatters()
     {

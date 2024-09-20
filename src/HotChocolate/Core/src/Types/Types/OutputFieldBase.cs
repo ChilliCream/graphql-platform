@@ -1,6 +1,4 @@
-using System;
 using HotChocolate.Configuration;
-using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Internal.FieldInitHelper;
 
@@ -8,22 +6,18 @@ using static HotChocolate.Internal.FieldInitHelper;
 
 namespace HotChocolate.Types;
 
-public class OutputFieldBase<TDefinition>
-    : FieldBase<TDefinition>
-    , IOutputField
-    where TDefinition : OutputFieldDefinitionBase
+public class OutputFieldBase : FieldBase, IOutputField
 {
     private Type _runtimeType = default!;
 
-    internal OutputFieldBase(TDefinition definition, int index) : base(definition, index)
+    internal OutputFieldBase(OutputFieldDefinitionBase definition, int index)
+        : base(definition, index)
     {
         DeprecationReason = definition.DeprecationReason;
     }
 
     /// <inheritdoc />
     public new IComplexOutputType DeclaringType => (IComplexOutputType)base.DeclaringType;
-
-    public new FieldDefinitionNode? SyntaxNode => (FieldDefinitionNode?)base.SyntaxNode;
 
     /// <inheritdoc />
     public IOutputType Type { get; private set; } = default!;
@@ -41,7 +35,7 @@ public class OutputFieldBase<TDefinition>
     /// </summary>
     public bool IsIntrospectionField
         => (Flags & FieldFlags.Introspection) == FieldFlags.Introspection;
-    
+
     internal bool IsTypeNameField
         => (Flags & FieldFlags.TypeNameField) == FieldFlags.TypeNameField;
 
@@ -52,10 +46,16 @@ public class OutputFieldBase<TDefinition>
     /// <inheritdoc />
     public string? DeprecationReason { get; }
 
-    protected override void OnCompleteField(
+    protected sealed override void OnCompleteField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        TDefinition definition)
+        FieldDefinitionBase definition)
+        => OnCompleteField(context, declaringMember, (OutputFieldDefinitionBase)definition);
+
+    protected virtual void OnCompleteField(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        OutputFieldDefinitionBase definition)
     {
         base.OnCompleteField(context, declaringMember, definition);
 
@@ -66,7 +66,7 @@ public class OutputFieldBase<TDefinition>
 
     protected virtual FieldCollection<Argument> OnCompleteFields(
         ITypeCompletionContext context,
-        TDefinition definition)
+        OutputFieldDefinitionBase definition)
     {
         return CompleteFields(context, this, definition.GetArguments(), CreateArgument);
         static Argument CreateArgument(ArgumentDefinition argDef, int index)

@@ -1,7 +1,8 @@
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
-using HotChocolate.Utilities;
+using HotChocolate.Execution.Options;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using static System.Net.HttpStatusCode;
 using static HotChocolate.AspNetCore.ErrorHelper;
 using static HotChocolate.SchemaPrinter;
@@ -19,8 +20,10 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
             null,
             default),
     ];
+
     private readonly MiddlewareRoutingType _routing;
     private readonly IServerDiagnosticEvents _diagnosticEvents;
+    private readonly PathString _path;
 
     public HttpGetSchemaMiddleware(
         HttpRequestDelegate next,
@@ -28,22 +31,23 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
         IHttpResponseFormatter responseFormatter,
         IServerDiagnosticEvents diagnosticEvents,
         string schemaName,
+        PathString path,
         MiddlewareRoutingType routing)
         : base(next, executorResolver, responseFormatter, schemaName)
     {
-        _diagnosticEvents = diagnosticEvents ??
-            throw new ArgumentNullException(nameof(diagnosticEvents));
+        _diagnosticEvents = diagnosticEvents ?? throw new ArgumentNullException(nameof(diagnosticEvents));
+        _path = path;
         _routing = routing;
     }
 
     public async Task InvokeAsync(HttpContext context)
     {
         var handle = _routing == MiddlewareRoutingType.Integrated
-            ? HttpMethods.IsGet(context.Request.Method) &&
-              context.Request.Query.ContainsKey("SDL") &&
-                GetOptions(context).EnableSchemaRequests
-            : HttpMethods.IsGet(context.Request.Method) &&
-                GetOptions(context).EnableSchemaRequests;
+            ? HttpMethods.IsGet(context.Request.Method)
+                && (context.Request.Query.ContainsKey("SDL") || IsSchemaPath(context.Request))
+                && GetOptions(context).EnableSchemaRequests
+            : HttpMethods.IsGet(context.Request.Method)
+                && GetOptions(context).EnableSchemaRequests;
 
         if (handle)
         {
@@ -65,17 +69,29 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
         }
     }
 
+    private bool IsSchemaPath(HttpRequest request)
+    {
+        if(request.Path.StartsWithSegments(_path, StringComparison.OrdinalIgnoreCase, out var remaining))
+        {
+            return remaining.Equals("/schema", StringComparison.OrdinalIgnoreCase)
+                || remaining.Equals("/schema/", StringComparison.OrdinalIgnoreCase)
+                || remaining.Equals("/schema.graphql", StringComparison.OrdinalIgnoreCase);
+        }
+
+        return false;
+    }
+
     private async Task HandleRequestAsync(HttpContext context)
     {
-        var schema = await GetSchemaAsync(context.RequestAborted);
-        context.Items[WellKnownContextData.Schema] = schema;
+        var executor = await GetExecutorAsync(context.RequestAborted);
+        context.Items[WellKnownContextData.Schema] = executor.Schema;
+        var options = executor.Schema.Services.GetRequiredService<IRequestExecutorOptionsAccessor>();
 
-        var indent =
-            !(context.Request.Query.ContainsKey("indentation") &&
-                string.Equals(
-                    context.Request.Query["indentation"].FirstOrDefault(),
-                    "none",
-                    StringComparison.OrdinalIgnoreCase));
+        if (!options.EnableSchemaFileSupport)
+        {
+            context.Response.StatusCode = 404;
+            return;
+        }
 
         if (context.Request.Query.TryGetValue("types", out var typesValue))
         {
@@ -91,11 +107,11 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
                 return;
             }
 
-            await WriteTypesAsync(context, schema, s, indent);
+            await WriteTypesAsync(context, executor.Schema, s, true);
         }
         else
         {
-            await WriteSchemaAsync(context, schema, indent);
+            await WriteSchemaAsync(context, executor);
         }
     }
 
@@ -109,9 +125,9 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
 
         foreach (var typeName in typeNames.Split(','))
         {
-            if (!SchemaCoordinate.TryParse(typeName, out var coordinate) ||
-                coordinate.Value.MemberName is not null ||
-                coordinate.Value.ArgumentName is not null)
+            if (!SchemaCoordinate.TryParse(typeName, out var coordinate)
+                || coordinate.Value.MemberName is not null
+                || coordinate.Value.ArgumentName is not null)
             {
                 await WriteResultAsync(
                     context,
@@ -139,20 +155,17 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
         await PrintAsync(types, context.Response.Body, indent, context.RequestAborted);
     }
 
-    private async Task WriteSchemaAsync(HttpContext context, ISchema schema, bool indent)
-    {
-        context.Response.ContentType = ContentType.GraphQL;
-        context.Response.Headers.SetContentDisposition(GetSchemaFileName(schema));
-        await PrintAsync(schema, context.Response.Body, indent, context.RequestAborted);
-    }
+    private ValueTask WriteSchemaAsync(
+        HttpContext context,
+        IRequestExecutor executor)
+        => ResponseFormatter.FormatAsync(
+            context.Response,
+            executor.Schema,
+            executor.Version,
+            context.RequestAborted);
 
     private string GetTypesFileName(List<INamedType> types)
         => types.Count == 1
             ? $"{types[0].Name}.graphql"
             : "types.graphql";
-
-    private string GetSchemaFileName(ISchema schema)
-        => schema.Name is null || schema.Name.EqualsOrdinal(Schema.DefaultName)
-            ? "schema.graphql"
-            : schema.Name + ".schema.graphql";
 }

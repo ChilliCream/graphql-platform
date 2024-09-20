@@ -1,5 +1,3 @@
-using Xunit;
-
 namespace HotChocolate.Execution.Processing;
 
 public class ObjectFieldResultTests

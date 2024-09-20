@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 
@@ -46,7 +44,7 @@ internal sealed class RemovedUnusedFragmentRewriter
         return rewriter.RewriteDocument(document, context);
     }
 
-    internal sealed class Context : ISyntaxVisitorContext
+    internal sealed class Context
     {
         public HashSet<string> Used { get; } = [];
     }

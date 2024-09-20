@@ -1,7 +1,3 @@
-using System;
-
-#nullable enable
-
 namespace HotChocolate;
 
 [AttributeUsage(

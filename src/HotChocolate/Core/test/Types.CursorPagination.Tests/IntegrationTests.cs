@@ -1,17 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
 using Snapshooter.Xunit;
-using Xunit;
-
-#nullable enable
 
 namespace HotChocolate.Types.Pagination;
 
@@ -24,6 +16,41 @@ public class IntegrationTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryType>()
+                .Services
+                .BuildServiceProvider()
+                .GetRequestExecutorAsync();
+
+        executor.Schema.Print().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task IncludeNodesField_False()
+    {
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .ModifyPagingOptions(o => o.IncludeNodesField = false)
+                .Services
+                .BuildServiceProvider()
+                .GetRequestExecutorAsync();
+
+        executor.Schema.Print().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task SetPagingOptionsIsStillApplied()
+    {
+        var executor =
+#pragma warning disable CS0618 // Type or member is obsolete
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .SetPagingOptions(new PagingOptions
+                {
+                    IncludeTotalCount = true
+                })
+#pragma warning restore CS0618 // Type or member is obsolete
                 .Services
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
@@ -87,7 +114,7 @@ public class IntegrationTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryType>()
-                .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = true, })
+                .ModifyPagingOptions(o => o.RequirePagingBoundaries = true)
                 .Services
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
@@ -179,6 +206,39 @@ public class IntegrationTests
     }
 
     [Fact]
+    public async Task MinPageSizeReached_First()
+    {
+        Snapshot.FullName();
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .Services
+                .BuildServiceProvider()
+                .GetRequestExecutorAsync();
+
+        await executor
+            .ExecuteAsync(@"
+                {
+                    letters(first: -1) {
+                        edges {
+                            node
+                            cursor
+                        }
+                        nodes
+                        pageInfo {
+                            hasNextPage
+                            hasPreviousPage
+                            startCursor
+                            endCursor
+                        }
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
     public async Task MaxPageSizeReached_First()
     {
         Snapshot.FullName();
@@ -187,7 +247,7 @@ public class IntegrationTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryType>()
-                .SetPagingOptions(new PagingOptions { MaxPageSize = 2, })
+                .ModifyPagingOptions(o => o.MaxPageSize = 2)
                 .Services
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
@@ -213,6 +273,39 @@ public class IntegrationTests
     }
 
     [Fact]
+    public async Task MinPageSizeReached_Last()
+    {
+        Snapshot.FullName();
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .Services
+                .BuildServiceProvider()
+                .GetRequestExecutorAsync();
+
+        await executor
+            .ExecuteAsync(@"
+                {
+                    letters(last: -1) {
+                        edges {
+                            node
+                            cursor
+                        }
+                        nodes
+                        pageInfo {
+                            hasNextPage
+                            hasPreviousPage
+                            startCursor
+                            endCursor
+                        }
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
     public async Task MaxPageSizeReached_Last()
     {
         Snapshot.FullName();
@@ -221,7 +314,7 @@ public class IntegrationTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryType>()
-                .SetPagingOptions(new PagingOptions { MaxPageSize = 2, })
+                .ModifyPagingOptions(o => o.MaxPageSize = 2)
                 .Services
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
@@ -354,7 +447,7 @@ public class IntegrationTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryType>()
-                .SetPagingOptions(new PagingOptions { DefaultPageSize = 2, })
+                .ModifyPagingOptions(o => o.DefaultPageSize = 2)
                 .Services
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
@@ -388,7 +481,7 @@ public class IntegrationTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryAttr>()
-                .SetPagingOptions(new PagingOptions { DefaultPageSize = 2, })
+                .ModifyPagingOptions(o => o.DefaultPageSize = 2)
                 .Services
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
@@ -531,27 +624,29 @@ public class IntegrationTests
                 .GetRequestExecutorAsync();
 
         await executor
-            .ExecuteAsync(@"
+            .ExecuteAsync(
+                """
                 {
-                    fooExecutable {
-                        edges {
-                            node {
-                                bar
-                            }
-                            cursor
-                        }
-                        nodes {
-                            bar
-                        }
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                            startCursor
-                            endCursor
-                        }
-                        totalCount
-                    }
-                }")
+                  fooExecutable {
+                      edges {
+                          node {
+                              bar
+                          }
+                          cursor
+                      }
+                      nodes {
+                          bar
+                      }
+                      pageInfo {
+                          hasNextPage
+                          hasPreviousPage
+                          startCursor
+                          endCursor
+                      }
+                      totalCount
+                  }
+                }
+                """)
             .MatchSnapshotAsync();
     }
 
@@ -670,6 +765,52 @@ public class IntegrationTests
     }
 
     [Fact]
+    public async Task ExtendedTypeRef_Default_Items()
+    {
+        Snapshot.FullName();
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .Services
+                .BuildServiceProvider()
+                .GetRequestExecutorAsync();
+
+        await executor
+            .ExecuteAsync(@"
+                {
+                    extendedTypeRef {
+                        nodes
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task ExtendedTypeRefNested_Default_Items()
+    {
+        Snapshot.FullName();
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .Services
+                .BuildServiceProvider()
+                .GetRequestExecutorAsync();
+
+        await executor
+            .ExecuteAsync(@"
+                {
+                    extendedTypeRefNested {
+                        nodes
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
     public async Task Interface_With_Paging_Field()
     {
         Snapshot.FullName();
@@ -722,7 +863,7 @@ public class IntegrationTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryType>()
-                .SetPagingOptions(new PagingOptions { AllowBackwardPagination = false, })
+                .ModifyPagingOptions(o => o.AllowBackwardPagination = false)
                 .Services
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
@@ -739,7 +880,7 @@ public class IntegrationTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryAttr>()
-                .SetPagingOptions(new PagingOptions { AllowBackwardPagination = false, })
+                .ModifyPagingOptions(o => o.AllowBackwardPagination = false)
                 .AddInterfaceType<ISome>(d => d.Field(t => t.ExplicitType()).UsePaging())
                 .Services
                 .BuildServiceProvider()
@@ -790,7 +931,7 @@ public class IntegrationTests
                 .AddGraphQL()
                 .AddQueryType<ProviderByName>()
                 .AddCursorPagingProvider<DummyProvider>(providerName: "Abc")
-                .SetPagingOptions(new PagingOptions { InferConnectionNameFromField = false, })
+                .ModifyPagingOptions(o => o.InferConnectionNameFromField = false)
                 .Services
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
@@ -799,29 +940,6 @@ public class IntegrationTests
             .ExecuteAsync(@"
                 {
                     abc {
-                        nodes
-                    }
-                }")
-            .MatchSnapshotAsync();
-    }
-
-    [Fact]
-    public async Task FluentPagingTests()
-    {
-        Snapshot.FullName();
-
-        var executor =
-            await new ServiceCollection()
-                .AddGraphQL()
-                .AddQueryType<FluentPaging>()
-                .Services
-                .BuildServiceProvider()
-                .GetRequestExecutorAsync();
-
-        await executor
-            .ExecuteAsync(@"
-                {
-                    items {
                         nodes
                     }
                 }")
@@ -874,53 +992,6 @@ public class IntegrationTests
     }
 
     [Fact]
-    public async Task LegacySupport_Schema()
-    {
-        Snapshot.FullName();
-
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType<QueryType>()
-            .SetPagingOptions(new PagingOptions { LegacySupport = true, })
-            .BuildSchemaAsync()
-            .MatchSnapshotAsync();
-    }
-
-    [Fact]
-    public async Task LegacySupport_Query()
-    {
-        Snapshot.FullName();
-
-        var executor =
-            await new ServiceCollection()
-                .AddGraphQL()
-                .AddQueryType<QueryType>()
-                .SetPagingOptions(new PagingOptions { LegacySupport = true, })
-                .Services
-                .BuildServiceProvider()
-                .GetRequestExecutorAsync();
-
-        await executor
-            .ExecuteAsync(@"
-                query($first: PaginationAmount = 2){
-                    letters(first: $first) {
-                        edges {
-                            node
-                            cursor
-                        }
-                        nodes
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                            startCursor
-                            endCursor
-                        }
-                    }
-                }")
-            .MatchSnapshotAsync();
-    }
-
-    [Fact]
     public async Task TotalCountWithCustomConnection()
     {
         // arrange
@@ -946,6 +1017,60 @@ public class IntegrationTests
         result.ToJson().MatchSnapshot();
     }
 
+    [Fact]
+    public async Task Invalid_After_Index_Cursor()
+    {
+        Snapshot.FullName();
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .Services
+                .BuildServiceProvider()
+                .GetRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              letters(first: 2 after: "INVALID") {
+                  edges {
+                      cursor
+                  }
+              }
+            }
+            """);
+
+        await result.MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Invalid_Before_Index_Cursor()
+    {
+        Snapshot.FullName();
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .Services
+                .BuildServiceProvider()
+                .GetRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              letters(first: 2 before: "INVALID") {
+                  edges {
+                      cursor
+                  }
+              }
+            }
+            """);
+
+        await result.MatchSnapshotAsync();
+    }
+
     public class QueryType : ObjectType<Query>
     {
         protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
@@ -968,6 +1093,16 @@ public class IntegrationTests
                         MaxPageSize = 2,
                         IncludeTotalCount = true,
                     });
+
+            descriptor
+                .Field("extendedTypeRef")
+                .Resolve(_ => new List<string>(["one", "two"]))
+                .UsePaging();
+
+            descriptor
+                .Field("extendedTypeRefNested")
+                .Resolve(_ => new List<List<string>>([["one", "two"]]))
+                .UsePaging();
         }
     }
 
@@ -1017,16 +1152,17 @@ public class IntegrationTests
 
     public class ExecutableQuery
     {
-        public IExecutable<Foo> FoosExecutable() => new MockExecutable<Foo>(
-            new List<Foo>
-            {
-                new() { Bar = "a", },
-                new() { Bar = "b", },
-                new() { Bar = "c", } ,
-                new() { Bar = "d", },
-                new() { Bar = "e", },
-                new() { Bar = "f", },
-            }.AsQueryable());
+        public IExecutable<Foo> FoosExecutable()
+            => Executable.From(
+                new List<Foo>
+                {
+                    new() { Bar = "a", },
+                    new() { Bar = "b", },
+                    new() { Bar = "c", } ,
+                    new() { Bar = "d", },
+                    new() { Bar = "e", },
+                    new() { Bar = "f", },
+                }.AsQueryable());
     }
 
     public class Foo
@@ -1089,7 +1225,6 @@ public class IntegrationTests
             descriptor
                 .Field(t => t.Names())
                 .UsePaging(options: new() { InferConnectionNameFromField = true, });
-
         }
     }
 
@@ -1113,21 +1248,7 @@ public class IntegrationTests
     public class ProviderByName
     {
         [UsePaging(ProviderName = "Abc")]
-        public string[] Abc => Array.Empty<string>();
-    }
-
-    public class FluentPaging
-    {
-        [UsePaging(ProviderName = "Items")]
-        public async Task<Connection<string>> GetItems(
-            int? first,
-            int? last,
-            string? before,
-            string? after,
-            CancellationToken cancellationToken)
-            => await new[] { "a", "b", "c", "d", }
-                .AsQueryable()
-                .ApplyCursorPaginationAsync(first, last, before, after, cancellationToken);
+        public string[] Abc => [];
     }
 
     public class DummyProvider : CursorPagingProvider
@@ -1152,8 +1273,7 @@ public class IntegrationTests
             CursorPagingArguments arguments)
             => new(new Connection(
                 new[] { new Edge<string>("a", "b"), },
-                new ConnectionPageInfo(false, false, null, null),
-                _ => new(1)));
+                new ConnectionPageInfo(false, false, null, null), 1));
     }
 
     public class Dummy2Provider : CursorPagingProvider
@@ -1166,20 +1286,15 @@ public class IntegrationTests
             => new Dummy2Handler(options);
     }
 
-    public class Dummy2Handler : CursorPagingHandler
+    public class Dummy2Handler(PagingOptions options) : CursorPagingHandler(options)
     {
-        public Dummy2Handler(PagingOptions options) : base(options)
-        {
-        }
-
         protected override ValueTask<Connection> SliceAsync(
             IResolverContext context,
             object source,
             CursorPagingArguments arguments)
             => new(new Connection(
                 new[] { new Edge<string>("d", "e"), },
-                new ConnectionPageInfo(false, false, null, null),
-                _ => new(1)));
+                new ConnectionPageInfo(false, false, null, null), 1));
     }
 
     public class BackwardQuery
@@ -1188,8 +1303,7 @@ public class IntegrationTests
         public Connection<string> GetFoos(int? first, string? after)
             => new Connection<string>(
                 new[] { new Edge<string>("abc", "def"), },
-                new ConnectionPageInfo(false, false, null, null),
-                _ => new(1));
+                new ConnectionPageInfo(false, false, null, null), 1);
     }
 
     public class CustomConnectionQuery

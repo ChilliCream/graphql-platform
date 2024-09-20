@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -8,9 +7,6 @@ public interface IEnumValueDescriptor
     : IDescriptor<EnumValueDefinition>
     , IFluent
 {
-    IEnumValueDescriptor SyntaxNode(
-        EnumValueDefinitionNode enumValueDefinition);
-
     /// <summary>
     /// Defines the name of the <see cref="EnumValue"/>.
     /// The name represents the public visible enum value name.

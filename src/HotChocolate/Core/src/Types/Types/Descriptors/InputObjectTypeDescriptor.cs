@@ -1,13 +1,11 @@
 #nullable enable
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
+using static System.Reflection.BindingFlags;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -59,6 +57,8 @@ public class InputObjectTypeDescriptor
     protected override void OnCreateDefinition(
         InputObjectTypeDefinition definition)
     {
+        Context.Descriptors.Push(this);
+
         if (!Definition.AttributesAreApplied && Definition.RuntimeType != typeof(object))
         {
             Context.TypeInspector.ApplyAttributes(
@@ -95,6 +95,8 @@ public class InputObjectTypeDescriptor
         TypeMemHelper.Return(handledMembers);
 
         base.OnCreateDefinition(definition);
+
+        Context.Descriptors.Pop();
     }
 
     protected void InferFieldsFromFieldBindingType(
@@ -110,19 +112,18 @@ public class InputObjectTypeDescriptor
 
             foreach (var member in members)
             {
-                if (member.MemberType is MemberTypes.Property)
+                if (member is PropertyInfo propertyInfo &&
+                    (propertyInfo.CanWrite || HasConstructorParameter(type, propertyInfo)))
                 {
-                    var name = naming.GetMemberName(member, MemberKind.InputObjectField);
+                    var name = naming.GetMemberName(propertyInfo, MemberKind.InputObjectField);
 
-                    if (handledMembers.Add(member) &&
+                    if (handledMembers.Add(propertyInfo) &&
                         !fields.ContainsKey(name))
                     {
-                        var descriptor = InputFieldDescriptor.New(
-                            Context,
-                            (PropertyInfo)member);
+                        var descriptor = InputFieldDescriptor.New(Context, propertyInfo);
 
                         _fields.Add(descriptor);
-                        handledMembers.Add(member);
+                        handledMembers.Add(propertyInfo);
 
                         // the create definition call will trigger the OnCompleteField call
                         // on the field description and trigger the initialization of the
@@ -138,13 +139,6 @@ public class InputObjectTypeDescriptor
         IDictionary<string, InputFieldDefinition> fields,
         ISet<MemberInfo> handledMembers)
     { }
-
-    public IInputObjectTypeDescriptor SyntaxNode(
-        InputObjectTypeDefinitionNode inputObjectTypeDefinition)
-    {
-        Definition.SyntaxNode = inputObjectTypeDefinition;
-        return this;
-    }
 
     public IInputObjectTypeDescriptor Name(string value)
     {
@@ -219,4 +213,21 @@ public class InputObjectTypeDescriptor
         IDescriptorContext context,
         InputObjectTypeDefinition definition)
         => new(context, definition);
+
+    /// <summary>
+    /// Gets a value indicating whether the specified type contains a constructor parameter with the
+    /// same (case-insensitive) name and type as the specified property.
+    /// </summary>
+    /// <param name="type">The type to check for a matching constructor parameter.</param>
+    /// <param name="property">The property to compare with constructor parameters.</param>
+    /// <returns>
+    /// <c>true</c> if a matching constructor parameter exists; otherwise, <c>false</c>.
+    /// </returns>
+    private static bool HasConstructorParameter(Type type, PropertyInfo property)
+    {
+        return type.GetConstructors(NonPublic | Public | Instance).Any(
+            c => c.GetParameters().Any(
+                p => p.Name.EqualsInvariantIgnoreCase(property.Name) &&
+                    p.ParameterType == property.PropertyType));
+    }
 }

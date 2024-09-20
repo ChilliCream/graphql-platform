@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using Xunit;
-
 namespace HotChocolate.Types;
 
 public class Iso8601DurationTests

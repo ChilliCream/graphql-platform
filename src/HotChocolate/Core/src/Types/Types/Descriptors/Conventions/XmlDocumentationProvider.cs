@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -25,6 +22,8 @@ public class XmlDocumentationProvider : IDocumentationProvider
     private const string _cref = "cref";
     private const string _href = "href";
     private const string _code = "code";
+    private const string _paramref = "paramref";
+    private const string _name = "name";
 
     private readonly IXmlDocumentationFileResolver _fileResolver;
     private readonly ObjectPool<StringBuilder> _stringBuilderPool;
@@ -162,6 +161,17 @@ public class XmlDocumentationProvider : IDocumentationProvider
             {
                 description.Append(node);
                 continue;
+            }
+
+            if (currentElement.Name == _paramref)
+            {
+                var nameAttribute = currentElement.Attribute(_name);
+
+                if (nameAttribute != null)
+                {
+                    description.Append(nameAttribute.Value);
+                    continue;
+                }
             }
 
             if (currentElement.Name != _see)

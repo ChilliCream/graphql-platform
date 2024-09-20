@@ -1,6 +1,3 @@
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace StrawberryShake.Transport.WebSockets;
 
 internal class DefaultSocketConnectionInterceptor : ISocketConnectionInterceptor
@@ -10,6 +7,14 @@ internal class DefaultSocketConnectionInterceptor : ISocketConnectionInterceptor
         CancellationToken cancellationToken)
     {
         return default;
+    }
+
+    public virtual void OnConnectionOpened(ISocketClient client)
+    {
+    }
+
+    public virtual void OnConnectionClosed(ISocketClient client)
+    {
     }
 
     public static readonly DefaultSocketConnectionInterceptor Instance = new();

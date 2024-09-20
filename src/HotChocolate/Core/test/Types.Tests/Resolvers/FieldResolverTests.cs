@@ -1,7 +1,3 @@
-﻿using System;
-using System.Threading.Tasks;
-using Xunit;
-
 namespace HotChocolate.Resolvers;
 
 public class FieldResolverTests

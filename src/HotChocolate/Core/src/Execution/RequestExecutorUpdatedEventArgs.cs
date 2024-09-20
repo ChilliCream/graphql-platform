@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Execution;
 
 public sealed class RequestExecutorUpdatedEventArgs : EventArgs

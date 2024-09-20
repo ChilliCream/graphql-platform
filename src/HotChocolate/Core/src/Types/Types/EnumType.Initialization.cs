@@ -1,7 +1,8 @@
-using System;
-using System.Collections.Generic;
+#if NET8_0_OR_GREATER
+using System.Collections.Frozen;
+#endif
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Properties;
@@ -14,10 +15,16 @@ namespace HotChocolate.Types;
 
 public partial class EnumType
 {
-    private Dictionary<string, IEnumValue> _enumValues = default!;
+#if NET8_0_OR_GREATER
+    private FrozenDictionary<string, IEnumValue> _nameLookup = default!;
+    private FrozenDictionary<object, IEnumValue> _valueLookup = default!;
+#else
+    private Dictionary<string, IEnumValue> _nameLookup = default!;
     private Dictionary<object, IEnumValue> _valueLookup = default!;
-    private Action<IEnumTypeDescriptor>? _configure;
+#endif
+    private ImmutableArray<IEnumValue> _values;
     private INamingConventions _naming = default!;
+    private Action<IEnumTypeDescriptor>? _configure;
 
     /// <summary>
     /// Initializes a new instance of <see cref="EnumType"/>.
@@ -97,11 +104,15 @@ public partial class EnumType
     {
         base.OnCompleteType(context, definition);
 
-        _enumValues = new Dictionary<string, IEnumValue>(definition.NameComparer);
+        var builder = ImmutableArray.CreateBuilder<IEnumValue>(definition.Values.Count);
+#if NET8_0_OR_GREATER
+        var nameLookupBuilder = new Dictionary<string, IEnumValue>(definition.NameComparer);
+        var valueLookupBuilder = new Dictionary<object, IEnumValue>(definition.ValueComparer);
+#else
+        _nameLookup = new Dictionary<string, IEnumValue>(definition.NameComparer);
         _valueLookup = new Dictionary<object, IEnumValue>(definition.ValueComparer);
-
+#endif
         _naming = context.DescriptorContext.Naming;
-        SyntaxNode = definition.SyntaxNode;
 
         foreach (var enumValueDefinition in definition.Values)
         {
@@ -112,21 +123,32 @@ public partial class EnumType
 
             if (TryCreateEnumValue(context, enumValueDefinition, out var enumValue))
             {
-                _enumValues[enumValue.Name] = enumValue;
+#if NET8_0_OR_GREATER
+                nameLookupBuilder[enumValue.Name] = enumValue;
+                valueLookupBuilder[enumValue.Value] = enumValue;
+#else
+                _nameLookup[enumValue.Name] = enumValue;
                 _valueLookup[enumValue.Value] = enumValue;
+#endif
+                builder.Add(enumValue);
             }
         }
 
-        if (!Values.Any())
+        if (builder.Count == 0)
         {
             context.ReportError(
                 SchemaErrorBuilder.New()
                     .SetMessage(TypeResources.EnumType_NoValues, Name)
                     .SetCode(ErrorCodes.Schema.NoEnumValues)
                     .SetTypeSystemObject(this)
-                    .AddSyntaxNode(SyntaxNode)
                     .Build());
         }
+
+        _values = builder.ToImmutable();
+#if NET8_0_OR_GREATER
+        _nameLookup = nameLookupBuilder.ToFrozenDictionary(definition.NameComparer);
+        _valueLookup = valueLookupBuilder.ToFrozenDictionary(definition.ValueComparer);
+#endif
     }
 
     protected virtual bool TryCreateEnumValue(

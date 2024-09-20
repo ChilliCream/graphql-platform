@@ -27,11 +27,17 @@ public static class ApolloFederationRequestExecutorBuilderExtensions
     /// </exception>
     public static IRequestExecutorBuilder AddApolloFederation(
         this IRequestExecutorBuilder builder,
-        FederationVersion version = FederationVersion.Latest)
+        FederationVersion version = FederationVersion.Default)
     {
         ArgumentNullException.ThrowIfNull(builder);
         builder.SetContextData(FederationContextData.FederationVersion, version);
         builder.TryAddTypeInterceptor<FederationTypeInterceptor>();
+        builder.BindRuntimeType<Policy, StringType>();
+        builder.AddTypeConverter<Policy, string>(from => from.Value);
+        builder.AddTypeConverter<string, Policy>(from => new Policy(from));
+        builder.BindRuntimeType<Scope, StringType>();
+        builder.AddTypeConverter<Scope, string>(from => from.Value);
+        builder.AddTypeConverter<string, Scope>(from => new Scope(from));
         return builder;
     }
 }

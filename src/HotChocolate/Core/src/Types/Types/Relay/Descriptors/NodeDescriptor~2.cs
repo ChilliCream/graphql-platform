@@ -1,7 +1,5 @@
-using System;
 using System.Linq.Expressions;
 using System.Reflection;
-using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
@@ -70,7 +68,6 @@ public class NodeDescriptor<TNode, TId> : INodeDescriptor<TNode, TId>
             }
 
             return null;
-
         });
     }
 

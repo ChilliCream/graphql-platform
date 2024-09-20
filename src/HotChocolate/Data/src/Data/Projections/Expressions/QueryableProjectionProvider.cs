@@ -1,9 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Data.Projections.Expressions;
@@ -49,25 +45,8 @@ public class QueryableProjectionProvider : ProjectionProvider
     }
 
     /// <inheritdoc />
-    public override FieldMiddleware CreateExecutor<TEntityType>()
-    {
-        var applyProjection = CreateApplicator<TEntityType>();
-
-        return next => context => ExecuteAsync(next, context);
-
-        async ValueTask ExecuteAsync(
-            FieldDelegate next,
-            IMiddlewareContext context)
-        {
-            context.LocalContextData =
-                context.LocalContextData.SetItem(ContextApplyProjectionKey, applyProjection);
-
-            // first we let the pipeline run and produce a result.
-            await next(context).ConfigureAwait(false);
-
-            context.Result = applyProjection(context, context.Result);
-        }
-    }
+    public override IQueryBuilder CreateBuilder<TEntityType>()
+        => new QueryableQueryBuilder(CreateApplicator<TEntityType>());
 
     /// <summary>
     /// Checks if the input has to be computed in memory. Null checks are only applied when the
@@ -100,7 +79,7 @@ public class QueryableProjectionProvider : ProjectionProvider
         {
             IQueryable<TEntityType> q => q.Select(projection),
             IEnumerable<TEntityType> q => q.AsQueryable().Select(projection),
-            QueryableExecutable<TEntityType> q => q.WithSource(q.Source.Select(projection)),
+            IQueryableExecutable<TEntityType> q => q.WithSource(q.Source.Select(projection)),
             _ => input,
         };
 
@@ -113,13 +92,10 @@ public class QueryableProjectionProvider : ProjectionProvider
             }
 
             // if projections are already applied we can skip
-            var skipProjection =
-                context.LocalContextData.TryGetValue(SkipProjectionKey, out var skip) &&
-                skip is true;
+            var skipProjection = context.GetLocalStateOrDefault<bool>(SkipProjectionKey);
 
             // ensure sorting is only applied once
-            context.LocalContextData =
-                context.LocalContextData.SetItem(SkipProjectionKey, true);
+            context.SetLocalState(SkipProjectionKey, true);
 
             if (skipProjection)
             {
@@ -142,4 +118,13 @@ public class QueryableProjectionProvider : ProjectionProvider
 
             return ApplyToResult(input, projection);
         };
+
+    private sealed class QueryableQueryBuilder(ApplyProjection applicator) : IQueryBuilder
+    {
+        public void Prepare(IMiddlewareContext context)
+            => context.SetLocalState(ContextApplyProjectionKey, applicator);
+
+        public void Apply(IMiddlewareContext context)
+            => context.Result = applicator(context, context.Result);
+    }
 }

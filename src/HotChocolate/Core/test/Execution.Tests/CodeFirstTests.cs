@@ -1,4 +1,6 @@
 using System.Collections;
+using System.Runtime.CompilerServices;
+using CookieCrumble;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Resolvers;
@@ -24,7 +26,7 @@ public class CodeFirstTests
         var result = await schema.MakeExecutable().ExecuteAsync("{ test }");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -43,7 +45,7 @@ public class CodeFirstTests
         var result = await executor.ExecuteAsync("{ a: test }");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
     }
 
     [Fact]
@@ -62,7 +64,7 @@ public class CodeFirstTests
 
         // assert
         Assert.Collection(
-            Assert.IsType<QueryResult>(result).Errors!,
+            Assert.IsType<OperationResult>(result).Errors!,
             e => Assert.Equal("Document contains more than 5 tokens. Parsing aborted.", e.Message));
     }
 
@@ -81,7 +83,7 @@ public class CodeFirstTests
         var result = await executor.ExecuteAsync("{ a: test }");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
     }
 
     [Fact]
@@ -100,7 +102,7 @@ public class CodeFirstTests
 
         // assert
         Assert.Collection(
-            Assert.IsType<QueryResult>(result).Errors!,
+            Assert.IsType<OperationResult>(result).Errors!,
             e => Assert.Equal("Document contains more than 6 nodes. Parsing aborted.", e.Message));
     }
 
@@ -117,7 +119,7 @@ public class CodeFirstTests
             await schema.MakeExecutable().ExecuteAsync("{ test }");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -134,7 +136,7 @@ public class CodeFirstTests
             await schema.MakeExecutable().ExecuteAsync("{ query }");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -158,7 +160,7 @@ public class CodeFirstTests
                         ");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -248,7 +250,7 @@ public class CodeFirstTests
                 "{ drink { ... on Tea { kind } } }");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -282,7 +284,7 @@ public class CodeFirstTests
                 "{ dog { name } }");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -298,7 +300,7 @@ public class CodeFirstTests
                 "{ dog { desc } }");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -314,7 +316,7 @@ public class CodeFirstTests
                 "{ dog { name2 } }");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -330,7 +332,7 @@ public class CodeFirstTests
                 "{ dog { names } }");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
         await result.MatchSnapshotAsync();
     }
 
@@ -360,15 +362,34 @@ public class CodeFirstTests
     public async Task EnsureThatArgumentDefaultIsUsedWhenVariableValueIsOmitted()
     {
         var request =
-            QueryRequestBuilder.New()
-                .SetQuery("query($v: String) { foo(value: $v) }")
-                .Create();
+            OperationRequestBuilder.New()
+                .SetDocument("query($v: String) { foo(value: $v) }")
+                .Build();
 
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryWithDefaultValue>()
             .ExecuteRequestAsync(request)
             .MatchSnapshotAsync();
+    }
+
+    // https://github.com/ChilliCream/graphql-platform/issues/7475
+    [Fact]
+    public async Task NestedListsDoNotSupportNullValuedSubListsOnInput()
+    {
+        var executor = await new ServiceCollection()
+            .AddGraphQLServer()
+            .AddQueryType<QueryLists>()
+            .BuildRequestExecutorAsync();
+
+        var query =
+            """
+            query {
+              input(arg: [[1], null])
+            }
+            """;
+
+        await executor.ExecuteAsync(query).MatchSnapshotAsync();
     }
 
     private static ISchema CreateSchema()
@@ -381,6 +402,13 @@ public class CodeFirstTests
             .AddType<TeaType>()
             .AddType<DogType>()
             .Create();
+
+    public class QueryLists
+    {
+        public List<List<int>?> Input(List<List<int>?> arg) => arg;
+
+        public List<List<int>?> Output => [[1], null];
+    }
 
     public class Query
     {
@@ -553,36 +581,55 @@ public class CodeFirstTests
         }
     }
 
-    public class MockExecutable<T> : IExecutable<T>
+    public class MockExecutable<T>(IQueryable<T> source) : IExecutable<T>
     {
-        private readonly IQueryable<T> _source;
+        public object Source => source;
 
-        public MockExecutable(IQueryable<T> source)
+        ValueTask<IList> IExecutable.ToListAsync(CancellationToken cancellationToken)
+            => new(source.ToList());
+
+        public ValueTask<List<T>> ToListAsync(CancellationToken cancellationToken)
+            => new(source.ToList());
+
+        public async IAsyncEnumerable<T> ToAsyncEnumerable(
+            [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            _source = source;
+            var queryable = await new ValueTask<IQueryable<T>>(source);
+
+            foreach (var item in queryable)
+            {
+                yield return item;
+            }
         }
 
-        public object Source => _source;
-
-        public ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
+        async IAsyncEnumerable<object?> IExecutable.ToAsyncEnumerable(
+            [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            return new ValueTask<IList>(_source.ToList());
+            var queryable = await new ValueTask<IQueryable<T>>(source);
+
+            foreach (var item in queryable)
+            {
+                yield return item;
+            }
         }
 
-        public ValueTask<object?> FirstOrDefaultAsync(CancellationToken cancellationToken)
-        {
-            return new ValueTask<object?>(_source.FirstOrDefault());
-        }
+        ValueTask<object?> IExecutable.SingleOrDefaultAsync(CancellationToken cancellationToken)
+            => new(source.SingleOrDefault());
 
-        public ValueTask<object?> SingleOrDefaultAsync(CancellationToken cancellationToken)
-        {
-            return new ValueTask<object?>(_source.SingleOrDefault());
-        }
+        public ValueTask<int> CountAsync(CancellationToken cancellationToken = default)
+            => new(source.Count());
+
+        public ValueTask<T?> SingleOrDefaultAsync(CancellationToken cancellationToken)
+            => new(source.SingleOrDefault());
+
+        ValueTask<object?> IExecutable.FirstOrDefaultAsync(CancellationToken cancellationToken)
+            => new(source.FirstOrDefault());
+
+        public ValueTask<T?> FirstOrDefaultAsync(CancellationToken cancellationToken)
+            => new(source.FirstOrDefault());
 
         public string Print()
-        {
-            return _source.ToString()!;
-        }
+            => source.ToString()!;
     }
 
     public class QueryPrivateConstructor

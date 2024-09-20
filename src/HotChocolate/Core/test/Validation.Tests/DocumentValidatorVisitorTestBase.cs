@@ -1,11 +1,8 @@
-using System;
-using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
 using HotChocolate.Validation.Options;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Validation;
 
@@ -57,7 +54,7 @@ public abstract class DocumentValidatorVisitorTestBase
         IDocumentValidatorContext context = ValidationUtils.CreateContext();
 
         // act
-        var a = () => Rule.Validate(context, null);
+        var a = () => Rule.Validate(context, null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(a);
@@ -65,7 +62,7 @@ public abstract class DocumentValidatorVisitorTestBase
 
     protected void ExpectValid(string sourceText) => ExpectValid(null, sourceText);
 
-    protected void ExpectValid(ISchema schema, string sourceText)
+    protected void ExpectValid(ISchema? schema, string sourceText)
     {
         // arrange
         IDocumentValidatorContext context = ValidationUtils.CreateContext(schema);
@@ -84,7 +81,7 @@ public abstract class DocumentValidatorVisitorTestBase
         => ExpectErrors(null, sourceText, elementInspectors);
 
     protected void ExpectErrors(
-        ISchema schema,
+        ISchema? schema,
         string sourceText,
         params Action<IError>[] elementInspectors)
     {

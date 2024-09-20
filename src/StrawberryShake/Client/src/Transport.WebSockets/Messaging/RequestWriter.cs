@@ -1,4 +1,3 @@
-using System;
 using System.Buffers;
 
 namespace StrawberryShake.Transport.WebSockets;
@@ -56,9 +55,9 @@ public class RequestWriter
     {
         if (_capacity < neededCapacity)
         {
-            byte[] buffer = _buffer;
+            var buffer = _buffer;
 
-            int newSize = buffer.Length * 2;
+            var newSize = buffer.Length * 2;
             if (neededCapacity > buffer.Length)
             {
                 newSize += neededCapacity;
@@ -98,7 +97,7 @@ public class RequestWriter
         if (!_disposed && disposing)
         {
             ArrayPool<byte>.Shared.Return(_buffer);
-            _buffer = Array.Empty<byte>();
+            _buffer = [];
             _disposed = true;
         }
     }

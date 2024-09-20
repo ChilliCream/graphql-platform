@@ -12,51 +12,6 @@
     "Extensions": {
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Defer-And-Stream-Directives-Are-Used-On-Valid-Root-Field"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "Field",
-      "Alias": null,
-      "Arguments": [],
-      "Required": null,
-      "SelectionSet": null,
-      "Location": {
-        "Start": 31,
-        "End": 62,
-        "Line": 2,
-        "Column": 17
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 31,
-          "End": 42,
-          "Line": 2,
-          "Column": 17
-        },
-        "Value": "listEvent"
-      },
-      "Directives": [
-        {
-          "Kind": "Directive",
-          "Location": {
-            "Start": 41,
-            "End": 62,
-            "Line": 2,
-            "Column": 27
-          },
-          "Name": {
-            "Kind": "Name",
-            "Location": {
-              "Start": 42,
-              "End": 62,
-              "Line": 2,
-              "Column": 28
-            },
-            "Value": "stream"
-          },
-          "Arguments": []
-        }
-      ]
-    }
+    "Exception": null
   }
 ]

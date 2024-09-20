@@ -1,5 +1,4 @@
 using HotChocolate.Data.Raven;
-using HotChocolate.Data.Sorting.Expressions;
 using Raven.Client.Documents;
 using Raven.Client.Documents.Linq;
 using Raven.Client.Documents.Session;

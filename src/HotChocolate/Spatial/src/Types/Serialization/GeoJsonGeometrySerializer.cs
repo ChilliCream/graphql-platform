@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Language;
 using NetTopologySuite.Geometries;
 using static HotChocolate.Types.Spatial.Serialization.GeoJsonSerializers;
@@ -83,7 +81,6 @@ internal sealed class GeoJsonGeometrySerializer : IGeoJsonSerializer
         {
             throw Serializer_Parse_ValueKindInvalid(type, valueSyntax.Kind);
         }
-
 
         return GetGeometrySerializer(type, (ObjectValueNode)valueSyntax)
             .ParseLiteral(type, valueSyntax);

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -9,7 +6,7 @@ using static HotChocolate.Data.Filters.Expressions.QueryableFilterProvider;
 namespace HotChocolate.Data.Filters;
 
 /// <summary>
-/// Encapuslates all filter specific information
+/// Encapsulates all filter specific information
 /// </summary>
 public class FilterContext : IFilterContext
 {
@@ -41,6 +38,9 @@ public class FilterContext : IFilterContext
             _context.LocalContextData = _context.LocalContextData.Remove(SkipFilteringKey);
         }
     }
+
+    /// <inheritdoc />
+    public bool IsDefined => _value.ValueNode.Kind is not SyntaxKind.NullValue;
 
     /// <inheritdoc />
     public IReadOnlyList<IFilterFieldInfo> GetFields() => _value.GetFields();

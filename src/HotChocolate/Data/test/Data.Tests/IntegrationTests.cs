@@ -4,9 +4,6 @@
 // ReSharper disable MemberCanBePrivate.Global
 // ReSharper disable MoveLocalFunctionAfterJumpStatement
 
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -31,7 +28,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 x => x
                     .Name("Query")
                     .Field("executable")
-                    .Resolve(_authors.AsExecutable())
+                    .Resolve(_authors)
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
@@ -65,7 +62,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     .Name("Query")
                     .Field("executable")
                     .Type<ObjectType<Author>>()
-                    .Resolve(_authors.Take(1).AsExecutable())
+                    .Resolve(_authors.Take(1))
                     .UseSingleOrDefault()
                     .UseProjection()
                     .UseFiltering()
@@ -100,7 +97,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     .Name("Query")
                     .Field("executable")
                     .Type<ObjectType<Author>>()
-                    .Resolve(_authors.AsExecutable())
+                    .Resolve(_authors)
                     .UseSingleOrDefault()
                     .UseProjection()
                     .UseFiltering()
@@ -135,7 +132,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     .Name("Query")
                     .Field("executable")
                     .Type<ObjectType<Author>>()
-                    .Resolve(_authors.Take(0).AsExecutable())
+                    .Resolve(_authors.Take(0))
                     .UseSingleOrDefault()
                     .UseProjection()
                     .UseFiltering()
@@ -170,7 +167,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     .Name("Query")
                     .Field("executable")
                     .Type<ObjectType<Author>>()
-                    .Resolve(_authors.AsExecutable())
+                    .Resolve(_authors)
                     .UseFirstOrDefault()
                     .UseProjection()
                     .UseFiltering()
@@ -205,7 +202,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     .Name("Query")
                     .Field("executable")
                     .Type<ObjectType<Author>>()
-                    .Resolve(_authors.Take(0).AsExecutable())
+                    .Resolve(_authors.Take(0))
                     .UseFirstOrDefault()
                     .UseProjection()
                     .UseFiltering()

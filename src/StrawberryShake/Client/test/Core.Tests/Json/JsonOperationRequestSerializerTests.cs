@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Text;
 using System.Text.Json;
 using CookieCrumble;
@@ -69,6 +66,30 @@ public class JsonOperationRequestSerializerTests
     }
 
     [Fact]
+    public void Serialize_Request_With_Id_And_Empty_Query()
+    {
+        // arrange
+        var json = JsonDocument.Parse(@"{ ""abc"": { ""def"": ""def"" } }");
+
+        // act
+        using var stream = new MemoryStream();
+        using var jsonWriter = new Utf8JsonWriter(stream, new() { Indented = true, });
+        var serializer = new JsonOperationRequestSerializer();
+        serializer.Serialize(
+            new OperationRequest(
+                "123",
+                "abc",
+                new EmptyDocument(),
+                new Dictionary<string, object?> { { "abc", json.RootElement }, },
+                strategy: RequestStrategy.PersistedOperation),
+            jsonWriter);
+        jsonWriter.Flush();
+
+        // assert
+        Encoding.UTF8.GetString(stream.ToArray()).MatchSnapshot();
+    }
+
+    [Fact]
     public void Serialize_Request_With_Extensions()
     {
         // arrange
@@ -120,6 +141,15 @@ public class JsonOperationRequestSerializerTests
         public OperationKind Kind => OperationKind.Query;
 
         public ReadOnlySpan<byte> Body => Encoding.UTF8.GetBytes("{ __typename }");
+
+        public DocumentHash Hash { get; } = new("MD5", "ABCDEF");
+    }
+
+    private sealed class EmptyDocument : IDocument
+    {
+        public OperationKind Kind => OperationKind.Query;
+
+        public ReadOnlySpan<byte> Body => [];
 
         public DocumentHash Hash { get; } = new("MD5", "ABCDEF");
     }

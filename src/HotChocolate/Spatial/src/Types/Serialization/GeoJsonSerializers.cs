@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using NetTopologySuite.Geometries;
 
 namespace HotChocolate.Types.Spatial.Serialization;

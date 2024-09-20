@@ -1,9 +1,14 @@
-using System;
-using System.Linq;
+#nullable enable
+
+using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Internal;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
+using HotChocolate.Utilities;
+using static HotChocolate.Properties.TypeResources;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -11,7 +16,7 @@ public class InterfaceFieldDescriptor
     : OutputFieldDescriptorBase<InterfaceFieldDefinition>
     , IInterfaceFieldDescriptor
 {
-    private ParameterInfo[] _parameterInfos = Array.Empty<ParameterInfo>();
+    private ParameterInfo[] _parameterInfos = [];
     private bool _argumentsInitialized;
 
     protected internal InterfaceFieldDescriptor(
@@ -50,7 +55,7 @@ public class InterfaceFieldDescriptor
         if (member is MethodInfo m)
         {
             _parameterInfos = m.GetParameters();
-            Parameters = _parameterInfos.ToDictionary(t => t.Name, StringComparer.Ordinal);
+            Parameters = _parameterInfos.ToDictionary(t => t.Name!, StringComparer.Ordinal);
         }
     }
 
@@ -58,7 +63,9 @@ public class InterfaceFieldDescriptor
 
     protected override void OnCreateDefinition(InterfaceFieldDefinition definition)
     {
-        if (!Definition.AttributesAreApplied && Definition.Member is not null)
+        Context.Descriptors.Push(this);
+
+        if (Definition is { AttributesAreApplied: false, Member: not null, })
         {
             Context.TypeInspector.ApplyAttributes(Context, this, Definition.Member);
             Definition.AttributesAreApplied = true;
@@ -67,6 +74,8 @@ public class InterfaceFieldDescriptor
         base.OnCreateDefinition(definition);
 
         CompleteArguments(definition);
+
+        Context.Descriptors.Pop();
     }
 
     private void CompleteArguments(InterfaceFieldDefinition definition)
@@ -83,25 +92,19 @@ public class InterfaceFieldDescriptor
         }
     }
 
-    public new IInterfaceFieldDescriptor SyntaxNode(FieldDefinitionNode fieldDefinition)
-    {
-        base.SyntaxNode(fieldDefinition);
-        return this;
-    }
-
     public new IInterfaceFieldDescriptor Name(string name)
     {
         base.Name(name);
         return this;
     }
 
-    public new IInterfaceFieldDescriptor Description(string description)
+    public new IInterfaceFieldDescriptor Description(string? description)
     {
         base.Description(description);
         return this;
     }
 
-    public new IInterfaceFieldDescriptor Deprecated(string reason)
+    public new IInterfaceFieldDescriptor Deprecated(string? reason)
     {
         base.Deprecated(reason);
         return this;
@@ -139,17 +142,139 @@ public class InterfaceFieldDescriptor
         return this;
     }
 
-    public new IInterfaceFieldDescriptor Argument(
-        string name,
-        Action<IArgumentDescriptor> argument)
+    public IInterfaceFieldDescriptor StreamResult(bool hasStreamResult = true)
     {
-        base.Argument(name, argument);
+        Definition.HasStreamResult = hasStreamResult;
+        return this;
+    }
+
+    public new IInterfaceFieldDescriptor Argument(
+        string argumentName,
+        Action<IArgumentDescriptor> argumentDescriptor)
+    {
+        base.Argument(argumentName, argumentDescriptor);
         return this;
     }
 
     public new IInterfaceFieldDescriptor Ignore(bool ignore = true)
     {
         base.Ignore(ignore);
+        return this;
+    }
+
+    public IInterfaceFieldDescriptor Resolve(FieldResolverDelegate fieldResolver)
+    {
+        if (fieldResolver is null)
+        {
+            throw new ArgumentNullException(nameof(fieldResolver));
+        }
+
+        Definition.Resolver = fieldResolver;
+        return this;
+    }
+
+    public IInterfaceFieldDescriptor Resolve(
+        FieldResolverDelegate fieldResolver,
+        Type? resultType)
+    {
+        if (fieldResolver is null)
+        {
+            throw new ArgumentNullException(nameof(fieldResolver));
+        }
+
+        Definition.Resolver = fieldResolver;
+
+        if (resultType is not null)
+        {
+            Definition.SetMoreSpecificType(
+                Context.TypeInspector.GetType(resultType),
+                TypeContext.Output);
+
+            if (resultType.IsGenericType)
+            {
+                var resultTypeDef = resultType.GetGenericTypeDefinition();
+
+                var clrResultType = resultTypeDef == typeof(NativeType<>)
+                    ? resultType.GetGenericArguments()[0]
+                    : resultType;
+
+                if (!clrResultType.IsSchemaType())
+                {
+                    Definition.ResultType = clrResultType;
+                }
+            }
+        }
+
+        return this;
+    }
+
+    public IInterfaceFieldDescriptor ResolveWith<TResolver>(
+        Expression<Func<TResolver, object>> propertyOrMethod)
+    {
+        if (propertyOrMethod is null)
+        {
+            throw new ArgumentNullException(nameof(propertyOrMethod));
+        }
+
+        return ResolveWithInternal(propertyOrMethod.ExtractMember(), typeof(TResolver));
+    }
+
+    public IInterfaceFieldDescriptor ResolveWith(MemberInfo propertyOrMethod)
+    {
+        if (propertyOrMethod is null)
+        {
+            throw new ArgumentNullException(nameof(propertyOrMethod));
+        }
+
+        return ResolveWithInternal(propertyOrMethod, propertyOrMethod.DeclaringType);
+    }
+
+    private IInterfaceFieldDescriptor ResolveWithInternal(
+        MemberInfo propertyOrMethod,
+        Type? resolverType)
+    {
+        if (resolverType?.IsAbstract is true)
+        {
+            throw new ArgumentException(
+                string.Format(
+                    ObjectTypeDescriptor_ResolveWith_NonAbstract,
+                    resolverType.FullName),
+                nameof(resolverType));
+        }
+
+        if (propertyOrMethod is PropertyInfo or MethodInfo)
+        {
+            Definition.SetMoreSpecificType(
+                Context.TypeInspector.GetReturnType(propertyOrMethod),
+                TypeContext.Output);
+
+            Definition.ResolverType = resolverType;
+            Definition.ResolverMember = propertyOrMethod;
+            Definition.Resolver = null;
+            Definition.ResultType = propertyOrMethod.GetReturnType();
+
+            if (propertyOrMethod is MethodInfo m)
+            {
+                _parameterInfos = m.GetParameters();
+                Parameters = _parameterInfos.ToDictionary(t => t.Name!, StringComparer.Ordinal);
+            }
+
+            return this;
+        }
+
+        throw new ArgumentException(
+            ObjectTypeDescriptor_MustBePropertyOrMethod,
+            nameof(propertyOrMethod));
+    }
+
+    public IInterfaceFieldDescriptor Use(FieldMiddleware middleware)
+    {
+        if (middleware is null)
+        {
+            throw new ArgumentNullException(nameof(middleware));
+        }
+
+        Definition.MiddlewareDefinitions.Add(new(middleware));
         return this;
     }
 
@@ -175,10 +300,14 @@ public class InterfaceFieldDescriptor
         return this;
     }
 
-    public static InterfaceFieldDescriptor New(IDescriptorContext context, string fieldName)
+    public static InterfaceFieldDescriptor New(
+        IDescriptorContext context,
+        string fieldName)
         => new(context, fieldName);
 
-    public static InterfaceFieldDescriptor New(IDescriptorContext context, MemberInfo member)
+    public static InterfaceFieldDescriptor New(
+        IDescriptorContext context,
+        MemberInfo member)
         => new(context, member);
 
     public static InterfaceFieldDescriptor From(

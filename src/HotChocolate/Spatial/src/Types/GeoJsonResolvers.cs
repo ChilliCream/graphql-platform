@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using NetTopologySuite.Geometries;
 using static HotChocolate.Types.Spatial.ThrowHelper;
 

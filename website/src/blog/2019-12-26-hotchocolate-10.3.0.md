@@ -568,7 +568,7 @@ With Hot Chocolate 10.3.0 we focused on productivity features that have a minor 
 
 With version 11 we will take this to a whole new level with a completely new execution engine that is much more efficient and allows for completely new features like `@defer`.
 
-Also, version 11 will introduce new tools and libraries to the platform like _Banana Cakepop_ (preview dropping very soon), _Strawberry Shake_ or our new _Visual Studio for Windows Integration_.
+Also, version 11 will introduce new tools and libraries to the platform like _Banana Cake Pop_ (preview dropping very soon), _Strawberry Shake_ or our new _Visual Studio for Windows Integration_.
 
 We have a lot more in our pipeline and are totally obsessed with GraphQL and .NET.
 
@@ -577,6 +577,3 @@ I hope you will enjoy 10.3.0 as much as I already do and join the Hot Chocolate 
 BTW, head over to our _pure code-first_ [Star Wars example](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/PureCodeFirst).
 
 If you want to get into contact with us head over to our slack channel and join our community.
-
-[hot chocolate]: https://hotchocolate.io
-[hot chocolate source code]: https://github.com/ChilliCream/graphql-platform

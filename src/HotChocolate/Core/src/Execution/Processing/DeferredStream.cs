@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution.Processing.Tasks;
 using static HotChocolate.WellKnownContextData;
 
@@ -109,7 +105,7 @@ internal sealed class DeferredStream : DeferredExecutionTask
         catch (Exception ex)
         {
             var builder = operationContext.ErrorHandler.CreateUnexpectedError(ex);
-            var result = QueryResultBuilder.CreateError(builder.Build());
+            var result = OperationResultBuilder.CreateError(builder.Build());
             operationContext.DeferredScheduler.Complete(new(resultId, parentResultId, result));
         }
         finally

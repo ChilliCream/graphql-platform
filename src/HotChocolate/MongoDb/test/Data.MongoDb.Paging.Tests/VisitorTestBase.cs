@@ -1,10 +1,8 @@
-using System;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using MongoDB.Driver;
 using Squadron;
 
 namespace HotChocolate.Data.MongoDb.Filters;
@@ -67,10 +65,10 @@ public class FilterVisitorTestBase
                     if (context.ContextData.TryGetValue("query", out var queryString))
                     {
                         context.Result =
-                            QueryResultBuilder
-                                .FromResult(context.Result!.ExpectQueryResult())
+                            OperationResultBuilder
+                                .FromResult(context.Result!.ExpectOperationResult())
                                 .SetContextData("query", queryString)
-                                .Create();
+                                .Build();
                     }
                 })
             .UseDefaultPipeline()

@@ -269,7 +269,7 @@ Welcome to your new app.
 
 ![Started Blazor application in Microsoft Edge](../../../shared/berry_session_list.png)
 
-# Step 6: Using the built-in store with reactive APIs.
+# Step 6: Using the built-in store with reactive APIs
 
 The simple fetch of our data works. But every time we visit the index page it will fetch the data again although the data does not change often. Strawberry Shake also comes with state management where you can control the entity store and update it when you need to. In order to best interact with the store we will use `System.Reactive` from Microsoft. Let's get started :)
 

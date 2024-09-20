@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Authorization;
 using Microsoft.AspNetCore.Http;
 

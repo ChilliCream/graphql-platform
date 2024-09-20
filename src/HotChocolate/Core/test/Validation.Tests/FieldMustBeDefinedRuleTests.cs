@@ -1,8 +1,6 @@
-﻿using System.Linq;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Validation;
 
@@ -139,7 +137,6 @@ public class FieldMustBeDefinedRuleTests
         // assert
         Assert.Empty(context.Errors);
     }
-
 
     [Fact]
     public void DirectFieldSelectionOnUnion()

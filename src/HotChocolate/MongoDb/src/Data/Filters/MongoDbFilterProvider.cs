@@ -1,10 +1,8 @@
-using System;
-using System.Threading.Tasks;
 using HotChocolate.Data.Filters;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Types;
 using MongoDB.Driver;
+using static HotChocolate.Data.MongoDb.MongoDbContextData;
 
 namespace HotChocolate.Data.MongoDb.Filters;
 
@@ -29,56 +27,68 @@ public class MongoDbFilterProvider : FilterProvider<MongoDbFilterVisitorContext>
     /// <summary>
     /// The visitor that is used to traverse the incoming selection set an execute handlers
     /// </summary>
-    protected virtual FilterVisitor<MongoDbFilterVisitorContext, MongoDbFilterDefinition>
-        Visitor
-    { get; } = new(new MongoDbFilterCombinator());
+    protected virtual FilterVisitor<MongoDbFilterVisitorContext, MongoDbFilterDefinition> Visitor { get; } =
+        new(new MongoDbFilterCombinator());
 
-    /// <inheritdoc />
-    public override FieldMiddleware CreateExecutor<TEntityType>(string argumentName)
-    {
-        return next => context => ExecuteAsync(next, context);
+    public override IQueryBuilder CreateBuilder<TEntityType>(string argumentName)
+        => new MongoDbQueryBuilder(CreateFilterDefinition(argumentName));
 
-        async ValueTask ExecuteAsync(
-            FieldDelegate next,
-            IMiddlewareContext context)
+    private Func<IMiddlewareContext, MongoDbFilterDefinition?> CreateFilterDefinition(string argumentName)
+        => context =>
         {
-            MongoDbFilterVisitorContext? visitorContext = null;
+            // next we get the filter argument.
             var argument = context.Selection.Field.Arguments[argumentName];
             var filter = context.ArgumentLiteral<IValueNode>(argumentName);
 
-            if (filter is not NullValueNode && argument.Type is IFilterInputType filterInput)
+            // if no filter is defined we can stop here and yield back control.
+            var skipFiltering = context.GetLocalStateOrDefault<bool>(SkipFilteringKey);
+
+            // ensure filtering is only applied once
+            context.SetLocalState(SkipFilteringKey, true);
+
+            if (filter.IsNull() || skipFiltering || argument.Type is not IFilterInputType filterInput)
             {
-                visitorContext = new MongoDbFilterVisitorContext(filterInput);
-
-                Visitor.Visit(filter, visitorContext);
-
-                if (visitorContext.Errors.Count > 0)
-                {
-                    context.Result = Array.Empty<TEntityType>();
-                    foreach (var error in visitorContext.Errors)
-                    {
-                        context.ReportError(error.WithPath(context.Path));
-                    }
-                }
-                else
-                {
-                    var query = visitorContext.CreateQuery();
-
-                    context.LocalContextData = context.LocalContextData
-                        .SetItem(nameof(FilterDefinition<TEntityType>), query);
-
-                    await next(context).ConfigureAwait(false);
-
-                    if (context.Result is IMongoDbExecutable executable)
-                    {
-                        context.Result = executable.WithFiltering(query);
-                    }
-                }
+                return null;
             }
-            else
+
+            var visitorContext = new MongoDbFilterVisitorContext(filterInput);
+
+            Visitor.Visit(filter, visitorContext);
+
+            if (visitorContext.Errors.Count == 0)
             {
-                await next(context).ConfigureAwait(false);
+                return visitorContext.CreateQuery();
             }
+
+            throw new GraphQLException(
+                visitorContext.Errors.Select(e => e.WithPath(context.Path)).ToArray());
+        };
+
+    private sealed class MongoDbQueryBuilder(
+        Func<IMiddlewareContext, MongoDbFilterDefinition?> createFilterDef)
+        : IQueryBuilder
+    {
+        public void Prepare(IMiddlewareContext context)
+        {
+            var filterDef = createFilterDef(context);
+            context.SetLocalState(FilterDefinitionKey, filterDef);
+        }
+
+        public void Apply(IMiddlewareContext context)
+        {
+            if (context.Result is not IMongoDbExecutable executable)
+            {
+                return;
+            }
+
+            var filterDef = context.GetLocalStateOrDefault<MongoDbFilterDefinition>(FilterDefinitionKey);
+
+            if (filterDef is null)
+            {
+                return;
+            }
+
+            context.Result = executable.WithFiltering(filterDef);
         }
     }
 }

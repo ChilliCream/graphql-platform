@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using HotChocolate.ApolloFederation.Properties;
 using static HotChocolate.ApolloFederation.FederationTypeNames;
 
@@ -26,7 +25,7 @@ namespace HotChocolate.ApolloFederation.Types;
 /// <param name="scopes">
 /// List of a list of required JWT scopes.
 /// </param>
-[Package(FederationVersionUrls.Federation24)]
+[Package(FederationVersionUrls.Federation25)]
 [DirectiveType(
     RequiresScopesDirective_Name,
     DirectiveLocation.Enum |
@@ -40,5 +39,6 @@ public sealed class RequiresScopesDirective(List<IReadOnlySet<Scope>> scopes)
     /// <summary>
     /// Retrieves list of a list of required JWT scopes.
     /// </summary>
+    [GraphQLType("[[String!]!]!")]
     public List<IReadOnlySet<Scope>> Scopes { get; } = scopes;
 }

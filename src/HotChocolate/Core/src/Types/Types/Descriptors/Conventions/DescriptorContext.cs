@@ -1,13 +1,10 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
-using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.WellKnownContextData;
 using ThrowHelper = HotChocolate.Utilities.ThrowHelper;
 
@@ -35,8 +32,6 @@ public sealed partial class DescriptorContext : IDescriptorContext
     private INamingConventions? _naming;
     private ITypeInspector? _inspector;
 
-    public event EventHandler<SchemaCompletedEventArgs>? SchemaCompleted;
-
     private DescriptorContext(
         Func<IReadOnlySchemaOptions> options,
         IReadOnlyDictionary<(Type, string?), List<CreateConvention>> conventions,
@@ -45,7 +40,6 @@ public sealed partial class DescriptorContext : IDescriptorContext
         SchemaBuilder.LazySchema schema,
         TypeInterceptor typeInterceptor)
     {
-
         _options = options;
         Schema = schema;
         _conventions = conventions;
@@ -54,19 +48,12 @@ public sealed partial class DescriptorContext : IDescriptorContext
         ContextData = contextData;
         TypeInterceptor = typeInterceptor;
         ResolverCompiler = new DefaultResolverCompiler(
+            schemaServices,
             _serviceHelper.GetParameterExpressionBuilders());
 
         TypeConverter = _serviceHelper.GetTypeConverter();
         InputFormatter = _serviceHelper.GetInputFormatter(TypeConverter);
         InputParser = _serviceHelper.GetInputParser(TypeConverter);
-
-        schema.Completed += OnSchemaOnCompleted;
-
-        void OnSchemaOnCompleted(object? sender, EventArgs args)
-        {
-            SchemaCompleted?.Invoke(this, new SchemaCompletedEventArgs(schema.Schema));
-            SchemaCompleted = null;
-        }
     }
 
     internal SchemaBuilder.LazySchema Schema { get; }
@@ -130,6 +117,17 @@ public sealed partial class DescriptorContext : IDescriptorContext
     public InputFormatter InputFormatter { get; }
 
     /// <inheritdoc />
+    public IList<IDescriptor> Descriptors { get; } = new List<IDescriptor>();
+
+    /// <inheritdoc />
+    public INodeIdSerializerAccessor NodeIdSerializerAccessor
+        => _schemaServices.GetRequiredService<INodeIdSerializerAccessor>();
+
+    /// <inheritdoc />
+    public IParameterBindingResolver ParameterBindingResolver
+        => Services.GetRequiredService<IApplicationServiceProvider>().GetRequiredService<IParameterBindingResolver>();
+
+    /// <inheritdoc />
     public IDictionary<string, object?> ContextData { get; }
 
     /// <inheritdoc />
@@ -168,8 +166,8 @@ public sealed partial class DescriptorContext : IDescriptorContext
 
         var key = (typeof(T), scope);
 
-        if (_conventionInstances.TryGetValue(key, out var conv) &&
-            conv is T castedConvention)
+        if (_conventionInstances.TryGetValue(key, out var convention) &&
+            convention is T castedConvention)
         {
             return castedConvention;
         }
@@ -196,6 +194,9 @@ public sealed partial class DescriptorContext : IDescriptorContext
 
         throw ThrowHelper.Convention_ConventionCouldNotBeCreated(typeof(T), scope);
     }
+
+    public void OnSchemaCreated(Action<ISchema> callback)
+        => Schema.OnSchemaCreated(callback);
 
     private void CreateConventions<T>(
         string? scope,
@@ -287,14 +288,14 @@ public sealed partial class DescriptorContext : IDescriptorContext
         => new DescriptorContext(
             () => (options ??= new SchemaOptions()),
             conventions ?? new Dictionary<(Type, string?), List<CreateConvention>>(),
-            services ?? new EmptyServiceProvider(),
+            services ?? EmptyServiceProvider.Instance,
             contextData ?? new Dictionary<string, object?>(),
             schema ?? new SchemaBuilder.LazySchema(),
             typeInterceptor ?? new AggregateTypeInterceptor());
 
     internal static DescriptorContext Create(
         Func<IReadOnlySchemaOptions> options,
-        IServiceProvider? services = null,
+        IServiceProvider services,
         IReadOnlyDictionary<(Type, string?), List<CreateConvention>>? conventions = null,
         IDictionary<string, object?>? contextData = null,
         SchemaBuilder.LazySchema? schema = null,
@@ -302,7 +303,7 @@ public sealed partial class DescriptorContext : IDescriptorContext
         => new DescriptorContext(
             options,
             conventions ?? new Dictionary<(Type, string?), List<CreateConvention>>(),
-            services ?? new EmptyServiceProvider(),
+            services,
             contextData ?? new Dictionary<string, object?>(),
             schema ?? new SchemaBuilder.LazySchema(),
             typeInterceptor ?? new AggregateTypeInterceptor());

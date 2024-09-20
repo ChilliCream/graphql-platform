@@ -1,13 +1,8 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace HotChocolate.Fetching;
 
@@ -17,7 +12,7 @@ public class InlineGroupDataLoaderTests
     public async Task LoadWithDifferentDataLoader()
     {
         // arrange
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query>()
@@ -35,7 +30,7 @@ public class InlineGroupDataLoaderTests
     public async Task LoadWithDifferentDataLoader_ShortHand()
     {
         // arrange
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query2>()
@@ -53,7 +48,7 @@ public class InlineGroupDataLoaderTests
     public async Task LoadWithSingleKeyDataLoader()
     {
         // arrange
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query>()
@@ -71,7 +66,7 @@ public class InlineGroupDataLoaderTests
     public async Task LoadWithSingleKeyDataLoader_ShortHand()
     {
         // arrange
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query2>()
@@ -87,7 +82,7 @@ public class InlineGroupDataLoaderTests
 
     public class Query
     {
-        public async Task<string[]> GetByKey(string key, IResolverContext context)
+        public async Task<string[]?> GetByKey(string key, IResolverContext context)
         {
             return await context
                 .GroupDataLoader<string, string>(
@@ -99,7 +94,7 @@ public class InlineGroupDataLoaderTests
 
     public class Query2
     {
-        public async Task<string[]> GetByKey(string key, IResolverContext context)
+        public async Task<string[]?> GetByKey(string key, IResolverContext context)
         {
             return await context.GroupAsync(FetchAsync, key);
 

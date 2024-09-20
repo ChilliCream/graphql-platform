@@ -1,4 +1,3 @@
-using System.Linq;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Language;
@@ -13,7 +12,7 @@ internal static class ErrorHelper
         IValueNode value,
         IFilterVisitorContext<T> context)
     {
-        IFilterInputType filterType = context.Types.OfType<IFilterInputType>().First();
+        var filterType = context.Types.OfType<IFilterInputType>().First();
 
         return ErrorBuilder.New()
             .SetMessage(
@@ -31,7 +30,7 @@ internal static class ErrorHelper
         IValueNode value,
         IFilterVisitorContext<T> context)
     {
-        IFilterInputType filterType = context.Types.OfType<IFilterInputType>().First();
+        var filterType = context.Types.OfType<IFilterInputType>().First();
 
         return ErrorBuilder.New()
             .SetMessage(
@@ -49,7 +48,7 @@ internal static class ErrorHelper
         IValueNode value,
         ISortVisitorContext<T> context)
     {
-        ISortInputType sortType = context.Types.OfType<ISortInputType>().First();
+        var sortType = context.Types.OfType<ISortInputType>().First();
 
         return ErrorBuilder.New()
             .SetMessage(

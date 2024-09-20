@@ -1,9 +1,5 @@
-using System;
-using System.IO;
 using System.Text;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Snapshooter;
 using Snapshooter.Xunit;
@@ -23,7 +19,7 @@ public static class SnapshotExtensions
         this IExecutionResult result,
         CancellationToken cancellationToken = default)
     {
-        if (result is IQueryResult q)
+        if (result is IOperationResult q)
         {
             q.ToJson().MatchSnapshot();
             return result;
@@ -157,6 +153,6 @@ public static class SnapshotExtensions
 
     public static void MatchSnapshot(this GraphQLException ex)
     {
-        QueryResultBuilder.CreateError(ex.Errors).MatchSnapshot();
+        OperationResultBuilder.CreateError(ex.Errors).MatchSnapshot();
     }
 }

@@ -1,13 +1,9 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
-using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.WellKnownContextData;
 
 #nullable enable
@@ -20,10 +16,8 @@ namespace HotChocolate.Types.Relay;
 /// </summary>
 internal static class RelayIdFieldHelpers
 {
-    private static IdSerializer? _idSerializer;
-
     /// <summary>
-    /// Applies the <see cref="RelayIdFieldExtensions"><c>.ID()</c></see> to a argument
+    /// Applies the <see cref="RelayIdFieldExtensions"><c>.ID()</c></see> to an argument
     /// descriptor
     /// </summary>
     /// <remarks>
@@ -51,7 +45,7 @@ internal static class RelayIdFieldHelpers
     }
 
     /// <summary>
-    /// Applies the <see cref="RelayIdFieldExtensions"><c>.ID()</c></see> to a argument
+    /// Applies the <see cref="RelayIdFieldExtensions"><c>.ID()</c></see> to an argument
     /// descriptor
     /// </summary>
     /// <remarks>
@@ -82,7 +76,7 @@ internal static class RelayIdFieldHelpers
     }
 
     /// <summary>
-    /// Applies the <see cref="RelayIdFieldExtensions"><c>.ID()</c></see> to a argument
+    /// Applies the <see cref="RelayIdFieldExtensions"><c>.ID()</c></see> to an argument
     /// descriptor
     /// </summary>
     /// <remarks>
@@ -179,7 +173,11 @@ internal static class RelayIdFieldHelpers
                 completionContext.Type);
         }
 
-        definition.Formatters.Add(CreateSerializer(completionContext, resultType, typeName));
+        var validateType = typeName is not null;
+        typeName ??= completionContext.Type.Name;
+        SetSerializerInfos(completionContext.DescriptorContext, typeName, resultType);
+        var serializer = CreateSerializer(completionContext, resultType, typeName, validateType);
+        definition.Formatters.Add(serializer);
     }
 
     private static void AddSerializerToObjectField(
@@ -206,19 +204,27 @@ internal static class RelayIdFieldHelpers
                 completionContext.Type);
         }
 
-        string? schemaName = default;
-        completionContext.DescriptorContext.SchemaCompleted += (_, args) =>
-            schemaName = args.Schema.Name;
-
-        var serializer =
-            completionContext.Services.GetService<IIdSerializer>() ??
-            new IdSerializer();
+        var serializerAccessor = completionContext.DescriptorContext.NodeIdSerializerAccessor;
         var index = definition.FormatterDefinitions.IndexOf(placeholder);
 
         typeName ??= completionContext.Type.Name;
+        SetSerializerInfos(completionContext.DescriptorContext, typeName, resultType);
 
-        definition.FormatterDefinitions[index] = new((_, result) =>
+        definition.FormatterDefinitions[index] =
+            CreateResultFormatter(typeName, resultType, serializerAccessor);
+    }
+
+    private static ResultFormatterDefinition CreateResultFormatter(
+        string typeName,
+        IExtendedType resultType,
+        INodeIdSerializerAccessor serializerAccessor)
+    {
+        INodeIdSerializer? serializer = null;
+
+        return new((_, result) =>
             {
+                serializer ??= serializerAccessor.Serializer;
+
                 if (result is not null)
                 {
                     if (resultType.IsArrayOrList)
@@ -229,13 +235,13 @@ internal static class RelayIdFieldHelpers
                         {
                             list.Add(element is null
                                 ? element
-                                : serializer.Serialize(schemaName, typeName, element));
+                                : serializer.Format(typeName, element));
                         }
 
                         return list;
                     }
 
-                    return serializer.Serialize(schemaName, typeName, result);
+                    return serializer.Format(typeName, result);
                 }
 
                 return result;
@@ -247,16 +253,51 @@ internal static class RelayIdFieldHelpers
     private static IInputValueFormatter CreateSerializer(
         ITypeCompletionContext completionContext,
         IExtendedType resultType,
-        string? typeName)
+        string? typeName,
+        bool validateType)
     {
-        var serializer =
-            completionContext.Services.GetService<IIdSerializer>() ??
-            (_idSerializer ??= new IdSerializer());
+        var resultTypeInfo = completionContext.DescriptorContext.TypeInspector.CreateTypeInfo(resultType);
 
         return new GlobalIdInputValueFormatter(
+            completionContext.DescriptorContext.NodeIdSerializerAccessor,
+            resultTypeInfo.NamedType,
+            resultType.ElementType?.Type ?? resultTypeInfo.NamedType,
             typeName ?? completionContext.Type.Name,
-            serializer,
-            resultType,
-            typeName is not null);
+            validateType);
+    }
+
+    internal static void SetSerializerInfos(IDescriptorContext context, string typeName, Type runtimeType)
+    {
+        var extendedType = context.TypeInspector.GetType(runtimeType);
+        SetSerializerInfos(context, typeName, extendedType);
+    }
+
+    internal static void SetSerializerInfos(IDescriptorContext context, string typeName, IExtendedType runtimeType)
+    {
+        if (!context.TypeInspector.TryCreateTypeInfo(runtimeType, out var runtimeTypeInfo))
+        {
+            return;
+        }
+
+        if (runtimeTypeInfo.NamedType == typeof(object))
+        {
+            return;
+        }
+
+        if (!context.ContextData.TryGetValue(SerializerTypes, out var obj))
+        {
+            obj = new Dictionary<string, Type>();
+            context.ContextData[SerializerTypes] = obj;
+        }
+
+        var mappings = (Dictionary<string, Type>)obj!;
+#if NET6_0_OR_GREATER
+        mappings.TryAdd(typeName, runtimeTypeInfo.NamedType);
+#else
+        if (!mappings.ContainsKey(typeName))
+        {
+            mappings.Add(typeName, runtimeTypeInfo.NamedType);
+        }
+#endif
     }
 }

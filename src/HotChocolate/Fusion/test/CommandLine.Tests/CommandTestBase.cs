@@ -1,12 +1,6 @@
 using System.Collections.Concurrent;
-using System.CommandLine.Parsing;
-using CookieCrumble;
-using HotChocolate.Fusion;
-using HotChocolate.Fusion.CommandLine;
 using HotChocolate.Fusion.CommandLine.Helpers;
 using HotChocolate.Fusion.Composition;
-using HotChocolate.Fusion.Shared;
-using static HotChocolate.Fusion.Shared.DemoProjectSchemaExtensions;
 
 namespace CommandLine.Tests;
 

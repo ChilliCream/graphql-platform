@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using static HotChocolate.Language.Properties.LangWebResources;
@@ -70,7 +68,6 @@ public ref partial struct Utf8GraphQLRequestParser
         return end;
     }
 
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ParseObjectField(IDictionary<string, object?> obj)
     {
@@ -80,7 +77,7 @@ public ref partial struct Utf8GraphQLRequestParser
                 _reader,
                 ParseMany_InvalidOpenToken,
                 TokenKind.String,
-                TokenPrinter.Print(in _reader));
+                TokenPrinter.Print(ref _reader));
         }
 
         var name = _reader.GetString();
@@ -99,7 +96,7 @@ public ref partial struct Utf8GraphQLRequestParser
                 _reader,
                 ParseMany_InvalidOpenToken,
                 TokenKind.String,
-                TokenPrinter.Print(in _reader));
+                TokenPrinter.Print(ref _reader));
         }
 
         _reader.MoveNext();
@@ -116,7 +113,7 @@ public ref partial struct Utf8GraphQLRequestParser
                 _reader,
                 ParseMany_InvalidOpenToken,
                 TokenKind.LeftBracket,
-                TokenPrinter.Print(in _reader));
+                TokenPrinter.Print(ref _reader));
         }
 
         var list = new List<object?>();

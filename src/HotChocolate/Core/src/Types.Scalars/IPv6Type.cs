@@ -1,4 +1,3 @@
-using System;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 
@@ -52,16 +51,6 @@ public class IPv6Type : RegexType
     /// <summary>
     /// Initializes a new instance of the <see cref="IPv6Type"/> class.
     /// </summary>
-    public IPv6Type()
-        : this(
-            WellKnownScalarTypes.IPv6,
-            ScalarResources.IPv6Type_Description)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="IPv6Type"/> class.
-    /// </summary>
     public IPv6Type(
         string name,
         string? description = null,
@@ -71,6 +60,17 @@ public class IPv6Type : RegexType
             CreateRegex(),
             description,
             bind)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="IPv6Type"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public IPv6Type()
+        : this(
+            WellKnownScalarTypes.IPv6,
+            ScalarResources.IPv6Type_Description)
     {
     }
 

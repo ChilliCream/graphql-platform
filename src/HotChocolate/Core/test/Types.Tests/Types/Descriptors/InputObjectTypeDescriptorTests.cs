@@ -1,5 +1,4 @@
 using HotChocolate.Types.Descriptors;
-using Xunit;
 
 namespace HotChocolate.Types;
 
@@ -23,7 +22,6 @@ public class InputObjectTypeDescriptorTests
         Assert.Collection(description.Fields,
             t => Assert.Equal("name", t.Name));
     }
-
 
     [Fact]
     public void Field_Unignore_PropertyIsExcluded()

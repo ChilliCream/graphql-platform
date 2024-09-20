@@ -1,0 +1,159 @@
+schema {
+  query: QueryWithFieldResultAndPaging
+}
+
+interface Error {
+  message: String!
+}
+
+type Address {
+  id: String!
+  street: String!
+  city: String!
+}
+
+type AddressNotFound implements Error {
+  id: String!
+  message: String!
+}
+
+"Information about pagination in a connection."
+type PageInfo {
+  "Indicates whether more edges exist following the set defined by the clients arguments."
+  hasNextPage: Boolean!
+  "Indicates whether more edges exist prior the set defined by the clients arguments."
+  hasPreviousPage: Boolean!
+  "When paginating backwards, the cursor to continue."
+  startCursor: String
+  "When paginating forwards, the cursor to continue."
+  endCursor: String
+}
+
+type QueryWithFieldResultAndPaging {
+  users(error: Boolean! = false "Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): UsersResult!
+  usersWithFilter(error: Boolean! = false "Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: UserFilterInput order: [UserSortInput!]): UsersWithFilterResult!
+}
+
+type User {
+  id: String!
+  name: String!
+  email: String!
+  address: AddressResult!
+}
+
+type UserNotFound implements Error {
+  id: String!
+  message: String!
+}
+
+"A connection to a list of items."
+type UsersConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [UsersEdge!]
+  "A flattened list of the nodes."
+  nodes: [User!]
+}
+
+"An edge in a connection."
+type UsersEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: User!
+}
+
+"A connection to a list of items."
+type UsersWithFilterConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [UsersWithFilterEdge!]
+  "A flattened list of the nodes."
+  nodes: [User!]
+}
+
+"An edge in a connection."
+type UsersWithFilterEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: User!
+}
+
+union AddressResult = Address | AddressNotFound
+
+union UsersResult = UsersConnection | UserNotFound
+
+union UsersWithFilterResult = UsersWithFilterConnection | UserNotFound
+
+input AddressFilterInput {
+  and: [AddressFilterInput!]
+  or: [AddressFilterInput!]
+  id: StringOperationFilterInput
+  street: StringOperationFilterInput
+  city: StringOperationFilterInput
+}
+
+input BooleanOperationFilterInput {
+  eq: Boolean
+  neq: Boolean
+}
+
+input FieldResultOfAddressAndAddressNotFoundFilterInput {
+  and: [FieldResultOfAddressAndAddressNotFoundFilterInput!]
+  or: [FieldResultOfAddressAndAddressNotFoundFilterInput!]
+  value: AddressFilterInput
+  errors: ListFilterInputTypeOfObjectFilterInput
+  isSuccess: BooleanOperationFilterInput
+  isError: BooleanOperationFilterInput
+}
+
+input ListFilterInputTypeOfObjectFilterInput {
+  all: ObjectFilterInput
+  none: ObjectFilterInput
+  some: ObjectFilterInput
+  any: Boolean
+}
+
+input ObjectFilterInput {
+  and: [ObjectFilterInput!]
+  or: [ObjectFilterInput!]
+}
+
+input StringOperationFilterInput {
+  and: [StringOperationFilterInput!]
+  or: [StringOperationFilterInput!]
+  eq: String
+  neq: String
+  contains: String
+  ncontains: String
+  in: [String]
+  nin: [String]
+  startsWith: String
+  nstartsWith: String
+  endsWith: String
+  nendsWith: String
+}
+
+input UserFilterInput {
+  and: [UserFilterInput!]
+  or: [UserFilterInput!]
+  id: StringOperationFilterInput
+  name: StringOperationFilterInput
+  email: StringOperationFilterInput
+  address: FieldResultOfAddressAndAddressNotFoundFilterInput
+}
+
+input UserSortInput {
+  id: SortEnumType
+  name: SortEnumType
+  email: SortEnumType
+  address: SortEnumType
+}
+
+enum SortEnumType {
+  ASC
+  DESC
+}

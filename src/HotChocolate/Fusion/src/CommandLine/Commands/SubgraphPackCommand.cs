@@ -37,7 +37,7 @@ internal sealed class SubgraphPackCommand : Command
             Bind.FromServiceProvider<CancellationToken>());
     }
 
-    private static async Task ExecuteAsync(
+    private static async Task<int> ExecuteAsync(
         IConsole console,
         FileInfo? packageFile,
         FileInfo? schemaFile,
@@ -56,13 +56,13 @@ internal sealed class SubgraphPackCommand : Command
         if (!schemaFile.Exists)
         {
             console.WriteLine($"The schema file `{schemaFile.FullName}` does not exist.");
-            return;
+            return 1;
         }
 
         if (!configFile.Exists)
         {
             console.WriteLine($"The config file `{configFile.FullName}` does not exist.");
-            return;
+            return 1;
         }
 
         if (extensionFiles.Count == 0)
@@ -81,7 +81,7 @@ internal sealed class SubgraphPackCommand : Command
         {
             console.WriteLine(
                 $"The extension file `{extensionFiles.First(t => !t.Exists).FullName}` does not exist.");
-            return;
+            return 1;
         }
 
         if (packageFile is null)
@@ -115,5 +115,7 @@ internal sealed class SubgraphPackCommand : Command
             cancellationToken);
 
         console.WriteLine($"{packageFile.FullName} created.");
+
+        return 0;
     }
 }

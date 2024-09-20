@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using HotChocolate.Data.Filters;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -21,12 +20,12 @@ public class MongoDbListAllOperationHandler : MongoDbListOperationHandlerBase
         MongoDbFilterScope scope,
         string path)
     {
-        var negatedChilds = new List<MongoDbFilterDefinition>();
+        var negatedChildren = new List<MongoDbFilterDefinition>();
         var level = scope.Level.Peek();
 
         while (level.Count > 0)
         {
-            negatedChilds.Add(
+            negatedChildren.Add(
                 new MongoDbFilterOperation(
                     path,
                     new MongoDbFilterOperation(
@@ -43,7 +42,7 @@ public class MongoDbListAllOperationHandler : MongoDbListOperationHandlerBase
                         { "$nin", new BsonArray { new BsonArray(), BsonNull.Value, } },
                 }),
             new NotMongoDbFilterDefinition(
-                new OrMongoDbFilterDefinition(negatedChilds)
+                new OrMongoDbFilterDefinition(negatedChildren)
             ));
     }
 }

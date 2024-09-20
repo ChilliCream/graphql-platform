@@ -1,8 +1,6 @@
-using System.CommandLine;
 using System.CommandLine.IO;
 using System.CommandLine.Parsing;
 using CookieCrumble;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Hosting;
 using Moq;
 

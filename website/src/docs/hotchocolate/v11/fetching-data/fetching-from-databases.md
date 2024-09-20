@@ -20,7 +20,7 @@ If you return a scalar, value (e.g. `string`, `int` ...) the value is serialized
 If you return an object, this object is the parent of the resolver in the subtree.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 // Query.cs
@@ -56,7 +56,7 @@ public class Startup
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -104,7 +104,6 @@ public class BookType : ObjectType<Book>
             .Type<StringType>();
     }
 }
-
 
 // Startup.cs
 public class Startup

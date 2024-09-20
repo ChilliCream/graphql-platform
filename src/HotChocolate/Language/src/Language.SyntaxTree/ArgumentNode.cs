@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
@@ -36,7 +34,7 @@ public sealed class ArgumentNode : ISyntaxNode
         : this(null, new NameNode(name), new IntValueNode(value))
     {
     }
-    
+
     /// <summary>
     /// Initializes a new instance of <see cref="ArgumentNode"/>.
     /// </summary>

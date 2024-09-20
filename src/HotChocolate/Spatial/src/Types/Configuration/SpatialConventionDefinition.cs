@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using NetTopologySuite;
 using ProjNet.CoordinateSystems;
 

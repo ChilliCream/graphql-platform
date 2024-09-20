@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -8,12 +7,6 @@ public interface IInputFieldDescriptor
     : IDescriptor<InputFieldDefinition>
     , IFluent
 {
-    /// <summary>
-    /// Associates the argument with a syntax node of the parsed GraphQL SDL.
-    /// </summary>
-    /// <param name="inputValueDefinition">The syntax node</param>
-    IInputFieldDescriptor SyntaxNode(InputValueDefinitionNode inputValueDefinition);
-
     /// <summary>
     /// Sets the name of the argument
     /// <example>

@@ -1,7 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace GreenDonut;
@@ -59,10 +55,34 @@ public class BatchDataLoaderTests
     }
 
     [Fact]
+    public async Task LoadAsync_Should_BatchAllItemsOfList()
+    {
+        // arrange
+        var cts = new CancellationTokenSource(5000);
+
+        var dataLoader = new CustomBatchDataLoader(
+            new InstantDispatcher(),
+            new DataLoaderOptions { CancellationToken = cts.Token });
+
+        // act
+        await dataLoader.LoadAsync(["1abc", "0abc"], cts.Token);
+
+        // assert
+        Assert.Equal(1, dataLoader.ExecutionCount);
+    }
+
+    [Fact]
     public async Task Null_Result()
     {
         // arrange
-        var dataLoader = new EmptyBatchDataLoader(new AutoBatchScheduler());
+        using var cacheOwner = new PromiseCacheOwner();
+        var dataLoader = new EmptyBatchDataLoader(
+            new AutoBatchScheduler(),
+            new DataLoaderOptions
+            {
+                Cache = cacheOwner.Cache,
+                CancellationToken = cacheOwner.CancellationToken,
+            });
 
         // act
         var result = await dataLoader.LoadAsync("1");
@@ -71,13 +91,9 @@ public class BatchDataLoaderTests
         Assert.Null(result);
     }
 
-    public class EmptyBatchDataLoader : BatchDataLoader<string, string>
+    public class EmptyBatchDataLoader(IBatchScheduler batchScheduler, DataLoaderOptions options)
+        : BatchDataLoader<string, string>(batchScheduler, options)
     {
-        public EmptyBatchDataLoader(IBatchScheduler batchScheduler)
-            : base(batchScheduler)
-        {
-        }
-
         protected override Task<IReadOnlyDictionary<string, string>> LoadBatchAsync(
             IReadOnlyList<string> keys,
             CancellationToken cancellationToken)
@@ -85,49 +101,25 @@ public class BatchDataLoaderTests
                 new Dictionary<string, string>());
     }
 
-    public class CustomBatchDataLoader : BatchDataLoader<string, string>
+    public class CustomBatchDataLoader(IBatchScheduler batchScheduler, DataLoaderOptions options)
+        : BatchDataLoader<string, string>(batchScheduler, options)
     {
-        public CustomBatchDataLoader(
-            IBatchScheduler batchScheduler,
-            DataLoaderOptions options)
-            : base(batchScheduler, options)
-        {
-        }
+        private int _executionCount;
+        public int ExecutionCount => _executionCount;
 
         protected override Task<IReadOnlyDictionary<string, string>> LoadBatchAsync(
             IReadOnlyList<string> keys,
             CancellationToken cancellationToken)
-            => Task.FromResult<IReadOnlyDictionary<string, string>>(
-                keys.ToDictionary(t => t, t => "Value:" + t));
-    }
-}
-
-public class CacheDataLoaderTests
-{
-    [Fact]
-    public async Task LoadSingleAsync()
-    {
-        // arrange
-        var dataLoader = new CustomBatchDataLoader(
-            new DataLoaderOptions());
-
-        // act
-        var result = await dataLoader.LoadAsync("abc");
-
-        // assert
-        Assert.Equal("Value:abc", result);
-    }
-
-    public class CustomBatchDataLoader : CacheDataLoader<string, string>
-    {
-        public CustomBatchDataLoader(DataLoaderOptions options)
-            : base(options)
         {
+            Interlocked.Increment(ref _executionCount);
+            return Task.FromResult<IReadOnlyDictionary<string, string>>(
+                keys.ToDictionary(t => t, t => "Value:" + t));
         }
+    }
 
-        protected override Task<string> LoadSingleAsync(
-            string key,
-            CancellationToken cancellationToken)
-            => Task.FromResult("Value:" + key);
+    public sealed class InstantDispatcher : IBatchScheduler
+    {
+        public void Schedule(Func<ValueTask> dispatch)
+            => dispatch();
     }
 }

@@ -1,10 +1,7 @@
-using System;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types;
 
@@ -258,7 +255,6 @@ public class LocalCurrencyTypeTests : ScalarTypeTestBase
         // arrange
         var scalar = CreateType<LocalCurrencyType>();
         object resultValue = 0.99m;
-
 
         // act
         var result = scalar.Deserialize(resultValue);

@@ -1,18 +1,13 @@
-using System;
-using System.Collections.Generic;
 using System.Net;
 #if NET6_0_OR_GREATER
 using System.Diagnostics;
-using System.IO;
 #endif
-using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
 #if NET6_0_OR_GREATER
 using System.Text;
 #endif
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Transport.Http;
@@ -44,6 +39,16 @@ public sealed class GraphQLHttpResponse : IDisposable
     }
 
     /// <summary>
+    /// Gets the underlying <see cref="HttpResponseMessage"/>.
+    /// </summary>
+    public HttpResponseMessage HttpResponseMessage => _message;
+
+    /// <summary>
+    /// Gets the HTTP response version.
+    /// </summary>
+    public Version Version => _message.Version;
+
+    /// <summary>
     /// Gets the HTTP response status code.
     /// </summary>
     public HttpStatusCode StatusCode => _message.StatusCode;
@@ -57,11 +62,40 @@ public sealed class GraphQLHttpResponse : IDisposable
     /// Gets the reason phrase which typically is sent by servers together with the status code.
     /// </summary>
     public string? ReasonPhrase => _message.ReasonPhrase;
-    
+
     /// <summary>
     /// Throws an exception if the HTTP response was unsuccessful.
     /// </summary>
     public void EnsureSuccessStatusCode() => _message.EnsureSuccessStatusCode();
+
+    /// <summary>
+    /// Gets the collection of HTTP response headers.
+    /// </summary>
+    /// <returns>
+    /// The collection of HTTP response headers.
+    /// </returns>
+    public HttpResponseHeaders Headers => _message.Headers;
+
+    /// <summary>
+    /// Gets the HTTP content headers as defined in RFC 2616.
+    /// </summary>
+    /// <returns>
+    /// The content headers as defined in RFC 2616.
+    /// </returns>
+    public HttpContentHeaders ContentHeaders => _message.Content.Headers;
+
+    #if NET6_0_OR_GREATER
+    /// <summary>
+    /// Gets the collection of trailing headers included in an HTTP response.
+    /// </summary>
+    /// <exception cref="T:System.Net.Http.HttpRequestException">
+    /// PROTOCOL_ERROR: The HTTP/2 response contains pseudo-headers in the Trailing Headers Frame.
+    /// </exception>
+    /// <returns>
+    /// The collection of trailing headers in the HTTP response.
+    /// </returns>
+    public HttpResponseHeaders TrailingHeaders => _message.TrailingHeaders;
+    #endif
 
     /// <summary>
     /// Reads the GraphQL response as a <see cref="OperationResult"/>.
@@ -100,8 +134,9 @@ public sealed class GraphQLHttpResponse : IDisposable
 #endif
         }
 
-        // if the media type is anything else we will return a transport error.
-        return new ValueTask<OperationResult>(_transportError);
+        _message.EnsureSuccessStatusCode();
+
+        throw new InvalidOperationException("Received a successful response with an unexpected content type.");
     }
 
 #if NET6_0_OR_GREATER

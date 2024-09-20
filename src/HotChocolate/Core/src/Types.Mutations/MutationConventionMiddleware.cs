@@ -1,7 +1,3 @@
-using System.Linq;
-
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -46,7 +42,7 @@ internal sealed class MutationConventionMiddleware(
             {
                 kind = ValueKind.Unknown;
             }
-            
+
             arguments.Add(
                 argument.Name,
                 new ArgumentValue(

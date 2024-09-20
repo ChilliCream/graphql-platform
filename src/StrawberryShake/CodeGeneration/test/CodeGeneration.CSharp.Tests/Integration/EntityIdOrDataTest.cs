@@ -1,11 +1,7 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
 {

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.Execution.ThrowHelper;
@@ -78,7 +75,7 @@ internal sealed partial class SubscriptionExecutor
                 await subscription.DisposeAsync().ConfigureAwait(false);
             }
 
-            return new QueryResult(null, ex.Errors);
+            return new OperationResult(null, ex.Errors);
         }
         catch (Exception ex)
         {
@@ -91,7 +88,7 @@ internal sealed partial class SubscriptionExecutor
                 await subscription.DisposeAsync().ConfigureAwait(false);
             }
 
-            return new QueryResult(null, Unwrap(error));
+            return new OperationResult(null, Unwrap(error));
         }
 
         IReadOnlyList<IError> Unwrap(IError error)

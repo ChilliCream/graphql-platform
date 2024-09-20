@@ -1,6 +1,4 @@
-using CookieCrumble;
 using HotChocolate.Fusion.Shared;
-using HotChocolate.Skimmed.Serialization;
 using Xunit.Abstractions;
 
 namespace HotChocolate.Fusion.Composition;
@@ -50,7 +48,6 @@ public class ErrorTests(ITestOutputHelper output)
                 items: [Review]
                 nextToken: String
             }
-
 
             type Mutation {
                 createReview(input: CreateReviewInput!): Review

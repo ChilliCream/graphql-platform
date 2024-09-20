@@ -1,10 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution.Properties;
 using HotChocolate.Execution.Serialization;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,54 +35,9 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
     public IVariableValueCollection Variables => _operationContext.Variables;
 
-    IReadOnlyDictionary<string, object?> IPureResolverContext.ScopedContextData
-        => ScopedContextData;
-
     public CancellationToken RequestAborted { get; private set; }
 
     public bool HasCleanupTasks => _cleanupTasks.Count > 0;
-
-    public IReadOnlyList<ISelection> GetSelections(
-        IObjectType typeContext,
-        ISelection? selection = null,
-        bool allowInternals = false)
-    {
-        if (typeContext is null)
-        {
-            throw new ArgumentNullException(nameof(typeContext));
-        }
-
-        selection ??= _selection;
-
-        if (selection.SelectionSet is null)
-        {
-            return Array.Empty<ISelection>();
-        }
-
-        var selectionSet = _operationContext.CollectFields(selection, typeContext);
-
-        if (selectionSet.IsConditional)
-        {
-            var operationIncludeFlags = _operationContext.IncludeFlags;
-            var selectionCount = selectionSet.Selections.Count;
-            ref var selectionRef = ref ((SelectionSet)selectionSet).GetSelectionsReference();
-            var finalFields = new List<ISelection>();
-
-            for (var i = 0; i < selectionCount; i++)
-            {
-                var childSelection = Unsafe.Add(ref selectionRef, i);
-
-                if (childSelection.IsIncluded(operationIncludeFlags, allowInternals))
-                {
-                    finalFields.Add(childSelection);
-                }
-            }
-
-            return finalFields;
-        }
-
-        return selectionSet.Selections;
-    }
 
     public void ReportError(string errorMessage)
     {
@@ -101,7 +52,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
             ErrorBuilder.New()
                 .SetMessage(errorMessage)
                 .SetPath(Path)
-                .AddLocation(_selection.SyntaxNode)
+                .SetLocations([_selection.SyntaxNode])
                 .Build());
     }
 
@@ -112,9 +63,9 @@ internal partial class MiddlewareContext : IMiddlewareContext
             throw new ArgumentNullException(nameof(exception));
         }
 
-        if (exception is GraphQLException graphQLException)
+        if (exception is GraphQLException ex)
         {
-            foreach (var error in graphQLException.Errors)
+            foreach (var error in ex.Errors)
             {
                 ReportError(error);
             }
@@ -131,7 +82,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
             var errorBuilder = _operationContext.ErrorHandler
                 .CreateUnexpectedError(exception)
                 .SetPath(Path)
-                .AddLocation(_selection.SyntaxNode);
+                .SetLocations([_selection.SyntaxNode]);
 
             configure?.Invoke(errorBuilder);
 
@@ -158,6 +109,8 @@ internal partial class MiddlewareContext : IMiddlewareContext
             ReportSingle(error);
         }
 
+        return;
+
         void ReportSingle(IError singleError)
         {
             var handled = _operationContext.ErrorHandler.Handle(singleError);
@@ -166,17 +119,34 @@ internal partial class MiddlewareContext : IMiddlewareContext
             {
                 foreach (var ie in ar.Errors)
                 {
-                    _operationContext.Result.AddError(ie, _selection);
-                    _operationContext.DiagnosticEvents.ResolverError(this, ie);
+                    var errorWithPath = EnsurePathAndLocation(ie, _selection.SyntaxNode, Path);
+                    _operationContext.Result.AddError(errorWithPath, _selection);
+                    _operationContext.DiagnosticEvents.ResolverError(this, errorWithPath);
                 }
             }
             else
             {
-                _operationContext.Result.AddError(handled, _selection);
-                _operationContext.DiagnosticEvents.ResolverError(this, handled);
+                var errorWithPath = EnsurePathAndLocation(handled, _selection.SyntaxNode, Path);
+                _operationContext.Result.AddError(errorWithPath, _selection);
+                _operationContext.DiagnosticEvents.ResolverError(this, errorWithPath);
             }
 
             HasErrors = true;
+        }
+
+        static IError EnsurePathAndLocation(IError error, ISyntaxNode node, Path path)
+        {
+            if (error.Path is null)
+            {
+                error = error.WithPath(path);
+            }
+
+            if (error.Locations is not { Count: > 0 } && node.Location is not null)
+            {
+                error = error.WithLocations([new Location(node.Location.Line, node.Location.Column)]);
+            }
+
+            return error;
         }
     }
 
@@ -195,8 +165,8 @@ internal partial class MiddlewareContext : IMiddlewareContext
             : (T)_resolverResult;
     }
 
-    public T Resolver<T>() =>
-        _operationContext.Activator.GetOrCreate<T>(_operationContext.Services);
+    public T Resolver<T>()
+        => _operationContext.Resolvers.GetResolver<T>(_operationContext.Services);
 
     public T Service<T>() where T : notnull => Services.GetRequiredService<T>();
 
@@ -235,9 +205,32 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
     public async ValueTask ExecuteCleanupTasksAsync()
     {
-        foreach (var task in _cleanupTasks)
+        var count = _cleanupTasks.Count;
+
+        if (count == 1)
         {
-            await task.Invoke().ConfigureAwait(false);
+            await _cleanupTasks[0].Invoke().ConfigureAwait(false);
+            return;
+        }
+
+        if (count == 2)
+        {
+            await _cleanupTasks[0].Invoke().ConfigureAwait(false);
+            await _cleanupTasks[1].Invoke().ConfigureAwait(false);
+            return;
+        }
+
+        if (count == 3)
+        {
+            await _cleanupTasks[0].Invoke().ConfigureAwait(false);
+            await _cleanupTasks[1].Invoke().ConfigureAwait(false);
+            await _cleanupTasks[2].Invoke().ConfigureAwait(false);
+            return;
+        }
+
+        for (var i = 0; i < count; i++)
+        {
+            await _cleanupTasks[i].Invoke().ConfigureAwait(false);
         }
     }
 

@@ -1,9 +1,7 @@
-using System;
 using System.ComponentModel.DataAnnotations;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using Snapshooter.Xunit;
-using Xunit;
 
 #nullable enable
 

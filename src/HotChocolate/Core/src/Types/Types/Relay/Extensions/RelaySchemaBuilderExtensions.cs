@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Types.Relay;
 using static HotChocolate.WellKnownContextData;
 
@@ -25,6 +24,8 @@ public static class RelaySchemaBuilderExtensions
         bool registerNodeInterface)
     {
         schemaBuilder.SetContextData(GlobalIdSupportEnabled, 1);
+
+        schemaBuilder.TryAddTypeInterceptor<NodeIdSerializerTypeInterceptor>();
 
         if (registerNodeInterface)
         {

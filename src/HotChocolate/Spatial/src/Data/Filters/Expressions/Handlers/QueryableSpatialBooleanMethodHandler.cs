@@ -65,7 +65,7 @@ public abstract class QueryableSpatialBooleanMethodHandler
                 context,
                 filterOperationField,
                 node,
-                out Expression? nestedProperty))
+                out var nestedProperty))
             {
                 context.ReportError(
                     ErrorHelper.CouldNotCreateFilterForOperation(field, node.Value, context));
@@ -98,9 +98,9 @@ public abstract class QueryableSpatialBooleanMethodHandler
         [NotNullWhen(true)] out ISyntaxVisitorAction? action)
     {
         // Dequeue last
-        Expression instance = context.PopInstance();
+        var instance = context.PopInstance();
         context.RuntimeTypes.Pop();
-        Expression condition = IsTrue ? instance : FilterExpressionBuilder.Not(instance);
+        var condition = IsTrue ? instance : FilterExpressionBuilder.Not(instance);
 
         if (context.InMemory)
         {

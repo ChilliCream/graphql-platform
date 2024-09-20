@@ -1,9 +1,6 @@
-using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using HotChocolate.Types.Descriptors;
-
-#nullable enable
 
 namespace HotChocolate.Types;
 
@@ -22,6 +19,6 @@ public sealed class UseDataLoaderAttribute : ObjectFieldDescriptorAttribute
         IObjectFieldDescriptor descriptor,
         MemberInfo member)
     {
-        descriptor.UseDataloader(_dataLoaderType);
+        descriptor.UseDataLoader(_dataLoaderType);
     }
 }

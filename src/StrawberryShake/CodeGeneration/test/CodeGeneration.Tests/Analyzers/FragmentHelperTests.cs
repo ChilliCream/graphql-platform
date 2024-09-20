@@ -1,18 +1,13 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
-using Xunit;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;
 
 public class FragmentHelperTests
 {
-
     [Fact]
     public async Task GetReturnTypeName_Found()
     {

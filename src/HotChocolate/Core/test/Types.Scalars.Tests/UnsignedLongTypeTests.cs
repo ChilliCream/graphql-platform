@@ -1,8 +1,5 @@
-using System;
-using System.Threading.Tasks;
 using HotChocolate.Language;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types;
 
@@ -53,7 +50,7 @@ public class UnsignedLongTypeTests : ScalarTypeTestBase
     [InlineData((ulong)1, true)]
     [InlineData(ulong.MinValue, true)]
     [InlineData(ulong.MaxValue, true)]
-    public void IsInstanceOfType_GivenObject_MatchExpected(object value, bool expected)
+    public void IsInstanceOfType_GivenObject_MatchExpected(object? value, bool expected)
     {
         // arrange
         // act
@@ -69,8 +66,8 @@ public class UnsignedLongTypeTests : ScalarTypeTestBase
     [InlineData(typeof(NullValueNode), null, null)]
     public void ParseLiteral_GivenValueNode_MatchExpected(
         Type type,
-        object value,
-        object expected)
+        object? value,
+        object? expected)
     {
         // arrange
         var valueNode = CreateValueNode(type, value);
@@ -100,7 +97,7 @@ public class UnsignedLongTypeTests : ScalarTypeTestBase
     [InlineData(typeof(IntValueNode), ulong.MaxValue)]
     [InlineData(typeof(IntValueNode), ulong.MinValue)]
     [InlineData(typeof(NullValueNode), null)]
-    public void ParseValue_GivenObject_MatchExpectedType(Type type, object value)
+    public void ParseValue_GivenObject_MatchExpectedType(Type type, object? value)
     {
         // arrange
         // act
@@ -127,8 +124,8 @@ public class UnsignedLongTypeTests : ScalarTypeTestBase
     [InlineData(ulong.MinValue, ulong.MinValue)]
     [InlineData(null, null)]
     public void Deserialize_GivenValue_MatchExpected(
-        object resultValue,
-        object runtimeValue)
+        object? resultValue,
+        object? runtimeValue)
     {
         // arrange
         // act
@@ -157,8 +154,8 @@ public class UnsignedLongTypeTests : ScalarTypeTestBase
     [InlineData(ulong.MaxValue, ulong.MaxValue)]
     [InlineData(null, null)]
     public void Serialize_GivenObject_MatchExpectedType(
-        object runtimeValue,
-        object resultValue)
+        object? runtimeValue,
+        object? resultValue)
     {
         // arrange
         // act
@@ -184,7 +181,7 @@ public class UnsignedLongTypeTests : ScalarTypeTestBase
     [InlineData(typeof(IntValueNode), ulong.MaxValue)]
     [InlineData(typeof(IntValueNode), ulong.MinValue)]
     [InlineData(typeof(NullValueNode), null)]
-    public void ParseResult_GivenObject_MatchExpectedType(Type type, object value)
+    public void ParseResult_GivenObject_MatchExpectedType(Type type, object? value)
     {
         // arrange
         // act

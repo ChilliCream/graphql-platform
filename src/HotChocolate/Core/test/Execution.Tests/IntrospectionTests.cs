@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Configuration;
 using HotChocolate.Types;
@@ -432,7 +430,7 @@ public class IntrospectionTests
                 .Type<StringType>()
                 .Argument("b",
                     a => a.Type<BazType>()
-                        .DefaultValue(new Baz { Qux = "fooBar", }))
+                        .DefaultValue(new Baz(qux: "fooBar")))
                 .Resolve(() => "foo.a");
         }
     }
@@ -446,9 +444,9 @@ public class IntrospectionTests
         }
     }
 
-    public class Baz
+    public class Baz(string qux)
     {
-        public string Qux { get; set; }
+        public string Qux { get; set; } = qux;
     }
 
     private sealed class UpperDirectiveType : DirectiveType

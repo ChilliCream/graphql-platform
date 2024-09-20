@@ -12,11 +12,19 @@ schema
 }
 
 type Query {
+  errorField: String
+    @resolver(subgraph: "Accounts", select: "{ errorField }")
+  productBookmarkByUsername(username: ID!): ProductBookmark
+    @variable(subgraph: "Products", name: "username", argument: "username")
+    @resolver(subgraph: "Products", select: "{ productBookmarkByUsername(username: $username) }", arguments: [ { name: "username", type: "ID!" } ])
   productById(id: ID!): Product
     @variable(subgraph: "Reviews2", name: "id", argument: "id")
     @resolver(subgraph: "Reviews2", select: "{ productById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
     @variable(subgraph: "Products", name: "id", argument: "id")
     @resolver(subgraph: "Products", select: "{ productById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
+  productConfigurationByUsername(username: ID!): ProductConfiguration
+    @variable(subgraph: "Products", name: "username", argument: "username")
+    @resolver(subgraph: "Products", select: "{ productConfigurationByUsername(username: $username) }", arguments: [ { name: "username", type: "ID!" } ])
   reviewById(id: ID!): Review
     @variable(subgraph: "Reviews2", name: "id", argument: "id")
     @resolver(subgraph: "Reviews2", select: "{ reviewById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
@@ -49,6 +57,9 @@ type Mutation {
   addUser(input: AddUserInput!): AddUserPayload!
     @variable(subgraph: "Accounts", name: "input", argument: "input")
     @resolver(subgraph: "Accounts", select: "{ addUser(input: $input) }", arguments: [ { name: "input", type: "AddUserInput!" } ])
+  uploadMultipleProductPictures(input: UploadMultipleProductPicturesInput!): UploadMultipleProductPicturesPayload!
+    @variable(subgraph: "Products", name: "input", argument: "input")
+    @resolver(subgraph: "Products", select: "{ uploadMultipleProductPictures(input: $input) }", arguments: [ { name: "input", type: "UploadMultipleProductPicturesInput!" } ])
   uploadProductPicture(input: UploadProductPictureInput!): UploadProductPicturePayload!
     @variable(subgraph: "Products", name: "input", argument: "input")
     @resolver(subgraph: "Products", select: "{ uploadProductPicture(input: $input) }", arguments: [ { name: "input", type: "UploadProductPictureInput!" } ])
@@ -96,6 +107,34 @@ type Product implements Node
     @source(subgraph: "Products")
 }
 
+type ProductBookmark implements Node
+  @variable(subgraph: "Products", name: "ProductBookmark_id", select: "id")
+  @resolver(subgraph: "Products", select: "{ node(id: $ProductBookmark_id) { ... on ProductBookmark { ... ProductBookmark } } }", arguments: [ { name: "ProductBookmark_id", type: "ID!" } ])
+  @resolver(subgraph: "Products", select: "{ nodes(ids: $ProductBookmark_id) { ... on ProductBookmark { ... ProductBookmark } } }", arguments: [ { name: "ProductBookmark_id", type: "[ID!]!" } ], kind: "BATCH") {
+  id: ID!
+    @source(subgraph: "Products")
+  note: String!
+    @source(subgraph: "Products")
+  productId: Int!
+    @source(subgraph: "Products")
+  username: String!
+    @source(subgraph: "Products")
+}
+
+type ProductConfiguration implements Node
+  @variable(subgraph: "Products", name: "ProductConfiguration_id", select: "id")
+  @resolver(subgraph: "Products", select: "{ node(id: $ProductConfiguration_id) { ... on ProductConfiguration { ... ProductConfiguration } } }", arguments: [ { name: "ProductConfiguration_id", type: "ID!" } ])
+  @resolver(subgraph: "Products", select: "{ nodes(ids: $ProductConfiguration_id) { ... on ProductConfiguration { ... ProductConfiguration } } }", arguments: [ { name: "ProductConfiguration_id", type: "[ID!]!" } ], kind: "BATCH") {
+  configurationName: String!
+    @source(subgraph: "Products")
+  id: ID!
+    @source(subgraph: "Products")
+  productId: Int!
+    @source(subgraph: "Products")
+  username: String!
+    @source(subgraph: "Products")
+}
+
 type ProductDimension {
   size: Int!
     @source(subgraph: "Products")
@@ -118,6 +157,8 @@ type Review implements Node
     @source(subgraph: "Reviews2")
   body: String!
     @source(subgraph: "Reviews2")
+  errorField: String
+    @source(subgraph: "Reviews2")
   id: ID!
     @source(subgraph: "Reviews2")
   product: Product!
@@ -133,6 +174,13 @@ type SomeData {
     @source(subgraph: "Products")
   reviewsValue: String!
     @source(subgraph: "Reviews2")
+}
+
+type UploadMultipleProductPicturesPayload {
+  boolean: Boolean
+    @source(subgraph: "Products")
+  errors: [UploadMultipleProductPicturesError!]
+    @source(subgraph: "Products")
 }
 
 type UploadProductPicturePayload {
@@ -152,12 +200,22 @@ type User implements Node
   @resolver(subgraph: "Reviews2", select: "{ nodes(ids: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH") {
   birthdate: Date!
     @source(subgraph: "Accounts")
+  errorField: String
+    @source(subgraph: "Accounts")
   id: ID!
     @source(subgraph: "Reviews2")
     @source(subgraph: "Accounts")
   name: String!
     @source(subgraph: "Reviews2")
     @source(subgraph: "Accounts")
+  productBookmarkByUsername: ProductBookmark
+    @source(subgraph: "Products")
+    @variable(subgraph: "Accounts", name: "User_username", select: "username")
+    @resolver(subgraph: "Products", select: "{ productBookmarkByUsername(username: $User_username) }", arguments: [ { name: "User_username", type: "String!" } ])
+  productConfigurationByUsername: ProductConfiguration
+    @source(subgraph: "Products")
+    @variable(subgraph: "Accounts", name: "User_username", select: "username")
+    @resolver(subgraph: "Products", select: "{ productConfigurationByUsername(username: $User_username) }", arguments: [ { name: "User_username", type: "String!" } ])
   reviews: [Review!]!
     @source(subgraph: "Reviews2")
   username: String!
@@ -185,6 +243,8 @@ interface Node {
 
 union ReviewOrAuthor = User | Review
 
+union UploadMultipleProductPicturesError = ProductNotFoundError
+
 union UploadProductPictureError = ProductNotFoundError
 
 input AddReviewInput {
@@ -199,9 +259,18 @@ input AddUserInput {
   username: String!
 }
 
+input ProductIdWithUploadInput {
+  file: Upload!
+  productId: Int!
+}
+
 input SomeDataInput {
   data: SomeDataInput
   num: Int
+}
+
+input UploadMultipleProductPicturesInput {
+  products: [ProductIdWithUploadInput!]!
 }
 
 input UploadProductPictureInput {

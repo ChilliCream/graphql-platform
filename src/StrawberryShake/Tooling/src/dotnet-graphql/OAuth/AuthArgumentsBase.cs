@@ -1,7 +1,3 @@
-using System.Linq;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using McMaster.Extensions.CommandLineUtils;
 using HCErrorBuilder = HotChocolate.ErrorBuilder;
 
@@ -61,7 +57,7 @@ public sealed class AuthArguments
             ValidateOAuthArguments(activity);
             var scopes = Scopes.HasValue()
                 ? Scopes.Values.Where(t => t is { }).OfType<string>()
-                : Enumerable.Empty<string>();
+                : [];
             var token = await TokenClient.GetTokenAsync(
                     TokenEndpoint.Value()!.Trim(),
                     ClientId.Value()!.Trim(),

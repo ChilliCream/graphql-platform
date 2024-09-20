@@ -1,8 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
 using System.Reflection;
-using HotChocolate.Language;
 using HotChocolate.Utilities;
 
 #nullable enable
@@ -13,7 +10,7 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 /// Defines the properties of a GraphQL object type.
 /// </summary>
 public class ObjectTypeDefinition
-    : TypeDefinitionBase<ObjectTypeDefinitionNode>
+    : TypeDefinitionBase
     , IComplexOutputTypeDefinition
 {
     private List<Type>? _knownClrTypes;
@@ -57,6 +54,11 @@ public class ObjectTypeDefinition
     /// The type that shall be used to infer fields from.
     /// </summary>
     public Type? FieldBindingType { get; set; }
+
+    /// <summary>
+    /// Gets the type that can provide attributes to this type.
+    /// </summary>
+    public ImmutableArray<Type> AttributeBindingTypes { get; set; } = ImmutableArray<Type>.Empty;
 
     /// <summary>
     /// Runtime types that also represent this GraphQL type.
@@ -103,12 +105,9 @@ public class ObjectTypeDefinition
     /// </summary>
     public FieldBindingFlags FieldBindingFlags
     {
-        get
-        {
-            return Fields.BindingBehavior is BindingBehavior.Explicit
-                ? FieldBindingFlags.Default
-                : _fieldBindingFlags;
-        }
+        get => Fields.BindingBehavior is BindingBehavior.Explicit
+            ? FieldBindingFlags.Default
+            : _fieldBindingFlags;
         set
         {
             Fields.BindingBehavior =
@@ -209,6 +208,11 @@ public class ObjectTypeDefinition
             }
         }
 
+        if(AttributeBindingTypes.Length > 0)
+        {
+            target.AttributeBindingTypes = AttributeBindingTypes;
+        }
+
         target.FieldBindingType = FieldBindingType;
         target.IsOfType = IsOfType;
         target.IsExtension = IsExtension;
@@ -234,6 +238,11 @@ public class ObjectTypeDefinition
         {
             target._fieldIgnores ??= [];
             target._fieldIgnores.AddRange(_fieldIgnores);
+        }
+
+        if(AttributeBindingTypes.Length > 0)
+        {
+            target.AttributeBindingTypes = target.AttributeBindingTypes.AddRange(AttributeBindingTypes);
         }
 
         foreach (var field in Fields)

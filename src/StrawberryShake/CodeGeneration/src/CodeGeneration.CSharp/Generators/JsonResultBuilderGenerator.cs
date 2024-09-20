@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Descriptors;
@@ -77,8 +74,8 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
 
         var assignment = AssignmentBuilder
             .New()
-            .SetLefthandSide(GetPropertyName(_resultDataFactory))
-            .SetRighthandSide(GetParameterName(_resultDataFactory))
+            .SetLeftHandSide(GetPropertyName(_resultDataFactory))
+            .SetRightHandSide(GetParameterName(_resultDataFactory))
             .SetAssertNonNull();
 
         constructorBuilder
@@ -123,8 +120,8 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
                             .Inline(TypeNames.ArgumentException)
                             .AddArgument(
                                 $"\"No serializer for type `{valueParser.Name}` found.\""))
-                    .SetLefthandSide(parserFieldName)
-                    .SetRighthandSide(getLeaveValueParser));
+                    .SetLeftHandSide(parserFieldName)
+                    .SetRightHandSide(getLeaveValueParser));
         }
 
         AddBuildDataMethod(settings, resultTypeDescriptor, classBuilder);

@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 using Snapshooter.Xunit;
-using Xunit;
 using static ChilliCream.Testing.FileResource;
 using static HotChocolate.Language.Utf8GraphQLParser;
 using static StrawberryShake.CodeGeneration.Utilities.OperationDocumentHelper;
@@ -15,14 +11,14 @@ public class OperationDocumentHelperTests
     // This test ensures that each operation becomes one document that
     // only has the fragments needed by the extracted operation.
     [Fact]
-    public void Extract_Operation_Documents()
+    public async Task Extract_Operation_Documents()
     {
         // arrange
         var query = Parse(Open("simple.query1.graphql"));
         List<DocumentNode> queries = [query,];
 
         // act
-        var operations = CreateOperationDocumentsAsync(queries).Result;
+        var operations = await CreateOperationDocumentsAsync(queries);
 
         // assert
         Assert.Collection(
@@ -34,7 +30,7 @@ public class OperationDocumentHelperTests
     }
 
     [Fact]
-    public void Merge_Multiple_Documents()
+    public async Task Merge_Multiple_Documents()
     {
         // arrange
         var query1 = Parse(Open("simple.query1.graphql"));
@@ -42,7 +38,7 @@ public class OperationDocumentHelperTests
         List<DocumentNode> queries = [query1, query2,];
 
         // act
-        var operations = CreateOperationDocumentsAsync(queries).Result;
+        var operations = await CreateOperationDocumentsAsync(queries);
 
         // assert
         Assert.Collection(

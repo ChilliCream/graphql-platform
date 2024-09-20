@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
@@ -93,6 +91,7 @@ public class RelaySchemaTests
             .AddQueryType<QueryType>()
             .AddMutationType<Mutation>()
             .AddQueryFieldToMutationPayloads()
+            .AddGlobalObjectIdentification()
             .ExecuteRequestAsync("mutation { foo { query { some { id } } } }")
             .MatchSnapshotAsync();
     }
@@ -107,6 +106,7 @@ public class RelaySchemaTests
             .AddQueryType<Query>()
             .AddMutationType<Mutation>()
             .AddQueryFieldToMutationPayloads()
+            .AddGlobalObjectIdentification()
             .ExecuteRequestAsync("mutation { foo { query { some { id } } } }")
             .MatchSnapshotAsync();
     }

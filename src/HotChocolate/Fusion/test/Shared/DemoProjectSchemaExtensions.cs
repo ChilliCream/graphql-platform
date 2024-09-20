@@ -9,7 +9,7 @@ public static class DemoProjectSchemaExtensions
           usersById(ids: [ID!]! @is(field: "id")): [User!]!
         }
         """;
-    
+
     public const string AccountsExtensionWithTagSdl =
         """
         extend type Query {
@@ -45,7 +45,7 @@ public static class DemoProjectSchemaExtensions
             @rename(coordinate: "Author", newName: "User") {
         }
         """;
-    
+
     public const string ReviewsExtensionWithTagSdl =
         """
         extend type Query {
@@ -76,6 +76,11 @@ public static class DemoProjectSchemaExtensions
         """
         extend type Query {
           productById(id: ID! @is(field: "id")): Product
+        }
+
+        extend type User {
+            productConfigurationByUsername(username: String! @require(field: "username")): ProductConfiguration
+            productBookmarkByUsername(username: String! @require(field: "username")): ProductBookmark
         }
         """;
 

@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types.Spatial.Serialization;

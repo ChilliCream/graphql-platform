@@ -1,10 +1,7 @@
-using System;
-using System.Collections.Generic;
 using System.Text.Json;
 using HotChocolate.Resolvers;
 using HotChocolate.StarWars.Data;
 using HotChocolate.StarWars.Models;
-using HotChocolate.Subscriptions;
 
 namespace HotChocolate.StarWars;
 
@@ -32,7 +29,7 @@ public class Query
     /// </summary>
     /// <param name="traits">The traits to look up by.</param>
     /// <returns>The character.</returns>
-    public ICharacter GetHeroByTraits(JsonElement traits)
+    public ICharacter? GetHeroByTraits(JsonElement traits)
     {
         return _repository.GetHeroByTraits(traits);
     }
@@ -46,7 +43,7 @@ public class Query
     {
         var list = new List<ICharacter>();
 
-        foreach (Episode episode in episodes)
+        foreach (var episode in episodes)
         {
             list.Add(_repository.GetHero(episode));
         }
@@ -59,7 +56,7 @@ public class Query
     /// </summary>
     /// <param name="id">The Id of the human to retrieve.</param>
     /// <returns>The human.</returns>
-    public Human GetHuman(string id)
+    public Human? GetHuman(string id)
     {
         return _repository.GetHuman(id);
     }
@@ -69,7 +66,7 @@ public class Query
     /// </summary>
     /// <param name="id">The Id of the droid.</param>
     /// <returns>The droid.</returns>
-    public Droid GetDroid(string id)
+    public Droid? GetDroid(string id)
     {
         return _repository.GetDroid(id);
     }
@@ -78,7 +75,7 @@ public class Query
     {
         foreach (var characterId in characterIds)
         {
-            ICharacter character = _repository.GetCharacter(characterId);
+            var character = _repository.GetCharacter(characterId);
 
             if (character is null)
             {

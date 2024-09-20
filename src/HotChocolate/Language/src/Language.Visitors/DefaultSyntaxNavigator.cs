@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using static HotChocolate.Language.Properties.Resources;
 
 namespace HotChocolate.Language.Visitors;
@@ -130,9 +127,7 @@ public class DefaultSyntaxNavigator : ISyntaxNavigator
     /// <inheritdoc cref="ISyntaxNavigator.GetAncestors{TNode}"/>
     public IEnumerable<TNode> GetAncestors<TNode>()
         where TNode : ISyntaxNode
-        => _ancestors.Count == 0
-            ? Enumerable.Empty<TNode>()
-            : GetAncestorsInternal<TNode>();
+        => _ancestors.Count == 0 ? [] : GetAncestorsInternal<TNode>();
 
     private IEnumerable<TNode> GetAncestorsInternal<TNode>()
         where TNode : ISyntaxNode

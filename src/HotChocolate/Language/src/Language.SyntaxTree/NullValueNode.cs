@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
@@ -39,7 +36,7 @@ public sealed class NullValueNode
     public object? Value { get; }
 
     /// <inheritdoc />
-    public IEnumerable<ISyntaxNode> GetNodes() => Enumerable.Empty<ISyntaxNode>();
+    public IEnumerable<ISyntaxNode> GetNodes() => [];
 
     /// <summary>
     /// Determines whether the specified <see cref="NullValueNode"/>

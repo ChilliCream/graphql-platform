@@ -15,13 +15,16 @@ public static class RavenOffsetPagingQueryableExtensions
     /// Applies the offset pagination algorithm to the <paramref name="query"/>.
     /// </summary>
     /// <param name="query">
-    /// The query on which the the offset pagination algorithm shall be applied to.
+    /// The query on which the offset pagination algorithm shall be applied to.
     /// </param>
     /// <param name="skip">
-    /// Bypasses a _n_ elements from the list..
+    /// Bypasses a _n_ elements from the list.
     /// </param>
     /// <param name="take">
     /// Returns the last _n_ elements from the list.
+    /// </param>
+    /// <param name="requireTotalCount">
+    /// Specifies if the total count is needed.
     /// </param>
     /// <param name="cancellationToken">
     /// The cancellation token.
@@ -37,20 +40,25 @@ public static class RavenOffsetPagingQueryableExtensions
         this IRavenQueryable<TEntity> query,
         int? skip = null,
         int? take = null,
+        bool requireTotalCount = false,
         CancellationToken cancellationToken = default)
         => ApplyOffsetPaginationAsync(
             query,
             new OffsetPagingArguments(skip, take),
+            requireTotalCount,
             cancellationToken);
 
     /// <summary>
     /// Applies the offset pagination algorithm to the <paramref name="query"/>.
     /// </summary>
     /// <param name="query">
-    /// The query on which the the offset pagination algorithm shall be applied to.
+    /// The query on which the offset pagination algorithm shall be applied to.
     /// </param>
     /// <param name="arguments">
     /// The offset paging arguments.
+    /// </param>
+    /// <param name="requireTotalCount">
+    /// Specifies if the total count is needed.
     /// </param>
     /// <param name="cancellationToken">
     /// The cancellation token.
@@ -65,17 +73,19 @@ public static class RavenOffsetPagingQueryableExtensions
     public static ValueTask<CollectionSegment<TEntity>> ApplyOffsetPaginationAsync<TEntity>(
         this IRavenQueryable<TEntity> query,
         OffsetPagingArguments arguments,
+        bool requireTotalCount = false,
         CancellationToken cancellationToken = default)
         => RavenOffsetPagination<TEntity>.Instance.ApplyPaginationAsync(
             new RavenPagingContainer<TEntity>(query.ToAsyncDocumentQuery()),
             arguments,
+            requireTotalCount,
             cancellationToken);
 
     /// <summary>
     /// Applies the offset pagination algorithm to the <paramref name="query"/>.
     /// </summary>
     /// <param name="query">
-    /// The query on which the the offset pagination algorithm shall be applied to.
+    /// The query on which the offset pagination algorithm shall be applied to.
     /// </param>
     /// <param name="context">
     /// The field resolver context.
@@ -85,6 +95,9 @@ public static class RavenOffsetPagingQueryableExtensions
     /// </param>
     /// <param name="totalCount">
     /// The total count if already known.
+    /// </param>
+    /// <param name="requireTotalCount">
+    /// Specifies if the total count is needed.
     /// </param>
     /// <param name="cancellationToken">
     /// The cancellation token.
@@ -101,6 +114,7 @@ public static class RavenOffsetPagingQueryableExtensions
         IResolverContext context,
         int? defaultPageSize = null,
         int? totalCount = null,
+        bool requireTotalCount = false,
         CancellationToken cancellationToken = default)
     {
         if (query is null)
@@ -121,6 +135,7 @@ public static class RavenOffsetPagingQueryableExtensions
             new RavenPagingContainer<TEntity>(query.ToAsyncDocumentQuery()),
             arguments,
             totalCount,
+            requireTotalCount,
             cancellationToken);
     }
 }

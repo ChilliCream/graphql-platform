@@ -1,12 +1,7 @@
-using System;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.StarWars;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Execution.Serialization;
 

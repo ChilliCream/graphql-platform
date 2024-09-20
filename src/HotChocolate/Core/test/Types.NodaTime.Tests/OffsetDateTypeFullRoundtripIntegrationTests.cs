@@ -1,113 +1,108 @@
 using HotChocolate.Execution;
 using NodaTime.Text;
-using Xunit;
 
 namespace HotChocolate.Types.NodaTime.Tests
 {
     public class OffsetDateTypeFullRoundtripIntegrationTests
     {
-        private readonly IRequestExecutor testExecutor;
-
-        public OffsetDateTypeFullRoundtripIntegrationTests()
-        {
-            testExecutor = SchemaBuilder.New()
+        private readonly IRequestExecutor _testExecutor =
+            SchemaBuilder.New()
                 .AddQueryType<OffsetDateTypeIntegrationTests.Schema.Query>()
                 .AddMutationType<OffsetDateTypeIntegrationTests.Schema.Mutation>()
                 .AddNodaTime(typeof(OffsetDateType))
                 .AddType(new OffsetDateType(OffsetDatePattern.FullRoundtrip))
                 .Create()
                 .MakeExecutable();
-        }
 
         [Fact]
         public void QueryReturns()
         {
-            IExecutionResult result = testExecutor.Execute("query { test: hours }");
+            var result = _testExecutor.Execute("query { test: hours }");
 
-            Assert.Equal("2020-12-31+02 (Gregorian)", result.ExpectQueryResult()!.Data!["test"]);
+            Assert.Equal("2020-12-31+02 (Gregorian)", result.ExpectOperationResult()!.Data!["test"]);
         }
 
         [Fact]
         public void QueryReturnsWithMinutes()
         {
-            IExecutionResult result = testExecutor.Execute("query { test: hoursAndMinutes }");
+            var result = _testExecutor.Execute("query { test: hoursAndMinutes }");
 
-            Assert.Equal("2020-12-31+02:35 (Gregorian)", result.ExpectQueryResult()!.Data!["test"]);
+            Assert.Equal("2020-12-31+02:35 (Gregorian)", result.ExpectOperationResult()!.Data!["test"]);
         }
 
         [Fact]
         public void ParsesVariable()
         {
-            IExecutionResult result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: OffsetDate!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "2020-12-31+02 (Gregorian)")
-                    .Create());
+            var result = _testExecutor
+                .Execute(OperationRequestBuilder.New()
+                    .SetDocument("mutation($arg: OffsetDate!) { test(arg: $arg) }")
+                    .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-12-31+02 (Gregorian)" }, })
+                    .Build());
 
-            Assert.Equal("2020-12-31+02 (Gregorian)", result.ExpectQueryResult()!.Data!["test"]);
+            Assert.Equal("2020-12-31+02 (Gregorian)", result.ExpectOperationResult()!.Data!["test"]);
         }
 
         [Fact]
         public void ParsesVariableWithMinutes()
         {
-            IExecutionResult result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: OffsetDate!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "2020-12-31+02:35 (Gregorian)")
-                    .Create());
+            var result = _testExecutor
+                .Execute(OperationRequestBuilder.New()
+                    .SetDocument("mutation($arg: OffsetDate!) { test(arg: $arg) }")
+                    .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-12-31+02:35 (Gregorian)" }, })
+                    .Build());
 
-            Assert.Equal("2020-12-31+02:35 (Gregorian)", result.ExpectQueryResult()!.Data!["test"]);
+            Assert.Equal("2020-12-31+02:35 (Gregorian)", result.ExpectOperationResult()!.Data!["test"]);
         }
 
         [Fact]
         public void DoesntParseAnIncorrectVariable()
         {
-            IExecutionResult result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: OffsetDate!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "2020-12-31 (Gregorian)")
-                    .Create());
+            var result = _testExecutor
+                .Execute(OperationRequestBuilder.New()
+                    .SetDocument("mutation($arg: OffsetDate!) { test(arg: $arg) }")
+                    .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-12-31 (Gregorian)" }, })
+                    .Build());
 
-            Assert.Null(result.ExpectQueryResult()!.Data);
-            Assert.Equal(1, result.ExpectQueryResult()!.Errors!.Count);
+            Assert.Null(result.ExpectOperationResult()!.Data);
+            Assert.Single(result.ExpectOperationResult()!.Errors!);
         }
 
         [Fact]
         public void ParsesLiteral()
         {
-            IExecutionResult result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"2020-12-31+02 (Gregorian)\") }")
-                    .Create());
+            var result = _testExecutor
+                .Execute(OperationRequestBuilder.New()
+                    .SetDocument("mutation { test(arg: \"2020-12-31+02 (Gregorian)\") }")
+                    .Build());
 
-            Assert.Equal("2020-12-31+02 (Gregorian)", result.ExpectQueryResult()!.Data!["test"]);
+            Assert.Equal("2020-12-31+02 (Gregorian)", result.ExpectOperationResult()!.Data!["test"]);
         }
 
         [Fact]
         public void ParsesLiteralWithMinutes()
         {
-            IExecutionResult result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"2020-12-31+02:35 (Gregorian)\") }")
-                    .Create());
+            var result = _testExecutor
+                .Execute(OperationRequestBuilder.New()
+                    .SetDocument("mutation { test(arg: \"2020-12-31+02:35 (Gregorian)\") }")
+                    .Build());
 
-            Assert.Equal("2020-12-31+02:35 (Gregorian)", result.ExpectQueryResult()!.Data!["test"]);
+            Assert.Equal("2020-12-31+02:35 (Gregorian)", result.ExpectOperationResult()!.Data!["test"]);
         }
 
         [Fact]
         public void DoesntParseIncorrectLiteral()
         {
-            IExecutionResult result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"2020-12-31 (Gregorian)\") }")
-                    .Create());
+            var result = _testExecutor
+                .Execute(OperationRequestBuilder.New()
+                    .SetDocument("mutation { test(arg: \"2020-12-31 (Gregorian)\") }")
+                    .Build());
 
-            Assert.Null(result.ExpectQueryResult()!.Data);
-            Assert.Equal(1, result.ExpectQueryResult()!.Errors!.Count);
-            Assert.Null(result.ExpectQueryResult().Errors![0].Code);
+            Assert.Null(result.ExpectOperationResult()!.Data);
+            Assert.Single(result.ExpectOperationResult()!.Errors!);
+            Assert.Null(result.ExpectOperationResult().Errors![0].Code);
             Assert.Equal(
                 "Unable to deserialize string to OffsetDate",
-                result.ExpectQueryResult().Errors![0].Message);
+                result.ExpectOperationResult().Errors![0].Message);
         }
     }
 }

@@ -128,8 +128,7 @@ public class ProjectionVisitor<TContext>
         if (field.Type is IPageType and ObjectType pageType &&
             context.Selection.Peek() is { } pagingFieldSelection)
         {
-            var selections =
-                context.ResolverContext.GetSelections(pageType, pagingFieldSelection, true);
+            var selections = context.ResolverContext.GetSelections(pageType, pagingFieldSelection, true);
 
             for (var index = selections.Count - 1; index >= 0; index--)
             {

@@ -1,9 +1,5 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -327,7 +323,6 @@ public class ObjectTypeTests : TypeTestBase
         Assert.IsType<StringType>(fooType.Fields["bar"].Type);
     }
 
-
     [Fact]
     public void TwoInterfacesProvideFieldAWithDifferentOutputType()
     {
@@ -359,7 +354,7 @@ public class ObjectTypeTests : TypeTestBase
             return;
         }
 
-        Assert.True(false, "Schema exception was not thrown.");
+        Assert.Fail("Schema exception was not thrown.");
     }
 
     [Fact]
@@ -393,7 +388,7 @@ public class ObjectTypeTests : TypeTestBase
             return;
         }
 
-        Assert.True(false, "Schema exception was not thrown.");
+        Assert.Fail("Schema exception was not thrown.");
     }
 
     [Fact]
@@ -427,7 +422,7 @@ public class ObjectTypeTests : TypeTestBase
             return;
         }
 
-        Assert.True(false, "Schema exception was not thrown.");
+        Assert.Fail("Schema exception was not thrown.");
     }
 
     [Fact]
@@ -461,7 +456,7 @@ public class ObjectTypeTests : TypeTestBase
             return;
         }
 
-        Assert.True(false, "Schema exception was not thrown.");
+        Assert.Fail("Schema exception was not thrown.");
     }
 
     [Fact]
@@ -565,7 +560,7 @@ public class ObjectTypeTests : TypeTestBase
             return;
         }
 
-        Assert.True(false, "Schema exception was not thrown.");
+        Assert.Fail("Schema exception was not thrown.");
     }
 
     [Fact]
@@ -599,7 +594,7 @@ public class ObjectTypeTests : TypeTestBase
             return;
         }
 
-        Assert.True(false, "Schema exception was not thrown.");
+        Assert.Fail("Schema exception was not thrown.");
     }
 
     [Fact]
@@ -1170,10 +1165,10 @@ public class ObjectTypeTests : TypeTestBase
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ desc }")
+            OperationRequestBuilder.New()
+                .SetDocument("{ desc }")
                 .SetGlobalState(InitialValue, new Foo())
-                .Create());
+                .Build());
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -1481,12 +1476,12 @@ public class ObjectTypeTests : TypeTestBase
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ bar baz }")
+            OperationRequestBuilder.New()
+                .SetDocument("{ bar baz }")
                 .SetGlobalState(
                     InitialValue,
                     new FooStruct { Qux = "Qux_Value", Baz = "Baz_Value", })
-                .Create());
+                .Build());
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -1788,7 +1783,7 @@ public class ObjectTypeTests : TypeTestBase
                 d =>
                 {
                     d.Name("Query");
-                    d.Field("Foo").Type("String").Resolve(_ => null);
+                    d.Field("Foo").Type("String").Resolve(_ => null!);
                 })
             .Create()
             .Print()
@@ -1806,7 +1801,7 @@ public class ObjectTypeTests : TypeTestBase
                     d.Field("Foo")
                         .Argument("a", t => t.Type("Int"))
                         .Type("String")
-                        .Resolve(_ => null);
+                        .Resolve(_ => null!);
                 })
             .Create()
             .Print()
@@ -1998,7 +1993,6 @@ public class ObjectTypeTests : TypeTestBase
         // assert
         SnapshotExtensions.MatchSnapshot(schema);
     }
-
 
     [Fact]
     public async Task Static_Field_Inference_3()

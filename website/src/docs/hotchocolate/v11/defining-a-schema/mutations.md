@@ -38,7 +38,7 @@ Each of these mutations is executed serially one by one whereas their child sele
 A mutation type can be defined like the following.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Mutation
@@ -62,7 +62,7 @@ public class Startup
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp

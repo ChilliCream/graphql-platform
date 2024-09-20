@@ -1,9 +1,6 @@
-using System;
 using HotChocolate.AspNetCore.Tests.Utilities;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake.Transport.WebSockets;
-using Xunit;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 {

@@ -1,6 +1,3 @@
-using System;
-using Xunit;
-
 // ReSharper disable once CheckNamespace
 namespace HotChocolate.Types.Descriptors;
 
@@ -27,7 +24,7 @@ public class DefaultNamingConventionsTests
                 new NoOpStringBuilderPool()));
 
         // act
-        string formattedFieldName = namingConventions.FormatFieldName(fieldName);
+        var formattedFieldName = namingConventions.FormatFieldName(fieldName);
 
         // assert
         Assert.Equal(expected, formattedFieldName);

@@ -1,4 +1,3 @@
-using System;
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using static HotChocolate.Language.Properties.LangUtf8Resources;
@@ -108,7 +107,7 @@ public ref partial struct Utf8GraphQLParser
         public static FieldNode ParseField(
             Utf8GraphQLReader reader) =>
             new Utf8GraphQLParser(reader).ParseField();
-        
+
         /// <summary>
         /// Parses a GraphQL field selection string e.g. field(arg: "abc")
         /// </summary>

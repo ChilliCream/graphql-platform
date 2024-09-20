@@ -1,6 +1,3 @@
-using System;
-using System.Text.Json;
-
 namespace HotChocolate.Execution.Serialization;
 
 /// <summary>

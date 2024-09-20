@@ -16,10 +16,10 @@ public static class CommonTestExtensions
                 if (context.ContextData.TryGetValue("ex", out var queryString))
                 {
                     context.Result =
-                        QueryResultBuilder
-                            .FromResult(context.Result!.ExpectQueryResult())
+                        OperationResultBuilder
+                            .FromResult(context.Result!.ExpectOperationResult())
                             .SetContextData("ex", queryString)
-                            .Create();
+                            .Build();
                 }
             })
             .UseDefaultPipeline()

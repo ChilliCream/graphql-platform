@@ -1,7 +1,16 @@
 {
   "errors": [
     {
-      "message": "query error 7"
+      "message": "query error 7",
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ],
+      "path": [
+        "error7"
+      ]
     }
   ],
   "data": {

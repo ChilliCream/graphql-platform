@@ -1,11 +1,9 @@
-using System.Threading.Tasks;
 using HotChocolate.Configuration.Validation;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types;
 
@@ -65,10 +63,10 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .AddQueryType<Query>()
             .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("query($var: String!) { example(input: { a: $var, b: 123 }) }")
-                    .SetVariableValue("var", null)
-                    .Create())
+                OperationRequestBuilder.New()
+                    .SetDocument("query($var: String!) { example(input: { a: $var, b: 123 }) }")
+                    .SetVariableValues(new Dictionary<string, object?> { { "var", null }, })
+                    .Build())
             .MatchSnapshotAsync();
     }
 
@@ -82,10 +80,10 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .AddQueryType<Query>()
             .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("query($var: Int!) { example(input: { b: $var }) }")
-                    .SetVariableValue("var", 123)
-                    .Create())
+                OperationRequestBuilder.New()
+                    .SetDocument("query($var: Int!) { example(input: { b: $var }) }")
+                    .SetVariableValues(new Dictionary<string, object?> { { "var", 123 }, })
+                    .Build())
             .MatchSnapshotAsync();
     }
 
@@ -99,10 +97,12 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .AddQueryType<Query>()
             .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("query($var: ExampleInput!) { example(input: $var) }")
-                    .SetVariableValue("var", new ObjectValueNode(new ObjectFieldNode("b", 123)))
-                    .Create())
+                OperationRequestBuilder.New()
+                    .SetDocument("query($var: ExampleInput!) { example(input: $var) }")
+                    .SetVariableValues(
+                        new Dictionary<string, object?>
+                            { { "var", new ObjectValueNode(new ObjectFieldNode("b", 123)) }, })
+                    .Build())
             .MatchSnapshotAsync();
     }
 
@@ -118,9 +118,9 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .AddQueryType<Query>()
             .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ example(input: \"abc123\") }")
-                    .Create())
+                OperationRequestBuilder.New()
+                    .SetDocument("{ example(input: \"abc123\") }")
+                    .Build())
             .MatchSnapshotAsync();
     }
 
@@ -136,10 +136,10 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .AddQueryType<Query>()
             .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("query($var: String!) { example(input: $var) }")
-                    .SetVariableValue("var", "abc123")
-                    .Create())
+                OperationRequestBuilder.New()
+                    .SetDocument("query($var: String!) { example(input: $var) }")
+                    .SetVariableValues(new Dictionary<string, object?> { { "var", "abc123" }, })
+                    .Build())
             .MatchSnapshotAsync();
     }
 
@@ -196,9 +196,9 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .AddQueryType<Query>()
             .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("query($var: Int!) { example(input: { b: $var }) }")
-                    .Create())
+                OperationRequestBuilder.New()
+                    .SetDocument("query($var: Int!) { example(input: { b: $var }) }")
+                    .Build())
             .MatchSnapshotAsync();
     }
 
@@ -212,10 +212,12 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .AddQueryType<Query>()
             .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("query($var: ExampleInput!) { example(input: $var) }")
-                    .SetVariableValue("var", new ObjectValueNode(new ObjectFieldNode("a", "abc")))
-                    .Create())
+                OperationRequestBuilder.New()
+                    .SetDocument("query($var: ExampleInput!) { example(input: $var) }")
+                    .SetVariableValues(
+                        new Dictionary<string, object?>
+                            { { "var", new ObjectValueNode(new ObjectFieldNode("a", "abc")) }, })
+                    .Build())
             .MatchSnapshotAsync();
     }
 
@@ -243,10 +245,10 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .AddQueryType<Query>()
             .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("query($var: Int) { example(input: { b: $var }) }")
-                    .SetVariableValue("var", null)
-                    .Create())
+                OperationRequestBuilder.New()
+                    .SetDocument("query($var: Int) { example(input: { b: $var }) }")
+                    .SetVariableValues(new Dictionary<string, object?> { { "var", null }, })
+                    .Build())
             .MatchSnapshotAsync();
     }
 
@@ -333,7 +335,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .Print()
             .MatchSnapshot();
 
-
     [Fact]
     public async Task Oneof_introspection()
     {
@@ -342,26 +343,27 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o =>
-            {
-                o.EnableOneOf = true;
-                o.StrictValidation = true;
-            })
+            .ModifyOptions(
+                o =>
+                {
+                    o.EnableOneOf = true;
+                    o.StrictValidation = true;
+                })
             .ExecuteRequestAsync(
-                @"{ 
-                    oneof_input: __type(name: ""ExampleInput"") { 
+                @"{
+                    oneof_input: __type(name: ""ExampleInput"") {
                         # should be true
-                        oneOf 
+                        oneOf
                     }
 
-                    input: __type(name: ""StandardInput"") { 
+                    input: __type(name: ""StandardInput"") {
                         # should be false
-                        oneOf 
+                        oneOf
                     }
 
-                    object: __type(name: ""Query"") { 
+                    object: __type(name: ""Query"") {
                         # should be null
-                        oneOf 
+                        oneOf
                     }
                 }")
             .MatchSnapshotAsync();
@@ -379,7 +381,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             return "b: " + input.B;
         }
 
-        public string Standard(StandardInput input) 
+        public string Standard(StandardInput input)
             => "abc";
     }
 
@@ -387,6 +389,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     public class ExampleInput
     {
         public string? A { get; set; }
+
         public int? B { get; set; }
     }
 
@@ -419,6 +422,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     public class Example2Input
     {
         public string? A { get; set; }
+
         public int? B { get; set; }
     }
 }

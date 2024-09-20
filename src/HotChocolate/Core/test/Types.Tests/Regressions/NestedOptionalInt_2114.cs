@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Types;
-using Xunit;
 
 #nullable enable
 
@@ -37,7 +32,7 @@ public class NestedOptionalInt_2114
         var result = await executor.ExecuteAsync(Query);
 
         // assert
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
         Verify(input);
     }
 
@@ -91,7 +86,7 @@ public class NestedOptionalInt_2114
             });
 
         // assert
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
         Verify(input);
     }
 

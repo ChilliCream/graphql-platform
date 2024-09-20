@@ -1,23 +1,23 @@
-using System;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Data.Sorting;
 
-public class SortInputType<T>
-    : SortInputType
+public class SortInputType<T> : SortInputType
 {
     private Action<ISortInputTypeDescriptor<T>>? _configure;
-
-    public SortInputType()
-    {
-        _configure = Configure;
-    }
 
     public SortInputType(Action<ISortInputTypeDescriptor<T>> configure)
     {
         _configure = configure ??
             throw new ArgumentNullException(nameof(configure));
+    }
+
+    [ActivatorUtilitiesConstructor]
+    public SortInputType()
+    {
+        _configure = Configure;
     }
 
     protected override InputObjectTypeDefinition CreateDefinition(

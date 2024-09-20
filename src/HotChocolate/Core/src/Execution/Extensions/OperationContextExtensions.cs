@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Execution.Processing;
 
 // ReSharper disable once CheckNamespace
@@ -22,9 +20,9 @@ internal static class OperationContextExtensions
             throw new ArgumentNullException(nameof(exception));
         }
 
-        if (exception is GraphQLException graphQLException)
+        if (exception is GraphQLException ex)
         {
-            foreach (var error in graphQLException.Errors)
+            foreach (var error in ex.Errors)
             {
                 ReportError(operationContext, error, resolverContext, selection);
             }
@@ -34,7 +32,7 @@ internal static class OperationContextExtensions
             var error = operationContext.ErrorHandler
                 .CreateUnexpectedError(exception)
                 .SetPath(path)
-                .AddLocation(selection.SyntaxNode)
+                .SetLocations([selection.SyntaxNode])
                 .Build();
 
             ReportError(operationContext, error, resolverContext, selection);
@@ -89,7 +87,6 @@ internal static class OperationContextExtensions
         }
     }
 
-
     public static OperationContext SetLabel(
         this OperationContext context,
         string? label)
@@ -137,7 +134,7 @@ internal static class OperationContextExtensions
         return context;
     }
 
-    public static IQueryResult BuildResult(
+    public static IOperationResult BuildResult(
         this OperationContext context) =>
         context.Result.BuildResult();
 }

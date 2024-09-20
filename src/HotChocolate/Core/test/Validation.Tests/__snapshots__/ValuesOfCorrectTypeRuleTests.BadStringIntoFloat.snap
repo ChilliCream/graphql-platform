@@ -29,17 +29,6 @@
       "locationType": "Float",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "StringValue",
-      "Location": {
-        "Start": 99,
-        "End": 107,
-        "Line": 4,
-        "Column": 49
-      },
-      "Value": "3.333",
-      "Block": false
-    }
+    "Exception": null
   }
 ]

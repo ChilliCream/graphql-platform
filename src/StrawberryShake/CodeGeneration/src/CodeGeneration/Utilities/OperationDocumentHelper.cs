@@ -1,7 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using HotChocolate;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
@@ -51,7 +49,7 @@ internal static class OperationDocumentHelper
             var result = await validator.ValidateAsync(
                 schema,
                 mergedDocument,
-                "dummy",
+                new OperationDocumentId("dummy"),
                 new Dictionary<string, object?>(),
                 false);
 

@@ -1,7 +1,4 @@
-using System;
 using System.Buffers.Text;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using HotChocolate.Language.Properties;
 using HotChocolate.Language.Utilities;
@@ -169,7 +166,7 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
     object IValueNode.Value => Value;
 
     /// <inheritdoc />
-    public IEnumerable<ISyntaxNode> GetNodes() => Enumerable.Empty<ISyntaxNode>();
+    public IEnumerable<ISyntaxNode> GetNodes() => [];
 
     /// <summary>
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.

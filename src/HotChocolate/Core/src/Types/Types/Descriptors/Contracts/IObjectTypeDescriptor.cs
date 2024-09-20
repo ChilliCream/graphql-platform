@@ -1,4 +1,3 @@
-using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
@@ -15,16 +14,6 @@ public interface IObjectTypeDescriptor
     : IDescriptor<ObjectTypeDefinition>
     , IFluent
 {
-    /// <summary>
-    /// Associates the specified <paramref name="objectTypeDefinition"/>
-    /// with the <see cref="ObjectType"/>.
-    /// </summary>
-    /// <param name="objectTypeDefinition">
-    /// The <see cref="ObjectTypeDefinitionNode"/> of a parsed schema.
-    /// </param>
-    IObjectTypeDescriptor SyntaxNode(
-        ObjectTypeDefinitionNode? objectTypeDefinition);
-
     /// <summary>
     /// Defines the name of the <see cref="ObjectType"/>.
     /// </summary>

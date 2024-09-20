@@ -28,26 +28,6 @@
       "argument": "if",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "Directive",
-      "Location": {
-        "Start": 272,
-        "End": 297,
-        "Line": 9,
-        "Column": 69
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 273,
-          "End": 278,
-          "Line": 9,
-          "Column": 70
-        },
-        "Value": "skip"
-      },
-      "Arguments": []
-    }
+    "Exception": null
   }
 ]

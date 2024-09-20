@@ -2,15 +2,9 @@ using System.Text.Json;
 
 namespace HotChocolate.Fusion.Execution;
 
-internal readonly struct JsonResult
+internal readonly struct JsonResult(string subgraphName, JsonElement element)
 {
-    public JsonResult(string subgraphName, JsonElement element)
-    {
-        SubgraphName = subgraphName;
-        Element = element;
-    }
+    public string SubgraphName { get; } = subgraphName;
 
-    public string SubgraphName { get; }
-
-    public JsonElement Element { get; }
+    public JsonElement Element { get; } = element;
 }

@@ -7,6 +7,7 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.Hosting;
 using static HotChocolate.AspNetCore.ServerDefaults;
 
 // ReSharper disable once CheckNamespace
@@ -43,11 +44,9 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
 
         services.AddGraphQLCore();
         services.TryAddSingleton<IHttpResponseFormatter>(
-            DefaultHttpResponseFormatter.Create(
-                new HttpResponseFormatterOptions
-                {
-                    HttpTransportVersion = HttpTransportVersion.Latest,
-                }));
+            sp => DefaultHttpResponseFormatter.Create(
+                new HttpResponseFormatterOptions { HttpTransportVersion = HttpTransportVersion.Latest },
+                sp.GetRequiredService<ITimeProvider>()));
         services.TryAddSingleton<IHttpRequestParser>(
             sp => new DefaultHttpRequestParser(
                 sp.GetRequiredService<IDocumentCache>(),
@@ -82,8 +81,73 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
 
         return services;
     }
+#if NET7_0_OR_GREATER
+    /// <summary>
+    /// Adds a GraphQL server configuration to the DI.
+    /// </summary>
+    /// <param name="services">
+    /// The <see cref="IServiceCollection"/>.
+    /// </param>
+    /// <param name="schemaName">
+    /// The name of the schema. Use explicit schema names if you host multiple schemas.
+    /// </param>
+    /// <param name="maxAllowedRequestSize">
+    /// The max allowed GraphQL request size.
+    /// </param>
+    /// <param name="disableCostAnalyzer">
+    /// Defines if the cost analyzer should be disabled.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
+    /// </returns>
+    public static IRequestExecutorBuilder AddGraphQLServer(
+        this IServiceCollection services,
+        string? schemaName = default,
+        int maxAllowedRequestSize = MaxAllowedRequestSize,
+        bool disableCostAnalyzer = false)
+    {
+        var builder = services
+            .AddGraphQLServerCore(maxAllowedRequestSize)
+            .AddGraphQL(schemaName)
+            .AddDefaultHttpRequestInterceptor()
+            .AddSubscriptionServices();
+
+        if (!disableCostAnalyzer)
+        {
+            builder.AddCostAnalyzer();
+            builder.AddIntrospectionAllowedRule(
+                (sp, _) =>
+                {
+                    var environment = sp.GetService<IHostEnvironment>();
+                    return (environment?.IsDevelopment() ?? true) == false;
+                });
+        }
+
+        return builder;
+    }
 
     /// <summary>
+    /// Adds a GraphQL server configuration to the DI.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IServiceCollection"/>.
+    /// </param>
+    /// <param name="schemaName">
+    /// The name of the schema. Use explicit schema names if you host multiple schemas.
+    /// </param>
+    /// <param name="disableCostAnalyzer">
+    /// Defines if the cost analyzer should be disabled.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
+    /// </returns>
+    public static IRequestExecutorBuilder AddGraphQLServer(
+        this IRequestExecutorBuilder builder,
+        string? schemaName = default,
+        bool disableCostAnalyzer = false)
+        => builder.Services.AddGraphQLServer(schemaName, disableCostAnalyzer: disableCostAnalyzer);
+#else
+/// <summary>
     /// Adds a GraphQL server configuration to the DI.
     /// </summary>
     /// <param name="services">
@@ -122,9 +186,9 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddGraphQLServer(
         this IRequestExecutorBuilder builder,
-        string? schemaName = default) =>
-        builder.Services.AddGraphQLServer(schemaName);
-
+        string? schemaName = default)
+        => builder.Services.AddGraphQLServer(schemaName);
+#endif
     /// <summary>
     /// Registers the GraphQL Upload Scalar.
     /// </summary>

@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using ChilliCream.Testing;
 using HotChocolate.Execution;
@@ -10,7 +7,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using Snapshooter.Xunit;
-using Xunit;
 using Snapshot = Snapshooter.Xunit.Snapshot;
 
 namespace HotChocolate;
@@ -355,25 +351,6 @@ public class SchemaFirstTests
         schema.Print().MatchSnapshot();
     }
 
-    // we need to apply the changes we did to cursor paging to offset paging.
-    [Fact(Skip = "Offset paging for schema first is not supported in 12.")]
-    public async Task SchemaFirst_Cursor_OffSetPaging_With_Objects()
-    {
-        // arrange
-        var sdl = "type Query { items: [Person!] } type Person { name: String }";
-
-        // act
-        var schema =
-            await new ServiceCollection()
-                .AddGraphQL()
-                .AddDocumentFromString(sdl)
-                .BindRuntimeType<QueryWithOffsetPersons>("Query")
-                .BuildSchemaAsync();
-
-        // assert
-        schema.Print().MatchSnapshot();
-    }
-
     [Fact]
     public async Task SchemaFirst_Cursor_Paging_Execute()
     {
@@ -472,7 +449,6 @@ public class SchemaFirstTests
     [Fact]
     public async Task Ensure_Input_Only_Enums_Are_Correctly_Bound()
     {
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddDocumentFromString(@"
@@ -504,7 +480,7 @@ public class SchemaFirstTests
     }
 
     [Fact]
-    public async Task Ensure_Default_Values_With_Inputs_Can_Be_Overriden()
+    public async Task Ensure_Default_Values_With_Inputs_Can_Be_Overridden()
     {
         await new ServiceCollection()
             .AddGraphQL()
@@ -522,7 +498,6 @@ public class SchemaFirstTests
     [Fact]
     public async Task Ensure_Input_Only_Enums_Are_Correctly_Bound_When_Using_BindRuntimeType()
     {
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddDocumentFromString(@"

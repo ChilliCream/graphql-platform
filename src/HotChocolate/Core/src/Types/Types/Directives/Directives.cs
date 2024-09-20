@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types;
@@ -40,11 +38,6 @@ public static class Directives
             directiveTypes.Add(typeInspector.GetTypeRef(typeof(StreamDirectiveType)));
         }
 
-        if (descriptorContext.Options.EnableTrueNullability)
-        {
-            directiveTypes.Add(typeInspector.GetTypeRef(typeof(NullBubblingDirective)));
-        }
-
         if (descriptorContext.Options.EnableTag)
         {
             directiveTypes.Add(typeInspector.GetTypeRef(typeof(Tag)));
@@ -56,7 +49,6 @@ public static class Directives
 
         return directiveTypes;
     }
-
 
     /// <summary>
     /// Checks if the specified directive represents a built-in directive.

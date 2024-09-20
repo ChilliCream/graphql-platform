@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using System.Linq.Expressions;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
@@ -10,7 +8,7 @@ using static HotChocolate.Data.Projections.Expressions.QueryableProjectionProvid
 namespace HotChocolate.Data;
 
 /// <summary>
-/// Common extensions for automapper and <see cref="IQueryable{T}"/>
+/// Common extensions for AutoMapper and <see cref="IQueryable{T}"/>
 /// </summary>
 public static class AutoMapperQueryableExtensions
 {
@@ -28,7 +26,7 @@ public static class AutoMapperQueryableExtensions
         this IQueryable<TSource> queryable,
         IResolverContext context)
     {
-        IMapper mapper = context.Service<IMapper>();
+        var mapper = context.Service<IMapper>();
 
         // ensure projections are only applied once
         context.LocalContextData = context.LocalContextData.SetItem(SkipProjectionKey, true);

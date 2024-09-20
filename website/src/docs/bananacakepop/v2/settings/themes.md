@@ -21,4 +21,3 @@ Here are the available themes:
 **GitHub High Contrast Dark** ![GitHub High Contrast Dark](./images/theme-5.png)
 
 **GitHub High Contrast Light** ![GitHub High Contrast Light](./images/theme-6.png)
-

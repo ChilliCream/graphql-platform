@@ -33,13 +33,6 @@ public class SortEnumValueDescriptor
         set { base.Definition = value; }
     }
 
-    public new ISortEnumValueDescriptor SyntaxNode(
-        EnumValueDefinitionNode enumValueDefinition)
-    {
-        base.SyntaxNode(enumValueDefinition);
-        return this;
-    }
-
     public new ISortEnumValueDescriptor Name(string value)
     {
         base.Name(value);

@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Text;
-using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate;
 
@@ -51,7 +46,7 @@ public class SchemaSerializerTests
     }
 
     [Fact]
-    public void SerializeAsync_SchemaIsNull_ArgumentNullException()
+    public async Task SerializeAsync_SchemaIsNull_ArgumentNullException()
     {
         // arrange
         // act
@@ -60,11 +55,11 @@ public class SchemaSerializerTests
             new MemoryStream());
 
         // assert
-        Assert.ThrowsAsync<ArgumentNullException>(Action);
+        await Assert.ThrowsAsync<ArgumentNullException>(Action);
     }
 
     [Fact]
-    public void SerializeAsync_WriterIsNull_ArgumentNullException()
+    public async Task SerializeAsync_WriterIsNull_ArgumentNullException()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -76,7 +71,7 @@ public class SchemaSerializerTests
         async Task Action() => await SchemaPrinter.PrintAsync(schema, null);
 
         // assert
-        Assert.ThrowsAsync<ArgumentNullException>(Action);
+        await Assert.ThrowsAsync<ArgumentNullException>(Action);
     }
 
     [Fact]

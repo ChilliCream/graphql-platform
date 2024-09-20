@@ -1,9 +1,7 @@
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Snapshooter;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Resolvers;
 
@@ -70,7 +68,7 @@ public class ResolverTaskNullTests
         {
             if (name is null)
             {
-                return null;
+                return null!;
             }
             return Task.FromResult(name);
         }
@@ -82,7 +80,7 @@ public class ResolverTaskNullTests
         {
             if (name is null)
             {
-                return null;
+                return null!;
             }
             return Task.FromResult(name);
         }

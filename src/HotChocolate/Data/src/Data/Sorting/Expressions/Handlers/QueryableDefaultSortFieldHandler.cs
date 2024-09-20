@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -96,7 +95,7 @@ public class QueryableDefaultSortFieldHandler
             return false;
         }
 
-        // Deque last
+        // Dequeue last
         context.PopInstance();
         context.RuntimeTypes.Pop();
 

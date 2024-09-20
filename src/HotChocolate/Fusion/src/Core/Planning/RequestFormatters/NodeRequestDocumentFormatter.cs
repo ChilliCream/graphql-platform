@@ -91,7 +91,8 @@ internal sealed class NodeRequestDocumentFormatter(
             context.VariableValues,
             selectionSetNode,
             nodeSelection.Selection.ResponseName,
-            null);
+            null,
+            nodeSelection.Selection.SyntaxNode.Directives);
 
         if (selectionNode is FieldNode fieldNode &&
             !nodeSelection.Selection.ResponseName.EqualsOrdinal(fieldNode.Name.Value))
@@ -188,12 +189,12 @@ internal sealed class NodeRequestDocumentFormatter(
                 onlyIntrospection = false;
             }
 
-            selectionNodes.Add(
-                CreateSelectionNode(
-                    context,
-                    executionStep,
-                    selection,
-                    typeContext.Fields[selection.Field.Name]));
+            AddSelectionNode(
+                context,
+                executionStep,
+                selection,
+                typeContext.Fields[selection.Field.Name],
+                selectionNodes);
 
             if (!selection.Arguments.IsFullyCoercedNoErrors)
             {

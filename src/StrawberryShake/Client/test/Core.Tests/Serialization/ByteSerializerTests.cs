@@ -1,5 +1,3 @@
-using System.Linq;
-
 namespace StrawberryShake.Serialization;
 
 public class ByteSerializerTests

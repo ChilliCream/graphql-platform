@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 #nullable enable
 
 namespace HotChocolate.Types;
@@ -27,9 +23,9 @@ internal sealed class AggregateInputValueFormatter : IInputValueFormatter
         }
     }
 
-    public object? Format(object? runtimeValue)
+    public object? Format(object? originalValue)
     {
-        var current = runtimeValue;
+        var current = originalValue;
 
         foreach (var formatter in _formatters)
         {

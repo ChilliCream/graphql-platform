@@ -1,4 +1,4 @@
-﻿using HotChocolate.Types;
+using HotChocolate.Types;
 using HotChocolate.StarWars.Models;
 using HotChocolate.StarWars.Resolvers;
 
@@ -20,11 +20,11 @@ public class DroidType
         descriptor.Field(t => t.AppearsIn)
             .Type<ListType<EpisodeType>>();
 
-        descriptor.Field<SharedResolvers>(r => r.GetCharacter(default, default))
+        descriptor.Field<SharedResolvers>(r => r.GetCharacter(default!, default!))
             .UsePaging<CharacterType>()
             .Name("friends");
 
-        descriptor.Field<SharedResolvers>(t => t.GetHeight(default, default))
+        descriptor.Field<SharedResolvers>(t => t.GetHeight(default, default!))
             .Type<FloatType>()
             .Argument("unit", a => a.Type<EnumType<Unit>>())
             .Name("height");

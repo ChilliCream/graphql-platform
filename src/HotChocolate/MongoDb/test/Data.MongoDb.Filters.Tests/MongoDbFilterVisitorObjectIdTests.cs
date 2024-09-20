@@ -39,22 +39,22 @@ public class MongoDbFilterVisitorObjectIdTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { eq: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { eq: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { eq: null}}){ objectId}}")
-                .Create());
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -73,22 +73,22 @@ public class MongoDbFilterVisitorObjectIdTests
         // act
         // assert
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { neq: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { neq: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { neq: null}}){ objectId}}")
-                .Create());
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -107,28 +107,28 @@ public class MongoDbFilterVisitorObjectIdTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { gt: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { gt: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { gt: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { gt: null}}){ objectId}}")
-                .Create());
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -148,28 +148,28 @@ public class MongoDbFilterVisitorObjectIdTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { ngt: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { ngt: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { ngt: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { ngt: null}}){ objectId}}")
-                .Create());
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -181,7 +181,6 @@ public class MongoDbFilterVisitorObjectIdTests
             .MatchAsync();
     }
 
-
     [Fact]
     public async Task Create_ObjectIdGreaterThanOrEquals_Expression()
     {
@@ -190,28 +189,28 @@ public class MongoDbFilterVisitorObjectIdTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { gte: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { gte: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { gte: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { gte: null}}){ objectId}}")
-                .Create());
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -231,28 +230,28 @@ public class MongoDbFilterVisitorObjectIdTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { ngte: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { ngte: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { ngte: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { ngte: null}}){ objectId}}")
-                .Create());
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -272,24 +271,24 @@ public class MongoDbFilterVisitorObjectIdTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { lt: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { objectId: { lt: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { lt: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { objectId: { lt: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { lt: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { objectId: { lt: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
+                .Build());
 
         var res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { lt: null}}){ objectId}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { objectId: { lt: null}}){ objectId}}")
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -309,28 +308,28 @@ public class MongoDbFilterVisitorObjectIdTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { nlt: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { nlt: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { nlt: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { nlt: null}}){ objectId}}")
-                .Create());
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -342,7 +341,6 @@ public class MongoDbFilterVisitorObjectIdTests
             .MatchAsync();
     }
 
-
     [Fact]
     public async Task Create_ObjectIdLowerThanOrEquals_Expression()
     {
@@ -351,28 +349,28 @@ public class MongoDbFilterVisitorObjectIdTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { lte: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { lte: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { lte: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { lte: null}}){ objectId}}")
-                .Create());
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -392,28 +390,28 @@ public class MongoDbFilterVisitorObjectIdTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { nlte: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { nlte: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { nlte: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { nlte: null}}){ objectId}}")
-                .Create());
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -431,8 +429,8 @@ public class MongoDbFilterVisitorObjectIdTests
         var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(@"{
+            OperationRequestBuilder.New()
+                .SetDocument(@"{
                     root(where: {
                         objectId: { in: [
                                 ""6124e80f3f5fc839830c1f69"",
@@ -442,11 +440,11 @@ public class MongoDbFilterVisitorObjectIdTests
                             objectId
                         }
                     }")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(@"{
+            OperationRequestBuilder.New()
+                .SetDocument(@"{
                     root(where: {
                         objectId: {
                             in: [ null, ""6124e80f3f5fc839830c1f6b"" ]
@@ -454,11 +452,11 @@ public class MongoDbFilterVisitorObjectIdTests
                         objectId
                     }
                 }")
-                .Create());
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(@"{
+            OperationRequestBuilder.New()
+                .SetDocument(@"{
                     root(where: {
                         objectId: {
                             in: [ null, ""6124e80f3f5fc839830c1f6b"" ]
@@ -466,7 +464,7 @@ public class MongoDbFilterVisitorObjectIdTests
                         objectId
                     }
                 }")
-                .Create());
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -485,8 +483,8 @@ public class MongoDbFilterVisitorObjectIdTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     @"{
                       root(
                         where: {
@@ -498,11 +496,11 @@ public class MongoDbFilterVisitorObjectIdTests
                         objectId
                       }
                     }")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     @"{
                       root(
                         where: {
@@ -514,12 +512,12 @@ public class MongoDbFilterVisitorObjectIdTests
                         objectId
                       }
                     }")
-                .SetQuery("{ root(where: { objectId: { nin: [ null, \"6124e80f3f5fc839830c1f6b\" ]}}){ objectId}}")
-                .Create());
+                .SetDocument("{ root(where: { objectId: { nin: [ null, \"6124e80f3f5fc839830c1f6b\" ]}}){ objectId}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     @"{
                       root(
                         where: {
@@ -531,7 +529,7 @@ public class MongoDbFilterVisitorObjectIdTests
                         objectId
                       }
                     }")
-                .Create());
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -551,22 +549,22 @@ public class MongoDbFilterVisitorObjectIdTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { eq: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { eq: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { eq: null}}){ objectId}}")
-                .Create());
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -585,22 +583,22 @@ public class MongoDbFilterVisitorObjectIdTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { neq: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { neq: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { neq: null}}){ objectId}}")
-                .Create());
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -619,24 +617,24 @@ public class MongoDbFilterVisitorObjectIdTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { gt: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { objectId: { gt: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { gt: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { objectId: { gt: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { gt: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { objectId: { gt: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
+                .Build());
 
         var res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { gt: null}}){ objectId}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { objectId: { gt: null}}){ objectId}}")
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -656,28 +654,28 @@ public class MongoDbFilterVisitorObjectIdTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { ngt: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { ngt: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { ngt: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { ngt: null}}){ objectId}}")
-                .Create());
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -689,7 +687,6 @@ public class MongoDbFilterVisitorObjectIdTests
             .MatchAsync();
     }
 
-
     [Fact]
     public async Task Create_ObjectIdNullableGreaterThanOrEquals_Expression()
     {
@@ -698,28 +695,28 @@ public class MongoDbFilterVisitorObjectIdTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { gte: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { gte: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { gte: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { gte: null}}){ objectId}}")
-                .Create());
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -739,28 +736,28 @@ public class MongoDbFilterVisitorObjectIdTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { ngte: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { ngte: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { ngte: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { ngte: null}}){ objectId}}")
-                .Create());
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -780,24 +777,24 @@ public class MongoDbFilterVisitorObjectIdTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { lt: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { objectId: { lt: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { lt: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { objectId: { lt: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { lt: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { objectId: { lt: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
+                .Build());
 
         var res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { lt: null}}){ objectId}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { objectId: { lt: null}}){ objectId}}")
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -817,28 +814,28 @@ public class MongoDbFilterVisitorObjectIdTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { nlt: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { nlt: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { nlt: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { nlt: null}}){ objectId}}")
-                .Create());
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -850,7 +847,6 @@ public class MongoDbFilterVisitorObjectIdTests
             .MatchAsync();
     }
 
-
     [Fact]
     public async Task Create_ObjectIdNullableLowerThanOrEquals_Expression()
     {
@@ -860,28 +856,28 @@ public class MongoDbFilterVisitorObjectIdTests
         // act
         // assert
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { lte: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { lte: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { lte: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { lte: null}}){ objectId}}")
-                .Create());
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -901,27 +897,27 @@ public class MongoDbFilterVisitorObjectIdTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { nlte: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { nlte: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { nlte: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { nlte: null}}){ objectId}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { objectId: { nlte: null}}){ objectId}}")
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -941,25 +937,25 @@ public class MongoDbFilterVisitorObjectIdTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { in: [ \"6124e80f3f5fc839830c1f69\", " +
                     "\"6124e80f3f5fc839830c1f6a\" ]}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { in: [ \"6124e80f3f5fc839830c1f6a\", " +
                     "\"6124e80f3f5fc839830c1f6b\" ]}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { in: [ \"6124e80f3f5fc839830c1f6a\", " +
                     "null ]}}){ objectId}}")
-                .Create());
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -978,21 +974,21 @@ public class MongoDbFilterVisitorObjectIdTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { objectId: { nin: [ \"6124e80f3f5fc839830c1f69\", " +
                     "\"6124e80f3f5fc839830c1f6a\" ]}}){ objectId}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { nin: [ \"6124e80f3f5fc839830c1f6a\", \"6124e80f3f5fc839830c1f6b\" ]}}){ objectId}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { objectId: { nin: [ \"6124e80f3f5fc839830c1f6a\", \"6124e80f3f5fc839830c1f6b\" ]}}){ objectId}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { nin: [ \"6124e80f3f5fc839830c1f6a\", null ]}}){ objectId}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { objectId: { nin: [ \"6124e80f3f5fc839830c1f6a\", null ]}}){ objectId}}")
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(

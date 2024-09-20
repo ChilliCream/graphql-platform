@@ -1,6 +1,5 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using ChilliCream.Testing;
-using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
 using static HotChocolate.Utilities.Introspection.IntrospectionClient;
@@ -17,7 +16,7 @@ namespace HotChocolate.Utilities.Introspection
             var result = JsonSerializer.Deserialize<IntrospectionResult>(json, SerializerOptions);
 
             // act
-            var schema = IntrospectionFormatter.Format(result);
+            var schema = IntrospectionFormatter.Format(result!);
 
             // assert
             schema.ToString(true).MatchSnapshot();
@@ -31,7 +30,7 @@ namespace HotChocolate.Utilities.Introspection
             var result = JsonSerializer.Deserialize<IntrospectionResult>(json, SerializerOptions);
 
             // act
-            var schema = IntrospectionFormatter.Format(result);
+            var schema = IntrospectionFormatter.Format(result!);
 
             // assert
             schema.ToString(true).MatchSnapshot();

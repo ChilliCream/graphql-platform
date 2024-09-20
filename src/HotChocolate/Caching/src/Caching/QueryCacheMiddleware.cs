@@ -1,15 +1,16 @@
-using System.Threading.Tasks;
 using HotChocolate.Execution;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Net.Http.Headers;
 using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Caching;
 
 internal sealed class QueryCacheMiddleware
 {
-    private readonly RequestDelegate _next;
     private readonly ICacheControlOptions _options;
+    private readonly RequestDelegate _next;
 
-    public QueryCacheMiddleware(
+    private QueryCacheMiddleware(
         RequestDelegate next,
         [SchemaService] ICacheControlOptionsAccessor optionsAccessor)
     {
@@ -28,34 +29,33 @@ internal sealed class QueryCacheMiddleware
             return;
         }
 
-        if (context.Operation?.ContextData is null ||
-            !context.Operation.ContextData.TryGetValue(CacheControlHeaderValue, out var value) ||
-            value is not string cacheControlHeaderValue)
+        if (context.Operation?.ContextData is null
+            || !context.Operation.ContextData.TryGetValue(WellKnownContextData.CacheControlHeaderValue, out var value)
+            || value is not CacheControlHeaderValue cacheControlHeaderValue)
         {
             return;
         }
 
-        var queryResult = context.Result?.ExpectQueryResult();
+        // only single operation results can be cached.
+        var operationResult = context.Result?.ExpectOperationResult();
 
-        if (queryResult is not null)
+        if (operationResult is { Errors: null })
         {
             var contextData =
-                queryResult.ContextData is not null
-                    ? new ExtensionData(queryResult.ContextData)
+                operationResult.ContextData is not null
+                    ? new ExtensionData(operationResult.ContextData)
                     : new ExtensionData();
 
-            contextData.Add(CacheControlHeaderValue, cacheControlHeaderValue);
-
-            context.Result = new QueryResult(
-                queryResult.Data,
-                queryResult.Errors,
-                queryResult.Extensions,
-                contextData,
-                queryResult.Items,
-                queryResult.Incremental,
-                queryResult.Label,
-                queryResult.Path,
-                queryResult.HasNext);
+            contextData.Add(WellKnownContextData.CacheControlHeaderValue, cacheControlHeaderValue);
+            context.Result = operationResult.WithContextData(contextData);
         }
     }
+
+    internal static RequestCoreMiddleware Create()
+        => (core, next) =>
+        {
+            var options = core.SchemaServices.GetRequiredService<ICacheControlOptionsAccessor>();
+            var middleware = new QueryCacheMiddleware(next, options);
+            return context => middleware.InvokeAsync(context);
+        };
 }

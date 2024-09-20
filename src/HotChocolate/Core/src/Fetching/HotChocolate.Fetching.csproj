@@ -1,14 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <PackageId>HotChocolate.Fetching</PackageId>
     <AssemblyName>HotChocolate.Fetching</AssemblyName>
     <RootNamespace>HotChocolate.Fetching</RootNamespace>
   </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Execution" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\GreenDonut\src\Core\GreenDonut.csproj" />

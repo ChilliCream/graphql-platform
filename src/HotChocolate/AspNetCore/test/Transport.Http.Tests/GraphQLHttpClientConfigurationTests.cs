@@ -25,9 +25,11 @@ public class GraphQLHttpClientConfigurationTests
         await client.SendAsync(new("{ __typename }", new(CreateUrl(default))), default);
     }
 
-    class TestHttpMessageHandler(Func<HttpRequestMessage, HttpResponseMessage> sender) : HttpMessageHandler
+    internal class TestHttpMessageHandler(Func<HttpRequestMessage, HttpResponseMessage> sender) : HttpMessageHandler
     {
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
         {
             return Task.FromResult(sender.Invoke(request));
         }

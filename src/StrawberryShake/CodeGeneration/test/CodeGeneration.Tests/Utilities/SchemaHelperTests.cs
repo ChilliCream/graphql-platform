@@ -1,8 +1,6 @@
 using ChilliCream.Testing;
-using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using Xunit;
 
 namespace StrawberryShake.CodeGeneration.Utilities;
 
@@ -35,5 +33,4 @@ public class SchemaHelperTests
             "global::System.String",
             scalarType.ContextData["StrawberryShake.RuntimeType"]);
     }
-
 }

@@ -1,13 +1,9 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Data.Sorting.Expressions;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace HotChocolate.Data;
 
@@ -348,23 +344,18 @@ public class SortConventionExtensionsTests
 
     private sealed class MockProvider : ISortProvider
     {
-        public IReadOnlyCollection<ISortFieldHandler> FieldHandlers { get; } = null!;
-        public IReadOnlyCollection<ISortOperationHandler> OperationHandlers { get; } = null!;
+        public IReadOnlyCollection<ISortFieldHandler> FieldHandlers => null!;
 
-        public FieldMiddleware CreateExecutor<TEntityType>(string argumentName)
-        {
-            throw new NotImplementedException();
-        }
+        public IReadOnlyCollection<ISortOperationHandler> OperationHandlers => null!;
+
+        public IQueryBuilder CreateBuilder<TEntityType>(string argumentName)
+            => throw new NotImplementedException();
 
         public void ConfigureField(string argumentName, IObjectFieldDescriptor descriptor)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public ISortMetadata? CreateMetaData(ITypeCompletionContext context, ISortInputTypeDefinition typeDefinition, ISortFieldDefinition fieldDefinition)
-        {
-            return null;
-        }
+            => null;
     }
 
     private sealed class MockSortConvention : SortConvention

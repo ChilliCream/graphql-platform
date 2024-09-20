@@ -1,4 +1,3 @@
-using System;
 using System.Reflection;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -89,16 +88,6 @@ public class AuthorizeAttribute : DescriptorAttribute
 
     private AuthorizeDirective CreateDirective()
     {
-        if (Policy is not null)
-        {
-            return new AuthorizeDirective(Policy, apply: Apply);
-        }
-
-        if (Roles is not null)
-        {
-            return new AuthorizeDirective(Roles, apply: Apply);
-        }
-
-        return new AuthorizeDirective(apply: Apply);
+        return new AuthorizeDirective(apply: Apply, policy: Policy, roles: Roles);
     }
 }

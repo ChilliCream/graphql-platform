@@ -1,11 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
 using HotChocolate.Validation.Options;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Validation;
 
@@ -14,7 +10,7 @@ public static class TestHelper
     public static void ExpectValid(
         Action<IValidationBuilder> configure,
         string sourceText,
-        IEnumerable<KeyValuePair<string, object>> contextData = null)
+        IEnumerable<KeyValuePair<string, object?>>? contextData = null)
     {
         ExpectValid(
             ValidationUtils.CreateSchema(),
@@ -27,7 +23,7 @@ public static class TestHelper
         ISchema schema,
         Action<IValidationBuilder> configure,
         string sourceText,
-        IEnumerable<KeyValuePair<string, object>> contextData = null)
+        IEnumerable<KeyValuePair<string, object?>>? contextData = null)
     {
         // arrange
         var serviceCollection = new ServiceCollection();
@@ -46,7 +42,7 @@ public static class TestHelper
         var query = Utf8GraphQLParser.Parse(sourceText);
         context.Prepare(query);
 
-        context.ContextData = new Dictionary<string, object>();
+        context.ContextData = new Dictionary<string, object?>();
 
         if (contextData is not null)
         {
@@ -67,7 +63,7 @@ public static class TestHelper
     public static void ExpectErrors(
         Action<IValidationBuilder> configure,
         string sourceText,
-        IEnumerable<KeyValuePair<string, object>> contextData = null,
+        IEnumerable<KeyValuePair<string, object>>? contextData = null,
         params Action<IError>[] elementInspectors)
     {
         ExpectErrors(
@@ -82,7 +78,7 @@ public static class TestHelper
         ISchema schema,
         Action<IValidationBuilder> configure,
         string sourceText,
-        IEnumerable<KeyValuePair<string, object>> contextData = null,
+        IEnumerable<KeyValuePair<string, object>>? contextData = null,
         params Action<IError>[] elementInspectors)
     {
         // arrange
@@ -104,7 +100,7 @@ public static class TestHelper
         var query = Utf8GraphQLParser.Parse(sourceText);
         context.Prepare(query);
 
-        context.ContextData = new Dictionary<string, object>();
+        context.ContextData = new Dictionary<string, object?>();
 
         if (contextData is not null)
         {

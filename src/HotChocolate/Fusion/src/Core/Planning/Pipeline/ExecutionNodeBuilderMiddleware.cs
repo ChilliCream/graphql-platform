@@ -136,7 +136,9 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
         var config = new ResolverNodeBase.Config(
             executionStep.SubgraphName,
             request.Document,
+            executionStep.ParentSelection,
             selectionSet,
+            executionStep.RootSelections,
             context.Exports.GetExportKeys(executionStep),
             executionStep.Variables.Values,
             context.ForwardedVariables.Select(t => t.Variable.Name.Value),
@@ -215,7 +217,9 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
         var config = new ResolverNodeBase.Config(
             executionStep.SelectEntityStep.SubgraphName,
             requestDocument,
+            executionStep.ParentSelection,
             selectionSet,
+            executionStep.SelectEntityStep.RootSelections,
             context.Exports.GetExportKeys(executionStep),
             executionStep.SelectEntityStep.Variables.Values,
             context.ForwardedVariables.Select(t => t.Variable.Name.Value),
@@ -257,7 +261,9 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
         var config = new ResolverNodeBase.Config(
             executionStep.SubgraphName,
             request.Document,
+            executionStep.ParentSelection,
             selectionSet,
+            executionStep.RootSelections,
             context.Exports.GetExportKeys(executionStep),
             executionStep.Variables.Values,
             context.ForwardedVariables.Select(t => t.Variable.Name.Value),
@@ -283,7 +289,9 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
         var config = new ResolverNodeBase.Config(
             executionStep.SubgraphName,
             request.Document,
+            executionStep.ParentSelection,
             selectionSet,
+            executionStep.RootSelections,
             context.Exports.GetExportKeys(executionStep),
             executionStep.Variables.Values,
             context.ForwardedVariables.Select(t => t.Variable.Name.Value),

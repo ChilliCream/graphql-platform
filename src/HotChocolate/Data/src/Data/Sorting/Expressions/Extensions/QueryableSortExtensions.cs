@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Data.Sorting.Expressions;
 using HotChocolate.Resolvers;
 
@@ -45,10 +42,10 @@ public static class QueryableSortExtensions
     /// The resolver context of the resolver that is annotated with UseSorting
     /// </param>
     /// <returns>The sorted enumerable</returns>
-    public static QueryableExecutable<T> Sort<T>(
-        this QueryableExecutable<T> enumerable,
+    public static IQueryableExecutable<T> Sort<T>(
+        this IQueryableExecutable<T> enumerable,
         IResolverContext context) =>
-        ExecuteSort(enumerable, context, typeof(QueryableExecutable<T>));
+        ExecuteSort(enumerable, context, typeof(IQueryableExecutable<T>));
 
     private static T ExecuteSort<T>(
         this T input,
@@ -66,7 +63,7 @@ public static class QueryableSortExtensions
                 return result;
             }
 
-            throw ThrowHelper.Sorting_TypeMissmatch(
+            throw ThrowHelper.Sorting_TypeMismatch(
                 context,
                 expectedType,
                 resultObj!.GetType());

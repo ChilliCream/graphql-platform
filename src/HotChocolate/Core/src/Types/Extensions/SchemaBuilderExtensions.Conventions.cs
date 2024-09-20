@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Properties;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
@@ -85,7 +81,7 @@ public static partial class SchemaBuilderExtensions
         if (!typeof(IConvention).IsAssignableFrom(convention))
         {
             throw new ArgumentException(
-                TypeResources.SchemaBuilder_Convention_NotSuppported,
+                TypeResources.SchemaBuilder_Convention_NotSupported,
                 nameof(convention));
         }
 
@@ -116,14 +112,14 @@ public static partial class SchemaBuilderExtensions
         if (!typeof(IConvention).IsAssignableFrom(convention))
         {
             throw new ArgumentException(
-                TypeResources.SchemaBuilder_Convention_NotSuppported,
+                TypeResources.SchemaBuilder_Convention_NotSupported,
                 nameof(convention));
         }
 
         if (!typeof(IConvention).IsAssignableFrom(concreteConvention))
         {
             throw new ArgumentException(
-                TypeResources.SchemaBuilder_Convention_NotSuppported,
+                TypeResources.SchemaBuilder_Convention_NotSupported,
                 nameof(convention));
         }
 
@@ -131,14 +127,14 @@ public static partial class SchemaBuilderExtensions
             convention,
             s =>
             {
-                if (s.TryGetOrCreateService<IConvention>(
-                    concreteConvention,
-                    out var convention))
+                try
                 {
-                    return convention;
+                    return (IConvention)ActivatorUtilities.CreateInstance(s, concreteConvention);
                 }
-
-                throw Convention_UnableToCreateConvention(concreteConvention);
+                catch
+                {
+                    throw Convention_UnableToCreateConvention(concreteConvention);
+                }
             },
             scope);
     }
@@ -200,11 +196,11 @@ public static partial class SchemaBuilderExtensions
         if (!typeof(IConvention).IsAssignableFrom(convention))
         {
             throw new ArgumentException(
-                TypeResources.SchemaBuilder_Convention_NotSuppported,
+                TypeResources.SchemaBuilder_Convention_NotSupported,
                 nameof(convention));
         }
 
-        return builder.TryAddConvention(convention, s => concreteConvention, scope);
+        return builder.TryAddConvention(convention, _ => concreteConvention, scope);
     }
 
     public static ISchemaBuilder TryAddConvention(
@@ -231,14 +227,14 @@ public static partial class SchemaBuilderExtensions
         if (!typeof(IConvention).IsAssignableFrom(convention))
         {
             throw new ArgumentException(
-                TypeResources.SchemaBuilder_Convention_NotSuppported,
+                TypeResources.SchemaBuilder_Convention_NotSupported,
                 nameof(convention));
         }
 
         if (!typeof(IConvention).IsAssignableFrom(concreteConvention))
         {
             throw new ArgumentException(
-                TypeResources.SchemaBuilder_Convention_NotSuppported,
+                TypeResources.SchemaBuilder_Convention_NotSupported,
                 nameof(convention));
         }
 
@@ -246,12 +242,14 @@ public static partial class SchemaBuilderExtensions
             convention,
             s =>
             {
-                if (s.TryGetOrCreateService(concreteConvention, out IConvention? c))
+                try
                 {
-                    return c;
+                    return (IConvention)ActivatorUtilities.CreateInstance(s, concreteConvention);
                 }
-
-                throw Convention_UnableToCreateConvention(concreteConvention);
+                catch
+                {
+                    throw Convention_UnableToCreateConvention(concreteConvention);
+                }
             },
             scope);
     }

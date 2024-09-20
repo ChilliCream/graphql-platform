@@ -19,7 +19,7 @@ internal sealed class ExecuteRequestScope : RequestScopeBase
 
     protected override void SetStatus()
     {
-        if (Context.Result is IQueryResult { Data: null, })
+        if (Context.Result is null or IOperationResult { Errors: [_, ..] })
         {
             Activity.SetStatus(Status.Error);
             Activity.SetStatus(ActivityStatusCode.Error);

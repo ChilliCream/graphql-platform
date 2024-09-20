@@ -1,9 +1,7 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Types;
 
 namespace HotChocolate.Data.Projections.Expressions.Handlers;
 

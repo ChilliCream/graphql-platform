@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+#nullable enable
 
 namespace HotChocolate.Types;
 

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using HotChocolate.Language.Utilities;
 
@@ -104,7 +101,7 @@ public sealed class StringValueNode : IValueNode<string>, IHasSpan
     public bool Block { get; }
 
     /// <inheritdoc cref="ISyntaxNode"/>
-    public IEnumerable<ISyntaxNode> GetNodes() => Enumerable.Empty<ISyntaxNode>();
+    public IEnumerable<ISyntaxNode> GetNodes() => [];
 
     /// <summary>
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.

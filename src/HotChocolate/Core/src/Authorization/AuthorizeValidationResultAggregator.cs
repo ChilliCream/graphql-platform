@@ -1,6 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Authorization.Properties;
 using HotChocolate.Language;
 using HotChocolate.Validation;
@@ -40,7 +37,7 @@ internal sealed class AuthorizeValidationResultAggregator : IValidationResultAgg
                 _services,
                 context.ContextData,
                 document,
-                context.DocumentId);
+                context.DocumentId.Value);
 
             var result = await handler.AuthorizeAsync(ctx, directives, ct).ConfigureAwait(false);
 

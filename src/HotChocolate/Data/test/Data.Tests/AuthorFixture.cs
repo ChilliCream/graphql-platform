@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Data;
 
 public class AuthorFixture : IDisposable

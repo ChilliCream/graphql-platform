@@ -1,9 +1,9 @@
 #nullable enable
 
-using System;
-using System.Collections.Generic;
+#if NET8_0_OR_GREATER
+using System.Collections.Frozen;
+#endif
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using HotChocolate.Types;
 using static HotChocolate.Properties.TypeResources;
 
@@ -11,8 +11,13 @@ namespace HotChocolate;
 
 internal sealed class SchemaTypes
 {
+#if NET8_0_OR_GREATER
+    private readonly FrozenDictionary<string, INamedType> _types;
+    private readonly FrozenDictionary<string, List<ObjectType>> _possibleTypes;
+#else
     private readonly Dictionary<string, INamedType> _types;
     private readonly Dictionary<string, List<ObjectType>> _possibleTypes;
+#endif
 
     public SchemaTypes(SchemaTypesDefinition definition)
     {
@@ -28,8 +33,13 @@ internal sealed class SchemaTypes
                 nameof(definition));
         }
 
-        _types = definition.Types.ToDictionary(t => t.Name);
+#if NET8_0_OR_GREATER
+        _types = definition.Types.ToFrozenDictionary(t => t.Name, StringComparer.Ordinal);
+        _possibleTypes = CreatePossibleTypeLookup(definition.Types).ToFrozenDictionary(StringComparer.Ordinal);
+#else
+        _types = definition.Types.ToDictionary(t => t.Name, StringComparer.Ordinal);
         _possibleTypes = CreatePossibleTypeLookup(definition.Types);
+#endif
         QueryType = definition.QueryType!;
         MutationType = definition.MutationType;
         SubscriptionType = definition.SubscriptionType;
@@ -104,7 +114,7 @@ internal sealed class SchemaTypes
     private static Dictionary<string, List<ObjectType>> CreatePossibleTypeLookup(
         IReadOnlyCollection<INamedType> types)
     {
-        var possibleTypes = new Dictionary<string, List<ObjectType>>();
+        var possibleTypes = new Dictionary<string, List<ObjectType>>(StringComparer.Ordinal);
 
         foreach (var objectType in types.OfType<ObjectType>())
         {

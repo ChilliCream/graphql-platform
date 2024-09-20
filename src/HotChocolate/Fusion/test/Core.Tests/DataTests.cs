@@ -1,10 +1,8 @@
 using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Composition;
-using HotChocolate.Fusion.Composition.Features;
 using HotChocolate.Fusion.Shared;
 using HotChocolate.Skimmed.Serialization;
-using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 using static HotChocolate.Fusion.Shared.DemoProjectSchemaExtensions;
@@ -52,16 +50,16 @@ public class DataTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
+            OperationRequestBuilder
                 .New()
-                .SetQuery(request)
-                .Create());
+                .SetDocument(request)
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        CollectSnapshotData(snapshot, request, result);
+        await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 }

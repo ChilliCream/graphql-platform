@@ -42,7 +42,7 @@ services
 We can use the `Upload` scalar as an argument like the following:
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Mutation
@@ -60,7 +60,7 @@ public class Mutation
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -90,7 +90,7 @@ public class MutationType : ObjectType
 </Code>
 <Schema>
 
-Take a look at the Annotation-based or Code-first example.
+Take a look at the implementation-first or code-first example.
 
 </Schema>
 </ExampleTabs>
@@ -100,7 +100,7 @@ Take a look at the Annotation-based or Code-first example.
 In input object types it can be used like the following.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class ExampleInput
@@ -110,7 +110,7 @@ public class ExampleInput
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -131,7 +131,7 @@ public class ExampleInputType : InputObjectType<ExampleInput>
 </Code>
 <Schema>
 
-Take a look at the Annotation-based or Code-first example.
+Take a look at the implementation-first or code-first example.
 
 </Schema>
 </ExampleTabs>
@@ -215,7 +215,7 @@ public class Mutation
 
         // If the user is allowed to upload the profile picture
         // we generate the token
-        var token = "myuploadtoken";
+        var token = "myUploadToken";
 
         var uploadUrl = QueryHelpers.AddQueryString(baseUrl, "token", token);
 
@@ -250,7 +250,7 @@ mutation {
 {
   "data": {
     "uploadProfilePicture": {
-      "uploadUrl": "https://blob.chillicream.com/upload?token=myuploadtoken"
+      "uploadUrl": "https://blob.chillicream.com/upload?token=myUploadToken"
     }
   }
 }

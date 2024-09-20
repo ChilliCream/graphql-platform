@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration;
@@ -25,7 +24,6 @@ public static class BuiltInScalarNames
         "Guid",
         ScalarNames.DateTime,
         ScalarNames.Date,
-        ScalarNames.MultiplierPath,
         ScalarNames.Name,
         ScalarNames.ByteArray,
         ScalarNames.Any,

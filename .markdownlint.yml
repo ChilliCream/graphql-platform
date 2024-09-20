@@ -1,0 +1,29 @@
+# https://github.com/DavidAnson/markdownlint
+
+MD013: false # Rationale: Hard line breaks are unnecessary (use soft wrapping instead).
+MD024:
+  siblings_only: true
+MD025: false # Rationale: The documentation ToC generator is designed to work with multiple top-level headings.
+MD026:
+  punctuation: ".,;:"
+MD028: false # Rationale: Used for displaying separate notes or warnings in the documentation.
+MD029: false # Rationale: The documentation currently misuses list formatting for other purposes.
+MD033:
+  allowed_elements:
+    - a
+    - ApiChoiceTabs
+    - br
+    - Code
+    - ExampleTabs
+    - img
+    - Implementation
+    - InputChoiceTabs
+    - List
+    - PackageInstallation
+    - Panel
+    - Schema
+    - strong
+    - Tab
+    - u
+    - Video
+MD036: false # Rationale: Possibly too strict, used frequently in documentation.

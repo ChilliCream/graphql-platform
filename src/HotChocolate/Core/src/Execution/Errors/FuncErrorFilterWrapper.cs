@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Execution.Errors;
 
 internal class FuncErrorFilterWrapper

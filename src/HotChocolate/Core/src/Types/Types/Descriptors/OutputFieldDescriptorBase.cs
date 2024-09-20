@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -43,9 +40,6 @@ public abstract class OutputFieldDescriptorBase<TDefinition>
             }
         }
     }
-
-    protected void SyntaxNode(FieldDefinitionNode? syntaxNode)
-        => Definition.SyntaxNode = syntaxNode;
 
     protected void Name(string name)
         => Definition.Name = name;

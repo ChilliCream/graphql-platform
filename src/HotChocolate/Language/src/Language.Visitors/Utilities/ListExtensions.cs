@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace HotChocolate.Language.Visitors;
 
 internal static class ListExtensions

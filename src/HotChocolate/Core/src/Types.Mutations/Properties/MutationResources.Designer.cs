@@ -51,12 +51,6 @@ namespace HotChocolate.Types.Properties {
             }
         }
         
-        internal static string ThrowHelper_ErrorObjectType_MessageWasNotDefinedOnError {
-            get {
-                return ResourceManager.GetString("ThrowHelper_ErrorObjectType_MessageWasNotDefinedOnError", resourceCulture);
-            }
-        }
-        
         internal static string ThrowHelper_InputMiddleware_ArgumentTypeNameMissMatch {
             get {
                 return ResourceManager.GetString("ThrowHelper_InputMiddleware_ArgumentTypeNameMissMatch", resourceCulture);
@@ -87,9 +81,9 @@ namespace HotChocolate.Types.Properties {
             }
         }
         
-        internal static string ThrowHelper_MutationConvDirective_In_Wrong_Location {
+        internal static string ThrowHelper_MutationConventionDirective_In_Wrong_Location {
             get {
-                return ResourceManager.GetString("ThrowHelper_MutationConvDirective_In_Wrong_Location", resourceCulture);
+                return ResourceManager.GetString("ThrowHelper_MutationConventionDirective_In_Wrong_Location", resourceCulture);
             }
         }
         

@@ -24,14 +24,14 @@
           ],
           "event": [
             {
-              "Name": "Error",
+              "Name": "exception",
               "Tags": [
                 {
-                  "Key": "graphql.error.message",
+                  "Key": "exception.message",
                   "Value": "Found a NameStart character `n` (110) following a number, which is disallowed."
                 },
                 {
-                  "Key": "graphql.error.code",
+                  "Key": "exception.type",
                   "Value": "HC0011"
                 },
                 {

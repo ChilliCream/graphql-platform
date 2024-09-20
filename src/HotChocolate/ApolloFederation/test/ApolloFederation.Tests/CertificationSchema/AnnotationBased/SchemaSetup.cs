@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using HotChocolate.ApolloFederation.CertificationSchema.AnnotationBased.Types;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,6 +12,5 @@ public static class SchemaSetup
             .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query>()
-            .RegisterService<Data>()
             .BuildRequestExecutorAsync();
 }

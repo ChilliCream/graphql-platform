@@ -1,12 +1,10 @@
-using System;
-using System.Collections.Generic;
 using System.Globalization;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
 
 namespace HotChocolate.Utilities;
 
-public class ObjectValueToDictionaryConverter
-    : SyntaxWalkerBase<IValueNode, Action<object>>
+public class ObjectValueToDictionaryConverter : SyntaxWalker<Action<object>>
 {
     public Dictionary<string, object> Convert(ObjectValueNode objectValue)
     {
@@ -15,10 +13,13 @@ public class ObjectValueToDictionaryConverter
             throw new ArgumentNullException(nameof(objectValue));
         }
 
-        Dictionary<string, object> dict = null;
-        Action<object> setValue = value => dict = (Dictionary<string, object>)value;
-        VisitObjectValue(objectValue, setValue);
-        return dict;
+        Dictionary<string, object> dictionary = null;
+
+        void SetValue(object value) => dictionary = (Dictionary<string, object>)value;
+
+        Enter(objectValue, SetValue);
+
+        return dictionary;
     }
 
     public List<object> Convert(ListValueNode listValue)
@@ -29,97 +30,99 @@ public class ObjectValueToDictionaryConverter
         }
 
         List<object> list = null;
-        Action<object> setValue =
-            value => list = (List<object>)value;
-        VisitListValue(listValue, setValue);
+
+        void SetValue(object value) => list = (List<object>)value;
+
+        Enter(listValue, SetValue);
+
         return list;
     }
 
-    protected override void VisitObjectValue(
-        ObjectValueNode node,
-        Action<object> setValue)
+    protected override ISyntaxVisitorAction Enter(ObjectValueNode node, Action<object> setValue)
     {
-        var obj = new Dictionary<string, object>();
-        setValue(obj);
+        var dictionary = new Dictionary<string, object>();
+        setValue(dictionary);
 
         foreach (var field in node.Fields)
         {
-            Action<object> setField =
-                value => obj[field.Name.Value] = value;
-            VisitValue(field.Value, setField);
+            void SetField(object value) => dictionary[field.Name.Value] = value;
+
+            Enter(field.Value, SetField);
         }
+
+        return Continue;
     }
 
-    protected override void VisitListValue(
-        ListValueNode node,
-        Action<object> setValue)
+    protected override ISyntaxVisitorAction Enter(ListValueNode node, Action<object> setValue)
     {
         var list = new List<object>();
         setValue(list);
 
-        Action<object> addItem = item => list.Add(item);
+        void AddItem(object item) => list.Add(item);
 
         foreach (var value in node.Items)
         {
-            VisitValue(value, addItem);
+            Enter(value, AddItem);
         }
+
+        return Continue;
     }
 
-    protected override void VisitIntValue(
-       IntValueNode node,
-       Action<object> setValue)
+    protected override ISyntaxVisitorAction Enter(IValueNode node, Action<object> setValue)
     {
-        if (int.TryParse(node.Value, NumberStyles.Integer,
-            CultureInfo.InvariantCulture, out var i))
+        switch (node)
         {
-            setValue(i);
+            case BooleanValueNode booleanValueNode:
+                setValue(booleanValueNode.Value);
+                break;
+
+            case EnumValueNode enumValueNode:
+                setValue(enumValueNode.Value);
+                break;
+
+            case FloatValueNode floatValueNode:
+                if (double.TryParse(floatValueNode.Value, NumberStyles.Float,
+                        CultureInfo.InvariantCulture, out var d))
+                {
+                    setValue(d);
+                }
+                else
+                {
+                    setValue(floatValueNode.Value);
+                }
+
+                break;
+
+            case IntValueNode intValueNode:
+                if (int.TryParse(intValueNode.Value, NumberStyles.Integer,
+                        CultureInfo.InvariantCulture, out var i))
+                {
+                    setValue(i);
+                }
+                else
+                {
+                    setValue(intValueNode.Value);
+                }
+
+                break;
+
+            case ListValueNode listValueNode:
+                Enter(listValueNode, setValue);
+                break;
+
+            case NullValueNode:
+                setValue(null);
+                break;
+
+            case ObjectValueNode objectValueNode:
+                Enter(objectValueNode, setValue);
+                break;
+
+            case StringValueNode stringValueNode:
+                setValue(stringValueNode.Value);
+                break;
         }
-        else
-        {
-            setValue(node.Value);
-        }
-    }
 
-    protected override void VisitFloatValue(
-        FloatValueNode node,
-        Action<object> setValue)
-    {
-        if (double.TryParse(node.Value, NumberStyles.Float,
-            CultureInfo.InvariantCulture, out var d))
-        {
-            setValue(d);
-        }
-        else
-        {
-            setValue(node.Value);
-        }
-    }
-
-    protected override void VisitStringValue(
-        StringValueNode node,
-        Action<object> setValue)
-    {
-        setValue(node.Value);
-    }
-
-    protected override void VisitBooleanValue(
-        BooleanValueNode node,
-        Action<object> setValue)
-    {
-        setValue(node.Value);
-    }
-
-    protected override void VisitEnumValue(
-        EnumValueNode node,
-        Action<object> setValue)
-    {
-        setValue(node.Value);
-    }
-
-    protected override void VisitNullValue(
-        NullValueNode node,
-        Action<object> setValue)
-    {
-        setValue(null);
+        return Continue;
     }
 }

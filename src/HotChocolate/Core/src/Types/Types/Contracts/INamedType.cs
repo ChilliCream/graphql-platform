@@ -9,7 +9,6 @@ public interface INamedType
     : IType
     , IHasName
     , IHasDescription
-    , IHasSyntaxNode
     , IHasReadOnlyContextData
 {
     /// <summary>

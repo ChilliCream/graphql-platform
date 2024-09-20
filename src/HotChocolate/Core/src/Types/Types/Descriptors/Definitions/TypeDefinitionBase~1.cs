@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using HotChocolate.Language;
-
 #nullable  enable
 
 namespace HotChocolate.Types.Descriptors.Definitions;
@@ -9,11 +5,7 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 /// <summary>
 /// A definition that represents a type.
 /// </summary>
-/// <typeparam name="T"></typeparam>
-public class TypeDefinitionBase<T>
-    : DefinitionBase<T>
-    , ITypeDefinition
-    where T : class, ISyntaxNode
+public class TypeDefinitionBase : DefinitionBase, ITypeDefinition
 {
     private List<DirectiveDefinition>? _directives;
     private Type _runtimeType = typeof(object);
@@ -32,15 +24,12 @@ public class TypeDefinitionBase<T>
     public bool NeedsNameCompletion { get; set; }
 
     /// <summary>
-    /// Gets or sets the .net type representation of this type.
+    /// Gets or sets the .NET type representation of this type.
     /// </summary>
     public virtual Type RuntimeType
     {
         get => _runtimeType;
-        set
-        {
-            _runtimeType = value ?? throw new ArgumentNullException(nameof(value));
-        }
+        set => _runtimeType = value ?? throw new ArgumentNullException(nameof(value));
     }
 
     /// <summary>
@@ -66,13 +55,13 @@ public class TypeDefinitionBase<T>
     {
         if (_directives is null)
         {
-            return Array.Empty<DirectiveDefinition>();
+            return [];
         }
 
         return _directives;
     }
 
-    protected void CopyTo(TypeDefinitionBase<T> target)
+    protected void CopyTo(TypeDefinitionBase target)
     {
         base.CopyTo(target);
 
@@ -85,13 +74,13 @@ public class TypeDefinitionBase<T>
         }
     }
 
-    protected void MergeInto(TypeDefinitionBase<T> target)
+    protected void MergeInto(TypeDefinitionBase target)
     {
         base.MergeInto(target);
 
         // Note: we will not change ExtendsType or _runtimeType on merge.
 
-        if (_directives is not null and { Count: > 0, })
+        if (_directives is { Count: > 0, })
         {
             target._directives ??= [];
             target._directives.AddRange(Directives);

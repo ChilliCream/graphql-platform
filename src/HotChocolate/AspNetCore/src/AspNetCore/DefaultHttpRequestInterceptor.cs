@@ -13,7 +13,7 @@ public class DefaultHttpRequestInterceptor : IHttpRequestInterceptor
     public virtual ValueTask OnCreateAsync(
         HttpContext context,
         IRequestExecutor requestExecutor,
-        IQueryRequestBuilder requestBuilder,
+        OperationRequestBuilder requestBuilder,
         CancellationToken cancellationToken)
     {
         var userState = new UserState(context.User);
@@ -24,14 +24,15 @@ public class DefaultHttpRequestInterceptor : IHttpRequestInterceptor
         requestBuilder.TryAddGlobalState(nameof(ClaimsPrincipal), userState.User);
         requestBuilder.TryAddGlobalState(WellKnownContextData.UserState, userState);
 
-        if (context.IsTracingEnabled())
-        {
-            requestBuilder.TryAddGlobalState(WellKnownContextData.EnableTracing, true);
-        }
-
         if (context.IncludeQueryPlan())
         {
             requestBuilder.TryAddGlobalState(WellKnownContextData.IncludeQueryPlan, true);
+        }
+
+        var costSwitch = context.TryGetCostSwitch();
+        if (costSwitch is not null)
+        {
+            requestBuilder.TryAddGlobalState(costSwitch, true);
         }
 
         return default;

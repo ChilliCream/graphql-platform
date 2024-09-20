@@ -90,7 +90,7 @@ public class SchemaDirectiveTests
         protected override void Configure(IObjectTypeDescriptor<Person> descriptor)
         {
             descriptor.Directive(new Resolve());
-            descriptor.Field(t => t.Name).Directive(new BDirective { Append = "Bar", });
+            descriptor.Field(t => t.Name).Directive(new BDirective(append: "Bar"));
         }
     }
 
@@ -142,7 +142,7 @@ public class SchemaDirectiveTests
 
                 if (directive.Type.Name != "upper")
                 {
-                    throw new QueryException("Not the upper directive.");
+                    throw new GraphQLException("Not the upper directive.");
                 }
 
                 if (context.Result is string s)
@@ -166,7 +166,7 @@ public class SchemaDirectiveTests
 
                 if (directive.Type.Name != "lower")
                 {
-                    throw new QueryException("Not the lower directive.");
+                    throw new GraphQLException("Not the lower directive.");
                 }
 
                 if (context.Result is string s)
@@ -177,16 +177,16 @@ public class SchemaDirectiveTests
         }
     }
 
-    public class ADirective
+    public class ADirective(string append)
     {
-        public string Append { get; set; }
+        public string Append { get; set; } = append;
     }
 
-    public class BDirective : ADirective
+    public class BDirective(string append) : ADirective(append)
     {
     }
 
-    public class CDirective : ADirective
+    public class CDirective(string append) : ADirective(append)
     {
     }
 

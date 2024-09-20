@@ -1,4 +1,4 @@
-using System;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing;
@@ -16,10 +16,15 @@ internal sealed partial class OperationContext
     /// <summary>
     /// Gets the activator helper class.
     /// </summary>
-    public IActivator Activator => _activator;
+    public ResolverProvider Resolvers => _resolvers;
 
     /// <summary>
     /// Gets access to the input parser.
     /// </summary>
     public InputParser InputParser => _inputParser;
+
+    /// <summary>
+    /// Gets the service scope initializer.
+    /// </summary>
+    public AggregateServiceScopeInitializer ServiceScopeInitializer => _serviceScopeInitializer;
 }

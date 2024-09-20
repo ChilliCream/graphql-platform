@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Xunit;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Validation;
 
@@ -102,11 +101,11 @@ public class OperationNameUniquenessRuleTests
                 query Foo {
                     anyArg
                 }
-                
+
                 mutation Bar {
                     field
                 }
-                
+
                 subscription Baz {
                     newMessage {
                         bdoy
@@ -122,7 +121,7 @@ public class OperationNameUniquenessRuleTests
                 query Foo {
                     ...Foo
                 }
-                
+
                 fragment Foo on Query {
                     anyArg
                 }
@@ -136,7 +135,7 @@ public class OperationNameUniquenessRuleTests
                 query Foo {
                     anyArg
                 }
-                
+
                 query Foo {
                     anyArg
                 }
@@ -150,7 +149,7 @@ public class OperationNameUniquenessRuleTests
                 query Foo {
                     anyArg
                 }
-                
+
                 mutation Foo {
                     fieldB
                 }
@@ -164,7 +163,7 @@ public class OperationNameUniquenessRuleTests
                 query Foo {
                     anyArg
                 }
-                
+
                 subscription Foo {
                     newMessage {
                         bdoy

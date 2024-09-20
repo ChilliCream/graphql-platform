@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Components;
 
 namespace StrawberryShake.Razor;
@@ -71,7 +69,7 @@ public abstract class DataComponent<TClientOrOperation> : ComponentBase, IDispos
         {
             if (disposing)
             {
-                foreach (IDisposable subscription in _subscriptions)
+                foreach (var subscription in _subscriptions)
                 {
                     subscription.Dispose();
                 }

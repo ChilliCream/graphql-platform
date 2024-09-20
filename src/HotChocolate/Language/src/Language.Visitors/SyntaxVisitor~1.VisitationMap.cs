@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Language.Visitors;
 
 public partial class SyntaxVisitor<TContext>
@@ -788,7 +786,6 @@ public partial class SyntaxVisitor<TContext>
                 }
             }
         }
-
 
         for (var i = 0; i < node.Values.Count; i++)
         {

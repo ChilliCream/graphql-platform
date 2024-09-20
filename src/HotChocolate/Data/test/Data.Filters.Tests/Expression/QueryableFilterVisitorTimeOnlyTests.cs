@@ -1,6 +1,4 @@
-using System;
 using HotChocolate.Language;
-using Xunit;
 
 namespace HotChocolate.Data.Filters.Expressions;
 
@@ -37,7 +35,6 @@ public class QueryableFilterVisitorTimeOnlyTests
 
         // act
         var func = tester.Build<Foo>(value);
-
 
         // assert
         var a = new Foo { Value = new TimeOnly(1, 59, 59), };

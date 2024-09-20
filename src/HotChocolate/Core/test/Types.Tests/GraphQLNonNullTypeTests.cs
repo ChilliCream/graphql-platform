@@ -1,11 +1,9 @@
 #nullable enable
 using System.ComponentModel.DataAnnotations;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace HotChocolate;
 

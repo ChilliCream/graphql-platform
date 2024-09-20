@@ -1,9 +1,6 @@
-using System;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
@@ -80,7 +77,7 @@ public static partial class RequestExecutorBuilderExtensions
         configure(options);
         services.AddSingleton(
             sp => new InputParser(
-                sp.GetRequiredService<ITypeConverter>(), 
+                sp.GetRequiredService<ITypeConverter>(),
                 options));
         return services;
     }

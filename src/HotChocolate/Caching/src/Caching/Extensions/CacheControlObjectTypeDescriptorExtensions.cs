@@ -1,6 +1,4 @@
-using System;
 using HotChocolate.Caching;
-using HotChocolate.Types;
 
 namespace HotChocolate.Types;
 
@@ -13,7 +11,7 @@ public static class CacheControlObjectTypeDescriptorExtensions
     /// The <see cref="IObjectTypeDescriptor"/>.
     /// </param>
     /// <param name="maxAge">
-    /// The maximum time, in Milliseconds, fields of this
+    /// The maximum time, in seconds, fields of this
     /// type should be cached.
     /// </param>
     /// <param name="scope">
@@ -39,7 +37,7 @@ public static class CacheControlObjectTypeDescriptorExtensions
     /// The <see cref="IObjectTypeDescriptor{T}"/>.
     /// </param>
     /// <param name="maxAge">
-    /// The maximum time, in Milliseconds, fields of this
+    /// The maximum time, in seconds, fields of this
     /// type should be cached.
     /// </param>
     /// <param name="scope">

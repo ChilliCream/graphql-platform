@@ -1,4 +1,3 @@
-using System.Reflection.Metadata.Ecma335;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using static HotChocolate.Subscriptions.Properties.Resources;

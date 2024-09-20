@@ -1,6 +1,4 @@
-﻿using System.Linq;
 using HotChocolate.Utilities;
-using Xunit;
 
 namespace HotChocolate.Types.Directives;
 

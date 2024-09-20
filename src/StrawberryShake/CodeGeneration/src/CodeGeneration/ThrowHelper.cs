@@ -33,7 +33,6 @@ internal static class ThrowHelper
             .New()
             .SetMessage(TypeDescriptorMapper_UnionTypeDataEntityMixed)
             .SetCode(CodeGenerationErrorCodes.UnionTypeDataEntityMixed)
-            .SetSyntaxNode(syntaxNode)
+            .AddLocation(syntaxNode)
             .Build());
-
 }

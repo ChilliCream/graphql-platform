@@ -281,8 +281,6 @@ internal sealed class FieldRequirementsPlannerMiddleware(
         }
     }
 
-
-
     private static void ResolveVariablesInContext(
         QueryPlanContext context,
         FieldContext fieldContext,
@@ -302,7 +300,7 @@ internal sealed class FieldRequirementsPlannerMiddleware(
                 out var providingExecutionStep))
             {
                 executionStep.DependsOn.Add(providingExecutionStep);
-                executionStep.Variables.Add(requirement, stateKey);
+                executionStep.Variables.TryAdd(requirement, stateKey);
             }
         }
 

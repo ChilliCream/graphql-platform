@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -8,12 +7,6 @@ public interface IArgumentDescriptor
     : IDescriptor<ArgumentDefinition>
     , IFluent
 {
-    /// <summary>
-    /// Associates the argument with a syntax node of the parsed GraphQL SDL.
-    /// </summary>
-    /// <param name="inputValueDefinition">The syntax node</param>
-    IArgumentDescriptor SyntaxNode(InputValueDefinitionNode inputValueDefinition);
-
     /// <summary>
     /// Marks the argument as deprecated
     /// <remarks>

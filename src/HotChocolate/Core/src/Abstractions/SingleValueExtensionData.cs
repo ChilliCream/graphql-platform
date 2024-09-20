@@ -1,15 +1,11 @@
-#nullable enable
-
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using HotChocolate.Execution;
 using static HotChocolate.Properties.AbstractionResources;
 
 namespace HotChocolate;
 
 /// <summary>
-/// An optimized extension data dictionary for <see cref="IQueryResult.Extensions"/> or
+/// An optimized extension data dictionary for <see cref="IOperationResult.Extensions"/> or
 /// <see cref="IExecutionResult.ContextData"/> when only one value is needed.
 /// </summary>
 public sealed class SingleValueExtensionData : IReadOnlyDictionary<string, object?>

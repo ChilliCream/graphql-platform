@@ -1,16 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Resolvers;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing.Tasks;
 
-internal sealed partial class ResolverTask : IExecutionTask
+internal sealed partial class ResolverTask(ObjectPool<ResolverTask> objectPool) : IExecutionTask
 {
-    private readonly ObjectPool<ResolverTask> _objectPool;
     private readonly MiddlewareContext _context = new();
     private readonly List<ResolverTask> _taskBuffer = [];
     private readonly Dictionary<string, ArgumentValue> _args = new(StringComparer.Ordinal);
@@ -18,11 +13,6 @@ internal sealed partial class ResolverTask : IExecutionTask
     private ISelection _selection = default!;
     private ExecutionTaskStatus _completionStatus = ExecutionTaskStatus.Completed;
     private Task? _task;
-
-    public ResolverTask(ObjectPool<ResolverTask> objectPool)
-    {
-        _objectPool = objectPool ?? throw new ArgumentNullException(nameof(objectPool));
-    }
 
     /// <summary>
     /// Gets access to the resolver context for this task.

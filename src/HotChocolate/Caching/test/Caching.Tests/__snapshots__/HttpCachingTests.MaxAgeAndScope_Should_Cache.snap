@@ -1,4 +1,4 @@
-﻿{
+{
   "Headers": [
     {
       "Key": "Cache-Control",
@@ -15,5 +15,5 @@
       ]
     }
   ],
-  "Body": "{}"
+  "Body": "{\"data\":{\"field\":\"\"}}"
 }

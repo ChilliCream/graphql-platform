@@ -1,8 +1,4 @@
-using System;
 using HotChocolate.Language;
-using HotChocolate.Types;
-
-using Xunit;
 
 namespace HotChocolate.Data.Filters.Expressions;
 
@@ -38,7 +34,6 @@ public class QueryableFilterVisitorDateOnlyTests
 
         // act
         var func = tester.Build<Foo>(value);
-
 
         // assert
         var a = new Foo { Value = new DateOnly(2020,12,13), };

@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace HotChocolate.Validation;
 
@@ -261,7 +260,7 @@ public class ArgumentNamesRuleTests
     {
         // arrange
         ExpectValid(@"
-                {      
+                {
                     one: fieldWithArg(arg: ""value"")
                     two: fieldWithArg(arg: ""value"")
                 }
@@ -273,7 +272,7 @@ public class ArgumentNamesRuleTests
     {
         // arrange
         ExpectValid(@"
-                {      
+                {
                     fieldWithArg(arg: ""value"") @directive(arg: ""value"")
                 }
             ");
@@ -284,7 +283,7 @@ public class ArgumentNamesRuleTests
     {
         // arrange
         ExpectValid(@"
-                {       
+                {
                     fieldWithArg @directive1(arg: ""value"") @directive2(arg: ""value"")
                 }
             ");
@@ -306,7 +305,7 @@ public class ArgumentNamesRuleTests
     {
         // arrange
         ExpectValid(@"
-                {       
+                {
                     fieldWithArg @directive(arg1: ""value"", arg2: ""value"", arg3: ""value"")
                 }
             ");
@@ -317,7 +316,7 @@ public class ArgumentNamesRuleTests
     {
         // arrange
         ExpectErrors(@"
-                {       
+                {
                     fieldWithArg(arg1: ""value"", arg1: ""value"")
                 }
             ");
@@ -328,7 +327,7 @@ public class ArgumentNamesRuleTests
     {
         // arrange
         ExpectErrors(@"
-                {       
+                {
                     fieldWithArg(arg1: ""value"", arg1: ""value"", arg1: ""value"")
                 }
             ");
@@ -339,7 +338,7 @@ public class ArgumentNamesRuleTests
     {
         // arrange
         ExpectErrors(@"
-                {       
+                {
                     fieldWithArg @directive(arg1: ""value"", arg1: ""value"")
                 }
             ");
@@ -350,7 +349,7 @@ public class ArgumentNamesRuleTests
     {
         // arrange
         ExpectErrors(@"
-                {       
+                {
                     fieldWithArg @directive(arg1: ""value"", arg1: ""value"", arg1: ""value"")
                 }
             ");

@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -8,9 +7,6 @@ public interface IDirectiveArgumentDescriptor
     : IDescriptor<DirectiveArgumentDefinition>
     , IFluent
 {
-    /// <inheritdoc cref="IArgumentDescriptor.SyntaxNode(InputValueDefinitionNode)"/>
-    IDirectiveArgumentDescriptor SyntaxNode(InputValueDefinitionNode inputValueDefinition);
-
     /// <inheritdoc cref="IArgumentDescriptor.Deprecated(string)"/>
     IDirectiveArgumentDescriptor  Deprecated(string reason);
 

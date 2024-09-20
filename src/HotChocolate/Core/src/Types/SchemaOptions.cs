@@ -1,4 +1,3 @@
-using System;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
@@ -15,16 +14,11 @@ public class SchemaOptions : IReadOnlySchemaOptions
 {
     private BindingBehavior _defaultBindingBehavior = BindingBehavior.Implicit;
     private FieldBindingFlags _defaultFieldBindingFlags = FieldBindingFlags.Instance;
-    private string? _queryTypeName;
 
     /// <summary>
     /// Gets or sets the name of the query type.
     /// </summary>
-    public string? QueryTypeName
-    {
-        get => _queryTypeName;
-        set => _queryTypeName = value;
-    }
+    public string? QueryTypeName { get; set; }
 
     /// <summary>
     /// Gets or sets the name of the mutation type.
@@ -57,11 +51,6 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// Default: <c>false</c>
     /// </summary>
     public bool SortFieldsByName { get; set; }
-
-    /// <summary>
-    /// Defines if syntax nodes shall be preserved on the type system objects
-    /// </summary>
-    public bool PreserveSyntaxNodes { get; set; }
 
     /// <summary>
     /// Defines if types shall be removed from the schema that are
@@ -227,6 +216,23 @@ public class SchemaOptions : IReadOnlySchemaOptions
     public bool EnableTag { get; set; } = true;
 
     /// <summary>
+    /// Defines the default dependency injection scope for query fields.
+    /// </summary>
+    public DependencyInjectionScope DefaultQueryDependencyInjectionScope { get; set; } =
+        DependencyInjectionScope.Resolver;
+
+    /// <summary>
+    /// Defines the default dependency injection scope for mutation fields.
+    /// </summary>
+    public DependencyInjectionScope DefaultMutationDependencyInjectionScope { get; set; } =
+        DependencyInjectionScope.Request;
+
+    /// <summary>
+    /// Defines if the root field pages shall be published to the promise cache.
+    /// </summary>
+    public bool PublishRootFieldPagesToPromiseCache { get; set; } = true;
+
+    /// <summary>
     /// Creates a mutable options object from a read-only options object.
     /// </summary>
     /// <param name="options">The read-only options object.</param>
@@ -243,7 +249,6 @@ public class SchemaOptions : IReadOnlySchemaOptions
             ResolveXmlDocumentationFileName = options.ResolveXmlDocumentationFileName,
             FieldMiddleware = options.FieldMiddleware,
             DefaultBindingBehavior = options.DefaultBindingBehavior,
-            PreserveSyntaxNodes = options.PreserveSyntaxNodes,
             EnableDirectiveIntrospection = options.EnableDirectiveIntrospection,
             DefaultDirectiveVisibility = options.DefaultDirectiveVisibility,
             DefaultResolverStrategy = options.DefaultResolverStrategy,
@@ -263,6 +268,8 @@ public class SchemaOptions : IReadOnlySchemaOptions
             StripLeadingIFromInterface = options.StripLeadingIFromInterface,
             EnableTrueNullability = options.EnableTrueNullability,
             EnableTag = options.EnableTag,
+            DefaultQueryDependencyInjectionScope = options.DefaultQueryDependencyInjectionScope,
+            DefaultMutationDependencyInjectionScope = options.DefaultMutationDependencyInjectionScope,
         };
     }
 }

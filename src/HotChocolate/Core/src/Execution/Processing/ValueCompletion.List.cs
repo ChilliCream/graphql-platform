@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Text.Json;
 using HotChocolate.Types;
@@ -21,7 +20,7 @@ internal static partial class ValueCompletion
         {
             return null;
         }
-        
+
         var elementType = type.InnerType();
         var isLeafType = elementType.IsLeafType();
         var operationContext = context.OperationContext;
@@ -103,7 +102,7 @@ internal static partial class ValueCompletion
                 {
                     resultList.Grow();
                 }
-                
+
                 if (!TryCompleteElement(context, selection, elementType, isLeafType, resultList, i++, element))
                 {
                     operationContext.Result.AddRemovedResult(resultList);
@@ -148,12 +147,12 @@ internal static partial class ValueCompletion
                 {
                     return list.IsNullable;
                 }
-                
+
                 list.SetUnsafe(index, resultData);
             }
             return true;
         }
-        
+
         return list.IsNullable;
     }
 
@@ -163,14 +162,14 @@ internal static partial class ValueCompletion
         {
             return;
         }
-        
+
         result.IsInvalidated = true;
-        
+
         while (result.Parent is not null)
         {
             var index = result.ParentIndex;
             var parent = result.Parent;
-            
+
             if(parent.IsInvalidated)
             {
                 return;
@@ -186,7 +185,7 @@ internal static partial class ValueCompletion
                     }
                     objectResult.IsInvalidated = true;
                     break;
-                
+
                 case ListResult listResult:
                     if (listResult.TrySetNull(index))
                     {
@@ -195,7 +194,7 @@ internal static partial class ValueCompletion
                     listResult.IsInvalidated = true;
                     break;
             }
-            
+
             result = parent;
         }
     }

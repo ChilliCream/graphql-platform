@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using HotChocolate;
 using StrawberryShake.CodeGeneration.Descriptors.Operations;
 using static StrawberryShake.CodeGeneration.Properties.CodeGenerationResources;
 

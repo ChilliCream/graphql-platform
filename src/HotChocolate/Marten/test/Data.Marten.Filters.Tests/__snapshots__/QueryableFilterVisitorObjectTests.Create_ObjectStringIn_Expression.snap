@@ -1,0 +1,72 @@
+testatestAndtestb Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barString": "testatest"
+        }
+      },
+      {
+        "foo": {
+          "barString": "testbtest"
+        }
+      }
+    ]
+  }
+}
+---------------
+
+testatestAndtestb SQL:
+---------------
+select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_bar as d where d.data -> 'Foo' ->> 'BarString' = ANY(:p0);
+---------------
+
+testbtestAndNull
+---------------
+{
+  "errors": [
+    {
+      "message": "The provided value for filter `in` of type StringOperationFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 41
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "[String!]",
+        "filterType": "StringOperationFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": null
+  }
+}
+---------------
+
+testatest Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barString": "testatest"
+        }
+      }
+    ]
+  }
+}
+---------------
+
+testatest SQL:
+---------------
+select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_bar as d where d.data -> 'Foo' ->> 'BarString' = ANY(:p0);
+---------------

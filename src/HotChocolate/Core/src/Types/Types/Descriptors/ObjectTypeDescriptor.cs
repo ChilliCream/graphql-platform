@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
@@ -58,12 +56,26 @@ public class ObjectTypeDescriptor
     protected override void OnCreateDefinition(
         ObjectTypeDefinition definition)
     {
-        if (!Definition.AttributesAreApplied && Definition.FieldBindingType is not null)
+        Context.Descriptors.Push(this);
+
+        if (Definition is { AttributesAreApplied: false, FieldBindingType: not null, })
         {
             Context.TypeInspector.ApplyAttributes(
                 Context,
                 this,
                 Definition.FieldBindingType);
+
+            if (Definition.AttributeBindingTypes.Length > 0)
+            {
+                foreach (var type in Definition.AttributeBindingTypes)
+                {
+                    Context.TypeInspector.ApplyAttributes(
+                        Context,
+                        this,
+                        type);
+                }
+            }
+
             Definition.AttributesAreApplied = true;
         }
 
@@ -113,6 +125,8 @@ public class ObjectTypeDescriptor
         TypeMemHelper.Return(handledMembers);
 
         base.OnCreateDefinition(definition);
+
+        Context.Descriptors.Pop();
     }
 
     internal void InferFieldsFromFieldBindingType()
@@ -222,13 +236,6 @@ public class ObjectTypeDescriptor
         IDictionary<string, ObjectFieldDefinition> fields,
         ISet<MemberInfo> handledMembers)
     { }
-
-    public IObjectTypeDescriptor SyntaxNode(
-        ObjectTypeDefinitionNode? objectTypeDefinition)
-    {
-        Definition.SyntaxNode = objectTypeDefinition;
-        return this;
-    }
 
     public IObjectTypeDescriptor Name(string value)
     {

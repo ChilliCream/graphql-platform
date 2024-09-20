@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Language;
 using HotChocolate.Types.Spatial.Properties;
 using HotChocolate.Types.Spatial.Serialization;
@@ -115,7 +114,7 @@ internal static class ThrowHelper
         new GraphQLException(
             ErrorBuilder.New()
                 .SetMessage(Resources.Transformation_DefaultCRSNotFound, srid)
-                .SetCode(ErrorCodes.Spatial.UnknowCrs)
+                .SetCode(ErrorCodes.Spatial.UnknownCrs)
                 .Build());
 
     public static SchemaException Transformation_DefaultCRSNotFound(int srid) =>

@@ -1,11 +1,5 @@
-using System;
-using System.Buffers;
-using System.Collections.Generic;
-using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Transport.Http;
 using StrawberryShake.Internal;
 using static StrawberryShake.Properties.Resources;

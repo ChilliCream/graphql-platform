@@ -4,7 +4,6 @@ using System.Reflection;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.StarWars.Models;
 using HotChocolate.Subscriptions;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake.Transport.WebSockets;
 using StrawberryShake.Transport.WebSockets.Protocols;
@@ -12,12 +11,9 @@ using static HotChocolate.StarWars.Types.Subscriptions;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubCompletion
 {
-    public class StarWarsOnReviewSubCompletionTest : ServerTestBase
+    public class StarWarsOnReviewSubCompletionTest(TestServerFactory serverFactory)
+        : ServerTestBase(serverFactory)
     {
-        public StarWarsOnReviewSubCompletionTest(TestServerFactory serverFactory) : base(serverFactory)
-        {
-        }
-
         [Fact]
         public async Task Watch_StarWarsOnReviewSubCompletion_Test()
         {
@@ -53,7 +49,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubC
             {
                 await topicEventSender.SendAsync(
                     $"{OnReview}_{topic}",
-                    new Review { Stars = 1, Commentary = "Commentary", });
+                    new Review(stars: 1, commentary: "Commentary"));
                 await Task.Delay(1_000);
             }
 
@@ -112,7 +108,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubC
             {
                 await topicEventSender.SendAsync(
                     $"{OnReview}_{topic}",
-                    new Review { Stars = 1, Commentary = "Commentary", });
+                    new Review(stars: 1, commentary: "Commentary"));
                 await Task.Delay(1_000);
             }
 

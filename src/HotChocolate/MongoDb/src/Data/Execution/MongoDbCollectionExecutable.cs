@@ -1,6 +1,4 @@
-using System.Collections;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
@@ -8,7 +6,7 @@ using MongoDB.Driver;
 namespace HotChocolate.Data.MongoDb;
 
 /// <summary>
-/// A executable that is based on <see cref="IMongoCollection{TResult}"/>
+/// An executable that is based on <see cref="IMongoCollection{TResult}"/>
 /// </summary>
 /// <typeparam name="T">The entity type</typeparam>
 public class MongoDbCollectionExecutable<T> : MongoDbExecutable<T>
@@ -33,7 +31,7 @@ public class MongoDbCollectionExecutable<T> : MongoDbExecutable<T>
     /// Applies the options to the executable
     /// </summary>
     /// <param name="options">The options</param>
-    /// <returns>A executable that contains the options</returns>
+    /// <returns>An executable that contains the options</returns>
     public IMongoDbExecutable WithOptions(FindOptionsBase options)
     {
         Options = options;
@@ -41,7 +39,7 @@ public class MongoDbCollectionExecutable<T> : MongoDbExecutable<T>
     }
 
     /// <inheritdoc />
-    public override async ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
+    public override async ValueTask<List<T>> ToListAsync(CancellationToken cancellationToken)
     {
         var serializers = _collection.Settings.SerializerRegistry;
         IBsonSerializer bsonSerializer = _collection.DocumentSerializer;
@@ -72,18 +70,59 @@ public class MongoDbCollectionExecutable<T> : MongoDbExecutable<T>
     }
 
     /// <inheritdoc />
-    public override async ValueTask<object?> FirstOrDefaultAsync(
+    public override async IAsyncEnumerable<T> ToAsyncEnumerable(
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var serializers = _collection.Settings.SerializerRegistry;
+        IBsonSerializer bsonSerializer = _collection.DocumentSerializer;
+
+        var options = Options as FindOptions<T> ?? new FindOptions<T>();
+        var filters = new BsonDocument();
+
+        if (Sorting is not null)
+        {
+            options.Sort = Sorting.Render(bsonSerializer, serializers);
+        }
+
+        if (Projection is not null)
+        {
+            options.Projection = Projection.Render(bsonSerializer, serializers);
+        }
+
+        if (Filters is not null)
+        {
+            filters = Filters.Render(bsonSerializer, serializers);
+        }
+
+        var cursor = await _collection
+            .FindAsync(filters, options, cancellationToken)
+            .ConfigureAwait(false);
+
+        while (await cursor.MoveNextAsync(cancellationToken).ConfigureAwait(false))
+        {
+            foreach (var document in cursor.Current)
+            {
+                yield return document;
+            }
+        }
+    }
+
+    /// <inheritdoc />
+    public override async ValueTask<T?> FirstOrDefaultAsync(
         CancellationToken cancellationToken) =>
         await BuildPipeline()
             .FirstOrDefaultAsync(cancellationToken)
             .ConfigureAwait(false);
 
     /// <inheritdoc />
-    public override async ValueTask<object?> SingleOrDefaultAsync(
+    public override async ValueTask<T?> SingleOrDefaultAsync(
         CancellationToken cancellationToken) =>
         await BuildPipeline()
             .SingleOrDefaultAsync(cancellationToken)
             .ConfigureAwait(false);
+
+    public override async ValueTask<int> CountAsync(CancellationToken cancellationToken)
+        => (int)await BuildPipeline().CountDocumentsAsync(cancellationToken);
 
     /// <inheritdoc />
     public override string Print() => BuildPipeline().ToString() ?? "";

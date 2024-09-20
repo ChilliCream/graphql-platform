@@ -1,4 +1,3 @@
-using System;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
 
@@ -50,7 +49,7 @@ namespace HotChocolate.Types.Relay;
 /// </code>
 /// results in
 /// <code>
-/// VXNlcgppMQ==
+/// VXNlcjox
 /// </code>
 /// </para>
 /// </example>
@@ -157,7 +156,7 @@ public class IDAttribute : DescriptorAttribute
 /// </code>
 /// results in
 /// <code>
-/// VXNlcgppMQ==
+/// VXNlcjox
 /// </code>
 /// </para>
 /// </example>

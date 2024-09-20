@@ -1,12 +1,10 @@
-using System;
-using System.Collections.Generic;
+#nullable enable
+
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
-
-#nullable enable
 
 namespace HotChocolate.Types;
 
@@ -26,8 +24,9 @@ public partial class DirectiveType
     private Action<IDirectiveTypeDescriptor>? _configure;
     private Func<object?[], object> _createInstance = default!;
     private Action<object, object?[]> _getFieldValues = default!;
+    private Func<DirectiveNode, object> _parse = default!;
+    private Func<object, DirectiveNode> _format = default!;
     private InputParser _inputParser = default!;
-    private InputFormatter _inputFormatter = default!;
 
     protected DirectiveType()
         => _configure = Configure;
@@ -47,11 +46,6 @@ public partial class DirectiveType
     /// </returns>
     public static DirectiveType CreateUnsafe(DirectiveTypeDefinition definition)
         => new() { Definition = definition, };
-
-    /// <summary>
-    /// The associated syntax node from the GraphQL SDL.
-    /// </summary>
-    public DirectiveDefinitionNode? SyntaxNode { get; private set; }
 
     /// <summary>
     /// Gets the runtime type.
@@ -133,10 +127,10 @@ public partial class DirectiveType
         => _getFieldValues(runtimeValue, fieldValues);
 
     public object Parse(DirectiveNode directiveNode)
-        => _inputParser.ParseDirective(directiveNode, this);
+        => _parse(directiveNode);
 
     public DirectiveNode Format(object runtimeValue)
-        => _inputFormatter.FormatDirective(runtimeValue, this);
+        => _format(runtimeValue);
 
     public T ParseArgument<T>(string name, IValueNode? value)
     {

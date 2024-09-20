@@ -1,5 +1,4 @@
 using CookieCrumble;
-using HotChocolate.Fusion.Composition;
 using HotChocolate.Fusion.Shared;
 using HotChocolate.Skimmed.Serialization;
 using Xunit.Abstractions;

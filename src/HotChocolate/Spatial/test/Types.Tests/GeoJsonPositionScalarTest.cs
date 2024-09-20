@@ -435,7 +435,7 @@ public class GeoJsonPositionScalarTest
 
         Assert.True(result);
         Assert.Equal(2, Assert.IsType<double[]>(value).Length);
-        Assert.Equal([1D, 2D,], Assert.IsType<double[]>(value));
+        Assert.Equal(new[] { 1D, 2D, }, Assert.IsType<double[]>(value));
     }
 
     [Fact]
@@ -448,7 +448,7 @@ public class GeoJsonPositionScalarTest
 
         Assert.True(result);
         Assert.Equal(3, Assert.IsType<double[]>(value).Length);
-        Assert.Equal([1D, 2D, 100D,], Assert.IsType<double[]>(value));
+        Assert.Equal(new[] { 1D, 2D, 100D, }, Assert.IsType<double[]>(value));
     }
 
     [Fact]
@@ -461,6 +461,6 @@ public class GeoJsonPositionScalarTest
 
         Assert.True(result);
         Assert.Equal(2, Assert.IsType<double[]>(value).Length);
-        Assert.Equal([1D, 2D,], Assert.IsType<double[]>(value));
+        Assert.Equal(new[] { 1D, 2D, }, Assert.IsType<double[]>(value));
     }
 }

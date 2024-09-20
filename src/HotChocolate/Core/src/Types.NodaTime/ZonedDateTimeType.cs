@@ -22,13 +22,6 @@ public class ZonedDateTimeType : StringToStructBaseType<ZonedDateTime>
     /// <summary>
     /// Initializes a new instance of <see cref="ZonedDateTimeType"/>.
     /// </summary>
-    public ZonedDateTimeType() : this(_default)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of <see cref="ZonedDateTimeType"/>.
-    /// </summary>
     public ZonedDateTimeType(params IPattern<ZonedDateTime>[] allowedPatterns)
         : base("ZonedDateTime")
     {
@@ -40,6 +33,14 @@ public class ZonedDateTimeType : StringToStructBaseType<ZonedDateTime>
         _allowedPatterns = allowedPatterns;
         _serializationPattern = allowedPatterns[0];
         Description = NodaTimeResources.ZonedDateTimeType_Description;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="ZonedDateTimeType"/>.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public ZonedDateTimeType() : this(_default)
+    {
     }
 
     /// <inheritdoc />

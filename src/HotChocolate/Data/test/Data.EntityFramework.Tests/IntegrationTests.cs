@@ -1,5 +1,3 @@
-using System.Linq;
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -34,7 +32,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 x => x
                     .Name("Query")
                     .Field("executable")
-                    .Resolve(_authors.AsExecutable()))
+                    .Resolve(_authors))
             .BuildRequestExecutorAsync();
 
         // act
@@ -65,7 +63,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .Name("Query")
                     .Field("executable")
                     .Type<ObjectType<Author>>()
-                    .Resolve(_authors.Take(1).AsExecutable())
+                    .Resolve(_authors.Take(1))
                     .UseSingleOrDefault())
             .BuildRequestExecutorAsync();
 
@@ -97,7 +95,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .Name("Query")
                     .Field("executable")
                     .Type<ObjectType<Author>>()
-                    .Resolve(_authors.AsExecutable())
+                    .Resolve(_authors)
                     .UseSingleOrDefault()
                     .UseProjection()
                     .UseFiltering()
@@ -106,13 +104,13 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
 
         // act
         var result = await executor.ExecuteAsync(
-            @"
-                {
-                    executable {
-                        name
-                    }
+            """
+            {
+                executable {
+                    name
                 }
-                ");
+            }
+            """);
 
         // assert
         result.MatchSnapshot();
@@ -132,7 +130,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .Name("Query")
                     .Field("executable")
                     .Type<ObjectType<Author>>()
-                    .Resolve(_authors.Take(0).AsExecutable())
+                    .Resolve(_authors.Take(0))
                     .UseSingleOrDefault()
                     .UseProjection()
                     .UseFiltering()
@@ -167,7 +165,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .Name("Query")
                     .Field("executable")
                     .Type<ObjectType<Author>>()
-                    .Resolve(_authors.AsExecutable())
+                    .Resolve(_authors)
                     .UseFirstOrDefault())
             .BuildRequestExecutorAsync();
 
@@ -199,7 +197,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .Name("Query")
                     .Field("executable")
                     .Type<ObjectType<ZeroAuthor>>()
-                    .Resolve(_zeroAuthors.Take(0).AsExecutable())
+                    .Resolve(_zeroAuthors.Take(0))
                     .UseFirstOrDefault()
                     .UseProjection()
                     .UseFiltering()
@@ -226,7 +224,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         // arrange
         // act
         var executor = await new ServiceCollection()
-            .AddPooledDbContextFactory<BookContext>(
+            .AddDbContextPool<BookContext>(
                 b => b.UseInMemoryDatabase("Data Source=EF.OffsetPagingExecutable.db"))
             .AddGraphQL()
             .AddFiltering()
@@ -266,7 +264,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 x => x
                     .Name("Query")
                     .Field("executable")
-                    .Resolve(new QueryableExecutable<Author>(_authors))
+                    .Resolve(Executable.From(_authors))
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
@@ -300,8 +298,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .Name("Query")
                     .Field("executable")
                     .Type<ObjectType<SingleOrDefaultAuthor>>()
-                    .Resolve(
-                        new QueryableExecutable<SingleOrDefaultAuthor>(_singleOrDefaultAuthors))
+                    .Resolve(Executable.From(_singleOrDefaultAuthors))
                     .UseSingleOrDefault()
                     .UseProjection()
                     .UseFiltering()
@@ -336,7 +333,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .Name("Query")
                     .Field("executable")
                     .Type<ObjectType<Author>>()
-                    .Resolve(new QueryableExecutable<Author>(_authors))
+                    .Resolve(Executable.From(_authors))
                     .UseSingleOrDefault()
                     .UseProjection()
                     .UseFiltering()
@@ -371,7 +368,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .Name("Query")
                     .Field("executable")
                     .Type<ObjectType<ZeroAuthor>>()
-                    .Resolve(new QueryableExecutable<ZeroAuthor>(_zeroAuthors))
+                    .Resolve(Executable.From(_zeroAuthors))
                     .UseSingleOrDefault()
                     .UseProjection()
                     .UseFiltering()
@@ -406,7 +403,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .Name("Query")
                     .Field("executable")
                     .Type<ObjectType<Author>>()
-                    .Resolve(new QueryableExecutable<Author>(_authors))
+                    .Resolve(Executable.From(_authors))
                     .UseFirstOrDefault()
                     .UseProjection()
                     .UseFiltering()
@@ -441,7 +438,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .Name("Query")
                     .Field("executable")
                     .Type<ObjectType<ZeroAuthor>>()
-                    .Resolve(new QueryableExecutable<ZeroAuthor>(_zeroAuthors))
+                    .Resolve(Executable.From(_zeroAuthors))
                     .UseFirstOrDefault()
                     .UseProjection()
                     .UseFiltering()

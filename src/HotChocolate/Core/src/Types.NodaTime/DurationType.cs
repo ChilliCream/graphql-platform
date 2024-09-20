@@ -16,13 +16,6 @@ public class DurationType : StringToStructBaseType<Duration>
     /// <summary>
     /// Initializes a new instance of <see cref="DurationType"/>.
     /// </summary>
-    public DurationType() : this(DurationPattern.Roundtrip)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of <see cref="DurationType"/>.
-    /// </summary>
     public DurationType(params IPattern<Duration>[] allowedPatterns) : base("Duration")
     {
         if (allowedPatterns.Length == 0)
@@ -33,6 +26,14 @@ public class DurationType : StringToStructBaseType<Duration>
         _allowedPatterns = allowedPatterns;
         _serializationPattern = allowedPatterns[0];
         Description = NodaTimeResources.DurationType_Description;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="DurationType"/>.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public DurationType() : this(DurationPattern.Roundtrip)
+    {
     }
 
     /// <inheritdoc />

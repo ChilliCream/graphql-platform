@@ -1,4 +1,4 @@
-﻿schema @link(url: "https:\/\/specs.apollo.dev\/federation\/v2.5", import: [ "@key", "@provides", "@external", "FieldSet" ]) {
+﻿schema @link(url: "https:\/\/specs.apollo.dev\/federation\/v2.6", import: [ "@key", "@provides", "@external", "FieldSet" ]) {
   query: Query
 }
 
@@ -40,12 +40,12 @@ type _Service {
 union _Entity = Product | User
 
 "Directive to indicate that a field is owned by another service, for example via Apollo federation."
-directive @external on FIELD_DEFINITION
+directive @external on OBJECT | FIELD_DEFINITION
 
 "Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface."
 directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
 
-"Object representation of @link directive."
+"Links definitions within the document to external schemas."
 directive @link("Gets imported specification url." url: String! "Gets optional list of imported element names." import: [String!]) repeatable on SCHEMA
 
 "Used to annotate the expected returned fieldset from a field on a base type that is guaranteed to be selectable by the federation gateway."

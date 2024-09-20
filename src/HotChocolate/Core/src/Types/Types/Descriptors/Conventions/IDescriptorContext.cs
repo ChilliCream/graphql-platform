@@ -1,9 +1,9 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 
 #nullable enable
@@ -16,8 +16,6 @@ namespace HotChocolate.Types.Descriptors;
 /// </summary>
 public interface IDescriptorContext : IHasContextData, IDisposable
 {
-    event EventHandler<SchemaCompletedEventArgs> SchemaCompleted;
-
     /// <summary>
     /// Gets the schema options.
     /// </summary>
@@ -64,6 +62,21 @@ public interface IDescriptorContext : IHasContextData, IDisposable
     InputFormatter InputFormatter { get; }
 
     /// <summary>
+    /// Gets the descriptor currently in path.
+    /// </summary>
+    IList<IDescriptor> Descriptors { get; }
+
+    /// <summary>
+    /// Gets an accessor to get access to the current node id serializer.
+    /// </summary>
+    INodeIdSerializerAccessor NodeIdSerializerAccessor { get; }
+
+    /// <summary>
+    /// Gets the parameter binding resolver.
+    /// </summary>
+    IParameterBindingResolver ParameterBindingResolver { get; }
+
+    /// <summary>
     /// Gets the registered type discovery handlers.
     /// </summary>
     ReadOnlySpan<TypeDiscoveryHandler> GetTypeDiscoveryHandlers();
@@ -87,4 +100,9 @@ public interface IDescriptorContext : IHasContextData, IDisposable
     /// </returns>
     T GetConventionOrDefault<T>(Func<T> defaultConvention, string? scope = null)
         where T : class, IConvention;
+
+    /// <summary>
+    /// Allows to subscribe to schema completed events.
+    /// </summary>
+    void OnSchemaCreated(Action<ISchema> callback);
 }

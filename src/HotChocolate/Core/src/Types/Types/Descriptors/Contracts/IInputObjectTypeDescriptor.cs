@@ -7,9 +7,6 @@ public interface IInputObjectTypeDescriptor
     : IDescriptor<InputObjectTypeDefinition>
     , IFluent
 {
-    IInputObjectTypeDescriptor SyntaxNode(
-        InputObjectTypeDefinitionNode inputObjectTypeDefinition);
-
     IInputObjectTypeDescriptor Name(string value);
 
     IInputObjectTypeDescriptor Description(string value);

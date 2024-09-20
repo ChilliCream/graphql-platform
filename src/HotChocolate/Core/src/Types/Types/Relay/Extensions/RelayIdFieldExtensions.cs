@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Types.Relay;
 
 #nullable enable
@@ -55,7 +54,7 @@ namespace HotChocolate.Types;
 /// </code>
 /// results in
 /// <code>
-/// VXNlcgppMQ==
+/// VXNlcjox
 /// </code>
 /// </para>
 /// </example>

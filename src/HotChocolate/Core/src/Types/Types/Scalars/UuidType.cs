@@ -1,4 +1,3 @@
-using System;
 using System.Buffers.Text;
 using System.Text;
 using HotChocolate.Language;
@@ -13,13 +12,6 @@ public class UuidType : ScalarType<Guid, StringValueNode>
     private const string _specifiedBy = "https://tools.ietf.org/html/rfc4122";
     private readonly string _format;
     private readonly bool _enforceFormat;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="UuidType"/> class.
-    /// </summary>
-    public UuidType() : this('\0')
-    {
-    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UuidType"/> class.
@@ -84,6 +76,14 @@ public class UuidType : ScalarType<Guid, StringValueNode>
         Description = description;
         _format = CreateFormatString(defaultFormat);
         _enforceFormat = enforceFormat;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UuidType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public UuidType() : this('\0')
+    {
     }
 
     protected override bool IsInstanceOfType(StringValueNode valueSyntax)

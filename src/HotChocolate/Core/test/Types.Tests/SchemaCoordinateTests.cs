@@ -1,7 +1,6 @@
 using ChilliCream.Testing;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
-using Xunit;
 
 #nullable enable
 
@@ -334,7 +333,6 @@ public class SchemaCoordinateTests
         // assert
         Assert.Throws<InvalidSchemaCoordinateException>(Fail).Message.MatchSnapshot();
     }
-
 
     [Fact]
     public void GetMember_Invalid_DirectiveName()

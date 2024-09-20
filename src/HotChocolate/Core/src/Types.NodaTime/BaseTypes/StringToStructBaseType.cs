@@ -29,7 +29,7 @@ public abstract class StringToStructBaseType<TRuntimeType>
     /// <inheritdoc />
     protected override TRuntimeType ParseLiteral(StringValueNode literal)
     {
-        if (TryDeserialize(literal.Value, out TRuntimeType? value))
+        if (TryDeserialize(literal.Value, out var value))
         {
             return value.Value;
         }
@@ -107,7 +107,7 @@ public abstract class StringToStructBaseType<TRuntimeType>
             return true;
         }
 
-        if (resultValue is string s && TryDeserialize(s, out TRuntimeType? val))
+        if (resultValue is string s && TryDeserialize(s, out var val))
         {
             runtimeValue = val;
             return true;

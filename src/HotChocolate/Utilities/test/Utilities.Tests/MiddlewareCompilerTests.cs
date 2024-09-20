@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace HotChocolate.Utilities;
@@ -16,7 +13,7 @@ public class MiddlewareCompilerTests
         var factory =
             MiddlewareCompiler<CustomClassMiddleware>
                 .CompileFactory<IServiceProvider, CustomDelegate>(
-                    (services, next) =>
+                    (services, _) =>
                         new List<IParameterHandler>
                         {
                             new TypeParameterHandler(typeof(string), Expression.Constant("abc")),
@@ -24,8 +21,7 @@ public class MiddlewareCompilerTests
                         });
 
         // assert
-        var middleware =
-            factory.Invoke(new EmptyServiceProvider(), c => default);
+        var middleware = factory.Invoke(EmptyServiceProvider.Instance, _ => default);
         Assert.Equal("abc", middleware.Some);
     }
 
@@ -36,64 +32,49 @@ public class MiddlewareCompilerTests
         var factory =
             MiddlewareCompiler<CustomClassMiddleware>
                 .CompileFactory<IServiceProvider, CustomDelegate>(
-                    (services, next) =>
+                    (services, _) =>
                         new List<IParameterHandler>
                         {
                             new TypeParameterHandler(typeof(string), Expression.Constant("abc")),
                             new ServiceParameterHandler(services),
                         });
 
-        var middleware =
-            factory.Invoke(new EmptyServiceProvider(), c => default);
+        var middleware = factory.Invoke(EmptyServiceProvider.Instance, _ => default);
 
         // act
         var pipeline =
             MiddlewareCompiler<CustomClassMiddleware>.CompileDelegate<CustomContext>(
-                (context, middleware) =>
+                (_, _) =>
                     new List<IParameterHandler>
                     {
                         new TypeParameterHandler(typeof(string), Expression.Constant("def")),
                     });
 
         // assert
-        var context = new CustomContext(new EmptyServiceProvider());
+        var context = new CustomContext(EmptyServiceProvider.Instance);
         pipeline.Invoke(context, middleware);
         Assert.Equal("abcdef", context.Result);
     }
 
-    public class CustomClassMiddleware
+    public class CustomClassMiddleware(CustomDelegate next, string some)
     {
-        private readonly CustomDelegate _next;
-
-        public CustomClassMiddleware(CustomDelegate next, string some)
-        {
-            _next = next;
-            Some = some;
-        }
-
-        public string Some { get; }
+        public string Some { get; } = some;
 
         public async Task InvokeAsync(CustomContext context, string some)
         {
             context.Result = Some + some;
-            await _next(context);
+            await next(context);
         }
     }
 
-    public class CustomContext
+    public class CustomContext(IServiceProvider services)
     {
-        public CustomContext(IServiceProvider services)
-        {
-            Services = services;
-        }
+        public IServiceProvider Services { get; } = services;
 
-        public IServiceProvider Services { get; }
-
-        public string Result { get; set; }
+        public string? Result { get; set; }
     }
 
     public delegate ValueTask CustomDelegate(CustomContext context);
 
     public delegate CustomContext CustomMiddleware(CustomDelegate next);
-
 }

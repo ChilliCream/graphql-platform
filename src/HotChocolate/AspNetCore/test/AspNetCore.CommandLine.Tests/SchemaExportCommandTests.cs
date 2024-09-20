@@ -2,7 +2,6 @@ using HotChocolate.Types;
 using System.CommandLine.IO;
 using System.CommandLine.Parsing;
 using CookieCrumble;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Moq;

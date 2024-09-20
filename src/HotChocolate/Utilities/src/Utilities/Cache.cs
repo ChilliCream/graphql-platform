@@ -1,25 +1,18 @@
-﻿using System;
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Utilities;
 
 #pragma warning disable CA1724
-public sealed class Cache<TValue>
+public sealed class Cache<TValue>(int size)
 {
     private const int _minimumSize = 10;
     private readonly object _sync = new();
     private readonly ConcurrentDictionary<string, Entry> _map = new(StringComparer.Ordinal);
-    private readonly int _capacity;
-    private readonly int _order;
+    private readonly int _capacity = size < _minimumSize ? _minimumSize : size;
+    private readonly int _order = Convert.ToInt32(size * 0.7);
     private int _usage;
     private Entry? _head;
-
-    public Cache(int size)
-    {
-        _capacity = size < _minimumSize ? _minimumSize : size;
-        _order = Convert.ToInt32(size * 0.7);
-    }
 
     /// <summary>
     /// Gets the maximum allowed item count that can be stored in this cache.
@@ -88,7 +81,7 @@ public sealed class Cache<TValue>
         {
             if (_head is null)
             {
-                return Array.Empty<string>();
+                return [];
             }
 
             var index = 0;
@@ -99,7 +92,6 @@ public sealed class Cache<TValue>
             {
                 keys[index++] = current.Key;
                 current = current.Next!;
-
             } while (current != _head);
 
             return keys;

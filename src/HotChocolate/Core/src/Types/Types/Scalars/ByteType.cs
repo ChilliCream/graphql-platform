@@ -10,14 +10,6 @@ public class ByteType : IntegerTypeBase<byte>
     /// <summary>
     /// Initializes a new instance of the <see cref="ByteType"/> class.
     /// </summary>
-    public ByteType()
-        : this(byte.MinValue, byte.MaxValue)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ByteType"/> class.
-    /// </summary>
     public ByteType(byte min, byte max)
         : this(
             ScalarNames.Byte,
@@ -40,6 +32,15 @@ public class ByteType : IntegerTypeBase<byte>
         : base(name, min, max, bind)
     {
         Description = description;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ByteType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public ByteType()
+        : this(byte.MinValue, byte.MaxValue)
+    {
     }
 
     protected override byte ParseLiteral(IntValueNode valueSyntax) =>

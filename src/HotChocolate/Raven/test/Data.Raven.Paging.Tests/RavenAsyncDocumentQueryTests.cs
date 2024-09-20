@@ -1,6 +1,5 @@
 using CookieCrumble;
 using HotChocolate.Data.Raven.Filters;
-using HotChocolate.Data.Raven.Pagination;
 using HotChocolate.Data.Raven.Paging;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
@@ -257,7 +256,8 @@ public class RavenAsyncDocumentQueryTests
 
         // act
         var result = await executor.ExecuteAsync(
-            @"{
+            """
+            {
                 foosOffset(take: 2 skip: 2) {
                     items {
                         bar
@@ -268,7 +268,8 @@ public class RavenAsyncDocumentQueryTests
                         hasPreviousPage
                     }
                 }
-            }");
+            }
+            """);
 
         // assert
         await Snapshot.Create().AddResult(result).MatchAsync();
@@ -431,10 +432,10 @@ public class RavenAsyncDocumentQueryTests
                     if (context.ContextData.TryGetValue("query", out var queryString))
                     {
                         context.Result =
-                            QueryResultBuilder
-                                .FromResult(context.Result!.ExpectQueryResult())
+                            OperationResultBuilder
+                                .FromResult(context.Result!.ExpectOperationResult())
                                 .SetContextData("query", queryString)
-                                .Create();
+                                .Build();
                     }
                 })
             .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)

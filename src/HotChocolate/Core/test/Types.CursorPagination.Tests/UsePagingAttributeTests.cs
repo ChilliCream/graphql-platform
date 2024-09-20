@@ -1,12 +1,8 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using HotChocolate.Types.Relay;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types.Pagination;
 
@@ -159,8 +155,8 @@ public class UsePagingAttributeTests
         {
             return new List<Foo>
             {
-                new Foo { Bar = "first", },
-                new Foo { Bar = "second", },
+                new(bar: "first"),
+                new(bar: "second"),
             }.AsQueryable();
         }
     }
@@ -171,8 +167,8 @@ public class UsePagingAttributeTests
         {
             return new List<Foo>
             {
-                new Foo { Bar = "first", },
-                new Foo { Bar = "second", },
+                new(bar: "first"),
+                new(bar: "second"),
             }.AsQueryable();
         }
     }
@@ -187,8 +183,8 @@ public class UsePagingAttributeTests
         {
             return new List<Foo>
             {
-                new Foo { Bar = "first", },
-                new Foo { Bar = "second", },
+                new(bar: "first"),
+                new(bar: "second"),
             }.AsQueryable();
         }
 
@@ -202,9 +198,9 @@ public class UsePagingAttributeTests
     {
     }
 
-    public class Foo
+    public class Foo(string bar)
     {
-        public string Bar { get; set; }
+        public string Bar { get; set; } = bar;
     }
 
     public interface IHasFoos

@@ -1,12 +1,10 @@
-using System;
-
 namespace HotChocolate.Language.Visitors;
 
 public partial class SyntaxWalker
 {
     protected override ISyntaxVisitorAction Leave(
         ISyntaxNode node,
-        ISyntaxVisitorContext context)
+        object? context)
     {
         switch (node.Kind)
         {
@@ -99,196 +97,196 @@ public partial class SyntaxWalker
     }
     protected virtual ISyntaxVisitorAction Leave(
         NameNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
         DocumentNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
         OperationDefinitionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
         VariableDefinitionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
         VariableNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
         SelectionSetNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
         FieldNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
         ArgumentNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
         FragmentSpreadNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
         InlineFragmentNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
         FragmentDefinitionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
         DirectiveNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
         NamedTypeNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
         ListTypeNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
         NonNullTypeNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
         ListValueNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
         ObjectValueNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
         ObjectFieldNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
         IValueNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
         SchemaDefinitionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
         OperationTypeDefinitionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
         ScalarTypeDefinitionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
         ObjectTypeDefinitionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
         FieldDefinitionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
         InputValueDefinitionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
         InterfaceTypeDefinitionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
         UnionTypeDefinitionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
         EnumTypeDefinitionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
         EnumValueDefinitionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
         InputObjectTypeDefinitionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
         DirectiveDefinitionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
         SchemaExtensionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
         ScalarTypeExtensionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
         ObjectTypeExtensionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
         InterfaceTypeExtensionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
         UnionTypeExtensionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
        EnumTypeExtensionNode node,
-       ISyntaxVisitorContext context) =>
+       object? context) =>
        DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
        InputObjectTypeExtensionNode node,
-       ISyntaxVisitorContext context) =>
+       object? context) =>
        DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
        SchemaCoordinateNode node,
-       ISyntaxVisitorContext context) =>
+       object? context) =>
        DefaultAction;
 }

@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using HotChocolate;
-
 namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
 public abstract class ComplexTypeDescriptor : INamedTypeDescriptor

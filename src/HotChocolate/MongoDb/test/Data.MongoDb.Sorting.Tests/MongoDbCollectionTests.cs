@@ -48,14 +48,14 @@ public class MongoDbSortCollectionTests : IClassFixture<MongoResource>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: { bar: ASC}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(order: { bar: ASC}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: { bar: DESC}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(order: { bar: DESC}){ bar}}")
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -86,14 +86,14 @@ public class MongoDbSortCollectionTests : IClassFixture<MongoResource>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: { baz: ASC}){ baz}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(order: { baz: ASC}){ baz}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: { baz: DESC}){ baz}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(order: { baz: DESC}){ baz}}")
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -151,10 +151,10 @@ public class MongoDbSortCollectionTests : IClassFixture<MongoResource>
                     if (context.ContextData.TryGetValue("query", out var queryString))
                     {
                         context.Result =
-                            QueryResultBuilder
-                                .FromResult(context.Result!.ExpectQueryResult())
+                            OperationResultBuilder
+                                .FromResult(context.Result!.ExpectOperationResult())
                                 .SetContextData("query", queryString)
-                                .Create();
+                                .Build();
                     }
                 })
             .UseDefaultPipeline()

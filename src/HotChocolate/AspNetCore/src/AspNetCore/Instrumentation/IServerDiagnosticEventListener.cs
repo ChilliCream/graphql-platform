@@ -8,5 +8,4 @@ namespace HotChocolate.AspNetCore.Instrumentation;
 /// <seealso cref="ServerDiagnosticEventListener"/>
 public interface IServerDiagnosticEventListener : IServerDiagnosticEvents
 {
-
 }

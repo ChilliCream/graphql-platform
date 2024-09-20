@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using HotChocolate;
-
 namespace StrawberryShake.CodeGeneration.CSharp;
 
 public static class Keywords

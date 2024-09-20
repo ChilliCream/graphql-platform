@@ -1,4 +1,3 @@
-using System;
 using Microsoft.Extensions.Options;
 using StrawberryShake;
 using StrawberryShake.Transport.WebSockets;
@@ -41,7 +40,7 @@ public static class WebSocketClientBuilderExtensions
             throw new ArgumentNullException(nameof(configureClient));
         }
 
-        IWebSocketClientBuilder builder = clientBuilder.Services
+        var builder = clientBuilder.Services
             .AddWebSocketClient(clientBuilder.ClientName, configureClient);
 
         configureClientBuilder?.Invoke(builder);
@@ -80,7 +79,7 @@ public static class WebSocketClientBuilderExtensions
             throw new ArgumentNullException(nameof(configureClient));
         }
 
-        IWebSocketClientBuilder builder = clientBuilder.Services
+        var builder = clientBuilder.Services
             .AddWebSocketClient(clientBuilder.ClientName, configureClient);
 
         configureClientBuilder?.Invoke(builder);

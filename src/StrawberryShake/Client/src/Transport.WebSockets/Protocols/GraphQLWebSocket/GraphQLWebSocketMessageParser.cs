@@ -1,4 +1,3 @@
-using System;
 using System.Buffers;
 using System.Runtime.Serialization;
 using System.Text.Json;
@@ -23,22 +22,22 @@ internal ref struct GraphQLWebSocketMessageParser
     private const byte _s = (byte)'s';
     private const byte _t = (byte)'t';
 
-    private static ReadOnlySpan<byte> Type => new[]
-    {
+    private static ReadOnlySpan<byte> Type =>
+    [
         (byte)'t',
         (byte)'y',
         (byte)'p',
         (byte)'e',
-    };
+    ];
 
-    private static ReadOnlySpan<byte> Id => new[]
-    {
+    private static ReadOnlySpan<byte> Id =>
+    [
         (byte)'i',
         (byte)'d',
-    };
+    ];
 
-    private static ReadOnlySpan<byte> Payload => new[]
-    {
+    private static ReadOnlySpan<byte> Payload =>
+    [
         (byte)'p',
         (byte)'a',
         (byte)'y',
@@ -46,7 +45,7 @@ internal ref struct GraphQLWebSocketMessageParser
         (byte)'o',
         (byte)'a',
         (byte)'d',
-    };
+    ];
 
     private Utf8JsonReader _reader;
 
@@ -94,7 +93,7 @@ internal ref struct GraphQLWebSocketMessageParser
     private void ParseMessageProperty(ref GraphQLWebSocketMessage message)
     {
         Expect(JsonTokenType.PropertyName);
-        ReadOnlySpan<byte> fieldName = _reader.ValueSpan;
+        var fieldName = _reader.ValueSpan;
 
         _reader.Read();
         switch (fieldName[0])
@@ -132,7 +131,7 @@ internal ref struct GraphQLWebSocketMessageParser
 
     private GraphQLWebSocketMessageType ParseMessageType()
     {
-        ReadOnlySpan<byte> typeName = _reader.ValueSpan;
+        var typeName = _reader.ValueSpan;
         if (typeName.IsEmpty)
         {
             throw ThrowHelper.Serialization_MessageHadNoTypeSpecified();

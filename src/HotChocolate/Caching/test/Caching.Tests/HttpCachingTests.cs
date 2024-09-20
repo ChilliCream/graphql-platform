@@ -1,10 +1,8 @@
-using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Caching.Http.Tests;
@@ -61,6 +59,89 @@ public class HttpCachingTests : ServerTestBase
     }
 
     [Fact]
+    public async Task Just_Defaults_Should_Cache()
+    {
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCachePipeline()
+                .AddCacheControl()
+                .AddQueryType(d =>
+                    d.Name("Query")
+                        .Field("field")
+                        .Resolve(""));
+        });
+
+        var client = server.CreateClient();
+        var result = await client.PostQueryAsync("{ field }");
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task No_Applied_Defaults_Should_Not_Cache()
+    {
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCachePipeline()
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o => o.ApplyDefaults = false)
+                .AddQueryType(d =>
+                    d.Name("Query")
+                        .Field("field")
+                        .Resolve(""));
+        });
+
+        var client = server.CreateClient();
+        var result = await client.PostQueryAsync("{ field }");
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Default_Max_Age_Should_Apply_And_Cache()
+    {
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCachePipeline()
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o => o.DefaultMaxAge = 1000)
+                .AddQueryType(d =>
+                    d.Name("Query")
+                        .Field("field")
+                        .Resolve(""));
+        });
+
+        var client = server.CreateClient();
+        var result = await client.PostQueryAsync("{ field }");
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Default_Scope_Should_Apply_And_Cache()
+    {
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCachePipeline()
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o => o.DefaultScope = CacheControlScope.Private)
+                .AddQueryType(d =>
+                    d.Name("Query")
+                        .Field("field")
+                        .Resolve(""));
+        });
+
+        var client = server.CreateClient();
+        var result = await client.PostQueryAsync("{ field }");
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task JustScope_Should_Not_Cache()
     {
         var server = CreateServer(services =>
@@ -96,6 +177,27 @@ public class HttpCachingTests : ServerTestBase
                     .Field("field")
                     .Resolve("")
                     .CacheControl(2000, CacheControlScope.Private));
+        });
+
+        var client = server.CreateClient();
+        var result = await client.PostQueryAsync("{ field }");
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task QueryError_Should_Not_Cache()
+    {
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCachePipeline()
+                .AddCacheControl()
+                .AddQueryType(d =>
+                    d.Name("Query")
+                        .Field("field")
+                        .Type<StringType>()
+                        .Resolve(_ => throw new Exception()));
         });
 
         var client = server.CreateClient();

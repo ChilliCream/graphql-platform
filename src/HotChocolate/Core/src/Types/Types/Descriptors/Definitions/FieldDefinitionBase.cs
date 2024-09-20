@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 #nullable enable
 
 namespace HotChocolate.Types.Descriptors.Definitions;
@@ -15,11 +12,16 @@ public abstract class FieldDefinitionBase
 {
     private List<DirectiveDefinition>? _directives;
     private string? _deprecationReason;
+    private FieldFlags _flags = FieldFlags.None;
 
     /// <summary>
     /// Gets the internal field flags from this field.
     /// </summary>
-    internal FieldFlags Flags { get; set; } = FieldFlags.None;
+    internal FieldFlags Flags
+    {
+        get => _flags;
+        set => _flags = value;
+    }
 
     /// <summary>
     /// Describes why this syntax node is deprecated.
@@ -96,17 +98,24 @@ public abstract class FieldDefinitionBase
         return _directives;
     }
 
+    public void SetSourceGeneratorFlags() => Flags |= FieldFlags.SourceGenerator;
+
     protected void CopyTo(FieldDefinitionBase target)
     {
         base.CopyTo(target);
 
         if (_directives is { Count: > 0, })
         {
-            target._directives = [.._directives,];
+            target._directives = [.._directives];
         }
 
         target.Type = Type;
-        target.Ignore = Ignore;
+        target.Flags = Flags;
+
+        if (IsDeprecated)
+        {
+            target.DeprecationReason = DeprecationReason;
+        }
     }
 
     protected void MergeInto(FieldDefinitionBase target)
@@ -124,6 +133,11 @@ public abstract class FieldDefinitionBase
             target.Type = Type;
         }
 
-        target.Ignore = Ignore;
+        target.Flags = Flags | target.Flags;
+
+        if (IsDeprecated)
+        {
+            target.DeprecationReason = DeprecationReason;
+        }
     }
 }

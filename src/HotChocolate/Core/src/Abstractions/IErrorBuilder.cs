@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Language;
-
-#nullable enable
 
 namespace HotChocolate;
 
@@ -24,7 +20,9 @@ public interface IErrorBuilder
 
     IErrorBuilder AddLocation(int line, int column);
 
-    IErrorBuilder SetSyntaxNode(ISyntaxNode? syntaxNode);
+    IErrorBuilder AddLocation(ISyntaxNode syntaxNode);
+
+    IErrorBuilder SetLocations<T>(IReadOnlyList<T>? syntaxNodes) where T : ISyntaxNode;
 
     IErrorBuilder ClearLocations();
 

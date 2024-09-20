@@ -1,0 +1,63 @@
+testatest Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testatest"
+      }
+    ]
+  }
+}
+---------------
+
+testatest SQL:
+---------------
+select d.id, d.data from public.mt_doc_queryablefiltervisitorstringtests_foo as d where d.data ->> 'Bar' = :p0;
+---------------
+
+testbtest Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testbtest"
+      }
+    ]
+  }
+}
+---------------
+
+testbtest SQL:
+---------------
+select d.id, d.data from public.mt_doc_queryablefiltervisitorstringtests_foo as d where d.data ->> 'Bar' = :p0;
+---------------
+
+null
+---------------
+{
+  "errors": [
+    {
+      "message": "The provided value for filter `eq` of type StringOperationFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 28
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "String!",
+        "filterType": "StringOperationFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": null
+  }
+}
+---------------

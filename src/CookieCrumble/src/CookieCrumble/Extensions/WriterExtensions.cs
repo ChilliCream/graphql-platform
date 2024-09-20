@@ -21,6 +21,17 @@ public static class WriterExtensions
         snapshot.Advance(1);
     }
 
+    public static void AppendLine(this IBufferWriter<byte> snapshot, bool appendWhenTrue)
+    {
+        if (!appendWhenTrue)
+        {
+            return;
+        }
+
+        snapshot.GetSpan(1)[0] = (byte)'\n';
+        snapshot.Advance(1);
+    }
+
     public static void AppendSeparator(this IBufferWriter<byte> snapshot)
     {
         const byte hyphen = (byte)'-';

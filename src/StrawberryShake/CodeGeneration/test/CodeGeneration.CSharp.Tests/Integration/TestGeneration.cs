@@ -1,6 +1,5 @@
 using ChilliCream.Testing;
 using StrawberryShake.Tools.Configuration;
-using Xunit;
 using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration;
@@ -131,7 +130,7 @@ public class TestGeneration
                     }
                 }
             }");
-    
+
     [Fact]
     public void StarWarsGetHeroTraits() =>
         AssertStarWarsResult(

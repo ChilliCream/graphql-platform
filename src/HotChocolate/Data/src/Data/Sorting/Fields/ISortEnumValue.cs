@@ -1,5 +1,3 @@
-using System.Reflection;
-using HotChocolate.Internal;
 using HotChocolate.Types;
 
 namespace HotChocolate.Data.Sorting;

@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
@@ -10,7 +8,10 @@ using static HotChocolate.Resolvers.Expressions.Parameters.ParameterExpressionBu
 
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
-internal class ScopedStateParameterExpressionBuilder : IParameterExpressionBuilder
+internal class ScopedStateParameterExpressionBuilder
+    : IParameterExpressionBuilder
+    , IParameterBindingFactory
+    , IParameterBinding
 {
     private static readonly MethodInfo _getScopedState =
         typeof(ExpressionHelper).GetMethod(
@@ -124,4 +125,10 @@ internal class ScopedStateParameterExpressionBuilder : IParameterExpressionBuild
         }
         return false;
     }
+
+    public IParameterBinding Create(ParameterBindingContext context)
+        => this;
+
+    public T Execute<T>(IResolverContext context)
+        => throw new NotSupportedException();
 }

@@ -1,4 +1,5 @@
-﻿using HotChocolate.Tests;
+using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Tests;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,20 +16,25 @@ public class TypeConverterTests
         Snapshot.FullName();
         await ExpectValid(
                 @"
-                query foo($a: FooInput) {
+                query foo($a: FooInput!) {
                     foo(foo: $a) {
                         id
                         time
                         number
                     }
                 }",
-                request: r => r.AddVariableValue(
-                    "a",
-                    new Dictionary<string, object>
+                request: r => r.SetVariableValues(
+                    new Dictionary<string, object?>
                     {
-                        { "id", "934b987bc0d842bbabfd8a3b3f8b476e" },
-                        { "time", "2018-05-29T01:00Z" },
-                        { "number", (byte)123 },
+                        {
+                            "a",
+                            new Dictionary<string, object>
+                            {
+                                { "id", "934b987bc0d842bbabfd8a3b3f8b476e" },
+                                { "time", "2018-05-29T01:00:00Z" },
+                                { "number", (byte)123 },
+                            }
+                        }
                     }),
                 configure: c => c.AddQueryType<Query>())
             .MatchSnapshotAsync();
@@ -43,7 +49,8 @@ public class TypeConverterTests
                 query foo($time: DateTime) {
                     time(time: $time)
                 }",
-                request: r => r.AddVariableValue("time", "2018-05-29T01:00Z"),
+                request: r => r.SetVariableValues(
+                    new Dictionary<string, object?> { { "time", "2018-05-29T01:00:00Z" }, }),
                 configure: c => c.AddQueryType<QueryType>())
             .MatchSnapshotAsync();
     }
@@ -58,7 +65,7 @@ public class TypeConverterTests
                 query foo($time: DateTime) {
                     time(time: $time)
                 }",
-                request: r => r.AddVariableValue("time", time),
+                request: r => r.SetVariableValues(new Dictionary<string, object?> { { "time", time }, }),
                 configure: c => c.AddQueryType<QueryType>())
             .MatchSnapshotAsync();
     }
@@ -69,20 +76,25 @@ public class TypeConverterTests
         Snapshot.FullName();
         await ExpectValid(
                 @"
-                query foo($a: FooInput) {
+                query foo($a: FooInput!) {
                     foo(foo: $a) {
                         id
                         time
                         number
                     }
                 }",
-                request: r => r.AddVariableValue(
-                    "a",
-                    new Dictionary<string, object>
+                request: r => r.SetVariableValues(
+                    new Dictionary<string, object?>
                     {
-                        { "id", "934b987bc0d842bbabfd8a3b3f8b476e" },
-                        { "time", "2018-05-29T01:00Z" },
-                        { "number", (byte)123 },
+                        {
+                            "a",
+                            new Dictionary<string, object>
+                            {
+                                { "id", "934b987bc0d842bbabfd8a3b3f8b476e" },
+                                { "time", "2018-05-29T01:00:00Z" },
+                                { "number", (byte)123 },
+                            }
+                        },
                     }),
                 configure: c => c.AddQueryType<QueryType>())
             .MatchSnapshotAsync();
@@ -239,7 +251,7 @@ public class TypeConverterTests
             Type source,
             Type target,
             ChangeTypeProvider root,
-            out ChangeType converter)
+            [NotNullWhen(true)] out ChangeType? converter)
         {
             if (source == typeof(int) && target == typeof(string))
             {

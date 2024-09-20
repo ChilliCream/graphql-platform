@@ -1,5 +1,3 @@
-using HotChocolate;
-
 namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
 public sealed class ScalarTypeDescriptor : ILeafTypeDescriptor

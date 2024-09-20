@@ -1,11 +1,8 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Configuration;
 

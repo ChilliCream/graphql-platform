@@ -6,7 +6,11 @@ namespace HotChocolate.ApolloFederation.Types;
 
 /// <summary>
 /// <code>
+/// # federation v1 definition
 /// directive @external on FIELD_DEFINITION
+///
+/// # federation v2 definition (applying on object = shorthand for applying on all fields)
+/// directive @external on OBJECT | FIELD_DEFINITION
 /// </code>
 ///
 /// The @external directive is used to mark a field as owned by another service.
@@ -27,8 +31,9 @@ namespace HotChocolate.ApolloFederation.Types;
 /// </example>
 /// </summary>
 [Package(Federation20)]
-[DirectiveType(ExternalDirective_Name, DirectiveLocation.FieldDefinition)]
+[DirectiveType(ExternalDirective_Name, DirectiveLocation.FieldDefinition | DirectiveLocation.Object)]
 [GraphQLDescription(ExternalDirective_Description)]
+[ExternalLegacySupport]
 public sealed class ExternalDirective
 {
     public static ExternalDirective Default { get; } = new();

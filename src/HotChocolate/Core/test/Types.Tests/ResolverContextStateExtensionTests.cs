@@ -1,8 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
@@ -10,7 +7,6 @@ using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Snapshooter.Xunit;
-using Xunit;
 
 #nullable enable
 
@@ -37,10 +33,10 @@ public class ResolverContextStateExtensionTests
                 d.Field("foo").Resolve(ctx => ctx.GetUser()?.Identity?.Name);
             })
             .ExecuteRequestAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ foo }")
+                OperationRequestBuilder.New()
+                    .SetDocument("{ foo }")
                     .SetUser(user)
-                    .Create())
+                    .Build())
             .MatchSnapshotAsync();
     }
 

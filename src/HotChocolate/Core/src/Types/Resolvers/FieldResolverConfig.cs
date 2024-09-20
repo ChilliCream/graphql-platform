@@ -1,5 +1,3 @@
-using System;
-
 #nullable enable
 
 namespace HotChocolate.Resolvers;
@@ -9,7 +7,7 @@ internal readonly struct FieldResolverConfig
     private readonly bool _isEmpty;
 
     public FieldResolverConfig(
-        FieldCoordinate field,
+        SchemaCoordinate fieldCoordinate,
         FieldResolverDelegate? resolver = null,
         PureFieldDelegate? pureResolver = null,
         Type? resultType = null)
@@ -19,14 +17,14 @@ internal readonly struct FieldResolverConfig
             throw new ArgumentNullException(nameof(resolver));
         }
 
-        Field = field;
+        FieldCoordinate = fieldCoordinate;
         PureResolver = pureResolver;
         Resolver = resolver ?? new FieldResolverDelegate(ctx => new(pureResolver!(ctx)));
         ResultType = resultType ?? typeof(object);
         _isEmpty = false;
     }
 
-    public FieldCoordinate Field { get; }
+    public SchemaCoordinate FieldCoordinate { get; }
 
     public FieldResolverDelegate Resolver { get; }
 

@@ -1,9 +1,6 @@
-using System;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types.Pagination
 {
@@ -26,9 +23,9 @@ namespace HotChocolate.Types.Pagination
             Snapshot.FullName();
 
             var request =
-                QueryRequestBuilder.New()
-                    .SetQuery("{ items { items } }")
-                    .Create();
+                OperationRequestBuilder.New()
+                    .SetDocument("{ items { items } }")
+                    .Build();
 
             // act
             // assert
@@ -48,7 +45,7 @@ namespace HotChocolate.Types.Pagination
                 return new CollectionSegment<string>(
                     new[] { "hello", "abc", },
                     new CollectionSegmentInfo(false, false),
-                    ct => throw new NotImplementedException());
+                    1);
             }
         }
     }

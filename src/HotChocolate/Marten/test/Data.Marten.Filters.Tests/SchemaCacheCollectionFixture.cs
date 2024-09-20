@@ -1,5 +1,3 @@
-using HotChocolate.Data.Filters;
-
 namespace HotChocolate.Data;
 
 [CollectionDefinition(DefinitionName)]

@@ -1,11 +1,9 @@
-using System;
 using System.Globalization;
 using System.Text;
 using HotChocolate.Execution;
 using NodaTime;
 using NodaTime.Extensions;
 using NodaTime.Text;
-using Xunit;
 
 namespace HotChocolate.Types.NodaTime.Tests
 {
@@ -36,78 +34,73 @@ namespace HotChocolate.Types.NodaTime.Tests
             }
         }
 
-        private readonly IRequestExecutor testExecutor;
-
-        public InstantTypeDateTimeOffsetIntegrationTests()
-        {
-            testExecutor = SchemaBuilder.New()
-                .AddQueryType<InstantTypeIntegrationTests.Schema.Query>()
-                .AddMutationType<InstantTypeIntegrationTests.Schema.Mutation>()
-                .AddNodaTime(typeof(InstantType))
-                .AddType(
-                    new InstantType(InstantPattern.ExtendedIso, new InstantDateTimeOffsetPattern()))
-                .Create()
-                .MakeExecutable();
-        }
+        private readonly IRequestExecutor _testExecutor = SchemaBuilder.New()
+            .AddQueryType<InstantTypeIntegrationTests.Schema.Query>()
+            .AddMutationType<InstantTypeIntegrationTests.Schema.Mutation>()
+            .AddNodaTime(typeof(InstantType))
+            .AddType(
+                new InstantType(InstantPattern.ExtendedIso, new InstantDateTimeOffsetPattern()))
+            .Create()
+            .MakeExecutable();
 
         [Fact]
         public void QueryReturnsUtc()
         {
-            IExecutionResult? result = testExecutor.Execute("query { test: one }");
+            var result = _testExecutor.Execute("query { test: one }");
 
             Assert.Equal(
                 "2020-02-20T17:42:59.000001234Z",
-                result.ExpectQueryResult().Data!["test"]);
+                result.ExpectOperationResult().Data!["test"]);
         }
 
         [Fact]
         public void ParsesVariable()
         {
-            IExecutionResult? result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: Instant!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "2020-02-21T17:42:59.000001234Z")
-                    .Create());
+            var result = _testExecutor
+                .Execute(OperationRequestBuilder.New()
+                    .SetDocument("mutation($arg: Instant!) { test(arg: $arg) }")
+                    .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-02-21T17:42:59.000001234Z" }, })
+                    .Build());
 
             Assert.Equal(
                 "2020-02-21T17:52:59.000001234Z",
-                result.ExpectQueryResult().Data!["test"]);
+                result.ExpectOperationResult().Data!["test"]);
         }
 
         [Fact]
         public void DoesParseAnIncorrectExtendedVariableAsDateTimeOffset()
         {
-            IExecutionResult? result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: Instant!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "2020-02-20T17:42:59")
-                    .Create());
+            var result = _testExecutor
+                .Execute(OperationRequestBuilder.New()
+                    .SetDocument("mutation($arg: Instant!) { test(arg: $arg) }")
+                    .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-02-20T17:42:59" }, })
+                    .Build());
 
-            Assert.Equal("2020-02-20T17:52:59Z", result.ExpectQueryResult().Data!["test"]);
+            Assert.Equal("2020-02-20T17:52:59Z", result.ExpectOperationResult().Data!["test"]);
         }
 
         [Fact]
         public void ParsesLiteral()
         {
-            IExecutionResult? result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"2020-02-20T17:42:59.000001234Z\") }")
-                    .Create());
+            var result = _testExecutor
+                .Execute(OperationRequestBuilder.New()
+                    .SetDocument("mutation { test(arg: \"2020-02-20T17:42:59.000001234Z\") }")
+                    .Build());
 
             Assert.Equal(
                 "2020-02-20T17:52:59.000001234Z",
-                result.ExpectQueryResult().Data!["test"]);
+                result.ExpectOperationResult().Data!["test"]);
         }
 
         [Fact]
         public void DoesParseIncorrectExtendedLiteralAsDateTimeOffset()
         {
-            IExecutionResult? result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"2020-02-20T17:42:59\") }")
-                    .Create());
+            var result = _testExecutor
+                .Execute(OperationRequestBuilder.New()
+                    .SetDocument("mutation { test(arg: \"2020-02-20T17:42:59\") }")
+                    .Build());
 
-            Assert.Equal("2020-02-20T17:52:59Z", result.ExpectQueryResult().Data!["test"]);
+            Assert.Equal("2020-02-20T17:52:59Z", result.ExpectOperationResult().Data!["test"]);
         }
     }
 }

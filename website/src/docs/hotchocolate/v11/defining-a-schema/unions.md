@@ -39,7 +39,7 @@ Learn more about unions [here](https://graphql.org/learn/schema/#union-types).
 Unions can be defined like the following.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 We can use a marker interface to define object types as part of a union.
 
@@ -82,7 +82,7 @@ public class Startup
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -126,7 +126,6 @@ public class Query
     }
 }
 
-
 public class QueryType : ObjectType<Query>
 {
     protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
@@ -140,7 +139,7 @@ public class QueryType : ObjectType<Query>
 
 Since the types are already registered within the union, we do not have to register them again in our `Startup` class.
 
-We can use a marker interface, as in the annotation-based approach, to type our union definition: `UnionType<IMarkerInterface>`
+We can use a marker interface, as in the implementation-first approach, to type our union definition: `UnionType<IMarkerInterface>`
 
 </Code>
 <Schema>

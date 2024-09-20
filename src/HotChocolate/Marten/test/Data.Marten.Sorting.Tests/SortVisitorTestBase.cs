@@ -14,9 +14,9 @@ public sealed class ResourceContainer : IAsyncDisposable
 {
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private int _testClassInstances = 0;
-    
-    public PostgreSqlResource Resource { get; } = new(); 
-    
+
+    public PostgreSqlResource Resource { get; } = new();
+
     public async ValueTask InitializeAsync()
     {
         await _semaphore.WaitAsync();
@@ -33,8 +33,8 @@ public sealed class ResourceContainer : IAsyncDisposable
         {
             _semaphore.Release();
         }
-    } 
-    
+    }
+
     public async ValueTask DisposeAsync()
     {
         await _semaphore.WaitAsync();
@@ -125,10 +125,10 @@ public class SortVisitorTestBase : IAsyncLifetime
                     if (context.ContextData.TryGetValue("sql", out var queryString))
                     {
                         context.Result =
-                            QueryResultBuilder
-                                .FromResult(context.Result!.ExpectQueryResult())
+                            OperationResultBuilder
+                                .FromResult(context.Result!.ExpectOperationResult())
                                 .SetContextData("sql", queryString)
-                                .Create();
+                                .Build();
                     }
                 })
             .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)
@@ -153,7 +153,7 @@ public class SortVisitorTestBase : IAsyncLifetime
             context.LocalContextData = context.LocalContextData.SetItem("session", session);
             await next(context);
         });
-        
+
         field.Use(next => async context =>
         {
             await next(context);

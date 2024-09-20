@@ -1,4 +1,3 @@
-using System;
 using System.Linq.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -9,9 +8,6 @@ public interface IInputObjectTypeDescriptor<T>
     : IDescriptor<InputObjectTypeDefinition>
     , IFluent
 {
-    IInputObjectTypeDescriptor<T> SyntaxNode(
-        InputObjectTypeDefinitionNode inputObjectTypeDefinition);
-
     IInputObjectTypeDescriptor<T> Name(string value);
 
     IInputObjectTypeDescriptor<T> Description(string value);

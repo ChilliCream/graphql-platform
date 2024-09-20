@@ -1,4 +1,3 @@
-using System;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 
@@ -30,17 +29,6 @@ public class IPv4Type : RegexType
             TimeSpan.FromMilliseconds(DefaultRegexTimeoutInMs));
 #endif
 
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="IPv4Type"/> class.
-    /// </summary>
-    public IPv4Type()
-        : this(
-            WellKnownScalarTypes.IPv4,
-            ScalarResources.IPv4Type_Description)
-    {
-    }
-
     /// <summary>
     /// Initializes a new instance of the <see cref="IPv4Type"/> class.
     /// </summary>
@@ -53,6 +41,17 @@ public class IPv4Type : RegexType
             CreateRegex(),
             description,
             bind)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="IPv4Type"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public IPv4Type()
+        : this(
+            WellKnownScalarTypes.IPv4,
+            ScalarResources.IPv4Type_Description)
     {
     }
 

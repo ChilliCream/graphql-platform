@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
@@ -10,7 +8,6 @@ public class FilterConventionDefinition : IHasScope
 {
     public static readonly string DefaultArgumentName = "where";
     private string _argumentName = DefaultArgumentName;
-
 
     public string? Scope { get; set; }
 

@@ -1,4 +1,3 @@
-using HotChocolate.Execution;
 using HotChocolate.Language;
 
 namespace HotChocolate.Validation;

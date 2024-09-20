@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using HotChocolate;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
@@ -37,13 +35,6 @@ public static class InternalSchemaServiceCollectionExtensions
                 _ => new AggregateExecutionDiagnosticEvents(listeners),
             };
         });
-        return services;
-    }
-
-    internal static IServiceCollection TryAddTimespanProvider(
-        this IServiceCollection services)
-    {
-        services.TryAddSingleton<ITimestampProvider, DefaultTimestampProvider>();
         return services;
     }
 

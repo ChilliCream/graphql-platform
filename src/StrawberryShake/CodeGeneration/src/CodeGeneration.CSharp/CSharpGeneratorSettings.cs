@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using HotChocolate.Language;
 using StrawberryShake.Tools.Configuration;
 
@@ -18,7 +17,7 @@ public class CSharpGeneratorSettings
     /// The root namespace of the client.
     /// </summary>
     public string Namespace { get; set; } = "StrawberryShake.GraphQL";
-    
+
     /// <summary>
     /// The access modifier of the client.
     /// </summary>
@@ -61,7 +60,7 @@ public class CSharpGeneratorSettings
         RequestStrategy.Default;
 
     /// <summary>
-    /// The <see cref="IDocumentHashProvider"/> that shall be used for persisted queries.
+    /// The <see cref="IDocumentHashProvider"/> that shall be used for persisted operations.
     /// </summary>
     public IDocumentHashProvider HashProvider { get; set; } =
         new Sha1DocumentHashProvider(HashFormat.Hex);

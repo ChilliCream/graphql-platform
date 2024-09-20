@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using Xunit;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 
@@ -29,7 +25,7 @@ public class ErrorBuilderTests
         // arrange
         IError error = new Error (
             "123",
-            extensions: new OrderedDictionary<string, object>
+            extensions: new OrderedDictionary<string, object?>
             {
                 {"foo", "bar"},
             });
@@ -51,7 +47,7 @@ public class ErrorBuilderTests
         IError error = new Error
         (
             "123",
-            extensions: new OrderedDictionary<string, object>
+            extensions: new OrderedDictionary<string, object?>
             {
                 {"foo", "bar"},
             }
@@ -72,7 +68,7 @@ public class ErrorBuilderTests
         IError error = new Error
         (
             "123",
-            extensions: new OrderedDictionary<string, object>
+            extensions: new OrderedDictionary<string, object?>
             {
                 {"foo", "bar"},
                 {"bar", "foo"},
@@ -108,7 +104,8 @@ public class ErrorBuilderTests
 
         // assert
         Assert.Equal("123", error.Message);
-        Assert.Collection(error.Locations,
+        Assert.Collection(
+            error.Locations!,
             t => Assert.Equal(1, t.Line));
     }
 
@@ -137,7 +134,7 @@ public class ErrorBuilderTests
     {
         // arrange
         // act
-        Action action = () => ErrorBuilder.FromError(null);
+        Action action = () => ErrorBuilder.FromError(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -148,7 +145,7 @@ public class ErrorBuilderTests
     {
         // arrange
         // act
-        Action action = () => ErrorBuilder.New().SetMessage(null);
+        Action action = () => ErrorBuilder.New().SetMessage(null!);
 
         // assert
         Assert.Throws<ArgumentException>(action);
@@ -222,7 +219,8 @@ public class ErrorBuilderTests
             .Build();
 
         // assert
-        Assert.Collection(error.Locations,
+        Assert.Collection(
+            error.Locations!,
             t => Assert.Equal(2, t.Line));
     }
 
@@ -238,7 +236,8 @@ public class ErrorBuilderTests
             .Build();
 
         // assert
-        Assert.Collection(error.Locations,
+        Assert.Collection(
+            error.Locations!,
             t => Assert.Equal(2, t.Line),
             t => Assert.Equal(4, t.Line));
     }
@@ -255,7 +254,8 @@ public class ErrorBuilderTests
             .Build();
 
         // assert
-        Assert.Collection(error.Locations,
+        Assert.Collection(
+            error.Locations!,
             t => Assert.Equal(2, t.Line),
             t => Assert.Equal(4, t.Line));
     }
@@ -276,7 +276,8 @@ public class ErrorBuilderTests
             .Build();
 
         // assert
-        Assert.Collection(error.Locations,
+        Assert.Collection(
+            error.Locations!,
             t => Assert.Equal(3, t.Line));
     }
 
@@ -349,7 +350,8 @@ public class ErrorBuilderTests
             .Build();
 
         // assert
-        Assert.Collection(error.Extensions.OrderBy(t => t.Key),
+        Assert.Collection(
+            error.Extensions!.OrderBy(t => t.Key),
             t => Assert.Equal("c", t.Value),
             t => Assert.Equal("d", t.Value));
     }

@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -71,7 +67,7 @@ public class TypeModuleTests
     public class DummyTypeModule : ITypeModule
     {
 #pragma warning disable CS0067
-        public event EventHandler<EventArgs> TypesChanged;
+        public event EventHandler<EventArgs>? TypesChanged;
 #pragma warning restore CS0067
 
         public ValueTask<IReadOnlyCollection<ITypeSystemMember>> CreateTypesAsync(

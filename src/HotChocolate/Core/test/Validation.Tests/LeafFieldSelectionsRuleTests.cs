@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Xunit;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Validation;
 
@@ -183,7 +182,7 @@ public class LeafFieldSelectionsRuleTests
                 "subfields are disallowed.",
                 t.Message));
     }
-        
+
     [Fact]
     public void EmptyNamedQueryType()
     {
@@ -195,7 +194,7 @@ public class LeafFieldSelectionsRuleTests
                 "subfields are disallowed.",
                 t.Message));
     }
-        
+
     [Fact]
     public void EmptyMutationType()
     {
@@ -207,7 +206,7 @@ public class LeafFieldSelectionsRuleTests
                 "subfields are disallowed.",
                 t.Message));
     }
-        
+
     [Fact]
     public void EmptyNamedMutationType()
     {
@@ -219,7 +218,7 @@ public class LeafFieldSelectionsRuleTests
                 "subfields are disallowed.",
                 t.Message));
     }
-        
+
     [Fact]
     public void EmptySubscriptionType()
     {
@@ -231,7 +230,7 @@ public class LeafFieldSelectionsRuleTests
                 "subfields are disallowed.",
                 t.Message));
     }
-        
+
     [Fact]
     public void EmptyNamedSubscriptionType()
     {
@@ -271,7 +270,7 @@ public class LeafFieldSelectionsRuleTests
                     catOrDog {
                         ... on Cat {
                             furColor {
-                                inHexDec 
+                                inHexDec
                             }
                         }
                     }
@@ -305,7 +304,7 @@ public class LeafFieldSelectionsRuleTests
     public void ScalarSelectionNotAllowedWithDirectives()
     {
         ExpectErrors(@"
-                { 
+                {
                     dog {
                         name @include(if: true) { isAlsoHumanName }
                     }
@@ -322,7 +321,7 @@ public class LeafFieldSelectionsRuleTests
     public void ScalarSelectionNotAllowedWithDirectivesAndArgs()
     {
         ExpectErrors(@"
-                { 
+                {
                     dog {
                         doesKnowCommand(dogCommand: SIT) @include(if: true) { sinceWhen }
                     }

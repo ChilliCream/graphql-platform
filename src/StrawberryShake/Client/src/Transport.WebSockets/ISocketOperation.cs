@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using StrawberryShake.Transport.WebSockets.Messages;
 
 namespace StrawberryShake.Transport.WebSockets;
@@ -17,7 +13,7 @@ public interface ISocketOperation : IAsyncDisposable
     string Id { get; }
 
     /// <summary>
-    /// CReate an operation message stream.
+    /// CRate an operation message stream.
     /// </summary>
     IAsyncEnumerable<OperationMessage> ReadAsync();
 

@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -13,7 +9,6 @@ using Snapshooter.Xunit;
 using StrawberryShake.CodeGeneration.Analyzers;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Utilities;
-using Xunit;
 using Snapshot = Snapshooter.Xunit.Snapshot;
 using RequestStrategyGen = StrawberryShake.Tools.Configuration.RequestStrategy;
 using static StrawberryShake.CodeGeneration.CSharp.CSharpGenerator;
@@ -108,7 +103,7 @@ public static class GeneratorTestHelper
         {
             if (!documentNames.Add($"{document.Name}.{document.Kind}"))
             {
-                Assert.True(false, $"Document name duplicated {document.Name}");
+                Assert.Fail($"Document name duplicated {document.Name}");
             }
 
             if (document.Kind is SourceDocumentKind.CSharp or SourceDocumentKind.Razor)
@@ -165,8 +160,7 @@ public static class GeneratorTestHelper
 
         if (diagnostics.Any())
         {
-            Assert.True(false,
-                "Diagnostic Errors: \n" +
+            Assert.Fail("Diagnostic Errors: \n" +
                 diagnostics
                     .Select(x =>
                         $"{x.GetMessage()}" +
@@ -179,7 +173,6 @@ public static class GeneratorTestHelper
         AssertStarWarsResult(
             new AssertSettings { StrictValidation = true, },
             sourceTexts);
-
 
     public static void AssertStarWarsResult(
         AssertSettings settings,

@@ -21,10 +21,12 @@ jobs:
 
     steps:
       - name: Checkout to repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          show-progress: false
 
       - name: Install .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |
             7.x
@@ -48,62 +50,61 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+        with:
+          show-progress: false
 
       - name: Install .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |
             6.x
             7.x
             8.x
 
-      - uses: actions/cache@v3
-        with:
-          path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-nuget-
-
       - name: Run Build
         id: run-build
-        run: dotnet build ${{ matrix.path }} --framework net7.0 --verbosity q --property WarningLevel=0
+        run: dotnet build ${{ matrix.path }} --framework net8.0 --verbosity q
         timeout-minutes: 5
 
       - name: Run tests
         id: run-tests
         timeout-minutes: 15
         continue-on-error: true
-        run: dotnet test ${{ matrix.path }} --no-build --framework net7.0 --verbosity q /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./.coverage/${{ matrix.name }}.xml --logger "trx;LogFileName=./.test-results/${{ matrix.name }}.trx" /p:ExcludeByFile="**/test/**"
+        run: >
+          dotnet test ${{ matrix.path }}
+          --collect:"XPlat Code Coverage;Format=opencover"
+          --framework net8.0
+          --logger trx
+          --no-build
+          --verbosity q
+          --
+          DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="**/test/**"
         env:
           CI_BUILD: true
 
-      - name: Upload Test Results as Artifacts
+      - name: Upload Test Results as Artifact
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: test-results-${{ matrix.name }}
-          path: ./.test-results/*.trx
+          path: ${{ matrix.directoryPath }}/TestResults/*.trx
 
-      - name: Upload mismatch files as Artifacts
-        if: failure()
-        uses: actions/upload-artifact@v2
-        with:
-          name: mismatch-files-${{ matrix.name }}
-          path: |
-            **/__mismatch__/*
-
-      - name: Copy test results
-        continue-on-error: true
-        run: |
-          mkdir -p ./output/coverage
-          cp "${{ matrix.directoryPath }}/.coverage/${{ matrix.name }}.net7.0.xml" ./output/coverage/
-
-      - name: Upload Individual Coverage Files as Artifacts
-        uses: actions/upload-artifact@v2
+      - name: Upload Coverage File as Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-${{ matrix.name }}
-          path: ./output/coverage/*.xml
+          # The * matches a single directory that is named with a GUID.
+          # Take note of https://github.com/microsoft/vstest/issues/2334.
+          path: ${{ matrix.directoryPath }}/TestResults/*/coverage.opencover.xml
+
+      - name: Upload mismatch files as Artifact
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mismatch-files-${{ matrix.name }}
+          path: ${{ matrix.directoryPath }}/**/__mismatch__/*
 
       - name: Fail if tests failed or were cancelled
         run: exit 1
@@ -118,23 +119,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
+      with:
+        show-progress: false
 
     - name: Install .NET
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: |
           6.x
           7.x
           8.x
-
-    - uses: actions/cache@v3
-      if: ${{ !cancelled() }}
-      with:
-        path: ~/.nuget/packages
-        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-nuget-
 
     - name: Create All.sln
       if: ${{ !cancelled() }}
@@ -145,9 +140,10 @@ jobs:
       run: dotnet build ./src/All.sln
 
     - name: Download all coverage artifacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         path: ./output/download
+        pattern: coverage-*
 
     - name: Merge Coverage Files
       if: ${{ !cancelled() }}
@@ -160,7 +156,7 @@ jobs:
 
     - name: Upload Combined Coverage to Codecov
       if: ${{ !cancelled() }}
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v4
       timeout-minutes: 10
       with:
         file: ./output/coverage/merged/OpenCover.xml
@@ -168,3 +164,4 @@ jobs:
         name: graphql-platform
         flags: unittests
         fail_ci_if_error: true
+        disable_search: true

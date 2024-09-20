@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Resolvers;
 
@@ -45,10 +42,10 @@ public static class QueryableFilterExtensions
     /// The resolver context of the resolver that is annotated with UseFiltering
     /// </param>
     /// <returns>The filtered enumerable</returns>
-    public static QueryableExecutable<T> Filter<T>(
-        this QueryableExecutable<T> enumerable,
+    public static IQueryableExecutable<T> Filter<T>(
+        this IQueryableExecutable<T> enumerable,
         IResolverContext context) =>
-        ExecuteFilter(enumerable, context, typeof(QueryableExecutable<T>));
+        ExecuteFilter(enumerable, context, typeof(IQueryableExecutable<T>));
 
     private static T ExecuteFilter<T>(
         this T input,
@@ -56,8 +53,8 @@ public static class QueryableFilterExtensions
         Type expectedType)
     {
         if (context.LocalContextData.TryGetValue(
-                QueryableFilterProvider.ContextApplyFilteringKey,
-                out var applicatorObj) &&
+            QueryableFilterProvider.ContextApplyFilteringKey,
+            out var applicatorObj) &&
             applicatorObj is ApplyFiltering applicator)
         {
             var resultObj = applicator(context, input);
@@ -66,7 +63,7 @@ public static class QueryableFilterExtensions
                 return result;
             }
 
-            throw ThrowHelper.Filtering_TypeMissmatch(
+            throw ThrowHelper.Filtering_TypeMismatch(
                 context,
                 expectedType,
                 resultObj!.GetType());

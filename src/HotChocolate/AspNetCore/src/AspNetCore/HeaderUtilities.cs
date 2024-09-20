@@ -158,14 +158,14 @@ MULTI_VALUES:
 
         public AcceptHeaderResult(string headerValue)
         {
-            AcceptMediaTypes = Array.Empty<AcceptMediaType>();
+            AcceptMediaTypes = [];
             ErrorResult = ErrorHelper.InvalidAcceptMediaType(headerValue);
             HasError = true;
         }
 
         public AcceptMediaType[] AcceptMediaTypes { get; }
 
-        public IQueryResult? ErrorResult { get; }
+        public IOperationResult? ErrorResult { get; }
 
         [MemberNotNullWhen(true, nameof(ErrorResult))]
         public bool HasError { get; }

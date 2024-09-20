@@ -1,28 +1,19 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-
-#nullable enable
-
 namespace GreenDonut;
 
-public class DataLoader<TKey, TValue> : DataLoaderBase<TKey, TValue> where TKey : notnull
+public class DataLoader<TKey, TValue>(
+    FetchDataDelegate<TKey, TValue> fetch,
+    IBatchScheduler batchScheduler,
+    DataLoaderOptions? options = null)
+    : DataLoaderBase<TKey, TValue>(batchScheduler, options)
+    where TKey : notnull
 {
-    private readonly FetchDataDelegate<TKey, TValue> _fetch;
+    private readonly FetchDataDelegate<TKey, TValue> _fetch =
+        fetch ?? throw new ArgumentNullException(nameof(fetch));
 
-    public DataLoader(
-        FetchDataDelegate<TKey, TValue> fetch,
-        IBatchScheduler batchScheduler,
-        DataLoaderOptions? options = null)
-        : base(batchScheduler, options)
-    {
-        _fetch = fetch ?? throw new ArgumentNullException(nameof(fetch));
-    }
-
-    protected override ValueTask FetchAsync(
+    protected internal override ValueTask FetchAsync(
         IReadOnlyList<TKey> keys,
-        Memory<Result<TValue>> results,
+        Memory<Result<TValue?>> results,
+        DataLoaderFetchContext<TValue> context,
         CancellationToken cancellationToken)
         => _fetch(keys, results, cancellationToken);
 }

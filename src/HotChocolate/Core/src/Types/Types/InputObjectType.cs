@@ -1,5 +1,3 @@
-using System;
-using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
@@ -61,12 +59,6 @@ public partial class InputObjectType
 
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.InputObject;
-
-    /// <summary>
-    /// Gets the GraphQL syntax representation of this type
-    /// if it was provided during initialization.
-    /// </summary>
-    public InputObjectTypeDefinitionNode? SyntaxNode { get; private set; }
 
     /// <summary>
     /// Gets the fields of this type.

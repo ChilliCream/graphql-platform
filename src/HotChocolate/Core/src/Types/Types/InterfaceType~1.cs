@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -11,11 +10,12 @@ public class InterfaceType<T> : InterfaceType
 {
     private Action<IInterfaceTypeDescriptor<T>>? _configure;
 
-    public InterfaceType() =>
-        _configure = Configure;
-
     public InterfaceType(Action<IInterfaceTypeDescriptor<T>> configure) =>
         _configure = configure ?? throw new ArgumentNullException(nameof(configure));
+
+    [ActivatorUtilitiesConstructor]
+    public InterfaceType() =>
+        _configure = Configure;
 
     protected override InterfaceTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
     {

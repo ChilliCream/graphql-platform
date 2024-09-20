@@ -1,8 +1,6 @@
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using Snapshooter.Xunit;
-using Xunit;
 
 #nullable enable
 
@@ -27,9 +25,9 @@ public class CustomCursorHandlerTests
         Snapshot.FullName();
 
         var request =
-            QueryRequestBuilder.New()
-                .SetQuery("{ items { nodes } }")
-                .Create();
+            OperationRequestBuilder.New()
+                .SetDocument("{ items { nodes } }")
+                .Build();
 
         // act
         // assert

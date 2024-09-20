@@ -1,6 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
@@ -30,7 +28,6 @@ public static class Scalars
         { typeof(Guid), typeof(UuidType) },
         { typeof(DateTime), typeof(DateTimeType) },
         { typeof(DateTimeOffset), typeof(DateTimeType) },
-        { typeof(MultiplierPathString), typeof(MultiplierPathType) },
         { typeof(byte[]), typeof(ByteArrayType) },
         { typeof(TimeSpan), typeof(TimeSpanType) },
 
@@ -61,12 +58,8 @@ public static class Scalars
         { ScalarNames.TimeSpan, typeof(TimeSpanType) },
         { ScalarNames.Any, typeof(AnyType) },
 
-        { ScalarNames.MultiplierPath, typeof(MultiplierPathType) },
         { ScalarNames.ByteArray, typeof(ByteArrayType) },
-        { ScalarNames.JSON, typeof(JsonType) },
-
-        // legacy support
-        { ScalarNames.PaginationAmount, typeof(PaginationAmountType) },
+        { ScalarNames.JSON, typeof(JsonType) }
     };
 
     private static readonly Dictionary<Type, ValueKind> _scalarKinds = new()

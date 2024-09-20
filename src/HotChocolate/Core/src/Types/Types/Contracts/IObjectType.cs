@@ -1,4 +1,3 @@
-using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
 #nullable enable
@@ -10,11 +9,6 @@ namespace HotChocolate.Types;
 /// </summary>
 public interface IObjectType : IComplexOutputType
 {
-    /// <summary>
-    /// The associated syntax node from the GraphQL SDL.
-    /// </summary>
-    new ObjectTypeDefinitionNode? SyntaxNode { get; }
-
     /// <summary>
     /// Gets the field that the type exposes.
     /// </summary>

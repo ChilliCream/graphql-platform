@@ -1,5 +1,5 @@
-using System;
 using System.Linq.Expressions;
+using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -9,17 +9,6 @@ public interface IInterfaceTypeDescriptor<T>
     : IDescriptor<InterfaceTypeDefinition>
     , IFluent
 {
-    /// <summary>
-    /// Associates the specified
-    /// <paramref name="interfaceTypeDefinition"/>
-    /// with the <see cref="InterfaceType"/>.
-    /// </summary>
-    /// <param name="interfaceTypeDefinition">
-    /// The <see cref="InterfaceTypeDefinitionNode"/> of a parsed schema.
-    /// </param>
-    IInterfaceTypeDescriptor<T> SyntaxNode(
-        InterfaceTypeDefinitionNode interfaceTypeDefinition);
-
     /// <summary>
     /// Defines the name of the <see cref="InterfaceType"/>.
     /// </summary>
@@ -99,6 +88,9 @@ public interface IInterfaceTypeDescriptor<T>
 
     IInterfaceFieldDescriptor Field(
         Expression<Func<T, object>> propertyOrMethod);
+
+    IInterfaceFieldDescriptor Field(
+        MemberInfo propertyOrMethod);
 
     IInterfaceFieldDescriptor Field(string name);
 

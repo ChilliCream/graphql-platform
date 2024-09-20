@@ -1,6 +1,4 @@
-using System;
 using HotChocolate.Types.Descriptors;
-using Xunit;
 
 namespace HotChocolate.Types;
 

@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Data.Projections;
 
 public interface IProjectionConventionDescriptor

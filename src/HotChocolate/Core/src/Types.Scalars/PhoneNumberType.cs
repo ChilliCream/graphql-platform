@@ -1,4 +1,3 @@
-using System;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 
@@ -31,16 +30,6 @@ public class PhoneNumberType : RegexType
 #endif
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="PhoneNumberType"/> class.
-    /// </summary>
-    public PhoneNumberType()
-        : this(
-            WellKnownScalarTypes.PhoneNumber,
-            ScalarResources.PhoneNumberType_Description)
-    {
-    }
-
-    /// <summary>
     /// Initializes a new instance of the <see cref="PhoneNumberType"/>
     /// </summary>
     public PhoneNumberType(
@@ -52,6 +41,17 @@ public class PhoneNumberType : RegexType
             CreateRegex(),
             description,
             bind)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PhoneNumberType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public PhoneNumberType()
+        : this(
+            WellKnownScalarTypes.PhoneNumber,
+            ScalarResources.PhoneNumberType_Description)
     {
     }
 

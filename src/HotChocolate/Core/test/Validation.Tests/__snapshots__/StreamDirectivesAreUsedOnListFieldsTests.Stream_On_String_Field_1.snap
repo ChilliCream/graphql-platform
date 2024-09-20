@@ -12,51 +12,6 @@
     "Extensions": {
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Stream-Directives-Are-Used-On-List-Fields"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "Field",
-      "Alias": null,
-      "Arguments": [],
-      "Required": null,
-      "SelectionSet": null,
-      "Location": {
-        "Start": 24,
-        "End": 56,
-        "Line": 2,
-        "Column": 17
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 24,
-          "End": 36,
-          "Line": 2,
-          "Column": 17
-        },
-        "Value": "__typename"
-      },
-      "Directives": [
-        {
-          "Kind": "Directive",
-          "Location": {
-            "Start": 35,
-            "End": 56,
-            "Line": 2,
-            "Column": 28
-          },
-          "Name": {
-            "Kind": "Name",
-            "Location": {
-              "Start": 36,
-              "End": 56,
-              "Line": 2,
-              "Column": 29
-            },
-            "Value": "stream"
-          },
-          "Arguments": []
-        }
-      ]
-    }
+    "Exception": null
   }
 ]

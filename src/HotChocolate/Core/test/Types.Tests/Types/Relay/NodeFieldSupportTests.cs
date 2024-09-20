@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using CookieCrumble;
@@ -12,20 +10,20 @@ public class NodeFieldSupportTests
     public async Task Node_Resolve_Separated_Resolver()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddGlobalObjectIdentification()
-            .AddQueryType<Foo>()
-            .AddObjectType<Bar>(d => d
-                .ImplementsNode()
-                .IdField(t => t.Id)
-                .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(default)))
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddQueryType<Foo>()
+                .AddObjectType<Bar>(d => d
+                    .ImplementsNode()
+                    .IdField(t => t.Id)
+                    .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(default)))
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyCmQxMjM=\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -35,20 +33,20 @@ public class NodeFieldSupportTests
     public async Task Nodes_Get_Single()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddGlobalObjectIdentification()
-            .AddQueryType<Foo>()
-            .AddObjectType<Bar>(d => d
-                .ImplementsNode()
-                .IdField(t => t.Id)
-                .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(default)))
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddQueryType<Foo>()
+                .AddObjectType<Bar>(d => d
+                    .ImplementsNode()
+                    .IdField(t => t.Id)
+                    .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(default)))
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ nodes(ids: \"QmFyCmQxMjM=\") { id } }");
+            "{ nodes(ids: \"QmFyOjEyMw==\") { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -58,21 +56,21 @@ public class NodeFieldSupportTests
     public async Task Tow_Many_Nodes()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddGlobalObjectIdentification()
-            .AddQueryType<Foo>()
-            .AddObjectType<Bar>(d => d
-                .ImplementsNode()
-                .IdField(t => t.Id)
-                .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(default)))
-            .ModifyOptions(o => o.MaxAllowedNodeBatchSize = 1)
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddQueryType<Foo>()
+                .AddObjectType<Bar>(d => d
+                    .ImplementsNode()
+                    .IdField(t => t.Id)
+                    .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(default)))
+                .ModifyOptions(o => o.MaxAllowedNodeBatchSize = 1)
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ nodes(ids: [\"QmFyCmQxMjM=\", \"QmFyCmQxMjM=\"]) { id } }");
+            "{ nodes(ids: [\"QmFyOjEyMw==\", \"QmFyOjEyMw==\"]) { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -82,20 +80,20 @@ public class NodeFieldSupportTests
     public async Task Nodes_Get_Many()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddGlobalObjectIdentification()
-            .AddQueryType<Foo>()
-            .AddObjectType<Bar>(d => d
-                .ImplementsNode()
-                .IdField(t => t.Id)
-                .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(default)))
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddQueryType<Foo>()
+                .AddObjectType<Bar>(d => d
+                    .ImplementsNode()
+                    .IdField(t => t.Id)
+                    .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(default)))
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ nodes(ids: [\"QmFyCmQxMjM=\", \"QmFyCmQxMjM=\"]) { id } }");
+            "{ nodes(ids: [\"QmFyOjEyMw==\", \"QmFyOjEyMw==\"]) { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -105,19 +103,19 @@ public class NodeFieldSupportTests
     public async Task Node_Resolve_Parent_Id()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddGlobalObjectIdentification()
-            .AddQueryType(
-                x => x.Name("Query")
-                    .Field("childs")
-                    .Resolve(new Child { Id = "123", }))
-            .AddObjectType<Child>(d => d
-                .ImplementsNode()
-                .IdField(t => t.Id)
-                .ResolveNode((_, id) => Task.FromResult(new Child { Id = id, })))
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddQueryType(
+                    x => x.Name("Query")
+                        .Field("childs")
+                        .Resolve(new Child { Id = "123", }))
+                .AddObjectType<Child>(d => d
+                    .ImplementsNode()
+                    .IdField(t => t.Id)
+                    .ResolveNode((_, id) => Task.FromResult(new Child { Id = id, })))
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync("{ childs { id } }");
@@ -130,19 +128,19 @@ public class NodeFieldSupportTests
     public async Task Node_Resolve_Separated_Resolver_ImplicitId()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddGlobalObjectIdentification()
-            .AddQueryType<Foo>()
-            .AddObjectType<Bar>(d => d
-                .ImplementsNode()
-                .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(default)))
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddQueryType<Foo>()
+                .AddObjectType<Bar>(d => d
+                    .ImplementsNode()
+                    .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(default)))
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyCmQxMjM=\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -152,16 +150,16 @@ public class NodeFieldSupportTests
     public async Task Node_Resolve_Implicit()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddGlobalObjectIdentification()
-            .AddQueryType<Foo1>()
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddQueryType<Foo1>()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyCmQxMjM=\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -171,16 +169,16 @@ public class NodeFieldSupportTests
     public async Task Node_Resolve_Implicit_Resolver()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddGlobalObjectIdentification()
-            .AddQueryType<Bar5>()
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddQueryType<Bar5>()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyCmQxMjM=\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -190,16 +188,16 @@ public class NodeFieldSupportTests
     public async Task Node_Resolve_Implicit_Named_Resolver()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddGlobalObjectIdentification()
-            .AddQueryType<Foo2>()
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddQueryType<Foo2>()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyCmQxMjM=\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -209,16 +207,16 @@ public class NodeFieldSupportTests
     public async Task Node_Resolve_Implicit_Inherited_Resolver()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddGlobalObjectIdentification()
-            .AddQueryType<Foo6>()
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddQueryType<Foo6>()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyCmQxMjM=\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -228,16 +226,16 @@ public class NodeFieldSupportTests
     public async Task Node_Resolve_Implicit_External_Resolver()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddGlobalObjectIdentification()
-            .AddQueryType<Foo3>()
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddQueryType<Foo3>()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyCmQxMjM=\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -247,16 +245,16 @@ public class NodeFieldSupportTests
     public async Task Node_Resolve_Implicit_ExternalInheritedStatic_Resolver()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddGlobalObjectIdentification()
-            .AddQueryType<Foo7>()
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddQueryType<Foo7>()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyCmQxMjM=\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -266,16 +264,16 @@ public class NodeFieldSupportTests
     public async Task Node_Resolve_Implicit_ExternalInheritedInstance_Resolver()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddGlobalObjectIdentification()
-            .AddQueryType<Foo8>()
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddQueryType<Foo8>()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyCmQxMjM=\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -294,7 +292,7 @@ public class NodeFieldSupportTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyCmQxMjM=\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -304,16 +302,16 @@ public class NodeFieldSupportTests
     public async Task Node_Resolve_Implicit_Custom_IdField()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddGlobalObjectIdentification()
-            .AddQueryType<Foo4>()
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddQueryType<Foo4>()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyCmQxMjM=\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }");
 
         // assert
         result.MatchSnapshot();

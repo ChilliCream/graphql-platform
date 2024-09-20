@@ -1,4 +1,3 @@
-using System;
 using System.Runtime.CompilerServices;
 using HotChocolate.Language.Utilities;
 
@@ -103,7 +102,7 @@ public static class SyntaxNodeExtensions
 
         throw new NotSupportedException();
     }
-    
+
     public static string Name(this ITypeNode type)
         => type.NamedType().Name.Value;
 

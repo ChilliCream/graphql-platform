@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using Xunit;
-
 namespace HotChocolate.Execution.Processing
 {
     public class ObjectResultTests
@@ -58,7 +55,7 @@ namespace HotChocolate.Execution.Processing
             objectResult.SetValueUnsafe(capacity - 1, "ghi", "def");
 
             // act
-            ObjectFieldResult value = objectResult.TryGetValue("def", out var index);
+            var value = objectResult.TryGetValue("def", out var index);
 
             // assert
             Assert.Equal("def", value?.Name);
@@ -81,7 +78,7 @@ namespace HotChocolate.Execution.Processing
             objectResult.SetValueUnsafe(capacity / 2, "def", "def");
             objectResult.SetValueUnsafe(capacity - 1, "ghi", "def");
 
-            IReadOnlyDictionary<string, object> dict = objectResult;
+            IReadOnlyDictionary<string, object?> dict = objectResult;
 
             // act
             var found = dict.TryGetValue("def", out var value);
@@ -89,6 +86,32 @@ namespace HotChocolate.Execution.Processing
             // assert
             Assert.True(found);
             Assert.Equal("def", value);
+        }
+
+        [InlineData(9)]
+        [InlineData(8)]
+        [InlineData(7)]
+        [InlineData(5)]
+        [InlineData(4)]
+        [InlineData(3)]
+        [Theory]
+        public void TryGetValue_ValueIsNotFound(int capacity)
+        {
+            // arrange
+            var objectResult = new ObjectResult();
+            objectResult.EnsureCapacity(capacity);
+            objectResult.SetValueUnsafe(0, "abc", "def");
+            objectResult.SetValueUnsafe(capacity / 2, "def", "def");
+            objectResult.SetValueUnsafe(capacity - 1, "ghi", "def");
+
+            IReadOnlyDictionary<string, object?> dict = objectResult;
+
+            // act
+            var found = dict.TryGetValue("jkl", out var value);
+
+            // assert
+            Assert.False(found);
+            Assert.Null(value);
         }
 
         [InlineData(9)]
@@ -107,7 +130,7 @@ namespace HotChocolate.Execution.Processing
             objectResult.SetValueUnsafe(capacity / 2, "def", "def");
             objectResult.SetValueUnsafe(capacity - 1, "ghi", "def");
 
-            IReadOnlyDictionary<string, object> dict = objectResult;
+            IReadOnlyDictionary<string, object?> dict = objectResult;
 
             // act
             var found = dict.ContainsKey("def");
@@ -162,7 +185,7 @@ namespace HotChocolate.Execution.Processing
 
             // assert
             Assert.Collection(
-                ((IReadOnlyDictionary<string, object>)objectResult).Keys,
+                ((IReadOnlyDictionary<string, object?>)objectResult).Keys,
                 t => Assert.Equal("abc1", t),
                 t => Assert.Equal("abc2", t),
                 t => Assert.Equal("abc3", t));
@@ -182,7 +205,7 @@ namespace HotChocolate.Execution.Processing
 
             // assert
             Assert.Collection(
-                ((IReadOnlyDictionary<string, object>)objectResult).Values,
+                ((IReadOnlyDictionary<string, object?>)objectResult).Values,
                 t => Assert.Equal("def", t),
                 t => Assert.Equal("def", t),
                 t => Assert.Equal("def", t));

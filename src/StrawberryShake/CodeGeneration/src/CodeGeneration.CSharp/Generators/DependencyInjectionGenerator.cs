@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using HotChocolate;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Descriptors;
@@ -115,7 +112,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
             .SetPrivate()
             .SetStatic()
             .SetReturnType(IServiceCollection)
-            .AddParameter(_parentServices, x => x.SetType(IServiceProvider))
+            .AddParameter(_parentServices, x => x.SetType(TypeNames.IServiceProvider))
             .AddParameter(_services, x => x.SetType(ServiceCollection))
             .AddParameter(
                 _strategy,
@@ -204,8 +201,8 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
             .AddCode(
                 AssignmentBuilder
                     .New()
-                    .SetLefthandSide($"var {_serviceCollection}")
-                    .SetRighthandSide(MethodCallBuilder
+                    .SetLeftHandSide($"var {_serviceCollection}")
+                    .SetRightHandSide(MethodCallBuilder
                         .Inline()
                         .SetNew()
                         .SetMethodName(ServiceCollection)))
@@ -484,7 +481,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
             }
         }
 
-        var stringTypeInfo = new RuntimeTypeInfo(String);
+        var stringTypeInfo = new RuntimeTypeInfo(TypeNames.String);
         foreach (var scalar in
                  descriptor.TypeDescriptors.OfType<ScalarTypeDescriptor>())
         {
@@ -761,8 +758,8 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                     .New()
                     .AddCode(AssignmentBuilder
                         .New()
-                        .SetLefthandSide($"var {_clientFactory}")
-                        .SetRighthandSide(MethodCallBuilder
+                        .SetLeftHandSide($"var {_clientFactory}")
+                        .SetRightHandSide(MethodCallBuilder
                             .Inline()
                             .SetMethodName(GetRequiredService)
                             .AddGeneric(IHttpClientFactory)
@@ -807,8 +804,8 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                     .New()
                     .AddCode(AssignmentBuilder
                         .New()
-                        .SetLefthandSide($"var {_clientFactory}")
-                        .SetRighthandSide(MethodCallBuilder
+                        .SetLeftHandSide($"var {_clientFactory}")
+                        .SetRightHandSide(MethodCallBuilder
                             .Inline()
                             .SetMethodName(GetRequiredService)
                             .AddGeneric(IInMemoryClientFactory)
@@ -844,8 +841,8 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                     .New()
                     .AddCode(AssignmentBuilder
                         .New()
-                        .SetLefthandSide($"var {_sessionPool}")
-                        .SetRighthandSide(MethodCallBuilder
+                        .SetLeftHandSide($"var {_sessionPool}")
+                        .SetRightHandSide(MethodCallBuilder
                             .Inline()
                             .SetMethodName(GetRequiredService)
                             .AddGeneric(ISessionPool)

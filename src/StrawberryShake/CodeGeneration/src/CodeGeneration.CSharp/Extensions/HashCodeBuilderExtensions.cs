@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
@@ -43,9 +41,9 @@ internal static class HashCodeBuilderExtensions
                     BuildPropertyInternal(d.InnerType, variableName, false),
                 INamedTypeDescriptor => AssignmentBuilder
                     .New()
-                    .SetLefthandSide(HashCodeBuilder.VariableName)
+                    .SetLeftHandSide(HashCodeBuilder.VariableName)
                     .SetOperator("^=")
-                    .SetRighthandSide(MethodCallBuilder
+                    .SetRightHandSide(MethodCallBuilder
                         .Inline()
                         .SetPrefix($"{HashCodeBuilder.Prime} * ")
                         .SetMethodName(variableName, nameof(GetHashCode))),

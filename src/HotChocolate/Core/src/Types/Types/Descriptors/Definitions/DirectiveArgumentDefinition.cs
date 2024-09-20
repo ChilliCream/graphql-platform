@@ -37,4 +37,6 @@ public class DirectiveArgumentDefinition : ArgumentDefinition
     /// The property to which this argument binds to.
     /// </summary>
     public PropertyInfo? Property { get; set; }
+
+    public override Type? GetRuntimeType() => RuntimeType ?? Property?.PropertyType;
 }

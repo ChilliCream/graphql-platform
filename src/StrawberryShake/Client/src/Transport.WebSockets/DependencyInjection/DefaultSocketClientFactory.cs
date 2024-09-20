@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Extensions.Options;
 
 namespace StrawberryShake.Transport.WebSockets;
@@ -34,7 +31,7 @@ public class DefaultSocketClientFactory : ISocketClientFactory
             throw ThrowHelper.Argument_IsNullOrEmpty(nameof(name));
         }
 
-        SocketClientFactoryOptions options = _optionsMonitor.Get(name);
+        var options = _optionsMonitor.Get(name);
         var client = new WebSocketClient(name, _protocolFactories);
 
         for (var i = 0; i < options.SocketClientActions.Count; i++)

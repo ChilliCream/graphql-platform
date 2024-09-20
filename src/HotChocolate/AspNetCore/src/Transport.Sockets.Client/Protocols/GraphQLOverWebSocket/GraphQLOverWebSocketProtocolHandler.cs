@@ -1,10 +1,6 @@
-using System;
 using System.Buffers;
 using System.Net.WebSockets;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
-using HotChocolate.Transport.Serialization;
 using HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Messages;
 
 namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
@@ -57,58 +53,34 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         ReadOnlySequence<byte> message,
         CancellationToken cancellationToken = default)
     {
-        JsonDocument? document = null;
-
-        try
+        switch (ParseMessageType(message))
         {
-            document = JsonDocument.Parse(message);
-            var root = document.RootElement;
+            case MessageType.Ping:
+                return context.Socket.SendPongMessageAsync(cancellationToken);
 
-            if (root.TryGetProperty(Utf8MessageProperties.TypeProp, out var typeProp))
-            {
-                if (typeProp.ValueEquals(Utf8Messages.Ping))
-                {
-                    return context.Socket.SendPongMessageAsync(cancellationToken);
-                }
-                else if (typeProp.ValueEquals(Utf8Messages.Pong))
-                {
-                    // we do nothing and just accept the pong as a valid message.
-                }
-                else if (typeProp.ValueEquals(Utf8Messages.Next))
-                {
-                    context.Messages.OnNext(NextMessage.From(document));
-                    document = null;
-                }
-                else if (typeProp.ValueEquals(Utf8Messages.Error))
-                {
-                    context.Messages.OnNext(ErrorMessage.From(document));
-                    document = null;
-                }
-                else if (typeProp.ValueEquals(Utf8Messages.Complete))
-                {
-                    context.Messages.OnNext(CompleteMessage.From(document));
-                    document = null;
-                }
-                else if (typeProp.ValueEquals(Utf8Messages.ConnectionAccept))
-                {
-                    context.Messages.OnNext(ConnectionAcceptMessage.Default);
-                }
-                else
-                {
-                    return FatalError(context, cancellationToken);
-                }
-            }
-            else
-            {
+            case MessageType.Pong:
+                // we do nothing and just accept the pong as a valid message.
+                return default;
+
+            case MessageType.Next:
+                context.Messages.OnNext(NextMessage.From(message));
+                return default;
+
+            case MessageType.Error:
+                context.Messages.OnNext(ErrorMessage.From(message));
+                return default;
+
+            case MessageType.Complete:
+                context.Messages.OnNext(CompleteMessage.From(message));
+                return default;
+
+            case MessageType.ConnectionAccept:
+                context.Messages.OnNext(ConnectionAcceptMessage.Default);
+                return default;
+
+            default:
                 return FatalError(context, cancellationToken);
-            }
         }
-        finally
-        {
-            document?.Dispose();
-        }
-
-        return default;
 
         static async ValueTask FatalError(
             SocketClientContext context,
@@ -122,17 +94,57 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         }
     }
 
-    private sealed class DataCompletion : IDataCompletion
+    private static MessageType ParseMessageType(ReadOnlySequence<byte> message)
     {
-        private readonly WebSocket _socket;
-        private readonly string _id;
-        private bool _completed;
+        var reader = new Utf8JsonReader(message);
 
-        public DataCompletion(WebSocket socket, string id)
+        while (reader.Read())
         {
-            _socket = socket;
-            _id = id;
+            if (reader.TokenType == JsonTokenType.PropertyName &&
+                reader.ValueTextEquals(Utf8MessageProperties.TypeProp))
+            {
+                reader.Read();
+
+                if (reader.ValueTextEquals(Utf8Messages.Ping))
+                {
+                    return MessageType.Ping;
+                }
+
+                if (reader.ValueTextEquals(Utf8Messages.Pong))
+                {
+                    return MessageType.Pong;
+                }
+
+                if (reader.ValueTextEquals(Utf8Messages.Next))
+                {
+                    return MessageType.Next;
+                }
+
+                if (reader.ValueTextEquals(Utf8Messages.Error))
+                {
+                    return MessageType.Error;
+                }
+
+                if (reader.ValueTextEquals(Utf8Messages.Complete))
+                {
+                    return MessageType.Complete;
+                }
+
+                if (reader.ValueTextEquals(Utf8Messages.ConnectionAccept))
+                {
+                    return MessageType.ConnectionAccept;
+                }
+
+                return MessageType.None;
+            }
         }
+
+        return MessageType.None;
+    }
+
+    private sealed class DataCompletion(WebSocket socket, string id) : IDataCompletion
+    {
+        private bool _completed;
 
         public void MarkDataStreamCompleted()
             => _completed = true;
@@ -148,9 +160,9 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
 
                         try
                         {
-                            if (_socket.IsOpen())
+                            if (socket.IsOpen())
                             {
-                                await _socket.SendCompleteMessageAsync(_id, cts.Token);
+                                await socket.SendCompleteMessageAsync(id, cts.Token);
                             }
                         }
                         catch
@@ -158,7 +170,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
                             // if we cannot send the complete message we will just abort the socket.
                             try
                             {
-                                _socket.Abort();
+                                socket.Abort();
                             }
                             catch
                             {
@@ -172,5 +184,16 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
                 _completed = true;
             }
         }
+    }
+
+    private enum MessageType
+    {
+        None,
+        Ping,
+        Pong,
+        Next,
+        Error,
+        Complete,
+        ConnectionAccept,
     }
 }

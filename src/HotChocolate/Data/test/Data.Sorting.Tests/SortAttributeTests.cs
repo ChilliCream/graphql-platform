@@ -1,10 +1,7 @@
-using System;
-using System.Collections.Generic;
 using System.Reflection;
 using CookieCrumble;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using Xunit;
 
 namespace HotChocolate.Data.Sorting;
 

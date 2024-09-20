@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
@@ -38,7 +37,9 @@ public class EnumValueDescriptor
 
     protected override void OnCreateDefinition(EnumValueDefinition definition)
     {
-        if (!Definition.AttributesAreApplied && Definition.Member is not null)
+        Context.Descriptors.Push(this);
+
+        if (Definition is { AttributesAreApplied: false, Member: not null, })
         {
             Context.TypeInspector.ApplyAttributes(
                 Context,
@@ -53,13 +54,8 @@ public class EnumValueDescriptor
         }
 
         base.OnCreateDefinition(definition);
-    }
 
-    public IEnumValueDescriptor SyntaxNode(
-        EnumValueDefinitionNode enumValueDefinition)
-    {
-        Definition.SyntaxNode = enumValueDefinition;
-        return this;
+        Context.Descriptors.Pop();
     }
 
     public IEnumValueDescriptor Name(string value)

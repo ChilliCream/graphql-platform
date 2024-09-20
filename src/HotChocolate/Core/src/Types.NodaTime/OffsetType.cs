@@ -18,13 +18,6 @@ public class OffsetType : StringToStructBaseType<Offset>
     /// <summary>
     /// Initializes a new instance of <see cref="OffsetType"/>.
     /// </summary>
-    public OffsetType() : this(OffsetPattern.GeneralInvariantWithZ)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of <see cref="OffsetType"/>.
-    /// </summary>
     public OffsetType(params IPattern<Offset>[] allowedPatterns) : base("Offset")
     {
         if (allowedPatterns.Length == 0)
@@ -35,6 +28,14 @@ public class OffsetType : StringToStructBaseType<Offset>
         _allowedPatterns = allowedPatterns;
         _serializationPattern = allowedPatterns[0];
         Description = NodaTimeResources.OffsetType_Description;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="OffsetType"/>.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public OffsetType() : this(OffsetPattern.GeneralInvariantWithZ)
+    {
     }
 
     /// <inheritdoc />

@@ -1,4 +1,3 @@
-using System;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 
@@ -35,14 +34,6 @@ public class EmailAddressType : RegexType
     /// <summary>
     /// Initializes a new instance of the <see cref="EmailAddressType"/> class.
     /// </summary>
-    public EmailAddressType()
-        : this(
-            WellKnownScalarTypes.EmailAddress,
-            ScalarResources.EmailAddressType_Description) { }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="EmailAddressType"/> class.
-    /// </summary>
     public EmailAddressType(
         string name,
         string? description = null,
@@ -54,6 +45,15 @@ public class EmailAddressType : RegexType
             bind)
     {
     }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EmailAddressType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public EmailAddressType()
+        : this(
+            WellKnownScalarTypes.EmailAddress,
+            ScalarResources.EmailAddressType_Description) { }
 
     /// <inheritdoc />
     protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)

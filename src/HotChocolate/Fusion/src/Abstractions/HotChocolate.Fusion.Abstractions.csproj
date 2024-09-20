@@ -3,8 +3,6 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Fusion.Abstractions</AssemblyName>
     <RootNamespace>HotChocolate.Fusion</RootNamespace>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -22,12 +20,8 @@
     <ProjectReference Include="..\..\..\Utilities\src\Utilities\HotChocolate.Utilities.csproj" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
-    <PackageReference Include="System.IO.Packaging" Version="7.0.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
-    <PackageReference Include="System.IO.Packaging" Version="8.0.0" />
+  <ItemGroup>
+    <PackageReference Include="System.IO.Packaging" />
   </ItemGroup>
 
   <ItemGroup>

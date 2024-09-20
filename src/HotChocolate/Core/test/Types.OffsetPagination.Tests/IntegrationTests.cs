@@ -1,13 +1,9 @@
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
-using Xunit;
 
 #nullable enable
 
@@ -79,7 +75,7 @@ namespace HotChocolate.Types.Pagination
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
-                    .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = true, })
+                    .ModifyPagingOptions(o => o.RequirePagingBoundaries = true)
                     .Services
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
@@ -107,7 +103,7 @@ namespace HotChocolate.Types.Pagination
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
-                    .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = true, })
+                    .ModifyPagingOptions(o => o.RequirePagingBoundaries = true)
                     .Services
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
@@ -270,7 +266,7 @@ namespace HotChocolate.Types.Pagination
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
-                    .SetPagingOptions(new PagingOptions { DefaultPageSize = 2, })
+                    .ModifyPagingOptions(o => o.DefaultPageSize = 2)
                     .Services
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
@@ -298,7 +294,7 @@ namespace HotChocolate.Types.Pagination
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
-                    .SetPagingOptions(new PagingOptions { DefaultPageSize = 50, })
+                    .ModifyPagingOptions(o => o.DefaultPageSize = 50)
                     .Services
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
@@ -326,7 +322,7 @@ namespace HotChocolate.Types.Pagination
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryAttr>()
-                    .SetPagingOptions(new PagingOptions { DefaultPageSize = 2, })
+                    .ModifyPagingOptions(o => o.DefaultPageSize = 2)
                     .Services
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
@@ -550,6 +546,52 @@ namespace HotChocolate.Types.Pagination
         }
 
         [Fact]
+        public async Task ExtendedTypeRef_Default_Items()
+        {
+            Snapshot.FullName();
+
+            var executor =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<QueryType>()
+                    .Services
+                    .BuildServiceProvider()
+                    .GetRequestExecutorAsync();
+
+            await executor
+                .ExecuteAsync(@"
+                {
+                    extendedTypeRef {
+                        items
+                    }
+                }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task ExtendedTypeRefNested_Default_Items()
+        {
+            Snapshot.FullName();
+
+            var executor =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<QueryType>()
+                    .Services
+                    .BuildServiceProvider()
+                    .GetRequestExecutorAsync();
+
+            await executor
+                .ExecuteAsync(@"
+                {
+                    extendedTypeRefNested {
+                        items
+                    }
+                }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
         public async Task Interface_With_Paging_Field()
         {
             Snapshot.FullName();
@@ -561,10 +603,7 @@ namespace HotChocolate.Types.Pagination
                     .AddInterfaceType<ISome>(d => d
                         .Field(t => t.ExplicitType())
                         .UseOffsetPaging(
-                            options: new PagingOptions
-                            {
-                                InferCollectionSegmentNameFromField = false,
-                            }))
+                            options: new PagingOptions { InferCollectionSegmentNameFromField = false, }))
                     .ModifyOptions(o =>
                     {
                         o.RemoveUnreachableTypes = false;
@@ -666,6 +705,16 @@ namespace HotChocolate.Types.Pagination
                     .Name("nestedObjectList")
                     .UseOffsetPaging(
                         options: new PagingOptions { MaxPageSize = 2, IncludeTotalCount = true, });
+
+                descriptor
+                    .Field("extendedTypeRef")
+                    .Resolve(_ => new List<string>(["one", "two"]))
+                    .UseOffsetPaging();
+
+                descriptor
+                    .Field("extendedTypeRefNested")
+                    .Resolve(_ => new List<List<string>>([["one", "two"]]))
+                    .UseOffsetPaging();
             }
         }
 
@@ -766,36 +815,55 @@ namespace HotChocolate.Types.Pagination
         }
     }
 
-    public class MockExecutable<T> : IExecutable<T>
+    public class MockExecutable<T>(IQueryable<T> source) : IExecutable<T>
     {
-        private readonly IQueryable<T> _source;
+        public object Source => source;
 
-        public MockExecutable(IQueryable<T> source)
+        ValueTask<IList> IExecutable.ToListAsync(CancellationToken cancellationToken)
+            => new(source.ToList());
+
+        public ValueTask<List<T>> ToListAsync(CancellationToken cancellationToken)
+            => new(source.ToList());
+
+        public async IAsyncEnumerable<T> ToAsyncEnumerable(
+            [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            _source = source;
+            var queryable = await new ValueTask<IQueryable<T>>(source);
+
+            foreach (var item in queryable)
+            {
+                yield return item;
+            }
         }
 
-        public object Source => _source;
-
-        public ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
+        async IAsyncEnumerable<object?> IExecutable.ToAsyncEnumerable(
+            [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            return new ValueTask<IList>(_source.ToList());
+            var queryable = await new ValueTask<IQueryable<T>>(source);
+
+            foreach (var item in queryable)
+            {
+                yield return item;
+            }
         }
 
-        public ValueTask<object?> FirstOrDefaultAsync(CancellationToken cancellationToken)
-        {
-            return new ValueTask<object?>(_source.FirstOrDefault());
-        }
+        ValueTask<object?> IExecutable.FirstOrDefaultAsync(CancellationToken cancellationToken)
+            => new(source.FirstOrDefault());
 
-        public ValueTask<object?> SingleOrDefaultAsync(CancellationToken cancellationToken)
-        {
-            return new ValueTask<object?>(_source.SingleOrDefault());
-        }
+        public ValueTask<T?> FirstOrDefaultAsync(CancellationToken cancellationToken)
+            => new(source.FirstOrDefault());
+
+        ValueTask<object?> IExecutable.SingleOrDefaultAsync(CancellationToken cancellationToken)
+            => new(source.SingleOrDefault());
+
+        public ValueTask<int> CountAsync(CancellationToken cancellationToken = default)
+            => new(source.Count());
+
+        public ValueTask<T?> SingleOrDefaultAsync(CancellationToken cancellationToken)
+            => new(source.SingleOrDefault());
 
         public string Print()
-        {
-            return _source.ToString()!;
-        }
+            => source.ToString()!;
     }
 
     public class CustomCollectionSegmentQuery

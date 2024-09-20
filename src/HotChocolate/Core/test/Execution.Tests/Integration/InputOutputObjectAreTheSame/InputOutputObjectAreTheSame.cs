@@ -1,7 +1,5 @@
-﻿using System.Threading.Tasks;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Execution.Integration.InputOutputObjectAreTheSame;
 
@@ -14,8 +12,8 @@ public class InputOutputObjectAreTheSame
         var schema = CreateSchema();
 
         // act
-        var containsPersonInputType = schema.TryGetType("PersonInput", out INamedInputType _);
-        var containsPersonOutputType = schema.TryGetType("Person", out INamedOutputType _);
+        var containsPersonInputType = schema.TryGetType<INamedInputType>("PersonInput", out _);
+        var containsPersonOutputType = schema.TryGetType<INamedOutputType>("Person", out _);
 
         // assert
         Assert.True(containsPersonInputType);

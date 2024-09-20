@@ -1,6 +1,3 @@
-﻿using System;
-using Xunit;
-
 namespace HotChocolate.Resolvers;
 
 public class FieldReferenceTests

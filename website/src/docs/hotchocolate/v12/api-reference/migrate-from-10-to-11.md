@@ -56,7 +56,7 @@ services
     ...
 ```
 
-If you were using the `QueryRequestBuilder` to configure request options or change the request pipeline, you need to add those things to the configuration chain of the ```IRequestExecutorBuilder`.
+If you were using the `OperationRequestBuilder` to configure request options or change the request pipeline, you need to add those things to the configuration chain of the ```IRequestExecutorBuilder`.
 
 ```csharp
 services
@@ -99,7 +99,7 @@ public interface IHttpRequestInterceptor
     ValueTask OnCreateAsync(
         HttpContext context,
         IRequestExecutor requestExecutor,
-        IQueryRequestBuilder requestBuilder,
+        OperationRequestBuilder requestBuilder,
         CancellationToken cancellationToken);
 }
 ```
@@ -142,11 +142,11 @@ The serial execution for Entity Framework compatibility is gone. If you use Enti
 
 Another variant here is to use our scoped service feature that scopes services for the resolver pipeline. This is explained in our GraphQL Workshop project.
 
-https://github.com/ChilliCream/graphql-workshop
+<https://github.com/ChilliCream/graphql-workshop>
 
 # Schema / Resolvers
 
-### Field ordering
+## Field ordering
 
 Hot Chocolate 11 follows the spec and returns the fields in the order they were defined. This feature
 makes migrations harder because the schema snapshot looks different compared to version 11. You can change this behavior with the following setting.
@@ -174,7 +174,6 @@ public class FooDataLoader : DataLoaderBase<Guid, Foo>
         _fooRepository = fooRepository;
     }
 
-
     protected override async Task<IReadOnlyList<Result<Foo>>> FetchAsync(
         IReadOnlyList<Guid> keys,
         CancellationToken cancellationToken)
@@ -199,7 +198,6 @@ public class FooDataLoader : DataLoaderBase<Guid, Foo>
     {
         _fooRepository = fooRepository;
     }
-
 
     //                          ▼
     protected override async ValueTask<IReadOnlyList<Result<Foo>>> FetchAsync(

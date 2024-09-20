@@ -31,8 +31,7 @@ public static class SortingContextResolverContextExtensions
             return null;
         }
 
-        SortingContext sortingContext =
-            new(context, sortingInput, sorting, context.Service<InputParser>());
+        var sortingContext = new SortingContext(context, sortingInput, sorting, context.Service<InputParser>());
 
         // disable the execution of sorting by default
         sortingContext.Handled(true);

@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Data.Filters;
 
@@ -32,7 +29,6 @@ public abstract class FilterVisitorContext<T>
     public Stack<IType> Types { get; } = new Stack<IType>();
 
     /// <inheritdoc />
-
     public Stack<IInputField> Operations { get; } = new Stack<IInputField>();
 
     /// <inheritdoc />

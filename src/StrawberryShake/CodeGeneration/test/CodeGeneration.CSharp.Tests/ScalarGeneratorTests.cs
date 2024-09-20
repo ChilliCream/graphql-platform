@@ -1,5 +1,4 @@
 using ChilliCream.Testing;
-using Xunit;
 using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
 
 namespace StrawberryShake.CodeGeneration.CSharp;
@@ -68,8 +67,10 @@ public class ScalarGeneratorTests
             "type Query { person: Person }",
             "type Person { name: String! email: Email }",
             "scalar Email",
-            @"extend scalar Email @runtimeType(
-                    name: ""global::StrawberryShake.CodeGeneration.CSharp.Custom"")",
+            """
+            extend scalar Email @runtimeType(
+                name: "global::StrawberryShake.CodeGeneration.CSharp.Custom")
+            """,
             "extend schema @key(fields: \"id\")");
 
     [Fact]

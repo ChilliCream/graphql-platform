@@ -1,4 +1,3 @@
-using System;
 using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Types.Pagination;
@@ -42,5 +41,4 @@ public class MongoDbOffsetPagingProvider : OffsetPagingProvider
 
     private static MongoDbOffsetPagingHandler<TEntity> CreateHandlerInternal<TEntity>(
         PagingOptions options) => new(options);
-
 }

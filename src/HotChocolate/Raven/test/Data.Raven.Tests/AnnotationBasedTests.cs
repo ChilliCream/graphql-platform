@@ -1,5 +1,4 @@
 using CookieCrumble;
-using HotChocolate.Data.Raven.Pagination;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,15 +9,9 @@ using Squadron;
 
 namespace HotChocolate.Data.Raven.Test;
 
-public class AnnotationBasedTests : IClassFixture<RavenDBResource<CustomRavenDBDefaultOptions>>
+public class AnnotationBasedTests(RavenDBResource<CustomRavenDBDefaultOptions> resource)
+    : IClassFixture<RavenDBResource<CustomRavenDBDefaultOptions>>
 {
-    private readonly RavenDBResource<CustomRavenDBDefaultOptions> _resource;
-
-    public AnnotationBasedTests(RavenDBResource<CustomRavenDBDefaultOptions> resource)
-    {
-        _resource = resource;
-    }
-
     [Fact]
     public async Task Queryable_Should_BeExecuted()
     {
@@ -26,7 +19,8 @@ public class AnnotationBasedTests : IClassFixture<RavenDBResource<CustomRavenDBD
         var executor = await CreateExecutorAsync();
 
         // act
-        var result = await executor.ExecuteAsync("""
+        var result = await executor.ExecuteAsync(
+            """
             {
                 allCars {
                     id
@@ -49,7 +43,8 @@ public class AnnotationBasedTests : IClassFixture<RavenDBResource<CustomRavenDBD
         var executor = await CreateExecutorAsync();
 
         // act
-        var result = await executor.ExecuteAsync("""
+        var result = await executor.ExecuteAsync(
+            """
             {
                 pagingName(first: 2) {
                     nodes {
@@ -80,7 +75,8 @@ public class AnnotationBasedTests : IClassFixture<RavenDBResource<CustomRavenDBD
         var executor = await CreateExecutorAsync();
 
         // act
-        var result = await executor.ExecuteAsync("""
+        var result = await executor.ExecuteAsync(
+            """
             {
                 pagingExecutable(first: 2) {
                     nodes {
@@ -111,7 +107,8 @@ public class AnnotationBasedTests : IClassFixture<RavenDBResource<CustomRavenDBD
         var executor = await CreateExecutorAsync();
 
         // act
-        var result = await executor.ExecuteAsync("""
+        var result = await executor.ExecuteAsync(
+            """
             {
                 pagingName(where: {engine: {cylinderCount: {gte: 4}}}) {
                     nodes {
@@ -131,7 +128,7 @@ public class AnnotationBasedTests : IClassFixture<RavenDBResource<CustomRavenDBD
             """);
 
         // assert
-        await Snapshot.Create().AddResult(result).MatchAsync();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -141,7 +138,8 @@ public class AnnotationBasedTests : IClassFixture<RavenDBResource<CustomRavenDBD
         var executor = await CreateExecutorAsync();
 
         // act
-        var result = await executor.ExecuteAsync("""
+        var result = await executor.ExecuteAsync(
+            """
             {
                 pagingRaven(first: 2) {
                     nodes {
@@ -171,7 +169,8 @@ public class AnnotationBasedTests : IClassFixture<RavenDBResource<CustomRavenDBD
         var executor = await CreateExecutorAsync();
 
         // act
-        var result = await executor.ExecuteAsync("""
+        var result = await executor.ExecuteAsync(
+            """
             {
                 offsetPaging(skip:1, take:1) {
                     items {
@@ -200,7 +199,8 @@ public class AnnotationBasedTests : IClassFixture<RavenDBResource<CustomRavenDBD
         var executor = await CreateExecutorAsync();
 
         // act
-        var result = await executor.ExecuteAsync("""
+        var result = await executor.ExecuteAsync(
+            """
             {
                 firstOrDefault {
                     id
@@ -223,7 +223,8 @@ public class AnnotationBasedTests : IClassFixture<RavenDBResource<CustomRavenDBD
         var executor = await CreateExecutorAsync();
 
         // act
-        var result = await executor.ExecuteAsync("""
+        var result = await executor.ExecuteAsync(
+            """
             {
                 executable {
                     id
@@ -241,11 +242,16 @@ public class AnnotationBasedTests : IClassFixture<RavenDBResource<CustomRavenDBD
 
     public ValueTask<IRequestExecutor> CreateExecutorAsync() => new ServiceCollection()
         .AddSingleton(CreateDocumentStore())
+#if NET7_0_OR_GREATER
+        .AddGraphQLServer(disableCostAnalyzer: true)
+#else
         .AddGraphQLServer()
+#endif
         .AddRavenFiltering()
         .AddRavenProjections()
         .AddRavenSorting()
         .AddRavenPagingProviders()
+        .ModifyPagingOptions(o => o.RequirePagingBoundaries = false)
         .RegisterDocumentStore()
         .AddQueryType<Query>()
         .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)
@@ -253,13 +259,13 @@ public class AnnotationBasedTests : IClassFixture<RavenDBResource<CustomRavenDBD
 
     public IDocumentStore CreateDocumentStore()
     {
-        var documentStore = _resource.CreateDatabase($"DB{Guid.NewGuid():N}");
+        var documentStore = resource.CreateDatabase($"DB{Guid.NewGuid():N}");
 
         using var session = documentStore.OpenSession();
 
-        session.Store(new Car { Name = "Subaru", Engine = new Engine() { CylinderCount = 6, }, });
-        session.Store(new Car { Name = "Toyota", Engine = new Engine() { CylinderCount = 4, }, });
-        session.Store(new Car { Name = "Telsa", Engine = new Engine() { CylinderCount = 0, }, });
+        session.Store(new Car { Name = "Subaru", Engine = new Engine { CylinderCount = 6, }, });
+        session.Store(new Car { Name = "Toyota", Engine = new Engine { CylinderCount = 4, }, });
+        session.Store(new Car { Name = "Telsa", Engine = new Engine { CylinderCount = 0, }, });
 
         session.SaveChanges();
 

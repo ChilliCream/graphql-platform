@@ -1,9 +1,5 @@
-using System;
 using System.Buffers;
-using System.Net.Sockets;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using StrawberryShake.Properties;
 using StrawberryShake.Transport.WebSockets.Messages;
 
@@ -101,14 +97,13 @@ public sealed class GraphQLWebSocketProtocol : SocketProtocolBase
         await _receiver.Stop().ConfigureAwait(false);
     }
 
-
     private ValueTask ProcessAsync(
         ReadOnlySequence<byte> slice,
         CancellationToken cancellationToken)
     {
         try
         {
-            GraphQLWebSocketMessage message = GraphQLWebSocketMessageParser.Parse(slice);
+            var message = GraphQLWebSocketMessageParser.Parse(slice);
 
             if (message.Id is { } id)
             {
@@ -156,7 +151,7 @@ public sealed class GraphQLWebSocketProtocol : SocketProtocolBase
 
     private static IClientError CreateError(JsonDocument error)
     {
-        if (error.RootElement.TryGetProperty("message", out JsonElement messageProp) &&
+        if (error.RootElement.TryGetProperty("message", out var messageProp) &&
             messageProp.GetString() is {  Length: > 0, } message)
         {
             return new ClientError(message);
