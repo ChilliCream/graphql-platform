@@ -1,4 +1,3 @@
-using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using HotChocolate.Types.Descriptors;
@@ -10,6 +9,7 @@ namespace HotChocolate.Types;
 /// <summary>
 /// This attribute adds the cursor paging middleware to the annotated method or property.
 /// </summary>
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = false)]
 public sealed class UsePagingAttribute : DescriptorAttribute
 {
     private string? _connectionName;
@@ -133,7 +133,7 @@ public sealed class UsePagingAttribute : DescriptorAttribute
                 AllowBackwardPagination = _allowBackwardPagination,
                 RequirePagingBoundaries = _requirePagingBoundaries,
                 InferConnectionNameFromField = _inferConnectionNameFromField,
-                ProviderName = ProviderName,
+                ProviderName = ProviderName
             };
 
         if (descriptor is IObjectFieldDescriptor ofd)

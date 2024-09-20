@@ -1,8 +1,5 @@
 #nullable enable
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Configuration.Validation;
 using HotChocolate.Language;
@@ -12,6 +9,7 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Factories;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Types.Interceptors;
+using HotChocolate.Types.Pagination;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
@@ -56,6 +54,13 @@ public partial class SchemaBuilder
                 {
                     builder._typeInterceptors.Add(typeof(DirectiveTypeInterceptor));
                 }
+
+                if(builder._schemaFirstTypeInterceptor is not null)
+                {
+                    typeInterceptors.Add(builder._schemaFirstTypeInterceptor);
+                }
+
+                context.ContextData[typeof(PagingOptions).FullName!] = builder._pagingOptions;
 
                 InitializeInterceptors(
                     context.Services,
@@ -146,7 +151,9 @@ public partial class SchemaBuilder
                 schemaDocument = schemaDocument.RemoveBuiltInTypes();
                 documents.Add(schemaDocument);
 
-                var visitorContext = new SchemaSyntaxVisitorContext(context);
+                var visitorContext = new SchemaSyntaxVisitorContext(
+                    context,
+                    builder._schemaFirstTypeInterceptor!.Directives);
                 var visitor = new SchemaSyntaxVisitor();
 
                 visitor.Visit(schemaDocument, visitorContext);
@@ -508,36 +515,32 @@ public partial class SchemaBuilder
         services.TryAddSingleton(lazySchema);
         services.TryAddSingleton(static sp => sp.GetRequiredService<LazySchema>().Schema);
 
-        services.AddSingleton<INodeIdValueSerializer, StringNodeIdValueSerializer>();
-        services.AddSingleton<INodeIdValueSerializer, Int16NodeIdValueSerializer>();
-        services.AddSingleton<INodeIdValueSerializer, Int32NodeIdValueSerializer>();
-        services.AddSingleton<INodeIdValueSerializer, Int64NodeIdValueSerializer>();
-        services.AddSingleton<INodeIdValueSerializer, GuidNodeIdValueSerializer>();
-
+        // If there was now node id serializer registered we will register the default one as a fallback.
         services.TryAddSingleton<INodeIdSerializer>(static sp =>
         {
-            var schema = sp.GetRequiredService<ISchema>();
-            var boundSerializers = new List<BoundNodeIdValueSerializer>();
-            var allSerializers = sp.GetServices<INodeIdValueSerializer>().ToArray();
+            var appServices = sp.GetService<IApplicationServiceProvider>();
+            INodeIdValueSerializer[]? allSerializers = null;
 
-            if (schema.ContextData.TryGetValue(WellKnownContextData.SerializerTypes, out var value))
+            if (appServices is not null)
             {
-                var serializerTypes = (Dictionary<string, Type>)value!;
-
-                foreach (var item in serializerTypes)
-                {
-                    foreach (var serializer in allSerializers)
-                    {
-                        if (serializer.IsSupported(item.Value))
-                        {
-                            boundSerializers.Add(new BoundNodeIdValueSerializer(item.Key, serializer));
-                            break;
-                        }
-                    }
-                }
+                allSerializers = sp.GetRequiredService<IApplicationServiceProvider>()
+                    .GetServices<INodeIdValueSerializer>()
+                    .ToArray();
             }
 
-            return new DefaultNodeIdSerializer(boundSerializers, allSerializers);
+            if(allSerializers is null || allSerializers.Length == 0)
+            {
+                allSerializers =
+                [
+                    new StringNodeIdValueSerializer(),
+                    new Int16NodeIdValueSerializer(),
+                    new Int32NodeIdValueSerializer(),
+                    new Int64NodeIdValueSerializer(),
+                    new GuidNodeIdValueSerializer()
+                ];
+            }
+
+            return new DefaultNodeIdSerializer(allSerializers, 1024);
         });
 
         services.TryAddSingleton<INodeIdSerializerAccessor>(

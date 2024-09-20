@@ -1,4 +1,4 @@
-﻿namespace HotChocolate.Execution.Integration.DataLoader;
+namespace HotChocolate.Execution.Integration.DataLoader;
 
 public class MyCustomContext
 {

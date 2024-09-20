@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -101,6 +98,11 @@ internal partial class MiddlewareContext
         {
             // if there was a non-null violation the exception would already been triggered.
             return default!;
+        }
+
+        if (value is IOptional optional)
+        {
+            return (T)optional.Value!;
         }
 
         if (value is T castedValue ||

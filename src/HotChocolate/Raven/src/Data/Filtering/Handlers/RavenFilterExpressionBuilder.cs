@@ -5,7 +5,7 @@ using Raven.Client.Documents.Linq;
 
 namespace HotChocolate.Data.Raven.Filtering.Handlers;
 
-public class RavenFilterExpressionBuilder
+public static class RavenFilterExpressionBuilder
 {
     private static readonly MethodInfo _inMethod =
         typeof(RavenQueryableExtensions)

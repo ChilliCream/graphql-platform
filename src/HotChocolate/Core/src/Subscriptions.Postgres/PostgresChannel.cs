@@ -78,7 +78,9 @@ internal sealed class PostgresChannel : IAsyncDisposable
         _subscription = new ChannelSubscription(_channelName, connection, OnNotification);
         await _subscription.ConnectAsync(cancellationToken);
 
-        _waitOnNotificationTask = new ContinuousTask(ct => connection.WaitAsync(ct));
+        _waitOnNotificationTask = new ContinuousTask(
+            ct => connection.WaitAsync(ct),
+            TimeProvider.System);
 
         _diagnosticEvents.ProviderInfo(PostgresChannel_ConnectionEstablished);
     }
@@ -175,9 +177,9 @@ internal sealed class PostgresChannel : IAsyncDisposable
                 command.CommandText = $"""UNLISTEN "{_channelName}" """;
                 await command.ExecuteNonQueryAsync();
             }
-            catch (Exception)
+            catch
             {
-                // we swallow any exception because we dont care about the connection state
+                // we swallow any exception because we don't care about the connection state
             }
         }
     }

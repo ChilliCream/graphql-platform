@@ -1,4 +1,3 @@
-using System;
 using HotChocolate;
 using HotChocolate.Execution.Configuration;
 
@@ -10,6 +9,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// </summary>
 public static partial class SchemaRequestExecutorBuilderExtensions
 {
+    [Obsolete("Use ModifyOptions instead.")]
     public static IRequestExecutorBuilder SetOptions(
         this IRequestExecutorBuilder builder,
         IReadOnlySchemaOptions options)
@@ -78,5 +78,4 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         bool trim = true) =>
         builder.ModifyOptions(o => o.RemoveUnreachableTypes = trim);
-
 }

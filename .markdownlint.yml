@@ -11,16 +11,19 @@ MD029: false # Rationale: The documentation currently misuses list formatting fo
 MD033:
   allowed_elements:
     - a
-    - Annotation
     - ApiChoiceTabs
     - br
     - Code
     - ExampleTabs
     - img
+    - Implementation
     - InputChoiceTabs
+    - List
     - PackageInstallation
+    - Panel
     - Schema
     - strong
+    - Tab
     - u
     - Video
 MD036: false # Rationale: Possibly too strict, used frequently in documentation.

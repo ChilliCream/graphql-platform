@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Pagination.Core</PackageId>
+    <AssemblyName>HotChocolate.Pagination.Core</AssemblyName>
+    <RootNamespace>HotChocolate.Pagination</RootNamespace>
+    <Description>Contains serialization for paging keys and general helpers.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Pagination.EntityFramework.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Pagination.Primitives\HotChocolate.Pagination.Primitives.csproj" />
+  </ItemGroup>
+
+</Project>

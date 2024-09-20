@@ -1,7 +1,7 @@
 namespace HotChocolate.Types.Descriptors
 {
 #pragma warning disable 1591
-    public class WithMultilineXmlDoc
+    public class WithMultilineXmlDoc(string foo)
     {
         /// <summary>
         /// Query and manages users.
@@ -15,7 +15,7 @@ namespace HotChocolate.Types.Descriptors
         /// You need one of the following role: Owner,
         /// Editor, use XYZ to manage permissions.
         /// </summary>
-        public string Foo { get; set; }
+        public string Foo { get; set; } = foo;
     }
 #pragma warning restore 1591
 }

@@ -5,7 +5,7 @@ namespace HotChocolate.AspNetCore;
 
 internal static class GlobalStateHelpers
 {
-    public static HttpContext GetHttpContext(IPureResolverContext context)
+    public static HttpContext GetHttpContext(IResolverContext context)
     {
         if (context.ContextData.TryGetValue(nameof(HttpContext), out var value) &&
             value is HttpContext httpContext)
@@ -16,9 +16,9 @@ internal static class GlobalStateHelpers
         throw new MissingStateException("Resolver", nameof(HttpContext), StateKind.Global);
     }
 
-    public static HttpRequest GetHttpRequest(IPureResolverContext context)
+    public static HttpRequest GetHttpRequest(IResolverContext context)
         => GetHttpContext(context).Request;
 
-    public static HttpResponse GetHttpResponse(IPureResolverContext context)
+    public static HttpResponse GetHttpResponse(IResolverContext context)
         => GetHttpContext(context).Response;
 }

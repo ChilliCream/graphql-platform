@@ -1,7 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Types.Relay;
 using static HotChocolate.Tests.TestHelper;
-using System.Threading.Tasks;
 using HotChocolate.Tests;
 using Snapshooter.Xunit;
 using HotChocolate.Execution;
@@ -39,6 +38,31 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public async Task Records_Input_Ignored_Default_Value_Is_Respected()
+        {
+            Snapshot.FullName();
+
+            await ExpectValid(
+                "{ foo(input: { bar: 42 }) { bar baz qux quux } }",
+                b => b.AddQueryType(type =>
+                {
+                    type.Field("foo")
+                        .Type(new ObjectType<Foo>())
+                        .Argument(
+                            "input",
+                            argument =>
+                            {
+                                argument.Type(new InputObjectType<Foo>(type =>
+                                    type.BindFieldsExplicitly()
+                                        .Field(x => x.Bar)));
+                            })
+                        .Resolve(context =>
+                            context.ArgumentValue<Foo>("input"));
+                }))
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
         public async Task Relay_Id_Middleware_Is_Correctly_Applied()
         {
             Snapshot.FullName();
@@ -64,5 +88,9 @@ namespace HotChocolate.Types
         }
 
         public record DefaultValueTest([property: ID] int Id, string Name = "ShouldBeDefaultValue");
+
+        public record Foo(int Bar, int? Baz = 84, DateTimeOffset Qux = default, int[]? Quux = default) {
+            public int[] Quux { get; init; } = Quux ?? [1];
+        }
     }
 }

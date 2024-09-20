@@ -46,18 +46,18 @@ public sealed class DefaultHttpRequestParserTests
     {
         // arrange
         var json = $"{{ \"id\": \"{id}\"}}";
-        
+
         // act
         async Task Parse()
         {
             using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
-            
+
             var parser = new DefaultHttpRequestParser(
                 new DefaultDocumentCache(),
                 new Sha256DocumentHashProvider(),
                 256,
                 ParserOptions.Default);
-            
+
             await parser.ParseRequestAsync(stream, CancellationToken.None);
         }
 
@@ -65,7 +65,7 @@ public sealed class DefaultHttpRequestParserTests
         var ex = await Assert.ThrowsAsync<GraphQLRequestException>(Parse);
         Assert.Equal("Invalid query id format.", ex.Message);
     }
-    
+
     [Fact]
     public void ParseRequest_Valid_QueryId()
     {
@@ -90,7 +90,7 @@ public sealed class DefaultHttpRequestParserTests
             request.Select(r => r.QueryId),
             id => Assert.Equal("abc1213_5164-ABC-123", id));
     }
-    
+
     [InlineData("abc1213_5164-ABC-123/")]
     [InlineData("abc1213_5164-\\\\ABC-123")]
     [InlineData("abc1213_5164-ABC-123|")]
@@ -101,7 +101,7 @@ public sealed class DefaultHttpRequestParserTests
     {
         // arrange
         var json = $"{{ \"id\": \"{id}\"}}";
-        
+
         // act
         void Parse()
         {
@@ -110,7 +110,7 @@ public sealed class DefaultHttpRequestParserTests
                 new Sha256DocumentHashProvider(),
                 256,
                 ParserOptions.Default);
-            
+
             parser.ParseRequest(json);
         }
 
@@ -118,7 +118,7 @@ public sealed class DefaultHttpRequestParserTests
         var ex = Assert.Throws<GraphQLRequestException>(Parse);
         Assert.Equal("Invalid query id format.", ex.Message);
     }
-    
+
     [Fact]
     public void ParseRequestFromParams_Valid_QueryId()
     {
@@ -136,7 +136,7 @@ public sealed class DefaultHttpRequestParserTests
         // assert
         Assert.Equal("abc1213_5164-ABC-123", request.QueryId);
     }
-    
+
     [InlineData("abc1213_5164-ABC-123/")]
     [InlineData("abc1213_5164-ABC-123\\")]
     [InlineData("abc1213_5164-ABC-123|")]
@@ -147,7 +147,7 @@ public sealed class DefaultHttpRequestParserTests
     {
         // arrange
         var queryParams = new MockQueryParams(id);
-        
+
         // act
         void Parse()
         {

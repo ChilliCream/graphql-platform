@@ -1,10 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <RootNamespace>HotChocolate.Data</RootNamespace>
-    <Nullable>enable</Nullable>
-    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>

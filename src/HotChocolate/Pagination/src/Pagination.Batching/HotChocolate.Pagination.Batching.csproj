@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Pagination.Batching</PackageId>
+    <AssemblyName>HotChocolate.Pagination.Batching</AssemblyName>
+    <RootNamespace>HotChocolate.Pagination</RootNamespace>
+    <Description>Contains serialization for paging keys and general helpers.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\GreenDonut\src\Core\GreenDonut.csproj" />
+    <ProjectReference Include="..\Pagination.Primitives\HotChocolate.Pagination.Primitives.csproj" />
+  </ItemGroup>
+
+</Project>

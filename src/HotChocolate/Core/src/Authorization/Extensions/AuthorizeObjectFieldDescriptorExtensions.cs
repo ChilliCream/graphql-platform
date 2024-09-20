@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Authorization;
 using static HotChocolate.WellKnownContextData;
 

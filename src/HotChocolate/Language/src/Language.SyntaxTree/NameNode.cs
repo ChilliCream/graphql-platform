@@ -17,7 +17,7 @@ public sealed class NameNode
         if (string.IsNullOrEmpty(value))
         {
             throw new ArgumentException(
-                Resources.NameNode_Name_CannnotBeNullOrEmpty,
+                Resources.NameNode_Name_CannotBeNullOrEmpty,
                 nameof(value));
         }
 
@@ -31,7 +31,7 @@ public sealed class NameNode
 
     public string Value { get; }
 
-    public IEnumerable<ISyntaxNode> GetNodes() => Enumerable.Empty<ISyntaxNode>();
+    public IEnumerable<ISyntaxNode> GetNodes() => [];
 
     /// <summary>
     /// Determines whether the specified <see cref="NameNode"/>

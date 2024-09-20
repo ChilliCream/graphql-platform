@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
@@ -114,7 +113,7 @@ public partial class TypeMapperGenerator
             .SetCondition(ifCondition)
             .AddCode(AssignmentBuilder
                 .New()
-                .SetLefthandSide(variableName)
-                .SetRighthandSide(constructorCall));
+                .SetLeftHandSide(variableName)
+                .SetRightHandSide(constructorCall));
     }
 }

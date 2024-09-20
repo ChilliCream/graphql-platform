@@ -1,5 +1,4 @@
 #pragma warning disable IDE1006 // Naming Styles
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -61,25 +60,25 @@ internal sealed class __Schema : ObjectType
 
     private static class Resolvers
     {
-        public static object? Description(IPureResolverContext context)
+        public static object? Description(IResolverContext context)
             => context.Parent<ISchema>().Description;
 
-        public static object Types(IPureResolverContext context)
+        public static object Types(IResolverContext context)
             => context.Parent<ISchema>().Types;
 
-        public static object QueryType(IPureResolverContext context)
+        public static object QueryType(IResolverContext context)
             => context.Parent<ISchema>().QueryType;
 
-        public static object? MutationType(IPureResolverContext context)
+        public static object? MutationType(IResolverContext context)
             => context.Parent<ISchema>().MutationType;
 
-        public static object? SubscriptionType(IPureResolverContext context)
+        public static object? SubscriptionType(IResolverContext context)
             => context.Parent<ISchema>().SubscriptionType;
 
-        public static object Directives(IPureResolverContext context)
+        public static object Directives(IResolverContext context)
             => context.Parent<ISchema>().DirectiveTypes.Where(t => t.IsPublic);
 
-        public static object AppliedDirectives(IPureResolverContext context)
+        public static object AppliedDirectives(IResolverContext context)
             => context.Parent<ISchema>().Directives
                 .Where(t => t.Type.IsPublic)
                 .Select(d => d.AsSyntaxNode());

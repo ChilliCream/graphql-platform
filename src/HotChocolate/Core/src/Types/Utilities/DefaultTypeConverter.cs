@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Properties;
 
@@ -33,7 +31,7 @@ public partial class DefaultTypeConverter : ITypeConverter
         {
             throw new NotSupportedException(
                 string.Format(
-                    TypeResources.TypeConvertion_ConvertNotSupported,
+                    TypeResources.TypeConversion_ConvertNotSupported,
                     from.Name,
                     to.Name));
         }

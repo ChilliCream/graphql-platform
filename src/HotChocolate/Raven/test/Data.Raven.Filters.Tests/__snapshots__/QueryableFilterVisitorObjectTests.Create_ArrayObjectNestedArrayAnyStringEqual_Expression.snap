@@ -1,0 +1,83 @@
+false Result:
+---------------
+{
+  "data": {
+    "root": []
+  }
+}
+---------------
+
+false SQL:
+---------------
+from 'Bars' where (true and not exists(Foo.ObjectArray))
+---------------
+
+true Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "objectArray": [
+            {
+              "foo": {
+                "barString": "a"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "foo": {
+          "objectArray": [
+            {
+              "foo": {
+                "barString": "d"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "foo": {
+          "objectArray": null
+        }
+      }
+    ]
+  }
+}
+---------------
+
+true SQL:
+---------------
+from 'Bars' where exists(Foo.ObjectArray)
+---------------
+
+null
+---------------
+{
+  "errors": [
+    {
+      "message": "The provided value for filter `any` of type ListFilterInputTypeOfBarFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 44
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "Boolean!",
+        "filterType": "ListFilterInputTypeOfBarFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": null
+  }
+}
+---------------

@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using HotChocolate;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
@@ -39,7 +37,7 @@ public static class InternalSchemaServiceCollectionExtensions
         });
         return services;
     }
-    
+
     public static T GetApplicationService<T>(this IServiceProvider services) where T : notnull
         => services.GetApplicationServices().GetRequiredService<T>();
 

@@ -1,4 +1,3 @@
-using System;
 using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
@@ -36,6 +35,7 @@ public static class TestServerHelper
 
                             builder
                                 .AddStarWarsTypes()
+                                .RemoveIntrospectionAllowedRule()
                                 .AddStarWarsRepositories()
                                 .AddInMemorySubscriptions()
                                 .ModifyOptions(

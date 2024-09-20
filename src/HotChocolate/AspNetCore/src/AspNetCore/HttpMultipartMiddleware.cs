@@ -52,7 +52,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
                 await WriteResultAsync(context, _multipartRequestError, headerResult.AcceptMediaTypes, BadRequest);
                 return;
             }
-            
+
             if (!IsDefaultSchema)
             {
                 context.Items[WellKnownContextData.SchemaName] = SchemaName;

@@ -1,4 +1,3 @@
-using System;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
@@ -227,6 +226,11 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// </summary>
     public DependencyInjectionScope DefaultMutationDependencyInjectionScope { get; set; } =
         DependencyInjectionScope.Request;
+
+    /// <summary>
+    /// Defines if the root field pages shall be published to the promise cache.
+    /// </summary>
+    public bool PublishRootFieldPagesToPromiseCache { get; set; } = true;
 
     /// <summary>
     /// Creates a mutable options object from a read-only options object.

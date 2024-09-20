@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
@@ -59,13 +57,25 @@ public class ObjectTypeDescriptor
         ObjectTypeDefinition definition)
     {
         Context.Descriptors.Push(this);
-        
+
         if (Definition is { AttributesAreApplied: false, FieldBindingType: not null, })
         {
             Context.TypeInspector.ApplyAttributes(
                 Context,
                 this,
                 Definition.FieldBindingType);
+
+            if (Definition.AttributeBindingTypes.Length > 0)
+            {
+                foreach (var type in Definition.AttributeBindingTypes)
+                {
+                    Context.TypeInspector.ApplyAttributes(
+                        Context,
+                        this,
+                        type);
+                }
+            }
+
             Definition.AttributesAreApplied = true;
         }
 
@@ -226,7 +236,7 @@ public class ObjectTypeDescriptor
         IDictionary<string, ObjectFieldDefinition> fields,
         ISet<MemberInfo> handledMembers)
     { }
-    
+
     public IObjectTypeDescriptor Name(string value)
     {
         Definition.Name = value;

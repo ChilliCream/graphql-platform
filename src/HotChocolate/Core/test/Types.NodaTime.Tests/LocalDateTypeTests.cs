@@ -1,8 +1,5 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Execution;
 using NodaTime;
-using NodaTime.Text;
 
 namespace HotChocolate.Types.NodaTime.Tests
 {
@@ -39,65 +36,65 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             var result = _testExecutor.Execute("query { test: one }");
 
-            Assert.Equal("5780-05-25", result.ExpectQueryResult().Data!["test"]);
+            Assert.Equal("5780-05-25", result.ExpectOperationResult().Data!["test"]);
         }
 
         [Fact]
         public void ParsesVariable()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation($arg: LocalDate!) { test(arg: $arg) }")
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-02-21" }, })
                     .Build());
 
-            Assert.Equal("2020-02-24", result.ExpectQueryResult().Data!["test"]);
+            Assert.Equal("2020-02-24", result.ExpectOperationResult().Data!["test"]);
         }
 
         [Fact]
         public void DoesntParseAnIncorrectVariable()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation($arg: LocalDate!) { test(arg: $arg) }")
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-02-20T17:42:59" }, })
                     .Build());
 
-            Assert.Null(result.ExpectQueryResult().Data);
-            Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
+            Assert.Null(result.ExpectOperationResult().Data);
+            Assert.Single(result.ExpectOperationResult().Errors!);
         }
 
         [Fact]
         public void ParsesLiteral()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation { test(arg: \"2020-02-20\") }")
                     .Build());
 
-            Assert.Equal("2020-02-23", result.ExpectQueryResult().Data!["test"]);
+            Assert.Equal("2020-02-23", result.ExpectOperationResult().Data!["test"]);
         }
 
         [Fact]
         public void DoesntParseIncorrectLiteral()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation { test(arg: \"2020-02-20T17:42:59\") }")
                     .Build());
 
-            Assert.Null(result.ExpectQueryResult().Data);
-            Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
-            Assert.Null(result.ExpectQueryResult().Errors![0].Code);
+            Assert.Null(result.ExpectOperationResult().Data);
+            Assert.Single(result.ExpectOperationResult().Errors!);
+            Assert.Null(result.ExpectOperationResult().Errors![0].Code);
             Assert.Equal(
                 "Unable to deserialize string to LocalDate",
-                result.ExpectQueryResult().Errors![0].Message);
+                result.ExpectOperationResult().Errors![0].Message);
         }
 
         [Fact]
         public void PatternEmpty_ThrowSchemaException()
         {
-            static object Call() => new LocalDateType(Array.Empty<IPattern<LocalDate>>());
+            static object Call() => new LocalDateType([]);
             Assert.Throws<SchemaException>(Call);
         }
     }

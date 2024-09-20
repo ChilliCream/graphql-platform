@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
@@ -223,7 +221,7 @@ public interface IObjectFieldDescriptor
     /// }
     /// ]]>
     /// </code>
-    /// The GetFoo method cann be mapped like:
+    /// The GetFoo method can be mapped like:
     /// <code>
     /// <![CDATA[
     /// descriptor

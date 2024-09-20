@@ -22,6 +22,10 @@ public class AuthorizationAttributeTestData : IEnumerable<object[]>
         [GraphQLName("roles_ab")]
         public string? GetRolesAb() => "foo";
 
+        [Authorize(ApplyPolicy.BeforeResolver, Roles = ["a", "b"], Policy = "HasAgeDefined")]
+        [GraphQLName("rolesAndPolicy")]
+        public string? GetRolesAndPolicy() => "foo";
+
         [Authorize(ApplyPolicy.BeforeResolver, Policy = "a")]
         [Authorize(ApplyPolicy.BeforeResolver, Policy = "b")]
         public string? GetPiped() => "foo";

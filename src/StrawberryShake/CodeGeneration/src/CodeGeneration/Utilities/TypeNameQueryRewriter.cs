@@ -1,8 +1,3 @@
-#nullable enable
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Utilities;
@@ -15,7 +10,6 @@ internal sealed class TypeNameQueryRewriter : SyntaxRewriter<TypeNameQueryRewrit
     private static readonly FieldNode _typeNameField = new(
         null,
         new NameNode(TypeName),
-        null,
         null,
         Array.Empty<DirectiveNode>(),
         Array.Empty<ArgumentNode>(),

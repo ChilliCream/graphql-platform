@@ -20,7 +20,7 @@ public static class ErrorRequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder AddFieldResultTypeDiscovery(
         this IRequestExecutorBuilder builder)
         => builder.AddTypeDiscoveryHandler(c => new FieldResultTypeDiscoveryHandler(c.TypeInspector));
-    
+
     /// <summary>
     /// Defines the common interface that all errors implement.
     /// To specify the interface you can either provide a interface runtime type or a HotChocolate

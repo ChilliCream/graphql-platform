@@ -34,11 +34,6 @@ public class DefaultSocketSessionInterceptor : ISocketSessionInterceptor
         requestBuilder.TryAddGlobalState(nameof(ClaimsPrincipal), userState.User);
         requestBuilder.TryAddGlobalState(WellKnownContextData.UserState, userState);
 
-        if (context.IsTracingEnabled())
-        {
-            requestBuilder.TryAddGlobalState(EnableTracing, true);
-        }
-
         if (context.IncludeQueryPlan())
         {
             requestBuilder.TryAddGlobalState(IncludeQueryPlan, true);
@@ -65,7 +60,6 @@ public class DefaultSocketSessionInterceptor : ISocketSessionInterceptor
         IOperationMessagePayload pingMessage,
         CancellationToken cancellationToken = default)
         => new(default(IReadOnlyDictionary<string, object?>?));
-
 
     public virtual ValueTask OnPongAsync(
         ISocketSession session,

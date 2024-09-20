@@ -41,7 +41,7 @@ public class IntType : IntegerTypeBase<int>
     {
         Description = description;
     }
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="IntType"/> class.
     /// </summary>

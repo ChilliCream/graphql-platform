@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Fusion.SourceSchema</AssemblyName>
+    <RootNamespace>HotChocolate.Fusion.SourceSchema</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
+  </ItemGroup>
+
+</Project>

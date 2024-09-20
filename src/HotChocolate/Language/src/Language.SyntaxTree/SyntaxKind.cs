@@ -45,8 +45,5 @@ public enum SyntaxKind
     InputObjectTypeExtension,
     DirectiveDefinition,
     FloatValue,
-    ListNullability,
-    RequiredModifier,
-    OptionalModifier,
     SchemaCoordinate,
 }

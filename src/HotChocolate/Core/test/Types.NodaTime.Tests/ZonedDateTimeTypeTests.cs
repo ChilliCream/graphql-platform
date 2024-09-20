@@ -1,8 +1,5 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Execution;
 using NodaTime;
-using NodaTime.Text;
 
 namespace HotChocolate.Types.NodaTime.Tests
 {
@@ -65,7 +62,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             var result = _testExecutor
                 .Execute(
-                    OperationRequestBuilder.Create()
+                    OperationRequestBuilder.New()
                         .SetDocument("mutation($arg: ZonedDateTime!) { test(arg: $arg) }")
                         .SetVariableValues(
                             new Dictionary<string, object?>
@@ -83,7 +80,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             var result = _testExecutor
                 .Execute(
-                    OperationRequestBuilder.Create()
+                    OperationRequestBuilder.New()
                         .SetDocument("mutation($arg: ZonedDateTime!) { test(arg: $arg) }")
                         .SetVariableValues(
                             new Dictionary<string, object?>
@@ -101,7 +98,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             var result = _testExecutor
                 .Execute(
-                    OperationRequestBuilder.Create()
+                    OperationRequestBuilder.New()
                         .SetDocument("mutation($arg: ZonedDateTime!) { test(arg: $arg) }")
                         .SetVariableValues(
                             new Dictionary<string, object?>
@@ -109,8 +106,8 @@ namespace HotChocolate.Types.NodaTime.Tests
                                 { "arg", "2020-12-31T19:30:13 UTC" },
                             })
                         .Build());
-            Assert.Null(result.ExpectQueryResult().Data);
-            Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
+            Assert.Null(result.ExpectOperationResult().Data);
+            Assert.Single(result.ExpectOperationResult().Errors!);
         }
 
         [Fact]
@@ -118,12 +115,12 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             var result = _testExecutor
                 .Execute(
-                    OperationRequestBuilder.Create()
+                    OperationRequestBuilder.New()
                         .SetDocument("mutation{test(arg:\"2020-12-31T19:30:13 Asia/Kathmandu +05:45\")}")
                         .Build());
             Assert.Equal(
                 "2020-12-31T19:40:13 Asia/Kathmandu +05:45",
-                result.ExpectQueryResult().Data!["test"]);
+                result.ExpectOperationResult().Data!["test"]);
         }
 
         [Fact]
@@ -131,10 +128,10 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             var result = _testExecutor
                 .Execute(
-                    OperationRequestBuilder.Create()
+                    OperationRequestBuilder.New()
                         .SetDocument("mutation { test(arg: \"2020-12-31T19:30:13 UTC +00\") }")
                         .Build());
-            Assert.Equal("2020-12-31T19:40:13 UTC +00", result.ExpectQueryResult().Data!["test"]);
+            Assert.Equal("2020-12-31T19:40:13 UTC +00", result.ExpectOperationResult().Data!["test"]);
         }
 
         [Fact]
@@ -142,21 +139,21 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             var result = _testExecutor
                 .Execute(
-                    OperationRequestBuilder.Create()
+                    OperationRequestBuilder.New()
                         .SetDocument("mutation { test(arg: \"2020-12-31T19:30:13 UTC\") }")
                         .Build());
-            Assert.Null(result.ExpectQueryResult().Data);
-            Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
-            Assert.Null(result.ExpectQueryResult().Errors![0].Code);
+            Assert.Null(result.ExpectOperationResult().Data);
+            Assert.Single(result.ExpectOperationResult().Errors!);
+            Assert.Null(result.ExpectOperationResult().Errors![0].Code);
             Assert.Equal(
                 "Unable to deserialize string to ZonedDateTime",
-                result.ExpectQueryResult().Errors![0].Message);
+                result.ExpectOperationResult().Errors![0].Message);
         }
 
         [Fact]
         public void PatternEmpty_ThrowSchemaException()
         {
-            static object Call() => new ZonedDateTimeType(Array.Empty<IPattern<ZonedDateTime>>());
+            static object Call() => new ZonedDateTimeType([]);
             Assert.Throws<SchemaException>(Call);
         }
     }

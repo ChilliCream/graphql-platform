@@ -1,4 +1,3 @@
-using System;
 using System.Text.Json;
 using StrawberryShake.Json;
 using static StrawberryShake.Transport.WebSockets.Protocols.GraphQLWebSocketMessageTypeSpans;

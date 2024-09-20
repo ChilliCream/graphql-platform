@@ -21,7 +21,7 @@ public class AuthorizeSchemaTests
             .AddAuthorization()
             .ExecuteRequestAsync(
                 OperationRequestBuilder
-                    .Create()
+                    .New()
                     .SetDocument("{ bar }")
                     .SetUser(new ClaimsPrincipal())
                     .Build());

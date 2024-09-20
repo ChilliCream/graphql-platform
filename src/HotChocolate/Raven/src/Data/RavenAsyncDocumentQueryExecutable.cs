@@ -1,22 +1,18 @@
 using System.Collections;
+using System.Runtime.CompilerServices;
 using Raven.Client.Documents.Session;
 
 namespace HotChocolate.Data.Raven;
 
 /// <summary>
-/// Is the base class for a executable for the Raven.
+/// Is the base class for an executable for the Raven.
 /// </summary>
-public sealed class RavenAsyncDocumentQueryExecutable<T> : IExecutable<T>
+public sealed class RavenAsyncDocumentQueryExecutable<T>(IAsyncDocumentQuery<T> query) : IExecutable<T>
 {
-    public RavenAsyncDocumentQueryExecutable(IAsyncDocumentQuery<T> query)
-    {
-        Query = query;
-    }
-
     /// <summary>
     /// The underlying <see cref="IAsyncDocumentQuery{T}"/>
     /// </summary>
-    public IAsyncDocumentQuery<T> Query { get; }
+    public IAsyncDocumentQuery<T> Query { get; } = query;
 
     /// <inheritdoc />
     public object Source => Query;
@@ -30,6 +26,28 @@ public sealed class RavenAsyncDocumentQueryExecutable<T> : IExecutable<T>
         => await ToListAsync(cancellationToken);
 
     /// <inheritdoc />
+    public async IAsyncEnumerable<T> ToAsyncEnumerable(
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var list = await Query.ToListAsync(cancellationToken);
+        foreach (var item in list)
+        {
+            yield return item;
+        }
+    }
+
+    /// <inheritdoc />
+    async IAsyncEnumerable<object?> IExecutable.ToAsyncEnumerable(
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var list = await Query.ToListAsync(cancellationToken);
+        foreach (var item in list)
+        {
+            yield return item;
+        }
+    }
+
+    /// <inheritdoc />
     public async ValueTask<T?> FirstOrDefaultAsync(CancellationToken cancellationToken)
         => await Query.FirstOrDefaultAsync(cancellationToken);
 
@@ -41,10 +59,13 @@ public sealed class RavenAsyncDocumentQueryExecutable<T> : IExecutable<T>
     public async ValueTask<T?> SingleOrDefaultAsync(CancellationToken cancellationToken)
         => await Query.SingleOrDefaultAsync(cancellationToken);
 
+    public async ValueTask<int> CountAsync(CancellationToken cancellationToken = default)
+        => await Query.CountAsync(cancellationToken);
+
     /// <inheritdoc />
     async ValueTask<object?> IExecutable.SingleOrDefaultAsync(CancellationToken cancellationToken)
         => await SingleOrDefaultAsync(cancellationToken);
-    
+
     /// <inheritdoc />
     public string Print() => Query.ToString() ?? "<<empty>>";
 }

@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -10,13 +8,15 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Types;
 
 /// <summary>
+/// <para>
 /// GraphQL Enum types, like Scalar types, also represent leaf values in a GraphQL type system.
-/// However Enum types describe the set of possible values.
-///
+/// However, Enum types describe the set of possible values.
+/// </para>
+/// <para>
 /// Enums are not references for a numeric value, but are unique values in their own right.
 /// They may serialize as a string: the name of the represented value.
-///
-/// In this example, an Enum type called Direction is defined:
+/// </para>
+/// <para>In this example, an Enum type called Direction is defined:</para>
 ///
 /// <code>
 /// enum Direction {
@@ -37,15 +37,15 @@ public partial class EnumType
     /// <summary>
     /// Gets the enum values of this type.
     /// </summary>
-    public IReadOnlyCollection<IEnumValue> Values => _enumValues.Values;
+    public IReadOnlyList<IEnumValue> Values => _values;
 
     /// <summary>
-    /// Gets a dictionary that allows to lookup the enum value by its name.
+    /// Gets a dictionary that allows to look up the enum value by its name.
     /// </summary>
-    protected IReadOnlyDictionary<string, IEnumValue> NameLookup => _enumValues;
+    protected IReadOnlyDictionary<string, IEnumValue> NameLookup => _nameLookup;
 
     /// <summary>
-    /// Gets a dictionary that allows to lookup the enum value by its runtime value.
+    /// Gets a dictionary that allows to look up the enum value by its runtime value.
     /// </summary>
     protected IReadOnlyDictionary<object, IEnumValue> ValueLookup => _valueLookup;
 
@@ -56,7 +56,7 @@ public partial class EnumType
             throw new ArgumentNullException(nameof(name));
         }
 
-        return _enumValues.TryGetValue(name, out value);
+        return _nameLookup.TryGetValue(name, out value);
     }
 
     /// <inheritdoc />
@@ -67,7 +67,7 @@ public partial class EnumType
             throw new ArgumentNullException(nameof(name));
         }
 
-        if (_enumValues.TryGetValue(name, out var value))
+        if (_nameLookup.TryGetValue(name, out var value))
         {
             runtimeValue = value.Value;
             return true;
@@ -92,12 +92,12 @@ public partial class EnumType
 
         if (valueSyntax is EnumValueNode ev)
         {
-            return _enumValues.ContainsKey(ev.Value);
+            return _nameLookup.ContainsKey(ev.Value);
         }
 
         if (valueSyntax is StringValueNode sv)
         {
-            return _enumValues.ContainsKey(sv.Value);
+            return _nameLookup.ContainsKey(sv.Value);
         }
 
         return false;
@@ -119,13 +119,13 @@ public partial class EnumType
         }
 
         if (valueSyntax is EnumValueNode evn &&
-            _enumValues.TryGetValue(evn.Value, out var ev))
+            _nameLookup.TryGetValue(evn.Value, out var ev))
         {
             return ev.Value;
         }
 
         if (valueSyntax is StringValueNode svn &&
-            _enumValues.TryGetValue(svn.Value, out ev))
+            _nameLookup.TryGetValue(svn.Value, out ev))
         {
             return ev.Value;
         }
@@ -167,7 +167,7 @@ public partial class EnumType
         }
 
         if (resultValue is string s &&
-            _enumValues.TryGetValue(s, out var enumValue))
+            _nameLookup.TryGetValue(s, out var enumValue))
         {
             return new EnumValueNode(enumValue.Name);
         }
@@ -200,7 +200,7 @@ public partial class EnumType
         if (RuntimeType == typeof(object))
         {
             var name = _naming.GetEnumValueName(runtimeValue);
-            if (_enumValues.TryGetValue(name, out enumValue))
+            if (_nameLookup.TryGetValue(name, out enumValue))
             {
                 return enumValue.Name;
             }
@@ -234,7 +234,7 @@ public partial class EnumType
         }
 
         if (resultValue is string s &&
-            _enumValues.TryGetValue(s, out var enumValue))
+            _nameLookup.TryGetValue(s, out var enumValue))
         {
             runtimeValue = enumValue.Value;
             return true;

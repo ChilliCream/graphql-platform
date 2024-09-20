@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
@@ -115,17 +110,15 @@ public class CursorPagingQueryableExtensionsTests
         {
             var list = new Person[]
             {
-                new() { Name = "Foo", },
-                new() { Name = "Bar", },
-                new() { Name = "Baz", },
-                new() { Name = "Qux", },
+                new(name: "Foo"),
+                new(name: "Bar"),
+                new(name: "Baz"),
+                new(name: "Qux"),
             };
 
             return await list.AsQueryable().ApplyCursorPaginationAsync(
                 context,
-                defaultPageSize: 2,
-                totalCount: list.Length,
-                cancellationToken: cancellationToken);
+                defaultPageSize: 2);
         }
     }
 
@@ -138,22 +131,20 @@ public class CursorPagingQueryableExtensionsTests
         {
             var list = new Person[]
             {
-                new() { Name = "Foo", },
-                new() { Name = "Bar", },
-                new() { Name = "Baz", },
-                new() { Name = "Qux", },
+                new(name: "Foo"),
+                new(name: "Bar"),
+                new(name: "Baz"),
+                new(name: "Qux"),
             };
 
             return await list.ApplyCursorPaginationAsync(
                 context,
-                defaultPageSize: 2,
-                totalCount: list.Length,
-                cancellationToken: cancellationToken);
+                defaultPageSize: 2);
         }
     }
 
-    public class Person
+    public class Person(string name)
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = name;
     }
 }

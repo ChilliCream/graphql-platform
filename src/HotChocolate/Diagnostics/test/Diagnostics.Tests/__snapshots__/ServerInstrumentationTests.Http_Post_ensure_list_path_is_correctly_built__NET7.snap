@@ -47,7 +47,7 @@
             },
             {
               "Key": "graphql.operation.id",
-              "Value": "_Default-1-c0513b4b6f0cf7430f64de4aa3dcd7c6"
+              "Value": "_Default-1-0-c0513b4b6f0cf7430f64de4aa3dcd7c6"
             }
           ],
           "event": [
@@ -73,6 +73,18 @@
                 {
                   "Key": "otel.status_code",
                   "Value": "OK"
+                }
+              ],
+              "event": []
+            },
+            {
+              "OperationName": "AnalyzeOperationCost",
+              "DisplayName": "Analyze Operation Complexity",
+              "Status": "Unset",
+              "tags": [
+                {
+                  "Key": "graphql.operation.id",
+                  "Value": "c0513b4b6f0cf7430f64de4aa3dcd7c6"
                 }
               ],
               "event": []

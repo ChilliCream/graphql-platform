@@ -1,8 +1,5 @@
-using System;
 using System.Buffers;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using StrawberryShake.Properties;
 using StrawberryShake.Transport.WebSockets.Messages;
 
@@ -99,7 +96,6 @@ public sealed class GraphQLWebSocketProtocol : SocketProtocolBase
 
         await _receiver.Stop().ConfigureAwait(false);
     }
-
 
     private ValueTask ProcessAsync(
         ReadOnlySequence<byte> slice,

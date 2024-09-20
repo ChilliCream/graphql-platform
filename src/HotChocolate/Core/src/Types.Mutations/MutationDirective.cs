@@ -15,7 +15,7 @@ internal sealed class MutationDirective : ISchemaDirective
     {
         if (definition is not ObjectFieldDefinition fieldDef)
         {
-            throw ThrowHelper.MutationConvDirective_In_Wrong_Location(directiveNode);
+            throw ThrowHelper.MutationConventionDirective_In_Wrong_Location(directiveNode);
         }
 
         fieldDef.Configurations.Add(

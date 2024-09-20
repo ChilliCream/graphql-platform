@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
 #if NET7_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 #endif
-using System.Linq;
 using HotChocolate.Language;
 using static HotChocolate.Properties.AbstractionResources;
 
@@ -446,7 +443,7 @@ public sealed class OperationRequestBuilder
     /// Creates a new instance of <see cref="OperationRequestBuilder" />.
     /// </summary>
     /// <returns></returns>
-    public static OperationRequestBuilder Create() => new();
+    public static OperationRequestBuilder New() => new();
 
     /// <summary>
     /// Creates a new instance of <see cref="OperationRequestBuilder" /> from an existing request.
@@ -503,7 +500,7 @@ public sealed class OperationRequestBuilder
     /// </returns>
     public static OperationRequestBuilder From(GraphQLRequest request)
     {
-        var builder = Create();
+        var builder = New();
 
         builder
             .SetDocumentId(request.QueryId)

@@ -14,7 +14,7 @@ internal sealed class UnionTypeFactory
         path.Clear();
 
         var typeDefinition = new UnionTypeDefinition(
-            node.Name.Value, 
+            node.Name.Value,
             node.Description?.Value)
         {
             BindTo = node.GetBindingValue(),

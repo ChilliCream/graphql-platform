@@ -1,5 +1,3 @@
-using System;
-using System.Threading;
 using Xunit;
 
 namespace GreenDonut;
@@ -10,7 +8,7 @@ public class CancellationTokenSourceExtensionsTests
     public void CreateLinkedCancellationTokenSourceNull()
     {
         // arrange
-        CancellationTokenSource source = null;
+        CancellationTokenSource source = null!;
         var token = new CancellationTokenSource().Token;
 
         // act

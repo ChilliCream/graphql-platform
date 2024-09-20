@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
 public sealed class InterfaceTypeDescriptor : ComplexTypeDescriptor

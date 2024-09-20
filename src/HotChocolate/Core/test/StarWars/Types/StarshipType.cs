@@ -1,4 +1,4 @@
-﻿using HotChocolate.Types;
+using HotChocolate.Types;
 using HotChocolate.StarWars.Models;
 using HotChocolate.StarWars.Resolvers;
 
@@ -15,6 +15,6 @@ public class StarshipType
         descriptor.Field(f => f.Name)
             .Type<NonNullType<StringType>>();
 
-        descriptor.Field<SharedResolvers>(t => t.GetLength(default, default));
+        descriptor.Field<SharedResolvers>(t => t.GetLength(default, default!));
     }
 }

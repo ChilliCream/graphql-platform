@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
@@ -23,7 +22,7 @@ public class LatitudeType : ScalarType<double, StringValueNode>
     {
         Description = description;
     }
-    
+
     /// <summary>
     /// Initializes a new instance of <see cref="LatitudeType"/>
     /// </summary>

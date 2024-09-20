@@ -19,10 +19,16 @@ internal static class GeneratorHelpers
 
     public static string[] GetGraphQLDocuments(
         string path,
-        string pattern,
-        IReadOnlyList<string> buildArtifacts)
+        string[] patterns,
+        IReadOnlyList<string> buildArtifacts,
+        string schemaPath)
     {
-        var files = Files(path, pattern).Select(t => Combine(path, t)).ToHashSet();
+        var files = patterns
+            .SelectMany(pattern => Files(path, pattern))
+            .Select(t => Combine(path, t))
+            .ToHashSet();
+        files.Add(Combine(path, schemaPath));
+
         files.ExceptWith(buildArtifacts);
         return files.ToArray();
     }

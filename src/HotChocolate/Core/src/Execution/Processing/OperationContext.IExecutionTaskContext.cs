@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Execution.Processing;
 
 internal sealed partial class OperationContext : IExecutionTaskContext

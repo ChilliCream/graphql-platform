@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Instrumentation;
@@ -150,7 +148,7 @@ internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventLi
             return EmptyScope;
         }
 
-        _enricher.EnrichFromatHttpResponse(context, activity);
+        _enricher.EnrichFormatHttpResponse(context, activity);
         activity.SetStatus(ActivityStatusCode.Ok);
         context.Items[FormatHttpResponseActivity] = activity;
 

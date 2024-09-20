@@ -1,0 +1,127 @@
+﻿schema {
+  query: Query
+}
+
+"A connection to a list of items."
+type ExplicitTypeConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [ExplicitTypeEdge!]
+  "A flattened list of the nodes."
+  nodes: [String!]
+  "Identifies the total count of items in the connection."
+  totalCount: Int!
+}
+
+"An edge in a connection."
+type ExplicitTypeEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: String!
+}
+
+"A connection to a list of items."
+type ExtendedTypeRefConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [ExtendedTypeRefEdge!]
+  "A flattened list of the nodes."
+  nodes: [String]
+  "Identifies the total count of items in the connection."
+  totalCount: Int!
+}
+
+"An edge in a connection."
+type ExtendedTypeRefEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: String
+}
+
+"A connection to a list of items."
+type ExtendedTypeRefNestedConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [ExtendedTypeRefNestedEdge!]
+  "A flattened list of the nodes."
+  nodes: [[String]]
+  "Identifies the total count of items in the connection."
+  totalCount: Int!
+}
+
+"An edge in a connection."
+type ExtendedTypeRefNestedEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: [String]
+}
+
+type Foo {
+  bar: String!
+}
+
+"A connection to a list of items."
+type LettersConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [LettersEdge!]
+  "A flattened list of the nodes."
+  nodes: [String!]
+  "Identifies the total count of items in the connection."
+  totalCount: Int!
+}
+
+"An edge in a connection."
+type LettersEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: String!
+}
+
+"A connection to a list of items."
+type NestedObjectListConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [NestedObjectListEdge!]
+  "A flattened list of the nodes."
+  nodes: [[Foo!]!]
+  "Identifies the total count of items in the connection."
+  totalCount: Int!
+}
+
+"An edge in a connection."
+type NestedObjectListEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: [Foo!]!
+}
+
+"Information about pagination in a connection."
+type PageInfo {
+  "Indicates whether more edges exist following the set defined by the clients arguments."
+  hasNextPage: Boolean!
+  "Indicates whether more edges exist prior the set defined by the clients arguments."
+  hasPreviousPage: Boolean!
+  "When paginating backwards, the cursor to continue."
+  startCursor: String
+  "When paginating forwards, the cursor to continue."
+  endCursor: String
+}
+
+type Query {
+  letters("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): LettersConnection
+  explicitType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): ExplicitTypeConnection
+  nestedObjectList("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): NestedObjectListConnection
+  extendedTypeRef("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): ExtendedTypeRefConnection
+  extendedTypeRefNested("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): ExtendedTypeRefNestedConnection
+}

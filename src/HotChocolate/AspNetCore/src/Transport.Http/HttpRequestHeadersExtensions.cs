@@ -1,4 +1,3 @@
-using System;
 using System.Net.Http.Headers;
 
 namespace HotChocolate.Transport.Http;
@@ -29,5 +28,5 @@ public static class HttpRequestHeadersExtensions
 
         headers.Add("GraphQL-Preflight", "1");
         return headers;
-    }  
+    }
 }

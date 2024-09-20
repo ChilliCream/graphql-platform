@@ -1,10 +1,11 @@
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Skimmed.Serialization;
 
 internal static class SchemaDebugFormatter
 {
-    public static ObjectTypeDefinitionNode RewriteObjectType(ObjectType type)
+    public static ObjectTypeDefinitionNode RewriteObjectType(ObjectTypeDefinition type)
         => new ObjectTypeDefinitionNode(
             null,
             new NameNode(type.Name),
@@ -15,7 +16,7 @@ internal static class SchemaDebugFormatter
             type.Implements.Select(RewriteTypeRef).Cast<NamedTypeNode>().ToArray(),
             type.Fields.Select(RewriteOutputField).ToArray());
 
-    public static InterfaceTypeDefinitionNode RewriteInterfaceType(InterfaceType type)
+    public static InterfaceTypeDefinitionNode RewriteInterfaceType(InterfaceTypeDefinition type)
         => new InterfaceTypeDefinitionNode(
             null,
             new NameNode(type.Name),
@@ -26,7 +27,7 @@ internal static class SchemaDebugFormatter
             type.Implements.Select(RewriteTypeRef).Cast<NamedTypeNode>().ToArray(),
             type.Fields.Select(RewriteOutputField).ToArray());
 
-    public static UnionTypeDefinitionNode RewriteUnionType(UnionType type)
+    public static UnionTypeDefinitionNode RewriteUnionType(UnionTypeDefinition type)
         => new UnionTypeDefinitionNode(
             null,
             new NameNode(type.Name),
@@ -36,7 +37,7 @@ internal static class SchemaDebugFormatter
             type.Directives.Select(RewriteDirective).ToArray(),
             type.Types.Select(RewriteTypeRef).Cast<NamedTypeNode>().ToArray());
 
-    public static InputObjectTypeDefinitionNode RewriteInputObjectType(InputObjectType type)
+    public static InputObjectTypeDefinitionNode RewriteInputObjectType(InputObjectTypeDefinition type)
         => new InputObjectTypeDefinitionNode(
             null,
             new NameNode(type.Name),
@@ -46,7 +47,7 @@ internal static class SchemaDebugFormatter
             type.Directives.Select(RewriteDirective).ToArray(),
             type.Fields.Select(RewriteInputField).ToArray());
 
-    public static EnumTypeDefinitionNode RewriteEnumType(EnumType type)
+    public static EnumTypeDefinitionNode RewriteEnumType(EnumTypeDefinition type)
             => new EnumTypeDefinitionNode(
             null,
             new NameNode(type.Name),
@@ -56,7 +57,7 @@ internal static class SchemaDebugFormatter
             type.Directives.Select(RewriteDirective).ToArray(),
             type.Values.Select(RewriteEnumValue).ToArray());
 
-    public static ScalarTypeDefinitionNode RewriteScalarType(ScalarType type)
+    public static ScalarTypeDefinitionNode RewriteScalarType(ScalarTypeDefinition type)
         => new ScalarTypeDefinitionNode(
             null,
             new NameNode(type.Name),
@@ -65,7 +66,7 @@ internal static class SchemaDebugFormatter
                 : new StringValueNode(type.Description),
             type.Directives.Select(RewriteDirective).ToArray());
 
-    public static DirectiveDefinitionNode RewriteDirectiveType(DirectiveType type)
+    public static DirectiveDefinitionNode RewriteDirectiveType(DirectiveDefinition type)
         => new DirectiveDefinitionNode(
             null,
             new NameNode(type.Name),
@@ -76,7 +77,7 @@ internal static class SchemaDebugFormatter
             type.Arguments.Select(RewriteInputField).ToArray(),
             type.Locations.AsEnumerable().Select(RewriteDirectiveLocation).ToArray());
 
-    public static FieldDefinitionNode RewriteOutputField(OutputField field)
+    public static FieldDefinitionNode RewriteOutputField(OutputFieldDefinition field)
         => new FieldDefinitionNode(
             null,
             new NameNode(field.Name),
@@ -87,7 +88,7 @@ internal static class SchemaDebugFormatter
             RewriteTypeRef(field.Type),
             field.Directives.Select(RewriteDirective).ToArray());
 
-    public static InputValueDefinitionNode RewriteInputField(InputField field)
+    public static InputValueDefinitionNode RewriteInputField(InputFieldDefinition field)
         => new InputValueDefinitionNode(
             null,
             new NameNode(field.Name),
@@ -113,27 +114,26 @@ internal static class SchemaDebugFormatter
             new NameNode(directive.Name),
             directive.Arguments.Select(RewriteArgument).ToArray());
 
-    public static ArgumentNode RewriteArgument(Argument argument)
+    public static ArgumentNode RewriteArgument(ArgumentAssignment argument)
         => new ArgumentNode(null, new NameNode(argument.Name), argument.Value);
 
-    private static NameNode RewriteDirectiveLocation(DirectiveLocation location)
+    private static NameNode RewriteDirectiveLocation(Types.DirectiveLocation location)
         => new NameNode(location.ToString());
 
-    public static ITypeNode RewriteTypeRef(IType type)
+    public static ITypeNode RewriteTypeRef(ITypeDefinition type)
     {
         switch (type.Kind)
         {
             case TypeKind.List:
-                return new ListTypeNode(RewriteTypeRef(((ListType)type).ElementType));
+                return new ListTypeNode(RewriteTypeRef(((ListTypeDefinition)type).ElementType));
 
             case TypeKind.NonNull:
                 return new NonNullTypeNode(
                     (INullableTypeNode)RewriteTypeRef(
-                        ((NonNullType)type).NullableType));
+                        ((NonNullTypeDefinition)type).NullableType));
 
             default:
-                return new NamedTypeNode(((INamedType)type).Name);
+                return new NamedTypeNode(((INamedTypeDefinition)type).Name);
         }
     }
-
 }

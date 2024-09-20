@@ -1,15 +1,15 @@
-using System;
-
 namespace GreenDonut;
 
 internal static class TestHelpers
 {
     public static FetchDataDelegate<TKey, TValue> CreateFetch<TKey, TValue>()
+        where TKey : notnull
     {
         return (_, _, _) => default;
     }
 
     public static FetchDataDelegate<TKey, TValue> CreateFetch<TKey, TValue>(Exception error)
+        where TKey : notnull
     {
         return (_, results, _) =>
         {
@@ -18,8 +18,8 @@ internal static class TestHelpers
         };
     }
 
-    public static FetchDataDelegate<TKey, TValue> CreateFetch<TKey, TValue>(
-        Result<TValue> value)
+    public static FetchDataDelegate<TKey, TValue> CreateFetch<TKey, TValue>(Result<TValue?> value)
+        where TKey : notnull
     {
         return (_, results, _) =>
         {
@@ -28,8 +28,8 @@ internal static class TestHelpers
         };
     }
 
-    public static FetchDataDelegate<TKey, TValue> CreateFetch<TKey, TValue>(
-        Result<TValue>[] values)
+    public static FetchDataDelegate<TKey, TValue> CreateFetch<TKey, TValue>(Result<TValue?>[] values)
+        where TKey : notnull
     {
         return (_, results, _) =>
         {

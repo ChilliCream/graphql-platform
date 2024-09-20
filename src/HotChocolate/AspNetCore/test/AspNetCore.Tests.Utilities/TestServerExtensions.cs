@@ -12,7 +12,6 @@ public static class TestServerExtensions
         this TestServer testServer,
         ClientQueryRequest request,
         string path = "/graphql",
-        bool enableApolloTracing = false,
         bool includeQueryPlan = false)
     {
         var response =
@@ -20,7 +19,6 @@ public static class TestServerExtensions
                 testServer,
                 JsonConvert.SerializeObject(request),
                 path,
-                enableApolloTracing,
                 includeQueryPlan);
 
         if (response.StatusCode == HttpStatusCode.NotFound)
@@ -189,15 +187,13 @@ public static class TestServerExtensions
     public static async Task<ClientRawResult> PostRawAsync(
         this TestServer testServer,
         ClientQueryRequest request,
-        string path = "/graphql",
-        bool enableApolloTracing = false)
+        string path = "/graphql")
     {
         var response =
             await SendPostRequestAsync(
                 testServer,
                 JsonConvert.SerializeObject(request),
-                path,
-                enableApolloTracing: enableApolloTracing);
+                path);
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
@@ -215,15 +211,13 @@ public static class TestServerExtensions
     public static async Task<HttpResponseMessage> PostHttpAsync(
         this TestServer testServer,
         ClientQueryRequest request,
-        string path = "/graphql",
-        bool enableApolloTracing = false)
+        string path = "/graphql")
     {
         var response =
             await SendPostRequestAsync(
                 testServer,
                 JsonConvert.SerializeObject(request),
-                path,
-                enableApolloTracing: enableApolloTracing);
+                path);
 
         return response;
     }
@@ -310,27 +304,23 @@ public static class TestServerExtensions
         this TestServer testServer,
         TObject requestBody,
         string path = "/graphql",
-        bool enableApolloTracing = false,
         bool includeQueryPlan = false) =>
         SendPostRequestAsync(
             testServer,
             JsonConvert.SerializeObject(requestBody),
             path,
-            enableApolloTracing,
             includeQueryPlan);
 
     public static Task<HttpResponseMessage> SendPostRequestAsync(
         this TestServer testServer,
         string requestBody,
         string? path = null,
-        bool enableApolloTracing = false,
         bool includeQueryPlan = false) =>
         SendPostRequestAsync(
             testServer,
             requestBody,
             "application/json",
             path,
-            enableApolloTracing,
             includeQueryPlan);
 
     public static Task<HttpResponseMessage> SendPostRequestAsync(
@@ -338,15 +328,9 @@ public static class TestServerExtensions
         string requestBody,
         string contentType,
         string? path,
-        bool enableApolloTracing = false,
         bool includeQueryPlan = false)
     {
         var content = new StringContent(requestBody, Encoding.UTF8, contentType);
-
-        if (enableApolloTracing)
-        {
-            content.Headers.Add(HttpHeaderKeys.Tracing, HttpHeaderValues.TracingEnabled);
-        }
 
         if (includeQueryPlan)
         {

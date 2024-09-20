@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using HotChocolate.Language;
 using HotChocolate.Skimmed;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
 
@@ -44,7 +45,6 @@ internal sealed class RefResolverEntityEnricher : IEntityEnricher
                             null,
                             new NameNode(entityResolverField.GetOriginalName()),
                             null,
-                            null,
                             Array.Empty<DirectiveNode>(),
                             arguments,
                             null);
@@ -83,9 +83,9 @@ internal sealed class RefResolverEntityEnricher : IEntityEnricher
 
     private static void TryRegisterEntityResolver(
         EntityGroup entity,
-        ObjectType entityType,
-        OutputField entityResolverField,
-        Schema schema)
+        ObjectTypeDefinition entityType,
+        OutputFieldDefinition entityResolverField,
+        SchemaDefinition schema)
     {
         // Check if the query field type matches the entity type
         // and if it has any arguments that contain the @is directive
@@ -101,7 +101,6 @@ internal sealed class RefResolverEntityEnricher : IEntityEnricher
             var selection = new FieldNode(
                 null,
                 new NameNode(entityResolverField.GetOriginalName()),
-                null,
                 null,
                 Array.Empty<DirectiveNode>(),
                 arguments,
@@ -133,7 +132,7 @@ internal sealed class RefResolverEntityEnricher : IEntityEnricher
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsListOf(IType type, IType entityType)
+    private static bool IsListOf(ITypeDefinition type, ITypeDefinition entityType)
     {
         if (type.Kind == TypeKind.NonNull)
         {
@@ -156,7 +155,7 @@ internal sealed class RefResolverEntityEnricher : IEntityEnricher
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsListOfScalar(IType type)
+    private static bool IsListOfScalar(ITypeDefinition type)
     {
         if (type.Kind == TypeKind.NonNull)
         {

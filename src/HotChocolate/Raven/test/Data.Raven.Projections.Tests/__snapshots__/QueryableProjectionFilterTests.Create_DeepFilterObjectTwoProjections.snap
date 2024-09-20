@@ -1,0 +1,31 @@
+Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "objectArray": [
+            {
+              "foo": {
+                "barString": "a",
+                "barShort": 12
+              }
+            }
+          ]
+        }
+      },
+      {
+        "foo": {
+          "objectArray": []
+        }
+      }
+    ]
+  }
+}
+---------------
+
+SQL:
+---------------
+from 'Bars' as _s1 select { Foo : { ObjectArray : _s1.Foo.ObjectArray.filter(_s0=>_s0.Foo.BarString===$p0).map(p2=>({Foo:{BarString:p2.Foo.BarString,BarShort:p2.Foo.BarShort}})) } }
+---------------

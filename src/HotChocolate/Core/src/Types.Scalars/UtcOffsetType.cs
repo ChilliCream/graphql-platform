@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types;
@@ -41,8 +38,8 @@ public class UtcOffsetType : ScalarType<TimeSpan, StringValueNode>
         {
             null => NullValueNode.Default,
 
-            string s when OffsetLookup.TryDeserialize(s, out var timespan) =>
-                ParseValue(timespan),
+            string s when OffsetLookup.TryDeserialize(s, out var timeSpan) =>
+                ParseValue(timeSpan),
 
             TimeSpan ts => ParseValue(ts),
 

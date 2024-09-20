@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Text.Json;
 using HotChocolate.Utilities;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
@@ -48,8 +47,8 @@ public partial class JsonResultBuilderGenerator
         methodBuilder.AddCode(
             AssignmentBuilder
                 .New()
-                .SetLefthandSide($"var {_typename}")
-                .SetRighthandSide(MethodCallBuilder
+                .SetLeftHandSide($"var {_typename}")
+                .SetRightHandSide(MethodCallBuilder
                     .Inline()
                     .SetMethodName(
                         _obj,

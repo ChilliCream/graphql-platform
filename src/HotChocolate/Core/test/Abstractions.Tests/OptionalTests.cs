@@ -33,7 +33,7 @@ public class OptionalTests
     {
         // arrange
         // act
-        Optional<string> optional = null;
+        Optional<string?> optional = null;
 
         // assert
         Assert.True(optional.HasValue);

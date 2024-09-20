@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using GreenDonut;
 using HotChocolate.Diagnostics.Scopes;
 using static HotChocolate.Diagnostics.HotChocolateActivitySource;
@@ -38,4 +36,3 @@ internal sealed class ActivityDataLoaderDiagnosticListener : DataLoaderDiagnosti
         return new DataLoaderBatchScope<TKey>(_enricher, dataLoader, keys, activity);
     }
 }
-

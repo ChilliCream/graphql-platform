@@ -13,7 +13,7 @@ public class NullErrorPropagation
         var executor = await CreateExecutorAsync();
 
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     """
                     {
@@ -65,7 +65,7 @@ public class NullErrorPropagation
         var executor = await CreateExecutorAsync();
 
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument($"{{ foo {{ {fieldType} {{ b }} }} }}")
                 .AddGlobalState("b", null)
                 .Build();
@@ -90,7 +90,7 @@ public class NullErrorPropagation
         var executor = await CreateExecutorAsync();
 
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument($"{{ foo {{ {fieldType} {{ c }} }} }}")
                 .AddGlobalState("b", null)
                 .Build();
@@ -113,7 +113,7 @@ public class NullErrorPropagation
         var executor = await CreateExecutorAsync();
 
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument($"{{ foo {{ {fieldType} {{ b }} }} }}")
                 .AddGlobalState("b", null)
                 .Build();
@@ -136,7 +136,7 @@ public class NullErrorPropagation
         var executor = await CreateExecutorAsync();
 
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument($"{{ foo {{ {fieldType} {{ c }} }} }}")
                 .AddGlobalState("b", null)
                 .Build();

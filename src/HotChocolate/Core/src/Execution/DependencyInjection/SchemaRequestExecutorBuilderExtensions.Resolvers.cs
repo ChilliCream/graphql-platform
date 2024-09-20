@@ -1,8 +1,5 @@
-using System;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Internal;

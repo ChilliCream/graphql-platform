@@ -10,12 +10,13 @@ interface Character {
 type Query {
   hero(episode: Episode! = NEW_HOPE): Character
   heroByTraits(traits: JSON!): Character
-  heroes(episodes: [Episode!]): [Character!]
-  character(characterIds: [String]): [Character!]!
-  search(text: String): [SearchResult]
-  human(id: String): Human
-  droid(id: String): Droid
+  heroes(episodes: [Episode!]!): [Character!]
+  character(characterIds: [String!]!): [Character!]! @cost(weight: "10")
+  search(text: String!): [SearchResult]
+  human(id: String!): Human
+  droid(id: String!): Droid
   time: Long!
   evict: Boolean!
-  wait(m: Int!): Boolean!
+  wait(m: Int!): Boolean! @cost(weight: "10")
+  someDeprecatedField(deprecatedArg: String! = "foo" @deprecated(reason: "use something else")): String! @deprecated(reason: "use something else")
 }

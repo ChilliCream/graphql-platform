@@ -54,8 +54,8 @@ public abstract class FilterProviderExtensions<TContext>
     public override void Merge(IConventionContext context, Convention convention)
     {
         if (Definition is not null &&
-            convention is FilterProvider<TContext> conv &&
-            conv.Definition is { } target)
+            convention is FilterProvider<TContext> filterProvider &&
+            filterProvider.Definition is { } target)
         {
             // Provider extensions should be applied by default before the default handlers, as
             // the interceptor picks up the first handler. A provider extension should adds more

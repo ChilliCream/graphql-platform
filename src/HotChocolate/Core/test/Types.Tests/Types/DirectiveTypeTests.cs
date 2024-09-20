@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -188,7 +183,6 @@ public class DirectiveTypeTests : TypeTestBase
                 .Location(DirectiveLocation.FieldDefinition)
                 .Use((_, _) => _ => default)
                 .Argument("a").Type<StringType>());
-
 
         var objectType = new ObjectType(
             t =>
@@ -726,7 +720,7 @@ public class DirectiveTypeTests : TypeTestBase
 
         // assert
         var errors = Assert.Throws<SchemaException>(Action).Errors;
-        Assert.Equal(1, errors.Count);
+        Assert.Single(errors);
         Assert.Equal(ErrorCodes.Schema.InvalidArgument, errors[0].Code);
         errors[0].Message.MatchSnapshot();
     }
@@ -751,7 +745,7 @@ public class DirectiveTypeTests : TypeTestBase
 
         // assert
         var errors = Assert.Throws<SchemaException>(Action).Errors;
-        Assert.Equal(1, errors.Count);
+        Assert.Single(errors);
         Assert.Equal(ErrorCodes.Schema.InvalidArgument, errors[0].Code);
         errors[0].Message.MatchSnapshot();
     }
@@ -776,7 +770,7 @@ public class DirectiveTypeTests : TypeTestBase
 
         // assert
         var errors = Assert.Throws<SchemaException>(Action).Errors;
-        Assert.Equal(1, errors.Count);
+        Assert.Single(errors);
         Assert.Equal(ErrorCodes.Schema.InvalidArgument, errors[0].Code);
         errors[0].Message.MatchSnapshot();
     }
@@ -801,7 +795,7 @@ public class DirectiveTypeTests : TypeTestBase
 
         // assert
         var errors = Assert.Throws<SchemaException>(Action).Errors;
-        Assert.Equal(1, errors.Count);
+        Assert.Single(errors);
         Assert.Equal(ErrorCodes.Schema.InvalidArgument, errors[0].Code);
         errors[0].Message.MatchSnapshot();
     }

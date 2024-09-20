@@ -1,9 +1,7 @@
 #nullable enable
 
-using System;
 using System.Buffers;
 using System.Collections;
-using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using static HotChocolate.Utilities.ThrowHelper;
@@ -329,7 +327,7 @@ public sealed class InputParser
 
             var error = ErrorBuilder.FromError(ex.Errors[0])
                 .SetPath(path)
-                .SetExtension(nameof(field), field.Coordinate.ToString())
+                .SetFieldCoordinate(field.Coordinate)
                 .SetExtension("fieldType", type.Name)
                 .Build();
 
@@ -644,7 +642,7 @@ public sealed class InputParser
 
             var error = ErrorBuilder.FromError(ex.Errors[0])
                 .SetPath(path)
-                .SetExtension(nameof(field), field.Coordinate.ToString())
+                .SetFieldCoordinate(field.Coordinate)
                 .SetExtension("fieldType", type.Name)
                 .Build();
 

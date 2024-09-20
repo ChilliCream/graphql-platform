@@ -1,9 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Threading.Tasks;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers.Expressions.Parameters;
 using HotChocolate.Types.Descriptors;
@@ -22,20 +18,19 @@ namespace HotChocolate.Resolvers;
 /// </summary>
 internal sealed class DefaultResolverCompiler : IResolverCompiler
 {
-    private static readonly IReadOnlyList<IParameterExpressionBuilder> _empty =
-        Array.Empty<IParameterExpressionBuilder>();
+    private static readonly IReadOnlyList<IParameterExpressionBuilder> _empty = [];
 
     private static readonly ParameterExpression _context =
         Parameter(typeof(IResolverContext), "context");
 
     private static readonly ParameterExpression _pureContext =
-        Parameter(typeof(IPureResolverContext), "context");
+        Parameter(typeof(IResolverContext), "context");
 
     private static readonly MethodInfo _parent =
-        typeof(IPureResolverContext).GetMethod(nameof(IPureResolverContext.Parent))!;
+        typeof(IResolverContext).GetMethod(nameof(IResolverContext.Parent))!;
 
     private static readonly MethodInfo _resolver =
-        typeof(IPureResolverContext).GetMethod(nameof(IPureResolverContext.Resolver))!;
+        typeof(IResolverContext).GetMethod(nameof(IResolverContext.Resolver))!;
 
     private readonly Dictionary<ParameterInfo, IParameterExpressionBuilder> _cache = new();
     private readonly List<IParameterExpressionBuilder> _parameterExpressionBuilders;
@@ -87,7 +82,6 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         expressionBuilders.Add(new DocumentParameterExpressionBuilder());
         expressionBuilders.Add(new CancellationTokenParameterExpressionBuilder());
         expressionBuilders.Add(new ResolverContextParameterExpressionBuilder());
-        expressionBuilders.Add(new PureResolverContextParameterExpressionBuilder());
         expressionBuilders.Add(new SchemaParameterExpressionBuilder());
         expressionBuilders.Add(new SelectionParameterExpressionBuilder());
         expressionBuilders.Add(new FieldSyntaxParameterExpressionBuilder());

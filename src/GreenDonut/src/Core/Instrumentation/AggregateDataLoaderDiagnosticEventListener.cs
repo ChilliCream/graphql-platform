@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
 namespace GreenDonut;
 
 internal class AggregateDataLoaderDiagnosticEventListener(
@@ -10,7 +6,7 @@ internal class AggregateDataLoaderDiagnosticEventListener(
 {
     public override void ResolvedTaskFromCache(
         IDataLoader dataLoader,
-        TaskCacheKey cacheKey,
+        PromiseCacheKey cacheKey,
         Task task)
     {
         for (var i = 0; i < listeners.Length; i++)
@@ -35,7 +31,8 @@ internal class AggregateDataLoaderDiagnosticEventListener(
 
     public override void BatchResults<TKey, TValue>(
         IReadOnlyList<TKey> keys,
-        ReadOnlySpan<Result<TValue>> values)
+        ReadOnlySpan<Result<TValue?>> values)
+        where TValue : default
     {
         for (var i = 0; i < listeners.Length; i++)
         {

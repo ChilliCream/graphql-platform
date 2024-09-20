@@ -7,7 +7,8 @@ namespace HotChocolate.Fusion.Utilities;
 
 internal sealed class DefaultNodeIdParser : NodeIdParser
 {
-    private readonly byte[] _separators = ":\n"u8.ToArray();
+    private static readonly SearchValues<byte> _delimiterSearchValues =
+        SearchValues.Create([(byte)':', (byte)'\n']);
     private readonly Encoding _utf8 = Encoding.UTF8;
     private readonly ArrayPool<byte> _arrayPool = ArrayPool<byte>.Shared;
 
@@ -20,12 +21,12 @@ internal sealed class DefaultNodeIdParser : NodeIdParser
         if (!Convert.TryFromBase64String(id, span, out var written))
         {
             throw new IdSerializationException(
-                DefaultIdParser_ParseTypeName_InvalidFormat, 
-                OperationStatus.InvalidData, 
+                DefaultIdParser_ParseTypeName_InvalidFormat,
+                OperationStatus.InvalidData,
                 id);
         }
-        
-        var index = span[..written].IndexOfAny(_separators);
+
+        var index = span[..written].IndexOfAny(_delimiterSearchValues);
         var typeName = span[..index];
         var s = _utf8.GetString(typeName);
 
@@ -35,6 +36,5 @@ internal sealed class DefaultNodeIdParser : NodeIdParser
         }
 
         return s;
-
     }
 }

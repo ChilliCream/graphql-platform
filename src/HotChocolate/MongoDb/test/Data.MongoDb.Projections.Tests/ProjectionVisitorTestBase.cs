@@ -66,7 +66,7 @@ public class ProjectionVisitorTestBase
                     {
                         context.Result =
                             OperationResultBuilder
-                                .FromResult(context.Result!.ExpectQueryResult())
+                                .FromResult(context.Result!.ExpectOperationResult())
                                 .SetContextData("query", queryString)
                                 .Build();
                     }

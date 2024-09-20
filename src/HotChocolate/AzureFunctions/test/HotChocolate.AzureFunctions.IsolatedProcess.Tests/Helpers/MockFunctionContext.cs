@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.Azure.Functions.Worker;
 
@@ -130,8 +128,7 @@ public class MockFunctionDefinition : FunctionDefinition
     public override string Name { get; } = string.Empty;
     public override string PathToAssembly { get; } = string.Empty;
     public override string EntryPoint { get; } = string.Empty;
-    public override ImmutableArray<FunctionParameter> Parameters { get; } =
-        ImmutableArray<FunctionParameter>.Empty;
+    public override ImmutableArray<FunctionParameter> Parameters { get; } = [];
     public override IImmutableDictionary<string, BindingMetadata> InputBindings { get; } =
         ImmutableDictionary<string, BindingMetadata>.Empty;
     public override IImmutableDictionary<string, BindingMetadata> OutputBindings { get; } =

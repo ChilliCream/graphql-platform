@@ -45,27 +45,27 @@ namespace StrawberryShake.CodeGeneration.Properties {
             }
         }
         
-        internal static string Throwhelper_Generator_NoGraphQLFilesFound {
+        internal static string ThrowHelper_Generator_NoGraphQLFilesFound {
             get {
-                return ResourceManager.GetString("Throwhelper_Generator_NoGraphQLFilesFound", resourceCulture);
+                return ResourceManager.GetString("ThrowHelper_Generator_NoGraphQLFilesFound", resourceCulture);
             }
         }
         
-        internal static string Throwhelper_Generator_NoExecutableDocumentsFound {
+        internal static string ThrowHelper_Generator_NoExecutableDocumentsFound {
             get {
-                return ResourceManager.GetString("Throwhelper_Generator_NoExecutableDocumentsFound", resourceCulture);
+                return ResourceManager.GetString("ThrowHelper_Generator_NoExecutableDocumentsFound", resourceCulture);
             }
         }
         
-        internal static string Throwhelper_Generator_NoTypeDocumentsFound {
+        internal static string ThrowHelper_Generator_NoTypeDocumentsFound {
             get {
-                return ResourceManager.GetString("Throwhelper_Generator_NoTypeDocumentsFound", resourceCulture);
+                return ResourceManager.GetString("ThrowHelper_Generator_NoTypeDocumentsFound", resourceCulture);
             }
         }
         
-        internal static string Throwhelper_Generator_SyntaxError {
+        internal static string ThrowHelper_Generator_SyntaxError {
             get {
-                return ResourceManager.GetString("Throwhelper_Generator_SyntaxError", resourceCulture);
+                return ResourceManager.GetString("ThrowHelper_Generator_SyntaxError", resourceCulture);
             }
         }
         

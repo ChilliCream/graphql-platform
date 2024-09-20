@@ -4,7 +4,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using static HotChocolate.Subscriptions.Postgres.PostgresResources;
 
-
 namespace HotChocolate.Subscriptions.Postgres;
 
 internal readonly struct PostgresMessageEnvelope

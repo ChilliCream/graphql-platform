@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace StrawberryShake;
 
 /// <summary>
@@ -62,7 +59,7 @@ public interface IOperationResult
     object DataFactory { get; }
 
     /// <summary>
-    /// Gets the errors that occured during the execution.
+    /// Gets the errors that occurred during the execution.
     /// </summary>
     IReadOnlyList<IClientError> Errors { get; }
 

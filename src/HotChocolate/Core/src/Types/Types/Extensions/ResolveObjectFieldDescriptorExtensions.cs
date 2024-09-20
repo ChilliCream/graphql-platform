@@ -1,6 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 
 #nullable enable
@@ -30,7 +27,7 @@ public static class ResolveObjectFieldDescriptorExtensions
 
     public static IObjectFieldDescriptor Resolve(
         this IObjectFieldDescriptor descriptor,
-        Func<IResolverContext, Task<object?>> resolver)
+        Func<IResolverContext, Task<object?>?> resolver)
     {
         if (descriptor is null)
         {
@@ -45,10 +42,12 @@ public static class ResolveObjectFieldDescriptorExtensions
         return descriptor.Resolve(async ctx =>
         {
             var resolverTask = resolver(ctx);
+
             if (resolverTask is null)
             {
                 return default;
             }
+
             return await resolverTask.ConfigureAwait(false);
         });
     }
@@ -96,6 +95,7 @@ public static class ResolveObjectFieldDescriptorExtensions
                 {
                     return default;
                 }
+
                 return await resolverTask.ConfigureAwait(false);
             },
             typeof(NativeType<TResult>));
@@ -117,7 +117,7 @@ public static class ResolveObjectFieldDescriptorExtensions
             throw new ArgumentNullException(nameof(resolver));
         }
 
-        return descriptor.Resolve(ctx => new ValueTask<object?>(resolver()));
+        return descriptor.Resolve(_ => new ValueTask<object?>(resolver()));
     }
 
     public static IObjectFieldDescriptor Resolve(
@@ -134,7 +134,7 @@ public static class ResolveObjectFieldDescriptorExtensions
             throw new ArgumentNullException(nameof(resolver));
         }
 
-        return descriptor.Resolve(async ctx => await resolver().ConfigureAwait(false));
+        return descriptor.Resolve(async _ => await resolver().ConfigureAwait(false));
     }
 
     public static IObjectFieldDescriptor Resolve<TResult>(
@@ -151,8 +151,8 @@ public static class ResolveObjectFieldDescriptorExtensions
             throw new ArgumentNullException(nameof(resolver));
         }
 
-        return descriptor.Resolve(ctx =>
-            new ValueTask<object?>(resolver()),
+        return descriptor.Resolve(
+            _ => new ValueTask<object?>(resolver()),
             typeof(NativeType<TResult>));
     }
 
@@ -171,13 +171,15 @@ public static class ResolveObjectFieldDescriptorExtensions
         }
 
         return descriptor.Resolve(
-            async ctx =>
+            async _ =>
             {
                 var resolverTask = resolver();
+
                 if (resolverTask is null)
                 {
                     return default;
                 }
+
                 return await resolverTask.ConfigureAwait(false);
             },
             typeof(NativeType<TResult>));
@@ -237,13 +239,15 @@ public static class ResolveObjectFieldDescriptorExtensions
         }
 
         return descriptor.Resolve(
-             async ctx =>
+            async ctx =>
             {
                 var resolverTask = resolver(ctx, ctx.RequestAborted);
+
                 if (resolverTask is null)
                 {
                     return default;
                 }
+
                 return await resolverTask.ConfigureAwait(false);
             },
             typeof(NativeType<TResult>));
@@ -261,7 +265,7 @@ public static class ResolveObjectFieldDescriptorExtensions
         }
 
         return descriptor.Resolve(
-            ctx => new ValueTask<object?>(constantResult));
+            _ => new ValueTask<object?>(constantResult));
     }
 
     public static IObjectFieldDescriptor Resolve<TResult>(
@@ -274,7 +278,7 @@ public static class ResolveObjectFieldDescriptorExtensions
         }
 
         return descriptor.Resolve(
-            ctx => new ValueTask<object?>(constantResult),
+            _ => new ValueTask<object?>(constantResult),
             typeof(NativeType<TResult>));
     }
 }

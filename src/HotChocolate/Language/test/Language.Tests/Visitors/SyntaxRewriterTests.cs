@@ -1,4 +1,3 @@
-using System;
 using ChilliCream.Testing;
 using HotChocolate.Language.Utilities;
 using Snapshooter.Xunit;
@@ -20,7 +19,7 @@ public class SyntaxRewriterTests
             SyntaxRewriter.CreateWithNavigator(
                 (node, context) =>
                 {
-                    if (node?.Kind is SyntaxKind.FieldDefinition &&
+                    if (node.Kind is SyntaxKind.FieldDefinition &&
                         "Foo".Equals(
                             context.Navigator.GetAncestor<ObjectTypeDefinitionNode>()?.Name.Value))
                     {
@@ -32,8 +31,8 @@ public class SyntaxRewriterTests
                 });
 
         // assert
-        schema = (DocumentNode)rewriter.Rewrite(schema, new NavigatorContext());
-        schema.Print().MatchSnapshot();
+        schema = (DocumentNode?)rewriter.Rewrite(schema, new NavigatorContext());
+        schema?.Print().MatchSnapshot();
     }
 
     [Fact]
@@ -64,7 +63,7 @@ public class SyntaxRewriterTests
             SyntaxRewriter.CreateWithNavigator(
                 (node, context) =>
                 {
-                    if (node?.Kind is SyntaxKind.FieldDefinition
+                    if (node.Kind is SyntaxKind.FieldDefinition
                         && ((FieldDefinitionNode)node).Name.Value.Equals("two", StringComparison.Ordinal)
                         && "Foo".Equals(context.Navigator.GetAncestor<ObjectTypeDefinitionNode>()?.Name.Value))
                     {
@@ -75,8 +74,8 @@ public class SyntaxRewriterTests
                 });
 
         // assert
-        schema = (DocumentNode)rewriter.Rewrite(schema, new NavigatorContext());
-        schema.Print().MatchSnapshot();
+        schema = (DocumentNode?)rewriter.Rewrite(schema, new NavigatorContext());
+        schema?.Print().MatchSnapshot();
     }
 
     [Fact]
@@ -94,7 +93,7 @@ public class SyntaxRewriterTests
             SyntaxRewriter.CreateWithNavigator(
                 (node, context) =>
                 {
-                    if (node?.Kind is SyntaxKind.Name
+                    if (node.Kind is SyntaxKind.Name
                         && "Foo".Equals(context.Navigator.GetAncestor<ObjectTypeDefinitionNode>()?.Name.Value))
                     {
                         return default;
@@ -104,7 +103,7 @@ public class SyntaxRewriterTests
                 });
 
         // assert
-        DocumentNode Fail() => (DocumentNode)rewriter.Rewrite(schema, new NavigatorContext());
+        DocumentNode? Fail() => (DocumentNode?)rewriter.Rewrite(schema, new NavigatorContext());
         Assert.Throws<SyntaxNodeCannotBeNullException>(Fail);
     }
 }

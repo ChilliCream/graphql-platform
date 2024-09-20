@@ -49,7 +49,6 @@ public class ErrorTests(ITestOutputHelper output)
                 nextToken: String
             }
 
-
             type Mutation {
                 createReview(input: CreateReviewInput!): Review
                 deleteReview(input: DeleteReviewInput!): Review

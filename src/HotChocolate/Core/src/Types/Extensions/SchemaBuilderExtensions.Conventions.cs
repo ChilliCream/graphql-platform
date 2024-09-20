@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -84,7 +81,7 @@ public static partial class SchemaBuilderExtensions
         if (!typeof(IConvention).IsAssignableFrom(convention))
         {
             throw new ArgumentException(
-                TypeResources.SchemaBuilder_Convention_NotSuppported,
+                TypeResources.SchemaBuilder_Convention_NotSupported,
                 nameof(convention));
         }
 
@@ -115,14 +112,14 @@ public static partial class SchemaBuilderExtensions
         if (!typeof(IConvention).IsAssignableFrom(convention))
         {
             throw new ArgumentException(
-                TypeResources.SchemaBuilder_Convention_NotSuppported,
+                TypeResources.SchemaBuilder_Convention_NotSupported,
                 nameof(convention));
         }
 
         if (!typeof(IConvention).IsAssignableFrom(concreteConvention))
         {
             throw new ArgumentException(
-                TypeResources.SchemaBuilder_Convention_NotSuppported,
+                TypeResources.SchemaBuilder_Convention_NotSupported,
                 nameof(convention));
         }
 
@@ -199,7 +196,7 @@ public static partial class SchemaBuilderExtensions
         if (!typeof(IConvention).IsAssignableFrom(convention))
         {
             throw new ArgumentException(
-                TypeResources.SchemaBuilder_Convention_NotSuppported,
+                TypeResources.SchemaBuilder_Convention_NotSupported,
                 nameof(convention));
         }
 
@@ -230,14 +227,14 @@ public static partial class SchemaBuilderExtensions
         if (!typeof(IConvention).IsAssignableFrom(convention))
         {
             throw new ArgumentException(
-                TypeResources.SchemaBuilder_Convention_NotSuppported,
+                TypeResources.SchemaBuilder_Convention_NotSupported,
                 nameof(convention));
         }
 
         if (!typeof(IConvention).IsAssignableFrom(concreteConvention))
         {
             throw new ArgumentException(
-                TypeResources.SchemaBuilder_Convention_NotSuppported,
+                TypeResources.SchemaBuilder_Convention_NotSupported,
                 nameof(convention));
         }
 

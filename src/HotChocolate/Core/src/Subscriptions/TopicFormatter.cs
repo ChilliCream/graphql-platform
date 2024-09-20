@@ -12,9 +12,7 @@ internal sealed class TopicFormatter
 
     public TopicFormatter(string? prefix)
     {
-        _prefix = prefix is not null
-            ? _utf8.GetBytes(prefix)
-            : Array.Empty<byte>();
+        _prefix = prefix is not null ? _utf8.GetBytes(prefix) : [];
     }
 
     public string Format(string topic)

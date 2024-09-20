@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Types.Descriptors.Definitions;
 
 public static class BindableListExtensions

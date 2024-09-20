@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
@@ -96,8 +94,8 @@ public class ResultDataFactoryGenerator : TypeMapperGenerator
                         .AddCode(
                             AssignmentBuilder
                                 .New()
-                                .SetLefthandSide(_snapshot)
-                                .SetRighthandSide($"{_entityStore}.CurrentSnapshot")))
+                                .SetLeftHandSide(_snapshot)
+                                .SetRightHandSide($"{_entityStore}.CurrentSnapshot")))
                 .AddEmptyLine();
         }
 

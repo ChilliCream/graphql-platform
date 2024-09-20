@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using HotChocolate.Execution;
 using HotChocolate.Utilities;
 
@@ -22,9 +19,8 @@ public static class ActivityTestHelper
         {
             lock (sync)
             {
-
-                if (a.Parent is null && 
-                    a.OperationName.EqualsOrdinal("ExecuteHttpRequest") && 
+                if (a.Parent is null &&
+                    a.OperationName.EqualsOrdinal("ExecuteHttpRequest") &&
                     lookup.TryGetValue(rootActivity, out var parentData))
                 {
                     RegisterActivity(a, parentData);
@@ -40,7 +36,7 @@ public static class ActivityTestHelper
             }
         };
         listener.ActivityStopped = SerializeActivity;
-        listener.Sample = (ref ActivityCreationOptions<ActivityContext> _) => 
+        listener.Sample = (ref ActivityCreationOptions<ActivityContext> _) =>
             ActivitySamplingResult.AllData;
         ActivitySource.AddActivityListener(listener);
 

@@ -1,11 +1,6 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Subscriptions;
@@ -281,7 +276,6 @@ public class IntegrationTests : ServerTestBase
             return payload;
         }
 
-
 #pragma warning disable CS0618
         [SubscribeAndResolve]
 #pragma warning restore CS0618
@@ -326,5 +320,13 @@ public class IntegrationTests : ServerTestBase
             ISocketProtocol protocol,
             CancellationToken cancellationToken)
             => new(payload);
+
+        public void OnConnectionOpened(ISocketClient client)
+        {
+        }
+
+        public void OnConnectionClosed(ISocketClient client)
+        {
+        }
     }
 }

@@ -1,6 +1,5 @@
 #nullable enable
 
-using System;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types;
@@ -61,7 +60,7 @@ public class IsSelectedAttribute : Attribute
         else
         {
             Fields = selectionSet;
-            FieldNames = Array.Empty<string>();
+            FieldNames = [];
         }
     }
 

@@ -97,7 +97,6 @@ public abstract class DocumentHashProviderBase : IDocumentHashProvider
         return (char)value;
     }
 
-
 #if NETSTANDARD2_0
     private static unsafe string ToBase64UrlSafeString(
 #else

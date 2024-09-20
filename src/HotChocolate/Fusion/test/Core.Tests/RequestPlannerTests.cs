@@ -979,7 +979,6 @@ public class RequestPlannerTests
         await snapshot.MatchMarkdownAsync();
     }
 
-
     [Fact]
     public async Task Query_Plan_25_Variables_Are_Passed_Through()
     {
@@ -1571,7 +1570,7 @@ public class RequestPlannerTests
     }
 
     private static async Task<(DocumentNode UserRequest, Execution.Nodes.QueryPlan QueryPlan)> CreateQueryPlanAsync(
-        Skimmed.Schema fusionGraph,
+        Skimmed.SchemaDefinition fusionGraph,
         [StringSyntax("graphql")] string query)
     {
         var document = SchemaFormatter.FormatAsDocument(fusionGraph);
@@ -1597,11 +1596,12 @@ public class RequestPlannerTests
         var operationCompiler = new OperationCompiler(new());
         var operationDef = (OperationDefinitionNode)request.Definitions[0];
         var operation = operationCompiler.Compile(
-            "abc",
-            operationDef,
-            schema.GetOperationType(operationDef.Operation)!,
-            request,
-            schema);
+            new OperationCompilerRequest(
+                "abc",
+                request,
+                operationDef,
+                schema.GetOperationType(operationDef.Operation)!,
+                schema));
 
         var queryPlanner = new QueryPlanner(serviceConfig, schema);
         var queryPlan = queryPlanner.Plan(operation);

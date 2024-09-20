@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fetching;
@@ -76,7 +73,7 @@ internal sealed class OperationExecutionMiddleware
                         .ConfigureAwait(false);
                 }
             }
-            
+
             await _next(context).ConfigureAwait(false);
         }
         else
@@ -102,11 +99,11 @@ internal sealed class OperationExecutionMiddleware
         }
         else
         {
-            context.Result = 
+            context.Result =
                 await ExecuteQueryOrMutationAsync(
-                        context, 
-                        batchDispatcher, 
-                        operation, 
+                        context,
+                        batchDispatcher,
+                        operation,
                         context.Variables![0])
                     .ConfigureAwait(false);
         }
@@ -141,7 +138,7 @@ internal sealed class OperationExecutionMiddleware
 
         try
         {
-            var result = 
+            var result =
                 await ExecuteQueryOrMutationAsync(
                     context,
                     batchDispatcher,
@@ -176,7 +173,7 @@ internal sealed class OperationExecutionMiddleware
             operationContextOwner?.Dispose();
         }
     }
-    
+
     private async Task<IOperationResult> ExecuteQueryOrMutationNoStreamAsync(
         IRequestContext context,
         IBatchDispatcher batchDispatcher,
@@ -255,10 +252,10 @@ internal sealed class OperationExecutionMiddleware
                 variableIndex);
 
             var result = await _queryExecutor.ExecuteAsync(operationContext).ConfigureAwait(false);
-            
+
             // we capture the result here so that we can capture it in the transaction scope.
             context.Result = result;
-            
+
             // we complete the transaction scope and are done.
             transactionScope.Complete();
             return result;

@@ -8,11 +8,11 @@ public sealed class BookQuery
         [Service] BookRepository repository)
         => repository.GetBookById(id);
 
-    public IEnumerable<Book> Books(int limit, [Service] BookRepository repository) 
+    public IEnumerable<Book> Books(int limit, [Service] BookRepository repository)
         => repository.GetBooks(limit);
 
     public Author authorById(
         string id,
-        [Service] BookRepository repository) 
+        [Service] BookRepository repository)
         => new Author(id, repository.GetBooksByAuthorId(id));
 }

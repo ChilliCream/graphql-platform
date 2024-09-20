@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using AlterNats;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution.Configuration;

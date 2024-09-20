@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Security.Claims;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -49,6 +47,43 @@ public static class ResolverContextExtensions
 
     /// <summary>
     /// Gets the global state for the specified <paramref name="name" />,
+    /// or a default value if the state could not be resolved.
+    /// </summary>
+    /// <param name="context">The resolver context.</param>
+    /// <param name="name">The name of the state.</param>
+    /// <param name="defaultValue">The default value.</param>
+    /// <typeparam name="T">The type of the state.</typeparam>
+    /// <returns>
+    /// Returns the global state for the specified <paramref name="name" />
+    /// or the default value of <typeparamref name="T" />, if the state
+    /// could not be found or casted to <typeparamref name="T" />.
+    /// </returns>
+    public static T GetGlobalStateOrDefault<T>(
+        this IResolverContext context,
+        string name,
+        T defaultValue)
+    {
+        if (context is null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+
+        if (string.IsNullOrEmpty(name))
+        {
+            throw String_NullOrEmpty(nameof(name));
+        }
+
+        if (context.ContextData.TryGetValue(name, out var value) &&
+            value is T casted)
+        {
+            return casted;
+        }
+
+        return defaultValue;
+    }
+
+    /// <summary>
+    /// Gets the global state for the specified <paramref name="name" />,
     /// or throws if the state does not exist.
     /// </summary>
     /// <param name="context">The resolver context.</param>
@@ -57,7 +92,7 @@ public static class ResolverContextExtensions
     /// <returns>
     /// Returns the global state for the specified <paramref name="name" />.
     /// </returns>
-    public static T? GetGlobalState<T>(
+    public static T GetGlobalState<T>(
         this IResolverContext context,
         string name)
     {
@@ -71,17 +106,9 @@ public static class ResolverContextExtensions
             throw String_NullOrEmpty(nameof(name));
         }
 
-        if (context.ContextData.TryGetValue(name, out var value))
+        if (context.ContextData.TryGetValue(name, out var value) && value is T typedValue)
         {
-            if (value is null)
-            {
-                return default;
-            }
-
-            if (value is T typedValue)
-            {
-                return typedValue;
-            }
+            return typedValue;
         }
 
         throw new ArgumentException(
@@ -125,6 +152,43 @@ public static class ResolverContextExtensions
 
     /// <summary>
     /// Gets the scoped state for the specified <paramref name="name" />,
+    /// or a default value if the state could not be resolved.
+    /// </summary>
+    /// <param name="context">The resolver context.</param>
+    /// <param name="name">The name of the state.</param>
+    /// <param name="defaultValue">The default value.</param>
+    /// <typeparam name="T">The type of the state.</typeparam>
+    /// <returns>
+    /// Returns the scoped state for the specified <paramref name="name" />
+    /// or the default value of <typeparamref name="T" />, if the state
+    /// could not be found or casted to <typeparamref name="T" />.
+    /// </returns>
+    public static T GetScopedStateOrDefault<T>(
+        this IResolverContext context,
+        string name,
+        T defaultValue)
+    {
+        if (context is null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+
+        if (string.IsNullOrEmpty(name))
+        {
+            throw String_NullOrEmpty(nameof(name));
+        }
+
+        if (context.ScopedContextData.TryGetValue(name, out var value) &&
+            value is T casted)
+        {
+            return casted;
+        }
+
+        return defaultValue;
+    }
+
+    /// <summary>
+    /// Gets the scoped state for the specified <paramref name="name" />,
     /// or throws if the state does not exist.
     /// </summary>
     /// <param name="context">The resolver context.</param>
@@ -133,7 +197,7 @@ public static class ResolverContextExtensions
     /// <returns>
     /// Returns the scoped state for the specified <paramref name="name" />.
     /// </returns>
-    public static T? GetScopedState<T>(
+    public static T GetScopedState<T>(
         this IResolverContext context,
         string name)
     {
@@ -147,17 +211,10 @@ public static class ResolverContextExtensions
             throw String_NullOrEmpty(nameof(name));
         }
 
-        if (context.ScopedContextData.TryGetValue(name, out var value))
+        if (context.ScopedContextData.TryGetValue(name, out var value) &&
+            value is T typedValue)
         {
-            if (value is null)
-            {
-                return default;
-            }
-
-            if (value is T typedValue)
-            {
-                return typedValue;
-            }
+            return typedValue;
         }
 
         throw new ArgumentException(
@@ -201,6 +258,43 @@ public static class ResolverContextExtensions
 
     /// <summary>
     /// Gets the local state for the specified <paramref name="name" />,
+    /// or a default value if the state could not be resolved.
+    /// </summary>
+    /// <param name="context">The resolver context.</param>
+    /// <param name="name">The name of the state.</param>
+    /// <param name="defaultValue">The default value.</param>
+    /// <typeparam name="T">The type of the state.</typeparam>
+    /// <returns>
+    /// Returns the local state for the specified <paramref name="name" />
+    /// or the default value of <typeparamref name="T" />, if the state
+    /// could not be found or casted to <typeparamref name="T" />.
+    /// </returns>
+    public static T GetLocalStateOrDefault<T>(
+        this IResolverContext context,
+        string name,
+        T defaultValue)
+    {
+        if (context is null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+
+        if (string.IsNullOrEmpty(name))
+        {
+            throw String_NullOrEmpty(nameof(name));
+        }
+
+        if (context.LocalContextData.TryGetValue(name, out var value) &&
+            value is T casted)
+        {
+            return casted;
+        }
+
+        return defaultValue;
+    }
+
+    /// <summary>
+    /// Gets the local state for the specified <paramref name="name" />,
     /// or throws if the state does not exist.
     /// </summary>
     /// <param name="context">The resolver context.</param>
@@ -209,7 +303,7 @@ public static class ResolverContextExtensions
     /// <returns>
     /// Returns the local state for the specified <paramref name="name" />.
     /// </returns>
-    public static T? GetLocalState<T>(
+    public static T GetLocalState<T>(
         this IResolverContext context,
         string name)
     {
@@ -223,17 +317,10 @@ public static class ResolverContextExtensions
             throw String_NullOrEmpty(nameof(name));
         }
 
-        if (context.LocalContextData.TryGetValue(name, out var value))
+        if (context.LocalContextData.TryGetValue(name, out var value) &&
+            value is T casted)
         {
-            if (value is null)
-            {
-                return default;
-            }
-
-            if (value is T typedValue)
-            {
-                return typedValue;
-            }
+            return casted;
         }
 
         throw new ArgumentException(
@@ -542,7 +629,7 @@ public static class ResolverContextExtensions
     /// </returns>
     public static ClaimsPrincipal? GetUser(this IResolverContext context)
         => context.GetGlobalStateOrDefault<ClaimsPrincipal?>(nameof(ClaimsPrincipal));
-    
+
     /// <summary>
     /// Checks if a field is selected in the current selection set.
     /// </summary>
@@ -574,7 +661,7 @@ public static class ResolverContextExtensions
                 ResolverContextExtensions_IsSelected_FieldNameEmpty,
                 nameof(fieldName));
         }
-        
+
         if (!context.Selection.Type.IsCompositeType())
         {
             return false;
@@ -646,14 +733,14 @@ public static class ResolverContextExtensions
                 ResolverContextExtensions_IsSelected_FieldNameEmpty,
                 nameof(fieldName1));
         }
-        
+
         if (string.IsNullOrWhiteSpace(fieldName2))
         {
             throw new ArgumentException(
                 ResolverContextExtensions_IsSelected_FieldNameEmpty,
                 nameof(fieldName2));
         }
-        
+
         if (!context.Selection.Type.IsCompositeType())
         {
             return false;
@@ -737,21 +824,21 @@ public static class ResolverContextExtensions
                 ResolverContextExtensions_IsSelected_FieldNameEmpty,
                 nameof(fieldName1));
         }
-        
+
         if (string.IsNullOrWhiteSpace(fieldName2))
         {
             throw new ArgumentException(
                 ResolverContextExtensions_IsSelected_FieldNameEmpty,
                 nameof(fieldName2));
         }
-        
+
         if(string.IsNullOrWhiteSpace(fieldName3))
         {
             throw new ArgumentException(
                 ResolverContextExtensions_IsSelected_FieldNameEmpty,
                 nameof(fieldName3));
         }
-        
+
         if (!context.Selection.Type.IsCompositeType())
         {
             return false;
@@ -797,7 +884,7 @@ public static class ResolverContextExtensions
 
         return false;
     }
-    
+
     /// <summary>
     /// Checks if a field is selected in the current selection set.
     /// </summary>
@@ -813,19 +900,19 @@ public static class ResolverContextExtensions
     /// <paramref name="fieldNames" /> is <c>null</c>.
     /// </exception>
     public static bool IsSelected(
-        this IResolverContext context, 
+        this IResolverContext context,
         ISet<string> fieldNames)
     {
         if(context is null)
         {
             throw new ArgumentNullException(nameof(context));
         }
-        
+
         if(fieldNames is null)
         {
             throw new ArgumentNullException(nameof(fieldNames));
         }
-        
+
         if (!context.Selection.Type.IsCompositeType())
         {
             return false;

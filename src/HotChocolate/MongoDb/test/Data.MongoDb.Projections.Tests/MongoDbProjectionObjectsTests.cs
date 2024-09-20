@@ -73,7 +73,7 @@ public class MongoDbProjectionObjectTests(MongoResource resource) : IClassFixtur
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     @"{
                         root {
@@ -86,9 +86,9 @@ public class MongoDbProjectionObjectTests(MongoResource resource) : IClassFixtur
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -100,7 +100,7 @@ public class MongoDbProjectionObjectTests(MongoResource resource) : IClassFixtur
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     @"{
                         root {

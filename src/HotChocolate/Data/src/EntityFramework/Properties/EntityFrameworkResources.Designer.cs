@@ -50,5 +50,23 @@ namespace HotChocolate.Data.Properties {
                 return ResourceManager.GetString("ResolverContext_DbContext_MissingFromLocalState", resourceCulture);
             }
         }
+        
+        internal static string EfQueryableCursorPagingHandler_SliceAsync_NoOrder {
+            get {
+                return ResourceManager.GetString("EfQueryableCursorPagingHandler_SliceAsync_NoOrder", resourceCulture);
+            }
+        }
+        
+        internal static string EfQueryableCursorPagingHandler_SliceAsync_FirstOrLast {
+            get {
+                return ResourceManager.GetString("EfQueryableCursorPagingHandler_SliceAsync_FirstOrLast", resourceCulture);
+            }
+        }
+        
+        internal static string EfQueryableCursorPagingHandler_SourceNotSupported {
+            get {
+                return ResourceManager.GetString("EfQueryableCursorPagingHandler_SourceNotSupported", resourceCulture);
+            }
+        }
     }
 }

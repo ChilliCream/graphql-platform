@@ -34,7 +34,7 @@ public class ProjectionVisitorTestBase
             dbContext.SaveChanges();
         }
 
-        return ctx => dbContext.Data.AsQueryable();
+        return _ => dbContext.Data.AsQueryable();
     }
 
     protected T[] CreateEntity<T>(params T[] entities) => entities;
@@ -53,9 +53,7 @@ public class ProjectionVisitorTestBase
         provider ??= new QueryableProjectionProvider(x => x.AddDefaults());
         var convention = new ProjectionConvention(x => x.Provider(provider));
 
-        var resolver =
-            BuildResolver(onModelCreating, entities);
-
+        var resolver = BuildResolver(onModelCreating, entities);
         ISchemaBuilder builder = SchemaBuilder.New();
 
         if (objectType is not null)
@@ -83,8 +81,7 @@ public class ProjectionVisitorTestBase
                             useOffsetPaging);
 
                         ApplyConfigurationToFieldDescriptor<TEntity>(
-                            c.Field("rootExecutable")
-                                .Resolve(ctx => resolver(ctx).AsExecutable()),
+                            c.Field("rootExecutable").Resolve(ctx => resolver(ctx).AsExecutable()),
                             schemaType,
                             usePaging,
                             useOffsetPaging);
@@ -104,7 +101,7 @@ public class ProjectionVisitorTestBase
                     if (context.ContextData.TryGetValue("sql", out var queryString))
                     {
                         context.Result = OperationResultBuilder
-                            .FromResult(context.Result!.ExpectQueryResult())
+                            .FromResult(context.Result!.ExpectOperationResult())
                             .SetContextData("sql", queryString)
                             .Build();
                     }

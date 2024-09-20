@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
@@ -10,9 +6,7 @@ using static HotChocolate.Properties.TypeResources;
 
 namespace HotChocolate.Types.Pagination;
 
-internal class CollectionSegmentType
-    : ObjectType
-    , IPageType
+internal class CollectionSegmentType : ObjectType, IPageType
 {
     internal CollectionSegmentType(
         string? collectionSegmentName,
@@ -95,40 +89,40 @@ internal class CollectionSegmentType
         definition.Fields.Add(new(
             Names.Items,
             CollectionSegmentType_Items_Description,
-            pureResolver: GetItems) {CustomSettings = {ContextDataKeys.Items, }, });
+            pureResolver: GetItems)
+            { Flags = FieldFlags.ItemsField });
+
 
         if (withTotalCount)
         {
             definition.Fields.Add(new(
                 Names.TotalCount,
                 type: TypeReference.Parse($"{ScalarNames.Int}!"),
-                resolver: GetTotalCountAsync));
+                pureResolver: GetTotalCount)
+            {
+                Flags = FieldFlags.TotalCount
+            });
         }
 
         return definition;
     }
 
-    private static IPageInfo GetPagingInfo(IPureResolverContext context)
+    private static IPageInfo GetPagingInfo(IResolverContext context)
         => context.Parent<CollectionSegment>().Info;
 
-    private static IEnumerable<object?> GetItems(IPureResolverContext context)
+    private static IEnumerable<object?> GetItems(IResolverContext context)
         => context.Parent<CollectionSegment>().Items;
 
-    private static async ValueTask<object?> GetTotalCountAsync(IResolverContext context)
-        => await context.Parent<CollectionSegment>().GetTotalCountAsync(context.RequestAborted);
+    private static object GetTotalCount(IResolverContext context)
+        => context.Parent<CollectionSegment>().TotalCount;
 
     private static bool IsItemsField(ObjectFieldDefinition field)
-        => field.CustomSettings.Count > 0 && field.CustomSettings[0].Equals(ContextDataKeys.Items);
+        => (field.Flags & FieldFlags.ItemsField) == FieldFlags.ItemsField;
 
     internal static class Names
     {
         public const string PageInfo = "pageInfo";
         public const string Items = "items";
         public const string TotalCount = "totalCount";
-    }
-
-    private static class ContextDataKeys
-    {
-        public const string Items = "HotChocolate.Types.CollectionSegment.Items";
     }
 }

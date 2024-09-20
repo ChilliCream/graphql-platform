@@ -1,4 +1,3 @@
-using System;
 using HotChocolate;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Types.Relay;
@@ -19,7 +18,10 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddGlobalObjectIdentification(
         this IRequestExecutorBuilder builder)
-        => builder.ConfigureSchema(c => c.AddGlobalObjectIdentification());
+    {
+        builder.AddDefaultNodeIdSerializer();
+        return builder.ConfigureSchema(c => c.AddGlobalObjectIdentification());
+    }
 
     /// <summary>
     /// Adds a <c>node</c> field to the root query according to the
@@ -36,7 +38,10 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder AddGlobalObjectIdentification(
         this IRequestExecutorBuilder builder,
         bool registerNodeInterface)
-        => builder.ConfigureSchema(c => c.AddGlobalObjectIdentification(registerNodeInterface));
+    {
+        builder.AddDefaultNodeIdSerializer();
+        return builder.ConfigureSchema(c => c.AddGlobalObjectIdentification(registerNodeInterface));
+    }
 
     /// <summary>
     /// Enables rewriting of mutation payloads to provide access to a query root field.

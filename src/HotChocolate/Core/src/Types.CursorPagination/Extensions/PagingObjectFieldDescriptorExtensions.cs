@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Language;
@@ -39,7 +36,7 @@ public static class PagingObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         GetCursorPagingProvider? resolvePagingProvider = null,
         string? connectionName = null,
-        PagingOptions options = default)
+        PagingOptions? options = null)
         where TNodeType : class, IOutputType =>
         UsePaging<TNodeType>(
             descriptor,
@@ -73,7 +70,7 @@ public static class PagingObjectFieldDescriptorExtensions
         Type? entityType = null,
         GetCursorPagingProvider? resolvePagingProvider = null,
         string? connectionName = null,
-        PagingOptions options = default)
+        PagingOptions? options = null)
         where TNodeType : class, IOutputType =>
         UsePaging(
             descriptor,
@@ -112,7 +109,7 @@ public static class PagingObjectFieldDescriptorExtensions
         Type? entityType = null,
         GetCursorPagingProvider? resolvePagingProvider = null,
         string? connectionName = null,
-        PagingOptions options = default)
+        PagingOptions? options = null)
     {
         if (descriptor is null)
         {
@@ -131,10 +128,12 @@ public static class PagingObjectFieldDescriptorExtensions
             .Extend()
             .OnBeforeCreate((c, d) =>
             {
-                var pagingOptions = c.GetSettings(options);
+                var pagingOptions = c.GetPagingOptions(options);
                 var backward = pagingOptions.AllowBackwardPagination ?? AllowBackwardPagination;
+                d.State = d.State.Add(WellKnownContextData.PagingOptions, pagingOptions);
+                d.Flags |= FieldFlags.Connection;
 
-                CreatePagingArguments(d.Arguments, backward, pagingOptions.LegacySupport ?? false);
+                CreatePagingArguments(d.Arguments, backward);
 
                 if (string.IsNullOrEmpty(connectionName))
                 {
@@ -156,8 +155,8 @@ public static class PagingObjectFieldDescriptorExtensions
                     typeRef = syntaxTypeRef.WithType(syntaxTypeRef.Type.ElementType());
                 }
 
-                if (typeRef is null && 
-                    d.Type is ExtendedTypeReference extendedTypeRef && 
+                if (typeRef is null &&
+                    d.Type is ExtendedTypeReference extendedTypeRef &&
                     c.TypeInspector.TryCreateTypeInfo(extendedTypeRef.Type, out var typeInfo) &&
                     GetElementType(typeInfo) is { } elementType)
                 {
@@ -166,7 +165,6 @@ public static class PagingObjectFieldDescriptorExtensions
 
                 var resolverMember = d.ResolverMember ?? d.Member;
                 d.Type = CreateConnectionTypeRef(c, resolverMember, connectionName, typeRef, options);
-                d.CustomSettings.Add(typeof(Connection));
             });
 
         return descriptor;
@@ -175,7 +173,7 @@ public static class PagingObjectFieldDescriptorExtensions
     private static IExtendedType? GetElementType(ITypeInfo typeInfo)
     {
         var elementType = false;
-        
+
         for (var i = 0; i < typeInfo.Components.Count; i++)
         {
             var component = typeInfo.Components[i];
@@ -184,7 +182,7 @@ public static class PagingObjectFieldDescriptorExtensions
             {
                 return component.Type;
             }
-            
+
             if (component.Kind is TypeComponentKind.List)
             {
                 elementType = true;
@@ -197,7 +195,7 @@ public static class PagingObjectFieldDescriptorExtensions
     public static IInterfaceFieldDescriptor UsePaging<TNodeType>(
         this IInterfaceFieldDescriptor descriptor,
         string? connectionName = null,
-        PagingOptions options = default)
+        PagingOptions? options = null)
         where TNodeType : class, IOutputType =>
         UsePaging(descriptor, typeof(TNodeType), connectionName, options);
 
@@ -205,7 +203,7 @@ public static class PagingObjectFieldDescriptorExtensions
         this IInterfaceFieldDescriptor descriptor,
         Type? nodeType = null,
         string? connectionName = null,
-        PagingOptions options = default)
+        PagingOptions? options = null)
     {
         if (descriptor is null)
         {
@@ -216,10 +214,12 @@ public static class PagingObjectFieldDescriptorExtensions
             .Extend()
             .OnBeforeCreate((c, d) =>
             {
-                var pagingOptions = c.GetSettings(options);
+                var pagingOptions = c.GetPagingOptions(options);
                 var backward = pagingOptions.AllowBackwardPagination ?? AllowBackwardPagination;
+                d.State = d.State.Add(WellKnownContextData.PagingOptions, pagingOptions);
+                d.Flags |= FieldFlags.Connection;
 
-                CreatePagingArguments(d.Arguments, backward, pagingOptions.LegacySupport ?? false);
+                CreatePagingArguments(d.Arguments, backward);
 
                 if (string.IsNullOrEmpty(connectionName))
                 {
@@ -244,7 +244,6 @@ public static class PagingObjectFieldDescriptorExtensions
                 d.Type = CreateConnectionTypeRef(c, d.Member, connectionName, typeRef, options);
             });
 
-
         return descriptor;
     }
 
@@ -255,12 +254,6 @@ public static class PagingObjectFieldDescriptorExtensions
     public static IObjectFieldDescriptor AddPagingArguments(
         this IObjectFieldDescriptor descriptor,
         bool allowBackwardPagination)
-        => AddPagingArguments(descriptor, allowBackwardPagination, false);
-
-    public static IObjectFieldDescriptor AddPagingArguments(
-        this IObjectFieldDescriptor descriptor,
-        bool allowBackwardPagination,
-        bool legacySupport)
     {
         if (descriptor == null)
         {
@@ -269,8 +262,7 @@ public static class PagingObjectFieldDescriptorExtensions
 
         CreatePagingArguments(
             descriptor.Extend().Definition.Arguments,
-            allowBackwardPagination,
-            legacySupport);
+            allowBackwardPagination);
 
         return descriptor;
     }
@@ -282,12 +274,6 @@ public static class PagingObjectFieldDescriptorExtensions
     public static IInterfaceFieldDescriptor AddPagingArguments(
         this IInterfaceFieldDescriptor descriptor,
         bool allowBackwardPagination)
-        => AddPagingArguments(descriptor, allowBackwardPagination, false);
-
-    public static IInterfaceFieldDescriptor AddPagingArguments(
-        this IInterfaceFieldDescriptor descriptor,
-        bool allowBackwardPagination,
-        bool legacySupport)
     {
         if (descriptor == null)
         {
@@ -296,22 +282,16 @@ public static class PagingObjectFieldDescriptorExtensions
 
         CreatePagingArguments(
             descriptor.Extend().Definition.Arguments,
-            allowBackwardPagination,
-            legacySupport);
+            allowBackwardPagination);
 
         return descriptor;
     }
 
     private static void CreatePagingArguments(
         IList<ArgumentDefinition> arguments,
-        bool allowBackwardPagination,
-        bool legacySupport)
+        bool allowBackwardPagination)
     {
-        var intType =
-            legacySupport
-                ? TypeReference.Parse(ScalarNames.PaginationAmount)
-                : TypeReference.Parse(ScalarNames.Int);
-
+        var intType = TypeReference.Parse(ScalarNames.Int);
         var stringType = TypeReference.Parse(ScalarNames.String);
 
         arguments.AddOrUpdate(First, PagingArguments_First_Description, intType);
@@ -347,7 +327,7 @@ public static class PagingObjectFieldDescriptorExtensions
         MemberInfo? resolverMember,
         string? connectionName,
         TypeReference? nodeType,
-        PagingOptions options)
+        PagingOptions? options)
     {
         var typeInspector = context.TypeInspector;
 
@@ -370,14 +350,15 @@ public static class PagingObjectFieldDescriptorExtensions
                 namedType);
         }
 
-        options = context.GetSettings(options);
+        options = context.GetPagingOptions(options);
 
         // last but not least we create a type reference that can be put on the field definition
         // to tell the type discovery that this field needs this result type.
         return CreateConnectionType(
             connectionName,
             nodeType,
-            options.IncludeTotalCount ?? false);
+            options.IncludeTotalCount ?? false,
+            options.IncludeNodesField ?? IncludeNodesField);
     }
 
     private static CursorPagingProvider ResolvePagingProvider(
@@ -439,13 +420,14 @@ public static class PagingObjectFieldDescriptorExtensions
     private static TypeReference CreateConnectionType(
         string? connectionName,
         TypeReference nodeType,
-        bool withTotalCount)
+        bool includeTotalCount,
+        bool includeNodesField)
     {
         return connectionName is null
             ? TypeReference.Create(
                 "HotChocolate_Types_Connection",
                 nodeType,
-                _ => new ConnectionType(nodeType, withTotalCount),
+                _ => new ConnectionType(nodeType, includeTotalCount, includeNodesField),
                 TypeContext.Output)
             : TypeReference.Create(
                 connectionName + "Connection",
@@ -453,7 +435,8 @@ public static class PagingObjectFieldDescriptorExtensions
                 factory: _ => new ConnectionType(
                     connectionName,
                     nodeType,
-                    withTotalCount));
+                    includeTotalCount,
+                    includeNodesField));
     }
 
     private static string EnsureConnectionNameCasing(string connectionName)

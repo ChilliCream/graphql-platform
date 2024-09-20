@@ -28,12 +28,12 @@ public class QueryableFilterVisitorBooleanTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: true}}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: false}}){ bar}}")
                 .Build());
 
@@ -53,12 +53,12 @@ public class QueryableFilterVisitorBooleanTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { neq: true}}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { neq: false}}){ bar}}")
                 .Build());
 
@@ -78,17 +78,17 @@ public class QueryableFilterVisitorBooleanTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: true}}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: false}}){ bar}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: null}}){ bar}}")
                 .Build());
 
@@ -110,23 +110,23 @@ public class QueryableFilterVisitorBooleanTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { neq: true}}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { neq: false}}){ bar}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { neq: null}}){ bar}}")
                 .Build());
 
         // assert
         await Snapshot
-            .Create()
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddResult(res1, "true")
             .AddResult(res2, "false")
             .AddResult(res3, "null")

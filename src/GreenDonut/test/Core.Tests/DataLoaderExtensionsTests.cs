@@ -1,7 +1,5 @@
 // ReSharper disable InconsistentNaming
 
-using System;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace GreenDonut;
@@ -58,18 +56,18 @@ public class DataLoaderExtensionsTests
     public async Task SetNewCacheEntry()
     {
         // arrange
-        using var cacheOwner = new TaskCacheOwner();
+        using var cacheOwner = new PromiseCacheOwner();
         var fetch = TestHelpers.CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
         var loader = new DataLoader<string, string>(
-            fetch, 
+            fetch,
             batchScheduler,
             new DataLoaderOptions
             {
                 Cache = cacheOwner.Cache,
                 CancellationToken = cacheOwner.CancellationToken,
             });
-        
+
         const string key = "Foo";
         const string  value = "Bar";
 
@@ -77,7 +75,7 @@ public class DataLoaderExtensionsTests
         loader.Set(key, value);
 
         // assert
-        var loadResult = await loader.LoadAsync(key).ConfigureAwait(false);
+        var loadResult = await loader.LoadAsync(key);
 
         Assert.Equal(value, loadResult);
     }
@@ -86,18 +84,18 @@ public class DataLoaderExtensionsTests
     public async Task SetTwice()
     {
         // arrange
-        using var cacheOwner = new TaskCacheOwner();
+        using var cacheOwner = new PromiseCacheOwner();
         var fetch = TestHelpers.CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
         var loader = new DataLoader<string, string>(
-            fetch, 
+            fetch,
             batchScheduler,
             new DataLoaderOptions
             {
                 Cache = cacheOwner.Cache,
                 CancellationToken = cacheOwner.CancellationToken,
             });
-        
+
         const string key = "Foo";
         const string first = "Bar";
         const string second = "Baz";
@@ -107,7 +105,7 @@ public class DataLoaderExtensionsTests
         loader.Set(key, second);
 
         // assert
-        var loadResult = await loader.LoadAsync(key).ConfigureAwait(false);
+        var loadResult = await loader.LoadAsync(key);
 
         Assert.Equal(first, loadResult);
     }
@@ -130,11 +128,11 @@ public class DataLoaderExtensionsTests
     public void IDataLoaderSetKeyNull()
     {
         // arrange
-        using var cacheOwner = new TaskCacheOwner();
+        using var cacheOwner = new PromiseCacheOwner();
         var fetch = TestHelpers.CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
         var loader = new DataLoader<string, string>(
-            fetch, 
+            fetch,
             batchScheduler,
             new DataLoaderOptions
             {

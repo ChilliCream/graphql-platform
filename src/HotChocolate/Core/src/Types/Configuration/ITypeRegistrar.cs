@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
@@ -20,8 +18,6 @@ internal interface ITypeRegistrar
     void MarkResolved(TypeReference typeReference);
 
     bool IsResolved(TypeReference typeReference);
-    
-    
 
     TypeSystemObjectBase CreateInstance(Type namedSchemaType);
 

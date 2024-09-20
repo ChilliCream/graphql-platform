@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Language;
@@ -7,7 +5,7 @@ using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Factories;
 using HotChocolate.Types.Interceptors;
 using HotChocolate.Types.Introspection;
 using HotChocolate.Types.Pagination;
@@ -31,6 +29,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     private readonly Dictionary<OperationType, CreateRef> _operations = new();
     private readonly Dictionary<(Type, string?), List<CreateConvention>> _conventions = new();
     private readonly Dictionary<Type, (CreateRef, CreateRef)> _clrTypes = new();
+    private SchemaFirstTypeInterceptor? _schemaFirstTypeInterceptor;
 
     private readonly List<object> _typeInterceptors =
     [
@@ -41,6 +40,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     ];
 
     private SchemaOptions _options = new();
+    private PagingOptions _pagingOptions = new();
     private IsOfTypeFallback? _isOfType;
     private IServiceProvider? _services;
     private CreateRef? _schema;
@@ -103,6 +103,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     }
 
     /// <inheritdoc />
+    [Obsolete("Use ModifyOptions instead.")]
     public ISchemaBuilder SetOptions(IReadOnlySchemaOptions options)
     {
         if (options is null)
@@ -127,6 +128,26 @@ public partial class SchemaBuilder : ISchemaBuilder
     }
 
     /// <inheritdoc />
+    [Obsolete("Use ModifyPagingOptions instead.")]
+    public ISchemaBuilder SetPagingOptions(PagingOptions options)
+    {
+        _pagingOptions = options;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public ISchemaBuilder ModifyPagingOptions(Action<PagingOptions> configure)
+    {
+        if (configure is null)
+        {
+            throw new ArgumentNullException(nameof(configure));
+        }
+
+        configure(_pagingOptions);
+        return this;
+    }
+
+    /// <inheritdoc />
     public ISchemaBuilder Use(FieldMiddleware middleware)
     {
         if (middleware is null)
@@ -146,6 +167,7 @@ public partial class SchemaBuilder : ISchemaBuilder
             throw new ArgumentNullException(nameof(loadSchemaDocument));
         }
 
+        _schemaFirstTypeInterceptor ??= new SchemaFirstTypeInterceptor();
         _documents.Add(loadSchemaDocument);
         return this;
     }
@@ -262,7 +284,7 @@ public partial class SchemaBuilder : ISchemaBuilder
         _types.Add(_ => TypeReference.Create(typeExtension));
         return this;
     }
-    
+
     internal void AddTypeReference(TypeReference typeReference)
     {
         if (typeReference is null)
@@ -417,7 +439,7 @@ public partial class SchemaBuilder : ISchemaBuilder
         if (!typeof(TypeInterceptor).IsAssignableFrom(interceptor))
         {
             throw new ArgumentException(
-                TypeResources.SchemaBuilder_Interceptor_NotSuppported,
+                TypeResources.SchemaBuilder_Interceptor_NotSupported,
                 nameof(interceptor));
         }
 
@@ -452,24 +474,4 @@ public partial class SchemaBuilder : ISchemaBuilder
     /// Returns a new instance of <see cref="SchemaBuilder"/>.
     /// </returns>
     public static SchemaBuilder New() => new();
-
-    private sealed class CopyOptions : TypeInterceptor
-    {
-        public override void OnBeforeCompleteType(ITypeCompletionContext completionContext, DefinitionBase definition)
-        {
-            if (definition is SchemaTypeDefinition schemaDef)
-            {
-                var key = typeof(PagingOptions).FullName!;
-
-                if (completionContext.DescriptorContext.ContextData.TryGetValue(key, out var value))
-                {
-                    schemaDef.ContextData[key] = value;
-                }
-                else
-                {
-                    schemaDef.ContextData[key] = new PagingOptions();
-                }
-            }
-        }
-    }
 }

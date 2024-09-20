@@ -1,9 +1,7 @@
-using System;
 using GreenDonut;
 using HotChocolate;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Execution.Options;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 // ReSharper disable once CheckNamespace

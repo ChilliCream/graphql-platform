@@ -82,7 +82,7 @@ public class SortVisitorTestBase : IAsyncLifetime
                     {
                         context.Result =
                             OperationResultBuilder
-                                .FromResult(context.Result!.ExpectQueryResult())
+                                .FromResult(context.Result!.ExpectOperationResult())
                                 .SetContextData("sql", queryString)
                                 .Build();
                     }

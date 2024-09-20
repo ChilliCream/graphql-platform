@@ -7,12 +7,12 @@ internal static class ComplexTypeMergeExtensions
 {
     // This extension method creates a new OutputField by replacing the type name of each field
     // in the source with the corresponding type name in the target schema.
-    public static OutputField CreateField(
+    public static OutputFieldDefinition CreateField(
         this CompositionContext context,
-        OutputField source,
-        Schema targetSchema)
+        OutputFieldDefinition source,
+        SchemaDefinition targetSchema)
     {
-        var target = new OutputField(source.Name);
+        var target = new OutputFieldDefinition(source.Name);
         target.MergeDescriptionWith(source);
         target.MergeDeprecationWith(source);
 
@@ -24,14 +24,14 @@ internal static class ComplexTypeMergeExtensions
         // in the source with the corresponding type name in the target schema.
         foreach (var sourceArgument in source.Arguments)
         {
-            var targetArgument = new InputField(sourceArgument.Name);
+            var targetArgument = new InputFieldDefinition(sourceArgument.Name);
             targetArgument.MergeDescriptionWith(sourceArgument);
             targetArgument.DefaultValue = sourceArgument.DefaultValue;
 
             // Replace the type name of the argument in the source with the corresponding type name
             // in the target schema.
             targetArgument.Type = sourceArgument.Type.ReplaceNameType(n => targetSchema.Types[n]);
-            
+
             targetArgument.MergeDeprecationWith(sourceArgument);
 
             target.Arguments.Add(targetArgument);
@@ -45,8 +45,8 @@ internal static class ComplexTypeMergeExtensions
     // names or if the number of arguments does not match.
     public static void MergeField(
         this CompositionContext context,
-        OutputField source,
-        OutputField target,
+        OutputFieldDefinition source,
+        OutputFieldDefinition target,
         string typeName)
     {
         var mergedType = MergeOutputType(source.Type, target.Type);
@@ -85,7 +85,7 @@ internal static class ComplexTypeMergeExtensions
             if (source.Arguments.TryGetField(targetArgument.Name, out var sourceArgument))
             {
                 argMatchCount++;
-                
+
                 var mergedInputType = MergeInputType(sourceArgument.Type, targetArgument.Type);
 
                 if (mergedInputType is null)
@@ -98,7 +98,7 @@ internal static class ComplexTypeMergeExtensions
                             targetArgument.Type));
                     return;
                 }
-                
+
                 if(!targetArgument.Type.Equals(mergedInputType, TypeComparison.Structural))
                 {
                     targetArgument.Type = mergedInputType;

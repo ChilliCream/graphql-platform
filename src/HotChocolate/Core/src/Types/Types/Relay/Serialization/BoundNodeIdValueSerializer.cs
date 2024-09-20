@@ -1,6 +1,4 @@
 #nullable enable
-using System;
-
 namespace HotChocolate.Types.Relay;
 
 internal sealed class BoundNodeIdValueSerializer(

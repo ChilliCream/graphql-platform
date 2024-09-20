@@ -3,8 +3,6 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Data.Sorting.InMemory.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Data</RootNamespace>
-    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>

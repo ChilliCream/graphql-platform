@@ -1,11 +1,9 @@
 #nullable enable
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types;
 
@@ -31,8 +29,9 @@ internal sealed class DirectiveTypeInterceptor : TypeInterceptor
 
         foreach (var directiveType in schemaTypesDefinition.DirectiveTypes!)
         {
-            if (directiveType.IsTypeSystemDirective &&
-                !directiveType.IsExecutableDirective &&
+            if (directiveType is { IsTypeSystemDirective: true, IsExecutableDirective: false } &&
+                !directiveType.Name.EqualsOrdinal(WellKnownDirectives.Deprecated) &&
+                !directiveType.Name.EqualsOrdinal(SpecifiedByDirectiveType.Names.SpecifiedBy) &&
                 !_usedDirectives.Contains(directiveType))
             {
                 (discarded ??= []).Add(directiveType);

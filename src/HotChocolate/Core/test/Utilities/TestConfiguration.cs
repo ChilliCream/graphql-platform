@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 

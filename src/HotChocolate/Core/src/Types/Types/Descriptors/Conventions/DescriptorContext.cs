@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
@@ -126,6 +124,10 @@ public sealed partial class DescriptorContext : IDescriptorContext
         => _schemaServices.GetRequiredService<INodeIdSerializerAccessor>();
 
     /// <inheritdoc />
+    public IParameterBindingResolver ParameterBindingResolver
+        => Services.GetRequiredService<IApplicationServiceProvider>().GetRequiredService<IParameterBindingResolver>();
+
+    /// <inheritdoc />
     public IDictionary<string, object?> ContextData { get; }
 
     /// <inheritdoc />
@@ -164,8 +166,8 @@ public sealed partial class DescriptorContext : IDescriptorContext
 
         var key = (typeof(T), scope);
 
-        if (_conventionInstances.TryGetValue(key, out var conv) &&
-            conv is T castedConvention)
+        if (_conventionInstances.TryGetValue(key, out var convention) &&
+            convention is T castedConvention)
         {
             return castedConvention;
         }

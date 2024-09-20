@@ -1,7 +1,5 @@
 #nullable enable
 
-using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
@@ -14,7 +12,10 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
-internal sealed class IsSelectedParameterExpressionBuilder : IParameterExpressionBuilder, IParameterFieldConfiguration
+internal sealed class IsSelectedParameterExpressionBuilder
+    : IParameterExpressionBuilder
+    , IParameterFieldConfiguration
+    , IParameterBindingFactory
 {
     public ArgumentKind Kind => ArgumentKind.LocalState;
 
@@ -32,6 +33,9 @@ internal sealed class IsSelectedParameterExpressionBuilder : IParameterExpressio
         Expression<Func<IResolverContext, bool>> expr = ctx => ctx.GetLocalState<bool>(key);
         return Expression.Invoke(expr, context.ResolverContext);
     }
+
+    public IParameterBinding Create(ParameterBindingContext context)
+        => new IsSelectedBinding($"isSelected.{context.Parameter.Name}");
 
     public void ApplyConfiguration(ParameterInfo parameter, ObjectFieldDescriptor descriptor)
     {
@@ -172,7 +176,6 @@ internal sealed class IsSelectedParameterExpressionBuilder : IParameterExpressio
             return base.Enter(node, context);
         }
 
-
         protected override ISyntaxVisitorAction Leave(InlineFragmentNode node, IsSelectedContext context)
         {
             if (node.TypeCondition is not null)
@@ -199,5 +202,15 @@ internal sealed class IsSelectedParameterExpressionBuilder : IParameterExpressio
         public Stack<ISelectionCollection> Selections { get; } = new();
 
         public bool AllSelected { get; set; } = true;
+    }
+
+    private class IsSelectedBinding(string key) : IParameterBinding
+    {
+        public ArgumentKind Kind => ArgumentKind.LocalState;
+
+        public bool IsPure => false;
+
+        public T Execute<T>(IResolverContext context)
+            => context.GetLocalState<T>(key)!;
     }
 }

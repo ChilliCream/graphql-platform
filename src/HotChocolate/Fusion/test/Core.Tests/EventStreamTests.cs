@@ -55,7 +55,7 @@ public class EventStreamTests(ITestOutputHelper output)
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build(),
             cts.Token);

@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Language;
 using static HotChocolate.Execution.ThrowHelper;
 

@@ -1,4 +1,3 @@
-using System;
 using System.Text.Json;
 using Snapshooter.Xunit;
 using StrawberryShake.Transport.WebSockets.Messages;

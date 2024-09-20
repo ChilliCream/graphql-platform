@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Execution;
 using NodaTime;
 using NodaTime.Text;
@@ -92,7 +90,7 @@ public class DurationTypeJsonRoundtripIntegrationTests
     public void MutationParsesInputWithDecimals()
     {
         var result = _testExecutor
-            .Execute(OperationRequestBuilder.Create()
+            .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
                 .SetVariableValues(new Dictionary<string, object?> { {"arg", "238:01:00.019" }, })
                 .Build());
@@ -103,7 +101,7 @@ public class DurationTypeJsonRoundtripIntegrationTests
     public void MutationParsesInputWithoutDecimals()
     {
         var result = _testExecutor
-            .Execute(OperationRequestBuilder.Create()
+            .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
                 .SetVariableValues(new Dictionary<string, object?> { {"arg", "238:01:00" }, })
                 .Build());
@@ -114,7 +112,7 @@ public class DurationTypeJsonRoundtripIntegrationTests
     public void MutationParsesInputWithoutLeadingZero()
     {
         var result = _testExecutor
-            .Execute(OperationRequestBuilder.Create()
+            .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
                 .SetVariableValues(new Dictionary<string, object?> { {"arg", "238:01:00" }, })
                 .Build());
@@ -125,7 +123,7 @@ public class DurationTypeJsonRoundtripIntegrationTests
     public void MutationParsesInputWithNegativeValue()
     {
         var result = _testExecutor
-            .Execute(OperationRequestBuilder.Create()
+            .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
                 .SetVariableValues(new Dictionary<string, object?> { {"arg", "-238:01:00" }, })
                 .Build());
@@ -136,19 +134,19 @@ public class DurationTypeJsonRoundtripIntegrationTests
     public void MutationDoesntParseInputWithPlusSign()
     {
         var result = _testExecutor
-            .Execute(OperationRequestBuilder.Create()
+            .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
                 .SetVariableValues(new Dictionary<string, object?> { {"arg", "+09:22:01:00" }, })
                 .Build());
         Assert.Null(Assert.IsType<OperationResult>(result).Data);
-        Assert.Equal(1, Assert.IsType<OperationResult>(result).Errors!.Count);
+        Assert.Single(Assert.IsType<OperationResult>(result).Errors!);
     }
 
     [Fact]
     public void MutationParsesLiteralWithDecimals()
     {
         var result = _testExecutor
-            .Execute(OperationRequestBuilder.Create()
+            .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation { test(arg: \"238:01:00.019\") }")
                 .Build());
         Assert.Equal("238:11:00.019", Assert.IsType<OperationResult>(result).Data!["test"]);
@@ -158,7 +156,7 @@ public class DurationTypeJsonRoundtripIntegrationTests
     public void MutationParsesLiteralWithoutDecimals()
     {
         var result = _testExecutor
-            .Execute(OperationRequestBuilder.Create()
+            .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation { test(arg: \"238:01:00\") }")
                 .Build());
         Assert.Equal("238:11:00", Assert.IsType<OperationResult>(result).Data!["test"]);
@@ -168,7 +166,7 @@ public class DurationTypeJsonRoundtripIntegrationTests
     public void MutationParsesLiteralWithoutLeadingZero()
     {
         var result = _testExecutor
-            .Execute(OperationRequestBuilder.Create()
+            .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation { test(arg: \"238:01:00\") }")
                 .Build());
         Assert.Equal("238:11:00", Assert.IsType<OperationResult>(result).Data!["test"]);
@@ -178,7 +176,7 @@ public class DurationTypeJsonRoundtripIntegrationTests
     public void MutationParsesLiteralWithNegativeValue()
     {
         var result = _testExecutor
-            .Execute(OperationRequestBuilder.Create()
+            .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation { test(arg: \"-238:01:00\") }")
                 .Build());
         Assert.Equal("-237:51:00", Assert.IsType<OperationResult>(result).Data!["test"]);
@@ -188,10 +186,10 @@ public class DurationTypeJsonRoundtripIntegrationTests
     public void MutationDoesntParseLiteralWithPlusSign()
     {
         var result = _testExecutor
-            .Execute(OperationRequestBuilder.Create()
+            .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation { test(arg: \"+238:01:00\") }")
                 .Build());
         Assert.Null(Assert.IsType<OperationResult>(result).Data);
-        Assert.Equal(1, Assert.IsType<OperationResult>(result).Errors!.Count);
+        Assert.Single(Assert.IsType<OperationResult>(result).Errors!);
     }
 }

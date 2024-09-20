@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
@@ -517,7 +514,7 @@ public class AnnotationBasedMutations
                 .AddGlobalObjectIdentification()
                 .ExecuteRequestAsync(
                     OperationRequestBuilder
-                        .Create()
+                        .New()
                         .SetDocument(
                             """
                             mutation($id: ID!) {
@@ -1162,7 +1159,7 @@ public class AnnotationBasedMutations
     }
 
     [Fact]
-    public async Task Mutation_With_Optional_Arg()
+    public async Task Mutation_With_Optional_Args()
     {
         var result =
             await new ServiceCollection()
@@ -1173,7 +1170,7 @@ public class AnnotationBasedMutations
                 .ExecuteRequestAsync(
                     """
                     mutation {
-                        doSomething(input: { }) {
+                        doSomething(input: { optional1: "something", optional2: null }) {
                             string
                         }
                     }
@@ -1184,7 +1181,7 @@ public class AnnotationBasedMutations
             {
               "data": {
                 "doSomething": {
-                  "string": "nothing"
+                  "string": "something, null, unspecified"
                 }
               }
             }
@@ -1286,7 +1283,7 @@ public class AnnotationBasedMutations
 
     public class SimpleMutationReturnList
     {
-        public System.Collections.Generic.List<string> DoSomething(string something)
+        public List<string> DoSomething(string something)
             => [something,];
     }
 
@@ -1705,8 +1702,11 @@ public class AnnotationBasedMutations
 
     public class MutationWithOptionalArg
     {
-        public string DoSomething(Optional<string?> something)
-            => something.Value ?? "nothing";
+        public string DoSomething(
+            Optional<string?> optional1,
+            Optional<string?> optional2,
+            Optional<string?> optional3)
+            => string.Join(", ", optional1.ToString(), optional2.ToString(), optional3.ToString());
     }
 
     public class MutationWithInterfaces
@@ -1736,7 +1736,6 @@ public class AnnotationBasedMutations
         public ErrorNotAnnotated NotAnnotated(string something) => default!;
 
         public ErrorAnnotatedAndNot Both(string something) => default!;
-
     }
 
     public class ErrorNotAnnotated : IErrorInterface

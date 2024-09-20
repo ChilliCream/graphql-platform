@@ -39,23 +39,23 @@ public class QueryableFilterVisitorExpressionTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
             .SetDocument("{ root(where: { displayName: { eq: \"Sam Sampleman\"}}){ name lastName}}")
             .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
             .SetDocument("{ root(where: { displayName: { eq: \"NoMatch\"}}){ name lastName}}")
             .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
             .SetDocument("{ root(where: { displayName: { eq: null}}){ name lastName}}")
             .Build());
 
         // assert
         await Snapshot
-            .Create()
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddResult(res1, "Sam_Sampleman")
             .AddResult(res2, "NoMatch")
             .AddResult(res3, "null")
@@ -70,17 +70,17 @@ public class QueryableFilterVisitorExpressionTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
             .SetDocument("{ root(where: { barLength: { eq: 1}}){ name lastName}}")
             .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
             .SetDocument("{ root(where: { barLength: { eq: 0}}){ name lastName}}")
             .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
             .SetDocument("{ root(where: { barLength: { eq: null}}){ name lastName}}")
             .Build());
 

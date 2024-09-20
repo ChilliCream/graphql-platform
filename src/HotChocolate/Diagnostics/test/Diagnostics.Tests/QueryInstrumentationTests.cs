@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using Snapshooter;
@@ -133,7 +132,8 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("{ abc123 }");
 
             // assert
-            Assert.Equal("CaptureActivities: Begin Validate Document", Activity.Current!.DisplayName);
+            Assert.Equal("CaptureActivities: Begin Validate Document",
+                Activity.Current!.DisplayName);
         }
     }
 
@@ -354,13 +354,65 @@ public partial class QueryInstrumentationTests
         }
     }
 
+    [Fact]
+    public async Task Cause_a_resolver_error_that_deletes_the_whole_result_deep()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange & act
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddInstrumentation(o =>
+                {
+                    o.Scopes = ActivityScopes.All;
+                    o.IncludeDocument = true;
+                })
+                .AddQueryType<SimpleQuery>()
+                .ExecuteRequestAsync(
+                    """
+                    query SayHelloOperation {
+                        deep {
+                            deeper {
+                                deeps {
+                                    deeper {
+                                        causeFatalError
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    """);
+
+            // assert
+#if NET7_0_OR_GREATER
+            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+#else
+            activities.MatchSnapshot();
+#endif
+        }
+    }
+
     public class SimpleQuery
     {
         public string SayHello() => "hello";
 
         public string CauseFatalError() => throw new GraphQLException("fail");
 
-        public Task<string> DataLoader(CustomDataLoader dataLoader, string key)
+        public Deep Deep() => new();
+
+        public Task<string?> DataLoader(CustomDataLoader dataLoader, string key)
             => dataLoader.LoadAsync(key);
+    }
+
+    public class Deep
+    {
+        public Deeper Deeper() => new();
+
+        public string CauseFatalError() => throw new GraphQLException("fail");
+    }
+
+    public class Deeper
+    {
+        public Deep[] Deeps() => [new Deep()];
     }
 }

@@ -49,14 +49,14 @@ public static class GenerateCommand
             "The output directory.",
             CommandOptionType.SingleValue);
 
-        var queryOutputDirArg = generate.Option(
-            "-q|--queryOutputDirectory",
-            "The output directory for persisted query files.",
+        var operationOutputDirArg = generate.Option(
+            "-q|--operationOutputDirectory",
+            "The output directory for persisted operation files.",
             CommandOptionType.SingleValue);
 
         var relayFormatArg = generate.Option(
             "--relayFormat",
-            "Export persisted queries in the relay format.",
+            "Export persisted operations in the relay format.",
             CommandOptionType.NoValue);
 
         var jsonArg = generate.Option(
@@ -68,11 +68,11 @@ public static class GenerateCommand
             ct =>
             {
                 var strategy = RequestStrategy.Default;
-                var queryOutputDir = queryOutputDirArg.Value();
+                var operationOutputDir = operationOutputDirArg.Value();
 
-                if (!string.IsNullOrEmpty(queryOutputDir) || relayFormatArg.HasValue())
+                if (!string.IsNullOrEmpty(operationOutputDir) || relayFormatArg.HasValue())
                 {
-                    strategy = RequestStrategy.PersistedQuery;
+                    strategy = RequestStrategy.PersistedOperation;
                 }
 
                 var arguments = new GenerateCommandArguments(
@@ -85,7 +85,7 @@ public static class GenerateCommand
                     razorComponentsArg.HasValue(),
                     outputDirArg.Value(),
                     strategy,
-                    queryOutputDir,
+                    operationOutputDir,
                     relayFormatArg.HasValue());
                 var handler = CommandTools.CreateHandler<GenerateCommandHandler>(jsonArg);
                 return handler.ExecuteAsync(arguments, ct);
@@ -119,18 +119,18 @@ public static class GenerateCommand
                 var config = GraphQLConfig.FromJson(configBody);
                 var clientName = config.Extensions.StrawberryShake.Name;
                 var rootNamespace = args.RootNamespace ?? $"{clientName}NS";
-                var documents = GetGraphQLDocuments(configDir, config.Documents, buildArtifacts);
+                var documents = GetGraphQLDocuments(configDir, config.Documents, buildArtifacts, config.Schema);
                 var settings = CreateSettings(config, args, rootNamespace);
                 var result = GenerateClient(settings.ClientName, documents, settings);
                 var outputDir = args.OutputDir ??
                     Path.Combine(
                         Path.GetDirectoryName(configFileName)!,
                         config.Extensions.StrawberryShake.OutputDirectoryName ?? "Generated");
-                var queryOutputDir = args.QueryOutputDir ??
+                var operationOutputDir = args.OperationOutputDir ??
                     Path.Combine(
                         Path.GetDirectoryName(configFileName)!,
                         config.Extensions.StrawberryShake.OutputDirectoryName ?? "Generated",
-                        "Queries");
+                        "Operations");
 
                 if (result.HasErrors())
                 {
@@ -141,11 +141,11 @@ public static class GenerateCommand
                 {
                     await WriteCodeFilesAsync(clientName, result, outputDir, cancellationToken);
 
-                    if (args.Strategy is RequestStrategy.PersistedQuery)
+                    if (args.Strategy is RequestStrategy.PersistedOperation)
                     {
-                        await WritePersistedQueriesAsync(
+                        await WritePersistedOperationsAsync(
                             result,
-                            queryOutputDir,
+                            operationOutputDir,
                             args.RelayFormat,
                             cancellationToken);
                     }
@@ -201,7 +201,7 @@ public static class GenerateCommand
             }
         }
 
-        private static async Task WritePersistedQueriesAsync(
+        private static async Task WritePersistedOperationsAsync(
             CSharpGeneratorResult result,
             string outputDir,
             bool relayFormat,
@@ -219,7 +219,7 @@ public static class GenerateCommand
                     }
                 }
 
-                var fileName = Path.Combine(outputDir, "queries.json");
+                var fileName = Path.Combine(outputDir, "operations.json");
 
                 EnsureWeCanWriteTheFile(fileName);
 
@@ -320,7 +320,7 @@ public static class GenerateCommand
             bool razorComponents,
             string? outputDir,
             RequestStrategy strategy,
-            string? queryOutputDir,
+            string? operationOutputDir,
             bool relayFormat)
         {
             Path = path;
@@ -333,11 +333,11 @@ public static class GenerateCommand
             OutputDir = outputDir;
             Strategy = strategy;
             RelayFormat = relayFormat;
-            QueryOutputDir = queryOutputDir;
+            OperationOutputDir = operationOutputDir;
 
-            if (queryOutputDir is null && outputDir is not null)
+            if (operationOutputDir is null && outputDir is not null)
             {
-                QueryOutputDir = System.IO.Path.Combine(outputDir, "Queries");
+                OperationOutputDir = System.IO.Path.Combine(outputDir, "Operations");
             }
         }
 
@@ -359,7 +359,7 @@ public static class GenerateCommand
 
         public RequestStrategy Strategy { get; }
 
-        public string? QueryOutputDir { get; }
+        public string? OperationOutputDir { get; }
 
         public bool RelayFormat { get; }
     }

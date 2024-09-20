@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -33,7 +31,7 @@ internal sealed partial class RegisteredType : ITypeCompletionContext
 
     /// <inheritdoc />
     IReadOnlyList<FieldMiddleware> ITypeCompletionContext.GlobalComponents
-        => GlobalComponents ?? (IReadOnlyList<FieldMiddleware>)Array.Empty<FieldMiddleware>();
+        => GlobalComponents ?? (IReadOnlyList<FieldMiddleware>)[];
 
     /// <inheritdoc />
     public IsOfTypeFallback? IsOfType { get; private set; }
