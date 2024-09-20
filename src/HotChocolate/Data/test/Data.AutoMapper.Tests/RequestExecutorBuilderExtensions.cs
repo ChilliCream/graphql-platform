@@ -44,7 +44,7 @@ public static class RequestExecutorBuilderExtensions
                     {
                         context.Result =
                             OperationResultBuilder
-                                .FromResult(context.Result!.ExpectQueryResult())
+                                .FromResult(context.Result!.ExpectOperationResult())
                                 .SetContextData("sql", queryString)
                                 .SetContextData("expression", expression)
                                 .Build();

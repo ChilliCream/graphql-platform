@@ -972,7 +972,13 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
         var server = CreateStarWarsServer(
             configureServices: s => s.AddHttpResponseFormatter(
                 _ => new DefaultHttpResponseFormatter(
-                    new() { Json = new() { NullIgnoreCondition = Fields, }, })));
+                    new HttpResponseFormatterOptions
+                    {
+                        Json = new JsonResultFormatterOptions
+                        {
+                            NullIgnoreCondition = Fields,
+                        }
+                    })));
         var client = server.CreateClient();
 
         // act

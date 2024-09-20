@@ -1,14 +1,17 @@
-#if NET8_0_OR_GREATER
+#if NET6_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
+using static GreenDonut.Projections.ExpressionHelpers;
 
 namespace GreenDonut.Projections;
 
 /// <summary>
 /// Data loader extensions for projections.
 /// </summary>
+#if NET8_0_OR_GREATER
 [Experimental(Experiments.Projections)]
+#endif
 public static class SelectionDataLoaderExtensions
 {
     /// <summary>
@@ -47,21 +50,22 @@ public static class SelectionDataLoaderExtensions
             throw new ArgumentNullException(nameof(selector));
         }
 
-        DefaultSelectorBuilder<TValue> context;
-        var branch = dataLoader.Branch(selector.ToString());
-        if (branch.ContextData.TryGetValue(typeof(ISelectorBuilder).FullName!, out var value)
-            && value is DefaultSelectorBuilder<TValue> casted)
-        {
-            context = casted;
-        }
-        else
-        {
-            context = new DefaultSelectorBuilder<TValue>();
-        }
+        var branchKey = selector.ToString();
+        return (ISelectionDataLoader<TKey, TValue>)dataLoader.Branch(branchKey, CreateBranch, selector);
 
-        context.Add(selector);
-        branch.ContextData = branch.ContextData.SetItem(typeof(ISelectorBuilder).FullName!, context);
-        return branch;
+        static IDataLoader CreateBranch(
+            string key,
+            IDataLoader<TKey, TValue> dataLoader,
+            Expression<Func<TValue, TValue>> selector)
+        {
+            var branch =  new SelectionDataLoader<TKey, TValue>(
+                (DataLoaderBase<TKey, TValue>)dataLoader,
+                key);
+            var context = new DefaultSelectorBuilder<TValue>();
+            branch.ContextData = branch.ContextData.SetItem(typeof(ISelectorBuilder).FullName!, context);
+            context.Add(selector);
+            return branch;
+        }
     }
 
     /// <summary>
@@ -208,18 +212,21 @@ public static class SelectionDataLoaderExtensions
         }
 
         var context = (DefaultSelectorBuilder<TValue>)dataLoader.ContextData[typeof(ISelectorBuilder).FullName!]!;
-        context.Add(ExpressionHelpers.Rewrite(includeSelector));
+        context.Add(Rewrite(includeSelector));
         return dataLoader;
     }
 
     /// <summary>
     /// Applies the selector from the DataLoader state to a queryable.
     /// </summary>
-    /// <param name="queryable">
+    /// <param name="query">
     /// The queryable to apply the selector to.
     /// </param>
     /// <param name="builder">
     /// The selector builder.
+    /// </param>
+    /// <param name="key">
+    /// The DataLoader key.
     /// </param>
     /// <typeparam name="T">
     /// The queryable type.
@@ -228,15 +235,16 @@ public static class SelectionDataLoaderExtensions
     /// Returns a selector query on which a key must be applied to fetch the data.
     /// </returns>
     /// <exception cref="ArgumentNullException">
-    /// Throws if <paramref name="queryable"/> is <c>null</c>.
+    /// Throws if <paramref name="query"/> is <c>null</c>.
     /// </exception>
-    public static ISelectorQuery<T> Select<T>(
-        this IQueryable<T> queryable,
-        ISelectorBuilder builder)
+    public static IQueryable<T> Select<T>(
+        this IQueryable<T> query,
+        ISelectorBuilder builder,
+        Expression<Func<T, object?>> key)
     {
-        if (queryable is null)
+        if (query is null)
         {
-            throw new ArgumentNullException(nameof(queryable));
+            throw new ArgumentNullException(nameof(query));
         }
 
         if (builder is null)
@@ -245,7 +253,13 @@ public static class SelectionDataLoaderExtensions
         }
 
         var selector = builder.TryCompile<T>();
-        return new DefaultSelectorQuery<T>(queryable, selector);
+
+        if (selector is not null)
+        {
+            query = query.Select(Combine(selector, Rewrite(key)));
+        }
+
+        return query;
     }
 }
 #endif

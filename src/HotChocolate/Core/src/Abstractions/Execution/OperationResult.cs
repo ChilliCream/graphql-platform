@@ -3,7 +3,7 @@ using HotChocolate.Properties;
 namespace HotChocolate.Execution;
 
 /// <summary>
-/// Represents a query result object.
+/// Represents a operation result object.
 /// </summary>
 public sealed class OperationResult : ExecutionResult, IOperationResult
 {
@@ -145,6 +145,32 @@ public sealed class OperationResult : ExecutionResult, IOperationResult
             errors: Errors,
             extensions: extensions,
             contextData: ContextData,
+            items: Items,
+            incremental: Incremental,
+            label: Label,
+            path: Path,
+            hasNext: HasNext,
+            cleanupTasks: CleanupTasks,
+            isDataSet: IsDataSet,
+            requestIndex: RequestIndex,
+            variableIndex: VariableIndex);
+
+    /// <summary>
+    /// Creates a new <see cref="OperationResult"/> with the specified context data.
+    /// </summary>
+    /// <param name="contextData">
+    /// The context data that shall be added to the result.
+    /// </param>
+    /// <returns>
+    /// Returns a new <see cref="OperationResult"/> that represents the result.
+    /// </returns>
+    public OperationResult WithContextData(
+        IReadOnlyDictionary<string, object?>? contextData)
+        => new OperationResult(
+            data: Data,
+            errors: Errors,
+            extensions: Extensions,
+            contextData: contextData,
             items: Items,
             incremental: Incremental,
             label: Label,

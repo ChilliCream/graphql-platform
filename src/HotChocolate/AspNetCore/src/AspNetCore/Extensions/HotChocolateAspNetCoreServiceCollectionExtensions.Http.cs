@@ -102,14 +102,15 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     {
         services.RemoveAll<IHttpResponseFormatter>();
         services.AddSingleton<IHttpResponseFormatter>(
-            DefaultHttpResponseFormatter.Create(
+            sp => DefaultHttpResponseFormatter.Create(
                 new HttpResponseFormatterOptions
                 {
                     Json = new JsonResultFormatterOptions
                     {
                         Indented = indented,
                     },
-                }));
+                },
+                sp.GetRequiredService<ITimeProvider>()));
         return services;
     }
 
@@ -131,7 +132,10 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
         HttpResponseFormatterOptions options)
     {
         services.RemoveAll<IHttpResponseFormatter>();
-        services.AddSingleton<IHttpResponseFormatter>(DefaultHttpResponseFormatter.Create(options));
+        services.AddSingleton<IHttpResponseFormatter>(
+            sp => DefaultHttpResponseFormatter.Create(
+                options,
+                sp.GetRequiredService<ITimeProvider>()));
         return services;
     }
 

@@ -20,7 +20,7 @@ static class Helpers
         Path.Combine("HotChocolate", "Caching"),
         Path.Combine("HotChocolate", "Diagnostics"),
         Path.Combine("HotChocolate", "Language"),
-        Path.Combine("HotChocolate", "PersistedQueries"),
+        Path.Combine("HotChocolate", "PersistedOperations"),
         Path.Combine("HotChocolate", "Utilities"),
         Path.Combine("HotChocolate", "Data"),
         Path.Combine("HotChocolate", "Marten"),

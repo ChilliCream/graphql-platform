@@ -19,13 +19,15 @@ internal sealed class Operation : IOperation
         string id,
         DocumentNode document,
         OperationDefinitionNode definition,
-        ObjectType rootType)
+        ObjectType rootType,
+        ISchema schema)
     {
         Id = id;
         Document = document;
         Definition = definition;
         RootType = rootType;
         Type = definition.Operation;
+        Schema = schema;
 
         if (definition.Name?.Value is { } name)
         {
@@ -56,6 +58,8 @@ internal sealed class Operation : IOperation
         => _includeConditions;
 
     public IReadOnlyDictionary<string, object?> ContextData => _contextData;
+
+    public ISchema Schema { get; }
 
     public ISelectionSet GetSelectionSet(ISelection selection, IObjectType typeContext)
     {

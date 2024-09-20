@@ -1,6 +1,6 @@
 using System.Collections.Immutable;
+using System.Linq.Expressions;
 using HotChocolate.Pagination.Expressions;
-using Microsoft.EntityFrameworkCore.Query;
 using static HotChocolate.Pagination.Expressions.ExpressionHelpers;
 
 namespace HotChocolate.Pagination;
@@ -36,7 +36,6 @@ public static class PagingQueryableExtensions
         PagingArguments arguments,
         CancellationToken cancellationToken = default)
         => await source.ToPageAsync(arguments, includeTotalCount: false, cancellationToken);
-
 
     /// <summary>
     /// Executes a query with paging and returns the selected page.
@@ -183,36 +182,30 @@ public static class PagingQueryableExtensions
     /// <param name="cancellationToken">
     /// The cancellation token.
     /// </param>
-    /// <typeparam name="T">
-    /// The type of the items in the queryable.
-    /// </typeparam>
     /// <typeparam name="TKey">
     /// The type of the parent key.
     /// </typeparam>
-    /// <typeparam name="TProperty">
-    /// The type of the property that is being paged.
+    /// <typeparam name="TValue">
+    /// The type of the items in the queryable.
     /// </typeparam>
-    /// <returns>
-    /// Returns a dictionary of pages for each parent.
-    /// </returns>
-    /// <exception cref="InvalidOperationException">
-    /// If the result is not a list or an enumerable.
+    /// <returns></returns>
+    /// <exception cref="ArgumentException">
+    /// If the queryable does not have any keys specified.
     /// </exception>
-    public static async ValueTask<Dictionary<PageKey<TKey>, Page<TProperty>>> ToBatchPageAsync<T, TKey, TProperty>(
-        this IIncludableQueryable<T, IOrderedEnumerable<TProperty>> source,
-        Func<T, TKey> keySelector,
+    public static async ValueTask<Dictionary<TKey, Page<TValue>>> ToBatchPageAsync<TKey, TValue>(
+        this IQueryable<TValue> source,
+        Expression<Func<TValue, TKey>> keySelector,
         PagingArguments arguments,
         CancellationToken cancellationToken = default)
         where TKey : notnull
     {
-        if (source == null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
+        var keys = ParseDataSetKeys(source);
 
-        if (keySelector == null)
+        if (keys.Length == 0)
         {
-            throw new ArgumentNullException(nameof(keySelector));
+            throw new ArgumentException(
+                "In order to use cursor pagination, you must specify at least one key using the `OrderBy` method.",
+                nameof(source));
         }
 
         if (arguments.Last is not null && arguments.First is not null)
@@ -222,61 +215,52 @@ public static class PagingQueryableExtensions
                 nameof(arguments));
         }
 
-        var rewriter = new BatchQueryRewriter<TProperty>(arguments);
-        var expression = rewriter.Visit(source.Expression);
-        var list = await source.Provider.CreateQuery<T>(expression).ToListAsync(cancellationToken);
-        var result = new Dictionary<PageKey<TKey>, Page<TProperty>>();
-        var requestedItems = int.MaxValue;
+        // we need to move the ordering into the select expression we are constructing
+        // so that the groupBy will not remove it. The first thing we do here is to extract the order expressions
+        // and to create a new expression that will not contain it anymore.
+        var ordering = ExtractAndRemoveOrder(source.Expression);
 
-        if (arguments.First.HasValue)
+        var forward = arguments.Last is null;
+        var requestedCount = int.MaxValue;
+        var selectExpression =
+            BuildBatchSelectExpression<TKey, TValue>(
+                arguments,
+                keys,
+                ordering.OrderExpressions,
+                ordering.OrderMethods,
+                forward,
+                ref requestedCount);
+        var map = new Dictionary<TKey, Page<TValue>>();
+
+        // we apply our new expression here.
+        source = source.Provider.CreateQuery<TValue>(ordering.Expression);
+
+        await foreach (var item in source
+            .GroupBy(keySelector)
+            .Select(selectExpression)
+            .AsAsyncEnumerable()
+            .WithCancellation(cancellationToken)
+            .ConfigureAwait(false))
         {
-            requestedItems = arguments.First.Value;
-        }
-
-        if (arguments.Last.HasValue)
-        {
-            requestedItems = arguments.Last.Value;
-        }
-
-        foreach (var group in list)
-        {
-            var key = new PageKey<TKey>(keySelector(group), arguments);
-            var builder = ImmutableArray.CreateBuilder<TProperty>();
-
-            switch (rewriter.ResultProperty.GetValue(group))
+            if (item.Items.Count == 0)
             {
-                case IReadOnlyList<TProperty> resultList:
-                    builder.AddRange(resultList);
-
-                    // if we over-fetched we remove the last item.
-                    if (requestedItems < builder.Count)
-                    {
-                        builder.RemoveAt(builder.Count - 1);
-                    }
-
-                    result.Add(key, CreatePage(builder.ToImmutable(), arguments, rewriter.Keys, resultList.Count));
-                    break;
-
-                case IEnumerable<TProperty> resultEnumerable:
-                    builder.AddRange(resultEnumerable);
-                    var fetchCount = builder.Count;
-
-                    // if we over-fetched we remove the last item.
-                    if (requestedItems < fetchCount)
-                    {
-                        builder.RemoveAt(builder.Count - 1);
-                    }
-
-                    result.Add(key, CreatePage(builder.ToImmutable(), arguments, rewriter.Keys, fetchCount));
-                    break;
-
-                default:
-                    throw new InvalidOperationException(
-                        "The result must be a list or an enumerable.");
+                map.Add(item.Key, Page<TValue>.Empty);
+                continue;
             }
+
+            var itemCount = requestedCount > item.Items.Count ? item.Items.Count : requestedCount;
+            var builder = ImmutableArray.CreateBuilder<TValue>(itemCount);
+
+            for (var i = 0; i < itemCount; i++)
+            {
+                builder.Add(item.Items[i]);
+            }
+
+            var page = CreatePage(builder.ToImmutable(), arguments, keys, item.Items.Count);
+            map.Add(item.Key, page);
         }
 
-        return result;
+        return map;
     }
 
     private static Page<T> CreatePage<T>(
@@ -297,7 +281,7 @@ public static class PagingQueryableExtensions
             hasPrevious = true;
         }
 
-        // if we required the last 5 items of a dataset and overfetch by 1
+        // if we required the last 5 items of a dataset and over-fetch by 1
         // than we have a previous page.
         if (arguments.Last is not null && fetchCount > arguments.Last)
         {

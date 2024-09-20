@@ -1,3 +1,0 @@
-﻿SELECT d."Id", d."Bar"
-FROM "Data" AS d
-WHERE NOT (ST_Touches(d."Bar", @__p_0))

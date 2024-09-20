@@ -2607,4 +2607,75 @@ public class SkipTests(ITestOutputHelper output)
     }
 
     #endregion
+
+    #region Special cases
+    [Fact]
+    public async Task Error_On_SubField_Skip_On_Preceding_Field_In_Parent()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              brandById(id: ID!): Brand
+              productById(id: ID!): Product
+            }
+
+            type Product implements Node {
+              id: ID!
+              skippedField: String
+            }
+
+            type Brand implements Node {
+              id: ID!
+              errorField: String @error
+            }
+
+            interface Node {
+              id: ID!
+            }
+            """);
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              productById(id: ID!): Product
+            }
+
+            type Product implements Node {
+              id: ID!
+              brand: Brand!
+            }
+
+            type Brand implements Node {
+              id: ID!
+            }
+
+            interface Node {
+              id: ID!
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = OperationRequestBuilder.New()
+            .SetDocument("""
+                         query Test($skip: Boolean!) {
+                           productById(id: "1") {
+                             skippedField @skip(if: $skip)
+                             brand {
+                               errorField
+                             }
+                           }
+                         }
+                         """)
+            .SetVariableValues(new Dictionary<string, object?> { ["skip"] = true })
+            .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        MatchMarkdownSnapshot(request, result);
+    }
+    #endregion
 }

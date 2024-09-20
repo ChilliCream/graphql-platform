@@ -1,0 +1,145 @@
+# Download_GraphQL_Schema
+
+```text
+Headers:
+ETag: "1-kBEjhe2t+jfqbeZRxnezu0WDQFYAc0qzjLF1RlHs428="
+Cache-Control: public, must-revalidate, max-age=3600
+Content-Type: application/graphql; charset=utf-8
+Content-Disposition: attachment; filename="schema.graphql"
+Last-Modified: Fri, 01 Jan 2021 00:00:00 GMT
+Content-Length: 5070
+-------------------------->
+Status Code: OK
+-------------------------->
+schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
+
+interface Character {
+  id: ID!
+  name: String!
+  friends("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FriendsConnection
+  appearsIn: [Episode]
+  traits: JSON
+  height(unit: Unit): Float
+}
+
+type Droid implements Character {
+  id: ID!
+  name: String!
+  appearsIn: [Episode]
+  friends("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FriendsConnection
+  height(unit: Unit): Float
+  primaryFunction: String
+  traits: JSON
+}
+
+"A connection to a list of items."
+type FriendsConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [FriendsEdge!]
+  "A flattened list of the nodes."
+  nodes: [Character]
+}
+
+"An edge in a connection."
+type FriendsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: Character
+}
+
+type Human implements Character {
+  id: ID!
+  name: String!
+  appearsIn: [Episode]
+  friends("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FriendsConnection
+  otherHuman: Human
+  height(unit: Unit): Float
+  homePlanet: String
+  traits: JSON
+}
+
+type Mutation {
+  createReview(episode: Episode! review: ReviewInput!): Review!
+  complete(episode: Episode!): Boolean!
+}
+
+"Information about pagination in a connection."
+type PageInfo {
+  "Indicates whether more edges exist following the set defined by the clients arguments."
+  hasNextPage: Boolean!
+  "Indicates whether more edges exist prior the set defined by the clients arguments."
+  hasPreviousPage: Boolean!
+  "When paginating backwards, the cursor to continue."
+  startCursor: String
+  "When paginating forwards, the cursor to continue."
+  endCursor: String
+}
+
+type Query {
+  hero(episode: Episode! = NEW_HOPE): Character
+  heroByTraits(traits: JSON!): Character
+  heroes(episodes: [Episode!]!): [Character!]
+  character(characterIds: [String!]!): [Character!]!
+  search(text: String!): [SearchResult]
+  human(id: String!): Human
+  droid(id: String!): Droid
+  time: Long!
+  evict: Boolean!
+  wait(m: Int!): Boolean!
+  someDeprecatedField(deprecatedArg: String! = "foo" @deprecated(reason: "use something else")): String! @deprecated(reason: "use something else")
+}
+
+type Review {
+  commentary: String
+  stars: Int!
+}
+
+type Starship {
+  id: ID!
+  name: String!
+  length(unit: Unit): Float!
+}
+
+type Subscription {
+  onReview(episode: Episode!): Review!
+  onNext: String!
+  onException: String!
+  delay(delay: Int! count: Int!): String!
+}
+
+union SearchResult = Starship | Human | Droid
+
+input ReviewInput {
+  stars: Int!
+  commentary: String
+}
+
+enum Episode {
+  NEW_HOPE
+  EMPIRE
+  JEDI
+}
+
+enum Unit {
+  FOOT
+  METERS
+}
+
+"The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."
+directive @defer("If this argument label has a value other than null, it will be passed on to the result of this defer directive. This label is intended to give client applications a way to identify to which fragment a deferred result belongs to." label: String "Deferred when true." if: Boolean) on FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+"The `@stream` directive may be provided for a field of `List` type so that the backend can leverage technology such as asynchronous iterators to provide a partial list in the initial response, and additional list items in subsequent responses. `@include` and `@skip` take precedence over `@stream`."
+directive @stream("If this argument label has a value other than null, it will be passed on to the result of this stream directive. This label is intended to give client applications a way to identify to which fragment a streamed result belongs to." label: String "The initial elements that shall be send down to the consumer." initialCount: Int! = 0 "Streamed when true." if: Boolean) on FIELD
+
+scalar JSON
+
+"The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
+scalar Long
+```

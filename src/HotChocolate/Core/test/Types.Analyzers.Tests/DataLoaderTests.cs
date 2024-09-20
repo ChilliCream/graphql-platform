@@ -333,4 +333,29 @@ public class DataLoaderTests
             }
             """).MatchMarkdownAsync();
     }
+
+    [Fact]
+    public async Task GenerateSource_BatchDataLoader_With_PagingArguments_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal static class TestClass
+            {
+                [DataLoader]
+                public static Task<IDictionary<int, string>> GetEntityByIdAsync(
+                    IReadOnlyList<int> entityIds,
+                    HotChocolate.Pagination.PagingArguments pagingArgs,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+            """).MatchMarkdownAsync();
+    }
 }

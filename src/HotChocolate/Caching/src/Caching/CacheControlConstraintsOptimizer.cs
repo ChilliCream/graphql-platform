@@ -4,6 +4,7 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
 using HotChocolate.Utilities;
+using Microsoft.Net.Http.Headers;
 using IHasDirectives = HotChocolate.Types.IHasDirectives;
 
 namespace HotChocolate.Caching;
@@ -13,10 +14,6 @@ namespace HotChocolate.Caching;
 /// </summary>
 internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
 {
-    private const string _cacheControlValueTemplate = "{0}, max-age={1}";
-    private const string _cacheControlPrivateScope = "private";
-    private const string _cacheControlPublicScope = "public";
-
     public void OptimizeOperation(OperationOptimizerContext context)
     {
         if (context.Definition.Operation is not OperationType.Query ||
@@ -31,17 +28,11 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
 
         if (constraints.MaxAge is not null)
         {
-            var cacheType = constraints.Scope switch
+            var headerValue = new CacheControlHeaderValue
             {
-                CacheControlScope.Private => _cacheControlPrivateScope,
-                CacheControlScope.Public => _cacheControlPublicScope,
-                _ => throw ThrowHelper.UnexpectedCacheControlScopeValue(constraints.Scope),
+                Private = constraints.Scope == CacheControlScope.Private,
+                MaxAge = TimeSpan.FromSeconds(constraints.MaxAge.Value),
             };
-
-            var headerValue = string.Format(
-                _cacheControlValueTemplate,
-                cacheType,
-                constraints.MaxAge);
 
             context.ContextData.Add(
                 WellKnownContextData.CacheControlConstraints,

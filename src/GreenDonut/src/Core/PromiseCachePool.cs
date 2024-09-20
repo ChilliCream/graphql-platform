@@ -24,7 +24,7 @@ public static class PromiseCachePool
     /// <returns>
     /// Returns the newly created instance of <see cref="DefaultObjectPool{TaskCache}"/>.
     /// </returns>
-    public static ObjectPool<PromiseCache> Create(int cacheSize = 2560, int? maximumRetained = null)
+    public static ObjectPool<PromiseCache> Create(int cacheSize = 100_000, int? maximumRetained = null)
         => new DefaultObjectPool<PromiseCache>(
             new PromiseCachePooledObjectPolicy(cacheSize),
             maximumRetained ?? Environment.ProcessorCount * 2);
@@ -41,6 +41,6 @@ public static class PromiseCachePool
     /// <returns>
     /// Returns the newly created instance of <see cref="DefaultObjectPool{TaskCache}"/>.
     /// </returns>
-    public static ObjectPool<PromiseCache> Create(ObjectPoolProvider provider, int cacheSize = 2560)
+    public static ObjectPool<PromiseCache> Create(ObjectPoolProvider provider, int cacheSize = 100_000)
         => provider.Create(new PromiseCachePooledObjectPolicy(cacheSize));
 }

@@ -1,15 +1,11 @@
 # BatchPaging_First_5
 
-## Brand 1
+## 1
 
 ```json
 {
-  "HasNextPage": true,
-  "HasPreviousPage": false,
-  "First": 1,
-  "FirstCursor": "MQ==",
-  "Last": 2,
-  "LastCursor": "Mg==",
+  "First": "UHJvZHVjdCAwLTA6MQ==",
+  "Last": "UHJvZHVjdCAwLTE6Mg==",
   "Items": [
     {
       "Id": 1,
@@ -45,16 +41,12 @@
 }
 ```
 
-## Brand 2
+## 2
 
 ```json
 {
-  "HasNextPage": true,
-  "HasPreviousPage": false,
-  "First": 101,
-  "FirstCursor": "MTAx",
-  "Last": 102,
-  "LastCursor": "MTAy",
+  "First": "UHJvZHVjdCAxLTA6MTAx",
+  "Last": "UHJvZHVjdCAxLTE6MTAy",
   "Items": [
     {
       "Id": 101,
@@ -90,16 +82,12 @@
 }
 ```
 
-## Brand 3
+## 3
 
 ```json
 {
-  "HasNextPage": true,
-  "HasPreviousPage": false,
-  "First": 201,
-  "FirstCursor": "MjAx",
-  "Last": 202,
-  "LastCursor": "MjAy",
+  "First": "UHJvZHVjdCAyLTA6MjAx",
+  "Last": "UHJvZHVjdCAyLTE6MjAy",
   "Items": [
     {
       "Id": 201,

@@ -174,7 +174,7 @@ public class QueryableFilterVisitorObjectTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddResult(res1, "12and13")
             .AddResult(res2, "13and14")
             .AddResult(res3, "nullAnd14")
@@ -248,7 +248,7 @@ public class QueryableFilterVisitorObjectTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddResult(res1, "12and13")
             .AddResult(res2, "13and14")
             .AddResult(res3, "13andNull")
@@ -388,7 +388,7 @@ public class QueryableFilterVisitorObjectTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddResult(res1, "BarAndFoo")
             .AddResult(res2, "FOO")
             .AddResult(res3, "nullAndFoo")
@@ -463,7 +463,7 @@ public class QueryableFilterVisitorObjectTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddResult(res1, "BarAndFoo")
             .AddResult(res2, "FOO")
             .AddResult(res3, "nullAndFoo")
@@ -537,7 +537,7 @@ public class QueryableFilterVisitorObjectTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddResult(res1, "testatestAndtestb")
             .AddResult(res2, "testbtestAndNull")
             .AddResult(res3, "testatest")
@@ -577,7 +577,7 @@ public class QueryableFilterVisitorObjectTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddResult(res1, "a")
             .AddResult(res2, "b")
             .AddResult(res3, "null")
@@ -614,7 +614,7 @@ public class QueryableFilterVisitorObjectTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddResult(res1, "false")
             .AddResult(res2, "true")
             .AddResult(res3, "null")

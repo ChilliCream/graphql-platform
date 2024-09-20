@@ -7,6 +7,7 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.Hosting;
 using static HotChocolate.AspNetCore.ServerDefaults;
 
 // ReSharper disable once CheckNamespace
@@ -43,11 +44,9 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
 
         services.AddGraphQLCore();
         services.TryAddSingleton<IHttpResponseFormatter>(
-            DefaultHttpResponseFormatter.Create(
-                new HttpResponseFormatterOptions
-                {
-                    HttpTransportVersion = HttpTransportVersion.Latest,
-                }));
+            sp => DefaultHttpResponseFormatter.Create(
+                new HttpResponseFormatterOptions { HttpTransportVersion = HttpTransportVersion.Latest },
+                sp.GetRequiredService<ITimeProvider>()));
         services.TryAddSingleton<IHttpRequestParser>(
             sp => new DefaultHttpRequestParser(
                 sp.GetRequiredService<IDocumentCache>(),
@@ -116,6 +115,12 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
         if (!disableCostAnalyzer)
         {
             builder.AddCostAnalyzer();
+            builder.AddIntrospectionAllowedRule(
+                (sp, _) =>
+                {
+                    var environment = sp.GetService<IHostEnvironment>();
+                    return (environment?.IsDevelopment() ?? true) == false;
+                });
         }
 
         return builder;

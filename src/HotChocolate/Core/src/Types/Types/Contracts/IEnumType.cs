@@ -12,7 +12,7 @@ public interface IEnumType : ILeafType
     /// <summary>
     /// Gets the possible enum values.
     /// </summary>
-    IReadOnlyCollection<IEnumValue> Values { get; }
+    IReadOnlyList<IEnumValue> Values { get; }
 
     /// <summary>
     /// Tries to get the <paramref name="value"/> for

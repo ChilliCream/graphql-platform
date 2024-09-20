@@ -100,7 +100,10 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
                     .UseMiddleware<HttpMultipartMiddleware>(schemaNameOrDefault)
                     .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault)
                     .UseBananaCakePop(path)
-                    .UseMiddleware<HttpGetSchemaMiddleware>(schemaNameOrDefault)
+                    .UseMiddleware<HttpGetSchemaMiddleware>(
+                        schemaNameOrDefault,
+                        path,
+                        MiddlewareRoutingType.Integrated)
                     .Compile(sp);
 
             return new DefaultGraphQLRequestExecutor(pipeline, options);

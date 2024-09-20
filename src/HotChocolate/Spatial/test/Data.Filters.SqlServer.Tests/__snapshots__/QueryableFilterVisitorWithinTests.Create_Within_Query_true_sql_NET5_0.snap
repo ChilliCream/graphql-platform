@@ -1,3 +1,0 @@
-﻿SELECT d."Id", d."Bar"
-FROM "Data" AS d
-WHERE ST_Within(d."Bar", @__p_0)
