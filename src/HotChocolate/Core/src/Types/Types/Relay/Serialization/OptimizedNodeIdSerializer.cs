@@ -28,19 +28,25 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
     private readonly INodeIdValueSerializer[] _serializers;
     private readonly int _maxIdLength;
     private readonly bool _outputNewIdFormat;
+    private readonly bool _urlSafeBase64;
 
     internal OptimizedNodeIdSerializer(
         IEnumerable<BoundNodeIdValueSerializer> boundSerializers,
         INodeIdValueSerializer[] allSerializers,
         int maxIdLength = 1024,
-        bool outputNewIdFormat = true)
+        bool outputNewIdFormat = true,
+        bool urlSafeBase64 = true)
     {
 #if NET8_0_OR_GREATER
         _stringSerializerMap =
-            boundSerializers.ToFrozenDictionary(t => t.TypeName, t => new Serializer(t.TypeName, t.Serializer, outputNewIdFormat));
+            boundSerializers.ToFrozenDictionary(
+                t => t.TypeName,
+                t => new Serializer(t.TypeName, t.Serializer, outputNewIdFormat, _urlSafeBase64));
 #else
         _stringSerializerMap =
-            boundSerializers.ToDictionary(t => t.TypeName, t => new Serializer(t.TypeName, t.Serializer, outputNewIdFormat));
+            boundSerializers.ToDictionary(
+                t => t.TypeName,
+                t => new Serializer(t.TypeName, t.Serializer, outputNewIdFormat, _urlSafeBase64));
 #endif
         _serializers = allSerializers;
         _spanSerializerMap = new SpanSerializerMap();
@@ -51,6 +57,7 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
 
         _maxIdLength = maxIdLength;
         _outputNewIdFormat = outputNewIdFormat;
+        _urlSafeBase64 = urlSafeBase64;
     }
 
     public string Format(string typeName, object internalId)
@@ -95,6 +102,22 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
             : rentedBuffer = ArrayPool<byte>.Shared.Rent(expectedSize);
 
         Utf8GraphQLParser.ConvertToBytes(formattedId, ref span);
+
+        if (_urlSafeBase64)
+        {
+            for(var i = 0; i < span.Length; i++)
+            {
+                if (span[i] == (byte)'-')
+                {
+                    span[i] = (byte)'+';
+                }
+                else if (span[i] == (byte)'_')
+                {
+                    span[i] = (byte)'/';
+                }
+            }
+        }
+
         Base64.DecodeFromUtf8InPlace(span, out var written);
         span = span.Slice(0, written);
 
@@ -149,6 +172,22 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
             : rentedBuffer = ArrayPool<byte>.Shared.Rent(expectedSize);
 
         Utf8GraphQLParser.ConvertToBytes(formattedId, ref span);
+
+        if (_urlSafeBase64)
+        {
+            for(var i = 0; i < span.Length; i++)
+            {
+                if (span[i] == (byte)'-')
+                {
+                    span[i] = (byte)'+';
+                }
+                else if (span[i] == (byte)'_')
+                {
+                    span[i] = (byte)'/';
+                }
+            }
+        }
+
         Base64.DecodeFromUtf8InPlace(span, out var written);
         span = span.Slice(0, written);
 
@@ -180,7 +219,11 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
             {
                 if (!_spanSerializerMap.TryGetValue(typeName, out serializer))
                 {
-                    serializer = new Serializer(ToString(typeName), valueSerializer, _outputNewIdFormat);
+                    serializer = new Serializer(
+                        ToString(typeName),
+                        valueSerializer,
+                        _outputNewIdFormat,
+                        _urlSafeBase64);
                     _spanSerializerMap.Add(serializer.FormattedTypeName, serializer);
                 }
             }
@@ -278,7 +321,11 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
         }
     }
 
-    private sealed class Serializer(string typeName, INodeIdValueSerializer valueSerializer, bool outputNewIdFormat)
+    private sealed class Serializer(
+        string typeName,
+        INodeIdValueSerializer valueSerializer,
+        bool outputNewIdFormat,
+        bool urlSafeBase64)
     {
         private readonly byte[] _formattedTypeName = _utf8.GetBytes(typeName);
 
@@ -341,7 +388,24 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
                     rentedBuffer = newBuffer;
                 }
 
-                var formattedId = OptimizedNodeIdSerializer.ToString(span.Slice(0, written));
+                span = span.Slice(0, written);
+
+                if (urlSafeBase64)
+                {
+                    for (var i = 0; i < span.Length; i++)
+                    {
+                        if (span[i] == '+')
+                        {
+                            span[i] = (byte)'-';
+                        }
+                        else if (span[i] == '/')
+                        {
+                            span[i] = (byte)'_';
+                        }
+                    }
+                }
+
+                var formattedId = OptimizedNodeIdSerializer.ToString(span);
 
                 Clear(rentedBuffer);
                 return formattedId;
