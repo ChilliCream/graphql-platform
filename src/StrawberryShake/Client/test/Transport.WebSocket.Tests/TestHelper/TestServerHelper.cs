@@ -35,6 +35,7 @@ public static class TestServerHelper
 
                             builder
                                 .AddStarWarsTypes()
+                                .RemoveIntrospectionAllowedRule()
                                 .AddStarWarsRepositories()
                                 .AddInMemorySubscriptions()
                                 .ModifyOptions(

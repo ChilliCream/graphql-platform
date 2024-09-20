@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace GreenDonut;
 
 public class DataLoader<TKey, TValue>(
@@ -12,9 +10,10 @@ public class DataLoader<TKey, TValue>(
     private readonly FetchDataDelegate<TKey, TValue> _fetch =
         fetch ?? throw new ArgumentNullException(nameof(fetch));
 
-    protected override ValueTask FetchAsync(
+    protected internal override ValueTask FetchAsync(
         IReadOnlyList<TKey> keys,
-        Memory<Result<TValue>> results,
+        Memory<Result<TValue?>> results,
+        DataLoaderFetchContext<TValue> context,
         CancellationToken cancellationToken)
         => _fetch(keys, results, cancellationToken);
 }

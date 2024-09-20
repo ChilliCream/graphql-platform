@@ -141,6 +141,27 @@ internal sealed class LegacyNodeIdSerializer : INodeIdSerializer
         return Parse(formattedId);
     }
 
+    public static byte GetLegacyValueCode(object value)
+    {
+        switch (value)
+        {
+            case Guid g:
+                return Guid;
+
+            case short s:
+                return Short;
+
+            case int i:
+                return Int;
+
+            case long l:
+                return Long;
+
+            default:
+                return Default;
+        }
+    }
+
     private static NodeId Parse(string formattedId)
     {
         if (formattedId is null)

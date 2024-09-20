@@ -19,7 +19,6 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
     private List<FieldMiddlewareDefinition>? _middlewareDefinitions;
     private List<ResultFormatterDefinition>? _resultConverters;
     private List<IParameterExpressionBuilder>? _expressionBuilders;
-    private List<object>? _customSettings;
     private bool _middlewareDefinitionsCleaned;
     private bool _resultConvertersCleaned;
 
@@ -160,13 +159,6 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
     }
 
     /// <summary>
-    /// A list of custom settings objects that can be used in the type interceptors.
-    /// Custom settings are not copied to the actual type system object.
-    /// </summary>
-    public IList<object> CustomSettings
-        => _customSettings ??= [];
-
-    /// <summary>
     /// Defines if this field configuration represents an introspection field.
     /// </summary>
     public bool IsIntrospectionField
@@ -273,20 +265,6 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
         return _expressionBuilders;
     }
 
-    /// <summary>
-    /// A list of custom settings objects that can be user in the type interceptors.
-    /// Custom settings are not copied to the actual type system object.
-    /// </summary>
-    internal IReadOnlyList<object> GetCustomSettings()
-    {
-        if (_customSettings is null)
-        {
-            return Array.Empty<object>();
-        }
-
-        return _customSettings;
-    }
-
     private FieldResolverDelegates GetResolvers()
         => new(Resolver, PureResolver);
 
@@ -309,11 +287,6 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
         if (_expressionBuilders is { Count: > 0, })
         {
             target._expressionBuilders = [.._expressionBuilders,];
-        }
-
-        if (_customSettings is { Count: > 0, })
-        {
-            target._customSettings = [.._customSettings,];
         }
 
         target.SourceType = SourceType;
@@ -356,12 +329,6 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
         {
             target._expressionBuilders ??= [];
             target._expressionBuilders.AddRange(_expressionBuilders);
-        }
-
-        if (_customSettings is { Count: > 0, })
-        {
-            target._customSettings ??= [];
-            target._customSettings.AddRange(_customSettings);
         }
 
         if (!IsParallelExecutable)
@@ -513,7 +480,4 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
             }
         }
     }
-
-    internal bool CustomSettingExists(object value)
-        => _customSettings is not null && _customSettings.Contains(value);
 }

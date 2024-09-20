@@ -15,6 +15,11 @@ public interface ISelectionVariants
     int Id { get; }
 
     /// <summary>
+    /// Gets the operation that declares this variant.
+    /// </summary>
+    IOperation DeclaringOperation { get; }
+
+    /// <summary>
     /// Gets all the possible return types of the field to which this variant belongs to.
     /// </summary>
     IEnumerable<IObjectType> GetPossibleTypes();

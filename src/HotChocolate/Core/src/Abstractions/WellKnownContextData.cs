@@ -16,20 +16,15 @@ public static class WellKnownContextData
     public const string Subscription = "HotChocolate.Execution.Subscription";
 
     /// <summary>
-    /// The key for storing the enable tracing flag to the context data.
-    /// </summary>
-    public const string EnableTracing = "HotChocolate.Execution.EnableTracing";
-
-    /// <summary>
-    /// The key for setting a flag the a document was saved to the persisted query storage.
+    /// The key for setting a flag the a document was saved to the persisted operation storage.
     /// </summary>
     public const string DocumentSaved = "HotChocolate.Execution.DocumentSaved";
 
     /// <summary>
-    /// The key that specifies that the current context allows standard queries
+    /// The key that specifies that the current context allows standard operations
     /// that are not known to the server.
     /// </summary>
-    public const string NonPersistedQueryAllowed = "HotChocolate.Execution.NonPersistedQueryAllowed";
+    public const string NonPersistedOperationAllowed = "HotChocolate.Execution.NonPersistedOperationAllowed";
 
     /// <summary>
     /// The key for setting a flag that the execution had document validation errors.
@@ -56,21 +51,6 @@ public static class WellKnownContextData
     /// The key for setting a message that is being used when introspection is not allowed.
     /// </summary>
     public const string IntrospectionMessage = "HotChocolate.Execution.Introspection.Message";
-
-    /// <summary>
-    /// Signals that the complexity analysis shall be skipped.
-    /// </summary>
-    public const string SkipComplexityAnalysis = "HotChocolate.Execution.NoComplexityAnalysis";
-
-    /// <summary>
-    /// The key for setting the operation complexity.
-    /// </summary>
-    public const string OperationComplexity = "HotChocolate.Execution.OperationComplexity";
-
-    /// <summary>
-    /// The key for setting the maximum operation complexity.
-    /// </summary>
-    public const string MaximumAllowedComplexity = "HotChocolate.Execution.AllowedComplexity";
 
     /// <summary>
     /// Includes the query plan into the response.
@@ -230,12 +210,6 @@ public static class WellKnownContextData
     public const string SkipDepthAnalysis = "HotChocolate.Execution.SkipDepthAnalysis";
 
     /// <summary>
-    /// The key of the marker setting that a field on the mutation type represents
-    /// the query field.
-    /// </summary>
-    public const string MutationQueryField = "HotChocolate.Relay.Mutations.QueryField";
-
-    /// <summary>
     /// The key to the name of the data field when using the mutation convention.
     /// </summary>
     public const string MutationConventionDataField = "HotChocolate.Types.Mutations.Conventions.DataField";
@@ -334,4 +308,24 @@ public static class WellKnownContextData
     /// The key to set the flag that only the cost should be validated and the request should not be executed.
     /// </summary>
     public const string ValidateCost = "HotChocolate.CostAnalysis.ValidateCost";
+
+    /// <summary>
+    /// The key to access the paging observers stored on the local resolver state.
+    /// </summary>
+    public const string PagingObserver = "HotChocolate.Types.PagingObserver";
+
+    /// <summary>
+    /// The key to access the requirements syntax on an object field definition.
+    /// </summary>
+    public const string FieldRequirementsSyntax = "HotChocolate.Types.ObjectField.Requirements.Syntax";
+
+    /// <summary>
+    /// The key to access the requirements entity type on an object field definition.
+    /// </summary>
+    public const string FieldRequirementsEntity = "HotChocolate.Types.ObjectField.Requirements.EntityType";
+
+    /// <summary>
+    /// The key to access the compiled requirements.
+    /// </summary>
+    public const string FieldRequirements = "HotChocolate.Types.ObjectField.Requirements";
 }

@@ -85,7 +85,7 @@ public class IntrospectionRuleTests
                     name
                 }
             }",
-            new KeyValuePair<string, object>[]
+            new KeyValuePair<string, object?>[]
             {
                 new(WellKnownContextData.IntrospectionAllowed, null),
             });
@@ -101,7 +101,7 @@ public class IntrospectionRuleTests
                 {
                     __type(name: ""foo"")
                 }",
-            new KeyValuePair<string, object>[]
+            new KeyValuePair<string, object?>[]
             {
                 new(WellKnownContextData.IntrospectionAllowed, null),
             });
@@ -110,7 +110,7 @@ public class IntrospectionRuleTests
     private ISchema CreateSchema()
     {
         return SchemaBuilder.New()
-            .AddDocumentFromString(FileResource.Open("CostSchema.graphql"))
+            .AddDocumentFromString(FileResource.Open("IntrospectionSchema.graphql"))
             .Use(_ => _ => default)
             .Create();
     }

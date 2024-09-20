@@ -546,6 +546,52 @@ namespace HotChocolate.Types.Pagination
         }
 
         [Fact]
+        public async Task ExtendedTypeRef_Default_Items()
+        {
+            Snapshot.FullName();
+
+            var executor =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<QueryType>()
+                    .Services
+                    .BuildServiceProvider()
+                    .GetRequestExecutorAsync();
+
+            await executor
+                .ExecuteAsync(@"
+                {
+                    extendedTypeRef {
+                        items
+                    }
+                }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task ExtendedTypeRefNested_Default_Items()
+        {
+            Snapshot.FullName();
+
+            var executor =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<QueryType>()
+                    .Services
+                    .BuildServiceProvider()
+                    .GetRequestExecutorAsync();
+
+            await executor
+                .ExecuteAsync(@"
+                {
+                    extendedTypeRefNested {
+                        items
+                    }
+                }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
         public async Task Interface_With_Paging_Field()
         {
             Snapshot.FullName();
@@ -659,6 +705,16 @@ namespace HotChocolate.Types.Pagination
                     .Name("nestedObjectList")
                     .UseOffsetPaging(
                         options: new PagingOptions { MaxPageSize = 2, IncludeTotalCount = true, });
+
+                descriptor
+                    .Field("extendedTypeRef")
+                    .Resolve(_ => new List<string>(["one", "two"]))
+                    .UseOffsetPaging();
+
+                descriptor
+                    .Field("extendedTypeRefNested")
+                    .Resolve(_ => new List<List<string>>([["one", "two"]]))
+                    .UseOffsetPaging();
             }
         }
 
@@ -799,6 +855,9 @@ namespace HotChocolate.Types.Pagination
 
         ValueTask<object?> IExecutable.SingleOrDefaultAsync(CancellationToken cancellationToken)
             => new(source.SingleOrDefault());
+
+        public ValueTask<int> CountAsync(CancellationToken cancellationToken = default)
+            => new(source.Count());
 
         public ValueTask<T?> SingleOrDefaultAsync(CancellationToken cancellationToken)
             => new(source.SingleOrDefault());

@@ -19,7 +19,7 @@ public sealed class DataLoaderOptions
     /// DataLoader will use the default cache implementation.
     /// The default value is set to <c>null</c>.
     /// </summary>
-    public ITaskCache? Cache { get; set; }
+    public IPromiseCache? Cache { get; set; }
 
     /// <summary>
     /// Gets the cancellation token that shall be used for dispatch tasks.

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
@@ -32,10 +33,10 @@ public class RequestExecutorBuilderExtensionsTypeDiscoveryTests
         public override bool TryInferType(
             TypeReference typeReference,
             TypeDiscoveryInfo typeReferenceInfo,
-            out TypeReference[] schemaTypeRefs)
+            [NotNullWhen(true)] out TypeReference[]? schemaTypeRefs)
         {
             schemaTypeRefs = null;
-            return true;
+            return false;
         }
     }
 }

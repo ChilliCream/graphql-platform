@@ -126,7 +126,7 @@ public class QueryableFilterVisitorBooleanTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddResult(res1, "true")
             .AddResult(res2, "false")
             .AddResult(res3, "null")

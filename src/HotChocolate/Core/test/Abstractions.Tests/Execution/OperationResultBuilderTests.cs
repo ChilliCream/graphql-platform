@@ -22,7 +22,7 @@ public class OperationResultBuilderTests
         var builder = new OperationResultBuilder();
 
         // act
-        builder.SetData(new Dictionary<string, object> { { "a", "b" }, });
+        builder.SetData(new Dictionary<string, object?> { { "a", "b" }, });
 
         // assert
         builder.Build().MatchSnapshot();
@@ -42,15 +42,15 @@ public class OperationResultBuilderTests
     }
 
     [Fact]
-    public void ExpectQueryResult()
+    public void ExpectOperationResult()
     {
         // arrange
         IExecutionResult result = OperationResultBuilder.New()
-            .SetData(new Dictionary<string, object> { { "a", "b" }, })
+            .SetData(new Dictionary<string, object?> { { "a", "b" }, })
             .Build();
 
         // act
-        var queryResult = result.ExpectQueryResult();
+        var queryResult = result.ExpectOperationResult();
 
         // assert
         Assert.NotNull(queryResult);
@@ -61,7 +61,7 @@ public class OperationResultBuilderTests
     {
         // arrange
         IExecutionResult result = OperationResultBuilder.New()
-            .SetData(new Dictionary<string, object> { { "a", "b" }, })
+            .SetData(new Dictionary<string, object?> { { "a", "b" }, })
             .Build();
 
         // act

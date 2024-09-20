@@ -35,6 +35,7 @@
     <InternalsVisibleTo Include="HotChocolate.Data" />
     <InternalsVisibleTo Include="HotChocolate.Execution.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Execution" />
+    <InternalsVisibleTo Include="HotChocolate.Fetching" />
     <InternalsVisibleTo Include="HotChocolate.Fusion" />
     <InternalsVisibleTo Include="HotChocolate.Types.CursorPagination" />
     <InternalsVisibleTo Include="HotChocolate.Types.Errors" />
@@ -60,6 +61,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\GreenDonut\src\Core\GreenDonut.csproj" />
     <ProjectReference Include="..\..\..\Utilities\src\Utilities\HotChocolate.Utilities.csproj" />
     <ProjectReference Include="..\Abstractions\HotChocolate.Abstractions.csproj" />
     <ProjectReference Include="..\Features\HotChocolate.Features.csproj" />

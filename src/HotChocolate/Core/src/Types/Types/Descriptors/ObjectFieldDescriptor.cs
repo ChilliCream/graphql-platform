@@ -9,6 +9,7 @@ using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static System.Reflection.BindingFlags;
 using static HotChocolate.Properties.TypeResources;
+using static HotChocolate.WellKnownContextData;
 
 #nullable enable
 
@@ -213,6 +214,24 @@ public class ObjectFieldDescriptor
                     definition.Member,
                     _parameterInfos,
                     definition.GetParameterExpressionBuilders());
+
+                foreach (var parameter in _parameterInfos)
+                {
+                    if (!parameter.IsDefined(typeof(ParentAttribute)))
+                    {
+                        continue;
+                    }
+
+                    var requirements = parameter.GetCustomAttribute<ParentAttribute>()?.Requires;
+                    if (!(requirements?.Length > 0))
+                    {
+                        continue;
+                    }
+
+                    Definition.Flags |= FieldFlags.WithRequirements;
+                    Definition.ContextData[FieldRequirementsSyntax] = requirements;
+                    Definition.ContextData[FieldRequirementsEntity] = parameter.ParameterType;
+                }
             }
 
             _argumentsInitialized = true;

@@ -3,7 +3,6 @@
   <PropertyGroup>
     <RootNamespace>HotChocolate.Types.Pagination</RootNamespace>
     <NoWarn>$(NoWarn);CS8632</NoWarn>
-    <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

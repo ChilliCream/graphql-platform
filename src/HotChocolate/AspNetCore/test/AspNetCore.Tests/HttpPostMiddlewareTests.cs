@@ -79,21 +79,6 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
         result.MatchSnapshot();
     }
 
-    [Fact(Skip = "We are currently reworking the query plans.")]
-    public async Task Include_Query_Plan()
-    {
-        // arrange
-        var server = CreateStarWarsServer();
-
-        // act
-        var result = await server.PostAsync(
-            new ClientQueryRequest { Query = "{ __typename }", },
-            includeQueryPlan: true);
-
-        // assert
-        result.MatchSnapshot();
-    }
-
     [Fact]
     public async Task Serialize_Payload_With_Whitespaces()
     {
@@ -987,7 +972,13 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
         var server = CreateStarWarsServer(
             configureServices: s => s.AddHttpResponseFormatter(
                 _ => new DefaultHttpResponseFormatter(
-                    new() { Json = new() { NullIgnoreCondition = Fields, }, })));
+                    new HttpResponseFormatterOptions
+                    {
+                        Json = new JsonResultFormatterOptions
+                        {
+                            NullIgnoreCondition = Fields,
+                        }
+                    })));
         var client = server.CreateClient();
 
         // act

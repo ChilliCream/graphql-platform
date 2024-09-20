@@ -52,13 +52,13 @@ public class OperationRequestBuilderTests
     [InlineData("")]
     [InlineData(null)]
     [Theory]
-    public void SetQuery_NullOrEmpty_ArgumentException(string query)
+    public void SetQuery_NullOrEmpty_ArgumentException(string? query)
     {
         // arrange
         // act
         void Action() =>
             OperationRequestBuilder.New()
-                .SetDocument(query)
+                .SetDocument(query!)
                 .Build();
 
         // assert
@@ -75,7 +75,7 @@ public class OperationRequestBuilderTests
         var request =
             OperationRequestBuilder.New()
                 .SetDocument("{ foo }")
-                .SetVariableValues(new Dictionary<string, object> { ["one"] = "bar", })
+                .SetVariableValues(new Dictionary<string, object?> { ["one"] = "bar", })
                 .Build();
 
         // assert
@@ -91,7 +91,7 @@ public class OperationRequestBuilderTests
         var request =
             OperationRequestBuilder.New()
                 .SetDocument("{ foo }")
-                .SetVariableValues(new Dictionary<string, object> { ["one"] = "bar", })
+                .SetVariableValues(new Dictionary<string, object?> { ["one"] = "bar", })
                 .SetVariableValues(null)
                 .Build();
 
@@ -127,7 +127,7 @@ public class OperationRequestBuilderTests
                 .AddGlobalState("one", "foo")
                 .AddGlobalState("two", "bar")
                 .SetGlobalState(
-                    new Dictionary<string, object>
+                    new Dictionary<string, object?>
                     {
                         { "three", "baz" },
                     })
@@ -268,7 +268,7 @@ public class OperationRequestBuilderTests
                 .SetDocument("{ foo }")
                 .SetOperationName("bar")
                 .AddGlobalState("one", "foo")
-                .SetVariableValues(new Dictionary<string, object> { { "two", "bar" }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "two", "bar" }, })
                 .SetServices(new DictionaryServiceProvider(service.GetType(), service))
                 .Build();
 

@@ -72,4 +72,10 @@ internal static class ErrorHelper
             ErrorBuilder.New()
                 .SetMessage("Invalid query id format.")
                 .Build());
+
+    public static IExecutionResult OperationNameRequired()
+        => OperationResultBuilder.CreateError(
+            ErrorBuilder.New()
+                .SetMessage("The operation name is required.")
+                .Build());
 }

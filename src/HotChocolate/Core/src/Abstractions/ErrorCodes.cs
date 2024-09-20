@@ -54,14 +54,14 @@ public static class ErrorCodes
         public const string QueryNotFound = "HC0015";
 
         /// <summary>
-        /// A persisted query was not found when using the active persisted query pipeline.
+        /// A persisted operation was not found when using the active persisted operation pipeline.
         /// </summary>
-        public const string PersistedQueryNotFound = "HC0020";
+        public const string PersistedOperationNotFound = "HC0020";
 
         /// <summary>
-        /// Only persisted queries are allowed.
+        /// Only persisted operations are allowed.
         /// </summary>
-        public const string OnlyPersistedQueriesAllowed = "HC0067";
+        public const string OnlyPersistedOperationsAllowed = "HC0067";
 
         public const string TaskProcessingError = "HC0008";
         public const string SyntaxError = "HC0014";

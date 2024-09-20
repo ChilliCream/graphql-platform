@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
@@ -15,7 +16,7 @@ public class TypeConverterTests
         Snapshot.FullName();
         await ExpectValid(
                 @"
-                query foo($a: FooInput) {
+                query foo($a: FooInput!) {
                     foo(foo: $a) {
                         id
                         time
@@ -23,7 +24,7 @@ public class TypeConverterTests
                     }
                 }",
                 request: r => r.SetVariableValues(
-                    new Dictionary<string, object>
+                    new Dictionary<string, object?>
                     {
                         {
                             "a",
@@ -49,7 +50,7 @@ public class TypeConverterTests
                     time(time: $time)
                 }",
                 request: r => r.SetVariableValues(
-                    new Dictionary<string, object> { { "time", "2018-05-29T01:00:00Z" }, }),
+                    new Dictionary<string, object?> { { "time", "2018-05-29T01:00:00Z" }, }),
                 configure: c => c.AddQueryType<QueryType>())
             .MatchSnapshotAsync();
     }
@@ -64,7 +65,7 @@ public class TypeConverterTests
                 query foo($time: DateTime) {
                     time(time: $time)
                 }",
-                request: r => r.SetVariableValues(new Dictionary<string, object> { { "time", time }, }),
+                request: r => r.SetVariableValues(new Dictionary<string, object?> { { "time", time }, }),
                 configure: c => c.AddQueryType<QueryType>())
             .MatchSnapshotAsync();
     }
@@ -75,7 +76,7 @@ public class TypeConverterTests
         Snapshot.FullName();
         await ExpectValid(
                 @"
-                query foo($a: FooInput) {
+                query foo($a: FooInput!) {
                     foo(foo: $a) {
                         id
                         time
@@ -83,7 +84,7 @@ public class TypeConverterTests
                     }
                 }",
                 request: r => r.SetVariableValues(
-                    new Dictionary<string, object>
+                    new Dictionary<string, object?>
                     {
                         {
                             "a",
@@ -250,7 +251,7 @@ public class TypeConverterTests
             Type source,
             Type target,
             ChangeTypeProvider root,
-            out ChangeType converter)
+            [NotNullWhen(true)] out ChangeType? converter)
         {
             if (source == typeof(int) && target == typeof(string))
             {

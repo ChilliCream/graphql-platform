@@ -14,9 +14,6 @@
           "name": "node"
         },
         {
-          "name": "nodes"
-        },
-        {
           "name": "userById"
         },
         {
@@ -49,9 +46,6 @@
         },
         {
           "name": "node"
-        },
-        {
-          "name": "nodes"
         },
         {
           "name": "productById"

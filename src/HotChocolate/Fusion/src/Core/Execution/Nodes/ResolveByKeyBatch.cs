@@ -90,7 +90,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
             // query plan nodes be interested in it.
             lock (executionState)
             {
-                ProcessResult(context, response, batchExecutionState);
+                ProcessResult(context, response, batchExecutionState, SubgraphName);
             }
         }
         catch (Exception ex)
@@ -142,13 +142,29 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
     private void ProcessResult(
         FusionExecutionContext context,
         GraphQLResponse response,
-        BatchExecutionState[] batchExecutionState)
+        BatchExecutionState[] batchExecutionState,
+        string subgraphName)
     {
         var result = UnwrapResult(response, Requires);
         ref var batchState = ref MemoryMarshal.GetArrayDataReference(batchExecutionState);
         ref var end = ref Unsafe.Add(ref batchState, batchExecutionState.Length);
         var pathLength = Path.Length;
         var first = true;
+
+        if (response.TransportException is not null)
+        {
+            foreach (var state in batchExecutionState)
+            {
+                CreateTransportErrors(
+                    response.TransportException,
+                    context.Result,
+                    context.ErrorHandler,
+                    state.SelectionSetResult,
+                    RootSelections,
+                    subgraphName,
+                    context.ShowDebugInfo);
+            }
+        }
 
         while (Unsafe.IsAddressLessThan(ref batchState, ref end))
         {

@@ -2,7 +2,7 @@
   {
     "path": "bananacakepop",
     "title": "Banana Cake Pop",
-    "description": "Use this GUI to get deep insights from any GraphQL API.",
+    "description": "GraphQL IDE / API Management",
     "metaDescription": "Banana Cake Pop is a performant, feature-rich GraphQL IDE that helps developers and data scientists to explore, share, and test any GraphQL API.",
     "latestStableVersion": "v2",
     "versions": [
@@ -117,8 +117,8 @@
   {
     "path": "hotchocolate",
     "title": "Hot Chocolate",
+    "description": "GraphQL Server / Gateway",
     "metaDescription": "Hot Chocolate is the most efficient, feature-rich, open-source GraphQL server in the .NET ecosystem, that helps developers to build powerful APIs.",
-    "description": "Build your own thin GraphQL API layer on top of any resource.",
     "latestStableVersion": "v13",
     "versions": [
       {
@@ -130,7 +130,7 @@
             "title": "Introduction"
           },
           {
-            "path": "getting-started",
+            "path": "get-started-with-graphql-in-net-core",
             "title": "Getting Started"
           },
           {
@@ -366,12 +366,12 @@
                 "title": "Overview"
               },
               {
-                "path": "persisted-queries",
-                "title": "Persisted queries"
+                "path": "persisted-operations",
+                "title": "Persisted operations"
               },
               {
-                "path": "automatic-persisted-queries",
-                "title": "Automatic persisted queries"
+                "path": "automatic-persisted-operations",
+                "title": "Automatic persisted operations"
               }
             ]
           },
@@ -392,8 +392,8 @@
                 "title": "Authorization"
               },
               {
-                "path": "operation-complexity",
-                "title": "Operation Complexity"
+                "path": "cost-analysis",
+                "title": "Cost Analysis"
               }
             ]
           },
@@ -431,6 +431,10 @@
             "path": "migrating",
             "title": "Migrating",
             "items": [
+              {
+                "path": "migrate-from-13-to-14",
+                "title": "Migrate from 13 to 14"
+              },
               {
                 "path": "migrate-from-12-to-13",
                 "title": "Migrate from 12 to 13"
@@ -1600,10 +1604,110 @@
   {
     "path": "strawberryshake",
     "title": "Strawberry Shake",
-    "description": "The only GraphQL client you will ever need in the .NET ecosystem.",
+    "description": "GraphQL Client for .NET",
     "metaDescription": "Strawberry Shake is an incredible GraphQL client for the .NET ecosystem, that helps developers to build awesome UIs in Blazor, Maui, and more.",
     "latestStableVersion": "v13",
     "versions": [
+      {
+        "path": "v14",
+        "title": "v14",
+        "items": [
+          {
+            "path": "index",
+            "title": "Introduction"
+          },
+          {
+            "path": "get-started",
+            "title": "Get Started",
+            "items": [
+              {
+                "path": "index",
+                "title": "Blazor"
+              },
+              {
+                "path": "xamarin",
+                "title": "Xamarin"
+              },
+              {
+                "path": "console",
+                "title": "Console"
+              }
+            ]
+          },
+          {
+            "path": "subscriptions",
+            "title": "Subscriptions"
+          },
+          {
+            "path": "tooling",
+            "title": "Tooling / CLI"
+          },
+          {
+            "path": "caching",
+            "title": "Caching",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "entities",
+                "title": "Entities"
+              },
+              {
+                "path": "invalidation",
+                "title": "Invalidation"
+              }
+            ]
+          },
+          {
+            "path": "performance",
+            "title": "Performance",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "persisted-operations",
+                "title": "Persisted Operations"
+              },
+              {
+                "path": "persisted-state",
+                "title": "Persisted State"
+              }
+            ]
+          },
+          {
+            "path": "networking",
+            "title": "Networking",
+            "items": [
+              {
+                "path": "index",
+                "title": "Protocols"
+              },
+              {
+                "path": "authentication",
+                "title": "Authentication"
+              }
+            ]
+          },
+          {
+            "path": "scalars",
+            "title": "Scalars"
+          },
+          {
+            "path": "migrating",
+            "title": "Migrating",
+            "items": [
+              {
+                "path": "migrate-from-12-to-13",
+                "title": "Migrate from 12 to 13"
+              }
+            ]
+          }
+        ]
+      },
       {
         "path": "v13",
         "title": "v13",
@@ -1799,7 +1903,7 @@
   {
     "path": "barista",
     "title": "Barista",
-    "description": "The CLI tool for orchestrating your GraphQL cloud services.",
+    "description": "GraphQL CLI",
     "metaDescription": "Barista is a powerful .NET command-line tool used for managing your GraphQL API's schema and client registries. It provides a suite of commands that facilitate the handling of schemas, clients, stages, workspaces, environments, and API keys.",
     "latestStableVersion": "v1",
     "versions": [

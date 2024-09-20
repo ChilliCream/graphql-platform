@@ -20,7 +20,7 @@ public static class EndpointRouteBuilderExtensions
     private const string _graphQLWebSocketPath = "/graphql/ws";
     private const string _graphQLSchemaPath = "/graphql/sdl";
     private const string _graphQLToolPath = "/graphql/ui";
-    private const string _graphQLPersistedOperationPath = "/graphql/q";
+    private const string _graphQLPersistedOperationPath = "/graphql/persisted";
     private const string _graphQLToolRelativeRequestPath = "..";
 
     /// <summary>
@@ -123,7 +123,7 @@ public static class EndpointRouteBuilderExtensions
             .UseMiddleware<HttpPostMiddleware>(schemaName)
             .UseMiddleware<HttpMultipartMiddleware>(schemaName)
             .UseMiddleware<HttpGetMiddleware>(schemaName)
-            .UseMiddleware<HttpGetSchemaMiddleware>(schemaName, Integrated)
+            .UseMiddleware<HttpGetSchemaMiddleware>(schemaName, path, Integrated)
             .UseBananaCakePop(path)
             .Use(
                 _ => context =>
@@ -359,7 +359,7 @@ public static class EndpointRouteBuilderExtensions
 
         requestPipeline
             .UseCancellation()
-            .UseMiddleware<HttpGetSchemaMiddleware>(schemaNameOrDefault, Explicit)
+            .UseMiddleware<HttpGetSchemaMiddleware>(schemaNameOrDefault, PathString.Empty, Explicit)
             .Use(
                 _ => context =>
                 {
@@ -446,16 +446,19 @@ public static class EndpointRouteBuilderExtensions
 
 #if NET8_0_OR_GREATER
     /// <summary>
-    /// Adds a persisted query endpoint to the endpoint configurations.
+    /// Adds a persisted operation endpoint to the endpoint configurations.
     /// </summary>
     /// <param name="endpointRouteBuilder">
     /// The <see cref="IEndpointRouteBuilder"/>.
     /// </param>
     /// <param name="path">
-    /// The path to which the persisted query endpoint shall be mapped.
+    /// The path to which the persisted operation endpoint shall be mapped.
     /// </param>
     /// <param name="schemaName">
     /// The name of the schema that shall be used by this endpoint.
+    /// </param>
+    /// <param name="requireOperationName">
+    /// Specifies if its required to provide the operation name as part of the URI.
     /// </param>
     /// <returns>
     /// Returns the <see cref="IEndpointConventionBuilder"/> so that
@@ -463,20 +466,24 @@ public static class EndpointRouteBuilderExtensions
     public static IEndpointConventionBuilder MapGraphQLPersistedOperations(
         this IEndpointRouteBuilder endpointRouteBuilder,
         [StringSyntax("Route")] string path = _graphQLPersistedOperationPath,
-        string? schemaName = default)
-        => MapGraphQLPersistedOperations(endpointRouteBuilder, Parse(path), schemaName);
+        string? schemaName = default,
+        bool requireOperationName = false)
+        => MapGraphQLPersistedOperations(endpointRouteBuilder, Parse(path), schemaName, requireOperationName);
 
     /// <summary>
-    /// Adds a persisted query endpoint to the endpoint configurations.
+    /// Adds a persisted operation endpoint to the endpoint configurations.
     /// </summary>
     /// <param name="endpointRouteBuilder">
     /// The <see cref="IEndpointRouteBuilder"/>.
     /// </param>
     /// <param name="path">
-    /// The path to which the persisted query endpoint shall be mapped.
+    /// The path to which the persisted operation endpoint shall be mapped.
     /// </param>
     /// <param name="schemaName">
     /// The name of the schema that shall be used by this endpoint.
+    /// </param>
+    /// <param name="requireOperationName">
+    /// Specifies if its required to provide the operation name as part of the URI.
     /// </param>
     /// <returns>
     /// Returns the <see cref="IEndpointConventionBuilder"/> so that
@@ -484,12 +491,13 @@ public static class EndpointRouteBuilderExtensions
     public static IEndpointConventionBuilder MapGraphQLPersistedOperations(
         this IEndpointRouteBuilder endpointRouteBuilder,
         RoutePattern path,
-        string? schemaName = default)
+        string? schemaName = default,
+        bool requireOperationName = false)
     {
         var schemaNameOrDefault = schemaName ?? Schema.DefaultName;
 
         var group = endpointRouteBuilder.MapGroup(path);
-        group.MapPersistedQueryMiddleware(schemaNameOrDefault);
+        group.MapPersistedOperationMiddleware(schemaNameOrDefault, requireOperationName);
         return group;
     }
 #endif

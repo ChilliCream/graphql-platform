@@ -1,7 +1,7 @@
 {
   "errors": [
     {
-      "message": "Sequence contains more than one element.",
+      "message": "Unexpected Execution Error",
       "locations": [
         {
           "line": 2,
@@ -10,10 +10,7 @@
       ],
       "path": [
         "executable"
-      ],
-      "extensions": {
-        "code": "HC0022"
-      }
+      ]
     }
   ],
   "data": {

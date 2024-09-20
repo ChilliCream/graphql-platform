@@ -47,6 +47,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
 
     public async ValueTask<GraphQLRequest> ParsePersistedOperationRequestAsync(
         string operationId,
+        string? operationName,
         Stream requestBody,
         CancellationToken cancellationToken)
     {
@@ -55,7 +56,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
         try
         {
             GraphQLRequest Parse(byte[] buffer, int length)
-                => ParsePersistedOperationRequest(buffer, length, operationId);
+                => ParsePersistedOperationRequest(buffer, length, operationId, operationName);
 
             return await BufferHelper.ReadAsync(
                 requestBody,
@@ -166,9 +167,12 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
         }
     }
 
-    public GraphQLRequest ParsePersistedOperationRequestFromParams(string operationId, IQueryCollection parameters)
+    public GraphQLRequest ParsePersistedOperationRequestFromParams(
+        string operationId,
+        string? operationName,
+        IQueryCollection parameters)
     {
-        string? operationName = parameters[_operationNameKey];
+        operationName ??= parameters[_operationNameKey];
         EnsureValidQueryId(operationId);
 
         try
@@ -287,7 +291,8 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
     private GraphQLRequest ParsePersistedOperationRequest(
         byte[] buffer,
         int bytesBuffered,
-        string operationId)
+        string operationId,
+        string? operationName)
     {
         var graphQLData = new ReadOnlySpan<byte>(buffer);
         graphQLData = graphQLData[..bytesBuffered];
@@ -298,7 +303,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             _documentCache,
             _documentHashProvider);
 
-        return requestParser.ParsePersistedOperation(operationId);
+        return requestParser.ParsePersistedOperation(operationId, operationName);
     }
 
     internal static IReadOnlyList<GraphQLRequest> EnsureValidQueryId(IReadOnlyList<GraphQLRequest> requests)

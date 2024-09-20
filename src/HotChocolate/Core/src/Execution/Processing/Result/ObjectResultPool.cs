@@ -1,26 +1,17 @@
 using Microsoft.Extensions.ObjectPool;
-using static HotChocolate.Execution.Processing.ResultPoolDefaults;
 
 namespace HotChocolate.Execution.Processing;
 
-internal sealed class ObjectResultPool : DefaultObjectPool<ResultBucket<ObjectResult>>
+internal sealed class ObjectResultPool(int maximumRetained, int maxAllowedCapacity, int bucketSize)
+    : DefaultObjectPool<ResultBucket<ObjectResult>>(new BufferPolicy(maxAllowedCapacity, bucketSize), maximumRetained)
 {
-    public ObjectResultPool(int maximumRetained, int maxAllowedCapacity)
-        : base(new BufferPolicy(maxAllowedCapacity), maximumRetained)
+    private sealed class BufferPolicy(int maxAllowedCapacity, int bucketSize)
+        : PooledObjectPolicy<ResultBucket<ObjectResult>>
     {
-    }
-
-    private sealed class BufferPolicy : PooledObjectPolicy<ResultBucket<ObjectResult>>
-    {
-        private readonly ObjectPolicy _objectPolicy;
-
-        public BufferPolicy(int maxAllowedCapacity)
-        {
-            _objectPolicy = new ObjectPolicy(maxAllowedCapacity);
-        }
+        private readonly ObjectPolicy _objectPolicy = new(maxAllowedCapacity);
 
         public override ResultBucket<ObjectResult> Create()
-            => new(BucketSize, _objectPolicy);
+            => new(bucketSize, _objectPolicy);
 
         public override bool Return(ResultBucket<ObjectResult> obj)
         {
@@ -29,20 +20,14 @@ internal sealed class ObjectResultPool : DefaultObjectPool<ResultBucket<ObjectRe
         }
     }
 
-    private sealed class ObjectPolicy : PooledObjectPolicy<ObjectResult>
+    private sealed class ObjectPolicy(int maxAllowedCapacity)
+        : PooledObjectPolicy<ObjectResult>
     {
-        private readonly int _maxAllowedCapacity;
-
-        public ObjectPolicy(int maxAllowedCapacity)
-        {
-            _maxAllowedCapacity = maxAllowedCapacity;
-        }
-
         public override ObjectResult Create() => new();
 
         public override bool Return(ObjectResult obj)
         {
-            if (obj.Capacity > _maxAllowedCapacity)
+            if (obj.Capacity > maxAllowedCapacity)
             {
                 obj.Reset();
                 return false;

@@ -12,6 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.AspNetCore.Authorization" />
     <InternalsVisibleTo Include="HotChocolate.AspNetCore.Authorization.Tests" />
   </ItemGroup>
 

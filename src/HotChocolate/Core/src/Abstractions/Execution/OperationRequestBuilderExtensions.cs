@@ -45,26 +45,11 @@ public static class OperationRequestBuilderExtensions
     }
 
     /// <summary>
-    /// Skips the operation complexity analysis of this request.
+    /// Marks the current request to allow non-persisted operations.
     /// </summary>
-    public static OperationRequestBuilder SkipComplexityAnalysis(
+    public static OperationRequestBuilder AllowNonPersistedOperation(
         this OperationRequestBuilder builder)
-        => builder.SetGlobalState(WellKnownContextData.SkipComplexityAnalysis, null);
-
-    /// <summary>
-    /// Set allowed complexity for this request and override the global allowed complexity.
-    /// </summary>
-    public static OperationRequestBuilder SetMaximumAllowedComplexity(
-        this OperationRequestBuilder builder,
-        int maximumAllowedComplexity)
-        => builder.SetGlobalState(WellKnownContextData.MaximumAllowedComplexity, maximumAllowedComplexity);
-
-    /// <summary>
-    /// Marks the current request to allow non-persisted queries.
-    /// </summary>
-    public static OperationRequestBuilder AllowNonPersistedQuery(
-        this OperationRequestBuilder builder)
-        => builder.SetGlobalState(WellKnownContextData.NonPersistedQueryAllowed, true);
+        => builder.SetGlobalState(WellKnownContextData.NonPersistedOperationAllowed, true);
 
     /// <summary>
     /// Skips the request execution depth analysis.

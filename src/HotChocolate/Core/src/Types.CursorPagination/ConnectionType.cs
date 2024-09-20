@@ -17,7 +17,8 @@ internal sealed class ConnectionType
     internal ConnectionType(
         string connectionName,
         TypeReference nodeType,
-        bool withTotalCount)
+        bool includeTotalCount,
+        bool includeNodesField)
     {
         if (nodeType is null)
         {
@@ -38,31 +39,35 @@ internal sealed class ConnectionType
                 TypeContext.Output,
                 factory: _ => new EdgeType(connectionName, nodeType));
 
-        Definition = CreateTypeDefinition(withTotalCount, edgesType);
+        Definition = CreateTypeDefinition(includeTotalCount, includeNodesField, edgesType);
         Definition.Name = NameHelper.CreateConnectionName(connectionName);
         Definition.Dependencies.Add(new(nodeType));
-        Definition.Configurations.Add(
-            new CompleteConfiguration(
-                (c, d) =>
-                {
-                    var definition = (ObjectTypeDefinition)d;
-                    var nodes = definition.Fields.First(IsNodesField);
-                    nodes.Type = TypeReference.Parse(
-                        $"[{c.GetType<IType>(nodeType).Print()}]",
-                        TypeContext.Output);
-                },
-                Definition,
-                ApplyConfigurationOn.BeforeNaming,
-                nodeType,
-                TypeDependencyFulfilled.Named));
         Definition.Configurations.Add(
             new CompleteConfiguration(
                 (c, _) => EdgeType = c.GetType<IEdgeType>(TypeReference.Create(edgeTypeName)),
                 Definition,
                 ApplyConfigurationOn.BeforeCompletion));
+
+        if (includeNodesField)
+        {
+            Definition.Configurations.Add(
+                new CompleteConfiguration(
+                    (c, d) =>
+                    {
+                        var definition = (ObjectTypeDefinition)d;
+                        var nodes = definition.Fields.First(IsNodesField);
+                        nodes.Type = TypeReference.Parse(
+                            $"[{c.GetType<IType>(nodeType).Print()}]",
+                            TypeContext.Output);
+                    },
+                    Definition,
+                    ApplyConfigurationOn.BeforeNaming,
+                    nodeType,
+                    TypeDependencyFulfilled.Named));
+        }
     }
 
-    internal ConnectionType(TypeReference nodeType, bool withTotalCount)
+    internal ConnectionType(TypeReference nodeType, bool includeTotalCount, bool includeNodesField)
     {
         if (nodeType is null)
         {
@@ -78,7 +83,7 @@ internal sealed class ConnectionType
 
         // the property is set later in the configuration
         ConnectionName = default!;
-        Definition = CreateTypeDefinition(withTotalCount);
+        Definition = CreateTypeDefinition(includeTotalCount, includeNodesField);
         Definition.Dependencies.Add(new(nodeType));
         Definition.Dependencies.Add(new(edgeType));
         Definition.NeedsNameCompletion = true;
@@ -92,16 +97,19 @@ internal sealed class ConnectionType
 
                     var definition = (ObjectTypeDefinition)d;
                     var edges = definition.Fields.First(IsEdgesField);
-                    var nodes = definition.Fields.First(IsNodesField);
 
                     definition.Name = NameHelper.CreateConnectionName(ConnectionName);
                     edges.Type = TypeReference.Parse(
                         $"[{NameHelper.CreateEdgeName(ConnectionName)}!]",
                         TypeContext.Output);
 
-                    nodes.Type = TypeReference.Parse(
-                        $"[{type.Print()}]",
-                        TypeContext.Output);
+                    if (includeNodesField)
+                    {
+                        var nodes = definition.Fields.First(IsNodesField);
+                        nodes.Type = TypeReference.Parse(
+                            $"[{type.Print()}]",
+                            TypeContext.Output);
+                    }
                 },
                 Definition,
                 ApplyConfigurationOn.BeforeNaming,
@@ -151,7 +159,8 @@ internal sealed class ConnectionType
         result is null || RuntimeType.IsInstanceOfType(result);
 
     private static ObjectTypeDefinition CreateTypeDefinition(
-        bool withTotalCount,
+        bool includeTotalCount,
+        bool includeNodesField,
         TypeReference? edgesType = null)
     {
         var definition = new ObjectTypeDefinition
@@ -171,21 +180,23 @@ internal sealed class ConnectionType
             ConnectionType_Edges_Description,
             edgesType,
             pureResolver: GetEdges)
-        { CustomSettings = { ContextDataKeys.Edges } });
+        { Flags = FieldFlags.EdgesField });
+        if (includeNodesField)
+        {
+            definition.Fields.Add(new(
+                Names.Nodes,
+                ConnectionType_Nodes_Description,
+                pureResolver: GetNodes)
+                { Flags = FieldFlags.NodesField });
+        }
 
-        definition.Fields.Add(new(
-            Names.Nodes,
-            ConnectionType_Nodes_Description,
-            pureResolver: GetNodes)
-        { CustomSettings = { ContextDataKeys.Nodes } });
-
-        if (withTotalCount)
+        if (includeTotalCount)
         {
             definition.Fields.Add(new(
                 Names.TotalCount,
                 ConnectionType_TotalCount_Description,
                 type: TypeReference.Parse($"{ScalarNames.Int}!"),
-                resolver: GetTotalCountAsync)
+                pureResolver: GetTotalCount)
             {
                 Flags = FieldFlags.TotalCount
             });
@@ -195,12 +206,10 @@ internal sealed class ConnectionType
     }
 
     private static bool IsEdgesField(ObjectFieldDefinition field)
-        => field.CustomSettings.Count > 0 &&
-           field.CustomSettings[0].Equals(ContextDataKeys.Edges);
+        => (field.Flags & FieldFlags.EdgesField) == FieldFlags.EdgesField;
 
     private static bool IsNodesField(ObjectFieldDefinition field)
-        => field.CustomSettings.Count > 0 &&
-           field.CustomSettings[0].Equals(ContextDataKeys.Nodes);
+        => (field.Flags & FieldFlags.NodesField) == FieldFlags.NodesField;
 
     private static IPageInfo GetPagingInfo(IResolverContext context)
         => context.Parent<Connection>().Info;
@@ -211,8 +220,8 @@ internal sealed class ConnectionType
     private static IEnumerable<object?> GetNodes(IResolverContext context)
         => context.Parent<Connection>().Edges.Select(t => t.Node);
 
-    private static async ValueTask<object?> GetTotalCountAsync(IResolverContext context)
-        => await context.Parent<Connection>().GetTotalCountAsync(context.RequestAborted);
+    private static object? GetTotalCount(IResolverContext context)
+        => context.Parent<Connection>().TotalCount;
 
     internal static class Names
     {
@@ -225,7 +234,5 @@ internal sealed class ConnectionType
     private static class ContextDataKeys
     {
         public const string EdgeType = "HotChocolate_Types_Edge";
-        public const string Edges = "HotChocolate.Types.Connection.Edges";
-        public const string Nodes = "HotChocolate.Types.Connection.Nodes";
     }
 }

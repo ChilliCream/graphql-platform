@@ -6,23 +6,26 @@ using Raven.Client.Documents.Session;
 
 namespace HotChocolate.Data.Raven.Pagination;
 
-internal sealed class RavenOffsetPagingHandler<TEntity> : OffsetPagingHandler
+internal sealed class RavenOffsetPagingHandler<TEntity>(PagingOptions options) : OffsetPagingHandler(options)
 {
     private readonly RavenOffsetPagination<TEntity> _pagination = new();
-
-    public RavenOffsetPagingHandler(PagingOptions options) : base(options)
-    {
-    }
 
     protected override async ValueTask<CollectionSegment> SliceAsync(
         IResolverContext context,
         object source,
         OffsetPagingArguments arguments)
-        => await _pagination.ApplyPaginationAsync(
+    {
+        // TotalCount is one of the heaviest operations. It is only necessary to load totalCount
+        // when it is enabled (IncludeTotalCount) and when it is contained in the selection set.
+        var requireTotalCount = IncludeTotalCount && context.IsSelected("totalCount");
+
+        return await _pagination.ApplyPaginationAsync(
                 CreatePagingContainer(source),
                 arguments,
+                requireTotalCount,
                 context.RequestAborted)
             .ConfigureAwait(false);
+    }
 
     private static RavenPagingContainer<TEntity> CreatePagingContainer(object source)
     {

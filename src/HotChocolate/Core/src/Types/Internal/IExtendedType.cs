@@ -1,5 +1,7 @@
 #nullable enable
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace HotChocolate.Internal;
 
 /// <summary>
@@ -48,6 +50,9 @@ public interface IExtendedType : IEquatable<IExtendedType>
     /// Defines if this is a collection type meaning it is either <see cref="IsArray"/> or
     /// <see cref="IsList"/>.
     /// </summary>
+#if NET6_0_OR_GREATER
+    [MemberNotNullWhen(true, nameof(ElementType))]
+#endif
     bool IsArrayOrList { get; }
 
     /// <summary>

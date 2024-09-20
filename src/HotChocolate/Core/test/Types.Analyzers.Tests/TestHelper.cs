@@ -6,6 +6,8 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Basic.Reference.Assemblies;
 using CookieCrumble;
+using GreenDonut;
+using HotChocolate.Pagination;
 using HotChocolate.Types.Analyzers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -14,20 +16,32 @@ namespace HotChocolate.Types;
 
 internal static partial class TestHelper
 {
+    private static HashSet<string> _ignoreCodes = ["CS8652", "CS8632", "CS5001", "CS8019"];
+
     public static Snapshot GetGeneratedSourceSnapshot([StringSyntax("csharp")] string sourceText)
     {
         // Parse the provided string into a C# syntax tree.
         var syntaxTree = CSharpSyntaxTree.ParseText(sourceText);
 
-        IEnumerable<PortableExecutableReference> references = new[]
-        {
+        IEnumerable<PortableExecutableReference> references =
+        [
+            // HotChocolate.Types
+            MetadataReference.CreateFromFile(typeof(ObjectTypeAttribute).Assembly.Location),
+
+            // HotChocolate.Abstractions
+            MetadataReference.CreateFromFile(typeof(ParentAttribute).Assembly.Location),
+
+            // HotChocolate.Pagination.Primitives
+            MetadataReference.CreateFromFile(typeof(PagingArguments).Assembly.Location),
+
+            // GreenDonut
             MetadataReference.CreateFromFile(typeof(DataLoaderAttribute).Assembly.Location)
-        };
+        ];
 
         // Create a Roslyn compilation for the syntax tree.
         var compilation = CSharpCompilation.Create(
             assemblyName: "Tests",
-            syntaxTrees: new[] { syntaxTree },
+            syntaxTrees: [syntaxTree],
             ReferenceAssemblies.Net80.Concat(references));
 
         // Create an instance of our GraphQLServerGenerator incremental source generator.
@@ -40,10 +54,10 @@ internal static partial class TestHelper
         driver = driver.RunGenerators(compilation);
 
         // Create a snapshot.
-        return CreateSnapshot(driver);
+        return CreateSnapshot(compilation, driver);
     }
 
-    private static Snapshot CreateSnapshot(GeneratorDriver driver)
+    private static Snapshot CreateSnapshot(CSharpCompilation compilation, GeneratorDriver driver)
     {
         var snapshot = new Snapshot();
 
@@ -68,9 +82,15 @@ internal static partial class TestHelper
             }
 
             // Add diagnostics.
+            var diagnostics = compilation.GetDiagnostics();
+            if(diagnostics.Length > 0)
+            {
+                AddDiagnosticsToSnapshot(snapshot, diagnostics, "Compilation Diagnostics");
+            }
+
             if (result.Diagnostics.Any())
             {
-                AddDiagnosticsToSnapshot(snapshot, result.Diagnostics);
+                AddDiagnosticsToSnapshot(snapshot, result.Diagnostics, "Generator Diagnostics");
             }
         }
 
@@ -79,8 +99,11 @@ internal static partial class TestHelper
 
     private static void AddDiagnosticsToSnapshot(
         Snapshot snapshot,
-        ImmutableArray<Diagnostic> diagnostics)
+        ImmutableArray<Diagnostic> diagnostics,
+        string title)
     {
+        var hasDiagnostics = false;
+
         using var stream = new MemoryStream();
         using var jsonWriter = new Utf8JsonWriter(
             stream,
@@ -94,6 +117,13 @@ internal static partial class TestHelper
 
         foreach (var diagnostic in diagnostics)
         {
+            if(_ignoreCodes.Contains(diagnostic.Id))
+            {
+                continue;
+            }
+
+            hasDiagnostics = true;
+
             jsonWriter.WriteStartObject();
             jsonWriter.WriteString(nameof(diagnostic.Id), diagnostic.Id);
 
@@ -143,7 +173,10 @@ internal static partial class TestHelper
         jsonWriter.WriteEndArray();
         jsonWriter.Flush();
 
-        snapshot.Add(Encoding.UTF8.GetString(stream.ToArray()), "Diagnostics", MarkdownLanguages.Json);
+        if (hasDiagnostics)
+        {
+            snapshot.Add(Encoding.UTF8.GetString(stream.ToArray()), title, MarkdownLanguages.Json);
+        }
     }
 
     [GeneratedRegex("MiddlewareFactories([a-z0-9]{32})")]

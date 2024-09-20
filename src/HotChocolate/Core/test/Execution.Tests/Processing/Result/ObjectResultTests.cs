@@ -78,7 +78,7 @@ namespace HotChocolate.Execution.Processing
             objectResult.SetValueUnsafe(capacity / 2, "def", "def");
             objectResult.SetValueUnsafe(capacity - 1, "ghi", "def");
 
-            IReadOnlyDictionary<string, object> dict = objectResult;
+            IReadOnlyDictionary<string, object?> dict = objectResult;
 
             // act
             var found = dict.TryGetValue("def", out var value);
@@ -104,7 +104,7 @@ namespace HotChocolate.Execution.Processing
             objectResult.SetValueUnsafe(capacity / 2, "def", "def");
             objectResult.SetValueUnsafe(capacity - 1, "ghi", "def");
 
-            IReadOnlyDictionary<string, object> dict = objectResult;
+            IReadOnlyDictionary<string, object?> dict = objectResult;
 
             // act
             var found = dict.TryGetValue("jkl", out var value);
@@ -130,7 +130,7 @@ namespace HotChocolate.Execution.Processing
             objectResult.SetValueUnsafe(capacity / 2, "def", "def");
             objectResult.SetValueUnsafe(capacity - 1, "ghi", "def");
 
-            IReadOnlyDictionary<string, object> dict = objectResult;
+            IReadOnlyDictionary<string, object?> dict = objectResult;
 
             // act
             var found = dict.ContainsKey("def");
@@ -185,7 +185,7 @@ namespace HotChocolate.Execution.Processing
 
             // assert
             Assert.Collection(
-                ((IReadOnlyDictionary<string, object>)objectResult).Keys,
+                ((IReadOnlyDictionary<string, object?>)objectResult).Keys,
                 t => Assert.Equal("abc1", t),
                 t => Assert.Equal("abc2", t),
                 t => Assert.Equal("abc3", t));
@@ -205,7 +205,7 @@ namespace HotChocolate.Execution.Processing
 
             // assert
             Assert.Collection(
-                ((IReadOnlyDictionary<string, object>)objectResult).Values,
+                ((IReadOnlyDictionary<string, object?>)objectResult).Values,
                 t => Assert.Equal("def", t),
                 t => Assert.Equal("def", t),
                 t => Assert.Equal("def", t));

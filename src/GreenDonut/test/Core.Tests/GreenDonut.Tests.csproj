@@ -3,7 +3,6 @@
   <PropertyGroup>
     <AssemblyName>GreenDonut.Tests</AssemblyName>
     <RootNamespace>GreenDonut</RootNamespace>
-    <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

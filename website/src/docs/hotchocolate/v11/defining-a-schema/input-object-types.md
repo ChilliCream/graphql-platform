@@ -18,7 +18,7 @@ input BookInput {
 Input object types can be defined like the following.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class BookInput
@@ -78,7 +78,7 @@ type Mutation {
 
 > Note: While it is possible, it is not encouraged, as it complicates future extensions of either type.
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp

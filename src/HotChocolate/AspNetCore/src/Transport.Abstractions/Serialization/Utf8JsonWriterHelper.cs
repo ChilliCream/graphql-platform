@@ -40,17 +40,17 @@ internal static class Utf8JsonWriterHelper
     {
         writer.WriteStartObject();
 
-        if (request.Id is not null)
+        if (!string.IsNullOrWhiteSpace(request.Id))
         {
             writer.WriteString(Utf8GraphQLRequestProperties.IdProp, request.Id);
         }
 
-        if (request.Query is not null)
+        if (!string.IsNullOrWhiteSpace(request.Query))
         {
             writer.WriteString(Utf8GraphQLRequestProperties.QueryProp, request.Query);
         }
 
-        if (request.OperationName is not null)
+        if (!string.IsNullOrWhiteSpace(request.OperationName))
         {
             writer.WriteString(Utf8GraphQLRequestProperties.OperationNameProp, request.OperationName);
         }
@@ -84,17 +84,17 @@ internal static class Utf8JsonWriterHelper
     {
         writer.WriteStartObject();
 
-        if (request.Id is not null)
+        if (!string.IsNullOrWhiteSpace(request.Id))
         {
             writer.WriteString(Utf8GraphQLRequestProperties.IdProp, request.Id);
         }
 
-        if (request.Query is not null)
+        if (!string.IsNullOrWhiteSpace(request.Query))
         {
             writer.WriteString(Utf8GraphQLRequestProperties.QueryProp, request.Query);
         }
 
-        if (request.OperationName is not null)
+        if (!string.IsNullOrWhiteSpace(request.OperationName))
         {
             writer.WriteString(Utf8GraphQLRequestProperties.OperationNameProp, request.OperationName);
         }
@@ -577,28 +577,17 @@ internal static class Utf8JsonWriterHelper
         }
     }
 
-    private sealed class RootFilePath : FilePath
+    private sealed class RootFilePath() : FilePath(null);
+
+    private sealed class NameFilePath(FilePath? parent, string name)
+        : FilePath(parent)
     {
-        public RootFilePath() : base(null) { }
+        public string Name { get; } = name;
     }
 
-    private sealed class NameFilePath : FilePath
+    private sealed class IndexFilePath(FilePath? parent, int index)
+        : FilePath(parent)
     {
-        public NameFilePath(FilePath? parent, string name) : base(parent)
-        {
-            Name = name;
-        }
-
-        public string Name { get; }
-    }
-
-    private sealed class IndexFilePath : FilePath
-    {
-        public IndexFilePath(FilePath? parent, int index) : base(parent)
-        {
-            Index = index;
-        }
-
-        public int Index { get; }
+        public int Index { get; } = index;
     }
 }
