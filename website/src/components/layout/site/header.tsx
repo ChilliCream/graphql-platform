@@ -190,7 +190,7 @@ export const Header: FC = () => {
               onTopNavClose={handleTopNavClose}
               onSearchOpen={handleSearchOpen}
             />
-            <PricingNavItem />
+            {/* <PricingNavItem /> */}
             <HelpNavItem />
             <NavItemContainer className="mobile-only double-height">
               <DemoAndLaunch tools={tools!} />
@@ -894,13 +894,13 @@ const CompanyNavItem: FC<CompanyNavItemProps> = ({
   );
 };
 
-const PricingNavItem: FC = () => {
-  return (
-    <NavItemContainer>
-      <NavLink to={"/pricing"}>Pricing</NavLink>
-    </NavItemContainer>
-  );
-};
+// const PricingNavItem: FC = () => {
+//   return (
+//     <NavItemContainer>
+//       <NavLink to={"/pricing"}>Pricing</NavLink>
+//     </NavItemContainer>
+//   );
+// };
 
 const HelpNavItem: FC = () => {
   return (
