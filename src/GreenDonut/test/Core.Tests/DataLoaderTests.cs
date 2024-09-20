@@ -451,7 +451,6 @@ public class DataLoaderTests(ITestOutputHelper output)
         var options = new DataLoaderOptions
         {
             Cache = cacheOwner?.Cache,
-            CancellationToken = ct,
             MaxBatchSize = batching ? 1 : maxBatchSize,
         };
 

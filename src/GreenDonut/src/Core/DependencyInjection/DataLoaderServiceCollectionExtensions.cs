@@ -77,7 +77,6 @@ public static class DataLoaderServiceCollectionExtensions
                 return new DataLoaderOptions
                 {
                     Cache = cacheOwner.Cache,
-                    CancellationToken = cacheOwner.CancellationToken,
                     DiagnosticEvents = sp.GetService<IDataLoaderDiagnosticEvents>(),
                     MaxBatchSize = 1024,
                 };
