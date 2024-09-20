@@ -1,7 +1,4 @@
 using System.Collections.Immutable;
-#if NET8_0_OR_GREATER
-using GreenDonut.Projections;
-#endif
 using static GreenDonut.NoopDataLoaderDiagnosticEventListener;
 using static GreenDonut.Errors;
 
@@ -33,9 +30,9 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     private readonly int _maxBatchSize;
     private readonly IDataLoaderDiagnosticEvents _diagnosticEvents;
     private readonly CancellationToken _ct;
-#if NET8_0_OR_GREATER
-    private ImmutableDictionary<string, ISelectionDataLoader<TKey, TValue>> _branches =
-        ImmutableDictionary<string, ISelectionDataLoader<TKey, TValue>>.Empty;
+#if NET6_0_OR_GREATER
+    private ImmutableDictionary<string, IDataLoader> _branches =
+        ImmutableDictionary<string, IDataLoader>.Empty;
 #endif
     private Batch<TKey>? _currentBatch;
 
@@ -80,20 +77,30 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     public IImmutableDictionary<string, object?> ContextData { get; set; } =
         ImmutableDictionary<string, object?>.Empty;
 
-    private protected virtual bool AllowCachePropagation => true;
+    /// <summary>
+    /// Specifies if the values fetched by this DataLoader
+    /// are propagated through the cache.
+    /// </summary>
+    protected virtual bool AllowCachePropagation => true;
 
-    private protected virtual bool AllowBranching => true;
+    /// <summary>
+    /// Specifies if this DataLoader allows branching.
+    /// </summary>
+    protected virtual bool AllowBranching => true;
 
-    internal IBatchScheduler BatchScheduler
+    /// <summary>
+    /// Gets the batch scheduler of this DataLoader.
+    /// </summary>
+    protected internal IBatchScheduler BatchScheduler
         => _batchScheduler;
 
-    internal DataLoaderOptions Options
+    /// <summary>
+    /// Gets the options of this DataLoader.
+    /// </summary>
+    protected internal DataLoaderOptions Options
         => new()
         {
-            MaxBatchSize = _maxBatchSize,
-            Cache = Cache,
-            DiagnosticEvents = _diagnosticEvents,
-            CancellationToken = _ct,
+            MaxBatchSize = _maxBatchSize, Cache = Cache, DiagnosticEvents = _diagnosticEvents, CancellationToken = _ct,
         };
 
     /// <inheritdoc />
@@ -170,12 +177,12 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             {
                 Initialize();
             }
-        }
 
-        // we dispatch after everything is enqueued.
-        if (_currentBatch is not null)
-        {
-            _batchScheduler.Schedule(() => DispatchBatchAsync(_currentBatch, _ct));
+            // we dispatch after everything is enqueued.
+            if (_currentBatch is { IsScheduled: false })
+            {
+                ScheduleBatchUnsafe(_currentBatch);
+            }
         }
 
         return WhenAll();
@@ -252,24 +259,37 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             Cache.TryAdd(cacheKey, new Promise<TValue?>(value));
         }
     }
-#if NET8_0_OR_GREATER
+#if NET6_0_OR_GREATER
 
     /// <inheritdoc />
-    public ISelectionDataLoader<TKey, TValue> Branch(string key)
+    public IDataLoader Branch<TState>(
+        string key,
+        CreateDataLoaderBranch<TKey, TValue, TState> createBranch,
+        TState state)
     {
-        if(!AllowBranching)
+        if (string.IsNullOrEmpty(key))
+        {
+            throw new ArgumentException("Value cannot be null or empty.", nameof(key));
+        }
+
+        if (createBranch == null)
+        {
+            throw new ArgumentNullException(nameof(createBranch));
+        }
+
+        if (!AllowBranching)
         {
             throw new InvalidOperationException(
                 "Branching is not allowed for this DataLoader.");
         }
 
-        if(!_branches.TryGetValue(key, out var branch))
+        if (!_branches.TryGetValue(key, out var branch))
         {
             lock (_sync)
             {
                 if (!_branches.TryGetValue(key, out branch))
                 {
-                    var newBranch = new SelectionDataLoader<TKey, TValue>(this, key);
+                    var newBranch = createBranch(key, this, state);
                     _branches = _branches.Add(key, newBranch);
                     return newBranch;
                 }
@@ -373,25 +393,41 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         bool allowCachePropagation,
         bool scheduleOnNewBatch = true)
     {
-        if (_currentBatch is not null && (_currentBatch.Size < _maxBatchSize || _maxBatchSize == 0))
+        var current = _currentBatch;
+
+        if (current is not null)
         {
-            return _currentBatch.GetOrCreatePromise<TValue?>(key, allowCachePropagation);
+            // if the batch has space for more keys we just keep adding to it.
+            if (current.Size < _maxBatchSize || _maxBatchSize == 0)
+            {
+                return current.GetOrCreatePromise<TValue?>(key, allowCachePropagation);
+            }
+
+            // if there is a current batch and if that current batch was not scheduled for efficiency reasons
+            // we will schedule it before issuing a new batch.
+            if (!current.IsScheduled)
+            {
+                ScheduleBatchUnsafe(current);
+            }
         }
 
-        var newBatch = BatchPool<TKey>.Shared.Get();
+        var newBatch = _currentBatch = BatchPool<TKey>.Shared.Get();
         var newPromise = newBatch.GetOrCreatePromise<TValue?>(key, allowCachePropagation);
 
-        // set the batch before enqueueing to avoid concurrency issues.
-        _currentBatch = newBatch;
         if (scheduleOnNewBatch)
         {
-            _batchScheduler.Schedule(() => DispatchBatchAsync(newBatch, _ct));
+            ScheduleBatchUnsafe(newBatch);
         }
 
         return newPromise;
     }
 
-    // ReSharper restore InconsistentlySynchronizedField
+    private void ScheduleBatchUnsafe(Batch<TKey> batch)
+    {
+        batch.IsScheduled = true;
+        _batchScheduler.Schedule(() => DispatchBatchAsync(batch, _ct));
+    }
+
     private void SetSingleResult(
         Promise<TValue?> promise,
         TKey key,

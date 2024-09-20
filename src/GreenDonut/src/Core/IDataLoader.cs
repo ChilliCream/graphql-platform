@@ -6,15 +6,18 @@ using GreenDonut.Projections;
 namespace GreenDonut;
 
 /// <summary>
+/// <para>
 /// A <c>DataLoader</c> creates a public API for loading data from a
 /// particular data back-end with unique keys such as the `id` column of a
 /// SQL table or document name in a MongoDB database, given a batch loading
 /// function. -- facebook
-///
+/// </para>
+/// <para>
 /// Each <c>DataLoader</c> instance contains a unique memoized cache. Use
 /// caution when used in long-lived applications or those which serve many
 /// users with different access permissions and consider creating a new
 /// instance per web request. -- facebook
+/// </para>
 /// </summary>
 public interface IDataLoader
 {
@@ -162,18 +165,25 @@ public interface IDataLoader<in TKey, TValue>
     /// </exception>
     void Set(TKey key, Task<TValue?> value);
 
-#if NET8_0_OR_GREATER
+#if NET6_0_OR_GREATER
     /// <summary>
-    /// Branches the current <c>DataLoader</c> to allow for selections
-    /// to be applied to the data fetching.
+    /// Branches the current <c>DataLoader</c>.
     /// </summary>
     /// <param name="key">
     /// A unique key to identify the branch.
     /// </param>
+    /// <param name="createBranch">
+    /// Creates the branch of the current <c>DataLoader</c>.
+    /// </param>
+    /// <param name="state">
+    /// A custom state object that is passed to the branch factory.
+    /// </param>
     /// <returns>
-    /// A new <c>DataLoader</c> instance which allows for selections to be
-    /// applied to the data fetching.
+    /// A new <c>DataLoader</c> instance.
     /// </returns>
-    ISelectionDataLoader<TKey, TValue> Branch(string key);
+    IDataLoader Branch<TState>(
+        string key,
+        CreateDataLoaderBranch<TKey, TValue, TState> createBranch,
+        TState state);
 #endif
 }

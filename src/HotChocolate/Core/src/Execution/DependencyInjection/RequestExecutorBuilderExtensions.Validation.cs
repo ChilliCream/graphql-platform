@@ -215,8 +215,17 @@ public static partial class RequestExecutorBuilderExtensions
     /// if the request carries an introspection allowed flag.
     /// </summary>
     public static IRequestExecutorBuilder AddIntrospectionAllowedRule(
-        this IRequestExecutorBuilder builder) =>
-        ConfigureValidation(builder, b => b.AddIntrospectionAllowedRule());
+        this IRequestExecutorBuilder builder,
+        Func<IServiceProvider, ValidationOptions, bool>? isEnabled = null)
+        => ConfigureValidation(builder, b => b.AddIntrospectionAllowedRule(isEnabled));
+
+    /// <summary>
+    /// Removes a validation rule that only allows requests to use `__schema` or `__type`
+    /// if the request carries an introspection allowed flag.
+    /// </summary>
+    public static IRequestExecutorBuilder RemoveIntrospectionAllowedRule(
+        this IRequestExecutorBuilder builder)
+        => ConfigureValidation(builder, b => b.RemoveIntrospectionAllowedRule());
 
     /// <summary>
     /// Toggle whether introspection is allow or not.

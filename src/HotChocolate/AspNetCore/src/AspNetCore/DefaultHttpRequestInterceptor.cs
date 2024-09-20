@@ -24,11 +24,6 @@ public class DefaultHttpRequestInterceptor : IHttpRequestInterceptor
         requestBuilder.TryAddGlobalState(nameof(ClaimsPrincipal), userState.User);
         requestBuilder.TryAddGlobalState(WellKnownContextData.UserState, userState);
 
-        if (context.IsTracingEnabled())
-        {
-            requestBuilder.TryAddGlobalState(WellKnownContextData.EnableTracing, true);
-        }
-
         if (context.IncludeQueryPlan())
         {
             requestBuilder.TryAddGlobalState(WellKnownContextData.IncludeQueryPlan, true);

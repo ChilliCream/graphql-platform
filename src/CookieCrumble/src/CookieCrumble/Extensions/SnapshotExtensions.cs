@@ -75,7 +75,6 @@ public static class SnapshotExtensions
             string.IsNullOrEmpty(name)
                 ? "Result:"
                 : $"{name} Result:");
-        snapshot.SetPostFix(TestEnvironment.TargetFramework);
 
         if (result.ContextData.TryGetValue("query", out var queryResult) &&
             queryResult is string queryString &&

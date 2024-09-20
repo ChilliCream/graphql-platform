@@ -1,4 +1,4 @@
-#if NET8_0_OR_GREATER
+#if NET6_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -9,7 +9,9 @@ namespace GreenDonut.Projections;
 /// <summary>
 /// Data loader extensions for projections.
 /// </summary>
+#if NET8_0_OR_GREATER
 [Experimental(Experiments.Projections)]
+#endif
 public static class SelectionDataLoaderExtensions
 {
     /// <summary>
@@ -48,21 +50,22 @@ public static class SelectionDataLoaderExtensions
             throw new ArgumentNullException(nameof(selector));
         }
 
-        DefaultSelectorBuilder<TValue> context;
-        var branch = dataLoader.Branch(selector.ToString());
-        if (branch.ContextData.TryGetValue(typeof(ISelectorBuilder).FullName!, out var value)
-            && value is DefaultSelectorBuilder<TValue> casted)
-        {
-            context = casted;
-        }
-        else
-        {
-            context = new DefaultSelectorBuilder<TValue>();
-        }
+        var branchKey = selector.ToString();
+        return (ISelectionDataLoader<TKey, TValue>)dataLoader.Branch(branchKey, CreateBranch, selector);
 
-        context.Add(selector);
-        branch.ContextData = branch.ContextData.SetItem(typeof(ISelectorBuilder).FullName!, context);
-        return branch;
+        static IDataLoader CreateBranch(
+            string key,
+            IDataLoader<TKey, TValue> dataLoader,
+            Expression<Func<TValue, TValue>> selector)
+        {
+            var branch =  new SelectionDataLoader<TKey, TValue>(
+                (DataLoaderBase<TKey, TValue>)dataLoader,
+                key);
+            var context = new DefaultSelectorBuilder<TValue>();
+            branch.ContextData = branch.ContextData.SetItem(typeof(ISelectorBuilder).FullName!, context);
+            context.Add(selector);
+            return branch;
+        }
     }
 
     /// <summary>

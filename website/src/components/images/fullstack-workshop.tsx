@@ -3,11 +3,11 @@ import { GatsbyImage } from "gatsby-plugin-image";
 import React, { FC } from "react";
 import styled from "styled-components";
 
-import { GetFullStackWorkshopQuery } from "@/graphql-types";
+import { GetFullStackWorkshopQueryImage } from "@/graphql-types";
 
-export const FullstackWorkshop: FC = () => {
-  const data = useStaticQuery<GetFullStackWorkshopQuery>(graphql`
-    query getFullStackWorkshop {
+export const FullstackWorkshopImage: FC = () => {
+  const data = useStaticQuery<GetFullStackWorkshopQueryImage>(graphql`
+    query getFullStackWorkshopImage {
       file(
         relativePath: { eq: "2024-04-01-fullstack-workshop/header.png" }
         sourceInstanceName: { eq: "blog" }
@@ -34,6 +34,5 @@ const Container = styled.div`
 
   .gatsby-image-wrapper {
     border-radius: var(--border-radius);
-    box-shadow: 0 9px 18px rgba(0, 0, 0, 0.25);
   }
 `;

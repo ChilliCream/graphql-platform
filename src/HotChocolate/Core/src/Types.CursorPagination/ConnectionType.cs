@@ -180,15 +180,14 @@ internal sealed class ConnectionType
             ConnectionType_Edges_Description,
             edgesType,
             pureResolver: GetEdges)
-        { CustomSettings = { ContextDataKeys.Edges } });
-
+        { Flags = FieldFlags.EdgesField });
         if (includeNodesField)
         {
             definition.Fields.Add(new(
-                    Names.Nodes,
-                    ConnectionType_Nodes_Description,
-                    pureResolver: GetNodes)
-                { CustomSettings = { ContextDataKeys.Nodes } });
+                Names.Nodes,
+                ConnectionType_Nodes_Description,
+                pureResolver: GetNodes)
+                { Flags = FieldFlags.NodesField });
         }
 
         if (includeTotalCount)
@@ -207,12 +206,10 @@ internal sealed class ConnectionType
     }
 
     private static bool IsEdgesField(ObjectFieldDefinition field)
-        => field.CustomSettings.Count > 0 &&
-           field.CustomSettings[0].Equals(ContextDataKeys.Edges);
+        => (field.Flags & FieldFlags.EdgesField) == FieldFlags.EdgesField;
 
     private static bool IsNodesField(ObjectFieldDefinition field)
-        => field.CustomSettings.Count > 0 &&
-           field.CustomSettings[0].Equals(ContextDataKeys.Nodes);
+        => (field.Flags & FieldFlags.NodesField) == FieldFlags.NodesField;
 
     private static IPageInfo GetPagingInfo(IResolverContext context)
         => context.Parent<Connection>().Info;
@@ -237,7 +234,5 @@ internal sealed class ConnectionType
     private static class ContextDataKeys
     {
         public const string EdgeType = "HotChocolate_Types_Edge";
-        public const string Edges = "HotChocolate.Types.Connection.Edges";
-        public const string Nodes = "HotChocolate.Types.Connection.Nodes";
     }
 }

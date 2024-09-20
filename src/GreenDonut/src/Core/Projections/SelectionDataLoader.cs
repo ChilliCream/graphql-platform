@@ -1,4 +1,4 @@
-#if NET8_0_OR_GREATER
+#if NET6_0_OR_GREATER
 namespace GreenDonut.Projections;
 
 internal sealed class SelectionDataLoader<TKey, TValue>
@@ -21,9 +21,9 @@ internal sealed class SelectionDataLoader<TKey, TValue>
 
     protected internal override string CacheKeyType { get; }
 
-    private protected override bool AllowCachePropagation => false;
+    protected override bool AllowCachePropagation => false;
 
-    private protected override bool AllowBranching => false;
+    protected override bool AllowBranching => false;
 
     protected internal override ValueTask FetchAsync(
         IReadOnlyList<TKey> keys,

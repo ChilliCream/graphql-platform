@@ -67,6 +67,7 @@ public static class WellKnownTypes
     public const string KeyValuePair = "System.Collections.Generic.KeyValuePair";
     public const string EnumerableExtensions = "System.Linq.Enumerable";
     public const string SelectorBuilder = "GreenDonut.Projections.ISelectorBuilder";
+    public const string PagingArguments = "HotChocolate.Pagination.PagingArguments";
 
     public static HashSet<string> TypeClass { get; } =
     [

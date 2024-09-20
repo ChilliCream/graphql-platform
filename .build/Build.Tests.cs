@@ -63,7 +63,7 @@ partial class Build
             TestHotChocolateLanguage,
             TestHotChocolateMarten,
             TestHotChocolateMongoDb,
-            TestHotChocolatePersistedQueries,
+            TestHotChocolatePersistedOperations,
             TestHotChocolateRaven,
             TestHotChocolateSkimmed,
             TestHotChocolateSpatial,

@@ -10,7 +10,7 @@ public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
 {
     private static readonly TimeSpan _minExecutionTimeout = TimeSpan.FromMilliseconds(100);
     private TimeSpan _executionTimeout;
-    private IError _onlyPersistedQueriesAreAllowedError = ErrorHelper.OnlyPersistedQueriesAreAllowed();
+    private IError _onlyPersistedOperationsAreAllowedError = ErrorHelper.OnlyPersistedOperationsAreAllowed();
 
     /// <summary>
     /// <para>Initializes a new instance of <see cref="RequestExecutorOptions"/>.</para>
@@ -51,25 +51,30 @@ public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
     public bool IncludeExceptionDetails { get; set; } = Debugger.IsAttached;
 
     /// <summary>
-    /// Specifies if only persisted queries are allowed when using
-    /// the persisted query pipeline.
+    /// Specifies if only persisted operations are allowed when using
+    /// the persisted operation pipeline.
     ///
     /// The default is <c>false</c>.
     /// </summary>
-    public bool OnlyAllowPersistedQueries { get; set; } = false;
+    public bool OnlyAllowPersistedOperations { get; set; } = false;
 
     /// <summary>
     /// The error that will be thrown when only persisted
-    /// queries are allowed and a normal query is issued.
+    /// operations are allowed and a normal operation is issued.
     /// </summary>
-    public IError OnlyPersistedQueriesAreAllowedError
+    public IError OnlyPersistedOperationsAreAllowedError
     {
-        get => _onlyPersistedQueriesAreAllowedError;
+        get => _onlyPersistedOperationsAreAllowedError;
         set
         {
-            _onlyPersistedQueriesAreAllowedError = value
+            _onlyPersistedOperationsAreAllowedError = value
                 ?? throw new ArgumentNullException(
-                    nameof(OnlyPersistedQueriesAreAllowedError));
+                    nameof(OnlyPersistedOperationsAreAllowedError));
         }
     }
+
+    /// <summary>
+    /// Specifies that the transport is allowed to provide the schema SDL document as a file.
+    /// </summary>
+    public bool EnableSchemaFileSupport { get; set; } = true;
 }

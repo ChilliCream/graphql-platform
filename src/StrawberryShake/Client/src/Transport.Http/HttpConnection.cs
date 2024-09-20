@@ -32,7 +32,7 @@ public sealed class HttpConnection : IHttpConnection
 
         HotChocolate.Transport.OperationRequest operation;
 
-        if (strategy == RequestStrategy.PersistedQuery)
+        if (strategy == RequestStrategy.PersistedOperation)
         {
             operation = new HotChocolate.Transport.OperationRequest(null, id, name, variables, extensions);
         }

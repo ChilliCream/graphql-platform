@@ -1,7 +1,10 @@
 using System.Net;
 using CookieCrumble;
 using HotChocolate.AspNetCore.Tests.Utilities;
+using HotChocolate.Execution;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace HotChocolate.AspNetCore;
 
@@ -32,6 +35,57 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
 #else
         result.MatchSnapshot("NET6");
 #endif
+    }
+
+    [Theory]
+    [InlineData("/graphql?sdl")]
+    [InlineData("/graphql/schema/")]
+    [InlineData("/graphql/schema.graphql")]
+    [InlineData("/graphql/schema")]
+    public async Task Download_GraphQL_Schema(string path)
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: sp =>
+                sp.RemoveAll<ITimeProvider>()
+                    .AddSingleton<ITimeProvider, StaticTimeProvider>());
+        var url = TestServerExtensions.CreateUrl(path);
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+        // act
+        var response = await server.CreateClient().SendAsync(request);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+#if NET7_0_OR_GREATER
+        response.MatchMarkdownSnapshot();
+#else
+        response.MatchMarkdownSnapshot("NET6");
+#endif
+    }
+
+    [Theory]
+    [InlineData("/graphql/?sdl")]
+    [InlineData("/graphql/schema/")]
+    [InlineData("/graphql/schema.graphql")]
+    [InlineData("/graphql/schema")]
+    public async Task Download_GraphQL_Schema_Not_Allowed(string path)
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s =>
+                s.AddGraphQL()
+                    .ModifyRequestOptions(o => o.EnableSchemaFileSupport = false));
+
+        var url = TestServerExtensions.CreateUrl(path);
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+        // act
+        var response = await server.CreateClient().SendAsync(request);
+
+        // assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
     [Fact]
@@ -178,11 +232,7 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
         // arrange
         var server = CreateStarWarsServer(
             configureConventions: e => e.WithOptions(
-                new GraphQLServerOptions
-                {
-                    EnableSchemaRequests = false,
-                    Tool = { Enable = false, },
-                }));
+                new GraphQLServerOptions { EnableSchemaRequests = false, Tool = { Enable = false, }, }));
         var url = TestServerExtensions.CreateUrl("/graphql?sdl");
         var request = new HttpRequestMessage(HttpMethod.Get, url);
 
@@ -193,5 +243,10 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         var result = await response.Content.ReadAsStringAsync();
         result.MatchSnapshot();
+    }
+
+    private sealed class StaticTimeProvider : ITimeProvider
+    {
+        public DateTimeOffset UtcNow { get; } = new(2021, 1, 1, 0, 0, 0, TimeSpan.Zero);
     }
 }
