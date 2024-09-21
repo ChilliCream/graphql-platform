@@ -50,7 +50,7 @@ By awaiting the `FieldDelegate` we are waiting for the completion of all of the 
 
 ## Field middleware delegate
 
-A field middleware delegate can be defined using Code-first APIs.
+A field middleware delegate can be defined using code-first APIs.
 
 ```csharp
 public class QueryType : ObjectType
@@ -211,7 +211,7 @@ descriptor
 
 # Usage as an attribute
 
-Up until now we have only worked with Code-first APIs to create the field middleware. What if you want to apply your middleware to a field resolver defined using the Annotation-based approach?
+Up until now we have only worked with code-first APIs to create the field middleware. What if you want to apply your middleware to a field resolver defined using the implementation-first approach?
 
 You can create a new attribute inheriting from `ObjectFieldDescriptorAttribute` and call or create your middleware inside of the `OnConfigure` method.
 

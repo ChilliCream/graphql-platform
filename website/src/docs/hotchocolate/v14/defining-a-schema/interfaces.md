@@ -53,7 +53,7 @@ If we need to access fields that are part of an object type implementing the int
 Interfaces can be defined like the following.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 [InterfaceType("Message")]
@@ -121,7 +121,7 @@ public class Startup
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -253,9 +253,9 @@ public class Startup
 
 # Binding behavior
 
-In the Annotation-based approach all public properties and methods are implicitly mapped to fields on the schema interface type. The same is true for `T` of `InterfaceType<T>` when using the Code-first approach.
+In the implementation-first approach all public properties and methods are implicitly mapped to fields on the schema interface type. The same is true for `T` of `InterfaceType<T>` when using the code-first approach.
 
-In the Code-first approach we can also enable explicit binding, where we have to opt-in properties and methods we want to include instead of them being implicitly included.
+In the code-first approach we can also enable explicit binding, where we have to opt-in properties and methods we want to include instead of them being implicitly included.
 
 <!-- todo: this should not be covered in each type documentation, rather once in a server configuration section -->
 
@@ -292,9 +292,9 @@ public class MessageType : InterfaceType<IMessage>
 ## Ignoring fields
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
-In the Annotation-based approach we can ignore fields using the `[GraphQLIgnore]` attribute.
+In the implementation-first approach we can ignore fields using the `[GraphQLIgnore]` attribute.
 
 ```csharp
 public interface IMessage
@@ -306,10 +306,10 @@ public interface IMessage
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
-In the Code-first approach we can ignore fields using the `Ignore` method on the `IInterfaceTypeDescriptor`. This is only necessary, if the binding behavior of the interface type is implicit.
+In the code-first approach we can ignore fields using the `Ignore` method on the `IInterfaceTypeDescriptor`. This is only necessary, if the binding behavior of the interface type is implicit.
 
 ```csharp
 public class MessageType : InterfaceType<IMessage>
@@ -326,14 +326,14 @@ public class MessageType : InterfaceType<IMessage>
 </Code>
 <Schema>
 
-We do not have to ignore fields in the Schema-first approach.
+We do not have to ignore fields in the schema-first approach.
 
 </Schema>
 </ExampleTabs>
 
 ## Including fields
 
-In the Code-first approach we can explicitly include properties of our POCO using the `Field` method on the `IInterfaceTypeDescriptor`. This is only necessary, if the binding behavior of the interface type is explicit.
+In the code-first approach we can explicitly include properties of our POCO using the `Field` method on the `IInterfaceTypeDescriptor`. This is only necessary, if the binding behavior of the interface type is explicit.
 
 ```csharp
 public class MessageType : InterfaceType<IMessage>
@@ -350,12 +350,12 @@ public class MessageType : InterfaceType<IMessage>
 
 # Naming
 
-Unless specified explicitly, Hot Chocolate automatically infers the names of interface types and their fields. Per default the name of the interface / abstract class becomes the name of the interface type. When using `InterfaceType<T>` in Code-first, the name of `T` is chosen as the name for the interface type. The names of methods and properties on the respective interface / abstract class are chosen as names of the fields of the interface type
+Unless specified explicitly, Hot Chocolate automatically infers the names of interface types and their fields. Per default the name of the interface / abstract class becomes the name of the interface type. When using `InterfaceType<T>` in code-first, the name of `T` is chosen as the name for the interface type. The names of methods and properties on the respective interface / abstract class are chosen as names of the fields of the interface type
 
 If we need to we can override these inferred names.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 The `[GraphQLName]` attribute allows us to specify an explicit name.
 
@@ -377,7 +377,7 @@ We can also specify a name for the interface type using the `[InterfaceType]` at
 public interface IMessage
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 The `Name` method on the `IInterfaceTypeDescriptor` / `IInterfaceFieldDescriptor` allows us to specify an explicit name.
@@ -438,7 +438,7 @@ type TextMessage implements DatedMessage & Message {
 We can implement this like the following.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 [InterfaceType("Message")]
@@ -483,7 +483,7 @@ public class Startup
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
