@@ -72,7 +72,8 @@ public static class PagingResultExtensions
                 page.HasNextPage,
                 page.HasPreviousPage,
                 CreateCursor(page.First, page.CreateCursor),
-                CreateCursor(page.Last, page.CreateCursor)));
+                CreateCursor(page.Last, page.CreateCursor)),
+            page.TotalCount ?? 0);
     }
 
     private static string? CreateCursor<T>(T? item, Func<T, string> createCursor) where T : class
