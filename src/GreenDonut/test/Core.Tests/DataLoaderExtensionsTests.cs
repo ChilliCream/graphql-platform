@@ -64,8 +64,7 @@ public class DataLoaderExtensionsTests
             batchScheduler,
             new DataLoaderOptions
             {
-                Cache = cacheOwner.Cache,
-                CancellationToken = cacheOwner.CancellationToken,
+                Cache = cacheOwner.Cache
             });
 
         const string key = "Foo";
@@ -92,8 +91,7 @@ public class DataLoaderExtensionsTests
             batchScheduler,
             new DataLoaderOptions
             {
-                Cache = cacheOwner.Cache,
-                CancellationToken = cacheOwner.CancellationToken,
+                Cache = cacheOwner.Cache
             });
 
         const string key = "Foo";
@@ -136,8 +134,7 @@ public class DataLoaderExtensionsTests
             batchScheduler,
             new DataLoaderOptions
             {
-                Cache = cacheOwner.Cache,
-                CancellationToken = cacheOwner.CancellationToken,
+                Cache = cacheOwner.Cache
             });
         object value = "Bar";
 

@@ -153,7 +153,8 @@ public sealed class InputParser
                     var item = items[i];
                     var itemPath = path.Append(i);
 
-                    if (item.Kind != SyntaxKind.ListValue)
+                    if (item.Kind != SyntaxKind.ListValue
+                        && item.Kind != SyntaxKind.NullValue)
                     {
                         throw ParseNestedList_InvalidSyntaxKind(type, item.Kind, itemPath);
                     }
