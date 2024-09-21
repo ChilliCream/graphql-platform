@@ -8,7 +8,6 @@ namespace GreenDonut;
 /// </summary>
 public sealed class PromiseCacheOwner : IDisposable
 {
-    private readonly CancellationTokenSource _cts = new();
     private readonly ObjectPool<PromiseCache> _pool;
     private readonly PromiseCache _cache;
     private bool _disposed;
@@ -20,7 +19,6 @@ public sealed class PromiseCacheOwner : IDisposable
     {
         _pool = PromiseCachePool.Shared;
         _cache = PromiseCachePool.Shared.Get();
-        CancellationToken = _cts.Token;
     }
 
     /// <summary>
@@ -30,14 +28,7 @@ public sealed class PromiseCacheOwner : IDisposable
     {
         _pool = pool ?? throw new ArgumentNullException(nameof(pool));
         _cache = pool.Get();
-        CancellationToken = _cts.Token;
     }
-
-    /// <summary>
-    /// The task cancellation token that shall be used for a DataLoader session with this cache.
-    /// The cancellation will be signaled when the cache is returned to its pool.
-    /// </summary>
-    public CancellationToken CancellationToken { get; }
 
     /// <summary>
     /// Gets the rented cache.
@@ -51,8 +42,6 @@ public sealed class PromiseCacheOwner : IDisposable
     {
         if (!_disposed)
         {
-            _cts.Cancel();
-            _cts.Dispose();
             _pool.Return(_cache);
             _disposed = true;
         }
