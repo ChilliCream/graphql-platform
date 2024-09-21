@@ -58,9 +58,6 @@ export const SiteLayout: FC<SiteLayoutProps> = ({ children, disableStars }) => {
  * one does bareely change the code from the original implementation but uses
  * more CPU. Then there are two performance optimized implementations that use
  * a grid or a quadtree to connect nearby stars which is much more efficent.
- *
- * This implementation looks the best, but i am pretty sure that we can get the
- * same result with the other two implementations too.
  */
 function Stars(): ReactElement {
   const canvasRef = useRef<HTMLCanvasElement>(null);
