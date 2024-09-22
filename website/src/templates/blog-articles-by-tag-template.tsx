@@ -5,7 +5,6 @@ import { SiteLayout } from "@/components/layout";
 import { SEO } from "@/components/misc/seo";
 import { AllBlogPosts } from "@/components/widgets";
 import { GetBlogArticlesByTagQuery } from "@/graphql-types";
-import { useAnimationIntersectionObserver } from "@/hooks";
 
 interface BlogTagTemplatePageContext {
   readonly tag: string;
@@ -24,8 +23,6 @@ const BlogTagTemplate: FC<BlogTagTemplateProps> = ({
   pageContext: { tag, currentPage, numPages },
   data: { allMdx },
 }) => {
-  useAnimationIntersectionObserver();
-
   return (
     <SiteLayout disableStars>
       <SEO title={`Blog Articles By Tag: ${tag}`} />

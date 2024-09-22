@@ -5,7 +5,6 @@ import { SiteLayout } from "@/components/layout";
 import { SEO } from "@/components/misc/seo";
 import { AllBlogPosts } from "@/components/widgets";
 import { GetBlogArticlesQuery } from "@/graphql-types";
-import { useAnimationIntersectionObserver } from "@/hooks";
 
 interface BlogArticlesTemplatePageContext {
   readonly limit: number;
@@ -23,8 +22,6 @@ const BlogArticlesTemplate: FC<BlogArticlesTemplateProps> = ({
   pageContext: { currentPage, numPages },
   data: { allMdx },
 }) => {
-  useAnimationIntersectionObserver();
-
   return (
     <SiteLayout disableStars>
       <SEO title="Blog Articles" />
