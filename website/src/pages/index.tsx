@@ -19,7 +19,6 @@ import {
   MostRecentBlogPostsSection,
   NewsletterSection,
 } from "@/components/widgets";
-import { useAnimationIntersectionObserver } from "@/hooks";
 import { FADE_IN, ZOOM_IN } from "@/style";
 
 // Images
@@ -38,8 +37,6 @@ import {
 } from "../components/images";
 
 const IndexPage: FC = () => {
-  useAnimationIntersectionObserver();
-
   return (
     <SiteLayout>
       <SEO title="Home" />

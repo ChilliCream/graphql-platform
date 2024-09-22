@@ -14,7 +14,6 @@ import {
   MostRecentBlogPostsSection,
   NewsletterSection,
 } from "@/components/widgets";
-import { useAnimationIntersectionObserver } from "@/hooks";
 
 interface Plans {
   readonly title: string;
@@ -30,8 +29,6 @@ interface Plans {
 }
 
 const SupportPage: FC = () => {
-  useAnimationIntersectionObserver();
-
   return (
     <SiteLayout>
       <SEO title="Support" />
