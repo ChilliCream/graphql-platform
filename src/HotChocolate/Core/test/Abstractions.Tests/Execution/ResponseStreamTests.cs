@@ -70,7 +70,7 @@ public class ResponseStreamTests
         var result = new ResponseStream(() => default!);
 
         // act
-        void Fail() => result.RegisterForCleanup(default(Func<ValueTask>)!);
+        void Fail() => result.RegisterForCleanup(default!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Fail);
