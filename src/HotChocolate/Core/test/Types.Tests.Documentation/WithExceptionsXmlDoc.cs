@@ -1,6 +1,5 @@
 namespace HotChocolate.Types.Descriptors
 {
-#pragma warning disable 1591
     public class WithExceptionsXmlDoc
     {
         /// <summary>
@@ -36,5 +35,4 @@ namespace HotChocolate.Types.Descriptors
         /// <exception cref="Exception">Foo Error</exception>
         public void Baz() { }
     }
-#pragma warning restore 1591
 }

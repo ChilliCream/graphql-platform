@@ -2,7 +2,6 @@ namespace HotChocolate.Types.Descriptors
 {
     public class WithReturnsXmlDoc
     {
-#pragma warning disable 1591
         /// <summary>
         /// Query and manages users.
         ///
@@ -11,6 +10,5 @@ namespace HotChocolate.Types.Descriptors
         /// </summary>
         /// <returns>Bar</returns>
         public void Foo() { }
-#pragma warning restore 1591
     }
 }

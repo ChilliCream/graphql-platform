@@ -1,6 +1,5 @@
 namespace HotChocolate.Types.Descriptors
 {
-#pragma warning disable 1591
     public class WithMultilineXmlDoc(string foo)
     {
         /// <summary>
@@ -17,5 +16,4 @@ namespace HotChocolate.Types.Descriptors
         /// </summary>
         public string Foo { get; set; } = foo;
     }
-#pragma warning restore 1591
 }

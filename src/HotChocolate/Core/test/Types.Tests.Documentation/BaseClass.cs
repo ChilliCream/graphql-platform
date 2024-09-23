@@ -1,6 +1,5 @@
 namespace HotChocolate.Types.Descriptors
 {
-#pragma warning disable 1591
     public abstract class BaseClass(string foo) : BaseBaseClass
     {
         /// <inheritdoc />
@@ -9,5 +8,4 @@ namespace HotChocolate.Types.Descriptors
         /// <inheritdoc />
         public override void Bar(string baz) { }
     }
-#pragma warning restore 1587
 }

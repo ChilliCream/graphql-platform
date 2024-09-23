@@ -18,7 +18,6 @@ public static class FilterExpressionBuilder
             m.GetGenericArguments().Length == 1 &&
             m.GetParameters().Length is 2);
 
-#pragma warning disable CA1307
     private static readonly MethodInfo _startsWith =
         ReflectionUtils.ExtractMethod<string>(x => x.StartsWith(default(string)!));
 
@@ -27,7 +26,6 @@ public static class FilterExpressionBuilder
 
     private static readonly MethodInfo _contains =
         ReflectionUtils.ExtractMethod<string>(x => x.Contains(default(string)!));
-#pragma warning restore CA1307
 
     private static readonly MethodInfo _createAndConvert =
         typeof(FilterExpressionBuilder)

@@ -1,7 +1,5 @@
 namespace HotChocolate.Types.Descriptors
 {
-#pragma warning disable 1574
-#pragma warning disable 1591
     public class WithSeeTagInXmlDoc(string foo)
     {
         /// <summary>
@@ -12,6 +10,4 @@ namespace HotChocolate.Types.Descriptors
         /// </summary>
         public string Foo { get; set; } = foo;
     }
-#pragma warning restore 1591
-#pragma warning restore 1574
 }
