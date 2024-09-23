@@ -8,12 +8,14 @@
     <NukeRootDirectory>..</NukeRootDirectory>
     <NukeScriptDirectory>..</NukeScriptDirectory>
     <NukeTelemetryVersion>1</NukeTelemetryVersion>
+    <EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Nuke.Common" Version="6.3.0" />
     <PackageReference Include="Colorful.Console" Version="1.2.15" />
     <PackageReference Include="Semver" Version="2.3.0" />
+    <PackageReference Include="System.Runtime.Serialization.Formatters" Version="9.0.0-*" />
   </ItemGroup>
 
   <ItemGroup>
