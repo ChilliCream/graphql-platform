@@ -1,0 +1,24 @@
+﻿schema {
+  query: Query10
+}
+
+interface IDocument implements Node {
+  id: ID!
+}
+
+"The node interface is implemented by entities that have a global unique identifier."
+interface Node {
+  id: ID!
+}
+
+type DrivingLicense implements Node & IDocument {
+  id: ID!
+}
+
+type Query10 {
+  "Fetches an object given its ID."
+  node("ID of the object." id: ID!): Node
+  "Lookup nodes by a list of IDs."
+  nodes("The list of node IDs." ids: [ID!]!): [Node]!
+  documentById(id: ID!): IDocument
+}
