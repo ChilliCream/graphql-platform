@@ -99,6 +99,7 @@ namespace Foo.Bar
         private global::StrawberryShake.Serialization.IInputValueFormatter _uploadFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _photoFormatter = default !;
         public global::System.String TypeName => "User";
+
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _stringFormatter = serializerResolver.GetInputValueFormatter("String");
@@ -282,6 +283,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IUserInfo.IsUsernameSet => _set_username;
+
         public global::Foo.Bar.Address Address
         {
             get => _value_address;
@@ -293,6 +295,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IUserInfo.IsAddressSet => _set_address;
+
         public global::StrawberryShake.Upload ProfilePicture
         {
             get => _value_profilePicture;
@@ -304,6 +307,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IUserInfo.IsProfilePictureSet => _set_profilePicture;
+
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Photo?>? Photos
         {
             get => _value_photos;
@@ -323,6 +327,7 @@ namespace Foo.Bar
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter = default !;
         public global::System.String TypeName => "Address";
+
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _stringFormatter = serializerResolver.GetInputValueFormatter("String");
@@ -438,6 +443,7 @@ namespace Foo.Bar
         private global::StrawberryShake.Serialization.IInputValueFormatter _uploadFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _photoMetadataFormatter = default !;
         public global::System.String TypeName => "Photo";
+
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _uploadFormatter = serializerResolver.GetInputValueFormatter("Upload");
@@ -564,6 +570,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IPhotoInfo.IsDataSet => _set_data;
+
         public global::Foo.Bar.PhotoMetadata? Metadata
         {
             get => _value_metadata;
@@ -583,6 +590,7 @@ namespace Foo.Bar
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _uploadFormatter = default !;
         public global::System.String TypeName => "PhotoMetadata";
+
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _uploadFormatter = serializerResolver.GetInputValueFormatter("Upload");
@@ -704,8 +712,59 @@ namespace Foo.Bar
 
         public static TestQueryDocument Instance { get; } = new TestQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x54, 0x65, 0x73, 0x74, 0x28, 0x24, 0x69, 0x6e, 0x70, 0x75, 0x74, 0x3a, 0x20, 0x55, 0x73, 0x65, 0x72, 0x21, 0x29, 0x20, 0x7b, 0x20, 0x66, 0x6f, 0x6f, 0x28, 0x69, 0x6e, 0x70, 0x75, 0x74, 0x3a, 0x20, 0x24, 0x69, 0x6e, 0x70, 0x75, 0x74, 0x29, 0x20, 0x7d};
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
+        {
+            0x71,
+            0x75,
+            0x65,
+            0x72,
+            0x79,
+            0x20,
+            0x54,
+            0x65,
+            0x73,
+            0x74,
+            0x28,
+            0x24,
+            0x69,
+            0x6e,
+            0x70,
+            0x75,
+            0x74,
+            0x3a,
+            0x20,
+            0x55,
+            0x73,
+            0x65,
+            0x72,
+            0x21,
+            0x29,
+            0x20,
+            0x7b,
+            0x20,
+            0x66,
+            0x6f,
+            0x6f,
+            0x28,
+            0x69,
+            0x6e,
+            0x70,
+            0x75,
+            0x74,
+            0x3a,
+            0x20,
+            0x24,
+            0x69,
+            0x6e,
+            0x70,
+            0x75,
+            0x74,
+            0x29,
+            0x20,
+            0x7d
+        };
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "7b9a0178a8a9bf466cf7d2111c420bf1a948b822");
+
         public override global::System.String ToString()
         {
 #if NETCOREAPP3_1_OR_GREATER
@@ -737,6 +796,7 @@ namespace Foo.Bar
         }
 
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(ITestResult);
+
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ITestResult>> ExecuteAsync(global::Foo.Bar.User input, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(input);
@@ -885,6 +945,7 @@ namespace Foo.Bar.State
         }
 
         global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::Foo.Bar.ITestResult);
+
         public TestResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             if (snapshot is null)
@@ -920,9 +981,9 @@ namespace Foo.Bar.State
         }
 
         public global::System.String? Foo { get; }
-
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
         public global::System.UInt64 Version => _version;
+
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new TestResultInfo(Foo, _entityIds, version);
@@ -1016,7 +1077,9 @@ namespace Foo.Bar.State
     public partial class FooClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
         private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
-        {Indented = false};
+        {
+            Indented = false
+        };
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
             global::System.String __typename = obj.GetProperty("__typename").GetString()!;

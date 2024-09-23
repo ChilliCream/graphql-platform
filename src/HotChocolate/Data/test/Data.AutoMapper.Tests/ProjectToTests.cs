@@ -110,7 +110,7 @@ public class ProjectToTests
                     }")
                 .Build());
 
-        var snapshot = new Snapshot();
+        var snapshot = new Snapshot(postFix: TestEnvironment.TargetFramework);
         snapshot.AddSqlFrom(res1);
         await snapshot.MatchAsync();
     }
@@ -147,7 +147,7 @@ public class ProjectToTests
                     }")
                 .Build());
 
-        var snapshot = new Snapshot();
+        var snapshot = new Snapshot(postFix: TestEnvironment.TargetFramework);
         snapshot.AddSqlFrom(res1);
         await snapshot.MatchAsync();
     }
@@ -205,7 +205,7 @@ public class ProjectToTests
                     }")
                 .Build());
 
-        var snapshot = new Snapshot();
+        var snapshot = new Snapshot(postFix: TestEnvironment.TargetFramework);
         snapshot.AddSqlFrom(res1);
         await snapshot.MatchAsync();
     }

@@ -212,9 +212,7 @@ internal partial class MiddlewareContext
 
         public T Service<T>() where T : notnull => parentContext.Service<T>();
 
-#if NET8_0_OR_GREATER
         public T? Service<T>(object key) where T : notnull => parentContext.Service<T>(key);
-#endif
 
         public T Resolver<T>() => parentContext.Resolver<T>();
 

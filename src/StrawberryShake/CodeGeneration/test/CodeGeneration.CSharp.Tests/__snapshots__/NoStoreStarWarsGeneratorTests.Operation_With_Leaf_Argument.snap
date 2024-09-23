@@ -94,7 +94,6 @@ namespace Foo.Bar
         }
 
         public global::System.String Name { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Episode?>? AppearsIn { get; }
 
         public virtual global::System.Boolean Equals(GetHero_Hero_Droid? other)
@@ -170,7 +169,6 @@ namespace Foo.Bar
         }
 
         public global::System.String Name { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Episode?>? AppearsIn { get; }
 
         public virtual global::System.Boolean Equals(GetHero_Hero_Human? other)
@@ -247,7 +245,6 @@ namespace Foo.Bar
     public partial interface IGetHero_Hero
     {
         public global::System.String Name { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Episode?>? AppearsIn { get; }
     }
 
@@ -277,6 +274,7 @@ namespace Foo.Bar
     public partial class EpisodeSerializer : global::StrawberryShake.Serialization.IInputValueFormatter, global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, Episode>
     {
         public global::System.String TypeName => "Episode";
+
         public Episode Parse(global::System.String serializedValue)
         {
             return serializedValue switch
@@ -320,8 +318,101 @@ namespace Foo.Bar
 
         public static GetHeroQueryDocument Instance { get; } = new GetHeroQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x47, 0x65, 0x74, 0x48, 0x65, 0x72, 0x6f, 0x28, 0x24, 0x65, 0x70, 0x69, 0x73, 0x6f, 0x64, 0x65, 0x3a, 0x20, 0x45, 0x70, 0x69, 0x73, 0x6f, 0x64, 0x65, 0x29, 0x20, 0x7b, 0x20, 0x68, 0x65, 0x72, 0x6f, 0x28, 0x65, 0x70, 0x69, 0x73, 0x6f, 0x64, 0x65, 0x3a, 0x20, 0x24, 0x65, 0x70, 0x69, 0x73, 0x6f, 0x64, 0x65, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x61, 0x70, 0x70, 0x65, 0x61, 0x72, 0x73, 0x49, 0x6e, 0x20, 0x7d, 0x20, 0x7d};
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
+        {
+            0x71,
+            0x75,
+            0x65,
+            0x72,
+            0x79,
+            0x20,
+            0x47,
+            0x65,
+            0x74,
+            0x48,
+            0x65,
+            0x72,
+            0x6f,
+            0x28,
+            0x24,
+            0x65,
+            0x70,
+            0x69,
+            0x73,
+            0x6f,
+            0x64,
+            0x65,
+            0x3a,
+            0x20,
+            0x45,
+            0x70,
+            0x69,
+            0x73,
+            0x6f,
+            0x64,
+            0x65,
+            0x29,
+            0x20,
+            0x7b,
+            0x20,
+            0x68,
+            0x65,
+            0x72,
+            0x6f,
+            0x28,
+            0x65,
+            0x70,
+            0x69,
+            0x73,
+            0x6f,
+            0x64,
+            0x65,
+            0x3a,
+            0x20,
+            0x24,
+            0x65,
+            0x70,
+            0x69,
+            0x73,
+            0x6f,
+            0x64,
+            0x65,
+            0x29,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x61,
+            0x70,
+            0x70,
+            0x65,
+            0x61,
+            0x72,
+            0x73,
+            0x49,
+            0x6e,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d
+        };
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "25b97a7cb87d66116635786c695e1e7f868dc0ee");
+
         public override global::System.String ToString()
         {
 #if NETCOREAPP3_1_OR_GREATER
@@ -357,6 +448,7 @@ namespace Foo.Bar
         }
 
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IGetHeroResult);
+
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHeroResult>> ExecuteAsync(global::Foo.Bar.Episode? episode, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(episode);
@@ -458,6 +550,7 @@ namespace Foo.Bar.State
         }
 
         global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::Foo.Bar.IGetHeroResult);
+
         public GetHeroResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             if (dataInfo is GetHeroResultInfo info)
@@ -508,9 +601,9 @@ namespace Foo.Bar.State
         }
 
         public global::Foo.Bar.State.ICharacterData? Hero { get; }
-
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => global::System.Array.Empty<global::StrawberryShake.EntityId>();
         public global::System.UInt64 Version => 0;
+
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new GetHeroResultInfo(Hero);
@@ -641,9 +734,7 @@ namespace Foo.Bar.State
         }
 
         public global::System.String __typename { get; }
-
         public global::System.String? Name { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Episode?>? AppearsIn { get; }
     }
 
@@ -659,9 +750,7 @@ namespace Foo.Bar.State
         }
 
         public global::System.String __typename { get; }
-
         public global::System.String? Name { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Episode?>? AppearsIn { get; }
     }
 
@@ -672,6 +761,7 @@ namespace Foo.Bar.State
         public global::StrawberryShake.IOperationStore OperationStore => throw new global::System.NotSupportedException("OperationStore is not supported in store less mode");
         public global::StrawberryShake.IEntityStore EntityStore => throw new global::System.NotSupportedException("EntityStore is not supported in store less mode");
         public global::StrawberryShake.IEntityIdSerializer EntityIdSerializer => throw new global::System.NotSupportedException("EntityIdSerializer is not supported in store less mode");
+
         public global::StrawberryShake.IOperationRequestFactory GetOperationRequestFactory(global::System.Type resultType)
         {
             throw new global::System.NotSupportedException("GetOperationRequestFactory is not supported in store less mode");

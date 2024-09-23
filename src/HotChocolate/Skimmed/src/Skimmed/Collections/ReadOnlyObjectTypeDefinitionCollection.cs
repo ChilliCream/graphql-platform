@@ -9,7 +9,7 @@ public sealed class ReadOnlyObjectTypeDefinitionCollection : IObjectTypeDefiniti
 
     private ReadOnlyObjectTypeDefinitionCollection(IEnumerable<ObjectTypeDefinition> types)
     {
-        ArgumentNullException.ThrowIfNull(nameof(types));
+        ArgumentNullException.ThrowIfNull(types);
         _types = types.ToArray();
     }
 

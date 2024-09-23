@@ -150,8 +150,8 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |
-            7.x
             8.x
+            9.x
 
       - name: Generate Test Matrix
         run: dotnet run --project ./.build -- GenerateMatrix
@@ -180,13 +180,12 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |
-            6.x
-            7.x
             8.x
+            9.x
 
       - name: Run Build
         id: run-build
-        run: dotnet build ${{ matrix.path }} --framework net8.0 --verbosity q
+        run: dotnet build ${{ matrix.path }} --framework net9.0 --verbosity q
         timeout-minutes: 5
 
       - name: Run tests
@@ -196,7 +195,7 @@ jobs:
         run: >
           dotnet test ${{ matrix.path }}
           --collect:"XPlat Code Coverage;Format=opencover"
-          --framework net8.0
+          --framework net9.0
           --logger trx
           --no-build
           --
@@ -243,9 +242,8 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |
-            6.x
-            7.x
             8.x
+            9.x
 
       - name: Create All.sln
         if: ${{ !cancelled() }}

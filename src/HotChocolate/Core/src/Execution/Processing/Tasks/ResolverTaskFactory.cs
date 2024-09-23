@@ -66,11 +66,7 @@ internal static class ResolverTaskFactory
             }
             else
             {
-                #if NET6_0_OR_GREATER
                 scheduler.Register(CollectionsMarshal.AsSpan(bufferedTasks));
-                #else
-                scheduler.Register(bufferedTasks);
-                #endif
             }
 
             if (selectionSet.Fragments.Count > 0)
@@ -130,11 +126,7 @@ internal static class ResolverTaskFactory
             // if we have child tasks we need to register them.
             if (bufferedTasks.Count > 0)
             {
-                #if NET6_0_OR_GREATER
                 operationContext.Scheduler.Register(CollectionsMarshal.AsSpan(bufferedTasks));
-                #else
-                operationContext.Scheduler.Register(bufferedTasks);
-                #endif
             }
         }
         finally

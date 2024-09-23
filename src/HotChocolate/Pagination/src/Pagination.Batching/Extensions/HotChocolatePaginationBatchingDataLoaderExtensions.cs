@@ -83,9 +83,7 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
     /// <exception cref="ArgumentNullException">
     /// Throws if the <paramref name="dataLoader"/> is <c>null</c>.
     /// </exception>
-#if NET8_0_OR_GREATER
     [Experimental(Experiments.Projections)]
-#endif
     public static IPagingDataLoader<TKey, Page<TValue>> Select<TKey, TValue>(
         this IPagingDataLoader<TKey, Page<TValue>> dataLoader,
         Expression<Func<TValue, TValue>> selector)

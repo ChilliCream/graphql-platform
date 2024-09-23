@@ -5,7 +5,6 @@
     <AssemblyName>HotChocolate.Types.Spatial</AssemblyName>
     <RootNamespace>HotChocolate.Types.Spatial</RootNamespace>
     <Description>Contains types for HotChocolate to expose NetTopologySuite as GeoJSON</Description>
-    <TargetFrameworks>$(LibraryTargetFrameworks)</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>

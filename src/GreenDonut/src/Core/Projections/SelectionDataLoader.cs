@@ -1,4 +1,3 @@
-#if NET6_0_OR_GREATER
 namespace GreenDonut.Projections;
 
 internal sealed class SelectionDataLoader<TKey, TValue>
@@ -32,4 +31,3 @@ internal sealed class SelectionDataLoader<TKey, TValue>
         CancellationToken cancellationToken)
         => _root.FetchAsync(keys, results, context, cancellationToken);
 }
-#endif

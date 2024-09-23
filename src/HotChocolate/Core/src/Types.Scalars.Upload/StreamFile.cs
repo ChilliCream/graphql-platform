@@ -65,17 +65,9 @@ public class StreamFile : IFile
         Stream target,
         CancellationToken cancellationToken = default)
     {
-#if NETSTANDARD2_0 || NETSTANDARD2_1
-        using var stream = OpenReadStream();
-#else
         await using var stream = OpenReadStream();
-#endif
 
-#if NETSTANDARD2_0
-        await stream.CopyToAsync(target, 1024, cancellationToken).ConfigureAwait(false);
-#else
         await stream.CopyToAsync(target, cancellationToken).ConfigureAwait(false);
-#endif
     }
 
     /// <inheritdoc />

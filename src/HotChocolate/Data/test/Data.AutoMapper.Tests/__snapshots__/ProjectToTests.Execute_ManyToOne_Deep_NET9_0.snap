@@ -1,0 +1,107 @@
+Result:
+---------------
+{
+  "data": {
+    "posts": [
+      {
+        "postId": 1,
+        "title": "titleA",
+        "blog": {
+          "url": "testa.com",
+          "posts": [
+            {
+              "title": "titleA",
+              "blog": null
+            },
+            {
+              "title": "titleB",
+              "blog": null
+            }
+          ]
+        }
+      },
+      {
+        "postId": 2,
+        "title": "titleB",
+        "blog": {
+          "url": "testa.com",
+          "posts": [
+            {
+              "title": "titleA",
+              "blog": null
+            },
+            {
+              "title": "titleB",
+              "blog": null
+            }
+          ]
+        }
+      },
+      {
+        "postId": 3,
+        "title": "titleC",
+        "blog": {
+          "url": "testb.com",
+          "posts": [
+            {
+              "title": "titleC",
+              "blog": null
+            },
+            {
+              "title": "titleD",
+              "blog": null
+            }
+          ]
+        }
+      },
+      {
+        "postId": 4,
+        "title": "titleD",
+        "blog": {
+          "url": "testb.com",
+          "posts": [
+            {
+              "title": "titleC",
+              "blog": null
+            },
+            {
+              "title": "titleD",
+              "blog": null
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
+---------------
+
+SQL:
+---------------
+SELECT "b"."BlogId" IS NULL, "p"."PostId", "b"."BlogId", "p0"."PostId", "p0"."Title", "b"."Url", "p"."Title"
+FROM "Posts" AS "p"
+LEFT JOIN "Blogs" AS "b" ON "p"."BlogId" = "b"."BlogId"
+LEFT JOIN "Posts" AS "p0" ON "b"."BlogId" = "p0"."BlogId"
+ORDER BY "p"."PostId", "b"."BlogId"
+---------------
+
+Expression:
+---------------
+DbSet<Post>()
+    .Select(dtoPost => new PostDto{ 
+        Blog = dtoPost.Blog == null ? null : new BlogDto{ 
+            Posts = dtoPost.Blog.Posts
+                .Select(dtoPost => new PostDto{ 
+                    PostId = dtoPost.PostId ?? 0, 
+                    Title = dtoPost.Title 
+                }
+                )
+                .ToList(), 
+            Url = dtoPost.Blog.Url 
+        }
+        , 
+        PostId = dtoPost.PostId ?? 0, 
+        Title = dtoPost.Title 
+    }
+    )
+---------------

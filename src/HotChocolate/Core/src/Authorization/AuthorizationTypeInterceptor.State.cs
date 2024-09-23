@@ -1,5 +1,3 @@
-#if NET6_0_OR_GREATER
-#endif
 using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Authorization;

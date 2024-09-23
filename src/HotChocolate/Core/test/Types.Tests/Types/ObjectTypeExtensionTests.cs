@@ -432,7 +432,6 @@ public class ObjectTypeExtensionTests
             .MatchSnapshotAsync();
     }
 
-#if NET6_0_OR_GREATER
     [Fact]
     public async Task BindByType_With_Generic_Attribute()
     {
@@ -446,7 +445,6 @@ public class ObjectTypeExtensionTests
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }
-#endif
 
     [Fact]
     public async Task BindResolver_With_Property()
@@ -596,7 +594,6 @@ public class ObjectTypeExtensionTests
         Assert.Equal("GetFoo1", field.ResolverMember?.Name);
     }
 
-#if NET6_0_OR_GREATER
     [Fact]
     public async Task Ensure_Member_And_ResolverMember_Are_Correctly_Set_When_Extending_Generic()
     {
@@ -611,7 +608,6 @@ public class ObjectTypeExtensionTests
         Assert.Equal("GetFoo", field.Member?.Name);
         Assert.Equal("GetFoo1", field.ResolverMember?.Name);
     }
-#endif
 
     [Fact]
     public async Task Ensure_Member_And_ResolverMember_Are_The_Same_When_Not_Extending()
@@ -921,7 +917,6 @@ public class ObjectTypeExtensionTests
         }
     }
 
-#if NET6_0_OR_GREATER
     [ExtendObjectType<IMarker>]
     public class Extensions2
     {
@@ -954,7 +949,6 @@ public class ObjectTypeExtensionTests
             return new();
         }
     }
-#endif
 
     public interface IMarker
     {
@@ -1098,14 +1092,12 @@ public class ObjectTypeExtensionTests
         public string GetFoo1() => null!;
     }
 
-#if NET6_0_OR_GREATER
     [ExtendObjectType<ObjectField_Test_Query>]
     public class ObjectField_Test_Query_Extension_Generic
     {
         [BindMember(nameof(ObjectField_Test_Query.GetFoo))]
         public string GetFoo1() => null!;
     }
-#endif
 
     public class FooQueryType : ObjectType
     {

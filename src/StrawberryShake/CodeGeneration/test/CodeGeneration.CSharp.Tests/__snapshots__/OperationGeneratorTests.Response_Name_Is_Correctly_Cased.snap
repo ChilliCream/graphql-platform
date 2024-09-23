@@ -108,8 +108,58 @@ namespace Foo.Bar
 
         public static GetSomethingQueryDocument Instance { get; } = new GetSomethingQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x47, 0x65, 0x74, 0x53, 0x6f, 0x6d, 0x65, 0x74, 0x68, 0x69, 0x6e, 0x67, 0x20, 0x7b, 0x20, 0x62, 0x61, 0x72, 0x5f, 0x62, 0x61, 0x7a, 0x5f, 0x66, 0x6f, 0x6f, 0x3a, 0x20, 0x66, 0x6f, 0x6f, 0x5f, 0x62, 0x61, 0x72, 0x5f, 0x62, 0x61, 0x7a, 0x20, 0x7d};
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
+        {
+            0x71,
+            0x75,
+            0x65,
+            0x72,
+            0x79,
+            0x20,
+            0x47,
+            0x65,
+            0x74,
+            0x53,
+            0x6f,
+            0x6d,
+            0x65,
+            0x74,
+            0x68,
+            0x69,
+            0x6e,
+            0x67,
+            0x20,
+            0x7b,
+            0x20,
+            0x62,
+            0x61,
+            0x72,
+            0x5f,
+            0x62,
+            0x61,
+            0x7a,
+            0x5f,
+            0x66,
+            0x6f,
+            0x6f,
+            0x3a,
+            0x20,
+            0x66,
+            0x6f,
+            0x6f,
+            0x5f,
+            0x62,
+            0x61,
+            0x72,
+            0x5f,
+            0x62,
+            0x61,
+            0x7a,
+            0x20,
+            0x7d
+        };
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "9507f9500bdf3672c4c7762930e240f720fcce40");
+
         public override global::System.String ToString()
         {
 #if NETCOREAPP3_1_OR_GREATER
@@ -139,6 +189,7 @@ namespace Foo.Bar
         }
 
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IGetSomethingResult);
+
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetSomethingResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest();
@@ -224,6 +275,7 @@ namespace Foo.Bar.State
         }
 
         global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::Foo.Bar.IGetSomethingResult);
+
         public GetSomethingResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             if (snapshot is null)
@@ -259,9 +311,9 @@ namespace Foo.Bar.State
         }
 
         public global::System.String? Bar_baz_foo { get; }
-
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
         public global::System.UInt64 Version => _version;
+
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new GetSomethingResultInfo(Bar_baz_foo, _entityIds, version);
@@ -317,7 +369,9 @@ namespace Foo.Bar.State
     public partial class FooClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
         private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
-        {Indented = false};
+        {
+            Indented = false
+        };
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
             global::System.String __typename = obj.GetProperty("__typename").GetString()!;

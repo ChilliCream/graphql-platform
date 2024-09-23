@@ -239,11 +239,7 @@ public class IntegrationTests(PostgreSqlResource resource)
                 """)
             .SetGlobalState("printSQL", true));
 
-#if NET6_0
-        result.MatchMarkdownSnapshot(postFix: "NET6_0");
-#else
         result.MatchMarkdownSnapshot();
-#endif
     }
 
     public class Query
