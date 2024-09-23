@@ -509,6 +509,33 @@ internal static class ExecutionUtils
         }
     }
 
+    public static ErrorTrie? ExtractErrors(
+        SelectionSet selectionSet,
+        ErrorTrie? errorTrie)
+    {
+        if (errorTrie is null)
+        {
+            return null;
+        }
+
+        var newErrorTrie = new ErrorTrie();
+
+        ref var currentSelection = ref selectionSet.GetSelectionsReference();
+        ref var endSelection = ref Unsafe.Add(ref currentSelection, selectionSet.Selections.Count);
+
+        while (Unsafe.IsAddressLessThan(ref currentSelection, ref endSelection))
+        {
+            if (errorTrie.TryGetValue(currentSelection.ResponseName, out var subErrorTrie))
+            {
+                newErrorTrie.Add(currentSelection.ResponseName, subErrorTrie);
+            }
+
+            currentSelection = ref Unsafe.Add(ref currentSelection, 1)!;
+        }
+
+        return newErrorTrie;
+    }
+
     public static void ExtractSelectionResults(
         SelectionSet selectionSet,
         string schemaName,
@@ -694,6 +721,17 @@ internal static class ExecutionUtils
         }
 
         return null;
+    }
+
+    public static void ApplyErrorsWithoutPathToResult(ResultBuilder resultBuilder, IEnumerable<IError> errors)
+    {
+        foreach (var error in errors)
+        {
+            if (error.Path is null)
+            {
+                resultBuilder.AddError(error);
+            }
+        }
     }
 
     public static void ExtractVariables(

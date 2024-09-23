@@ -166,6 +166,8 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
         ErrorTrie? errorTrie = null;
         if (errors is not null)
         {
+            ApplyErrorsWithoutPathToResult(context.Result, errors);
+
             errorTrie = ErrorTrie.FromErrors(errors);
         }
 

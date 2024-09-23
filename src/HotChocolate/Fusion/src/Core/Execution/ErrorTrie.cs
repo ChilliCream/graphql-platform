@@ -1,6 +1,9 @@
+using System.Diagnostics;
+using System.Text;
+
 namespace HotChocolate.Fusion.Execution;
 
-// The key is either a string or an int depending on the path segment
+[DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public class ErrorTrie : Dictionary<object, ErrorTrie>
 {
     public List<IError>? Errors { get; private set; }
@@ -13,7 +16,6 @@ public class ErrorTrie : Dictionary<object, ErrorTrie>
         {
             if (error.Path is null)
             {
-                root.PushError(error);
                 continue;
             }
 
@@ -56,5 +58,31 @@ public class ErrorTrie : Dictionary<object, ErrorTrie>
         {
             Errors.Add(error);
         }
+    }
+
+    private string GetDebuggerDisplay()
+    {
+        StringBuilder sb = new();
+
+        var hasErrors = Errors?.Count > 0;
+
+        if (hasErrors)
+        {
+            sb.Append($"Errors: {Errors!.Count}");
+        }
+
+        if (Keys.Count > 0)
+        {
+            if (hasErrors)
+            {
+                sb.Append(" - ");
+            }
+
+            var subPathSegments = string.Join(", ", Keys);
+
+            sb.Append($"Sub paths: {subPathSegments}");
+        }
+
+        return sb.ToString();
     }
 }

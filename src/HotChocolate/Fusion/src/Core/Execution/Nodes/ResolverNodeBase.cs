@@ -195,6 +195,33 @@ internal abstract partial class ResolverNodeBase : QueryPlanNode
         return true;
     }
 
+    protected ErrorTrie? UnwrapErrors(ErrorTrie errorTrie)
+    {
+        if (_path.Length == 0)
+        {
+            return errorTrie;
+        }
+
+        var currentErrorTrie = errorTrie;
+
+        ref var segment = ref MemoryMarshal.GetArrayDataReference(_path);
+        ref var end = ref Unsafe.Add(ref segment, _path.Length);
+
+        while (Unsafe.IsAddressLessThan(ref segment, ref end))
+        {
+            if (currentErrorTrie is null)
+            {
+                return null;
+            }
+
+            currentErrorTrie.TryGetValue(segment, out var subErrorTrie);
+            currentErrorTrie = subErrorTrie;
+            segment = ref Unsafe.Add(ref segment, 1)!;
+        }
+
+        return currentErrorTrie;
+    }
+
     /// <summary>
     /// Unwraps the result from the GraphQL response that is needed by this query plan node.
     /// </summary>

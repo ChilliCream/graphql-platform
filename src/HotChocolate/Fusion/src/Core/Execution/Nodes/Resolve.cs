@@ -163,8 +163,12 @@ internal sealed class Resolve(int id, Config config) : ResolverNodeBase(id, conf
 
             if (errors is not null)
             {
-                var errorTrie = ErrorTrie.FromErrors(errors);
-                // TODO: Drill down into trie so starting paths match
+                ApplyErrorsWithoutPathToResult(context.Result, errors);
+
+                var initialErrorTrie = ErrorTrie.FromErrors(errors);
+                var unwrappedErrorTrie = UnwrapErrors(initialErrorTrie);
+                var errorTrie = ExtractErrors(SelectionSet, unwrappedErrorTrie);
+
                 state.ErrorTrie = errorTrie;
             }
 
