@@ -16,11 +16,6 @@
     <PackageReference Include="Microsoft.Extensions.ObjectPool" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="System.Collections.Immutable" />
-    <PackageReference Include="System.Diagnostics.DiagnosticSource" />
-  </ItemGroup>
-
   <ItemGroup>
     <Compile Update="DataLoaderBase.Fetch.cs">
       <DependentUpon>DataLoaderBase.cs</DependentUpon>

@@ -63,7 +63,6 @@ public class SortAttributeTests
         schema.MatchSnapshot();
     }
 
-#if NET6_0_OR_GREATER
     [Fact]
     public void Create_Schema_With_GenericSortAttributes()
     {
@@ -92,7 +91,6 @@ public class SortAttributeTests
             new Foo { Bar = null!, Baz = 0, },
         };
     }
-#endif
 
     public class Query1
     {

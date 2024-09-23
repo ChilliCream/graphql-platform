@@ -278,7 +278,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         }
 
         public global::System.String Name { get; }
-
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero_Friends? Friends { get; }
 
         public virtual global::System.Boolean Equals(GetHero_Hero_Droid? other)
@@ -348,7 +347,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         }
 
         public global::System.String Name { get; }
-
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero_Friends? Friends { get; }
 
         public virtual global::System.Boolean Equals(GetHero_Hero_Human? other)
@@ -621,7 +619,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
     public partial interface IGetHero_Hero
     {
         public global::System.String Name { get; }
-
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero_Friends? Friends { get; }
     }
 
@@ -755,9 +752,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         /// The name of the current Object type at runtime.
         /// </summary>
         public global::System.String __typename { get; }
-
         public global::System.Int32 Stars { get; }
-
         public global::System.String? Commentary { get; }
 
         public virtual global::System.Boolean Equals(OnReviewSub_OnReview_Review? other)
@@ -832,9 +827,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         /// The name of the current Object type at runtime.
         /// </summary>
         public global::System.String __typename { get; }
-
         public global::System.Int32 Stars { get; }
-
         public global::System.String? Commentary { get; }
     }
 
@@ -917,7 +910,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         }
 
         public global::System.Int32 Stars { get; }
-
         public global::System.String? Commentary { get; }
 
         public virtual global::System.Boolean Equals(CreateReviewMut_CreateReview_Review? other)
@@ -988,7 +980,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
     public partial interface ICreateReviewMut_CreateReview
     {
         public global::System.Int32 Stars { get; }
-
         public global::System.String? Commentary { get; }
     }
 
@@ -1005,6 +996,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         private global::StrawberryShake.Serialization.IInputValueFormatter _intFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter = default !;
         public global::System.String TypeName => "ReviewInput";
+
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _intFormatter = serializerResolver.GetInputValueFormatter("Int");
@@ -1131,6 +1123,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         }
 
         global::System.Boolean global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.IReviewInputInfo.IsStarsSet => _set_stars;
+
         public global::System.String? Commentary
         {
             get => _value_commentary;
@@ -1158,6 +1151,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
     public partial class EpisodeSerializer : global::StrawberryShake.Serialization.IInputValueFormatter, global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, Episode>
     {
         public global::System.String TypeName => "Episode";
+
         public Episode Parse(global::System.String serializedValue)
         {
             return serializedValue switch
@@ -1219,8 +1213,201 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 
         public static GetHeroQueryDocument Instance { get; } = new GetHeroQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x47, 0x65, 0x74, 0x48, 0x65, 0x72, 0x6f, 0x20, 0x7b, 0x20, 0x68, 0x65, 0x72, 0x6f, 0x28, 0x65, 0x70, 0x69, 0x73, 0x6f, 0x64, 0x65, 0x3a, 0x20, 0x4e, 0x45, 0x57, 0x5f, 0x48, 0x4f, 0x50, 0x45, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x66, 0x72, 0x69, 0x65, 0x6e, 0x64, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6e, 0x6f, 0x64, 0x65, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x44, 0x72, 0x6f, 0x69, 0x64, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x48, 0x75, 0x6d, 0x61, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x44, 0x72, 0x6f, 0x69, 0x64, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x48, 0x75, 0x6d, 0x61, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d};
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
+        {
+            0x71,
+            0x75,
+            0x65,
+            0x72,
+            0x79,
+            0x20,
+            0x47,
+            0x65,
+            0x74,
+            0x48,
+            0x65,
+            0x72,
+            0x6f,
+            0x20,
+            0x7b,
+            0x20,
+            0x68,
+            0x65,
+            0x72,
+            0x6f,
+            0x28,
+            0x65,
+            0x70,
+            0x69,
+            0x73,
+            0x6f,
+            0x64,
+            0x65,
+            0x3a,
+            0x20,
+            0x4e,
+            0x45,
+            0x57,
+            0x5f,
+            0x48,
+            0x4f,
+            0x50,
+            0x45,
+            0x29,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x66,
+            0x72,
+            0x69,
+            0x65,
+            0x6e,
+            0x64,
+            0x73,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x6e,
+            0x6f,
+            0x64,
+            0x65,
+            0x73,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x44,
+            0x72,
+            0x6f,
+            0x69,
+            0x64,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x48,
+            0x75,
+            0x6d,
+            0x61,
+            0x6e,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x44,
+            0x72,
+            0x6f,
+            0x69,
+            0x64,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x48,
+            0x75,
+            0x6d,
+            0x61,
+            0x6e,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d
+        };
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "9f9a72871b1548dfdb9e75702e81c5c5945ff0c3");
+
         public override global::System.String ToString()
         {
 #if NETCOREAPP3_1_OR_GREATER
@@ -1272,6 +1459,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         }
 
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IGetHeroResult);
+
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHeroResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest();
@@ -1360,8 +1548,99 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 
         public static OnReviewSubSubscriptionDocument Instance { get; } = new OnReviewSubSubscriptionDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Subscription;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x73, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x4f, 0x6e, 0x52, 0x65, 0x76, 0x69, 0x65, 0x77, 0x53, 0x75, 0x62, 0x20, 0x7b, 0x20, 0x6f, 0x6e, 0x52, 0x65, 0x76, 0x69, 0x65, 0x77, 0x28, 0x65, 0x70, 0x69, 0x73, 0x6f, 0x64, 0x65, 0x3a, 0x20, 0x4e, 0x45, 0x57, 0x5f, 0x48, 0x4f, 0x50, 0x45, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x73, 0x74, 0x61, 0x72, 0x73, 0x20, 0x63, 0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x74, 0x61, 0x72, 0x79, 0x20, 0x7d, 0x20, 0x7d};
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
+        {
+            0x73,
+            0x75,
+            0x62,
+            0x73,
+            0x63,
+            0x72,
+            0x69,
+            0x70,
+            0x74,
+            0x69,
+            0x6f,
+            0x6e,
+            0x20,
+            0x4f,
+            0x6e,
+            0x52,
+            0x65,
+            0x76,
+            0x69,
+            0x65,
+            0x77,
+            0x53,
+            0x75,
+            0x62,
+            0x20,
+            0x7b,
+            0x20,
+            0x6f,
+            0x6e,
+            0x52,
+            0x65,
+            0x76,
+            0x69,
+            0x65,
+            0x77,
+            0x28,
+            0x65,
+            0x70,
+            0x69,
+            0x73,
+            0x6f,
+            0x64,
+            0x65,
+            0x3a,
+            0x20,
+            0x4e,
+            0x45,
+            0x57,
+            0x5f,
+            0x48,
+            0x4f,
+            0x50,
+            0x45,
+            0x29,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x73,
+            0x74,
+            0x61,
+            0x72,
+            0x73,
+            0x20,
+            0x63,
+            0x6f,
+            0x6d,
+            0x6d,
+            0x65,
+            0x6e,
+            0x74,
+            0x61,
+            0x72,
+            0x79,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d
+        };
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "92220fce37342d7ade3d63a2a81342eb1fb14bac");
+
         public override global::System.String ToString()
         {
 #if NETCOREAPP3_1_OR_GREATER
@@ -1395,6 +1674,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         }
 
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IOnReviewSubResult);
+
         public global::System.IObservable<global::StrawberryShake.IOperationResult<IOnReviewSubResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null)
         {
             var request = CreateRequest();
@@ -1458,8 +1738,163 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 
         public static CreateReviewMutMutationDocument Instance { get; } = new CreateReviewMutMutationDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Mutation;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x6d, 0x75, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x52, 0x65, 0x76, 0x69, 0x65, 0x77, 0x4d, 0x75, 0x74, 0x28, 0x24, 0x65, 0x70, 0x69, 0x73, 0x6f, 0x64, 0x65, 0x3a, 0x20, 0x45, 0x70, 0x69, 0x73, 0x6f, 0x64, 0x65, 0x21, 0x2c, 0x20, 0x24, 0x72, 0x65, 0x76, 0x69, 0x65, 0x77, 0x3a, 0x20, 0x52, 0x65, 0x76, 0x69, 0x65, 0x77, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x21, 0x29, 0x20, 0x7b, 0x20, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x52, 0x65, 0x76, 0x69, 0x65, 0x77, 0x28, 0x65, 0x70, 0x69, 0x73, 0x6f, 0x64, 0x65, 0x3a, 0x20, 0x24, 0x65, 0x70, 0x69, 0x73, 0x6f, 0x64, 0x65, 0x2c, 0x20, 0x72, 0x65, 0x76, 0x69, 0x65, 0x77, 0x3a, 0x20, 0x24, 0x72, 0x65, 0x76, 0x69, 0x65, 0x77, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x73, 0x74, 0x61, 0x72, 0x73, 0x20, 0x63, 0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x74, 0x61, 0x72, 0x79, 0x20, 0x7d, 0x20, 0x7d};
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
+        {
+            0x6d,
+            0x75,
+            0x74,
+            0x61,
+            0x74,
+            0x69,
+            0x6f,
+            0x6e,
+            0x20,
+            0x43,
+            0x72,
+            0x65,
+            0x61,
+            0x74,
+            0x65,
+            0x52,
+            0x65,
+            0x76,
+            0x69,
+            0x65,
+            0x77,
+            0x4d,
+            0x75,
+            0x74,
+            0x28,
+            0x24,
+            0x65,
+            0x70,
+            0x69,
+            0x73,
+            0x6f,
+            0x64,
+            0x65,
+            0x3a,
+            0x20,
+            0x45,
+            0x70,
+            0x69,
+            0x73,
+            0x6f,
+            0x64,
+            0x65,
+            0x21,
+            0x2c,
+            0x20,
+            0x24,
+            0x72,
+            0x65,
+            0x76,
+            0x69,
+            0x65,
+            0x77,
+            0x3a,
+            0x20,
+            0x52,
+            0x65,
+            0x76,
+            0x69,
+            0x65,
+            0x77,
+            0x49,
+            0x6e,
+            0x70,
+            0x75,
+            0x74,
+            0x21,
+            0x29,
+            0x20,
+            0x7b,
+            0x20,
+            0x63,
+            0x72,
+            0x65,
+            0x61,
+            0x74,
+            0x65,
+            0x52,
+            0x65,
+            0x76,
+            0x69,
+            0x65,
+            0x77,
+            0x28,
+            0x65,
+            0x70,
+            0x69,
+            0x73,
+            0x6f,
+            0x64,
+            0x65,
+            0x3a,
+            0x20,
+            0x24,
+            0x65,
+            0x70,
+            0x69,
+            0x73,
+            0x6f,
+            0x64,
+            0x65,
+            0x2c,
+            0x20,
+            0x72,
+            0x65,
+            0x76,
+            0x69,
+            0x65,
+            0x77,
+            0x3a,
+            0x20,
+            0x24,
+            0x72,
+            0x65,
+            0x76,
+            0x69,
+            0x65,
+            0x77,
+            0x29,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x73,
+            0x74,
+            0x61,
+            0x72,
+            0x73,
+            0x20,
+            0x63,
+            0x6f,
+            0x6d,
+            0x6d,
+            0x65,
+            0x6e,
+            0x74,
+            0x61,
+            0x72,
+            0x79,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d
+        };
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "7b7488dce3bce5700fe4fab0d349728a5121c153");
+
         public override global::System.String ToString()
         {
 #if NETCOREAPP3_1_OR_GREATER
@@ -1497,6 +1932,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         }
 
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(ICreateReviewMutResult);
+
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ICreateReviewMutResult>> ExecuteAsync(global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.Episode episode, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ReviewInput review, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(episode, review);
@@ -1622,7 +2058,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
         }
 
         public global::System.String Name { get; }
-
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.FriendsConnectionData? Friends { get; }
     }
 
@@ -1637,7 +2072,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
         }
 
         public global::System.String Name { get; }
-
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.FriendsConnectionData? Friends { get; }
     }
 
@@ -1656,6 +2090,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
         }
 
         global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroResult);
+
         public GetHeroResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             if (snapshot is null)
@@ -1711,9 +2146,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
         }
 
         public global::StrawberryShake.EntityId? Hero { get; }
-
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
         public global::System.UInt64 Version => _version;
+
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new GetHeroResultInfo(Hero, _entityIds, version);
@@ -1731,6 +2166,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
         }
 
         global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSubResult);
+
         public OnReviewSubResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             if (snapshot is null)
@@ -1781,9 +2217,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
         }
 
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.ReviewData OnReview { get; }
-
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
         public global::System.UInt64 Version => _version;
+
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new OnReviewSubResultInfo(OnReview, _entityIds, version);
@@ -1801,6 +2237,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
         }
 
         global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutResult);
+
         public CreateReviewMutResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             if (snapshot is null)
@@ -1851,9 +2288,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
         }
 
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.ReviewData CreateReview { get; }
-
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
         public global::System.UInt64 Version => _version;
+
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new CreateReviewMutResultInfo(CreateReview, _entityIds, version);
@@ -2240,7 +2677,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
         }
 
         public global::System.String __typename { get; }
-
         ///<summary>A flattened list of the nodes.</summary>
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Nodes { get; }
     }
@@ -2257,9 +2693,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
         }
 
         public global::System.String __typename { get; }
-
         public global::System.Int32? Stars { get; }
-
         public global::System.String? Commentary { get; }
     }
 
@@ -2472,7 +2906,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
     public partial class MultiProfileClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
         private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
-        {Indented = false};
+        {
+            Indented = false
+        };
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
             global::System.String __typename = obj.GetProperty("__typename").GetString()!;

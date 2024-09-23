@@ -7,10 +7,6 @@
     <Description>Contains a Redis implementation for a Hot Chocolate GraphQL subscription provider.</Description>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <TargetFrameworks>$(Library2TargetFrameworks)</TargetFrameworks>
-  </PropertyGroup>
-
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Subscriptions.Redis.Tests" />
   </ItemGroup>

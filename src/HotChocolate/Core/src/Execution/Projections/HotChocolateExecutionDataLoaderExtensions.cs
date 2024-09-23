@@ -1,6 +1,3 @@
-#if NET6_0_OR_GREATER
-#nullable enable
-
 using System.Buffers;
 using System.Buffers.Text;
 using System.Diagnostics.CodeAnalysis;
@@ -21,9 +18,7 @@ namespace GreenDonut.Projections;
 /// <summary>
 /// Provides extension methods for projection on DataLoader.
 /// </summary>
-#if NET8_0_OR_GREATER
 [Experimental(Experiments.Projections)]
-#endif
 public static class HotChocolateExecutionDataLoaderExtensions
 {
     private static readonly SelectionExpressionBuilder _builder = new();
@@ -214,4 +209,3 @@ public static class HotChocolateExecutionDataLoaderExtensions
         return length;
     }
 }
-#endif

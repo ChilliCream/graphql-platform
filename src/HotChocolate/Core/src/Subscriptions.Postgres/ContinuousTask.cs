@@ -40,11 +40,7 @@ internal sealed class ContinuousTask : IAsyncDisposable
             {
                 if (!_completion.IsCancellationRequested)
                 {
-#if NET8_0_OR_GREATER
                     await Task.Delay(_waitOnFailure, _timeProvider, _completion.Token);
-#else
-                    await _timeProvider.Delay(_waitOnFailure, _completion.Token);
-#endif
                 }
             }
         }
@@ -60,11 +56,7 @@ internal sealed class ContinuousTask : IAsyncDisposable
 
         if(!_completion.IsCancellationRequested)
         {
-#if NET8_0_OR_GREATER
             await _completion.CancelAsync();
-#else
-            _completion.Cancel();
-#endif
         }
 
         _completion.Dispose();

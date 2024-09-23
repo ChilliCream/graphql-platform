@@ -9,9 +9,6 @@ using HotChocolate.Execution.Serialization;
 using HotChocolate.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Net.Http.Headers;
-#if !NET6_0_OR_GREATER
-using Microsoft.Net.Http.Headers;
-#endif
 using static HotChocolate.AspNetCore.AcceptMediaTypeKind;
 using static HotChocolate.Execution.ExecutionResultKind;
 using static HotChocolate.WellKnownContextData;

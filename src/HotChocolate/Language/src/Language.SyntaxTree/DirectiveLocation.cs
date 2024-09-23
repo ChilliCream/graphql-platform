@@ -109,10 +109,10 @@ public sealed class DirectiveLocation : IEquatable<DirectiveLocation?>
     public static bool IsValidName(string value)
         => _cache.ContainsKey(value);
 
-#if NET6_0_OR_GREATER
-    public static bool TryParse(string value, [NotNullWhen(true)] out DirectiveLocation? location)
-#else
+#if NETSTANDARD2_0
     public static bool TryParse(string value, out DirectiveLocation? location)
+#else
+    public static bool TryParse(string value, [NotNullWhen(true)] out DirectiveLocation? location)
 #endif
         => _cache.TryGetValue(value, out location);
 

@@ -34,11 +34,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             var result = await client.IntrospectionQuery.ExecuteAsync(ct);
 
             // assert
-#if NET7_0_OR_GREATER
             result.MatchSnapshot();
-#else
-            result.MatchSnapshot("NET6");
-#endif
         }
     }
 }

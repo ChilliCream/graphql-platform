@@ -1,4 +1,3 @@
-#if NET6_0_OR_GREATER
 using System.Reflection;
 
 namespace HotChocolate.Execution.Projections;
@@ -167,4 +166,3 @@ internal interface IPropertyNodeProvider
 
     void AddNode(PropertyNode newNode);
 }
-#endif

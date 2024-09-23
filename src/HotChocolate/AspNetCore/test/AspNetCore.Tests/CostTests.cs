@@ -1,4 +1,3 @@
-#if NET7_0_OR_GREATER
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
@@ -98,4 +97,3 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
         result?.RootElement.MatchSnapshot();
     }
 }
-#endif

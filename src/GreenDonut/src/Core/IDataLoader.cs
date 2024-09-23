@@ -1,7 +1,4 @@
 using System.Collections.Immutable;
-#if NET8_0_OR_GREATER
-using GreenDonut.Projections;
-#endif
 
 namespace GreenDonut;
 
@@ -165,7 +162,6 @@ public interface IDataLoader<in TKey, TValue>
     /// </exception>
     void Set(TKey key, Task<TValue?> value);
 
-#if NET6_0_OR_GREATER
     /// <summary>
     /// Branches the current <c>DataLoader</c>.
     /// </summary>
@@ -185,5 +181,4 @@ public interface IDataLoader<in TKey, TValue>
         string key,
         CreateDataLoaderBranch<TKey, TValue, TState> createBranch,
         TState state);
-#endif
 }
