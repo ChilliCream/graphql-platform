@@ -1,8 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 
-#nullable enable
-
 namespace HotChocolate.Execution.Integration.Spec;
 
 public class ArgumentCoercionTests

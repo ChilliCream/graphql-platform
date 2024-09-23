@@ -8,8 +8,6 @@ using HotChocolate.Tests;
 using HotChocolate.Types;
 using Moq;
 
-#nullable enable
-
 namespace HotChocolate.Execution;
 
 public class CodeFirstTests

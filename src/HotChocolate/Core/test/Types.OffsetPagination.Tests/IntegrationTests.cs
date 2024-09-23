@@ -5,8 +5,6 @@ using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 
-#nullable enable
-
 namespace HotChocolate.Types.Pagination;
 
 public class IntegrationTests

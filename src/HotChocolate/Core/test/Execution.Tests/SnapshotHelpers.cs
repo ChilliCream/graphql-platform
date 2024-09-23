@@ -1,5 +1,3 @@
-#nullable enable
-
 using CookieCrumble;
 
 namespace HotChocolate.Execution;
