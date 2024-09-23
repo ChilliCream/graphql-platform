@@ -62,175 +62,175 @@ export const SiteLayout: FC<SiteLayoutProps> = ({ children, disableStars }) => {
  * This implementation looks the best, but i am pretty sure that we can get the
  * same result with the other two implementations too.
  */
-function Stars(): ReactElement {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+// function Stars(): ReactElement {
+//   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  useLayoutEffect(() => {
-    if (!canvasRef.current) {
-      return;
-    }
+//   useLayoutEffect(() => {
+//     if (!canvasRef.current) {
+//       return;
+//     }
 
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-    const numStars = 800;
-    const speed = 0.25;
-    const connectionDistance = 100; // Maximum distance for connecting stars
-    let stars: Star[] = [];
+//     const canvas = canvasRef.current;
+//     const ctx = canvas.getContext("2d");
+//     const numStars = 800;
+//     const speed = 0.25;
+//     const connectionDistance = 100; // Maximum distance for connecting stars
+//     let stars: Star[] = [];
 
-    function setCanvasSize() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    }
+//     function setCanvasSize() {
+//       canvas.width = window.innerWidth;
+//       canvas.height = window.innerHeight;
+//     }
 
-    class Star {
-      constructor(
-        public x: number,
-        public y: number,
-        public z: number,
-        public size: number
-      ) {}
+//     class Star {
+//       constructor(
+//         public x: number,
+//         public y: number,
+//         public z: number,
+//         public size: number
+//       ) {}
 
-      update() {
-        this.z -= speed;
-        if (this.z <= 0) {
-          this.reset();
-        }
-      }
+//       update() {
+//         this.z -= speed;
+//         if (this.z <= 0) {
+//           this.reset();
+//         }
+//       }
 
-      reset() {
-        this.z = canvas.width;
-        this.x = Math.random() * (canvas.width * 2) - canvas.width;
-        this.y = Math.random() * (canvas.height * 2) - canvas.height;
-        this.size = Math.random() * 2 + 1;
-      }
+//       reset() {
+//         this.z = canvas.width;
+//         this.x = Math.random() * (canvas.width * 2) - canvas.width;
+//         this.y = Math.random() * (canvas.height * 2) - canvas.height;
+//         this.size = Math.random() * 2 + 1;
+//       }
 
-      draw() {
-        const x = ((this.x / this.z) * canvas.width) / 2 + canvas.width / 2;
-        const y = ((this.y / this.z) * canvas.height) / 2 + canvas.height / 2;
-        const radius = (1 - this.z / canvas.width) * this.size;
+//       draw() {
+//         const x = ((this.x / this.z) * canvas.width) / 2 + canvas.width / 2;
+//         const y = ((this.y / this.z) * canvas.height) / 2 + canvas.height / 2;
+//         const radius = (1 - this.z / canvas.width) * this.size;
 
-        if (ctx) {
-          ctx.beginPath();
-          ctx.arc(x, y, radius, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      }
+//         if (ctx) {
+//           ctx.beginPath();
+//           ctx.arc(x, y, radius, 0, Math.PI * 2);
+//           ctx.fill();
+//         }
+//       }
 
-      getScreenPosition() {
-        return {
-          x: ((this.x / this.z) * canvas.width) / 2 + canvas.width / 2,
-          y: ((this.y / this.z) * canvas.height) / 2 + canvas.height / 2,
-        };
-      }
-    }
+//       getScreenPosition() {
+//         return {
+//           x: ((this.x / this.z) * canvas.width) / 2 + canvas.width / 2,
+//           y: ((this.y / this.z) * canvas.height) / 2 + canvas.height / 2,
+//         };
+//       }
+//     }
 
-    function initStars() {
-      stars = Array.from(
-        { length: numStars },
-        () =>
-          new Star(
-            Math.random() * (canvas.width * 2) - canvas.width,
-            Math.random() * (canvas.height * 2) - canvas.height,
-            Math.random() * canvas.width,
-            Math.random() * 2 + 1
-          )
-      );
-    }
+//     function initStars() {
+//       stars = Array.from(
+//         { length: numStars },
+//         () =>
+//           new Star(
+//             Math.random() * (canvas.width * 2) - canvas.width,
+//             Math.random() * (canvas.height * 2) - canvas.height,
+//             Math.random() * canvas.width,
+//             Math.random() * 2 + 1
+//           )
+//       );
+//     }
 
-    function updateStars() {
-      stars.forEach((star) => star.update());
-    }
+//     function updateStars() {
+//       stars.forEach((star) => star.update());
+//     }
 
-    function drawStars() {
-      if (ctx) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "#f4ebcb";
-        stars.forEach((star) => star.draw());
-        connectNearbyStars();
-      }
-    }
+//     function drawStars() {
+//       if (ctx) {
+//         ctx.clearRect(0, 0, canvas.width, canvas.height);
+//         ctx.fillStyle = "#f4ebcb";
+//         stars.forEach((star) => star.draw());
+//         connectNearbyStars();
+//       }
+//     }
 
-    /**
-     * This is a very simple implementation to connect nearby stars. It's a bit
-     * CPU intensive. There is a more efficient way listed in the commented out
-     * code below, but it's a bit more complex but does barely use any CPU even
-     * without a FPS limit.
-     */
-    function connectNearbyStars() {
-      if (!ctx) return;
+//     /**
+//      * This is a very simple implementation to connect nearby stars. It's a bit
+//      * CPU intensive. There is a more efficient way listed in the commented out
+//      * code below, but it's a bit more complex but does barely use any CPU even
+//      * without a FPS limit.
+//      */
+//     function connectNearbyStars() {
+//       if (!ctx) return;
 
-      ctx.strokeStyle = "rgba(244, 235, 203, 0.2)"; // Light, semi-transparent color for lines
-      ctx.lineWidth = 0.5;
+//       ctx.strokeStyle = "rgba(244, 235, 203, 0.2)"; // Light, semi-transparent color for lines
+//       ctx.lineWidth = 0.5;
 
-      for (let i = 0; i < stars.length; i++) {
-        const star1 = stars[i];
-        const pos1 = star1.getScreenPosition();
+//       for (let i = 0; i < stars.length; i++) {
+//         const star1 = stars[i];
+//         const pos1 = star1.getScreenPosition();
 
-        for (let j = i + 1; j < stars.length; j++) {
-          const star2 = stars[j];
-          const pos2 = star2.getScreenPosition();
+//         for (let j = i + 1; j < stars.length; j++) {
+//           const star2 = stars[j];
+//           const pos2 = star2.getScreenPosition();
 
-          const distance = Math.sqrt(
-            Math.pow(pos1.x - pos2.x, 2) + Math.pow(pos1.y - pos2.y, 2)
-          );
+//           const distance = Math.sqrt(
+//             Math.pow(pos1.x - pos2.x, 2) + Math.pow(pos1.y - pos2.y, 2)
+//           );
 
-          if (distance < connectionDistance) {
-            ctx.beginPath();
-            ctx.moveTo(pos1.x, pos1.y);
-            ctx.lineTo(pos2.x, pos2.y);
-            ctx.stroke();
-          }
-        }
-      }
-    }
+//           if (distance < connectionDistance) {
+//             ctx.beginPath();
+//             ctx.moveTo(pos1.x, pos1.y);
+//             ctx.lineTo(pos2.x, pos2.y);
+//             ctx.stroke();
+//           }
+//         }
+//       }
+//     }
 
-    // in this implementation it's better to limit the FPS as the connection
-    // calculation is a CPU intensive.
-    let lastTime = 0;
-    const fps = 30;
-    const fpsInterval = 1000 / fps;
+//     // in this implementation it's better to limit the FPS as the connection
+//     // calculation is a CPU intensive.
+//     let lastTime = 0;
+//     const fps = 30;
+//     const fpsInterval = 1000 / fps;
 
-    function animate(currentTime: number) {
-      requestAnimationFrame(animate);
+//     function animate(currentTime: number) {
+//       requestAnimationFrame(animate);
 
-      // Calculate elapsed time since last frame
-      const elapsed = currentTime - lastTime;
+//       // Calculate elapsed time since last frame
+//       const elapsed = currentTime - lastTime;
 
-      // Proceed only if enough time has passed to maintain the desired FPS
-      if (elapsed > fpsInterval) {
-        lastTime = currentTime - (elapsed % fpsInterval);
+//       // Proceed only if enough time has passed to maintain the desired FPS
+//       if (elapsed > fpsInterval) {
+//         lastTime = currentTime - (elapsed % fpsInterval);
 
-        updateStars();
-        drawStars();
-      }
-    }
+//         updateStars();
+//         drawStars();
+//       }
+//     }
 
-    window.addEventListener("resize", () => {
-      setCanvasSize();
-      initStars();
-    });
+//     window.addEventListener("resize", () => {
+//       setCanvasSize();
+//       initStars();
+//     });
 
-    setCanvasSize();
-    initStars();
-    requestAnimationFrame(animate);
-  }, []);
+//     setCanvasSize();
+//     initStars();
+//     requestAnimationFrame(animate);
+//   }, []);
 
-  return (
-    <canvas
-      ref={canvasRef}
-      style={{
-        position: "absolute",
-        top: 0,
-        right: 0,
-        bottom: 0,
-        left: 0,
-        zIndex: -2,
-        width: "100vw",
-        height: "100vh",
-      }}
-    />
-  );
-}
+//   return (
+//     <canvas
+//       ref={canvasRef}
+//       style={{
+//         position: "absolute",
+//         top: 0,
+//         right: 0,
+//         bottom: 0,
+//         left: 0,
+//         zIndex: -2,
+//         width: "100vw",
+//         height: "100vh",
+//       }}
+//     />
+//   );
+// }
 
 /**
  * This is a more efficient way to connect nearby stars. It uses a grid to
@@ -724,3 +724,307 @@ function Stars(): ReactElement {
 //     />
 //   );
 // }
+
+/**
+ * This implementation fades out the center of the screen to make the text
+ * more visible
+ */
+function Stars(): ReactElement {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useLayoutEffect(() => {
+    if (!canvasRef.current) {
+      return;
+    }
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    const numStars = 800;
+    const speed = 0.25;
+    const connectionDistance = 100; // Maximum distance for connecting stars
+    let stars: Star[] = [];
+
+    function setCanvasSize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    class Star {
+      screenX: number = 0;
+      screenY: number = 0;
+
+      constructor(
+        public x: number,
+        public y: number,
+        public z: number,
+        public size: number
+      ) {}
+
+      update() {
+        this.z -= speed;
+        if (this.z <= 0) {
+          this.reset();
+        }
+      }
+
+      reset() {
+        this.z = canvas.width;
+        this.x = Math.random() * (canvas.width * 2) - canvas.width;
+        this.y = Math.random() * (canvas.height * 2) - canvas.height;
+        this.size = Math.random() * 2 + 1;
+      }
+
+      draw() {
+        const x = ((this.x / this.z) * canvas.width) / 2 + canvas.width / 2;
+        const y = ((this.y / this.z) * canvas.height) / 2 + canvas.height / 2;
+        const radius = (1 - this.z / canvas.width) * this.size;
+
+        this.screenX = x;
+        this.screenY = y;
+
+        if (ctx) {
+          // Calculate distance from center
+          const dx = x - canvas.width / 2;
+          const dy = y - canvas.height / 2;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          const maxDistance = Math.sqrt(
+            (canvas.width / 2) ** 2 + (canvas.height / 2) ** 2
+          );
+          let opacity = distance / maxDistance;
+          opacity = Math.pow(opacity, 1.5); // Adjust exponent as needed
+          opacity = Math.max(0, Math.min(opacity, 1));
+
+          ctx.fillStyle = `rgba(244, 235, 203, ${opacity})`;
+          ctx.beginPath();
+          ctx.arc(x, y, radius, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    }
+
+    function initStars() {
+      stars = Array.from(
+        { length: numStars },
+        () =>
+          new Star(
+            Math.random() * (canvas.width * 2) - canvas.width,
+            Math.random() * (canvas.height * 2) - canvas.height,
+            Math.random() * canvas.width,
+            Math.random() * 2 + 1
+          )
+      );
+    }
+
+    function updateStars() {
+      stars.forEach((star) => star.update());
+    }
+
+    function drawStars() {
+      if (ctx) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        stars.forEach((star) => star.draw());
+        connectNearbyStars();
+      }
+    }
+
+    function connectNearbyStars() {
+      if (!ctx) return;
+
+      // Build the Quadtree
+      const boundary = new Rectangle(
+        canvas.width / 2,
+        canvas.height / 2,
+        canvas.width / 2,
+        canvas.height / 2
+      );
+      const qt = new Quadtree(boundary, 4);
+
+      // Insert stars into the Quadtree
+      stars.forEach((star) => {
+        const point = new Point(star.screenX, star.screenY, star);
+        qt.insert(point);
+      });
+
+      ctx.lineWidth = 0.5;
+
+      // For each star, find nearby stars using the Quadtree
+      stars.forEach((star) => {
+        const range = new Rectangle(
+          star.screenX,
+          star.screenY,
+          connectionDistance,
+          connectionDistance
+        );
+        const points = qt.query(range);
+
+        points.forEach((point) => {
+          if (point.userData !== star) {
+            // Calculate opacity based on midpoint distance from center
+            const midX = (star.screenX + point.x) / 2;
+            const midY = (star.screenY + point.y) / 2;
+            const dx = midX - canvas.width / 2;
+            const dy = midY - canvas.height / 2;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const maxDistance = Math.sqrt(
+              (canvas.width / 2) ** 2 + (canvas.height / 2) ** 2
+            );
+            let opacity = distance / maxDistance;
+            opacity = Math.pow(opacity, 1.5); // Adjust exponent as needed
+            opacity = opacity * 0.2; // Scale to original opacity of 0.2
+            opacity = Math.max(0, Math.min(opacity, 1));
+
+            ctx.strokeStyle = `rgba(244, 235, 203, ${opacity})`;
+
+            ctx.beginPath();
+            ctx.moveTo(star.screenX, star.screenY);
+            ctx.lineTo(point.x, point.y);
+            ctx.stroke();
+          }
+        });
+      });
+    }
+
+    // Quadtree implementation
+    class Point {
+      constructor(
+        public x: number,
+        public y: number,
+        public userData: any = null
+      ) {}
+    }
+
+    class Rectangle {
+      constructor(
+        public x: number,
+        public y: number,
+        public w: number,
+        public h: number
+      ) {}
+
+      contains(point: Point) {
+        return (
+          point.x >= this.x - this.w &&
+          point.x <= this.x + this.w &&
+          point.y >= this.y - this.h &&
+          point.y <= this.y + this.h
+        );
+      }
+
+      intersects(range: Rectangle) {
+        return !(
+          range.x - range.w > this.x + this.w ||
+          range.x + range.w < this.x - this.w ||
+          range.y - range.h > this.y + this.h ||
+          range.y + range.h < this.y - this.h
+        );
+      }
+    }
+
+    class Quadtree {
+      points: Point[] = [];
+      divided: boolean = false;
+      northeast: Quadtree | null = null;
+      northwest: Quadtree | null = null;
+      southeast: Quadtree | null = null;
+      southwest: Quadtree | null = null;
+
+      constructor(public boundary: Rectangle, public capacity: number) {}
+
+      subdivide() {
+        const { x, y, w, h } = this.boundary;
+        const ne = new Rectangle(x + w / 2, y - h / 2, w / 2, h / 2);
+        this.northeast = new Quadtree(ne, this.capacity);
+        const nw = new Rectangle(x - w / 2, y - h / 2, w / 2, h / 2);
+        this.northwest = new Quadtree(nw, this.capacity);
+        const se = new Rectangle(x + w / 2, y + h / 2, w / 2, h / 2);
+        this.southeast = new Quadtree(se, this.capacity);
+        const sw = new Rectangle(x - w / 2, y + h / 2, w / 2, h / 2);
+        this.southwest = new Quadtree(sw, this.capacity);
+        this.divided = true;
+      }
+
+      insert(point: Point): boolean {
+        if (!this.boundary.contains(point)) {
+          return false;
+        }
+        if (this.points.length < this.capacity) {
+          this.points.push(point);
+          return true;
+        } else {
+          if (!this.divided) {
+            this.subdivide();
+          }
+          if (this.northeast!.insert(point)) return true;
+          if (this.northwest!.insert(point)) return true;
+          if (this.southeast!.insert(point)) return true;
+          if (this.southwest!.insert(point)) return true;
+        }
+        return false;
+      }
+
+      query(range: Rectangle, found: Point[] = []): Point[] {
+        if (!this.boundary.intersects(range)) {
+          return found;
+        } else {
+          for (const p of this.points) {
+            if (range.contains(p)) {
+              found.push(p);
+            }
+          }
+          if (this.divided) {
+            this.northwest!.query(range, found);
+            this.northeast!.query(range, found);
+            this.southwest!.query(range, found);
+            this.southeast!.query(range, found);
+          }
+        }
+        return found;
+      }
+    }
+
+    // Limit FPS to improve performance
+    let lastTime = 0;
+    const fps = 30;
+    const fpsInterval = 1000 / fps;
+
+    function animate(currentTime: number) {
+      requestAnimationFrame(animate);
+
+      // Calculate elapsed time since last frame
+      const elapsed = currentTime - lastTime;
+
+      // Proceed only if enough time has passed to maintain the desired FPS
+      if (elapsed > fpsInterval) {
+        lastTime = currentTime - (elapsed % fpsInterval);
+
+        updateStars();
+        drawStars();
+      }
+    }
+
+    window.addEventListener("resize", () => {
+      setCanvasSize();
+      initStars();
+    });
+
+    setCanvasSize();
+    initStars();
+    requestAnimationFrame(animate);
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{
+        position: "absolute",
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0,
+        zIndex: -2,
+        width: "100vw",
+        height: "100vh",
+      }}
+    />
+  );
+}
