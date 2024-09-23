@@ -1,7 +1,5 @@
 using System.Collections.Concurrent;
-#if NET8_0_OR_GREATER
 using System.Collections.Frozen;
-#endif
 using GreenDonut;
 using GreenDonut.DependencyInjection;
 using HotChocolate.Fetching.Properties;
@@ -12,11 +10,7 @@ namespace HotChocolate.Fetching;
 internal sealed class ExecutionDataLoaderScope(
     IServiceProvider serviceProvider,
     IBatchScheduler batchScheduler,
-#if NET8_0_OR_GREATER
     FrozenDictionary<Type, DataLoaderRegistration> registrations)
-#else
-    Dictionary<Type, DataLoaderRegistration> registrations)
-#endif
     : IDataLoaderScope
 {
     private readonly ConcurrentDictionary<string, IDataLoader> _dataLoaders = new();

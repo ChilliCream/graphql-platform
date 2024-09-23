@@ -7,10 +7,6 @@
     <Description>Contains an alternative message serializer for a Hot Chocolate GraphQL subscription provider that uses Newtonsoft JSON.</Description>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <TargetFrameworks>$(Library2TargetFrameworks)</TargetFrameworks>
-  </PropertyGroup>
-
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Subscriptions.Tests" />
   </ItemGroup>

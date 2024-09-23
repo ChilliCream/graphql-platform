@@ -1,8 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>$(Library2TargetFrameworks)</TargetFrameworks>
-
     <IsPackable>false</IsPackable>
 
     <AssemblyName>CookieCrumble.Tests</AssemblyName>

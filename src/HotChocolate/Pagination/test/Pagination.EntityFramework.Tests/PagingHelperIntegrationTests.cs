@@ -435,13 +435,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         var operationResult = result.ExpectOperationResult();
         var sql = operationResult.Extensions!["sql"]!.ToString();
 
-#if NET8_0_OR_GREATER
         await Snapshot.Create()
-#elif NET7_0_OR_GREATER
-        await Snapshot.Create("NET7")
-#else
-        await Snapshot.Create("NET6")
-#endif
             .Add(sql, "SQL", "sql")
             .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty))
             .MatchMarkdownAsync();
@@ -490,13 +484,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         var operationResult = result.ExpectOperationResult();
         var sql = operationResult.Extensions!["sql"]!.ToString();
 
-#if NET8_0_OR_GREATER
         await Snapshot.Create()
-#elif NET7_0_OR_GREATER
-        await Snapshot.Create("NET7")
-#else
-        await Snapshot.Create("NET6")
-#endif
             .Add(sql, "SQL", "sql")
             .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty))
             .MatchMarkdownAsync();

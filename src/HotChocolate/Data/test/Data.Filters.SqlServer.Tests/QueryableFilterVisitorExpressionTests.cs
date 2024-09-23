@@ -55,7 +55,7 @@ public class QueryableFilterVisitorExpressionTests : IClassFixture<SchemaCache>
 
         // assert
         await Snapshot
-            .Create(postFix: TestEnvironment.TargetFramework)
+            .Create()
             .AddResult(res1, "Sam_Sampleman")
             .AddResult(res2, "NoMatch")
             .AddResult(res3, "null")

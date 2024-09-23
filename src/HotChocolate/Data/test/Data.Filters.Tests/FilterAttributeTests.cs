@@ -39,7 +39,6 @@ public class FilterAttributeTests
             .Create()
             .MatchSnapshot();
 
-#if NET6_0_OR_GREATER
     [Fact]
     public void Create_Schema_With_FilterInput_With_GenericAttribute()
         => SchemaBuilder.New()
@@ -62,7 +61,6 @@ public class FilterAttributeTests
             new Foo { Bar = null!, Baz = 0, },
         };
     }
-#endif
 
     public class Query1
     {

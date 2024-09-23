@@ -31,9 +31,7 @@ public class Snapshot
             new HttpResponseSnapshotValueFormatter(),
             new OperationResultSnapshotValueFormatter(),
             new JsonElementSnapshotValueFormatter(),
-#if NET8_0_OR_GREATER
             new QueryPlanSnapshotValueFormatter(),
-#endif
         });
     private static readonly JsonSnapshotValueFormatter _defaultFormatter = new();
 

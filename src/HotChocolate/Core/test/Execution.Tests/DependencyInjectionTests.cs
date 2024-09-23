@@ -141,7 +141,6 @@ public class DependencyInjectionTests
         result.MatchSnapshot();
     }
 
-#if NET8_0_OR_GREATER
     [Fact]
     public async Task Keyed_Services_Do_Not_Throw()
     {
@@ -169,7 +168,6 @@ public class DependencyInjectionTests
             .ToJsonAsync()
             .MatchSnapshotAsync();
     }
-#endif
 
     public class SomeService
     {

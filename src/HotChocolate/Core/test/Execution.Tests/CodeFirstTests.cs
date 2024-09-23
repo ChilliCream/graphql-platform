@@ -373,6 +373,25 @@ public class CodeFirstTests
             .MatchSnapshotAsync();
     }
 
+    // https://github.com/ChilliCream/graphql-platform/issues/7475
+    [Fact]
+    public async Task NestedListsDoNotSupportNullValuedSubListsOnInput()
+    {
+        var executor = await new ServiceCollection()
+            .AddGraphQLServer()
+            .AddQueryType<QueryLists>()
+            .BuildRequestExecutorAsync();
+
+        var query =
+            """
+            query {
+              input(arg: [[1], null])
+            }
+            """;
+
+        await executor.ExecuteAsync(query).MatchSnapshotAsync();
+    }
+
     private static ISchema CreateSchema()
         => SchemaBuilder.New()
             .AddQueryType<QueryType>()
@@ -383,6 +402,13 @@ public class CodeFirstTests
             .AddType<TeaType>()
             .AddType<DogType>()
             .Create();
+
+    public class QueryLists
+    {
+        public List<List<int>?> Input(List<List<int>?> arg) => arg;
+
+        public List<List<int>?> Output => [[1], null];
+    }
 
     public class Query
     {

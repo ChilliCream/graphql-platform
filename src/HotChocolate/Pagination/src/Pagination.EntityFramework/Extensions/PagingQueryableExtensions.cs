@@ -77,7 +77,7 @@ public static class PagingQueryableExtensions
         if (keys.Length == 0)
         {
             throw new ArgumentException(
-                "In order to use cursor pagination, you must specify at least on key using the `OrderBy` method.",
+                "In order to use cursor pagination, you must specify at least one key using the `OrderBy` method.",
                 nameof(source));
         }
 

@@ -1,6 +1,4 @@
-#if NET8_0_OR_GREATER
 using System.Collections.Frozen;
-#endif
 using GreenDonut;
 using GreenDonut.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,19 +11,11 @@ namespace HotChocolate.Fetching;
 public sealed class DataLoaderScopeHolder
 {
     private static readonly AsyncLocal<InstanceHolder> _currentScope = new();
-#if NET8_0_OR_GREATER
     private readonly FrozenDictionary<Type, DataLoaderRegistration> _registrations;
-#else
-    private readonly Dictionary<Type, DataLoaderRegistration> _registrations;
-#endif
 
     public DataLoaderScopeHolder(IEnumerable<DataLoaderRegistration> registrations)
     {
-#if NET8_0_OR_GREATER
         _registrations = CreateRegistrations().ToFrozenDictionary(t => t.Item1, t => t.Item2);
-#else
-        _registrations = CreateRegistrations().ToDictionary(t => t.Item1, t => t.Item2);
-#endif
 
         IEnumerable<(Type, DataLoaderRegistration)> CreateRegistrations()
         {

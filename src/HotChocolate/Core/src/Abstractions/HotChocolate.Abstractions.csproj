@@ -24,11 +24,6 @@
     <InternalsVisibleTo Include="HotChocolate.Validation" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" />
-    <PackageReference Include="System.Collections.Immutable" />
-  </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\..\Primitives\src\Primitives\HotChocolate.Primitives.csproj" />
   </ItemGroup>
