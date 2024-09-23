@@ -51,7 +51,8 @@ internal abstract class RequestDocumentFormatter(FusionGraphConfiguration config
                     context.VariableValues,
                     rootSelectionSetNode,
                     null,
-                    unspecifiedArguments);
+                    unspecifiedArguments,
+                    null);
 
             rootSelectionSetNode = new SelectionSetNode(new[] { rootResolver, });
             path = p;
@@ -62,6 +63,7 @@ internal abstract class RequestDocumentFormatter(FusionGraphConfiguration config
             executionStep.ParentSelectionPath is not null)
         {
             rootSelectionSetNode = CreateRootLevelQuery(
+                context,
                 executionStep.ParentSelectionPath,
                 rootSelectionSetNode);
         }
@@ -83,6 +85,7 @@ internal abstract class RequestDocumentFormatter(FusionGraphConfiguration config
     }
 
     private SelectionSetNode CreateRootLevelQuery(
+        QueryPlanContext context,
         SelectionPath path,
         SelectionSetNode selectionSet)
     {
@@ -90,8 +93,29 @@ internal abstract class RequestDocumentFormatter(FusionGraphConfiguration config
 
         while (current is not null)
         {
-            selectionSet = new SelectionSetNode(
-                new[] { current.Selection.SyntaxNode.WithSelectionSet(selectionSet), });
+            var selectionNode = current.Selection.SyntaxNode.WithSelectionSet(selectionSet);
+
+            // TODO: this is not good but will fix the include issue ...
+            // we need to rework the operation compiler for a proper fix.
+            if (selectionNode.Directives.Count > 0)
+            {
+                foreach (var directive in selectionNode.Directives)
+                {
+                    foreach (var argument in directive.Arguments)
+                    {
+                        if (argument.Value is not VariableNode variable)
+                        {
+                            continue;
+                        }
+
+                        var originalVarDef = context.Operation.Definition.VariableDefinitions
+                            .First(t => t.Variable.Equals(variable, SyntaxComparison.Syntax));
+                        context.ForwardedVariables.Add(originalVarDef);
+                    }
+                }
+            }
+
+            selectionSet = new SelectionSetNode(new[] { selectionNode, });
 
             current = current.Parent;
         }
@@ -164,7 +188,8 @@ internal abstract class RequestDocumentFormatter(FusionGraphConfiguration config
                     context.VariableValues,
                     selectionSetNode,
                     rootSelection.Selection.ResponseName,
-                    unspecifiedArguments);
+                    unspecifiedArguments,
+                    rootSelection.Selection.SyntaxNode.Directives);
                 selectionNode = s;
             }
 
@@ -173,6 +198,26 @@ internal abstract class RequestDocumentFormatter(FusionGraphConfiguration config
             {
                 selectionNode = fieldNode.WithAlias(
                     new NameNode(rootSelection.Selection.ResponseName));
+            }
+
+            // TODO: this is not good but will fix the include issue ...
+            // we need to rework the operation compiler for a proper fix.
+            if (selectionNode.Directives.Count > 0)
+            {
+                foreach (var directive in selectionNode.Directives)
+                {
+                    foreach (var argument in directive.Arguments)
+                    {
+                        if (argument.Value is not VariableNode variable)
+                        {
+                            continue;
+                        }
+
+                        var originalVarDef = context.Operation.Definition.VariableDefinitions
+                            .First(t => t.Variable.Equals(variable, SyntaxComparison.Syntax));
+                        context.ForwardedVariables.Add(originalVarDef);
+                    }
+                }
             }
 
             selectionNodes.Add(selectionNode);

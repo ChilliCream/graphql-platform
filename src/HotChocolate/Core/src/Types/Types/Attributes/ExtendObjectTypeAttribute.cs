@@ -204,6 +204,9 @@ public sealed class ExtendObjectTypeAttribute<T>
             descriptor.ExtendsType(ExtendsType);
         }
 
+        var definition = descriptor.Extend().Definition;
+        definition.Fields.BindingBehavior = BindingBehavior.Implicit;
+
         if (IncludeStaticMembers)
         {
             descriptor.Extend().Definition.FieldBindingFlags = Instance | Static;

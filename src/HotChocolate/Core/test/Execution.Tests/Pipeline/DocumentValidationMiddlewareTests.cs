@@ -17,7 +17,7 @@ public class DocumentValidationMiddlewareTests
                 It.IsAny<ISchema>(),
                 It.IsAny<DocumentNode>(),
                 It.IsAny<OperationDocumentId>(),
-                It.IsAny<IDictionary<string, object>>(),
+                It.IsAny<IDictionary<string, object?>>(),
                 It.Is<bool>(b => true),
                 It.IsAny<CancellationToken>()))
             .Returns(new ValueTask<DocumentValidatorResult>(DocumentValidatorResult.Ok));
@@ -37,7 +37,6 @@ public class DocumentValidationMiddlewareTests
 
         var requestContext = new Mock<IRequestContext>();
         requestContext.SetupGet(t => t.Request).Returns(request);
-        requestContext.SetupGet(t => t.Schema).Returns(default(ISchema));
         requestContext.SetupProperty(t => t.Document, document);
         requestContext.SetupProperty(t => t.ValidationResult, validationResult);
 
@@ -59,7 +58,7 @@ public class DocumentValidationMiddlewareTests
                 It.IsAny<ISchema>(),
                 It.IsAny<DocumentNode>(),
                 It.IsAny<OperationDocumentId>(),
-                It.IsAny<IDictionary<string, object>>(),
+                It.IsAny<IDictionary<string, object?>>(),
                 It.Is<bool>(b => true),
                 It.IsAny<CancellationToken>()))
             .Returns(new ValueTask<DocumentValidatorResult>(DocumentValidatorResult.Ok));
@@ -79,8 +78,7 @@ public class DocumentValidationMiddlewareTests
 
         var requestContext = new Mock<IRequestContext>();
         requestContext.SetupGet(t => t.Request).Returns(request);
-        requestContext.SetupGet(t => t.Schema).Returns(default(ISchema));
-        requestContext.SetupGet(t => t.ContextData).Returns(new Dictionary<string, object>());
+        requestContext.SetupGet(t => t.ContextData).Returns(new Dictionary<string, object?>());
         requestContext.SetupProperty(t => t.Document, document);
         requestContext.SetupProperty(t => t.DocumentId, "abc");
         requestContext.SetupProperty(t => t.ValidationResult, validationResult);
@@ -102,7 +100,7 @@ public class DocumentValidationMiddlewareTests
                 It.IsAny<ISchema>(),
                 It.IsAny<DocumentNode>(),
                 It.IsAny<OperationDocumentId>(),
-                It.IsAny<IDictionary<string, object>>(),
+                It.IsAny<IDictionary<string, object?>>(),
                 It.Is<bool>(b => true),
                 It.IsAny<CancellationToken>()))
             .Returns(new ValueTask<DocumentValidatorResult>(DocumentValidatorResult.Ok));
@@ -121,8 +119,7 @@ public class DocumentValidationMiddlewareTests
 
         var requestContext = new Mock<IRequestContext>();
         requestContext.SetupGet(t => t.Request).Returns(request);
-        requestContext.SetupGet(t => t.Schema).Returns(default(ISchema));
-        requestContext.SetupGet(t => t.ContextData).Returns(new Dictionary<string, object>());
+        requestContext.SetupGet(t => t.ContextData).Returns(new Dictionary<string, object?>());
         requestContext.SetupProperty(t => t.Document, document);
         requestContext.SetupProperty(t => t.DocumentId, "abc");
         requestContext.SetupProperty(t => t.ValidationResult);
@@ -146,7 +143,7 @@ public class DocumentValidationMiddlewareTests
                 It.IsAny<ISchema>(),
                 It.IsAny<DocumentNode>(),
                 It.IsAny<OperationDocumentId>(),
-                It.IsAny<IDictionary<string, object>>(),
+                It.IsAny<IDictionary<string, object?>>(),
                 It.Is<bool>(b => true),
                 It.IsAny<CancellationToken>()))
             .Returns(new ValueTask<DocumentValidatorResult>(validationResult));
@@ -165,8 +162,7 @@ public class DocumentValidationMiddlewareTests
 
         var requestContext = new Mock<IRequestContext>();
         requestContext.SetupGet(t => t.Request).Returns(request);
-        requestContext.SetupGet(t => t.Schema).Returns(default(ISchema));
-        requestContext.SetupGet(t => t.ContextData).Returns(new Dictionary<string, object>());
+        requestContext.SetupGet(t => t.ContextData).Returns(new Dictionary<string, object?>());
         requestContext.SetupProperty(t => t.Document, document);
         requestContext.SetupProperty(t => t.DocumentId, "abc");
         requestContext.SetupProperty(t => t.ValidationResult);
@@ -189,7 +185,7 @@ public class DocumentValidationMiddlewareTests
                 It.IsAny<ISchema>(),
                 It.IsAny<DocumentNode>(),
                 It.IsAny<OperationDocumentId>(),
-                It.IsAny<IDictionary<string, object>>(),
+                It.IsAny<IDictionary<string, object?>>(),
                 It.Is<bool>(b => true),
                 It.IsAny<CancellationToken>()))
             .Returns(new ValueTask<DocumentValidatorResult>(DocumentValidatorResult.Ok));
@@ -206,7 +202,6 @@ public class DocumentValidationMiddlewareTests
 
         var requestContext = new Mock<IRequestContext>();
         requestContext.SetupGet(t => t.Request).Returns(request);
-        requestContext.SetupGet(t => t.Schema).Returns(default(ISchema));
         requestContext.SetupProperty(t => t.Document);
         requestContext.SetupProperty(t => t.Result);
 

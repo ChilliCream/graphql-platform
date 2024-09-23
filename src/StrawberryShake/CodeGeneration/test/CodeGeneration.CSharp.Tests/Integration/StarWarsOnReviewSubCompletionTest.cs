@@ -49,7 +49,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubC
             {
                 await topicEventSender.SendAsync(
                     $"{OnReview}_{topic}",
-                    new Review { Stars = 1, Commentary = "Commentary", });
+                    new Review(stars: 1, commentary: "Commentary"));
                 await Task.Delay(1_000);
             }
 
@@ -108,7 +108,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubC
             {
                 await topicEventSender.SendAsync(
                     $"{OnReview}_{topic}",
-                    new Review { Stars = 1, Commentary = "Commentary", });
+                    new Review(stars: 1, commentary: "Commentary"));
                 await Task.Delay(1_000);
             }
 

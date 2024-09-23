@@ -85,14 +85,14 @@ services
 
 All of this does not yet lock out unauthenticated users. It only exposes the identity of the authenticated user to our application through a `ClaimsPrincipal`. If we want to prevent certain users from querying our graph, we need to utilize authorization.
 
-[Learn more about authorization](/docs/hotchocolate/v13/security/authorization)
+[Learn more about authorization](/docs/hotchocolate/v14/security/authorization)
 
 # Accessing the ClaimsPrincipal
 
 The [ClaimsPrincipal](https://docs.microsoft.com/dotnet/api/system.security.claims.claimsprincipal) of an authenticated user can be accessed in our resolvers like the following.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Query
@@ -104,7 +104,7 @@ public class Query
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp

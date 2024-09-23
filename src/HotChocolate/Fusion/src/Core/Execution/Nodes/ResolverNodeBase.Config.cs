@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Clients;
+using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
 
@@ -31,6 +32,9 @@ internal abstract partial class ResolverNodeBase
         /// <param name="selectionSet">
         /// The selection set for which this request provides a patch.
         /// </param>
+        /// <param name="rootSelections">
+        /// The root selections of this subgraph request.
+        /// </param>
         /// <param name="provides">
         /// The variables that this resolver node will provide.
         /// </param>
@@ -51,6 +55,7 @@ internal abstract partial class ResolverNodeBase
             DocumentNode document,
             ISelection? parent,
             ISelectionSet selectionSet,
+            List<RootSelection> rootSelections,
             IEnumerable<string> provides,
             IEnumerable<string> requires,
             IEnumerable<string> forwardedVariables,
@@ -63,6 +68,7 @@ internal abstract partial class ResolverNodeBase
             SubgraphName = subgraphName;
             Document = document.ToString(false);
             Parent = parent;
+            RootSelections = rootSelections;
             SelectionSet = Unsafe.As<SelectionSet>(selectionSet);
             Provides = CollectionUtils.CopyToArray(provides, ref buffer, ref usedCapacity);
             Requires = CollectionUtils.CopyToArray(requires, ref buffer, ref usedCapacity);
@@ -93,6 +99,11 @@ internal abstract partial class ResolverNodeBase
         /// Gets the parent selection from which the selection set was composed.
         /// </summary>
         public ISelection? Parent { get; }
+
+        /// <summary>
+        /// Gets the root selections of this subgraph request.
+        /// </summary>
+        public List<RootSelection> RootSelections { get; }
 
         /// <summary>
         /// Gets the selection set for which this request provides a patch.

@@ -59,7 +59,8 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
                         classSymbol.Name,
                         member,
                         ResolverResultKind.Pure,
-                        ImmutableArray<ResolverParameter>.Empty);
+                        ImmutableArray<ResolverParameter>.Empty,
+                        ImmutableArray<MemberBinding>.Empty);
                 }
             }
         }
@@ -147,6 +148,7 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
             resolverType.Name,
             resolverMethod,
             resolverMethod.GetResultKind(),
-            resolverParameters.ToImmutableArray());
+            resolverParameters.ToImmutableArray(),
+            ImmutableArray<MemberBinding>.Empty);
     }
 }

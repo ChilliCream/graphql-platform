@@ -1,10 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <PackageId>HotChocolate.Types.Scalars.Upload</PackageId>
     <AssemblyName>HotChocolate.Types.Scalars.Upload</AssemblyName>
     <RootNamespace>HotChocolate.Types</RootNamespace>

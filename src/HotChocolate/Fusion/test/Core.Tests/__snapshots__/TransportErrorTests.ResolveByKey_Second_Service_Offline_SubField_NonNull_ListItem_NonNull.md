@@ -15,7 +15,7 @@
       ],
       "path": [
         "products",
-        2,
+        0,
         "price"
       ]
     },
@@ -43,7 +43,7 @@
       ],
       "path": [
         "products",
-        0,
+        2,
         "price"
       ]
     }

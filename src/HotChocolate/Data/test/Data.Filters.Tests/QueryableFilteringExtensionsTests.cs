@@ -85,9 +85,9 @@ public class QueryableFilteringExtensionsTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -109,9 +109,9 @@ public class QueryableFilteringExtensionsTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -158,14 +158,14 @@ public class QueryableFilteringExtensionsTests
             IObjectFieldDescriptor descriptor,
             MemberInfo member)
         {
-            descriptor.Use(next => context =>
+            descriptor.Use(next => ctx =>
             {
-                context.LocalContextData =
-                    context.LocalContextData.SetItem(
+                ctx.LocalContextData =
+                    ctx.LocalContextData.SetItem(
                         QueryableFilterProvider.ContextApplyFilteringKey,
                         CreateApplicatorAsync<Foo>());
 
-                return next(context);
+                return next(ctx);
             });
         }
 

@@ -5,6 +5,7 @@ using System.Text.Json;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Metadata;
+using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
@@ -121,6 +122,10 @@ internal static class ExecutionUtils
                 {
                     if (!result.IsInitialized)
                     {
+                        // we add a placeholder here so if the ComposeObject propagates an error
+                        // there is a value here.
+                        result.Set(responseName, null, nullable);
+
                         var value = ComposeObject(
                             context,
                             selectionSetResult,
@@ -170,12 +175,10 @@ internal static class ExecutionUtils
                 return;
             }
 
-            // REMEMBER: this counter needs to be only raised if the selection is included.
-            // ALSO: data ref needs to change once we do this.
-            responseIndex++;
-
             // move our pointers
             NEXT_SELECTION:
+            responseIndex++;
+
             selection = ref Unsafe.Add(ref selection, 1)!;
             result = ref Unsafe.Add(ref result, 1)!;
             data = ref Unsafe.Add(ref data, 1);
@@ -390,7 +393,8 @@ internal static class ExecutionUtils
 
             while (Unsafe.IsAddressLessThan(ref selection, ref endSelection))
             {
-                if (data.TryGetProperty(selection.ResponseName, out var value))
+                if (data.ValueKind is not JsonValueKind.Null
+                    && data.TryGetProperty(selection.ResponseName, out var value))
                 {
                     selectionData = selectionData.AddResult(new JsonResult(schemaName, value));
                 }
@@ -412,7 +416,8 @@ internal static class ExecutionUtils
 
                 while (Unsafe.IsAddressLessThan(ref selection, ref endSelection))
                 {
-                    if (element.TryGetProperty(selection.ResponseName, out var value))
+                    if (element.ValueKind is not JsonValueKind.Null
+                        && element.TryGetProperty(selection.ResponseName, out var value))
                     {
                         selectionData = selectionData.AddResult(new JsonResult(schemaName, value));
                     }
@@ -488,6 +493,33 @@ internal static class ExecutionUtils
         executionState.IsInitialized = true;
     }
 
+    public static void CreateTransportErrors(
+        Exception transportException,
+        ResultBuilder resultBuilder,
+        IErrorHandler errorHandler,
+        ObjectResult selectionSetResult,
+        List<RootSelection> rootSelections,
+        string subgraphName,
+        bool addDebugInfo)
+    {
+        foreach (var rootSelection in rootSelections)
+        {
+            var errorBuilder = errorHandler.CreateUnexpectedError(transportException);
+
+            errorBuilder.AddLocation(rootSelection.Selection.SyntaxNode);
+            errorBuilder.SetPath(PathHelper.CreatePathFromContext(rootSelection.Selection, selectionSetResult, 0));
+
+            if (addDebugInfo)
+            {
+                errorBuilder.SetExtension("subgraphName", subgraphName);
+            }
+
+            var error = errorHandler.Handle(errorBuilder.Build());
+
+            resultBuilder.AddError(error);
+        }
+    }
+
     public static void ExtractErrors(
         DocumentNode document,
         OperationDefinitionNode operation,
@@ -503,10 +535,11 @@ internal static class ExecutionUtils
             return;
         }
 
-        var path = PathHelper.CreatePathFromContext(selectionSetResult);
+        var parentPath = PathHelper.CreatePathFromContext(selectionSetResult);
+
         foreach (var error in errors.EnumerateArray())
         {
-            ExtractError(document, operation, resultBuilder, errorHandler, error, path, pathDepth, addDebugInfo);
+            ExtractError(document, operation, resultBuilder, errorHandler, error, parentPath, pathDepth, addDebugInfo);
         }
     }
 
@@ -718,7 +751,7 @@ internal static class ExecutionUtils
 
             Visit(operation, context);
 
-            var field =  context.Field;
+            var field = context.Field;
 
             context.Reset();
             Interlocked.Exchange(ref _errorPathContext, context);

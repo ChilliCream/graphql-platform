@@ -11,7 +11,7 @@ public class OperationDocumentSourceTextTests
     {
         // arrange
         // act
-        void Action() => new OperationDocumentSourceText(null);
+        void Action() => new OperationDocumentSourceText(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);

@@ -46,18 +46,18 @@ internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
 
             TypeReference queryType = TypeReference.Parse($"{_queryType.Name}!");
 
-            _queryField= new ObjectFieldDefinition(
+            _queryField = new ObjectFieldDefinition(
                 options.QueryFieldName ?? _defaultFieldName,
                 type: queryType,
                 resolver: ctx => new(ctx.GetQueryRoot<object>()));
-            _queryField.CustomSettings.Add(MutationQueryField);
+            _queryField.Flags |= FieldFlags.MutationQueryField;
 
             foreach (var field in _mutationDefinition.Fields)
             {
-                if (!field.IsIntrospectionField &&
-                    _context.TryGetType(field.Type!, out IType? returnType) &&
-                    returnType.NamedType() is ObjectType payloadType &&
-                    options.MutationPayloadPredicate.Invoke(payloadType))
+                if (!field.IsIntrospectionField
+                    && _context.TryGetType(field.Type!, out IType? returnType)
+                    && returnType.NamedType() is ObjectType payloadType
+                    && options.MutationPayloadPredicate.Invoke(payloadType))
                 {
                     _payloads.Add(payloadType.Name);
                 }
@@ -69,9 +69,9 @@ internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         DefinitionBase definition)
     {
-        if (completionContext.Type is ObjectType objectType &&
-            definition is ObjectTypeDefinition objectTypeDef &&
-            _payloads.Contains(objectType.Name))
+        if (completionContext.Type is ObjectType objectType
+            && definition is ObjectTypeDefinition objectTypeDef
+            && _payloads.Contains(objectType.Name))
         {
             if (objectTypeDef.Fields.Any(t => t.Name.EqualsOrdinal(_queryField.Name)))
             {

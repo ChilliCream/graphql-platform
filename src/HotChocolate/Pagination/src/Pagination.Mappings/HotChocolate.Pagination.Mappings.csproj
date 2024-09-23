@@ -12,6 +12,7 @@
     <ProjectReference Include="..\..\..\Core\src\Types.CursorPagination\HotChocolate.Types.CursorPagination.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
     <ProjectReference Include="..\Pagination.Core\HotChocolate.Pagination.Core.csproj" />
+    <ProjectReference Include="..\Pagination.Primitives\HotChocolate.Pagination.Primitives.csproj" />
   </ItemGroup>
 
 </Project>

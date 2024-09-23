@@ -41,7 +41,7 @@ public class QueryableSortVisitorExpressionTests : IClassFixture<SchemaCache>
         await SnapshotExtensions.AddResult(
                 SnapshotExtensions.AddResult(
                     Snapshot
-                        .Create(), res1, "DESC"), res2, "ASC")
+                        .Create(postFix: TestEnvironment.TargetFramework), res1, "DESC"), res2, "ASC")
             .MatchAsync();
     }
 

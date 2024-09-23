@@ -1,9 +1,9 @@
 import Highlight, { Language } from "prism-react-renderer";
 import Prism from "prismjs";
 import React, { FC } from "react";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 
-import { FONT_FAMILY_CODE } from "@/shared-style";
+import { FONT_FAMILY_CODE, THEME_COLORS } from "@/style";
 import { Copy } from "./copy";
 
 export interface CodeBlockProps {
@@ -38,7 +38,7 @@ export const CodeBlock: FC<CodeBlockProps> = ({
             {tokens.map((line, i) => (
               <Line
                 highlight={shouldHighlightLine(i)}
-                {...getLineProps({ line: line, key: i })}
+                {...getLineProps({ line, key: i })}
               >
                 <LineContent>
                   {line.map((token, key) => (
@@ -65,7 +65,6 @@ const CodeIndicator: FC<CodeIndicatorProps> = ({ language }) => {
     <IndicatorContent
       style={{
         color: codeLanguage.color,
-        background: codeLanguage.background,
       }}
     >
       {codeLanguage.content}
@@ -75,48 +74,42 @@ const CodeIndicator: FC<CodeIndicatorProps> = ({ language }) => {
 
 const codeLanguages: Record<
   string,
-  { content: string; color: string; background: string }
+  {
+    readonly content: string;
+    readonly color: string;
+  }
 > = {
   csharp: {
     content: "C#",
-    color: "#4f3903",
-    background: "#ffb806",
+    color: "#ffe261",
   },
   bash: {
     content: "Bash",
-    color: "#333",
-    background: "#0fd",
+    color: "#74dfc4",
   },
   graphql: {
     content: "GraphQL",
-    color: "#fff",
-    background: "#e535ab",
+    color: "#eb64b9",
   },
   http: {
     content: "HTTP",
-    color: "#efeaff",
-    background: "#8b76cc",
+    color: "#b381c5",
   },
   json: {
     content: "JSON",
-    color: "#fff",
-    background: "#1da0f2",
+    color: "#40b4c4",
   },
   sdl: {
     content: "SDL",
-
-    color: "#fff",
-    background: "#e535ab",
+    color: "#eb64b9",
   },
   sql: {
     content: "SQL",
-    color: "#fff",
-    background: "#80f",
+    color: "#b4dce7",
   },
   xml: {
     content: "XML",
-    color: "#fff",
-    background: "#999",
+    color: "#ffffff",
   },
 };
 
@@ -124,12 +117,14 @@ const IndicatorContent = styled.div`
   position: absolute;
   z-index: 1;
   top: 0;
-  left: 50px;
-  border-radius: 0px 0px var(--border-radius) var(--border-radius);
+  left: 20px;
+  border: 1px solid ${THEME_COLORS.boxBorder};
+  border-top: 0 none;
+  border-radius: 0px 0px var(--button-border-radius) var(--button-border-radius);
   padding: 2px 8px;
-  font-size: 0.8em;
+  font-size: 0.875rem;
   font-weight: 600;
-  letter-spacing: 0.075em;
+  letter-spacing: 0.025rem;
   line-height: 1em;
   text-transform: uppercase;
 `;
@@ -159,11 +154,18 @@ const calculateLinesToHighlight = (
 
 const Pre = styled.pre`
   position: relative;
-  overflow: scroll;
+  max-width: 100vw;
+  box-sizing: border-box;
+  border-radius: 0 !important;
 
   & .token-line {
     line-height: 1.3em;
     height: 1.3em;
+  }
+
+  @media only screen and (min-width: 700px) {
+    max-width: 660px;
+    border-radius: var(--box-border-radius) !important;
   }
 `;
 
@@ -176,12 +178,12 @@ const Line = styled.div<LineProps>`
 
   ${({ highlight }) =>
     highlight &&
-    `
-    display: block;
-    background-color: #444;
-    margin: 0 -50px;
-    padding: 0 50px;
-  `};
+    css`
+      display: block;
+      background-color: #444;
+      margin: 0 -50px;
+      padding: 0 50px;
+    `};
 `;
 
 const LineContent = styled.span`
@@ -190,9 +192,8 @@ const LineContent = styled.span`
 
 const Container = styled.div`
   position: relative;
-  margin: 20px 0;
-  overflow: initial;
-  font-size: 0.833em !important;
+  margin-bottom: 24px;
+  font-size: 1rem !important;
   padding-right: 0 !important;
   padding-left: 0 !important;
 

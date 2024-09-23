@@ -137,7 +137,7 @@ public class StreamTests
                         }
                     }
                     """)
-                .SetVariableValues(new Dictionary<string, object> { {"stream", false},})
+                .SetVariableValues(new Dictionary<string, object?> { {"stream", false},})
                 .Build());
 
         Assert.IsType<OperationResult>(result).MatchSnapshot();

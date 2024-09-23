@@ -5,6 +5,7 @@ using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static System.StringComparison;
+using static HotChocolate.Types.Analyzers.WellKnownAttributes;
 using static HotChocolate.Types.Analyzers.WellKnownTypes;
 
 namespace HotChocolate.Types.Analyzers.Inspectors;

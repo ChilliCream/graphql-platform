@@ -29,7 +29,7 @@ Id fields can be opted in to the global identifier behavior using the `ID` middl
 Hot Chocolate automatically combines the value of fields annotated as `ID` with another value to form a global identifier. Per default, this additional value is the name of the type the Id belongs to. Since type names are unique within a schema, this ensures that we are returning a unique Id within the schema. If our GraphQL server serves multiple schemas, the schema name is also included in this combined Id. The resulting Id is then Base64 encoded to make it opaque.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Product
@@ -48,7 +48,7 @@ The `[ID]` attribute can be used on primary key fields and on fields that act as
 public int FooId { get; set; }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -77,14 +77,14 @@ descriptor.Field(f => f.FooId).ID("Foo");
 </Code>
 <Schema>
 
-The approach of either Annotation-based or Code-first can be used in conjunction with Schema-first.
+The approach of either implementation-first or code-first can be used in conjunction with schema-first.
 
 </Schema>
 </ExampleTabs>
 
 The type of fields specified as `ID` is also automatically rewritten to the ID scalar.
 
-[Learn more about the ID scalar](/docs/hotchocolate/v13/defining-a-schema/scalars#id)
+[Learn more about the ID scalar](/docs/hotchocolate/v14/defining-a-schema/scalars#id)
 
 ## Usage in Input Types
 
@@ -92,7 +92,7 @@ If our `Product` output type returns a serialized Id, all arguments and fields o
 Therefore we also need to define them as `ID`, in order to deserialize the serialized Id to the actual Id.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Query
@@ -122,7 +122,7 @@ public Product GetProduct([ID(nameof(Product))] int id)
 
 This will result in an error if an Id, serialized using a different type name than `Product`, is used as input.
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -160,7 +160,7 @@ This will result in an error if an Id, serialized using a different type name th
 </Code>
 <Schema>
 
-The approach of either Annotation-based or Code-first can be used in conjunction with Schema-first.
+The approach of either implementation-first or code-first can be used in conjunction with schema-first.
 
 </Schema>
 </ExampleTabs>
@@ -186,7 +186,7 @@ public class Query
 
 The `Serialize()` method takes the schema name as a first argument, followed by the type name and lastly the actual Id.
 
-[Learn more about accessing services](/docs/hotchocolate/v13/fetching-data/resolvers#injecting-services)
+[Learn more about accessing services](/docs/hotchocolate/v14/fetching-data/resolvers#injecting-services)
 
 # Complex Ids
 
@@ -321,7 +321,7 @@ Next we need to extend our object types with the `Global Object Identification` 
 3. A method responsible for refetching an object based on its `id` needs to be defined.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 To declare an object type as a re-fetchable, we need to annotate it using the `[Node]` attribute. This in turn causes the type to implement the `Node` interface and if present automatically turns the `id` field into a [global identifier](#global-identifiers).
 
@@ -357,7 +357,7 @@ If we need to influence the global identifier generation, we can annotate the `I
 public string Id { get; set; }
 ```
 
-If the `Id` property of our class is not called `id`, we can either [rename it](/docs/hotchocolate/v13/defining-a-schema/object-types#naming) or specify the name of the property that should be the `id` field through the `[Node]` attribute. Hot Chocolate will then automatically rename this property to `id` in the schema to properly implement the contract of the `Node` interface.
+If the `Id` property of our class is not called `id`, we can either [rename it](/docs/hotchocolate/v14/defining-a-schema/object-types#naming) or specify the name of the property that should be the `id` field through the `[Node]` attribute. Hot Chocolate will then automatically rename this property to `id` in the schema to properly implement the contract of the `Node` interface.
 
 ```csharp
 [Node(IdField = nameof(ProductId))]
@@ -412,12 +412,12 @@ public class ProductExtensions
 }
 ```
 
-[Learn more about extending types](/docs/hotchocolate/v13/defining-a-schema/extending-types)
+[Learn more about extending types](/docs/hotchocolate/v14/defining-a-schema/extending-types)
 
-</Annotation>
+</Implementation>
 <Code>
 
-In the Code-first approach, we have multiple APIs on the `IObjectTypeDescriptor` to fulfill these criteria:
+In the code-first approach, we have multiple APIs on the `IObjectTypeDescriptor` to fulfill these criteria:
 
 - `ImplementsNode`: Implements the `Node` interface.
 - `IdField`: Selects the property that represents the unique identifier of the object.
@@ -449,7 +449,7 @@ public class ProductType : ObjectType<Product>
 
 > Warning: When using middleware such as `UseDbContext` it needs to be chained after the `ResolveNode` call. The order of middleware still matters.
 
-If the `Id` property of our class is not called `id`, we can either [rename it](/docs/hotchocolate/v13/defining-a-schema/object-types#naming) or specify it through the `IdField` method on the `IObjectTypeDescriptor`. Hot Chocolate will then automatically rename this property to `id` in the schema to properly implement the contract of the `Node` interface.
+If the `Id` property of our class is not called `id`, we can either [rename it](/docs/hotchocolate/v14/defining-a-schema/object-types#naming) or specify it through the `IdField` method on the `IObjectTypeDescriptor`. Hot Chocolate will then automatically rename this property to `id` in the schema to properly implement the contract of the `Node` interface.
 
 ```csharp
 public class Product
@@ -499,14 +499,14 @@ public class ProductNodeResolver
 </Code>
 <Schema>
 
-The approach of either Annotation-based or Code-first can be used in conjunction with Schema-first.
+The approach of either implementation-first or code-first can be used in conjunction with schema-first.
 
 </Schema>
 </ExampleTabs>
 
 Since node resolvers resolve entities by their Id, they are the perfect place to start utilizing DataLoaders.
 
-[Learn more about DataLoaders](/docs/hotchocolate/v13/fetching-data/dataloader)
+[Learn more about DataLoaders](/docs/hotchocolate/v14/fetching-data/dataloader)
 
 # Connections
 
@@ -536,7 +536,7 @@ type PageInfo {
 }
 ```
 
-[Learn more about Connections](/docs/hotchocolate/v13/fetching-data/pagination#connections)
+[Learn more about Connections](/docs/hotchocolate/v14/fetching-data/pagination#connections)
 
 # Query field in Mutation payloads
 

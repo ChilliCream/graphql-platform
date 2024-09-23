@@ -76,12 +76,12 @@ internal sealed class SelectionCollection(
 
         while (Unsafe.IsAddressLessThan(ref start, ref end))
         {
-            if (!start.Type.IsCompositeType())
+            var namedType = start.Type.NamedType();
+
+            if (!namedType.IsCompositeType())
             {
                 return false;
             }
-
-            var namedType = start.Type.NamedType();
 
             if (namedType.IsAbstractType())
             {
@@ -428,12 +428,12 @@ internal sealed class SelectionCollection(
 
         while (Unsafe.IsAddressLessThan(ref start, ref end))
         {
-            if (!start.Type.IsCompositeType())
+            var namedType = start.Type.NamedType();
+
+            if (!namedType.IsCompositeType())
             {
                 goto NEXT;
             }
-
-            var namedType = start.Type.NamedType();
 
             if (namedType.IsAbstractType())
             {

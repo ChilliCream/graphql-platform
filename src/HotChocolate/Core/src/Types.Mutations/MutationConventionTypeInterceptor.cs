@@ -359,7 +359,8 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             {
                 // if the field is the query mutation field we will allow it to stay non-nullable
                 // since it does not need the parent.
-                if (resultField.Type is null || resultField.CustomSettingExists(MutationQueryField))
+                if (resultField.Type is null
+                    || (resultField.Flags & FieldFlags.MutationQueryField) == FieldFlags.MutationQueryField)
                 {
                     continue;
                 }
@@ -514,10 +515,10 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             var errorFieldDef = new ObjectFieldDefinition(
                 error.Value.Name,
                 type: error.Value.Type,
-                resolver: ctx =>
+                pureResolver: ctx =>
                 {
                     ctx.ScopedContextData.TryGetValue(Errors, out var errors);
-                    return new ValueTask<object?>(errors);
+                    return errors;
                 });
             objectDef.Fields.Add(errorFieldDef);
         }

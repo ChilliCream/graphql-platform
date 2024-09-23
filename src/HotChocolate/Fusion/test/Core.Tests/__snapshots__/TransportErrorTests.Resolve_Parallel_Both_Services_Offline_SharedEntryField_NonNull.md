@@ -16,6 +16,18 @@
       "path": [
         "viewer"
       ]
+    },
+    {
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 3,
+          "column": 5
+        }
+      ],
+      "path": [
+        "userId"
+      ]
     }
   ],
   "data": null

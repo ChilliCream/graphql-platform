@@ -23,7 +23,7 @@ public class VariableCoercionIntegrationTests
             OperationRequestBuilder
                 .New()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValues(new Dictionary<string, object> { {"user", user }, })
+                .SetVariableValues(new Dictionary<string, object?> { {"user", user }, })
                 .Build();
 
         await executor.ExecuteAsync(request).MatchSnapshotAsync();
@@ -43,7 +43,7 @@ public class VariableCoercionIntegrationTests
             OperationRequestBuilder
                 .New()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValues(new Dictionary<string, object> { {"user", user }, })
+                .SetVariableValues(new Dictionary<string, object?> { {"user", user }, })
                 .Build();
 
         await executor.ExecuteAsync(request).MatchSnapshotAsync();
@@ -64,7 +64,7 @@ public class VariableCoercionIntegrationTests
             OperationRequestBuilder
                 .New()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValues(new Dictionary<string, object> { {"user", user }, })
+                .SetVariableValues(new Dictionary<string, object?> { {"user", user }, })
                 .Build();
 
         await executor.ExecuteAsync(request).MatchSnapshotAsync();
@@ -84,7 +84,7 @@ public class VariableCoercionIntegrationTests
             OperationRequestBuilder
                 .New()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValues(new Dictionary<string, object> { {"user", user }, })
+                .SetVariableValues(new Dictionary<string, object?> { {"user", user }, })
                 .Build();
 
         await executor.ExecuteAsync(request).MatchSnapshotAsync();
@@ -103,7 +103,7 @@ public class VariableCoercionIntegrationTests
             OperationRequestBuilder
                 .New()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValues(new Dictionary<string, object> { {"user", user }, })
+                .SetVariableValues(new Dictionary<string, object?> { {"user", user }, })
                 .Build();
 
         await executor.ExecuteAsync(request).MatchSnapshotAsync();
@@ -120,7 +120,7 @@ public class VariableCoercionIntegrationTests
             OperationRequestBuilder
                 .New()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValues(new Dictionary<string, object> { {"user", null }, })
+                .SetVariableValues(new Dictionary<string, object?> { {"user", null }, })
                 .Build();
 
         await executor.ExecuteAsync(request).MatchSnapshotAsync();
@@ -158,7 +158,7 @@ public class VariableCoercionIntegrationTests
             OperationRequestBuilder
                 .New()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValues(new Dictionary<string, object> { {"user", user }, })
+                .SetVariableValues(new Dictionary<string, object?> { {"user", user }, })
                 .Build();
 
         await executor.ExecuteAsync(request).MatchSnapshotAsync();
@@ -186,18 +186,18 @@ public class VariableCoercionIntegrationTests
         protected override void Configure(IObjectTypeDescriptor<UserMutation> descriptor)
         {
             descriptor
-                .Field(um => um.AddUser(default))
+                .Field(um => um.AddUser(new User("Oliver")))
                 .Description("Add user to db")
                 .Argument("user", d => d.Type<NonNullType<UserInputType>>()
                     .Description("User input type, required"));
         }
     }
 
-    public class User
+    public class User(string name)
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = name;
 
-        public string Surname { get; set; }
+        public string? Surname { get; set; }
     }
 
     public class UserInputType : InputObjectType<User>

@@ -1,3 +1,4 @@
+using HotChocolate;
 using HotChocolate.CostAnalysis;
 using HotChocolate.CostAnalysis.Caching;
 using HotChocolate.CostAnalysis.Types;
@@ -5,6 +6,7 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Pipeline;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using static Microsoft.Extensions.DependencyInjection.ServiceDescriptor;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -32,6 +34,9 @@ public static class CostAnalyzerRequestExecutorBuilderExtensions
             .ConfigureSchemaServices(
                 services =>
                 {
+                    services.TryAddEnumerable(
+                        Singleton<ISchemaDocumentFormatter, CostSchemaDocumentFormatter>());
+
                     services.TryAddSingleton<CostOptions>(sp =>
                     {
                         var options = new CostOptions();

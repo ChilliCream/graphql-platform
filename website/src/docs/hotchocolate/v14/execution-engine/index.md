@@ -13,7 +13,7 @@ The GraphQL execution is abstracted into a request pipeline composed of many req
 
 Field middleware allows us to create reusable logic that is run before or after a resolver. It also allows us to access or even modify the result produced by a resolver.
 
-[Learn more about field middleware](/docs/hotchocolate/v13/execution-engine/field-middleware)
+[Learn more about field middleware](/docs/hotchocolate/v14/execution-engine/field-middleware)
 
 # Resolver Compiler
 

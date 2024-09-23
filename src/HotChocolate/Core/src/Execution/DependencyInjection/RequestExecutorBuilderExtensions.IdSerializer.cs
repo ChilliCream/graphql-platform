@@ -18,6 +18,12 @@ public static partial class RequestExecutorBuilderExtensions
     /// <param name="maxIdLength">
     /// The maximum allowed length of a node id.
     /// </param>
+    /// <param name="outputNewIdFormat">
+    /// Defines whether the new ID format shall be used when serializing IDs.
+    /// </param>
+    /// <param name="useUrlSafeBase64">
+    /// Defines whether the new ID format shall use URL safe base64 encoding.
+    /// </param>
     /// <returns>
     /// Returns the request executor builder.
     /// </returns>
@@ -26,7 +32,9 @@ public static partial class RequestExecutorBuilderExtensions
     /// </exception>
     public static IRequestExecutorBuilder AddDefaultNodeIdSerializer(
         this IRequestExecutorBuilder builder,
-        int maxIdLength = 1024)
+        int maxIdLength = 1024,
+        bool outputNewIdFormat = true,
+        bool useUrlSafeBase64 = false)
     {
         if (builder == null)
         {
@@ -41,13 +49,17 @@ public static partial class RequestExecutorBuilderExtensions
             builder.Services.AddSingleton<INodeIdValueSerializer, Int16NodeIdValueSerializer>();
             builder.Services.AddSingleton<INodeIdValueSerializer, Int32NodeIdValueSerializer>();
             builder.Services.AddSingleton<INodeIdValueSerializer, Int64NodeIdValueSerializer>();
-            builder.Services.AddSingleton<INodeIdValueSerializer, GuidNodeIdValueSerializer>();
+            builder.Services.AddSingleton<INodeIdValueSerializer>(new GuidNodeIdValueSerializer(compress: outputNewIdFormat));
         }
 
         builder.Services.TryAddSingleton<INodeIdSerializer>(sp =>
         {
             var allSerializers = sp.GetServices<INodeIdValueSerializer>().ToArray();
-            return new DefaultNodeIdSerializer(allSerializers, maxIdLength);
+            return new DefaultNodeIdSerializer(
+                allSerializers,
+                maxIdLength,
+                outputNewIdFormat,
+                useUrlSafeBase64);
         });
 
         builder.ConfigureSchemaServices(
@@ -76,7 +88,12 @@ public static partial class RequestExecutorBuilderExtensions
                         }
                     }
 
-                    return new OptimizedNodeIdSerializer(boundSerializers, allSerializers, maxIdLength);
+                    return new OptimizedNodeIdSerializer(
+                        boundSerializers,
+                        allSerializers,
+                        maxIdLength,
+                        outputNewIdFormat,
+                        useUrlSafeBase64);
                 });
             });
         return builder;

@@ -1159,7 +1159,7 @@ public class AnnotationBasedMutations
     }
 
     [Fact]
-    public async Task Mutation_With_Optional_Arg()
+    public async Task Mutation_With_Optional_Args()
     {
         var result =
             await new ServiceCollection()
@@ -1170,7 +1170,7 @@ public class AnnotationBasedMutations
                 .ExecuteRequestAsync(
                     """
                     mutation {
-                        doSomething(input: { }) {
+                        doSomething(input: { optional1: "something", optional2: null }) {
                             string
                         }
                     }
@@ -1181,7 +1181,7 @@ public class AnnotationBasedMutations
             {
               "data": {
                 "doSomething": {
-                  "string": "nothing"
+                  "string": "something, null, unspecified"
                 }
               }
             }
@@ -1702,8 +1702,11 @@ public class AnnotationBasedMutations
 
     public class MutationWithOptionalArg
     {
-        public string DoSomething(Optional<string?> something)
-            => something.Value ?? "nothing";
+        public string DoSomething(
+            Optional<string?> optional1,
+            Optional<string?> optional2,
+            Optional<string?> optional3)
+            => string.Join(", ", optional1.ToString(), optional2.ToString(), optional3.ToString());
     }
 
     public class MutationWithInterfaces

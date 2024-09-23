@@ -65,7 +65,7 @@ descriptor
     });
 ```
 
-If you are trying to inject a Entity Framework Core `DbContext`, be sure to checkout our [guidance on working with Entity Framework Core](/docs/hotchocolate/v13/integrations/entity-framework).
+If you are trying to inject a Entity Framework Core `DbContext`, be sure to checkout our [guidance on working with Entity Framework Core](/docs/hotchocolate/v14/integrations/entity-framework).
 
 # Constructor injection
 
@@ -137,7 +137,7 @@ public class Query
 Per default scoped services are scoped to the current request. If you want to resolve the services for a particular resolver using a dedicated [`IServiceScope`](https://docs.microsoft.com/dotnet/api/microsoft.extensions.dependencyinjection.iservicescope), you can use the `UseServiceScope` middleware.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Query
@@ -148,7 +148,7 @@ public class Query
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -166,7 +166,7 @@ descriptor.Field("foo")
 </Code>
 <Schema>
 
-Take a look at the Annotation-based or Code-first example.
+Take a look at the implementation-first or code-first example.
 
 </Schema>
 </ExampleTabs>
@@ -229,7 +229,7 @@ While Hot Chocolate's internals rely heavily on Microsoft's dependency injection
 
 You can switch out the service provider used for GraphQL requests, as long as your dependency injection container implements the [`IServiceProvider`](https://docs.microsoft.com/dotnet/api/system.iserviceprovider) interface.
 
-To switch out the service provider you need to call [`SetServices`](/docs/hotchocolate/v13/server/interceptors#setservices) on the [`OperationRequestBuilder`](/docs/hotchocolate/v13/server/interceptors#operationrequestbuilder) in both the [`IHttpRequestInterceptor`](/docs/hotchocolate/v13/server/interceptors#ihttprequestinterceptor) and the [`ISocketSessionInterceptor`](/docs/hotchocolate/v13/server/interceptors#isocketsessioninterceptor).
+To switch out the service provider you need to call [`SetServices`](/docs/hotchocolate/v14/server/interceptors#setservices) on the [`OperationRequestBuilder`](/docs/hotchocolate/v14/server/interceptors#operationrequestbuilder) in both the [`IHttpRequestInterceptor`](/docs/hotchocolate/v14/server/interceptors#ihttprequestinterceptor) and the [`ISocketSessionInterceptor`](/docs/hotchocolate/v14/server/interceptors#isocketsessioninterceptor).
 
 ```csharp
 public class HttpRequestInterceptor : DefaultHttpRequestInterceptor
@@ -270,4 +270,4 @@ services
     .AddSocketSessionInterceptor<SocketSessionInterceptor>();
 ```
 
-[Learn more about interceptors](/docs/hotchocolate/v13/server/interceptors)
+[Learn more about interceptors](/docs/hotchocolate/v14/server/interceptors)

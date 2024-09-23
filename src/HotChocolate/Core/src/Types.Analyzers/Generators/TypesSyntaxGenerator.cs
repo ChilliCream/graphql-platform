@@ -13,18 +13,21 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
         SourceProductionContext context,
         Compilation compilation,
         ImmutableArray<SyntaxInfo> syntaxInfos)
-        => Execute(context, syntaxInfos);
-
-    private static void Execute(
-        SourceProductionContext context,
-        ImmutableArray<SyntaxInfo> syntaxInfos)
     {
         if (syntaxInfos.IsEmpty)
         {
             return;
         }
 
-        var sb = StringBuilderPool.Get();
+        var module = syntaxInfos.GetModuleInfo(compilation.AssemblyName, out _);
+
+        // the generator is disabled.
+        if(module.Options == ModuleOptions.Disabled)
+        {
+            return;
+        }
+
+        var sb = PooledObjects.GetStringBuilder();
 
         WriteTypes(context, syntaxInfos, sb);
 
@@ -32,7 +35,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
 
         WriteResolvers(context, syntaxInfos, sb);
 
-        StringBuilderPool.Return(sb);
+        PooledObjects.Return(sb);
     }
 
     private static void WriteTypes(
@@ -40,6 +43,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
         ImmutableArray<SyntaxInfo> syntaxInfos,
         StringBuilder sb)
     {
+        var hasTypes = false;
         var firstNamespace = true;
         foreach (var group in syntaxInfos
             .OfType<IOutputTypeInfo>()
@@ -79,12 +83,17 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
                 sb.AppendLine();
                 classGenerator.WriteConfigureMethod(typeInfo);
                 classGenerator.WriteEndClass();
+                hasTypes = true;
+
             }
 
             generator.WriteEndNamespace();
         }
 
-        context.AddSource(WellKnownFileNames.TypesFile, sb.ToString());
+        if (hasTypes)
+        {
+            context.AddSource(WellKnownFileNames.TypesFile, sb.ToString());
+        }
     }
 
     private static void WriteResolvers(
@@ -92,6 +101,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
         ImmutableArray<SyntaxInfo> syntaxInfos,
         StringBuilder sb)
     {
+        var hasResolvers = false;
         var typeLookup = new DefaultLocalTypeLookup(syntaxInfos);
 
         var generator = new ResolverFileBuilder(sb);
@@ -144,11 +154,15 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
                 }
 
                 generator.WriteEndClass();
+                hasResolvers = true;
             }
 
             generator.WriteEndNamespace();
         }
 
-        context.AddSource(WellKnownFileNames.ResolversFile, sb.ToString());
+        if (hasResolvers)
+        {
+            context.AddSource(WellKnownFileNames.ResolversFile, sb.ToString());
+        }
     }
 }

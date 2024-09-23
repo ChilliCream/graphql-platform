@@ -5,7 +5,6 @@
     <AssemblyName>StrawberryShake.Transport.WebSockets</AssemblyName>
     <RootNamespace>StrawberryShake.Transport.WebSockets</RootNamespace>
     <Description>GraphQL over WebSocket transport implementation for StrawberryShake GraphQL clients.</Description>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

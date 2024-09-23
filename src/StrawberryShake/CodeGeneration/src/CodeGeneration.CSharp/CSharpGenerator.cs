@@ -232,8 +232,8 @@ public static class CSharpGenerator
             }
         }
 
-        // If persisted queries is enabled we will add the queries as documents.
-        if (settings.RequestStrategy == RequestStrategy.PersistedQuery)
+        // If persisted operations is enabled we will add the operations as documents.
+        if (settings.RequestStrategy == RequestStrategy.PersistedOperation)
         {
             foreach (var operation in context.Operations)
             {

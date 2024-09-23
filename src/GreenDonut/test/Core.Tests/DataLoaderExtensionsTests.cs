@@ -56,7 +56,7 @@ public class DataLoaderExtensionsTests
     public async Task SetNewCacheEntry()
     {
         // arrange
-        using var cacheOwner = new TaskCacheOwner();
+        using var cacheOwner = new PromiseCacheOwner();
         var fetch = TestHelpers.CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
         var loader = new DataLoader<string, string>(
@@ -64,8 +64,7 @@ public class DataLoaderExtensionsTests
             batchScheduler,
             new DataLoaderOptions
             {
-                Cache = cacheOwner.Cache,
-                CancellationToken = cacheOwner.CancellationToken,
+                Cache = cacheOwner.Cache
             });
 
         const string key = "Foo";
@@ -84,7 +83,7 @@ public class DataLoaderExtensionsTests
     public async Task SetTwice()
     {
         // arrange
-        using var cacheOwner = new TaskCacheOwner();
+        using var cacheOwner = new PromiseCacheOwner();
         var fetch = TestHelpers.CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
         var loader = new DataLoader<string, string>(
@@ -92,8 +91,7 @@ public class DataLoaderExtensionsTests
             batchScheduler,
             new DataLoaderOptions
             {
-                Cache = cacheOwner.Cache,
-                CancellationToken = cacheOwner.CancellationToken,
+                Cache = cacheOwner.Cache
             });
 
         const string key = "Foo";
@@ -128,7 +126,7 @@ public class DataLoaderExtensionsTests
     public void IDataLoaderSetKeyNull()
     {
         // arrange
-        using var cacheOwner = new TaskCacheOwner();
+        using var cacheOwner = new PromiseCacheOwner();
         var fetch = TestHelpers.CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
         var loader = new DataLoader<string, string>(
@@ -136,8 +134,7 @@ public class DataLoaderExtensionsTests
             batchScheduler,
             new DataLoaderOptions
             {
-                Cache = cacheOwner.Cache,
-                CancellationToken = cacheOwner.CancellationToken,
+                Cache = cacheOwner.Cache
             });
         object value = "Bar";
 

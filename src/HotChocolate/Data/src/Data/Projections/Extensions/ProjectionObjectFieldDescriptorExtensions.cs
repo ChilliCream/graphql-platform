@@ -133,10 +133,12 @@ public static class ProjectionObjectFieldDescriptorExtensions
         FieldMiddlewareDefinition placeholder =
             new(_ => _ => default, key: WellKnownMiddleware.Projection);
 
-        descriptor.Extend().Definition.MiddlewareDefinitions.Add(placeholder);
+        var extension = descriptor.Extend();
 
-        descriptor
-            .Extend()
+        extension.Definition.MiddlewareDefinitions.Add(placeholder);
+        extension.Definition.Flags |= FieldFlags.UsesProjections;
+
+        extension
             .OnBeforeCreate(
                 (context, definition) =>
                 {
@@ -392,7 +394,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
             selection.ResolverPipeline,
             selection.PureResolver);
         proxy.SetSelectionSetId(((Selection)selection).SelectionSetId);
-        proxy.Seal(selection.DeclaringSelectionSet);
+        proxy.Seal(selection.DeclaringOperation, selection.DeclaringSelectionSet);
         return proxy;
     }
 

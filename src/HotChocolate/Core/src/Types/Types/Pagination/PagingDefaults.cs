@@ -15,4 +15,6 @@ public static class PagingDefaults
     public const bool InferCollectionSegmentNameFromField = true;
 
     public const bool RequirePagingBoundaries = false;
+
+    public const bool IncludeNodesField = true;
 }

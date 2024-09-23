@@ -120,11 +120,11 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder) =>
         builder.UseRequest(OperationVariableCoercionMiddleware.Create());
 
-    public static IRequestExecutorBuilder UseReadPersistedQuery(
+    public static IRequestExecutorBuilder UseReadPersistedOperation(
         this IRequestExecutorBuilder builder) =>
-        builder.UseRequest(ReadPersistedQueryMiddleware.Create());
+        builder.UseRequest(ReadPersistedOperationMiddleware.Create());
 
-    public static IRequestExecutorBuilder UseAutomaticPersistedQueryNotFound(
+    public static IRequestExecutorBuilder UseAutomaticPersistedOperationNotFound(
         this IRequestExecutorBuilder builder)
         => builder.UseRequest(next => context =>
         {
@@ -133,7 +133,7 @@ public static partial class RequestExecutorBuilderExtensions
                 return next(context);
             }
 
-            var error = ReadPersistedQueryMiddleware_PersistedQueryNotFound();
+            var error = ReadPersistedOperationMiddleware_PersistedOperationNotFound();
             var result = OperationResultBuilder.CreateError(
                 error,
                 new Dictionary<string, object?>
@@ -146,17 +146,17 @@ public static partial class RequestExecutorBuilderExtensions
             return default;
         });
 
-    public static IRequestExecutorBuilder UseWritePersistedQuery(
+    public static IRequestExecutorBuilder UseWritePersistedOperation(
         this IRequestExecutorBuilder builder) =>
-        builder.UseRequest(WritePersistedQueryMiddleware.Create());
+        builder.UseRequest(WritePersistedOperationMiddleware.Create());
 
-    public static IRequestExecutorBuilder UsePersistedQueryNotFound(
+    public static IRequestExecutorBuilder UsePersistedOperationNotFound(
         this IRequestExecutorBuilder builder) =>
-        builder.UseRequest(PersistedQueryNotFoundMiddleware.Create());
+        builder.UseRequest(PersistedOperationNotFoundMiddleware.Create());
 
-    public static IRequestExecutorBuilder UseOnlyPersistedQueriesAllowed(
+    public static IRequestExecutorBuilder UseOnlyPersistedOperationAllowed(
         this IRequestExecutorBuilder builder) =>
-        builder.UseRequest(OnlyPersistedQueriesAllowedMiddleware.Create());
+        builder.UseRequest(OnlyPersistedOperationsAllowedMiddleware.Create());
 
     public static IRequestExecutorBuilder UseDefaultPipeline(
         this IRequestExecutorBuilder builder)
@@ -171,7 +171,7 @@ public static partial class RequestExecutorBuilderExtensions
             options => options.Pipeline.AddDefaultPipeline());
     }
 
-    public static IRequestExecutorBuilder UsePersistedQueryPipeline(
+    public static IRequestExecutorBuilder UsePersistedOperationPipeline(
         this IRequestExecutorBuilder builder)
     {
         if (builder is null)
@@ -184,9 +184,9 @@ public static partial class RequestExecutorBuilderExtensions
             .UseExceptions()
             .UseTimeout()
             .UseDocumentCache()
-            .UseReadPersistedQuery()
-            .UsePersistedQueryNotFound()
-            .UseOnlyPersistedQueriesAllowed()
+            .UseReadPersistedOperation()
+            .UsePersistedOperationNotFound()
+            .UseOnlyPersistedOperationAllowed()
             .UseDocumentParser()
             .UseDocumentValidation()
             .UseOperationCache()
@@ -195,7 +195,7 @@ public static partial class RequestExecutorBuilderExtensions
             .UseOperationExecution();
     }
 
-    public static IRequestExecutorBuilder UseAutomaticPersistedQueryPipeline(
+    public static IRequestExecutorBuilder UseAutomaticPersistedOperationPipeline(
         this IRequestExecutorBuilder builder)
     {
         if (builder is null)
@@ -208,9 +208,9 @@ public static partial class RequestExecutorBuilderExtensions
             .UseExceptions()
             .UseTimeout()
             .UseDocumentCache()
-            .UseReadPersistedQuery()
-            .UseAutomaticPersistedQueryNotFound()
-            .UseWritePersistedQuery()
+            .UseReadPersistedOperation()
+            .UseAutomaticPersistedOperationNotFound()
+            .UseWritePersistedOperation()
             .UseDocumentParser()
             .UseDocumentValidation()
             .UseOperationCache()

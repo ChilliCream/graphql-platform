@@ -8,7 +8,7 @@ Authorization allows us to determine a user's permissions within our system. We 
 
 Authentication is a prerequisite of Authorization, as we first need to validate a user's "authenticity" before we can evaluate his authorization claims.
 
-[Learn how to setup authentication](/docs/hotchocolate/v13/security/authentication)
+[Learn how to setup authentication](/docs/hotchocolate/v14/security/authentication)
 
 # Setup
 
@@ -64,9 +64,9 @@ public class Startup
 At the core of authorization with Hot Chocolate is the `@authorize` directive. It can be applied to fields and types to denote that they require authorization.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
-In the Annotation-based approach we can use the `[Authorize]` attribute to add the `@authorize` directive.
+In the implementation-first approach we can use the `[Authorize]` attribute to add the `@authorize` directive.
 
 ```csharp
 [Authorize]
@@ -81,7 +81,7 @@ public class User
 
 > Warning: We need to use the `HotChocolate.Authorization.AuthorizeAttribute` instead of the `Microsoft.AspNetCore.AuthorizationAttribute`.
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -151,7 +151,7 @@ claims.Add(new Claim(ClaimTypes.Role, "Administrator"));
 We can then check whether an authenticated user has these role claims.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 [Authorize(Roles = new [] { "Guest", "Administrator" })]
@@ -164,7 +164,7 @@ public class User
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -234,7 +234,7 @@ public class Startup
 We can then use these policies to restrict access to our fields.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 [Authorize(Policy = "AllEmployees")]
@@ -247,7 +247,7 @@ public class User
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -280,7 +280,7 @@ This essentially uses the provided policy and runs it against the `ClaimsPrincip
 The `@authorize` directive is also repeatable, which means that we are able to chain the directive and a user is only allowed to access the field if they meet all of the specified conditions.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 [Authorize(Policy = "AtLeast21")]
@@ -291,7 +291,7 @@ public class User
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -397,7 +397,7 @@ This method also accepts [roles](#roles) and [policies](#policies) as arguments,
 
 > Warning: Unlike the `@authorize directive` this will return status code 401 and prevent unauthorized access to all middleware included in `MapGraphQL`. This includes our GraphQL IDE Banana Cake Pop. If we do not want to block unauthorized access to Banana Cake Pop, we can split up the `MapGraphQL` middleware and for example only apply the `RequireAuthorization` to the `MapGraphQLHttp` middleware.
 
-[Learn more about available middleware](/docs/hotchocolate/v13/server/endpoints)
+[Learn more about available middleware](/docs/hotchocolate/v14/server/endpoints)
 
 # Modifying the ClaimsPrincipal
 
@@ -435,4 +435,4 @@ public class Startup
 }
 ```
 
-[Learn more about interceptors](/docs/hotchocolate/v13/server/interceptors)
+[Learn more about interceptors](/docs/hotchocolate/v14/server/interceptors)

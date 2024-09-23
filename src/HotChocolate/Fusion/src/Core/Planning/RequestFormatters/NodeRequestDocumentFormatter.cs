@@ -91,7 +91,8 @@ internal sealed class NodeRequestDocumentFormatter(
             context.VariableValues,
             selectionSetNode,
             nodeSelection.Selection.ResponseName,
-            null);
+            null,
+            nodeSelection.Selection.SyntaxNode.Directives);
 
         if (selectionNode is FieldNode fieldNode &&
             !nodeSelection.Selection.ResponseName.EqualsOrdinal(fieldNode.Name.Value))

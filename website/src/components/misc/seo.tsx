@@ -14,7 +14,6 @@ export interface SEOProps {
   readonly imageUrl?: string;
   readonly isArticle?: boolean;
   readonly lang?: string;
-  readonly meta?: JSX.IntrinsicElements["meta"][];
   readonly title: string;
 }
 
@@ -23,7 +22,6 @@ export const SEO: FC<SEOProps> = ({
   imageUrl,
   isArticle,
   lang,
-  meta,
   title,
 }) => {
   const { site, image } = useStaticQuery(
@@ -64,56 +62,25 @@ export const SEO: FC<SEOProps> = ({
       htmlAttributes={{
         lang,
       }}
-      title={title}
-      titleTemplate={`%s - ${site.siteMetadata.title}`}
-      meta={[
-        {
-          name: `description`,
-          content: metaDescription,
-        },
-        {
-          property: `og:url`,
-          content: metaSiteUrl,
-        },
-        {
-          property: `og:title`,
-          content: title,
-        },
-        {
-          property: `og:description`,
-          content: metaDescription,
-        },
-        {
-          property: `og:type`,
-          content: metaType,
-        },
-        {
-          property: `og:image`,
-          content: metaImageUrl,
-        },
-        {
-          property: `twitter:title`,
-          content: title,
-        },
-        {
-          name: `twitter:card`,
-          content: `summary_large_image`,
-        },
-        {
-          property: `twitter:site`,
-          content: metaAuthor,
-        },
-        {
-          name: `twitter:creator`,
-          content: metaAuthor,
-        },
-        {
-          property: `twitter:image:src`,
-          content: metaImageUrl,
-        },
-        ...meta!,
-      ]}
     >
+      <title>
+        {title} - {site.siteMetadata.title}
+      </title>
+      <meta name="description" content={metaDescription} />
+
+      <meta property="og:url" content={metaSiteUrl} />
+      <meta property="og:title" content={title} />
+      <meta property="og:description" content={metaDescription} />
+      <meta property="og:type" content={metaType} />
+      <meta property="og:image" content={metaImageUrl} />
+
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" content={title} />
+      <meta name="twitter:site" content={metaAuthor} />
+      <meta name="twitter:creator" content={metaAuthor} />
+      <meta name="twitter:image" content={metaImageUrl} />
+      {description && <meta name="twitter:description" content={description} />}
+
       <script type="application/ld+json">
         {JSON.stringify({
           "@context": "https://schema.org/",
@@ -138,6 +105,5 @@ export const SEO: FC<SEOProps> = ({
 
 SEO.defaultProps = {
   lang: `en`,
-  meta: [],
   description: ``,
 };

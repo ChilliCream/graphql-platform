@@ -21,6 +21,9 @@ internal sealed class LegacyNodeIdSerializer : INodeIdSerializer
     private static readonly Encoding _utf8 = Encoding.UTF8;
 
     public string Format(string typeName, object internalId)
+        => FormatInternal(typeName, internalId);
+
+    internal static string FormatInternal(string typeName, object internalId)
     {
         if (string.IsNullOrEmpty(typeName))
         {
@@ -138,6 +141,27 @@ internal sealed class LegacyNodeIdSerializer : INodeIdSerializer
         return Parse(formattedId);
     }
 
+    public static byte GetLegacyValueCode(object value)
+    {
+        switch (value)
+        {
+            case Guid g:
+                return Guid;
+
+            case short s:
+                return Short;
+
+            case int i:
+                return Int;
+
+            case long l:
+                return Long;
+
+            default:
+                return Default;
+        }
+    }
+
     private static NodeId Parse(string formattedId)
     {
         if (formattedId is null)
@@ -186,7 +210,7 @@ internal sealed class LegacyNodeIdSerializer : INodeIdSerializer
         }
     }
 
-    internal static object ParseValueInternal(ReadOnlySpan<byte> formattedId)
+    private static object ParseValueInternal(ReadOnlySpan<byte> formattedId)
     {
         object value;
 

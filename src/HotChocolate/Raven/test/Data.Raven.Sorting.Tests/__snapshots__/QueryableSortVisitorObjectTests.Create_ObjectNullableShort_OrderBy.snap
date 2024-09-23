@@ -1,0 +1,75 @@
+ASC Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": null
+      },
+      {
+        "foo": {
+          "barShort": null
+        }
+      },
+      {
+        "foo": {
+          "barShort": 12
+        }
+      },
+      {
+        "foo": {
+          "barShort": 13
+        }
+      },
+      {
+        "foo": {
+          "barShort": 14
+        }
+      }
+    ]
+  }
+}
+---------------
+
+ASC SQL:
+---------------
+from 'BarNullables' order by Foo.BarShort as long
+---------------
+
+13 Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barShort": 14
+        }
+      },
+      {
+        "foo": {
+          "barShort": 13
+        }
+      },
+      {
+        "foo": {
+          "barShort": 12
+        }
+      },
+      {
+        "foo": {
+          "barShort": null
+        }
+      },
+      {
+        "foo": null
+      }
+    ]
+  }
+}
+---------------
+
+13 SQL:
+---------------
+from 'BarNullables' order by Foo.BarShort as long desc
+---------------

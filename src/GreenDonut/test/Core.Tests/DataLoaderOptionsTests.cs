@@ -10,7 +10,7 @@ public class DataLoaderOptionsTests
         // act
         var options = new DataLoaderOptions
         {
-            Cache = new TaskCache(1),
+            Cache = new PromiseCache(1),
             MaxBatchSize = 1,
             DiagnosticEvents = new DataLoaderDiagnosticEventListener(),
         };
@@ -56,7 +56,7 @@ public class DataLoaderOptionsTests
         // arrange
         var options = new DataLoaderOptions
         {
-            Cache = new TaskCache(1),
+            Cache = new PromiseCache(1),
             MaxBatchSize = 1,
             DiagnosticEvents = new DataLoaderDiagnosticEventListener(),
         };

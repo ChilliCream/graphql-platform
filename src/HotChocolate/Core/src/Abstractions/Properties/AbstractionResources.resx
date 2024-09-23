@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!--
     Microsoft ResX Schema
@@ -196,10 +196,13 @@
     <value>The result kind must be a BatchResult, DeferredResult or SubscriptionResult.</value>
   </data>
   <data name="ExecutionResultExtensions_ExpectResponseStream_NotResponseStream" xml:space="preserve">
-    <value>The specified result is expected to be a IResponseStream.</value>
+    <value>The specified result is expected to be a ResponseStream.</value>
   </data>
-  <data name="ExecutionResultExtensions_ExpectQueryResult_NotQueryResult" xml:space="preserve">
-    <value>The specified result is expected to be a IQueryResult.</value>
+  <data name="ExecutionResultExtensions_ExpectOperationResult_NotOperationResult" xml:space="preserve">
+    <value>The specified result is expected to be an OperationResult.</value>
+  </data>
+  <data name="ExecutionResultExtensions_ExpectOperationResultBatch_NotOperationResultBatch" xml:space="preserve">
+    <value>The specified result is expected to be an OperationResultBatch.</value>
   </data>
   <data name="NameUtils_InvalidGraphQLName" xml:space="preserve">
     <value>The specified name is not a valid GraphQL name.</value>

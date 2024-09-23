@@ -165,7 +165,6 @@ public static class PagingObjectFieldDescriptorExtensions
 
                 var resolverMember = d.ResolverMember ?? d.Member;
                 d.Type = CreateConnectionTypeRef(c, resolverMember, connectionName, typeRef, options);
-                d.CustomSettings.Add(typeof(Connection));
             });
 
         return descriptor;
@@ -358,7 +357,8 @@ public static class PagingObjectFieldDescriptorExtensions
         return CreateConnectionType(
             connectionName,
             nodeType,
-            options.IncludeTotalCount ?? false);
+            options.IncludeTotalCount ?? false,
+            options.IncludeNodesField ?? IncludeNodesField);
     }
 
     private static CursorPagingProvider ResolvePagingProvider(
@@ -420,13 +420,14 @@ public static class PagingObjectFieldDescriptorExtensions
     private static TypeReference CreateConnectionType(
         string? connectionName,
         TypeReference nodeType,
-        bool withTotalCount)
+        bool includeTotalCount,
+        bool includeNodesField)
     {
         return connectionName is null
             ? TypeReference.Create(
                 "HotChocolate_Types_Connection",
                 nodeType,
-                _ => new ConnectionType(nodeType, withTotalCount),
+                _ => new ConnectionType(nodeType, includeTotalCount, includeNodesField),
                 TypeContext.Output)
             : TypeReference.Create(
                 connectionName + "Connection",
@@ -434,7 +435,8 @@ public static class PagingObjectFieldDescriptorExtensions
                 factory: _ => new ConnectionType(
                     connectionName,
                     nodeType,
-                    withTotalCount));
+                    includeTotalCount,
+                    includeNodesField));
     }
 
     private static string EnsureConnectionNameCasing(string connectionName)

@@ -294,7 +294,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The built-in `Decimal` scalar type..
+        ///   Looks up a localized string similar to The `Decimal` scalar type represents a decimal floating-point number..
         /// </summary>
         internal static string DecimalType_Description {
             get {
@@ -1444,6 +1444,15 @@ namespace HotChocolate.Properties {
         internal static string ObjectFieldDescriptorBase_FieldType {
             get {
                 return ResourceManager.GetString("ObjectFieldDescriptorBase_FieldType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cycle in object graph detected..
+        /// </summary>
+        internal static string ObjectToDictionaryConverter_CycleInObjectGraph {
+            get {
+                return ResourceManager.GetString("ObjectToDictionaryConverter_CycleInObjectGraph", resourceCulture);
             }
         }
         

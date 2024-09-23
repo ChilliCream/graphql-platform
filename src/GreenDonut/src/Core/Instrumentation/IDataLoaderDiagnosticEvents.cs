@@ -13,7 +13,7 @@ public interface IDataLoaderDiagnosticEvents
     /// <param name="task">The task that has been resolved.</param>
     void ResolvedTaskFromCache(
         IDataLoader dataLoader,
-        TaskCacheKey cacheKey,
+        PromiseCacheKey cacheKey,
         Task task);
 
     /// <summary>
@@ -39,7 +39,7 @@ public interface IDataLoaderDiagnosticEvents
     /// <typeparam name="TValue">The type of the values.</typeparam>
     void BatchResults<TKey, TValue>(
         IReadOnlyList<TKey> keys,
-        ReadOnlySpan<Result<TValue>> values)
+        ReadOnlySpan<Result<TValue?>> values)
         where TKey : notnull;
 
     /// <summary>

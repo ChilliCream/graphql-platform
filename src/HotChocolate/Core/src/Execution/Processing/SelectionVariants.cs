@@ -13,7 +13,11 @@ internal sealed class SelectionVariants(int id) : ISelectionVariants
     private Dictionary<IObjectType, SelectionSet>? _map;
     private bool _readOnly;
 
+    /// <inheritdoc />
     public int Id { get; } = id;
+
+    /// <inheritdoc />
+    public IOperation DeclaringOperation { get; private set; } = default!;
 
     public IEnumerable<IObjectType> GetPossibleTypes()
         => _map?.Keys ?? GetPossibleTypesLazy();
@@ -150,35 +154,37 @@ internal sealed class SelectionVariants(int id) : ISelectionVariants
     /// <summary>
     /// Completes the selection variant without sealing it.
     /// </summary>
-    internal void Complete()
+    internal void Complete(IOperation declaringOperation)
     {
         if (!_readOnly)
         {
-            _firstSelectionSet?.Complete();
-            _secondSelectionSet?.Complete();
+            DeclaringOperation = declaringOperation;
+            _firstSelectionSet?.Complete(declaringOperation);
+            _secondSelectionSet?.Complete(declaringOperation);
 
             if (_map is not null)
             {
                 foreach (var selectionSet in _map.Values)
                 {
-                    selectionSet.Complete();
+                    selectionSet.Complete(declaringOperation);
                 }
             }
         }
     }
 
-    internal void Seal()
+    internal void Seal(IOperation declaringOperation)
     {
         if (!_readOnly)
         {
-            _firstSelectionSet?.Seal();
-            _secondSelectionSet?.Seal();
+            DeclaringOperation = declaringOperation;
+            _firstSelectionSet?.Seal(declaringOperation);
+            _secondSelectionSet?.Seal(declaringOperation);
 
             if (_map is not null)
             {
                 foreach (var selectionSet in _map.Values)
                 {
-                    selectionSet.Seal();
+                    selectionSet.Seal(declaringOperation);
                 }
             }
 

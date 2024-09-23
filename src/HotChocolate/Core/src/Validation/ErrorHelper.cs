@@ -594,22 +594,6 @@ internal static class ErrorHelper
             .Build();
     }
 
-    public static IError MaxOperationComplexity(
-        this IDocumentValidatorContext context,
-        OperationDefinitionNode operation,
-        int allowedComplexity,
-        int detectedComplexity)
-    {
-        return ErrorBuilder.New()
-            .SetMessage(
-                Resources.ErrorHelper_MaxOperationComplexity,
-                detectedComplexity, allowedComplexity)
-            .SetLocations([operation])
-            .SetExtension("allowedComplexity", allowedComplexity)
-            .SetExtension("detectedComplexity", detectedComplexity)
-            .Build();
-    }
-
     public static IError MaxExecutionDepth(
         this IDocumentValidatorContext context,
         OperationDefinitionNode operation,

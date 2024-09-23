@@ -6,7 +6,8 @@ using Squadron;
 
 namespace HotChocolate.Data;
 
-public class PagingHelperTests(PostgreSqlResource resource) : IClassFixture<PostgreSqlResource>
+[Collection(PostgresCacheCollectionFixture.DefinitionName)]
+public class PagingHelperTests(PostgreSqlResource resource)
 {
     public PostgreSqlResource Resource { get; } = resource;
 
@@ -85,7 +86,9 @@ public class PagingHelperTests(PostgreSqlResource resource) : IClassFixture<Post
         // Act
         var arguments = new PagingArguments(last: 2);
         await using var context = new CatalogContext(connectionString);
-        var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id)
+        var page = await context.Products
+            .OrderBy(t => t.Name)
+            .ThenBy(t => t.Id)
             .ToPageAsync(arguments);
 
         // Assert
@@ -102,7 +105,9 @@ public class PagingHelperTests(PostgreSqlResource resource) : IClassFixture<Post
         // .. get last page
         var arguments = new PagingArguments(last: 2);
         await using var context = new CatalogContext(connectionString);
-        var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id)
+        var page = await context.Products
+            .OrderBy(t => t.Name)
+            .ThenBy(t => t.Id)
             .ToPageAsync(arguments);
 
         // Act
@@ -121,14 +126,29 @@ public class PagingHelperTests(PostgreSqlResource resource) : IClassFixture<Post
         await SeedAsync(connectionString);
 
         // Act
+        int[] brandIds = [1, 2, 3];
         var arguments = new PagingArguments(2);
         await using var context = new CatalogContext(connectionString);
-        var page = await context.Brands
-            .Include(t => t.Products.OrderBy(p => p.Name).ThenBy(p => p.Id))
-            .ToBatchPageAsync(t => t.Id, arguments);
+        var pages = await context.Products
+            .Where(t => brandIds.Contains(t.BrandId))
+            .OrderBy(p => p.Name)
+            .ThenBy(p => p.Id)
+            .ToBatchPageAsync(t => t.BrandId, arguments);
 
         // Assert
-        page.MatchMarkdownSnapshot();
+        var snapshot = Snapshot.Create();
+        foreach (var page in pages)
+        {
+            snapshot.Add(
+                new
+                {
+                    First = page.Value.CreateCursor(page.Value.First!),
+                    Last = page.Value.CreateCursor(page.Value.Last!),
+                    page.Value.Items
+                },
+                name: page.Key.ToString());
+        }
+        snapshot.MatchMarkdownSnapshot();
     }
 
     [Fact]
@@ -200,7 +220,9 @@ public class PagingHelperTests(PostgreSqlResource resource) : IClassFixture<Post
             {
                 var product = new Product
                 {
-                    Name = $"Product {i}-{j}", Type = type, Brand = brand,
+                    Name = $"Product {i}-{j}",
+                    Type = type,
+                    Brand = brand,
                 };
                 context.Products.Add(product);
             }

@@ -50,6 +50,17 @@ public interface IExecutable
     ValueTask<object?> SingleOrDefaultAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Returns the number of elements in the sequence.
+    /// </summary>
+    /// <param name="cancellationToken">
+    /// A cancellation token that can be used to cancel the execution.
+    /// </param>
+    /// <returns>
+    /// The number of elements in the sequence.
+    /// </returns>
+    ValueTask<int> CountAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Prints the executable in its current state
     /// </summary>
     /// <returns>A string that represents the executables state</returns>

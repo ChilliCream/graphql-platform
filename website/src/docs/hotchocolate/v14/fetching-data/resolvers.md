@@ -49,20 +49,20 @@ _This is of course an oversimplification that differs from the actual implementa
 
 # Defining a Resolver
 
-Resolvers can be defined in a way that should feel very familiar to C# developers, especially in the Annotation-based approach.
+Resolvers can be defined in a way that should feel very familiar to C# developers, especially in the implementation-first approach.
 
 ## Properties
 
 Hot Chocolate automatically converts properties with a public get accessor to a resolver that simply returns its value.
 
-Properties are also covered in detail by the [object type documentation](/docs/hotchocolate/v13/defining-a-schema/object-types).
+Properties are also covered in detail by the [object type documentation](/docs/hotchocolate/v14/defining-a-schema/object-types).
 
 ## Regular Resolver
 
 A regular resolver is just a simple method, which returns a value.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Query
@@ -81,7 +81,7 @@ public class Startup
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -207,7 +207,7 @@ descriptor
 
 ## ResolveWith
 
-Thus far we have looked at two ways to specify resolvers in Code-first:
+Thus far we have looked at two ways to specify resolvers in code-first:
 
 - Add new methods to the CLR type, e.g. the `T` type of `ObjectType<T>`
 - Add new fields to the schema type in the form of delegates
@@ -243,9 +243,9 @@ public class QueryType : ObjectType
 
 We can access arguments we defined for our resolver like regular arguments of a function.
 
-There are also specific arguments that will be automatically populated by Hot Chocolate when the resolver is executed. These include [Dependency injection services](#injecting-services), [DataLoaders](/docs/hotchocolate/v13/fetching-data/dataloader), state, or even context like a [_parent_](#accessing-parent-values) value.
+There are also specific arguments that will be automatically populated by Hot Chocolate when the resolver is executed. These include [Dependency injection services](#injecting-services), [DataLoaders](/docs/hotchocolate/v14/fetching-data/dataloader), state, or even context like a [_parent_](#accessing-parent-values) value.
 
-[Learn more about arguments](/docs/hotchocolate/v13/defining-a-schema/arguments)
+[Learn more about arguments](/docs/hotchocolate/v14/defining-a-schema/arguments)
 
 # Injecting Services
 
@@ -271,7 +271,7 @@ public class Query
 }
 ```
 
-[Learn more about dependency injection](/docs/hotchocolate/v13/server/dependency-injection)
+[Learn more about dependency injection](/docs/hotchocolate/v14/server/dependency-injection)
 
 # Accessing the HttpContext
 
@@ -335,9 +335,9 @@ From the point of view of this `friends` resolver, the `User` CLR type is its _p
 We can access this so called _parent_ value like the following.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
-In the Annotation-based approach we can just access the properties using the `this` keyword.
+In the implementation-first approach we can just access the properties using the `this` keyword.
 
 ```csharp
 public class User
@@ -367,9 +367,9 @@ public class User
 }
 ```
 
-This is especially useful when using [type extensions](/docs/hotchocolate/v13/defining-a-schema/extending-types).
+This is especially useful when using [type extensions](/docs/hotchocolate/v14/defining-a-schema/extending-types).
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp

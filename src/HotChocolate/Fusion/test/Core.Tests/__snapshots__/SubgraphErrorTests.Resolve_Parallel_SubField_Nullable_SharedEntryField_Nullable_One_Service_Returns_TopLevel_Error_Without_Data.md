@@ -6,17 +6,7 @@
 {
   "errors": [
     {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 3,
-          "column": 5
-        }
-      ],
-      "path": [
-        "viewer",
-        "userId"
-      ]
+      "message": "Top Level Error"
     }
   ],
   "data": {

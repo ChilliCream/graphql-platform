@@ -2,7 +2,7 @@
 title: "Unions"
 ---
 
-A union type represents a set of object types. It is very similar to an [interface](/docs/hotchocolate/v13/defining-a-schema/interfaces), except that there is no requirement for common fields between the specified types.
+A union type represents a set of object types. It is very similar to an [interface](/docs/hotchocolate/v14/defining-a-schema/interfaces), except that there is no requirement for common fields between the specified types.
 
 ```sdl
 type TextContent {
@@ -39,7 +39,7 @@ Learn more about unions [here](https://graphql.org/learn/schema/#union-types).
 Unions can be defined like the following.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 We can use a marker interface (or an abstract class) to define object types as part of a union.
 
@@ -82,7 +82,7 @@ public class Startup
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -139,7 +139,7 @@ public class QueryType : ObjectType<Query>
 
 Since the types are already registered within the union, we do not have to register them again in our `Startup` class.
 
-We can use a marker interface, as in the annotation-based approach, to type our union definition: `UnionType<IMarkerInterface>`
+We can use a marker interface, as in the implementation-first approach, to type our union definition: `UnionType<IMarkerInterface>`
 
 </Code>
 <Schema>

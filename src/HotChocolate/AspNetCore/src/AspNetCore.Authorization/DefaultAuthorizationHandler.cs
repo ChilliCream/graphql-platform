@@ -12,7 +12,7 @@ namespace HotChocolate.AspNetCore.Authorization;
 internal sealed class DefaultAuthorizationHandler : IAuthorizationHandler
 {
     private readonly IAuthorizationService _authSvc;
-    private readonly IAuthorizationPolicyProvider _policyProvider;
+    private readonly AuthorizationPolicyCache _policyCache;
 
     /// <summary>
     /// Initializes a new instance <see cref="DefaultAuthorizationHandler"/>.
@@ -20,21 +20,21 @@ internal sealed class DefaultAuthorizationHandler : IAuthorizationHandler
     /// <param name="authorizationService">
     /// The authorization service.
     /// </param>
-    /// <param name="authorizationPolicyProvider">
-    /// The authorization policy provider.
+    /// <param name="policyCache">
+    /// The authorization policy cache.
     /// </param>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="authorizationService"/> is <c>null</c>.
-    /// <paramref name="authorizationPolicyProvider"/> is <c>null</c>.
+    /// <paramref name="policyCache"/> is <c>null</c>.
     /// </exception>
     public DefaultAuthorizationHandler(
         IAuthorizationService authorizationService,
-        IAuthorizationPolicyProvider authorizationPolicyProvider)
+        AuthorizationPolicyCache policyCache)
     {
         _authSvc = authorizationService ??
             throw new ArgumentNullException(nameof(authorizationService));
-        _policyProvider = authorizationPolicyProvider ??
-            throw new ArgumentNullException(nameof(authorizationPolicyProvider));
+        _policyCache = policyCache ??
+            throw new ArgumentNullException(nameof(policyCache));
     }
 
     /// <summary>
@@ -70,8 +70,7 @@ internal sealed class DefaultAuthorizationHandler : IAuthorizationHandler
 
         return await AuthorizeAsync(
                 user,
-                directive.Policy,
-                directive.Roles,
+                directive,
                 authenticated,
                 context)
             .ConfigureAwait(false);
@@ -102,8 +101,7 @@ internal sealed class DefaultAuthorizationHandler : IAuthorizationHandler
         {
             var result = await AuthorizeAsync(
                     user,
-                    directive.Policy,
-                    directive.Roles,
+                    directive,
                     authenticated,
                     context)
                 .ConfigureAwait(false);
@@ -119,62 +117,24 @@ internal sealed class DefaultAuthorizationHandler : IAuthorizationHandler
 
     private async ValueTask<AuthorizeResult> AuthorizeAsync(
         ClaimsPrincipal user,
-        string? policyName,
-        IReadOnlyList<string>? roles,
+        AuthorizeDirective directive,
         bool authenticated,
         object context)
     {
-        var checkRoles = roles is { Count: > 0, };
-        var checkPolicy = !string.IsNullOrWhiteSpace(policyName);
-
-        // if the current directive has neither roles nor policies specified we will check if there
-        // is a default policy specified.
-        if (!checkRoles && !checkPolicy)
+        try
         {
-            var policy = await _policyProvider.GetDefaultPolicyAsync().ConfigureAwait(false);
+            var combinedPolicy = await _policyCache.GetOrCreatePolicyAsync(directive);
 
-            // if there is no default policy specified we will check if at least one of the
-            // identities are authenticated to authorize the user.
-            if (policy is null)
-            {
-                return authenticated
-                    ? AuthorizeResult.Allowed
-                    : AuthorizeResult.NoDefaultPolicy;
-            }
+            var result = await _authSvc.AuthorizeAsync(user, context, combinedPolicy).ConfigureAwait(false);
 
-            // if we find a default policy we will use this to authorize the access to a resource.
-            var result = await _authSvc.AuthorizeAsync(user, context, policy).ConfigureAwait(false);
             return result.Succeeded
                 ? AuthorizeResult.Allowed
                 : authenticated ? AuthorizeResult.NotAllowed : AuthorizeResult.NotAuthenticated;
         }
-
-        // We first check if the user fulfills any of the specified roles.
-        // If no role was specified the user fulfills them.
-        if (!checkRoles || FulfillsAnyRole(user, roles!))
+        catch (MissingAuthorizationPolicyException)
         {
-            if (!checkPolicy)
-            {
-                // The user fulfills one or all of the roles and no policy check was required.
-                return AuthorizeResult.Allowed;
-            }
-
-            // If a policy name was supplied we will try to resolve the policy
-            // and authorize with it.
-            var policy = await _policyProvider.GetPolicyAsync(policyName!).ConfigureAwait(false);
-
-            if (policy is null)
-            {
-                return AuthorizeResult.PolicyNotFound;
-            }
-
-            var result = await _authSvc.AuthorizeAsync(user, context, policy).ConfigureAwait(false);
-            return result.Succeeded
-                ? AuthorizeResult.Allowed
-                : authenticated ? AuthorizeResult.NotAllowed : AuthorizeResult.NotAuthenticated;
+            return AuthorizeResult.PolicyNotFound;
         }
-
-        return authenticated ? AuthorizeResult.NotAllowed : AuthorizeResult.NotAuthenticated;
     }
 
     private static UserState GetUserState(IDictionary<string, object?> contextData)
@@ -193,17 +153,4 @@ internal sealed class DefaultAuthorizationHandler : IAuthorizationHandler
 
     private static void SetUserState(IDictionary<string, object?> contextData, UserState state)
         => contextData[WellKnownContextData.UserState] = state;
-
-    private static bool FulfillsAnyRole(ClaimsPrincipal principal, IReadOnlyList<string> roles)
-    {
-        for (var i = 0; i < roles.Count; i++)
-        {
-            if (principal.IsInRole(roles[i]))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
 }

@@ -4,7 +4,7 @@ namespace HotChocolate.Types;
 public static class AuthorAddressExtension
 {
     public static Task<AuthorAddress?> GetAddressAsync(
-        [Parent]Author author,
+        [Parent] Author author,
         AuthorAddressRepository repository,
         CancellationToken cancellationToken)
         => repository.GetAuthorAddressAsync(author.Id, cancellationToken);
