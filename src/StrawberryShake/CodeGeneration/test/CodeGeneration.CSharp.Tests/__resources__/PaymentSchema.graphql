@@ -7678,7 +7678,7 @@ scalar Date
 "The `DateTime` scalar represents an ISO-8601 compliant date time type."
 scalar DateTime @specifiedBy(url: "https:\/\/www.graphql-scalars.com\/date-time")
 
-"The built-in `Decimal` scalar type."
+"The `Decimal` scalar type represents a decimal floating-point number."
 scalar Decimal
 
 "A date and time that is not associated with a specific time zone. A LocalDateTime value does not represent an instant on the global time line, because it has no associated time zone: \"January 12th 2021 7pm\" occurred at different instants for different people around the world."

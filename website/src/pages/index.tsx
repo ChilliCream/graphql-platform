@@ -19,7 +19,6 @@ import {
   MostRecentBlogPostsSection,
   NewsletterSection,
 } from "@/components/widgets";
-import { useAnimationIntersectionObserver } from "@/hooks";
 import { FADE_IN, ZOOM_IN } from "@/style";
 
 // Images
@@ -38,8 +37,6 @@ import {
 } from "../components/images";
 
 const IndexPage: FC = () => {
-  useAnimationIntersectionObserver();
-
   return (
     <SiteLayout>
       <SEO title="Home" />
@@ -164,6 +161,10 @@ const BackgroundContainer = styled.div`
     height: unset;
   }
 
+  @media only screen and (min-width: 238px) {
+    top: 440px;
+  }
+
   @media only screen and (min-width: 270px) {
     top: 420px;
   }
@@ -172,7 +173,7 @@ const BackgroundContainer = styled.div`
     top: 400px;
   }
 
-  @media only screen and (min-width: 327px) {
+  @media only screen and (min-width: 317px) {
     top: 360px;
   }
 
@@ -180,7 +181,7 @@ const BackgroundContainer = styled.div`
     top: 330px;
   }
 
-  @media only screen and (min-width: 396px) {
+  @media only screen and (min-width: 385px) {
     top: 290px;
   }
 
