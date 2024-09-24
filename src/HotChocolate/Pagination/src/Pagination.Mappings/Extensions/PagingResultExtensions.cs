@@ -20,7 +20,7 @@ public static class PagingResultExtensions
     /// Returns a relay connection.
     /// </returns>
     public static async Task<Connection<T>> ToConnectionAsync<T>(
-        this Task<Page<T>> resultPromise)
+        this Task<Page<T>?> resultPromise)
         where T : class
     {
         var result = await resultPromise;
@@ -64,8 +64,10 @@ public static class PagingResultExtensions
         where T : class
         => CreateConnection(result);
 
-    private static Connection<T> CreateConnection<T>(Page<T> page) where T : class
+    private static Connection<T> CreateConnection<T>(Page<T>? page) where T : class
     {
+        page ??= Page<T>.Empty;
+
         return new Connection<T>(
             page.Items.Select(t => new Edge<T>(t, page.CreateCursor)).ToArray(),
             new ConnectionPageInfo(
