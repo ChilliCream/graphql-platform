@@ -236,13 +236,25 @@ public class NodeTypeTests : TypeTestBase
         async Task Error() => await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query9>()
-            .ModifyOptions(o => o.EnsureAllNodesCanBeResolved = true)
             .AddGlobalObjectIdentification()
             .BuildSchemaAsync();
 
         var error = await Assert.ThrowsAsync<SchemaException>(Error);
 
         error.Message.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task NodeResolver_Is_Missing_EnsureAllNodesCanBeResolved_False()
+    {
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query9>()
+            .ModifyOptions(o => o.EnsureAllNodesCanBeResolved = false)
+            .AddGlobalObjectIdentification()
+            .BuildSchemaAsync();
+
+        Assert.NotNull(schema);
     }
 
     public class Query

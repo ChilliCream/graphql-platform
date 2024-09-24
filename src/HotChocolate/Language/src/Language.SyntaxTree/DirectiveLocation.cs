@@ -1,5 +1,3 @@
-#pragma warning disable CS1591
-
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language.Properties;
 

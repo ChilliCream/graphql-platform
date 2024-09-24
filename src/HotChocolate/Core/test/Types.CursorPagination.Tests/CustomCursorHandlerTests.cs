@@ -2,8 +2,6 @@ using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 
-#nullable enable
-
 namespace HotChocolate.Types.Pagination;
 
 public class CustomCursorHandlerTests

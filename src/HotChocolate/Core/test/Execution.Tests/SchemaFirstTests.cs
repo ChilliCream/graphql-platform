@@ -1,4 +1,3 @@
-#nullable enable
 using CookieCrumble;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;

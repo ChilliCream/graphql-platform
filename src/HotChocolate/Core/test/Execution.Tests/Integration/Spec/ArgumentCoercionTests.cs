@@ -1,8 +1,6 @@
 using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 
-#nullable enable
-
 namespace HotChocolate.Execution.Integration.Spec;
 
 public class ArgumentCoercionTests

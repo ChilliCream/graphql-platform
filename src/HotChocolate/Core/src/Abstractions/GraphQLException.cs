@@ -1,5 +1,3 @@
-#pragma warning disable RCS1194
-
 namespace HotChocolate;
 
 public class GraphQLException : Exception
