@@ -1,6 +1,7 @@
 using System.Numerics;
 using System.Text.Json;
 using CookieCrumble;
+using CookieCrumble.Attributes;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -124,6 +125,7 @@ public class JsonTypeTests
     }
 
     [Theory]
+    [UseCulture("en-US")]
     [InlineData(0)]
     [InlineData(-15)]
     [InlineData(-10.5)]
