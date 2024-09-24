@@ -17,7 +17,7 @@ partial class Build
 
     AbsolutePath OutputDirectory => RootDirectory / "output";
     AbsolutePath TestResultDirectory => OutputDirectory / "test-results";
-    AbsolutePath CoverageReportDirectory => OutputDirectory / "coberage-reports";
+    AbsolutePath CoverageReportDirectory => OutputDirectory / "coverage-reports";
     AbsolutePath PackageDirectory => OutputDirectory / "packages";
     AbsolutePath StarWarsTemplateNuSpec => RootDirectory / "templates" / "StarWars" / "HotChocolate.Templates.StarWars.nuspec";
     AbsolutePath HotChocolateDirectoryBuildProps => SourceDirectory / "HotChocolate" / "Directory.Build.Props";
