@@ -3,11 +3,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HotChocolate.Data.TestContext;
 
-/// <remarks>
-/// Add migrations using the following command inside the 'Catalog.API' project directory:
-///
-/// dotnet ef migrations add --context CatalogContext [migration-name]
-/// </remarks>
 public class CatalogContext(string connectionString) : DbContext
 {
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

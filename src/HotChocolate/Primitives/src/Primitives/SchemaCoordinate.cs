@@ -108,7 +108,7 @@ public readonly struct SchemaCoordinate : IEquatable<SchemaCoordinate>
     public override string ToString() => ToSyntax().ToString();
 
     /// <summary>
-    /// Tries to parse a <see cref="SchemaCoordinate"/> from a <see cref="String"/>.
+    /// Tries to parse a <see cref="SchemaCoordinate"/> from a <see cref="string"/>.
     /// </summary>
     /// <param name="s">The string that may represent a <see cref="SchemaCoordinate"/>.</param>
     /// <param name="coordinate">

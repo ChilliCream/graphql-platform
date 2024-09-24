@@ -2,8 +2,6 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Tests;
 
-#nullable enable
-
 namespace HotChocolate.Execution;
 
 public class ScalarExecutionErrorTests

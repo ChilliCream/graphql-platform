@@ -17,5 +17,5 @@ public enum TypeKind
     NON_NULL = 64,
 }
 #pragma warning restore CA1707
-#pragma warning restore CS1720
+#pragma warning restore CA1720
 #pragma warning restore CA1812
