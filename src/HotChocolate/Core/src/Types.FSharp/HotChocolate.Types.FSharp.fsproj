@@ -1,5 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <PropertyGroup>
+    <NoWarn>FS3261</NoWarn>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Include="OptionTypeConverter.fs" />
     <Compile Include="DependencyInjection.fs" />
