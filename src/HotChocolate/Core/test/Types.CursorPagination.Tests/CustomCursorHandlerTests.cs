@@ -2,8 +2,6 @@ using HotChocolate.Execution;
 using HotChocolate.Tests;
 using Snapshooter.Xunit;
 
-#nullable enable
-
 namespace HotChocolate.Types.Pagination;
 
 public class CustomCursorHandlerTests

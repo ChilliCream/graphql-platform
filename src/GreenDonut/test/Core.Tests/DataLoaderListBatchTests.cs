@@ -147,8 +147,8 @@ public static class DataLoaderListBatchTests
             await Task.Delay(300, cancellationToken).ConfigureAwait(false);
 
             return runNumbers
-                .Select(t => (t, Enumerable.Range(0, 500)))
-                .ToDictionary(t => t.Item1, t => t.Item2.ToArray());
+                .Select(runNumber => (runNumber, Enumerable.Range(0, 500)))
+                .ToDictionary(t => t.runNumber, t => t.Item2.ToArray());
         }
     }
 }

@@ -36,9 +36,7 @@ public static class AutoMapperQueryableExtensions
 
         QueryableProjectionVisitor.Default.Visit(visitorContext);
 
-#pragma warning disable CS8631
         Expression<Func<TResult, object?>> projection = visitorContext.Project<TResult, object?>();
-#pragma warning restore CS8631
 
         return queryable.ProjectTo(mapper.ConfigurationProvider, projection);
     }
