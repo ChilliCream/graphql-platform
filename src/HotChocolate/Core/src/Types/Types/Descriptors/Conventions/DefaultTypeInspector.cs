@@ -420,7 +420,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
         var temp = ArrayPool<DescriptorAttribute>.Shared.Rent(attributes.Length);
         var i = 0;
 
-        foreach (var attribute in attributeProvider.GetCustomAttributes(true))
+        foreach (var attribute in attributes)
         {
             if (attribute is DescriptorAttribute casted)
             {
