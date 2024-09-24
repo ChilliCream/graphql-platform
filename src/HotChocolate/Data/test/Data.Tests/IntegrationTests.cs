@@ -6,6 +6,7 @@
 
 using CookieCrumble;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -14,6 +15,31 @@ namespace HotChocolate.Data;
 public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<AuthorFixture>
 {
     private readonly Author[] _authors = authorFixture.Authors;
+
+    [Fact]
+    public async Task BuildRequestExecutorAsync_BindCustomDateTimeType_ShouldNotThrowException()
+    {
+        // arrange
+        async Task Action() => await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .BindRuntimeType<DateTimeOffset, CustomDateTimeType>()
+            .AddQueryType(
+                x => x
+                    .Name("Query")
+                    .Field("books")
+                    .Resolve(_ => new List<DateTimeOffset>().AsQueryable())
+                    .UseFiltering())
+            .BuildRequestExecutorAsync();
+
+        // act
+        var exception = await Record.ExceptionAsync(Action);
+
+        // assert
+        Assert.Null(exception);
+    }
+
+    public record User(DateTimeOffset DateOfBirth);
 
     [Fact]
     public async Task ExecuteAsync_Should_ReturnAllItems_When_ToListAsync()
@@ -976,5 +1002,24 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     Books = new List<Book> { book, },
                 },
             }.AsQueryable();
+    }
+
+    public class CustomDateTimeType()
+        : ScalarType<DateTimeOffset, StringValueNode>(ScalarNames.DateTime)
+    {
+        protected override DateTimeOffset ParseLiteral(StringValueNode valueSyntax)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override StringValueNode ParseValue(DateTimeOffset runtimeValue)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IValueNode ParseResult(object? resultValue)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
