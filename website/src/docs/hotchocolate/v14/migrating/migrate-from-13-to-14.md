@@ -56,6 +56,18 @@ services
   .AddGlobalObjectIdentification();
 ```
 
+## Node Resolver validation
+
+We now enforce that each object type implementing the `Node` interface also defines a resolver, so that the object can be refetched through the `node(id: ID!)` field.
+
+You can opt out of this new behavior by setting the `EnsureAllNodesCanBeResolved` option to `false`.
+
+```csharp
+services
+  .AddGraphQLServer()
+  .ModifyOptions(o => o.EnsureAllNodesCanBeResolved = false)
+```
+
 ## Builder APIs
 
 We have aligned all builder APIs to be more consistent and easier to use. Builders can now be created by using the static method `Builder.New()` and the `Build()` method to create the final object.
@@ -96,7 +108,7 @@ Please ensure that your clients are sending date/time strings in the correct for
 ### Packages renamed
 
 | Old package name                         | New package name                            |
-|------------------------------------------|---------------------------------------------|
+| ---------------------------------------- | ------------------------------------------- |
 | HotChocolate.PersistedQueries.FileSystem | HotChocolate.PersistedOperations.FileSystem |
 | HotChocolate.PersistedQueries.InMemory   | HotChocolate.PersistedOperations.InMemory   |
 | HotChocolate.PersistedQueries.Redis      | HotChocolate.PersistedOperations.Redis      |
@@ -104,13 +116,13 @@ Please ensure that your clients are sending date/time strings in the correct for
 ### Interfaces renamed
 
 | Old interface name             | New interface name                 |
-|--------------------------------|------------------------------------|
+| ------------------------------ | ---------------------------------- |
 | IPersistedQueryOptionsAccessor | IPersistedOperationOptionsAccessor |
 
 ### Methods renamed
 
 | Old method name                     | New method name                        |
-|-------------------------------------|----------------------------------------|
+| ----------------------------------- | -------------------------------------- |
 | UsePersistedQueryPipeline           | UsePersistedOperationPipeline          |
 | UseAutomaticPersistedQueryPipeline  | UseAutomaticPersistedOperationPipeline |
 | AddFileSystemQueryStorage           | AddFileSystemOperationDocumentStorage  |
@@ -126,7 +138,7 @@ Please ensure that your clients are sending date/time strings in the correct for
 ### Defaults changed
 
 | Parameter      | Old default         | New default            |
-|----------------|---------------------|------------------------|
+| -------------- | ------------------- | ---------------------- |
 | cacheDirectory | "persisted_queries" | "persisted_operations" |
 
 # Deprecations
