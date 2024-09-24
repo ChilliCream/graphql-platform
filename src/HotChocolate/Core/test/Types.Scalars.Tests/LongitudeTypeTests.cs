@@ -1,8 +1,8 @@
+using CookieCrumble;
 using CookieCrumble.Attributes;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 using static HotChocolate.Language.SyntaxComparer;
 
 namespace HotChocolate.Types;

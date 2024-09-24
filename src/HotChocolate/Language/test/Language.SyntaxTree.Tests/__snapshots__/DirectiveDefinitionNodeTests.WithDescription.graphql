@@ -1,0 +1,2 @@
+"qux"
+directive @foo repeatable on FIELD

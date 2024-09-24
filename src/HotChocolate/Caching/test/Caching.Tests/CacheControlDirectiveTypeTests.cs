@@ -1,6 +1,6 @@
+using CookieCrumble;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Caching.Tests;

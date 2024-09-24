@@ -2,7 +2,6 @@ using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Types.Relay;
 using static HotChocolate.Tests.TestHelper;
 using HotChocolate.Tests;
-using Snapshooter.Xunit;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Types;
@@ -12,8 +11,6 @@ public class RecordsTests
     [Fact]
     public async Task Records_Clone_Member_Is_Removed()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
@@ -26,8 +23,6 @@ public class RecordsTests
     [Fact]
     public async Task Records_Default_Value_Is_Taken_From_Ctor()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query2>()
@@ -40,8 +35,6 @@ public class RecordsTests
     [Fact]
     public async Task Records_Input_Ignored_Default_Value_Is_Respected()
     {
-        Snapshot.FullName();
-
         await ExpectValid(
             "{ foo(input: { bar: 42 }) { bar baz qux quux } }",
             b => b.AddQueryType(type =>
@@ -65,8 +58,6 @@ public class RecordsTests
     [Fact]
     public async Task Relay_Id_Middleware_Is_Correctly_Applied()
     {
-        Snapshot.FullName();
-
         await ExpectValid
         (
             @"{ person { id name } }",

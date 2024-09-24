@@ -1,19 +1,8 @@
-﻿{
-  "Kind": "SingleResult",
-  "RequestIndex": null,
-  "VariableIndex": null,
-  "Label": null,
-  "Path": null,
-  "Data": {
+{
+  "data": {
     "__typename": "Query"
   },
-  "Items": null,
-  "Errors": null,
-  "Extensions": {
+  "extensions": {
     "persistedDocument": true
-  },
-  "Incremental": null,
-  "ContextData": null,
-  "HasNext": null,
-  "IsDataSet": true
+  }
 }

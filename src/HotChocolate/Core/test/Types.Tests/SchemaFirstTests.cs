@@ -1,13 +1,11 @@
+using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
-using ChilliCream.Testing;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using Snapshooter.Xunit;
-using Snapshot = Snapshooter.Xunit.Snapshot;
 
 namespace HotChocolate;
 
@@ -17,7 +15,6 @@ public class SchemaFirstTests
     public async Task DescriptionsAreCorrectlyRead()
     {
         // arrange
-        Snapshot.FullName();
         var source = FileResource.Open("schema_with_multiline_descriptions.graphql");
         var query = FileResource.Open("IntrospectionQuery.graphql");
 
@@ -70,8 +67,6 @@ public class SchemaFirstTests
     [Fact]
     public async Task Execute_Against_Schema_With_Interface_Schema()
     {
-        Snapshot.FullName();
-
         var source = @"
                 type Query {
                     pet: Pet
@@ -103,8 +98,6 @@ public class SchemaFirstTests
     [Fact]
     public async Task Execute_Against_Schema_With_Interface_Execute()
     {
-        Snapshot.FullName();
-
         var source = @"
                 type Query {
                     pet: Pet
