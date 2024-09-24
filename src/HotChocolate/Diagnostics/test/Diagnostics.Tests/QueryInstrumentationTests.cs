@@ -1,8 +1,7 @@
 using System.Diagnostics;
+using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
-using Snapshooter;
-using Snapshooter.Xunit;
 using static HotChocolate.Diagnostics.ActivityTestHelper;
 
 namespace HotChocolate.Diagnostics;

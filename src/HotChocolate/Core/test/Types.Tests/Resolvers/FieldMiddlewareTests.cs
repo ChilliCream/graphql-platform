@@ -2,7 +2,6 @@ using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Types;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Resolvers;
 
@@ -11,8 +10,6 @@ public class FieldMiddlewareTests
     [Fact]
     public async Task TaskMiddlewareAreCorrectlyConverted()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(d => d
@@ -27,8 +24,6 @@ public class FieldMiddlewareTests
     [Fact]
     public async Task ValueTaskMiddlewareAreCorrectlyConverted()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(d => d

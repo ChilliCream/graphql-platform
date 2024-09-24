@@ -1,5 +1,5 @@
+using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
-using ChilliCream.Testing;
 using static HotChocolate.Validation.TestHelper;
 
 namespace HotChocolate.Validation;

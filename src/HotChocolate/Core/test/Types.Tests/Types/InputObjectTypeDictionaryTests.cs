@@ -1,5 +1,5 @@
+using CookieCrumble;
 using HotChocolate.Execution;
-using Snapshooter.Xunit;
 
 #nullable enable
 

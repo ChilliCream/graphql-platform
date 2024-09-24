@@ -331,7 +331,7 @@ public class CodeFirstTests
 
         // assert
         Assert.Null(Assert.IsType<OperationResult>(result).Errors);
-        await result.MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     [Fact]
