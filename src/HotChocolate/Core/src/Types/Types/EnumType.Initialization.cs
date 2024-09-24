@@ -1,6 +1,4 @@
-#if NET8_0_OR_GREATER
 using System.Collections.Frozen;
-#endif
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
@@ -15,13 +13,8 @@ namespace HotChocolate.Types;
 
 public partial class EnumType
 {
-#if NET8_0_OR_GREATER
     private FrozenDictionary<string, IEnumValue> _nameLookup = default!;
     private FrozenDictionary<object, IEnumValue> _valueLookup = default!;
-#else
-    private Dictionary<string, IEnumValue> _nameLookup = default!;
-    private Dictionary<object, IEnumValue> _valueLookup = default!;
-#endif
     private ImmutableArray<IEnumValue> _values;
     private INamingConventions _naming = default!;
     private Action<IEnumTypeDescriptor>? _configure;
@@ -105,13 +98,8 @@ public partial class EnumType
         base.OnCompleteType(context, definition);
 
         var builder = ImmutableArray.CreateBuilder<IEnumValue>(definition.Values.Count);
-#if NET8_0_OR_GREATER
         var nameLookupBuilder = new Dictionary<string, IEnumValue>(definition.NameComparer);
         var valueLookupBuilder = new Dictionary<object, IEnumValue>(definition.ValueComparer);
-#else
-        _nameLookup = new Dictionary<string, IEnumValue>(definition.NameComparer);
-        _valueLookup = new Dictionary<object, IEnumValue>(definition.ValueComparer);
-#endif
         _naming = context.DescriptorContext.Naming;
 
         foreach (var enumValueDefinition in definition.Values)
@@ -123,13 +111,8 @@ public partial class EnumType
 
             if (TryCreateEnumValue(context, enumValueDefinition, out var enumValue))
             {
-#if NET8_0_OR_GREATER
                 nameLookupBuilder[enumValue.Name] = enumValue;
                 valueLookupBuilder[enumValue.Value] = enumValue;
-#else
-                _nameLookup[enumValue.Name] = enumValue;
-                _valueLookup[enumValue.Value] = enumValue;
-#endif
                 builder.Add(enumValue);
             }
         }
@@ -145,10 +128,8 @@ public partial class EnumType
         }
 
         _values = builder.ToImmutable();
-#if NET8_0_OR_GREATER
         _nameLookup = nameLookupBuilder.ToFrozenDictionary(definition.NameComparer);
         _valueLookup = valueLookupBuilder.ToFrozenDictionary(definition.ValueComparer);
-#endif
     }
 
     protected virtual bool TryCreateEnumValue(

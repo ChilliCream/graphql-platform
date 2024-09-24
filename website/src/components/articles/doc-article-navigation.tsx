@@ -328,10 +328,10 @@ const ProductSwitcherButton = styled.button<{ readonly fullWidth?: boolean }>`
   box-sizing: border-box;
   border-radius: var(--button-border-radius);
   border: 2px solid ${THEME_COLORS.primaryButtonBorder};
-  min-width: 66px;
+  min-width: 62px;
   height: 38px;
-  padding-right: 10px;
-  padding-left: 10px;
+  padding-right: 8px;
+  padding-left: 8px;
   font-family: ${FONT_FAMILY_HEADING};
   font-size: 0.875rem;
   font-weight: 500;

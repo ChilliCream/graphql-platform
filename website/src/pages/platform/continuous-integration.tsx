@@ -15,7 +15,6 @@ import {
   MostRecentBlogPostsSection,
   NewsletterSection,
 } from "@/components/widgets";
-import { useAnimationIntersectionObserver } from "@/hooks";
 
 // Images
 import {
@@ -29,11 +28,9 @@ import {
   ContinuousIntegrationTrackImage,
   SHIP_WITH_CONFIDENCE_IMAGE_WIDTH,
   ShipWithConfidenceImage,
-} from "../images";
+} from "../../components/images";
 
 const ContinuousIntegrationPage: FC = () => {
-  useAnimationIntersectionObserver();
-
   return (
     <SiteLayout>
       <SEO title="Continuous Integration" />

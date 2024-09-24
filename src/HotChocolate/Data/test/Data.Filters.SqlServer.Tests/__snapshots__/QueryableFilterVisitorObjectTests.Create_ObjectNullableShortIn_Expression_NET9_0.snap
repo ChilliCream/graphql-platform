@@ -1,0 +1,113 @@
+12and13 Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barShort": 12
+        }
+      },
+      {
+        "foo": {
+          "barShort": 12
+        }
+      },
+      {
+        "foo": {
+          "barShort": 13
+        }
+      }
+    ]
+  }
+}
+---------------
+
+12and13 SQL:
+---------------
+.param set @__p_0 '[12,13]'
+
+SELECT "d"."Id", "d"."FooId"
+FROM "Data" AS "d"
+LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
+WHERE "f"."BarShort" IN (
+    SELECT "p"."value"
+    FROM json_each(@__p_0) AS "p"
+)
+---------------
+
+13and14 Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barShort": 14
+        }
+      },
+      {
+        "foo": {
+          "barShort": 14
+        }
+      },
+      {
+        "foo": {
+          "barShort": 13
+        }
+      }
+    ]
+  }
+}
+---------------
+
+13and14 SQL:
+---------------
+.param set @__p_0 '[13,14]'
+
+SELECT "d"."Id", "d"."FooId"
+FROM "Data" AS "d"
+LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
+WHERE "f"."BarShort" IN (
+    SELECT "p"."value"
+    FROM json_each(@__p_0) AS "p"
+)
+---------------
+
+13andNull Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barShort": null
+        }
+      },
+      {
+        "foo": {
+          "barShort": null
+        }
+      },
+      {
+        "foo": {
+          "barShort": 13
+        }
+      }
+    ]
+  }
+}
+---------------
+
+13andNull SQL:
+---------------
+.param set @__p_0_without_nulls '[13]'
+
+SELECT "d"."Id", "d"."FooId"
+FROM "Data" AS "d"
+LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
+WHERE "f"."BarShort" IN (
+    SELECT "p"."value"
+    FROM json_each(@__p_0_without_nulls) AS "p"
+) OR "f"."BarShort" IS NULL
+---------------

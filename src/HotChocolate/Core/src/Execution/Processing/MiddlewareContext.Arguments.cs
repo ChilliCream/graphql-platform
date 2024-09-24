@@ -100,6 +100,11 @@ internal partial class MiddlewareContext
             return default!;
         }
 
+        if (value is IOptional optional)
+        {
+            return (T)optional.Value!;
+        }
+
         if (value is T castedValue ||
             _operationContext.Converter.TryConvert(value, out castedValue))
         {
@@ -177,11 +182,7 @@ internal partial class MiddlewareContext
         // copy the argument state.
         else
         {
-#if NETSTANDARD2_0
-            mutableArguments = Arguments.ToDictionary(t => t.Key, t => t.Value);
-#else
             mutableArguments = new Dictionary<string, ArgumentValue>(Arguments);
-#endif
             Arguments = mutableArguments;
         }
 

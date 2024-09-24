@@ -16,7 +16,6 @@ import {
   MostRecentBlogPostsSection,
   NewsletterSection,
 } from "@/components/widgets";
-import { useAnimationIntersectionObserver } from "@/hooks";
 
 // Images
 import {
@@ -27,11 +26,9 @@ import {
   AnalyticsInsightsImage,
   AnalyticsObservabilityImage,
   AnalyticsOverviewImage,
-} from "../images";
+} from "../../components/images";
 
 const AnalyticsPage: FC = () => {
-  useAnimationIntersectionObserver();
-
   return (
     <SiteLayout>
       <SEO title="Analytics" />
@@ -43,7 +40,7 @@ const AnalyticsPage: FC = () => {
           insights. Make informed decisions and gain a deeper understanding of
           your system, driving smarter and more effective outcomes.
         </HeroTeaser>
-        <HeroLink to="/docs/bananacakepop/v2/apis/open-telemetry">
+        <HeroLink to="/docs/bananacakepop/v2/open-telemetry/operation-monitoring">
           Get Started
         </HeroLink>
         <HeroImageContainer>

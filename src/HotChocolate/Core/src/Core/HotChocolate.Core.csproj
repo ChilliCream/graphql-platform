@@ -9,6 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\CostAnalysis\src\CostAnalysis\HotChocolate.CostAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\Pagination\src\Pagination.Mappings\HotChocolate.Pagination.Mappings.csproj" />
     <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
     <ProjectReference Include="..\Authorization\HotChocolate.Authorization.csproj" />
     <ProjectReference Include="..\Types.Mutations\HotChocolate.Types.Mutations.csproj" />
@@ -18,16 +20,6 @@
     <ProjectReference Include="..\Validation\HotChocolate.Validation.csproj" />
     <ProjectReference Include="..\Fetching\HotChocolate.Fetching.csproj" />
     <ProjectReference Include="..\Execution\HotChocolate.Execution.csproj" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
-    <ProjectReference Include="..\..\..\CostAnalysis\src\CostAnalysis\HotChocolate.CostAnalysis.csproj" />
-    <ProjectReference Include="..\..\..\Pagination\src\Pagination.Mappings\HotChocolate.Pagination.Mappings.csproj" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
-    <ProjectReference Include="..\..\..\CostAnalysis\src\CostAnalysis\HotChocolate.CostAnalysis.csproj" />
-    <ProjectReference Include="..\..\..\Pagination\src\Pagination.Mappings\HotChocolate.Pagination.Mappings.csproj" />
   </ItemGroup>
 
 </Project>

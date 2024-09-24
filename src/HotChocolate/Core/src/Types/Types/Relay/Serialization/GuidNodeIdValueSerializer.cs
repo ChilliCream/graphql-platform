@@ -43,11 +43,7 @@ internal sealed class GuidNodeIdValueSerializer(bool compress = true) : INodeIdV
     {
         if(compress && buffer.Length == 16)
         {
-#if NETSTANDARD2_0
-            value = new Guid(buffer.ToArray());
-#else
             value = new Guid(buffer);
-#endif
             return true;
         }
 

@@ -12,7 +12,8 @@ namespace HotChocolate.Types.Relay;
 public sealed class DefaultNodeIdSerializer(
     INodeIdValueSerializer[]? serializers = null,
     int maxIdLength = 1024,
-    bool outputNewIdFormat = true)
+    bool outputNewIdFormat = true,
+    bool urlSafeBase64 = true)
     : INodeIdSerializer
 {
     private const byte _delimiter = (byte)':';
@@ -55,14 +56,16 @@ public sealed class DefaultNodeIdSerializer(
             _names.GetOrAdd(typeName, static n => _utf8.GetBytes(n)),
             internalId,
             serializer,
-            outputNewIdFormat);
+            outputNewIdFormat,
+            urlSafeBase64);
     }
 
     private static unsafe string Format(
         ReadOnlySpan<byte> typeName,
         object internalId,
         INodeIdValueSerializer serializer,
-        bool outputNewIdFormat)
+        bool outputNewIdFormat,
+        bool urlSafeBase64)
     {
         var minLength = typeName.Length + 128;
         byte[]? rentedBuffer = null;
@@ -115,7 +118,25 @@ public sealed class DefaultNodeIdSerializer(
                 rentedBuffer = newBuffer;
             }
 
-            var formattedId = ToString(span.Slice(0, written));
+            span = span.Slice(0, written);
+
+            // make urls safe base64
+            if(urlSafeBase64)
+            {
+                for(var i = 0; i < span.Length; i++)
+                {
+                    if (span[i] == '+')
+                    {
+                        span[i] = (byte)'-';
+                    }
+                    else if (span[i] == '/')
+                    {
+                        span[i] = (byte)'_';
+                    }
+                }
+            }
+
+            var formattedId = ToString(span);
 
             Clear(rentedBuffer);
             return formattedId;
@@ -167,6 +188,22 @@ public sealed class DefaultNodeIdSerializer(
             : rentedBuffer = ArrayPool<byte>.Shared.Rent(expectedSize);
 
         Utf8GraphQLParser.ConvertToBytes(formattedId, ref span);
+
+        if (urlSafeBase64)
+        {
+            for(var i = 0; i < span.Length; i++)
+            {
+                if (span[i] == (byte)'-')
+                {
+                    span[i] = (byte)'+';
+                }
+                else if (span[i] == (byte)'_')
+                {
+                    span[i] = (byte)'/';
+                }
+            }
+        }
+
         Base64.DecodeFromUtf8InPlace(span, out var written);
         span = span.Slice(0, written);
 
@@ -222,6 +259,22 @@ public sealed class DefaultNodeIdSerializer(
             : rentedBuffer = ArrayPool<byte>.Shared.Rent(expectedSize);
 
         Utf8GraphQLParser.ConvertToBytes(formattedId, ref span);
+
+        if (urlSafeBase64)
+        {
+            for(var i = 0; i < span.Length; i++)
+            {
+                if (span[i] == (byte)'-')
+                {
+                    span[i] = (byte)'+';
+                }
+                else if (span[i] == (byte)'_')
+                {
+                    span[i] = (byte)'/';
+                }
+            }
+        }
+
         Base64.DecodeFromUtf8InPlace(span, out var written);
         span = span.Slice(0, written);
 
@@ -275,19 +328,13 @@ public sealed class DefaultNodeIdSerializer(
     }
 
     private static readonly byte[] _delimiters = [_delimiter, _legacyDelimiter];
-#if NET8_0_OR_GREATER
     private static readonly SearchValues<byte> _delimiterSearchValues =
         SearchValues.Create(_delimiters);
-#endif
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int FindDelimiterIndex(ReadOnlySpan<byte> span)
     {
-#if NET8_0_OR_GREATER
         return span.IndexOfAny(_delimiterSearchValues);
-#else
-        return span.IndexOfAny(_delimiters);
-#endif
     }
 
     private static void Clear(byte[]? rentedBuffer = null)

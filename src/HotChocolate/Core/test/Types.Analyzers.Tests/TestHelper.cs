@@ -25,6 +25,12 @@ internal static partial class TestHelper
 
         IEnumerable<PortableExecutableReference> references =
         [
+#if NET8_0
+            .. Net80.References.All,
+#elif NET9_0
+            .. Net90.References.All,
+#endif
+
             // HotChocolate.Types
             MetadataReference.CreateFromFile(typeof(ObjectTypeAttribute).Assembly.Location),
 
@@ -42,7 +48,7 @@ internal static partial class TestHelper
         var compilation = CSharpCompilation.Create(
             assemblyName: "Tests",
             syntaxTrees: [syntaxTree],
-            ReferenceAssemblies.Net80.Concat(references));
+            references);
 
         // Create an instance of our GraphQLServerGenerator incremental source generator.
         var generator = new GraphQLServerGenerator();

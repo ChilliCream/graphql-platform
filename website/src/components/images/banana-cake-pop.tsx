@@ -4,7 +4,7 @@ import React, { FC } from "react";
 
 import { GetBananaCakePopImageQuery } from "@/graphql-types";
 
-export const BananaCakePop: FC = () => {
+export const BananaCakePopImage: FC = () => {
   const data = useStaticQuery<GetBananaCakePopImageQuery>(graphql`
     query getBananaCakePopImage {
       file(

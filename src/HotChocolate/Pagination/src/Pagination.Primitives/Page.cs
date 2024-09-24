@@ -24,7 +24,7 @@ namespace HotChocolate.Pagination;
 /// <typeparam name="T">
 /// The type of the items.
 /// </typeparam>
-public readonly struct Page<T>(
+public sealed class Page<T>(
     ImmutableArray<T> items,
     bool hasNextPage,
     bool hasPreviousPage,

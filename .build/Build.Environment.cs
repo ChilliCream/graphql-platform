@@ -6,7 +6,6 @@ partial class Build
     const string Release = "Release";
     const string Net50 = "net5.0";
     const string Net60 = "net6.0";
-    const string Net70 = "net7.0";
 
     readonly int DegreeOfParallelism = 2;
 
@@ -19,9 +18,7 @@ partial class Build
     AbsolutePath TestResultDirectory => OutputDirectory / "test-results";
     AbsolutePath CoverageReportDirectory => OutputDirectory / "coberage-reports";
     AbsolutePath PackageDirectory => OutputDirectory / "packages";
-    AbsolutePath StarWarsTemplateNuSpec => RootDirectory / "templates" / "StarWars" / "HotChocolate.Templates.StarWars.nuspec";
     AbsolutePath HotChocolateDirectoryBuildProps => SourceDirectory / "HotChocolate" / "Directory.Build.Props";
-    AbsolutePath StarWarsProj => RootDirectory / "templates" / "StarWars" / "content" / "StarWars.csproj";
     AbsolutePath TemplatesNuSpec => RootDirectory / "templates" / "v12" / "HotChocolate.Templates.nuspec";
     AbsolutePath EmptyServer12Proj => RootDirectory / "templates" / "v12" / "server" / "HotChocolate.Template.Server.csproj";
     AbsolutePath EmptyAzf12Proj => RootDirectory / "templates" / "v12" / "function" / "HotChocolate.Template.AzureFunctions.csproj";

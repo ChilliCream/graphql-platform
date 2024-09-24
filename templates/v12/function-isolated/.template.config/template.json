@@ -20,12 +20,16 @@
       "datatype": "choice",
       "choices": [
         {
-          "choice": "net6.0",
-          "description": "Target .NET 6"
+          "choice": "net8.0",
+          "description": "Target .NET 8"
+        },
+        {
+          "choice": "net9.0",
+          "description": "Target .NET 9"
         }
       ],
-      "replaces": "net6.0",
-      "defaultValue": "net6.0"
+      "replaces": "net8.0",
+      "defaultValue": "net8.0"
     }
   },
   "postActions": [

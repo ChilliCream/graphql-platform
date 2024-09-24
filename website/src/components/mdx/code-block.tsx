@@ -154,11 +154,18 @@ const calculateLinesToHighlight = (
 
 const Pre = styled.pre`
   position: relative;
-  overflow: scroll;
+  max-width: 100vw;
+  box-sizing: border-box;
+  border-radius: 0 !important;
 
   & .token-line {
     line-height: 1.3em;
     height: 1.3em;
+  }
+
+  @media only screen and (min-width: 700px) {
+    max-width: 660px;
+    border-radius: var(--box-border-radius) !important;
   }
 `;
 
@@ -186,7 +193,6 @@ const LineContent = styled.span`
 const Container = styled.div`
   position: relative;
   margin-bottom: 24px;
-  overflow: initial;
   font-size: 1rem !important;
   padding-right: 0 !important;
   padding-left: 0 !important;

@@ -19,7 +19,6 @@ import {
   MostRecentBlogPostsSection,
   NewsletterSection,
 } from "@/components/widgets";
-import { useAnimationIntersectionObserver } from "@/hooks";
 import { FADE_IN, ZOOM_IN } from "@/style";
 
 // Images
@@ -35,11 +34,9 @@ import {
   ObserveImage,
   SHIP_WITH_CONFIDENCE_IMAGE_WIDTH,
   ShipWithConfidenceImage,
-} from "./images";
+} from "../components/images";
 
 const IndexPage: FC = () => {
-  useAnimationIntersectionObserver();
-
   return (
     <SiteLayout>
       <SEO title="Home" />
@@ -73,12 +70,12 @@ const IndexPage: FC = () => {
       <ContentSection
         title="Ship With Confidence"
         text="
-          Deploy APIs with confidence, knowing each update integrates 
-          flawlessly. Ensure that every change is safe, allowing you to ship 
-          your systems without disruption. You can deploy without breaking your 
-          api or causing downtime, and understand the impact of each change 
-          before it happens. Leverage the precision of GraphQL's strong 
-          typing for deployments you can trust, and gain insights into which 
+          Deploy APIs with confidence, knowing each update integrates
+          flawlessly. Ensure that every change is safe, allowing you to ship
+          your systems without disruption. You can deploy without breaking your
+          api or causing downtime, and understand the impact of each change
+          before it happens. Leverage the precision of GraphQL's strong
+          typing for deployments you can trust, and gain insights into which
           features are being used to make informed decisions.
         "
         image={<ShipWithConfidenceImage />}
@@ -89,11 +86,11 @@ const IndexPage: FC = () => {
       <ContentSection
         title="Observe"
         text="
-          Unlock real-time GraphQL insights and elevate your system's 
+          Unlock real-time GraphQL insights and elevate your system's
           performance. Gain a unified view of your API data, see the health of
-          your entire application, and understand the impact of client load. 
-          Delve deep into traces with detailed error analysis and latency 
-          insights. 
+          your entire application, and understand the impact of client load.
+          Delve deep into traces with detailed error analysis and latency
+          insights.
         "
         image={<ObserveImage />}
         imageWidth={OBSERVE_IMAGE_WIDTH}
@@ -101,9 +98,9 @@ const IndexPage: FC = () => {
       <ContentSection
         title="Collaborate"
         text="
-          A central hub for team-based API management, designed to bring 
-          together request documents, testing, authorization settings, and more. 
-          Manage APIs, gateways, and testing from a single point to enhance team 
+          A central hub for team-based API management, designed to bring
+          together request documents, testing, authorization settings, and more.
+          Manage APIs, gateways, and testing from a single point to enhance team
           alignment and efficiency.
         "
         image={<CollaborateImage />}
@@ -160,99 +157,83 @@ const BackgroundContainer = styled.div`
   perspective: 1px;
 
   > ${Fusion} {
-    width: 120vw;
+    width: 500px;
     height: unset;
   }
 
-  @media only screen and (min-width: 304px) {
-    top: 460px;
+  @media only screen and (min-width: 238px) {
+    top: 440px;
   }
 
-  @media only screen and (min-width: 326px) {
+  @media only screen and (min-width: 270px) {
+    top: 420px;
+  }
+
+  @media only screen and (min-width: 305px) {
     top: 400px;
   }
 
-  @media only screen and (min-width: 346px) {
-    top: 380px;
+  @media only screen and (min-width: 317px) {
+    top: 360px;
   }
 
   @media only screen and (min-width: 383px) {
-    top: 340px;
+    top: 330px;
   }
 
-  @media only screen and (min-width: 396px) {
+  @media only screen and (min-width: 385px) {
     top: 290px;
   }
 
   @media only screen and (min-width: 447px) {
-    top: 240px;
-  }
+    top: 115px;
 
-  @media only screen and (min-width: 500px) {
-    top: 200px;
-  }
-
-  @media only screen and (min-width: 550px) {
-    top: 180px;
+    > ${Fusion} {
+      width: 800px;
+      height: unset;
+    }
   }
 
   @media only screen and (min-width: 565px) {
-    top: 160px;
+    top: 40px;
+
+    > ${Fusion} {
+      width: 1000px;
+    }
   }
 
   @media only screen and (min-width: 600px) {
-    top: 100px;
-  }
+    top: -28px;
 
-  @media only screen and (min-width: 700px) {
-    top: 80px;
-  }
-
-  @media only screen and (min-width: 746px) {
-    top: 40px;
-  }
-
-  @media only screen and (min-width: 826px) {
-    top: 20px;
+    > ${Fusion} {
+      width: 1246px;
+    }
   }
 
   @media only screen and (min-width: 835px) {
-    top: 0px;
-  }
-
-  @media only screen and (min-width: 835px) {
-    top: 0px;
-  }
-
-  @media only screen and (min-width: 870px) {
-    top: -20px;
-  }
-
-  @media only screen and (min-width: 900px) {
-    top: -40px;
-  }
-
-  @media only screen and (min-width: 930px) {
-    top: -60px;
-  }
-
-  @media only screen and (min-width: 980px) {
-    top: -80px;
+    top: -50px;
   }
 
   @media only screen and (min-width: 992px) {
     top: 216px;
     max-width: 1246px;
-
-    > ${Fusion} {
-      width: 1246px;
-      height: unset;
-    }
   }
 `;
 
 const IndexPageHero = styled(Hero)`
   padding-bottom: 180px;
+
+  @media only screen and (min-width: 447px) {
+    padding-bottom: 260px;
+  }
+
+  @media only screen and (min-width: 565px) {
+    padding-bottom: 360px;
+  }
+
+  @media only screen and (min-width: 600px) {
+    padding-bottom: 440px;
+  }
 
   @media only screen and (min-width: 992px) {
     padding-bottom: 380px;

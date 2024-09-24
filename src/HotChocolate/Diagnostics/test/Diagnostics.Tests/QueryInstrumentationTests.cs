@@ -23,11 +23,7 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("{ sayHello }");
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -44,11 +40,7 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("{ dataLoader(key: \"abc\") }");
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -65,11 +57,7 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("{ dataLoader(key: \"abc\") }");
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -154,11 +142,7 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("{ a: sayHello }");
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -179,11 +163,7 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("query GetA { a: sayHello }");
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -204,11 +184,7 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("{ a: sayHello b: sayHello c: sayHello }");
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -229,11 +205,7 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("{ a: sayHello b: sayHello c: sayHello d: sayHello }");
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -250,11 +222,7 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("{ sayHello }");
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -271,11 +239,7 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("query SayHelloOperation { sayHello }");
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -296,11 +260,7 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("query SayHelloOperation { sayHello }");
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -321,11 +281,7 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("query SayHelloOperation { sayHello_ }");
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -346,11 +302,7 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("query SayHelloOperation { causeFatalError }");
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -384,11 +336,7 @@ public partial class QueryInstrumentationTests
                     """);
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 

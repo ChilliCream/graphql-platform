@@ -28,7 +28,6 @@ namespace Foo.Bar
         }
 
         public global::Foo.Bar.IReadonly_Readonly? Readonly { get; }
-
         public global::Foo.Bar.IReadonly_ReadonlyEntity? ReadonlyEntity { get; }
 
         public virtual global::System.Boolean Equals(ReadonlyResult? other)
@@ -168,7 +167,6 @@ namespace Foo.Bar
         }
 
         public global::System.String? Id { get; }
-
         public global::System.String? Abstract { get; }
 
         public virtual global::System.Boolean Equals(Readonly_ReadonlyEntity_readonlyEntity? other)
@@ -236,7 +234,6 @@ namespace Foo.Bar
     public partial interface IReadonlyResult
     {
         public global::Foo.Bar.IReadonly_Readonly? Readonly { get; }
-
         public global::Foo.Bar.IReadonly_ReadonlyEntity? ReadonlyEntity { get; }
     }
 
@@ -258,7 +255,6 @@ namespace Foo.Bar
     public partial interface IReadonly_ReadonlyEntity
     {
         public global::System.String? Id { get; }
-
         public global::System.String? Abstract { get; }
     }
 
@@ -274,6 +270,7 @@ namespace Foo.Bar
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter = default !;
         public global::System.String TypeName => "abstract";
+
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _stringFormatter = serializerResolver.GetInputValueFormatter("String");
@@ -417,8 +414,170 @@ namespace Foo.Bar
 
         public static ReadonlyQueryDocument Instance { get; } = new ReadonlyQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x52, 0x65, 0x61, 0x64, 0x6f, 0x6e, 0x6c, 0x79, 0x28, 0x24, 0x69, 0x6e, 0x70, 0x75, 0x74, 0x3a, 0x20, 0x61, 0x62, 0x73, 0x74, 0x72, 0x61, 0x63, 0x74, 0x21, 0x29, 0x20, 0x7b, 0x20, 0x72, 0x65, 0x61, 0x64, 0x6f, 0x6e, 0x6c, 0x79, 0x28, 0x72, 0x65, 0x61, 0x64, 0x6f, 0x6e, 0x6c, 0x79, 0x3a, 0x20, 0x24, 0x69, 0x6e, 0x70, 0x75, 0x74, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x61, 0x62, 0x73, 0x74, 0x72, 0x61, 0x63, 0x74, 0x20, 0x7d, 0x20, 0x72, 0x65, 0x61, 0x64, 0x6f, 0x6e, 0x6c, 0x79, 0x45, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x69, 0x64, 0x20, 0x61, 0x62, 0x73, 0x74, 0x72, 0x61, 0x63, 0x74, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x72, 0x65, 0x61, 0x64, 0x6f, 0x6e, 0x6c, 0x79, 0x45, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d};
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
+        {
+            0x71,
+            0x75,
+            0x65,
+            0x72,
+            0x79,
+            0x20,
+            0x52,
+            0x65,
+            0x61,
+            0x64,
+            0x6f,
+            0x6e,
+            0x6c,
+            0x79,
+            0x28,
+            0x24,
+            0x69,
+            0x6e,
+            0x70,
+            0x75,
+            0x74,
+            0x3a,
+            0x20,
+            0x61,
+            0x62,
+            0x73,
+            0x74,
+            0x72,
+            0x61,
+            0x63,
+            0x74,
+            0x21,
+            0x29,
+            0x20,
+            0x7b,
+            0x20,
+            0x72,
+            0x65,
+            0x61,
+            0x64,
+            0x6f,
+            0x6e,
+            0x6c,
+            0x79,
+            0x28,
+            0x72,
+            0x65,
+            0x61,
+            0x64,
+            0x6f,
+            0x6e,
+            0x6c,
+            0x79,
+            0x3a,
+            0x20,
+            0x24,
+            0x69,
+            0x6e,
+            0x70,
+            0x75,
+            0x74,
+            0x29,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x61,
+            0x62,
+            0x73,
+            0x74,
+            0x72,
+            0x61,
+            0x63,
+            0x74,
+            0x20,
+            0x7d,
+            0x20,
+            0x72,
+            0x65,
+            0x61,
+            0x64,
+            0x6f,
+            0x6e,
+            0x6c,
+            0x79,
+            0x45,
+            0x6e,
+            0x74,
+            0x69,
+            0x74,
+            0x79,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x61,
+            0x62,
+            0x73,
+            0x74,
+            0x72,
+            0x61,
+            0x63,
+            0x74,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x72,
+            0x65,
+            0x61,
+            0x64,
+            0x6f,
+            0x6e,
+            0x6c,
+            0x79,
+            0x45,
+            0x6e,
+            0x74,
+            0x69,
+            0x74,
+            0x79,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d
+        };
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "4d47a790915012cc300f474c2c7cf0e7663d0911");
+
         public override global::System.String ToString()
         {
 #if NETCOREAPP3_1_OR_GREATER
@@ -461,6 +620,7 @@ namespace Foo.Bar
         }
 
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IReadonlyResult);
+
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IReadonlyResult>> ExecuteAsync(global::Foo.Bar.@abstract input, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(input);
@@ -569,7 +729,6 @@ namespace Foo.Bar.State
         }
 
         public global::System.String? Id { get; }
-
         public global::System.String? Abstract { get; }
     }
 
@@ -586,6 +745,7 @@ namespace Foo.Bar.State
         }
 
         global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::Foo.Bar.IReadonlyResult);
+
         public ReadonlyResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             if (snapshot is null)
@@ -657,11 +817,10 @@ namespace Foo.Bar.State
         }
 
         public global::Foo.Bar.State.readonlyData? Readonly { get; }
-
         public global::StrawberryShake.EntityId? ReadonlyEntity { get; }
-
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
         public global::System.UInt64 Version => _version;
+
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new ReadonlyResultInfo(Readonly, ReadonlyEntity, _entityIds, version);
@@ -786,7 +945,6 @@ namespace Foo.Bar.State
         }
 
         public global::System.String __typename { get; }
-
         public global::System.String? Abstract { get; }
     }
 
@@ -816,7 +974,9 @@ namespace Foo.Bar.State
     public partial class FooClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
         private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
-        {Indented = false};
+        {
+            Indented = false
+        };
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
             global::System.String __typename = obj.GetProperty("__typename").GetString()!;

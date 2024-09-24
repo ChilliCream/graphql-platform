@@ -266,7 +266,7 @@ public class MongoDbCursorPagingAggregateFluentTests : IClassFixture<MongoResour
                     {
                         context.Result =
                             OperationResultBuilder
-                                .FromResult(context.Result!.ExpectSingleResult())
+                                .FromResult(context.Result!.ExpectOperationResult())
                                 .SetContextData("query", queryString)
                                 .Build();
                     }

@@ -32,12 +32,15 @@ export const ArticleVideo = styled.iframe.attrs<ArticleVideoProps>(
 
 export const ArticleHeaderVideoContainer = styled.div`
   position: relative;
-  border-radius: var(--border-radius) var(--border-radius) 0 0;
   padding-top: 56.22%;
   overflow: hidden;
 
-  > ${ArticleVideo} {
+  @media only screen and (min-width: 700px) {
     border-radius: var(--border-radius) var(--border-radius) 0 0;
+
+    > ${ArticleVideo} {
+      border-radius: var(--border-radius) var(--border-radius) 0 0;
+    }
   }
 `;
 
@@ -49,8 +52,15 @@ export const ArticleContentVideoContainer = styled.div`
 `;
 
 export const ArticleTitle = styled.h1`
+  margin-right: 16px;
   margin-bottom: 24px;
+  margin-left: 16px;
   font-size: 3rem;
+
+  @media only screen and (min-width: 860px) {
+    margin-right: 0;
+    margin-left: 0;
+  }
 `;
 
 export const ArticleContent = styled.div`
@@ -66,8 +76,7 @@ export const ArticleContent = styled.div`
   > h5,
   > h6 {
     line-height: 1.12em;
-    margin-top: 48px;
-    margin-bottom: 24px;
+    margin: 48px 16px 24px;
   }
 
   > h1 {
@@ -116,6 +125,13 @@ export const ArticleContent = styled.div`
     text-align: justify;
   }
 
+  > p,
+  > ol > li,
+  > ul > li {
+    margin-right: 16px;
+    margin-left: 16px;
+  }
+
   > table {
     th:first-child,
     td:first-child {
@@ -128,9 +144,17 @@ export const ArticleContent = styled.div`
     }
   }
 
-  @media only screen and (min-width: 860px) {
-    padding-right: 0;
-    padding-left: 0;
+  @media only screen and (min-width: 700px) {
+    > h1,
+    > h2,
+    > h3,
+    > h4,
+    > h5,
+    > h6 {
+      line-height: 1.12em;
+      margin-right: 0;
+      margin-left: 0;
+    }
 
     > h1 > a.anchor.before,
     > h2 > a.anchor.before,
@@ -143,6 +167,13 @@ export const ArticleContent = styled.div`
 
     > blockquote {
       padding: 20px;
+    }
+
+    > p,
+    > ol > li,
+    > ul > li {
+      margin-right: 0;
+      margin-left: 0;
     }
 
     > .gatsby-highlight {

@@ -10,9 +10,9 @@ import React, {
 import { BlockQuote } from "@/components/mdx/block-quote";
 import { CodeBlock } from "@/components/mdx/code-block";
 import {
-  Annotation,
   Code,
   ExampleTabs,
+  Implementation,
   Schema,
 } from "@/components/mdx/example-tabs";
 import { InlineCode } from "@/components/mdx/inline-code";
@@ -33,8 +33,8 @@ export const SiteLayout: FC<SiteLayoutProps> = ({ children, disableStars }) => {
     inlineCode: InlineCode,
     blockquote: BlockQuote,
     ExampleTabs,
-    Annotation,
     Code,
+    Implementation,
     Schema,
     PackageInstallation,
     Video,

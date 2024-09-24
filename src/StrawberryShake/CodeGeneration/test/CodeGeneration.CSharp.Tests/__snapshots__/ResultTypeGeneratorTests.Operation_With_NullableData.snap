@@ -90,7 +90,6 @@ namespace Foo.Bar
         }
 
         public global::System.String Action { get; }
-
         public global::Foo.Bar.IOnFooUpdated_OnFooUpdated_Data Data { get; }
 
         public virtual global::System.Boolean Equals(OnFooUpdated_OnFooUpdated_FooNotification? other)
@@ -162,19 +161,12 @@ namespace Foo.Bar
         }
 
         public global::System.String BarGUID { get; }
-
         public global::System.String ThingGUID { get; }
-
         public global::System.String ThingDATE { get; }
-
         public global::System.String? ThingSTATUS { get; }
-
         public global::System.String FooGUID { get; }
-
         public global::System.String? FooAUTHOR { get; }
-
         public global::System.String FooDATE { get; }
-
         public global::System.String? FooTEXT { get; }
 
         public virtual global::System.Boolean Equals(OnFooUpdated_OnFooUpdated_Data_FooNotificationData? other)
@@ -259,7 +251,6 @@ namespace Foo.Bar
     public partial interface IOnFooUpdated_OnFooUpdated
     {
         public global::System.String Action { get; }
-
         public global::Foo.Bar.IOnFooUpdated_OnFooUpdated_Data Data { get; }
     }
 
@@ -274,19 +265,12 @@ namespace Foo.Bar
     public partial interface IOnFooUpdated_OnFooUpdated_Data
     {
         public global::System.String BarGUID { get; }
-
         public global::System.String ThingGUID { get; }
-
         public global::System.String ThingDATE { get; }
-
         public global::System.String? ThingSTATUS { get; }
-
         public global::System.String FooGUID { get; }
-
         public global::System.String? FooAUTHOR { get; }
-
         public global::System.String FooDATE { get; }
-
         public global::System.String? FooTEXT { get; }
     }
 
@@ -328,8 +312,169 @@ namespace Foo.Bar
 
         public static OnFooUpdatedSubscriptionDocument Instance { get; } = new OnFooUpdatedSubscriptionDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Subscription;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x73, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x4f, 0x6e, 0x46, 0x6f, 0x6f, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x64, 0x20, 0x7b, 0x20, 0x6f, 0x6e, 0x46, 0x6f, 0x6f, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x64, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x64, 0x61, 0x74, 0x61, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x62, 0x61, 0x72, 0x47, 0x55, 0x49, 0x44, 0x20, 0x74, 0x68, 0x69, 0x6e, 0x67, 0x47, 0x55, 0x49, 0x44, 0x20, 0x74, 0x68, 0x69, 0x6e, 0x67, 0x44, 0x41, 0x54, 0x45, 0x20, 0x74, 0x68, 0x69, 0x6e, 0x67, 0x53, 0x54, 0x41, 0x54, 0x55, 0x53, 0x20, 0x66, 0x6f, 0x6f, 0x47, 0x55, 0x49, 0x44, 0x20, 0x66, 0x6f, 0x6f, 0x41, 0x55, 0x54, 0x48, 0x4f, 0x52, 0x20, 0x66, 0x6f, 0x6f, 0x44, 0x41, 0x54, 0x45, 0x20, 0x66, 0x6f, 0x6f, 0x54, 0x45, 0x58, 0x54, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d};
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
+        {
+            0x73,
+            0x75,
+            0x62,
+            0x73,
+            0x63,
+            0x72,
+            0x69,
+            0x70,
+            0x74,
+            0x69,
+            0x6f,
+            0x6e,
+            0x20,
+            0x4f,
+            0x6e,
+            0x46,
+            0x6f,
+            0x6f,
+            0x55,
+            0x70,
+            0x64,
+            0x61,
+            0x74,
+            0x65,
+            0x64,
+            0x20,
+            0x7b,
+            0x20,
+            0x6f,
+            0x6e,
+            0x46,
+            0x6f,
+            0x6f,
+            0x55,
+            0x70,
+            0x64,
+            0x61,
+            0x74,
+            0x65,
+            0x64,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x61,
+            0x63,
+            0x74,
+            0x69,
+            0x6f,
+            0x6e,
+            0x20,
+            0x64,
+            0x61,
+            0x74,
+            0x61,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x62,
+            0x61,
+            0x72,
+            0x47,
+            0x55,
+            0x49,
+            0x44,
+            0x20,
+            0x74,
+            0x68,
+            0x69,
+            0x6e,
+            0x67,
+            0x47,
+            0x55,
+            0x49,
+            0x44,
+            0x20,
+            0x74,
+            0x68,
+            0x69,
+            0x6e,
+            0x67,
+            0x44,
+            0x41,
+            0x54,
+            0x45,
+            0x20,
+            0x74,
+            0x68,
+            0x69,
+            0x6e,
+            0x67,
+            0x53,
+            0x54,
+            0x41,
+            0x54,
+            0x55,
+            0x53,
+            0x20,
+            0x66,
+            0x6f,
+            0x6f,
+            0x47,
+            0x55,
+            0x49,
+            0x44,
+            0x20,
+            0x66,
+            0x6f,
+            0x6f,
+            0x41,
+            0x55,
+            0x54,
+            0x48,
+            0x4f,
+            0x52,
+            0x20,
+            0x66,
+            0x6f,
+            0x6f,
+            0x44,
+            0x41,
+            0x54,
+            0x45,
+            0x20,
+            0x66,
+            0x6f,
+            0x6f,
+            0x54,
+            0x45,
+            0x58,
+            0x54,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d
+        };
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "e03070cdeadb90b2eff58618790e1892dbf89b15");
+
         public override global::System.String ToString()
         {
 #if NETCOREAPP3_1_OR_GREATER
@@ -373,6 +518,7 @@ namespace Foo.Bar
         }
 
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IOnFooUpdatedResult);
+
         public global::System.IObservable<global::StrawberryShake.IOperationResult<IOnFooUpdatedResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null)
         {
             var request = CreateRequest();
@@ -465,6 +611,7 @@ namespace Foo.Bar.State
         }
 
         global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::Foo.Bar.IOnFooUpdatedResult);
+
         public OnFooUpdatedResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             if (snapshot is null)
@@ -530,9 +677,9 @@ namespace Foo.Bar.State
         }
 
         public global::Foo.Bar.State.FooNotificationData OnFooUpdated { get; }
-
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
         public global::System.UInt64 Version => _version;
+
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new OnFooUpdatedResultInfo(OnFooUpdated, _entityIds, version);
@@ -652,9 +799,7 @@ namespace Foo.Bar.State
         }
 
         public global::System.String __typename { get; }
-
         public global::System.String? Action { get; }
-
         public global::Foo.Bar.State.FooNotificationDataData? Data { get; }
     }
 
@@ -676,21 +821,13 @@ namespace Foo.Bar.State
         }
 
         public global::System.String __typename { get; }
-
         public global::System.String? BarGUID { get; }
-
         public global::System.String? ThingGUID { get; }
-
         public global::System.String? ThingDATE { get; }
-
         public global::System.String? ThingSTATUS { get; }
-
         public global::System.String? FooGUID { get; }
-
         public global::System.String? FooAUTHOR { get; }
-
         public global::System.String? FooDATE { get; }
-
         public global::System.String? FooTEXT { get; }
     }
 
@@ -699,7 +836,9 @@ namespace Foo.Bar.State
     public partial class FooClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
         private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
-        {Indented = false};
+        {
+            Indented = false
+        };
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
             global::System.String __typename = obj.GetProperty("__typename").GetString()!;

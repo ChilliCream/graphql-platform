@@ -59,7 +59,7 @@ public class AnyTypeTests
         var executor = schema.MakeExecutable();
 
         // act
-        var result = (await executor.ExecuteAsync("{ fooCyclic }")).ExpectSingleResult();
+        var result = (await executor.ExecuteAsync("{ fooCyclic }")).ExpectOperationResult();
 
         // assert
         Assert.Equal("Cycle in object graph detected.", result.Errors?.Single().Exception?.Message);
@@ -113,7 +113,7 @@ public class AnyTypeTests
         var executor = schema.MakeExecutable();
 
         // act
-        var result = (await executor.ExecuteAsync("{ fooCyclic }")).ExpectSingleResult();
+        var result = (await executor.ExecuteAsync("{ fooCyclic }")).ExpectOperationResult();
 
         // assert
         Assert.Equal("Cycle in object graph detected.", result.Errors?.Single().Exception?.Message);

@@ -21,7 +21,6 @@ import {
   NewsletterSection,
 } from "@/components/widgets";
 import { GetEcosystemPageDataQuery } from "@/graphql-types";
-import { useAnimationIntersectionObserver } from "@/hooks";
 import { graphql, useStaticQuery } from "gatsby";
 
 // Images
@@ -29,7 +28,7 @@ import {
   ECOSYSTEM_CONTINUOUS_EVOLUTION_IMAGE_WIDTH,
   EcosystemBannerImage,
   EcosystemContinuousEvolutionImage,
-} from "../images";
+} from "../../components/images";
 
 const EcosystemPage: FC = () => {
   const data = useStaticQuery<GetEcosystemPageDataQuery>(graphql`
@@ -53,8 +52,6 @@ const EcosystemPage: FC = () => {
   const latestStableHotChocolateVersion =
     products?.find((t) => t?.path === "hotchocolate")?.latestStableVersion ??
     "";
-
-  useAnimationIntersectionObserver();
 
   return (
     <SiteLayout>

@@ -1305,7 +1305,6 @@ public class ObjectTypeTests : TypeTestBase
         schema.ToString().MatchSnapshot();
     }
 
-#if NET6_0_OR_GREATER
     [Fact]
     public void Support_Argument_Generic_Attributes()
     {
@@ -1318,7 +1317,6 @@ public class ObjectTypeTests : TypeTestBase
         // assert
         schema.ToString().MatchSnapshot();
     }
-#endif
 
     [Fact]
     public void Argument_Type_IsInferred_From_Parameter()
@@ -2189,7 +2187,6 @@ public class ObjectTypeTests : TypeTestBase
         public string Quux([GraphQLType(typeof(ListType<StringType>))] string arg) => arg;
     }
 
-#if NET6_0_OR_GREATER
     public class Baz2
     {
         public string Qux(
@@ -2198,7 +2195,6 @@ public class ObjectTypeTests : TypeTestBase
 
         public string Quux([GraphQLType<ListType<StringType>>] string arg) => arg;
     }
-#endif
 
     public class FooType
         : ObjectType<Foo>

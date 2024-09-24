@@ -9,6 +9,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
+using HotChocolate.Types.Pagination;
 using static HotChocolate.ApolloFederation.FederationContextData;
 using static HotChocolate.ApolloFederation.ThrowHelper;
 using static HotChocolate.Types.TagHelper;
@@ -103,6 +104,12 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         {
             yield return _typeInspector.GetTypeRef(typeof(LinkDirective));
         }
+
+        if(discoveryContexts.Any(t => t.Type is PageInfoType)
+            && discoveryContexts.All(t => t.Type is not DirectiveType<ShareableDirective>))
+        {
+            yield return _typeInspector.GetTypeRef(typeof(ShareableDirective));
+        }
     }
 
     public override void OnBeforeCompleteName(
@@ -123,6 +130,20 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         if (definition is not ITypeDefinition and not DirectiveTypeDefinition)
         {
             return;
+        }
+
+        // if we find a PagingInfo we will make all fields sharable.
+        if (definition is ObjectTypeDefinition typeDef
+            && typeDef.Name.Equals(PageInfoType.Names.PageInfo))
+        {
+            foreach (var fieldDef in typeDef.Fields)
+            {
+                if (fieldDef.Directives.All(t => t.Value is not ShareableDirective))
+                {
+                    var typeRef = TypeReference.CreateDirective(_typeInspector.GetType(typeof(ShareableDirective)));
+                    fieldDef.Directives.Add(new DirectiveDefinition(ShareableDirective.Default, typeRef));
+                }
+            }
         }
 
         var hasRuntimeType = (IHasRuntimeType)definition;
