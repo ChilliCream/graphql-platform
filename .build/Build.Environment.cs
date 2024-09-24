@@ -19,12 +19,12 @@ partial class Build
     AbsolutePath CoverageReportDirectory => OutputDirectory / "coverage-reports";
     AbsolutePath PackageDirectory => OutputDirectory / "packages";
     AbsolutePath HotChocolateDirectoryBuildProps => SourceDirectory / "HotChocolate" / "Directory.Build.Props";
-    AbsolutePath TemplatesNuSpec => RootDirectory / "templates" / "v12" / "HotChocolate.Templates.nuspec";
-    AbsolutePath EmptyServer12Proj => RootDirectory / "templates" / "v12" / "server" / "HotChocolate.Template.Server.csproj";
-    AbsolutePath EmptyAzf12Proj => RootDirectory / "templates" / "v12" / "function" / "HotChocolate.Template.AzureFunctions.csproj";
-    AbsolutePath EmptyAzfUp12Proj => RootDirectory / "templates" / "v12" / "function-isolated" / "HotChocolate.Template.AzureFunctions.Isolated.csproj";
-    AbsolutePath Gateway13Proj => RootDirectory / "templates" / "v12" / "gateway" / "HotChocolate.Template.Gateway.csproj";
-    AbsolutePath GatewayAspire13Proj => RootDirectory / "templates" / "v12" / "gateway-aspire" / "HotChocolate.Template.Gateway.Aspire.csproj";
-    AbsolutePath GatewayManaged13Proj => RootDirectory / "templates" / "v12" / "gateway-bcp" / "HotChocolate.Template.Gateway.Managed.csproj";
+    AbsolutePath TemplatesNuSpec => RootDirectory / "templates" / "HotChocolate.Templates.nuspec";
+    AbsolutePath EmptyServer12Proj => RootDirectory / "templates" / "server" / "HotChocolate.Template.Server.csproj";
+    AbsolutePath EmptyAzf12Proj => RootDirectory / "templates" / "function" / "HotChocolate.Template.AzureFunctions.csproj";
+    AbsolutePath EmptyAzfUp12Proj => RootDirectory / "templates" / "function-isolated" / "HotChocolate.Template.AzureFunctions.Isolated.csproj";
+    AbsolutePath Gateway13Proj => RootDirectory / "templates" / "gateway" / "HotChocolate.Template.Gateway.csproj";
+    AbsolutePath GatewayAspire13Proj => RootDirectory / "templates" / "gateway-aspire" / "HotChocolate.Template.Gateway.Aspire.csproj";
+    AbsolutePath GatewayManaged13Proj => RootDirectory / "templates" / "gateway-bcp" / "HotChocolate.Template.Gateway.Managed.csproj";
     AbsolutePath FSharpTypes => SourceDirectory/"HotChocolate" /"Core" / "src" / "Types.FSharp" / "HotChocolate.Types.FSharp.fsproj";
 }
