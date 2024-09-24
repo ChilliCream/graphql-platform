@@ -3,7 +3,7 @@
     {
       "Key": "Cache-Control",
       "Value": [
-        "public, max-age=30"
+        "max-age=30"
       ]
     }
   ],

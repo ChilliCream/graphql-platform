@@ -3,14 +3,7 @@
     {
       "Key": "Cache-Control",
       "Value": [
-        "s-maxage=2000"
-      ]
-    },
-    {
-      "Key": "Vary",
-      "Value": [
-        "x-bar",
-        "x-foo"
+        "max-age=30, private"
       ]
     }
   ],
@@ -22,5 +15,5 @@
       ]
     }
   ],
-  "Body": "{\"data\":{\"field\":\"\"}}"
+  "Body": "{\"data\":{\"field1\":\"\",\"field2\":\"\"}}"
 }

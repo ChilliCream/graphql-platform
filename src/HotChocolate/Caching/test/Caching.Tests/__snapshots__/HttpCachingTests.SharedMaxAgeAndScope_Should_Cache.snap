@@ -3,7 +3,7 @@
     {
       "Key": "Cache-Control",
       "Value": [
-        "public, s-maxage=2000"
+        "s-maxage=2000"
       ]
     }
   ],

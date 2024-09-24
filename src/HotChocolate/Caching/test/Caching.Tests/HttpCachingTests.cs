@@ -90,6 +90,114 @@ public class HttpCachingTests : ServerTestBase
     }
 
     [Fact]
+    public async Task MaxAge_Multiple_Combine_Public_Private_Caches_Private()
+    {
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCachePipeline()
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o => o.ApplyDefaults = false)
+                .AddQueryType(d =>
+                {
+                    var o = d.Name("Query");
+                    o.Field("field1")
+                        .Resolve("")
+                        .CacheControl(30);
+                    o.Field("field2")
+                        .Resolve("")
+                        .CacheControl(60, CacheControlScope.Private);
+                });
+        });
+
+        var client = server.CreateClient();
+        var result = await client.PostQueryAsync("{ field1, field2 }");
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task SharedMaxAge_Multiple_Combine_Public_Private_Caches_Private()
+    {
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCachePipeline()
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o => o.ApplyDefaults = false)
+                .AddQueryType(d =>
+                {
+                    var o = d.Name("Query");
+                    o.Field("field1")
+                        .Resolve("")
+                        .CacheControl(sharedMaxAge:60);
+                    o.Field("field2")
+                        .Resolve("")
+                        .CacheControl(scope:CacheControlScope.Private, sharedMaxAge:30);
+                });
+        });
+
+        var client = server.CreateClient();
+        var result = await client.PostQueryAsync("{ field1, field2 }");
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task SharedMaxAge_MaxAge_Combine_Produces_Resolved_Cache()
+    {
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCachePipeline()
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o => o.ApplyDefaults = false)
+                .AddQueryType(d =>
+                {
+                    var o = d.Name("Query");
+                    o.Field("field1")
+                        .Resolve("")
+                        .CacheControl(maxAge: 0, sharedMaxAge:60);
+                    o.Field("field2")
+                        .Resolve("")
+                        .CacheControl(maxAge:30);
+                });
+        });
+
+        var client = server.CreateClient();
+        var result = await client.PostQueryAsync("{ field1, field2 }");
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task MaxAge_SharedMaxAge_Combine_Produces_Resolved_Cache()
+    {
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCachePipeline()
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o => o.ApplyDefaults = false)
+                .AddQueryType(d =>
+                {
+                    var o = d.Name("Query");
+                    o.Field("field1")
+                        .Resolve("")
+                        .CacheControl(maxAge: 30);
+                    o.Field("field2")
+                        .Resolve("")
+                        .CacheControl(maxAge: 0, sharedMaxAge:60);
+                });
+        });
+
+        var client = server.CreateClient();
+        var result = await client.PostQueryAsync("{ field1, field2 }");
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task Just_Defaults_Should_Cache()
     {
         var server = CreateServer(services =>
