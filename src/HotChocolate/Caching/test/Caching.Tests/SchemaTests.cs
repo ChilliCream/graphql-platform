@@ -48,7 +48,7 @@ public class SchemaTests
             }
 
             "The `@cacheControl` directive may be provided for individual fields or entire object, interface or union types to provide caching hints to the executor."
-            directive @cacheControl("The maximum amount of time this field's cached value is valid, in seconds." maxAge: Int "If `PRIVATE`, the field's value is specific to a single user. The default value is `PUBLIC`, which means the field's value is not tied to a single user." scope: CacheControlScope "If `true`, the field inherits the `maxAge` of its parent field." inheritMaxAge: Boolean) on OBJECT | FIELD_DEFINITION | INTERFACE | UNION
+            directive @cacheControl("The maximum amount of time this field's cached value is valid, in seconds." maxAge: Int "If `PRIVATE`, the field's value is specific to a single user. The default value is `PUBLIC`, which means the field's value is not tied to a single user." scope: CacheControlScope "If `true`, the field inherits the `maxAge` of its parent field." inheritMaxAge: Boolean "The maximum amount of time this field's cached value is valid in shared caches like CDNs, in seconds." sharedMaxAge: Int "List of headers that might affect the value of this field's value." vary: [String]) on OBJECT | FIELD_DEFINITION | INTERFACE | UNION
 
             """
             The @tag directive is used to apply arbitrary string

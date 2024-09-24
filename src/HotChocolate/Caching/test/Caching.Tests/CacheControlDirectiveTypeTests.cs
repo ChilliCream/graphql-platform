@@ -40,6 +40,17 @@ public class CacheControlDirectiveTypeTests
             {
                 Assert.Equal("inheritMaxAge", t.Name);
                 Assert.IsType<BooleanType>(t.Type);
+            },
+            t =>
+            {
+                Assert.Equal("sharedMaxAge", t.Name);
+                Assert.IsType<IntType>(t.Type);
+            },
+            t =>
+            {
+                Assert.Equal("vary", t.Name);
+                Assert.IsType<ListType>(t.Type);
+                Assert.IsType<StringType>(t.Type.ElementType());
             });
         Assert.Collection(
             directive.Locations.AsEnumerable(),

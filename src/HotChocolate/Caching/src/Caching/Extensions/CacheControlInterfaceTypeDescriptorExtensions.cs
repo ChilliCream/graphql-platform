@@ -17,9 +17,17 @@ public static class CacheControlInterfaceTypeDescriptorExtensions
     /// <param name="scope">
     /// The scope of fields of this type.
     /// </param>
+    /// <param name="sharedMaxAge">
+    /// The maximum time, in seconds, fields of this
+    /// type should be cached in a shared cache.
+    /// </param>
+    /// <param name="vary">
+    /// List of headers that might affect the value of this resource.
+    /// </param>
     public static IInterfaceTypeDescriptor CacheControl(
         this IInterfaceTypeDescriptor descriptor,
-        int? maxAge = null, CacheControlScope? scope = null)
+        int? maxAge = null, CacheControlScope? scope = null,
+        int? sharedMaxAge = null, string[]? vary = null)
     {
         if (descriptor is null)
         {
@@ -27,7 +35,7 @@ public static class CacheControlInterfaceTypeDescriptorExtensions
         }
 
         return descriptor.Directive(
-            new CacheControlDirective(maxAge, scope));
+            new CacheControlDirective(maxAge, scope, null, sharedMaxAge, vary));
     }
     /// <summary>
     /// Specifies the caching rules for this interface type.
