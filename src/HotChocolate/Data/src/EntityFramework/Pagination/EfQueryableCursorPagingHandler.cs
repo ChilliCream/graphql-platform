@@ -107,7 +107,7 @@ internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions opti
 
                 if (fetchCount > requestedCount)
                 {
-                    continue;
+                    break;
                 }
 
                 builder.Add(new Edge<TEntity>(item.Item, CursorFormatter.Format(item.Item, keys)));
@@ -125,7 +125,7 @@ internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions opti
 
                 if (fetchCount > requestedCount)
                 {
-                    continue;
+                    break;
                 }
 
                 builder.Add(new Edge<TEntity>(item, CursorFormatter.Format(item, keys)));
