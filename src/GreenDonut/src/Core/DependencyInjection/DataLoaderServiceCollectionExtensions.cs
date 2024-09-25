@@ -47,6 +47,7 @@ public static class DataLoaderServiceCollectionExtensions
     {
         services.TryAddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
 
+        services.TryAddSingleton<DataLoaderRegistrar>();
         services.AddSingleton<DataLoaderScopeFactory>();
         services.TryAddScoped<IDataLoaderScope>(sp => sp.GetRequiredService<DataLoaderScopeFactory>().CreateScope(sp));
         services.TryAddScoped<IBatchScheduler, AutoBatchScheduler>();
@@ -92,18 +93,18 @@ file static class DataLoaderServiceProviderExtensions
 
 internal sealed class DataLoaderScopeFactory
 {
-    private readonly FrozenDictionary<Type, DataLoaderRegistration> _registrations;
+    private readonly DataLoaderRegistrar _registrar;
 
-    public DataLoaderScopeFactory(IEnumerable<DataLoaderRegistration> dataLoaderRegistrations)
-        => _registrations = dataLoaderRegistrations.ToFrozenDictionary(t => t.ServiceType);
+    public DataLoaderScopeFactory(DataLoaderRegistrar registrar)
+        => _registrar = registrar;
 
     public IDataLoaderScope CreateScope(IServiceProvider scopedServiceProvider)
-        => new DefaultDataLoaderScope(scopedServiceProvider, _registrations);
+        => new DefaultDataLoaderScope(scopedServiceProvider, _registrar.Registrations);
 }
 
 file sealed class DefaultDataLoaderScope(
     IServiceProvider serviceProvider,
-    FrozenDictionary<Type, DataLoaderRegistration> registrations)
+    IReadOnlyDictionary<Type, DataLoaderRegistration> registrations)
     : IDataLoaderScope
 {
     private readonly ConcurrentDictionary<string, IDataLoader> _dataLoaders = new();
