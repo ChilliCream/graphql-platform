@@ -19,13 +19,15 @@ public static class PagingResultExtensions
     /// <returns>
     /// Returns a relay connection.
     /// </returns>
+#nullable disable
     public static async Task<Connection<T>> ToConnectionAsync<T>(
-        this Task<Page<T>?> resultPromise)
+        this Task<Page<T>> resultPromise)
         where T : class
     {
         var result = await resultPromise;
         return CreateConnection(result);
     }
+#nullable restore
 
     /// <summary>
     /// Converts a <see cref="Page{T}"/> to a <see cref="Connection{T}"/>.
