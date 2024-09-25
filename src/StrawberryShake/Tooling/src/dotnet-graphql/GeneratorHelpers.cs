@@ -23,14 +23,20 @@ internal static class GeneratorHelpers
         IReadOnlyList<string> buildArtifacts,
         string schemaPath)
     {
-        var files = patterns
-            .SelectMany(pattern => Files(path, pattern))
-            .Select(t => Combine(path, t))
-            .ToHashSet();
-        files.Add(Combine(path, schemaPath));
+        IEnumerable<string> files =
+        [
+            ..
+            patterns
+                .SelectMany(pattern => Files(path, pattern))
+                .Select(t => Combine(path, t)),
+            Combine(path, schemaPath)
+        ];
 
-        files.ExceptWith(buildArtifacts);
-        return files.ToArray();
+        return files
+            .Select(GetFullPath)
+            .Distinct()
+            .ExceptBy(buildArtifacts, GetFullPath)
+            .ToArray();
     }
 
     public static IReadOnlyList<string> GetBuildArtifacts(string path)
