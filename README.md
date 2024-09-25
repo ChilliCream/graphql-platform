@@ -48,10 +48,6 @@ Green Donut is a lightweight, yet powerful DataLoader that simplifies batching, 
 
 [Documentation](https://chillicream.com/docs/hotchocolate/fetching-data/dataloader/)
 
-## Roadmap
-
-If you are interested in upcoming releases, check out our [Roadmap](https://github.com/ChilliCream/graphql-platform/projects/28).
-
 ## Official examples
 
 Examples of things built on top of the ChilliCream GraphQL Platform that are open source and can be explored by others.

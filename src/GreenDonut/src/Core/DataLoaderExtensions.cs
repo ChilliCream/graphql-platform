@@ -1,4 +1,6 @@
+using System.Buffers;
 using System.Collections.Immutable;
+using System.Text;
 
 namespace GreenDonut;
 
@@ -85,12 +87,53 @@ public static class DataLoaderExtensions
 
         var values = await dataLoader.LoadAsync(keys, cancellationToken).ConfigureAwait(false);
 
-        if(values.Count != keys.Count)
+        if(values.Any(t => t is null))
         {
-            throw new KeyNotFoundException("Not all keys could be resolved.");
+            throw new KeyNotFoundException(CreateMissingKeyValueMessage(keys, values));
         }
 
         return values!;
+    }
+
+    private static string CreateMissingKeyValueMessage<TKey, TValue>(
+        IReadOnlyCollection<TKey> keys,
+        IReadOnlyList<TValue> values)
+    {
+        var buffer = new StringBuilder();
+
+        var i = 0;
+        var first = true;
+        var multipleMissing = false;
+
+        foreach (var key in keys)
+        {
+            if (values[i] == null)
+            {
+                if(!first)
+                {
+                    multipleMissing = true;
+                    buffer.Append(", ");
+                }
+
+                buffer.Append(key);
+                first = false;
+            }
+
+            i++;
+        }
+
+        if (multipleMissing)
+        {
+            buffer.Insert(0, "The keys `");
+        }
+        else
+        {
+            buffer.Insert(0, "The key `");
+        }
+
+        buffer.Append("` could not be resolved.");
+
+        return buffer.ToString();
     }
 
     /// <summary>
