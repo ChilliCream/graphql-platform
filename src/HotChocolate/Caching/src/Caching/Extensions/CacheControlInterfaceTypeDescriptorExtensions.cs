@@ -26,8 +26,10 @@ public static class CacheControlInterfaceTypeDescriptorExtensions
     /// </param>
     public static IInterfaceTypeDescriptor CacheControl(
         this IInterfaceTypeDescriptor descriptor,
-        int? maxAge = null, CacheControlScope? scope = null,
-        int? sharedMaxAge = null, string[]? vary = null)
+        int? maxAge = null, 
+        CacheControlScope? scope = null,
+        int? sharedMaxAge = null, 
+        string[]? vary = null)
     {
         if (descriptor is null)
         {
