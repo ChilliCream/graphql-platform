@@ -26,8 +26,10 @@ public static class CacheControlUnionTypeDescriptorExtensions
     /// </param>
     public static IUnionTypeDescriptor CacheControl(
         this IUnionTypeDescriptor descriptor,
-        int? maxAge = null, CacheControlScope? scope = null,
-        int? sharedMaxAge = null, string[]? vary = null)
+        int? maxAge = null,
+        CacheControlScope? scope = null,
+        int? sharedMaxAge = null,
+        string[]? vary = null)
     {
         if (descriptor is null)
         {
