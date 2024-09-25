@@ -1,7 +1,7 @@
-﻿{
+{
   "errors": [
     {
-      "message": "The field \u0060foo\u0060 does not exist on the type \u0060UserInput\u0060.",
+      "message": "The field `foo` does not exist on the type `UserInput`.",
       "path": [
         "user"
       ],

@@ -1,4 +1,3 @@
-#if NET6_0_OR_GREATER
 using System.Collections.Immutable;
 using HotChocolate.Types;
 
@@ -25,4 +24,3 @@ internal sealed class FieldRequirementsMetadata
     public void Seal()
         => _sealed = true;
 }
-#endif

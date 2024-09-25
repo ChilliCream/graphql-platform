@@ -1,9 +1,9 @@
 using System.Text;
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Caching.Tests;

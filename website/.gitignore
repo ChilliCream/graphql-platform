@@ -66,6 +66,3 @@ public
 
 # Mac files
 .DS_Store
-
-# to prevent upload any font awesome icons to github
-src/images/icons/

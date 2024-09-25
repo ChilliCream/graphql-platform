@@ -1,6 +1,5 @@
-using ChilliCream.Testing;
+using CookieCrumble;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
 
 #nullable enable
 

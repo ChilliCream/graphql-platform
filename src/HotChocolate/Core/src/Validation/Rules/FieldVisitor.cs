@@ -1,7 +1,5 @@
 using System.Runtime.CompilerServices;
-#if NET6_0_OR_GREATER
 using System.Runtime.InteropServices;
-#endif
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
@@ -300,9 +298,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
             && context.FieldSets.TryGetValue(b, out var bl))
         {
             var mergedSet = Unsafe.As<List<FieldInfo>>(context.RentFieldInfoList());
-#if NET6_0_OR_GREATER
             mergedSet.EnsureCapacity(al.Count + bl.Count);
-#endif
             CopyFieldInfos(Unsafe.As<List<FieldInfo>>(al), mergedSet);
             CopyFieldInfos(Unsafe.As<List<FieldInfo>>(bl), mergedSet);
             TryMergeFieldsInSet(context, mergedSet);
@@ -311,12 +307,6 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
 
     private static void CopyFieldInfos(List<FieldInfo> from, List<FieldInfo> to)
     {
-#if NETSTANDARD2_0
-        foreach (var field in from)
-        {
-            to.Add(field);
-        }
-#else
         ref var field = ref MemoryMarshal.GetReference(CollectionsMarshal.AsSpan(from));
         ref var end = ref Unsafe.Add(ref field, from.Count);
 
@@ -325,7 +315,6 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
             to.Add(field);
             field = ref Unsafe.Add(ref field, 1);
         }
-#endif
     }
 
     private static bool IsParentTypeAligned(FieldInfo fieldA, FieldInfo fieldB)
@@ -436,14 +425,6 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
         var next = context.NextFieldPairs;
         var current = context.CurrentFieldPairs;
 
-#if NETSTANDARD2_0
-        foreach (var pair in next)
-        {
-            current.Add(pair);
-        }
-
-        next.Clear();
-#else
         ref var pair = ref MemoryMarshal.GetReference(CollectionsMarshal.AsSpan(next));
         ref var end = ref Unsafe.Add(ref pair, next.Count);
 
@@ -456,21 +437,12 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
         }
 
         next.Clear();
-#endif
     }
 
     private static void ProcessCurrentFieldPairs(IDocumentValidatorContext context)
     {
         var current = context.CurrentFieldPairs;
 
-#if NETSTANDARD2_0
-        foreach (var pair in current)
-        {
-            TryMergeFieldsInSet(context, pair.FieldA, pair.FieldB);
-        }
-
-        current.Clear();
-#else
         ref var pair = ref MemoryMarshal.GetReference(CollectionsMarshal.AsSpan(current));
         ref var end = ref Unsafe.Add(ref pair, current.Count);
 
@@ -481,6 +453,5 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
         }
 
         current.Clear();
-#endif
     }
 }

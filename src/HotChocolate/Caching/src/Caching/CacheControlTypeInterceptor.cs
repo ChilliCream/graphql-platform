@@ -65,11 +65,7 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
         var length = objectDef.Fields.Count;
         var appliedDefaults = false;
 
-#if NET6_0_OR_GREATER
         var fields = ((BindableList<ObjectFieldDefinition>)objectDef.Fields).AsSpan();
-#else
-        var fields = (BindableList<ObjectFieldDefinition>)objectDef.Fields;
-#endif
 
         for (var i = 0; i < length; i++)
         {

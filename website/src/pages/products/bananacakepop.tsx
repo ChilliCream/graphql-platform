@@ -27,7 +27,6 @@ import {
   MostRecentBcpBlogPostsSection,
   NewsletterSection,
 } from "@/components/widgets";
-import { useAnimationIntersectionObserver } from "@/hooks";
 import {
   FONT_FAMILY_HEADING,
   IsDesktop,
@@ -53,8 +52,6 @@ const TITLE = "Banana Cake Pop / GraphQL IDE";
 
 const BananaCakePopPage: FC = () => {
   const appInfos = useAppInfos();
-
-  useAnimationIntersectionObserver();
 
   return (
     <SiteLayout>

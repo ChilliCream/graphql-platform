@@ -17,7 +17,7 @@ public static class RequestExecutorBuilderExtensions
         bool enableMutationConventions = false,
         MutationConventionOptions mutationConventionOptions = default)
     {
-        ArgumentNullException.ThrowIfNull(nameof(builder));
+        ArgumentNullException.ThrowIfNull(builder);
         ArgumentException.ThrowIfNullOrEmpty(nameof(httpClientName));
         ArgumentException.ThrowIfNullOrEmpty(nameof(openApiDocumentText));
 

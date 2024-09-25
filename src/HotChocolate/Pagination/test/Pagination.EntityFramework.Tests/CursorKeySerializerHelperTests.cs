@@ -93,7 +93,6 @@ public static class CursorKeySerializerHelperTests
         Assert.True(CursorKeySerializerHelper.EscapedNull.SequenceEqual(buffer));
     }
 
-#if NET8_0_OR_GREATER
     [Fact]
     public static void TryFormat_StringWithoutColons_FormatsCorrectly()
     {
@@ -125,7 +124,6 @@ public static class CursorKeySerializerHelperTests
         Assert.Equal(12, written); // "part1\\:part2" is 12 bytes
         Assert.Equal("part1\\:part2", Encoding.UTF8.GetString(buffer.Slice(0, written)));
     }
-#endif
 
     [Fact]
     public static void TryFormat_BufferTooSmall_ReturnsFalse()

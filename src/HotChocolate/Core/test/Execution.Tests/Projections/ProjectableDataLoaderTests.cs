@@ -1,4 +1,3 @@
-#if NET7_0_OR_GREATER
 using CookieCrumble;
 using GreenDonut;
 using GreenDonut.Projections;
@@ -44,11 +43,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-#if NET8_0_OR_GREATER
         Snapshot.Create()
-#else
-        Snapshot.Create(postFix: "NET7_0")
-#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -79,11 +74,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-#if NET8_0_OR_GREATER
         Snapshot.Create()
-#else
-        Snapshot.Create(postFix: "NET7_0")
-#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -118,11 +109,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-#if NET8_0_OR_GREATER
         Snapshot.Create()
-#else
-        Snapshot.Create(postFix: "NET7_0")
-#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -153,11 +140,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-#if NET8_0_OR_GREATER
         Snapshot.Create()
-#else
-        Snapshot.Create(postFix: "NET7_0")
-#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -191,11 +174,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-#if NET8_0_OR_GREATER
         Snapshot.Create()
-#else
-        Snapshot.Create(postFix: "NET7_0")
-#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -229,11 +208,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-#if NET8_0_OR_GREATER
         Snapshot.Create()
-#else
-        Snapshot.Create(postFix: "NET7_0")
-#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -273,11 +248,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-#if NET8_0_OR_GREATER
         Snapshot.Create()
-#else
-        Snapshot.Create(postFix: "NET7_0")
-#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -317,11 +288,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-#if NET8_0_OR_GREATER
         Snapshot.Create()
-#else
-        Snapshot.Create(postFix: "NET7_0")
-#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -357,11 +324,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-#if NET8_0_OR_GREATER
         Snapshot.Create()
-#else
-        Snapshot.Create(postFix: "NET7_0")
-#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -398,11 +361,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-#if NET8_0_OR_GREATER
         Snapshot.Create()
-#else
-        Snapshot.Create(postFix: "NET7_0")
-#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -434,11 +393,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-#if NET8_0_OR_GREATER
         Snapshot.Create()
-#else
-        Snapshot.Create(postFix: "NET7_0")
-#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -473,11 +428,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
 
         // at the moment we do not support projections on lists
         // so products will be empty and we will just select the brand.Id
-#if NET8_0_OR_GREATER
         Snapshot.Create()
-#else
-        Snapshot.Create(postFix: "NET7_0")
-#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -509,11 +460,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-#if NET8_0_OR_GREATER
         Snapshot.Create()
-#else
-        Snapshot.Create(postFix: "NET7_0")
-#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -681,4 +628,3 @@ file static class Extensions
         return snapshot;
     }
 }
-#endif

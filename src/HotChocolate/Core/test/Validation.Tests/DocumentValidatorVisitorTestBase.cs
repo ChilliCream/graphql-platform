@@ -1,8 +1,8 @@
+using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
 using HotChocolate.Validation.Options;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Validation;
 

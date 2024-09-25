@@ -1,4 +1,3 @@
-#pragma warning disable CS0618
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
@@ -143,4 +142,3 @@ public class QueryType : ObjectType
             });
     }
 }
-#pragma warning restore CS0618

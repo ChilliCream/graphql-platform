@@ -1,7 +1,7 @@
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 using Squadron;
 using StackExchange.Redis;
 

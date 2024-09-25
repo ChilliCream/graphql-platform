@@ -12,8 +12,7 @@ public class CacheDataLoaderTests
         var dataLoader = new CustomCacheDataLoader(
             new DataLoaderOptions
             {
-                Cache = cacheOwner.Cache,
-                CancellationToken = cacheOwner.CancellationToken,
+                Cache = cacheOwner.Cache
             });
 
         // act

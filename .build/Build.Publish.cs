@@ -46,10 +46,7 @@ partial class Build
         .Produces(PackageDirectory / "*.snupkg")
         .Executes(() =>
         {
-            var projFile = File.ReadAllText(StarWarsProj);
-            File.WriteAllText(StarWarsProj, projFile.Replace("14.0.0-preview.build.0", SemVersion));
-
-            projFile = File.ReadAllText(EmptyServer12Proj);
+            var projFile = File.ReadAllText(EmptyServer12Proj);
             File.WriteAllText(EmptyServer12Proj, projFile.Replace("14.0.0-preview.build.0", SemVersion));
 
             projFile = File.ReadAllText(EmptyAzf12Proj);
@@ -108,9 +105,7 @@ partial class Build
                 .SetVersion(SemVersion)
                 .SetOutputDirectory(PackageDirectory)
                 .SetConfiguration(Configuration)
-                .CombineWith(
-                    t => t.SetTargetPath(StarWarsTemplateNuSpec),
-                    t => t.SetTargetPath(TemplatesNuSpec)));
+                .CombineWith(t => t.SetTargetPath(TemplatesNuSpec)));
         });
 
     Target Publish => _ => _

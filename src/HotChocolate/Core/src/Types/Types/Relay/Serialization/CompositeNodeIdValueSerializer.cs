@@ -391,11 +391,7 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
                 return false;
             }
 
-#if NETSTANDARD2_0
-            value = new Guid(valueSpan.ToArray());
-#else
             value = new Guid(valueSpan);
-#endif
             consumed = index + 1;
             return true;
         }

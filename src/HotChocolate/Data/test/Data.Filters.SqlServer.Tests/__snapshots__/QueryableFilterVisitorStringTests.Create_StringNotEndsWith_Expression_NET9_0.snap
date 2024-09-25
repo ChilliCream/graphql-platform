@@ -1,0 +1,71 @@
+atest Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testbtest"
+      }
+    ]
+  }
+}
+---------------
+
+atest SQL:
+---------------
+.param set @__p_0_endswith '%atest'
+
+SELECT "d"."Id", "d"."Bar"
+FROM "Data" AS "d"
+WHERE "d"."Bar" NOT LIKE @__p_0_endswith ESCAPE '\'
+---------------
+
+btest Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testatest"
+      }
+    ]
+  }
+}
+---------------
+
+btest SQL:
+---------------
+.param set @__p_0_endswith '%btest'
+
+SELECT "d"."Id", "d"."Bar"
+FROM "Data" AS "d"
+WHERE "d"."Bar" NOT LIKE @__p_0_endswith ESCAPE '\'
+---------------
+
+null
+---------------
+{
+  "errors": [
+    {
+      "message": "The provided value for filter `nendsWith` of type StringOperationFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 35
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "String!",
+        "filterType": "StringOperationFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": null
+  }
+}
+---------------

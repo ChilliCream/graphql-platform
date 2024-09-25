@@ -256,11 +256,7 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
 
         if (fieldName.Length > 1)
         {
-#if NET6_0_OR_GREATER
             _sb.Append(fieldName.AsSpan()[1..]);
-#else
-            _sb.Append(fieldName.Substring(1));
-#endif
         }
 
         _sb.Append("Result");

@@ -146,16 +146,10 @@ public readonly struct FieldResult<TResult> : IFieldResult
     /// <summary>
     /// Defines if the mutation had an error and if the result represents a error result.
     /// </summary>
-#if NET5_0_OR_GREATER
     [MemberNotNullWhen(true, nameof(Errors))]
-#endif
     public bool IsError { get; }
 
-#if NET5_0_OR_GREATER
     object? IFieldResult.Value => IsSuccess ? Value : Errors;
-#else
-    object? IFieldResult.Value => IsSuccess ? Value : Errors!;
-#endif
 
     /// <summary>
     /// Implicitly converts the success result value <typeparamref name="TResult"/>
@@ -333,16 +327,10 @@ public readonly struct FieldResult<TResult, TError> : IFieldResult
     /// <summary>
     /// Defines if the mutation had an error and if the result represents a error result.
     /// </summary>
-#if NET5_0_OR_GREATER
     [MemberNotNullWhen(true, nameof(Errors))]
-#endif
     public bool IsError { get; }
 
-#if NET5_0_OR_GREATER
     object? IFieldResult.Value => IsSuccess ? Value : Errors;
-#else
-    object? IFieldResult.Value => IsSuccess ? Value : Errors!;
-#endif
 
     /// <summary>
     /// Implicitly converts the success result value <typeparamref name="TResult"/>
@@ -732,16 +720,10 @@ public readonly struct FieldResult<TResult, TError1, TError2> : IFieldResult
     /// <summary>
     /// Defines if the mutation had an error and if the result represents a error result.
     /// </summary>
-#if NET5_0_OR_GREATER
     [MemberNotNullWhen(true, nameof(Errors))]
-#endif
     public bool IsError { get; }
 
-#if NET5_0_OR_GREATER
     object? IFieldResult.Value => IsSuccess ? Value : Errors;
-#else
-    object? IFieldResult.Value => IsSuccess ? Value : Errors!;
-#endif
 
     /// <summary>
     /// Implicitly converts the success result value <typeparamref name="TResult"/>
@@ -1270,16 +1252,10 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3> : IFieldR
     /// <summary>
     /// Defines if the mutation had an error and if the result represents a error result.
     /// </summary>
-#if NET5_0_OR_GREATER
     [MemberNotNullWhen(true, nameof(Errors))]
-#endif
     public bool IsError { get; }
 
-#if NET5_0_OR_GREATER
     object? IFieldResult.Value => IsSuccess ? Value : Errors;
-#else
-    object? IFieldResult.Value => IsSuccess ? Value : Errors!;
-#endif
 
     /// <summary>
     /// Implicitly converts the success result value <typeparamref name="TResult"/>
@@ -1946,16 +1922,10 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
     /// <summary>
     /// Defines if the mutation had an error and if the result represents a error result.
     /// </summary>
-#if NET5_0_OR_GREATER
     [MemberNotNullWhen(true, nameof(Errors))]
-#endif
     public bool IsError { get; }
 
-#if NET5_0_OR_GREATER
     object? IFieldResult.Value => IsSuccess ? Value : Errors;
-#else
-    object? IFieldResult.Value => IsSuccess ? Value : Errors!;
-#endif
 
     /// <summary>
     /// Implicitly converts the success result value <typeparamref name="TResult"/>
@@ -2760,16 +2730,10 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
     /// <summary>
     /// Defines if the mutation had an error and if the result represents a error result.
     /// </summary>
-#if NET5_0_OR_GREATER
     [MemberNotNullWhen(true, nameof(Errors))]
-#endif
     public bool IsError { get; }
 
-#if NET5_0_OR_GREATER
     object? IFieldResult.Value => IsSuccess ? Value : Errors;
-#else
-    object? IFieldResult.Value => IsSuccess ? Value : Errors!;
-#endif
 
     /// <summary>
     /// Implicitly converts the success result value <typeparamref name="TResult"/>

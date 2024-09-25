@@ -1,5 +1,5 @@
+using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 using Xunit;
 using Xunit.Abstractions;
 using static GreenDonut.TestHelpers;
@@ -451,7 +451,6 @@ public class DataLoaderTests(ITestOutputHelper output)
         var options = new DataLoaderOptions
         {
             Cache = cacheOwner?.Cache,
-            CancellationToken = ct,
             MaxBatchSize = batching ? 1 : maxBatchSize,
         };
 

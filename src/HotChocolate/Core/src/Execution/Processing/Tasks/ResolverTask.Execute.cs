@@ -1,6 +1,4 @@
-#if NET6_0_OR_GREATER
 using System.Runtime.InteropServices;
-#endif
 using HotChocolate.Execution.Internal;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,12 +30,8 @@ internal sealed partial class ResolverTask
                         break;
 
                     default:
-#if NET6_0_OR_GREATER
                         _operationContext.Scheduler.Register(
                             CollectionsMarshal.AsSpan(_taskBuffer));
-#else
-                        _operationContext.Scheduler.Register(_taskBuffer);
-#endif
                         break;
                 }
             }
