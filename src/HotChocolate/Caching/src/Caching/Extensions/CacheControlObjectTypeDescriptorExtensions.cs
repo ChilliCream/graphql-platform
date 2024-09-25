@@ -26,8 +26,10 @@ public static class CacheControlObjectTypeDescriptorExtensions
     /// </param>
     public static IObjectTypeDescriptor CacheControl(
         this IObjectTypeDescriptor descriptor,
-        int? maxAge = null, CacheControlScope? scope = null,
-        int? sharedMaxAge = null, string[]? vary = null)
+        int? maxAge = null,
+        CacheControlScope? scope = null,
+        int? sharedMaxAge = null, 
+        string[]? vary = null)
     {
         if (descriptor is null)
         {
