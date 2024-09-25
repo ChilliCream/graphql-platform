@@ -13,6 +13,7 @@
     <InternalsVisibleTo Include="HotChocolate.Fusion.Tests.Shared" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.CommandLine" />
     <InternalsVisibleTo Include="BananaCakePop.Services.Fusion" />
+    <InternalsVisibleTo Include="ChilliCream.Nitro.Fusion" />
     <InternalsVisibleTo Include="CookieCrumble" />
   </ItemGroup>
 
