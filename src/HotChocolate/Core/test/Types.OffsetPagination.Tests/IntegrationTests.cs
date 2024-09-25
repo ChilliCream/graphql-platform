@@ -594,6 +594,8 @@ public class IntegrationTests
     [Fact]
     public async Task FluentPagingTests()
     {
+        var snapshot = new Snapshot();
+
         var executor =
             await new ServiceCollection()
                 .AddGraphQL()
@@ -602,14 +604,17 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
 
-        await executor
-            .ExecuteAsync(@"
+        snapshot.Add(
+            await executor.ExecuteAsync(
+                """
                 {
                     items {
                         items
                     }
-                }")
-            .MatchSnapshotAsync();
+                }
+                """));
+
+        await snapshot.MatchAsync();
     }
 
     [Fact]

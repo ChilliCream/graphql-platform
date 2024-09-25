@@ -10,7 +10,7 @@ namespace HotChocolate.Fetching;
 internal sealed class ExecutionDataLoaderScope(
     IServiceProvider serviceProvider,
     IBatchScheduler batchScheduler,
-    FrozenDictionary<Type, DataLoaderRegistration> registrations)
+    IReadOnlyDictionary<Type, DataLoaderRegistration> registrations)
     : IDataLoaderScope
 {
     private readonly ConcurrentDictionary<string, IDataLoader> _dataLoaders = new();
