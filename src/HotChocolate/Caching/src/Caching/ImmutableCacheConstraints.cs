@@ -2,7 +2,11 @@ namespace HotChocolate.Caching;
 
 internal sealed class ImmutableCacheConstraints : ICacheConstraints
 {
-    public ImmutableCacheConstraints(int? maxAge, int? sharedMaxAge, CacheControlScope scope, IReadOnlyCollection<string> vary)
+    public ImmutableCacheConstraints(
+        int? maxAge,
+        int? sharedMaxAge,
+        CacheControlScope scope,
+        IReadOnlyCollection<string> vary)
     {
         MaxAge = maxAge;
         SharedMaxAge = sharedMaxAge;
