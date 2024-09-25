@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -56,6 +57,44 @@ public static class DataLoaderListBatchTests
         }
 
         await Task.WhenAll(tasks);
+    }
+
+    [Fact]
+    public static async Task Ensure_Required_Keys_Are_Returned_One_Missing()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(5000);
+        var services = new ServiceCollection()
+            .AddDataLoader<UnresolvedTestDataLoader>()
+            .BuildServiceProvider();
+        var dataLoader = services.GetRequiredService<UnresolvedTestDataLoader>();
+
+        // act
+        async Task Error()
+            => await dataLoader.LoadRequiredAsync([1, 2], cts.Token);
+
+        // assert
+        var ex = await Assert.ThrowsAsync<KeyNotFoundException>(Error);
+        Assert.Equal("The key `1` could not be resolved.", ex.Message);
+    }
+
+    [Fact]
+    public static async Task Ensure_Required_Keys_Are_Returned_Two_Missing()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(5000);
+        var services = new ServiceCollection()
+            .AddDataLoader<UnresolvedTestDataLoader>()
+            .BuildServiceProvider();
+        var dataLoader = services.GetRequiredService<UnresolvedTestDataLoader>();
+
+        // act
+        async Task Error()
+            => await dataLoader.LoadRequiredAsync([1, 2, 3], cts.Token);
+
+        // assert
+        var ex = await Assert.ThrowsAsync<KeyNotFoundException>(Error);
+        Assert.Equal("The keys `1, 3` could not be resolved.", ex.Message);
     }
 
     [Fact]
@@ -148,6 +187,24 @@ public static class DataLoaderListBatchTests
 
             return runNumbers
                 .Select(runNumber => (runNumber, Enumerable.Range(0, 500)))
+                .ToDictionary(t => t.runNumber, t => t.Item2.ToArray());
+        }
+    }
+
+    private sealed class UnresolvedTestDataLoader(
+        IBatchScheduler batchScheduler,
+        DataLoaderOptions options)
+        : BatchDataLoader<int, int[]>(batchScheduler, options)
+    {
+        protected override async Task<IReadOnlyDictionary<int, int[]>> LoadBatchAsync(
+            IReadOnlyList<int> runNumbers,
+            CancellationToken cancellationToken)
+        {
+            await Task.Delay(300, cancellationToken).ConfigureAwait(false);
+
+            return runNumbers
+                .Select(runNumber => (runNumber, Enumerable.Range(0, 500)))
+                .Where(t => t.runNumber % 2 == 0)
                 .ToDictionary(t => t.runNumber, t => t.Item2.ToArray());
         }
     }
