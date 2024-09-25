@@ -163,22 +163,29 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
                 subgraphName,
                 context.ShowDebugInfo);
 
-        ErrorTrie? errorTrie = null;
+        ErrorTrie? unwrappedErrorTrie = null;
         if (errors is not null)
         {
             ApplyErrorsWithoutPathToResult(context.Result, errors);
 
-            errorTrie = ErrorTrie.FromErrors(errors);
+            var errorTrie = ErrorTrie.FromErrors(errors);
+            unwrappedErrorTrie = UnwrapErrors(errorTrie);
         }
 
         while (Unsafe.IsAddressLessThan(ref batchState, ref end))
         {
-            if (result.TryGetValue(batchState.Key, out var data))
+            if (result.TryGetValue(batchState.Key, out var listResult))
             {
-                if (errorTrie is not null)
+                var data = listResult.Data;
+
+                if (unwrappedErrorTrie is not null && unwrappedErrorTrie.TryGetValue(listResult.Index, out var errorTrieAtIndex))
                 {
-                    // TODO: Drill down into trie so starting paths match
-                    batchState.SetErrorTrie(errorTrie);
+                    var errorTrie = ExtractErrors(SelectionSet, errorTrieAtIndex);
+
+                    if (errorTrie is not null)
+                    {
+                        batchState.SetErrorTrie(errorTrie);
+                    }
                 }
 
                 ExtractSelectionResults(SelectionSet, SubgraphName, data, batchState.SelectionSetData);
@@ -247,7 +254,9 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
         return variableValues;
     }
 
-    private Dictionary<string, JsonElement> UnwrapResult(
+    private record ListResult(int Index, JsonElement Data);
+
+    private Dictionary<string, ListResult> UnwrapResult(
         GraphQLResponse response,
         IReadOnlyList<string> exportKeys)
     {
@@ -256,7 +265,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
 
         if (data.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
         {
-            return new Dictionary<string, JsonElement>();
+            return new Dictionary<string, ListResult>();
         }
 
         if (path.Length > 0)
@@ -266,26 +275,31 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
 
         if (data.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
         {
-            return new Dictionary<string, JsonElement>();
+            return new Dictionary<string, ListResult>();
         }
 
-        var result = new Dictionary<string, JsonElement>();
+        var result = new Dictionary<string, ListResult>();
 
         if (exportKeys.Count == 1)
         {
             var key = exportKeys[0];
 
+            var index = 0;
             foreach (var element in data.EnumerateArray())
             {
                 if (element.ValueKind is not JsonValueKind.Null &&
                     element.TryGetProperty(key, out var keyValue))
                 {
-                    result.TryAdd(FormatKeyValue(keyValue), element);
+                    var listItem = new ListResult(index, element);
+                    result.TryAdd(FormatKeyValue(keyValue), listItem);
                 }
+
+                index++;
             }
         }
         else
         {
+            var index = 0;
             foreach (var element in data.EnumerateArray())
             {
                 var key = string.Empty;
@@ -298,7 +312,10 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
                     }
                 }
 
-                result.TryAdd(key, element);
+                var listItem = new ListResult(index, element);
+                result.TryAdd(key, listItem);
+
+                index++;
             }
         }
 

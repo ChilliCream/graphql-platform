@@ -234,7 +234,7 @@ internal static class ExecutionUtils
             result.AddUnsafe(null);
 
             ErrorTrie? errorTrieForArrayItem = null;
-            if (errorTrie?.TryGetValue(index, out errorTrieForArrayItem) == true)
+            if (errorTrie?.TryGetValue(index.ToString(), out errorTrieForArrayItem) == true)
             {
                 if (errorTrieForArrayItem.Errors is not null)
                 {

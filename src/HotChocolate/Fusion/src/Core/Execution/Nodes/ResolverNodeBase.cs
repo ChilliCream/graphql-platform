@@ -197,15 +197,15 @@ internal abstract partial class ResolverNodeBase : QueryPlanNode
 
     protected ErrorTrie? UnwrapErrors(ErrorTrie errorTrie)
     {
-        if (_path.Length == 0)
+        if (Path.Length == 0)
         {
             return errorTrie;
         }
 
         var currentErrorTrie = errorTrie;
 
-        ref var segment = ref MemoryMarshal.GetArrayDataReference(_path);
-        ref var end = ref Unsafe.Add(ref segment, _path.Length);
+        ref var segment = ref MemoryMarshal.GetArrayDataReference(Path);
+        ref var end = ref Unsafe.Add(ref segment, Path.Length);
 
         while (Unsafe.IsAddressLessThan(ref segment, ref end))
         {

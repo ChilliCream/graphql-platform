@@ -27,6 +27,7 @@ public class ErrorTrie : Dictionary<object, ErrorTrie>
             for (var i = 0; i < pathSegments.Count; i++)
             {
                 var pathSegment = pathSegments[i];
+
                 if (currentTrie.TryGetValue(pathSegment, out var trieAtPath))
                 {
                     currentTrie = trieAtPath;
