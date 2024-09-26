@@ -1,24 +1,19 @@
+using System.Collections.Immutable;
+
 namespace HotChocolate.Caching;
 
-internal sealed class ImmutableCacheConstraints : ICacheConstraints
+internal sealed class ImmutableCacheConstraints(
+    int? maxAge,
+    int? sharedMaxAge,
+    CacheControlScope scope,
+    ImmutableArray<string> vary)
+    : ICacheConstraints
 {
-    public ImmutableCacheConstraints(
-        int? maxAge,
-        int? sharedMaxAge,
-        CacheControlScope scope,
-        IReadOnlyCollection<string> vary)
-    {
-        MaxAge = maxAge;
-        SharedMaxAge = sharedMaxAge;
-        Scope = scope;
-        Vary = vary;
-    }
+    public int? MaxAge { get; } = maxAge;
 
-    public int? MaxAge { get; }
+    public int? SharedMaxAge { get; } = sharedMaxAge;
 
-    public int? SharedMaxAge { get; }
+    public CacheControlScope Scope { get; } = scope;
 
-    public CacheControlScope Scope { get; }
-
-    public IReadOnlyCollection<string> Vary { get; }
+    public ImmutableArray<string> Vary { get; } = vary;
 }

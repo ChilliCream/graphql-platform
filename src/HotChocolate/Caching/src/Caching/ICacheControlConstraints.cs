@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Caching;
@@ -27,5 +28,5 @@ public interface ICacheConstraints
     /// <summary>
     /// Headers that shall be used to determine the cache key.
     /// </summary>
-    public IReadOnlyCollection<string> Vary { get; }
+    ImmutableArray<string> Vary { get; }
 }

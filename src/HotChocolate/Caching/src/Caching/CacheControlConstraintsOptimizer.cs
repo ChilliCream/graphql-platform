@@ -1,13 +1,11 @@
-using System.Linq;
+using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
-using System.Text;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
 using HotChocolate.Utilities;
 using Microsoft.Net.Http.Headers;
-using Microsoft.Extensions.Primitives;
 using IHasDirectives = HotChocolate.Types.IHasDirectives;
 
 namespace HotChocolate.Caching;
@@ -46,7 +44,7 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
                     constraints.MaxAge,
                     constraints.SharedMaxAge,
                     constraints.Scope,
-                    constraints.Vary ?? []));
+                    constraints.Vary?.ToImmutableArray() ?? []));
 
             context.ContextData.Add(
                 WellKnownContextData.CacheControlHeaderValue,
