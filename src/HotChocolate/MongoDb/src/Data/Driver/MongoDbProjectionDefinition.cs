@@ -26,6 +26,11 @@ public abstract class MongoDbProjectionDefinition : ProjectionDefinition<BsonDoc
         return Render(documentSerializer, serializerRegistry);
     }
 
+    public override BsonDocument Render(RenderArgs<BsonDocument> args)
+    {
+        return Render(args.DocumentSerializer, args.SerializerRegistry);
+    }
+
     public ProjectionDefinition<T> ToProjectionDefinition<T>() =>
         new ProjectionDefinitionWrapper<T>(this);
 
@@ -51,6 +56,11 @@ public abstract class MongoDbProjectionDefinition : ProjectionDefinition<BsonDoc
             LinqProvider provider)
         {
             return Render(documentSerializer, serializerRegistry);
+        }
+
+        public override BsonDocument Render(RenderArgs<T> args)
+        {
+            return _filter.Render(args.DocumentSerializer, args.SerializerRegistry);
         }
     }
 }

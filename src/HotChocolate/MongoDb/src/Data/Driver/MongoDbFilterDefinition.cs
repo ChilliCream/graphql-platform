@@ -33,6 +33,11 @@ public abstract class MongoDbFilterDefinition : FilterDefinition<BsonDocument>
         return Render(documentSerializer, serializerRegistry);
     }
 
+    public override BsonDocument Render(RenderArgs<BsonDocument> args)
+    {
+        return Render(args.DocumentSerializer, args.SerializerRegistry);
+    }
+
     public FilterDefinition<T> ToFilterDefinition<T>() => new FilterDefinitionWrapper<T>(this);
 
     private sealed class FilterDefinitionWrapper<T> : FilterDefinition<T>
@@ -57,6 +62,11 @@ public abstract class MongoDbFilterDefinition : FilterDefinition<BsonDocument>
             LinqProvider provider)
         {
             return Render(documentSerializer, serializerRegistry);
+        }
+
+        public override BsonDocument Render(RenderArgs<T> args)
+        {
+            return _filter.Render(args.DocumentSerializer, args.SerializerRegistry);
         }
     }
 

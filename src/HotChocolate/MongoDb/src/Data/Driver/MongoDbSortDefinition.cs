@@ -26,6 +26,11 @@ public abstract class MongoDbSortDefinition : SortDefinition<BsonDocument>
         return Render(documentSerializer, serializerRegistry);
     }
 
+    public override BsonDocument Render(RenderArgs<BsonDocument> args)
+    {
+        return Render(args.DocumentSerializer, args.SerializerRegistry);
+    }
+
     public SortDefinition<T> ToSortDefinition<T>() => new SortDefinitionWrapper<T>(this);
 
     private sealed class SortDefinitionWrapper<TDocument> : SortDefinition<TDocument>
@@ -50,6 +55,11 @@ public abstract class MongoDbSortDefinition : SortDefinition<BsonDocument>
             LinqProvider provider)
         {
             return Render(documentSerializer, serializerRegistry);
+        }
+
+        public override BsonDocument Render(RenderArgs<TDocument> args)
+        {
+            return _sort.Render(args.DocumentSerializer, args.SerializerRegistry);
         }
     }
 }
