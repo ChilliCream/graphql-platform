@@ -1,6 +1,4 @@
 <!-- markdownlint-disable-next-line MD041 -->
-![ChilliCream GraphQL Platform](https://chillicream.com/resources/chillicream-graphql-banner.svg)
-
 [![NuGet Package](https://img.shields.io/nuget/v/hotchocolate.svg)](https://www.nuget.org/packages/HotChocolate/)
 [![License](https://img.shields.io/badge/license-MIT-green)](https://github.com/ChilliCream/graphql-platform/blob/main/LICENSE)
 [![Slack channel](https://img.shields.io/badge/join%20the%20community-on%20slack-blue.svg)](http://slack.chillicream.com/)
