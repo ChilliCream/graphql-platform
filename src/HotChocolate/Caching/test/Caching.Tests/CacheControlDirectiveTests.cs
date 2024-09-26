@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Xunit;
 
 namespace HotChocolate.Caching.Tests;
@@ -43,11 +44,11 @@ public class CacheControlDirectiveTests
 
     [Theory]
     [InlineData(null)]
-    [InlineData(new object[] {new string[0]})]
-    [InlineData(new object[] {new[] {"a", "b"}})]
+    [InlineData([new string[0]])]
+    [InlineData([new[] {"a", "b"}])]
     public void ValidVary(string[]? vary)
     {
-        var cacheControl = new CacheControlDirective(0, vary: vary);
+        var cacheControl = new CacheControlDirective(0, vary: vary?.ToImmutableArray());
 
         Assert.Equal(vary, cacheControl.Vary);
     }

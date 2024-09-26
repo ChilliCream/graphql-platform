@@ -32,7 +32,9 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
             var headerValue = new CacheControlHeaderValue
             {
                 Private = constraints.Scope == CacheControlScope.Private,
-                MaxAge = constraints.MaxAge is not null ? TimeSpan.FromSeconds(constraints.MaxAge.Value) : null,
+                MaxAge = constraints.MaxAge is not null
+                    ? TimeSpan.FromSeconds(constraints.MaxAge.Value)
+                    : null,
                 SharedMaxAge = constraints.SharedMaxAge is not null
                     ? TimeSpan.FromSeconds(constraints.SharedMaxAge.Value)
                     : null,
@@ -40,18 +42,14 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
 
             context.ContextData.Add(
                 WellKnownContextData.CacheControlConstraints,
-                new ImmutableCacheConstraints(
-                    constraints.MaxAge,
-                    constraints.SharedMaxAge,
-                    constraints.Scope,
-                    constraints.Vary?.ToImmutableArray() ?? []));
+                constraints);
 
             context.ContextData.Add(
                 WellKnownContextData.CacheControlHeaderValue,
                 headerValue);
         }
 
-        if (constraints.Vary is {Length: > 0})
+        if (constraints.Vary is { Length: > 0 })
         {
             context.ContextData.Add(
                 WellKnownContextData.VaryHeaderValue,
@@ -59,7 +57,7 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
         }
     }
 
-    private static CacheControlConstraints ComputeCacheControlConstraints(
+    private static ImmutableCacheConstraints ComputeCacheControlConstraints(
         IOperation operation)
     {
         var constraints = new CacheControlConstraints();
@@ -70,7 +68,28 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
             ProcessSelection(rootSelection, constraints, operation);
         }
 
-        return constraints;
+        ImmutableArray<string> vary;
+        if (constraints.Vary is not null)
+        {
+            var builder = ImmutableArray.CreateBuilder<string>();
+
+            foreach (var value in constraints.Vary.Order(StringComparer.OrdinalIgnoreCase))
+            {
+                builder.Add(value.ToLowerInvariant());
+            }
+
+            vary = builder.ToImmutable();
+        }
+        else
+        {
+            vary = ImmutableArray<string>.Empty;
+        }
+
+        return new ImmutableCacheConstraints(
+            constraints.MaxAge,
+            constraints.SharedMaxAge,
+            constraints.Scope,
+            vary);
     }
 
     private static void ProcessSelection(
@@ -190,17 +209,13 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
                     scopeSet = true;
                 }
 
-                if (directive.Vary is {Length: > 0})
+                if (directive.Vary is { Length: > 0 })
                 {
-                    if (constraints.Vary != null)
+                    constraints.Vary ??= new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+                    foreach (var value in directive.Vary)
                     {
-                        constraints.Vary = constraints.Vary.Concat(directive.Vary.Select(x => x.ToLowerInvariant()))
-                            .Distinct().OrderBy(x => x).ToArray();
-                    }
-                    else
-                    {
-                        constraints.Vary = directive.Vary.Select(x => x.ToLowerInvariant()).Distinct().OrderBy(x => x)
-                            .ToArray();
+                        constraints.Vary.Add(value);
                     }
 
                     varySet = true;
@@ -236,6 +251,6 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
 
         internal int? SharedMaxAge { get; set; }
 
-        internal string[]? Vary { get; set; }
+        internal HashSet<string>? Vary { get; set; }
     }
 }

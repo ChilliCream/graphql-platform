@@ -130,7 +130,7 @@
     <value>The maximum amount of time this field's cached value is valid in shared caches like CDNs, in seconds.</value>
   </data>
   <data name="CacheControlDirectiveType_Vary" xml:space="preserve">
-    <value>List of headers that might affect the value of this field's value.</value>
+    <value>The Vary HTTP response header describes the parts of the request message aside from the method and URL that influenced the content of the response it occurs in. Most often, this is used to create a cache key when content negotiation is in use.</value>
   </data>
   <data name="CacheControlDirectiveType_Scope" xml:space="preserve">
     <value>If `PRIVATE`, the field's value is specific to a single user. The default value is `PUBLIC`, which means the field's value is not tied to a single user.</value>

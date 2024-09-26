@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Caching;
 
 namespace HotChocolate.Types;
@@ -37,6 +38,11 @@ public static class CacheControlUnionTypeDescriptorExtensions
         }
 
         return descriptor.Directive(
-            new CacheControlDirective(maxAge, scope, null, sharedMaxAge, vary));
+            new CacheControlDirective(
+                maxAge,
+                scope,
+                null,
+                sharedMaxAge,
+                vary?.ToImmutableArray()));
     }
 }

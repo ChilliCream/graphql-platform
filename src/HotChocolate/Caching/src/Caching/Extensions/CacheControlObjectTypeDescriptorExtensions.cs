@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Caching;
 
 namespace HotChocolate.Types;
@@ -28,7 +29,7 @@ public static class CacheControlObjectTypeDescriptorExtensions
         this IObjectTypeDescriptor descriptor,
         int? maxAge = null,
         CacheControlScope? scope = null,
-        int? sharedMaxAge = null, 
+        int? sharedMaxAge = null,
         string[]? vary = null)
     {
         if (descriptor is null)
@@ -37,7 +38,12 @@ public static class CacheControlObjectTypeDescriptorExtensions
         }
 
         return descriptor.Directive(
-            new CacheControlDirective(maxAge, scope, null, sharedMaxAge, vary));
+            new CacheControlDirective(
+                maxAge,
+                scope,
+                null,
+                sharedMaxAge,
+                vary?.ToImmutableArray()));
     }
 
     /// <summary>

@@ -93,7 +93,7 @@ public sealed class CacheControlAttribute : DescriptorAttribute
     /// </summary>
     public string[]? Vary
     {
-        get => _vary ?? Array.Empty<string>();
+        get => _vary ?? [];
         set => _vary = value;
     }
 }

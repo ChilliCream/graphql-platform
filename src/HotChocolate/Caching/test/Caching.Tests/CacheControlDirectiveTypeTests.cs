@@ -33,8 +33,8 @@ public class CacheControlDirectiveTypeTests
             },
             t =>
             {
-                Assert.Equal("scope", t.Name);
-                Assert.IsType<CacheControlScopeType>(t.Type);
+                Assert.Equal("sharedMaxAge", t.Name);
+                Assert.IsType<IntType>(t.Type);
             },
             t =>
             {
@@ -43,8 +43,8 @@ public class CacheControlDirectiveTypeTests
             },
             t =>
             {
-                Assert.Equal("sharedMaxAge", t.Name);
-                Assert.IsType<IntType>(t.Type);
+                Assert.Equal("scope", t.Name);
+                Assert.IsType<CacheControlScopeType>(t.Type);
             },
             t =>
             {
