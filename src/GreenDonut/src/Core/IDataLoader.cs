@@ -59,13 +59,31 @@ public interface IDataLoader
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Adds a new entry to the cache if not already exists.
+    /// </summary>
+    /// <param name="key">A cache entry key.</param>
+    /// <param name="value">A cache entry value.</param>
+    /// <exception cref="ArgumentNullException">
+    /// Throws if <paramref name="key"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    /// Throws if <paramref name="value"/> is <c>null</c>.
+    /// </exception>
+    void SetCacheEntry(object key, Task<object?> value);
+
+    /// <summary>
     /// Removes a single entry from the cache.
     /// </summary>
     /// <param name="key">A cache entry key.</param>
     /// <exception cref="ArgumentNullException">
     /// Throws if <paramref name="key"/> is <c>null</c>.
     /// </exception>
-    void Remove(object key);
+    void RemoveCacheEntry(object key);
+
+    /// <summary>
+    /// Empties the complete cache.
+    /// </summary>
+    void ClearCache();
 
     /// <summary>
     /// Adds a new entry to the cache if not already exists.
@@ -78,11 +96,23 @@ public interface IDataLoader
     /// <exception cref="ArgumentNullException">
     /// Throws if <paramref name="value"/> is <c>null</c>.
     /// </exception>
+    [Obsolete("Use SetCacheEntry instead.")]
     void Set(object key, Task<object?> value);
+
+    /// <summary>
+    /// Removes a single entry from the cache.
+    /// </summary>
+    /// <param name="key">A cache entry key.</param>
+    /// <exception cref="ArgumentNullException">
+    /// Throws if <paramref name="key"/> is <c>null</c>.
+    /// </exception>
+    [Obsolete("Use RemoveCacheEntry instead.")]
+    void Remove(object key);
 
     /// <summary>
     /// Empties the complete cache.
     /// </summary>
+    [Obsolete("Use ClearCache instead.")]
     void Clear();
 }
 
@@ -141,13 +171,26 @@ public interface IDataLoader<in TKey, TValue>
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Adds a new entry to the cache if not already exists.
+    /// </summary>
+    /// <param name="key">A cache entry key.</param>
+    /// <param name="value">A cache entry value.</param>
+    /// <exception cref="ArgumentNullException">
+    /// Throws if <paramref name="key"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    /// Throws if <paramref name="value"/> is <c>null</c>.
+    /// </exception>
+    void SetCacheEntry(TKey key, Task<TValue?> value);
+
+    /// <summary>
     /// Removes a single entry from the cache.
     /// </summary>
     /// <param name="key">A cache entry key.</param>
     /// <exception cref="ArgumentNullException">
     /// Throws if <paramref name="key"/> is <c>null</c>.
     /// </exception>
-    void Remove(TKey key);
+    void RemoveCacheEntry(TKey key);
 
     /// <summary>
     /// Adds a new entry to the cache if not already exists.
@@ -160,7 +203,18 @@ public interface IDataLoader<in TKey, TValue>
     /// <exception cref="ArgumentNullException">
     /// Throws if <paramref name="value"/> is <c>null</c>.
     /// </exception>
+    [Obsolete("Use SetCacheEntry instead.")]
     void Set(TKey key, Task<TValue?> value);
+
+    /// <summary>
+    /// Removes a single entry from the cache.
+    /// </summary>
+    /// <param name="key">A cache entry key.</param>
+    /// <exception cref="ArgumentNullException">
+    /// Throws if <paramref name="key"/> is <c>null</c>.
+    /// </exception>
+    [Obsolete("Use RemoveCacheEntry instead.")]
+    void Remove(TKey key);
 
     /// <summary>
     /// Branches the current <c>DataLoader</c>.

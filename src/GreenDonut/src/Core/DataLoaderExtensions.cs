@@ -150,7 +150,7 @@ public static class DataLoaderExtensions
     /// <exception cref="ArgumentNullException">
     /// Throws if <paramref name="key"/> is <c>null</c>.
     /// </exception>
-    public static void Set<TKey, TValue>(
+    public static void SetCacheEntry<TKey, TValue>(
         this IDataLoader<TKey, TValue> dataLoader,
         TKey key,
         TValue? value)
@@ -166,7 +166,7 @@ public static class DataLoaderExtensions
             throw new ArgumentNullException(nameof(key));
         }
 
-        dataLoader.Set(key, Task.FromResult(value));
+        dataLoader.SetCacheEntry(key, Task.FromResult(value));
     }
 
     /// <summary>
@@ -181,7 +181,7 @@ public static class DataLoaderExtensions
     /// <exception cref="ArgumentNullException">
     /// Throws if <paramref name="key"/> is <c>null</c>.
     /// </exception>
-    public static void Set(
+    public static void SetCacheEntry(
         this IDataLoader dataLoader,
         object key,
         object? value)
@@ -196,7 +196,52 @@ public static class DataLoaderExtensions
             throw new ArgumentNullException(nameof(key));
         }
 
-        dataLoader.Set(key, Task.FromResult(value));
+        dataLoader.SetCacheEntry(key, Task.FromResult(value));
+    }
+
+    /// <summary>
+    /// Adds a new entry to the cache if not already exists.
+    /// </summary>
+    /// <typeparam name="TKey">A key type.</typeparam>
+    /// <typeparam name="TValue">A value type.</typeparam>
+    /// <param name="dataLoader">A data loader instance.</param>
+    /// <param name="key">A cache entry key.</param>
+    /// <param name="value">A cache entry value.</param>
+    /// <exception cref="ArgumentNullException">
+    /// Throws if <paramref name="dataLoader"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    /// Throws if <paramref name="key"/> is <c>null</c>.
+    /// </exception>
+    [Obsolete("Use SetCacheEntry instead.")]
+    public static void Set<TKey, TValue>(
+        this IDataLoader<TKey, TValue> dataLoader,
+        TKey key,
+        TValue? value)
+        where TKey : notnull
+    {
+        SetCacheEntry(dataLoader, key, value);
+    }
+
+    /// <summary>
+    /// Adds a new entry to the cache if not already exists.
+    /// </summary>
+    /// <param name="dataLoader">A data loader instance.</param>
+    /// <param name="key">A cache entry key.</param>
+    /// <param name="value">A cache entry value.</param>
+    /// <exception cref="ArgumentNullException">
+    /// Throws if <paramref name="dataLoader"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    /// Throws if <paramref name="key"/> is <c>null</c>.
+    /// </exception>
+    [Obsolete("Use SetCacheEntry instead.")]
+    public static void Set(
+        this IDataLoader dataLoader,
+        object key,
+        object? value)
+    {
+        SetCacheEntry(dataLoader, key, value);
     }
 
     /// <summary>
