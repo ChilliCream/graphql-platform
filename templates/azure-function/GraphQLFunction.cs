@@ -2,7 +2,7 @@ using HotChocolate.AzureFunctions;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 
-namespace HotChocolate.Template.AzureFunctions.Isolated;
+namespace HotChocolate.Template.AzureFunctions;
 
 public class GraphQLFunction
 {

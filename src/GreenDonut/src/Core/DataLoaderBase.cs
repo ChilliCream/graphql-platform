@@ -228,22 +228,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     }
 
     /// <inheritdoc />
-    public void Remove(TKey key)
-    {
-        if (key is null)
-        {
-            throw new ArgumentNullException(nameof(key));
-        }
-
-        if (Cache is not null)
-        {
-            PromiseCacheKey cacheKey = new(CacheKeyType, key);
-            Cache.TryRemove(cacheKey);
-        }
-    }
-
-    /// <inheritdoc />
-    public void Set(TKey key, Task<TValue?> value)
+    public void SetCacheEntry(TKey key, Task<TValue?> value)
     {
         if (key == null)
         {
@@ -260,6 +245,35 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             PromiseCacheKey cacheKey = new(CacheKeyType, key);
             Cache.TryAdd(cacheKey, new Promise<TValue?>(value));
         }
+    }
+
+    /// <inheritdoc />
+    public void RemoveCacheEntry(TKey key)
+    {
+        if (key is null)
+        {
+            throw new ArgumentNullException(nameof(key));
+        }
+
+        if (Cache is not null)
+        {
+            PromiseCacheKey cacheKey = new(CacheKeyType, key);
+            Cache.TryRemove(cacheKey);
+        }
+    }
+
+    /// <inheritdoc />
+    [Obsolete("Use SetCacheEntry instead.")]
+    public void Set(TKey key, Task<TValue?> value)
+    {
+        SetCacheEntry(key, value);
+    }
+
+    /// <inheritdoc />
+    [Obsolete("Use RemoveCacheEntry instead.")]
+    public void Remove(TKey key)
+    {
+        RemoveCacheEntry(key);
     }
 
     /// <inheritdoc />

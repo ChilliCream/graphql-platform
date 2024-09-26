@@ -11,7 +11,7 @@
     <Using Include="System.Threading.ExecutionContext" Alias="ExecutionContext" />
     <Using Include="Microsoft.Azure.Functions.Extensions.DependencyInjection" />
     <Using Include="Microsoft.Extensions.DependencyInjection" />
-    <Using Include="HotChocolate.Template.AzureFunctions.Isolated" />
+    <Using Include="HotChocolate.Template.AzureFunctions" />
   </ItemGroup>
 
   <ItemGroup>
