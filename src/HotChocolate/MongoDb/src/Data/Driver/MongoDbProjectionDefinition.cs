@@ -11,25 +11,16 @@ public abstract class MongoDbProjectionDefinition : ProjectionDefinition<BsonDoc
         IBsonSerializerRegistry serializerRegistry);
 
     public override BsonDocument Render(RenderArgs<BsonDocument> args)
-    {
-        return Render(args.DocumentSerializer, args.SerializerRegistry);
-    }
+        => Render(args.DocumentSerializer, args.SerializerRegistry);
 
     public ProjectionDefinition<T> ToProjectionDefinition<T>() =>
         new ProjectionDefinitionWrapper<T>(this);
 
-    private sealed class ProjectionDefinitionWrapper<T> : ProjectionDefinition<T>
+    private sealed class ProjectionDefinitionWrapper<T>(
+        MongoDbProjectionDefinition filter)
+        : ProjectionDefinition<T>
     {
-        private readonly MongoDbProjectionDefinition _filter;
-
-        public ProjectionDefinitionWrapper(MongoDbProjectionDefinition filter)
-        {
-            _filter = filter;
-        }
-
         public override BsonDocument Render(RenderArgs<T> args)
-        {
-            return _filter.Render(args.DocumentSerializer, args.SerializerRegistry);
-        }
+            => filter.Render(args.DocumentSerializer, args.SerializerRegistry);
     }
 }
