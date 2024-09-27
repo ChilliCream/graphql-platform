@@ -147,28 +147,48 @@ internal sealed class Resolve(int id, Config config) : ResolverNodeBase(id, conf
             var exportKeys = state.Requires;
             var variableValues = state.VariableValues;
 
-            var errors = response.TransportException is not null
-                ? CreateTransportErrors(
-                    response.TransportException,
-                    context.ErrorHandler,
-                    selectionSetResult,
-                    RootSelections,
-                    subgraphName,
-                    context.ShowDebugInfo)
-                : ExtractErrors(
+            var errors = ExtractErrors(
                     context.ErrorHandler,
                     response.Errors,
                     subgraphName,
                     context.ShowDebugInfo);
 
+            ErrorTrie? subgraphErrorTrie = null;
             if (errors is not null)
             {
                 ApplyErrorsWithoutPathToResult(context.Result, errors);
 
-                var initialErrorTrie = ErrorTrie.FromErrors(errors);
-                var unwrappedErrorTrie = UnwrapErrors(initialErrorTrie);
-                var errorTrie = ExtractErrors(SelectionSet, unwrappedErrorTrie);
+                subgraphErrorTrie = ErrorTrie.FromErrors(errors);
+            }
 
+            IError? transportError = null;
+            if (response.TransportException is not null)
+            {
+                transportError = CreateTransportError(
+                    response.TransportException,
+                    context.ErrorHandler,
+                    subgraphName,
+                    context.ShowDebugInfo);
+            }
+
+            ErrorTrie? errorTrie = null;
+            if (subgraphErrorTrie is not null)
+            {
+                var unwrappedErrorTrie = UnwrapErrors(subgraphErrorTrie);
+                errorTrie = ExtractErrors(SelectionSet, unwrappedErrorTrie);
+
+                if (errorTrie is null)
+                {
+                    errorTrie = GetErrorTrieForChildrenFromErrorsOnPath(subgraphErrorTrie, RootSelections, Path);
+                }
+            }
+            else if (transportError is not null)
+            {
+                errorTrie = GetErrorTrieForChildren(transportError, RootSelections);
+            }
+
+            if (errorTrie is not null)
+            {
                 state.ErrorTrie = errorTrie;
             }
 

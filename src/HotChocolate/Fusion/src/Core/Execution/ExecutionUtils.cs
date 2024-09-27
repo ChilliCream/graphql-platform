@@ -518,7 +518,7 @@ internal static class ExecutionUtils
             return null;
         }
 
-        var newErrorTrie = new ErrorTrie();
+        ErrorTrie? newErrorTrie = null;
 
         ref var currentSelection = ref selectionSet.GetSelectionsReference();
         ref var endSelection = ref Unsafe.Add(ref currentSelection, selectionSet.Selections.Count);
@@ -527,6 +527,11 @@ internal static class ExecutionUtils
         {
             if (errorTrie.TryGetValue(currentSelection.ResponseName, out var subErrorTrie))
             {
+                if (newErrorTrie is null)
+                {
+                    newErrorTrie = new();
+                }
+
                 newErrorTrie.Add(currentSelection.ResponseName, subErrorTrie);
             }
 
@@ -616,34 +621,68 @@ internal static class ExecutionUtils
         return errorHandler.Handle(errorBuilder.Build());
     }
 
-    public static List<IError> CreateTransportErrors(
-        Exception transportException,
-        IErrorHandler errorHandler,
-        ObjectResult selectionSetResult,
-        List<RootSelection> rootSelections,
-        string subgraphName,
-        bool addDebugInfo)
+    public static ErrorTrie GetErrorTrieForChildren(IError error, List<RootSelection> rootSelections)
     {
-        var errors = new List<IError>();
+        var childErrorTrie = new ErrorTrie();
 
-        foreach (var rootSelection in rootSelections)
+        foreach(var rootSelection in rootSelections)
         {
-            var errorBuilder = errorHandler.CreateUnexpectedError(transportException);
+            var errorTrieForSubfield = new ErrorTrie();
+            errorTrieForSubfield.AddError(error);
 
-            errorBuilder.AddLocation(rootSelection.Selection.SyntaxNode);
-            errorBuilder.SetPath(PathHelper.CreatePathFromContext(rootSelection.Selection, selectionSetResult, 0));
-
-            if (addDebugInfo)
-            {
-                errorBuilder.SetExtension("subgraphName", subgraphName);
-            }
-
-            var error = errorHandler.Handle(errorBuilder.Build());
-
-            errors.Add(error);
+            childErrorTrie.Add(rootSelection.Selection.ResponseName, errorTrieForSubfield);
         }
 
-        return errors;
+        return childErrorTrie;
+    }
+
+    public static ErrorTrie? GetErrorTrieForChildrenFromErrorsOnPath(
+        ErrorTrie subgraphErrorTrie,
+        List<RootSelection> rootSelections,
+        string[] path)
+    {
+        var firstErrorOnPath = GetFirstErrorOnPath(subgraphErrorTrie, path);
+
+        if (firstErrorOnPath is null)
+        {
+            return null;
+        }
+
+        var errorTrieOfParentField = new ErrorTrie();
+
+        foreach(var rootSelection in rootSelections)
+        {
+            var errorTrieOfSubfield = new ErrorTrie();
+            errorTrieOfSubfield.AddError(firstErrorOnPath);
+
+            errorTrieOfParentField.Add(rootSelection.Selection.ResponseName, errorTrieOfSubfield);
+        }
+
+        return errorTrieOfParentField;
+    }
+
+    public static IError? GetFirstErrorOnPath(ErrorTrie errorTrie, string[] path)
+    {
+        foreach (var segment in path)
+        {
+            if (errorTrie.TryGetValue(segment, out var childErrorTrie))
+            {
+                errorTrie = childErrorTrie;
+
+                var firstError = errorTrie.Errors?.FirstOrDefault();
+
+                if (firstError is not null)
+                {
+                    return firstError;
+                }
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        return null;
     }
 
     public static List<IError>? ExtractErrors(
