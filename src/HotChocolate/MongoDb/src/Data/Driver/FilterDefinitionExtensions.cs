@@ -7,30 +7,29 @@ namespace HotChocolate.Data.MongoDb;
 public static class FilterDefinitionExtensions
 {
     public static MongoDbFilterDefinition Wrap<T>(
-        this FilterDefinition<T> filterDefinition) =>
-        new FilterDefinitionWrapper<T>(filterDefinition);
+        this FilterDefinition<T> filterDefinition)
+        => new FilterDefinitionWrapper<T>(filterDefinition);
 
-    private sealed class FilterDefinitionWrapper<TDocument> : MongoDbFilterDefinition
+    private sealed class FilterDefinitionWrapper<TDocument>(
+        FilterDefinition<TDocument> filter)
+        : MongoDbFilterDefinition
     {
-        private readonly FilterDefinition<TDocument> _filter;
-
-        public FilterDefinitionWrapper(FilterDefinition<TDocument> filter)
-        {
-            _filter = filter;
-        }
-
         public override BsonDocument Render(
             IBsonSerializer documentSerializer,
             IBsonSerializerRegistry serializerRegistry)
         {
             if (documentSerializer is IBsonSerializer<TDocument> typedSerializer)
             {
-                return _filter.Render(typedSerializer, serializerRegistry);
+                return filter.Render(
+                    new RenderArgs<TDocument>(
+                        typedSerializer,
+                        serializerRegistry));
             }
 
-            return _filter.Render(
-                serializerRegistry.GetSerializer<TDocument>(),
-                serializerRegistry);
+            return filter.Render(
+                new RenderArgs<TDocument>(
+                    serializerRegistry.GetSerializer<TDocument>(),
+                    serializerRegistry));
         }
     }
 }
