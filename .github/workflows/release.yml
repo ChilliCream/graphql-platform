@@ -7,7 +7,7 @@ on:
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     permissions:
       contents: write
     steps:
@@ -15,21 +15,6 @@ jobs:
       uses: actions/checkout@v4
       with:
         show-progress: false
-
-    - name: Install Mono GPG Key and Repository
-      run: |
-        sudo apt update
-        sudo apt install -y gnupg ca-certificates
-        sudo apt-key adv --homedir /tmp/apt-key --keyserver keyserver.ubuntu.com --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
-        echo "deb https://download.mono-project.com/repo/ubuntu stable-jammy main" | sudo tee /etc/apt/sources.list.d/mono-official-stable.list
-
-    - name: Install Mono
-      run: |
-        sudo apt update
-        sudo apt install -y mono-complete
-
-    - name: Check Mono Version
-      run: mono --version
 
     - name: Install .NET
       uses: actions/setup-dotnet@v4
