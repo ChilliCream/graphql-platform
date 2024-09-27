@@ -110,6 +110,11 @@ public sealed class DocumentValidator : IDocumentValidator
             for (var i = 0; i < length; i++)
             {
                 Unsafe.Add(ref start, i).Validate(context, document);
+
+                if (context.FatalErrorDetected)
+                {
+                    break;
+                }
             }
 
             if (_aggregators.Length == 0)

@@ -725,4 +725,18 @@ internal static class ErrorHelper
             .SpecifiedBy("sec-Stream-Directives-Are-Used-On-List-Fields")
             .SetPath(context.CreateErrorPath())
             .Build();
+
+    public static void ReportMaxIntrospectionDepthOverflow(
+        this IDocumentValidatorContext context,
+        ISyntaxNode selection)
+    {
+        context.FatalErrorDetected = true;
+        context.ReportError(
+            ErrorBuilder.New()
+                .SetMessage("Maximum allowed introspection depth exceeded.")
+                .SetCode(ErrorCodes.Validation.MaxIntrospectionDepthOverflow)
+                .SetSyntaxNode(selection)
+                .SetPath(context.CreateErrorPath())
+                .Build());
+    }
 }

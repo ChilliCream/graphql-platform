@@ -17,7 +17,7 @@ public static class ListExtensions
         return p;
     }
 
-    public static bool TryPop<T>(this IList<T> list, [NotNullWhen(true)] out T item)
+    public static bool TryPop<T>(this IList<T> list, [MaybeNullWhen(false)] out T item)
     {
         if (list.Count > 0)
         {

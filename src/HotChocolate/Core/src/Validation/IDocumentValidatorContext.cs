@@ -156,6 +156,11 @@ public interface IDocumentValidatorContext : ISyntaxVisitorContext
     bool UnexpectedErrorsDetected { get; set; }
 
     /// <summary>
+    /// Defines that a fatal error was detected and that the analyzer will be aborted.
+    /// </summary>
+    bool FatalErrorDetected { get; set; }
+
+    /// <summary>
     /// A map to store arbitrary visitor data.
     /// </summary>
     IDictionary<string, object?> ContextData { get; }
@@ -174,6 +179,11 @@ public interface IDocumentValidatorContext : ISyntaxVisitorContext
     /// When processing field merging this set represents the already processed field pairs.
     /// </summary>
     HashSet<FieldInfoPair> ProcessedFieldPairs  { get; }
+
+    /// <summary>
+    /// Gets the field depth cycle tracker.
+    /// </summary>
+    FieldDepthCycleTracker FieldDepth { get; }
 
     /// <summary>
     /// Rents a list of field infos.
