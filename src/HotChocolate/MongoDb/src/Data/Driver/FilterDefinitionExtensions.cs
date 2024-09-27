@@ -25,12 +25,12 @@ public static class FilterDefinitionExtensions
         {
             if (documentSerializer is IBsonSerializer<TDocument> typedSerializer)
             {
-                return _filter.Render(typedSerializer, serializerRegistry);
+                return _filter.Render(new(typedSerializer, serializerRegistry));
             }
 
-            return _filter.Render(
+            return _filter.Render(new(
                 serializerRegistry.GetSerializer<TDocument>(),
-                serializerRegistry);
+                serializerRegistry));
         }
     }
 }

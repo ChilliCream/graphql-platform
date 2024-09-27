@@ -24,12 +24,12 @@ public static class SortDefinitionExtensions
         {
             if (documentSerializer is IBsonSerializer<TDocument> typedSerializer)
             {
-                return _sort.Render(typedSerializer, serializerRegistry);
+                return _sort.Render(new(typedSerializer, serializerRegistry));
             }
 
-            return _sort.Render(
+            return _sort.Render(new(
                 serializerRegistry.GetSerializer<TDocument>(),
-                serializerRegistry);
+                serializerRegistry));
         }
     }
 }
