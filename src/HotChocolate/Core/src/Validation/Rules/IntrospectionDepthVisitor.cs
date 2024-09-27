@@ -6,6 +6,10 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Validation.Rules;
 
+/// <summary>
+/// This rules ensures that recursive introspection fields cannot be used
+/// to create endless cycles.
+/// </summary>
 internal sealed class IntrospectionDepthVisitor : TypeDocumentValidatorVisitor
 {
     private readonly (SchemaCoordinate Coordinate, ushort MaxAllowed)[] _limits =

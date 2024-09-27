@@ -7,6 +7,15 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Validation.Rules;
 
+/// <summary>
+/// This rules allows to limit cycles across unique field coordinates.
+/// </summary>
+/// <param name="coordinateCycleLimits">
+/// Specifies specific coordinate cycle limits.
+/// </param>
+/// <param name="defaultCycleLimit">
+/// Specifies the default coordinate cycle limit.
+/// </param>
 internal sealed class MaxAllowedFieldCycleDepthVisitor(
     ImmutableArray<(SchemaCoordinate Coordinate, ushort MaxAllowed)> coordinateCycleLimits,
     ushort? defaultCycleLimit)
