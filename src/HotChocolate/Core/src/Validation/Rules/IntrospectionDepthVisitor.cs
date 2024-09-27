@@ -18,7 +18,7 @@ internal sealed class IntrospectionDepthVisitor : TypeDocumentValidatorVisitor
         (new SchemaCoordinate("__Type", "inputFields"), 1),
         (new SchemaCoordinate("__Type", "interfaces"), 1),
         (new SchemaCoordinate("__Type", "possibleTypes"), 1),
-        (new SchemaCoordinate("__Type", "ofType"), 6)
+        (new SchemaCoordinate("__Type", "ofType"), 8)
     ];
 
     protected override ISyntaxVisitorAction Enter(

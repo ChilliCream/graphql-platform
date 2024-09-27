@@ -1,7 +1,7 @@
 [
   {
     "Message": "Maximum allowed introspection depth exceeded.",
-    "Code": "HCXXXX",
+    "Code": "HC0086",
     "Path": {
       "Name": "type",
       "Parent": {
@@ -34,7 +34,7 @@
       }
     ],
     "Extensions": {
-      "code": "HCXXXX"
+      "code": "HC0086"
     },
     "Exception": null
   }
