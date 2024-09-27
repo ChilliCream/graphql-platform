@@ -13,7 +13,7 @@ public class SchemaTests
     {
         var schema =
             await new ServiceCollection()
-                .AddGraphQLServer(disableCostAnalyzer: true)
+                .AddGraphQLServer(disableDefaultSecurity: true)
                 .AddTypeExtension(typeof(Query))
                 .ConfigureSchema(
                     b => b.TryAddRootType(

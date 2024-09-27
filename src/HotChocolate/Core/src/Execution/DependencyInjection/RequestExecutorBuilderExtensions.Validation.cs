@@ -1,3 +1,4 @@
+using HotChocolate;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Validation;
 using HotChocolate.Validation.Options;
@@ -187,6 +188,9 @@ public static partial class RequestExecutorBuilderExtensions
     /// <param name="allowRequestOverrides">
     /// Defines if request depth overrides are allowed on a per request basis.
     /// </param>
+    /// <param name="isEnabled">
+    /// Defines if the validation rule is enabled.
+    /// </param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/> for configuration chaining.
     /// </returns>
@@ -194,7 +198,8 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         int maxAllowedExecutionDepth,
         bool skipIntrospectionFields = false,
-        bool allowRequestOverrides = false)
+        bool allowRequestOverrides = false,
+        Func<IServiceProvider, ValidationOptions, bool>? isEnabled = null)
     {
         if (builder is null)
         {
@@ -206,7 +211,8 @@ public static partial class RequestExecutorBuilderExtensions
             b => b.AddMaxExecutionDepthRule(
                 maxAllowedExecutionDepth,
                 skipIntrospectionFields,
-                allowRequestOverrides));
+                allowRequestOverrides,
+                isEnabled));
         return builder;
     }
 
@@ -277,6 +283,45 @@ public static partial class RequestExecutorBuilderExtensions
             builder,
             b => b.ConfigureValidation(
                 c => c.Modifiers.Add(o => o.MaxAllowedErrors = maxAllowedValidationErrors)));
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds a validation rule that restricts the coordinate cycle depth in a GraphQL operation.
+    /// </summary>
+    public static IRequestExecutorBuilder AddMaxAllowedFieldCycleDepthRule(
+        this IRequestExecutorBuilder builder,
+        ushort? defaultCycleLimit = 3,
+        (SchemaCoordinate Coordinate, ushort MaxAllowed)[]? coordinateCycleLimits = null,
+        Func<IServiceProvider, ValidationOptions, bool>? isEnabled = null)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        ConfigureValidation(
+            builder,
+            b => b.AddMaxAllowedFieldCycleDepthRule(
+                defaultCycleLimit,
+                coordinateCycleLimits,
+                isEnabled));
+
+        return builder;
+    }
+
+    /// <summary>
+    /// Removes the validation rule that restricts the coordinate cycle depth in a GraphQL operation.
+    /// </summary>
+    public static IRequestExecutorBuilder RemoveMaxAllowedFieldCycleDepthRule(
+        this IRequestExecutorBuilder builder)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        ConfigureValidation(builder, b => b.RemoveMaxAllowedFieldCycleDepthRule());
         return builder;
     }
 

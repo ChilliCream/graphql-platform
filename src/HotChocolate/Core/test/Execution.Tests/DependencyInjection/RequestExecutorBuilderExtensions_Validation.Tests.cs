@@ -207,6 +207,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
 
     public class MockRule : IDocumentValidatorRule
     {
+        public ushort Priority => ushort.MaxValue;
         public bool IsCacheable => true;
 
         public void Validate(IDocumentValidatorContext context, DocumentNode document)

@@ -36,7 +36,6 @@ internal sealed class IntrospectionVisitor : TypeDocumentValidatorVisitor
         if (context.Types.TryPeek(out var type))
         {
             var namedType = type.NamedType();
-
             if (context.Schema.QueryType == namedType &&
                 (IntrospectionFields.Schema.EqualsOrdinal(node.Name.Value) ||
                  IntrospectionFields.Type.EqualsOrdinal(node.Name.Value)))
@@ -45,36 +44,10 @@ internal sealed class IntrospectionVisitor : TypeDocumentValidatorVisitor
                 return Break;
             }
 
-            if (namedType is IComplexOutputType ct)
-            {
-                if (ct.Fields.TryGetField(node.Name.Value, out var of))
-                {
-                    if (node.SelectionSet is null ||
-                        node.SelectionSet.Selections.Count == 0 ||
-                        of.Type.NamedType().IsLeafType())
-                    {
-                        return Skip;
-                    }
-
-                    context.OutputFields.Push(of);
-                    context.Types.Push(of.Type);
-                    return Continue;
-                }
-
-                return Skip;
-            }
+            return Skip;
         }
 
         context.UnexpectedErrorsDetected = true;
         return Skip;
-    }
-
-    protected override ISyntaxVisitorAction Leave(
-        FieldNode node,
-        IDocumentValidatorContext context)
-    {
-        context.OutputFields.Pop();
-        context.Types.Pop();
-        return Continue;
     }
 }
