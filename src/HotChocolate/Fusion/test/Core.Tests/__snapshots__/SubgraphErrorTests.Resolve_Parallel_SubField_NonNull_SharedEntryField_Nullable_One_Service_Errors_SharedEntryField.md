@@ -9,18 +9,6 @@
       "message": "Unexpected Execution Error",
       "locations": [
         {
-          "line": 2,
-          "column": 3
-        }
-      ],
-      "path": [
-        "viewer"
-      ]
-    },
-    {
-      "message": "Cannot return null for non-nullable field.",
-      "locations": [
-        {
           "line": 4,
           "column": 5
         }
@@ -28,10 +16,7 @@
       "path": [
         "viewer",
         "name"
-      ],
-      "extensions": {
-        "code": "HC0018"
-      }
+      ]
     }
   ],
   "data": {

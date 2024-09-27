@@ -72,7 +72,8 @@ internal static class ExecutionUtils
 
                 if (!data.HasValue)
                 {
-                    AddErrors(context.Result, errorTrie, responseName, selection, selectionSetResult, responseIndex);
+                    AddErrors(context.Result, errorTrie, responseName, selection, selectionSetResult, responseIndex,
+                        addErrorOfFieldsBelow: true);
 
                     if (!partialResult)
                     {
@@ -99,8 +100,8 @@ internal static class ExecutionUtils
 
                     result.Set(responseName, value, nullable);
 
-                    if (value.ValueKind is JsonValueKind.String
-                        && (selection.CustomOptions & _reEncodeIdFlag) == _reEncodeIdFlag)
+                    if (value.ValueKind is JsonValueKind.String &&
+                        (selection.CustomOptions & _reEncodeIdFlag) == _reEncodeIdFlag)
                     {
                         var subgraphName = data.Single.SubgraphName;
                         var reformattedId = context.ReformatId(value.GetString()!, subgraphName);
@@ -130,8 +131,6 @@ internal static class ExecutionUtils
                         // there is a value here.
                         result.Set(responseName, null, nullable);
 
-                        AddErrors(context.Result, errorTrie, responseName, selection, selectionSetResult, responseIndex);
-
                         ErrorTrie? errorTrieForObject = null;
                         errorTrie?.TryGetValue(responseName, out errorTrieForObject);
 
@@ -156,8 +155,6 @@ internal static class ExecutionUtils
                 {
                     if (!result.IsInitialized)
                     {
-                        AddErrors(context.Result, errorTrie, responseName, selection, selectionSetResult, responseIndex);
-
                         ErrorTrie? errorTrieForList = null;
                         errorTrie?.TryGetValue(responseName, out errorTrieForList);
 
@@ -302,8 +299,8 @@ internal static class ExecutionUtils
                 return null;
             }
 
-            if (value.ValueKind is JsonValueKind.String
-                && (selection.CustomOptions & _reEncodeIdFlag) == _reEncodeIdFlag)
+            if (value.ValueKind is JsonValueKind.String &&
+                (selection.CustomOptions & _reEncodeIdFlag) == _reEncodeIdFlag)
             {
                 var subgraphName = selectionData.Single.SubgraphName;
                 return context.ReformatId(value.GetString()!, subgraphName);
@@ -385,25 +382,34 @@ internal static class ExecutionUtils
         string responseName,
         ISelection selection,
         ResultData selectionSetResult,
-        int responseIndex)
+        int responseIndex,
+        bool addErrorOfFieldsBelow = false)
     {
-        if (errorTrie is null || !errorTrie.TryGetValue(responseName, out var errorTrieOfField))
+        if (errorTrie is null)
         {
             return;
         }
 
-        if (errorTrieOfField.Errors is not null)
+        IError? errorToAdd = null;
+        if (errorTrie.TryGetValue(responseName, out var errorTrieOfField))
         {
-            foreach (var error in errorTrieOfField.Errors)
-            {
-                var transformedError = CreateErrorForSelectionFromError(
-                    error,
-                    selection,
-                    selectionSetResult,
-                    responseIndex);
+            errorToAdd = errorTrieOfField.Errors?.FirstOrDefault();
+        }
 
-                resultBuilder.AddError(transformedError);
-            }
+        if (addErrorOfFieldsBelow)
+        {
+            errorToAdd ??= GetFirstError(errorTrieOfField ?? errorTrie);
+        }
+
+        if (errorToAdd is not null)
+        {
+            var transformedError = CreateErrorForSelectionFromError(
+                errorToAdd,
+                selection,
+                selectionSetResult,
+                responseIndex);
+
+            resultBuilder.AddError(transformedError);
         }
     }
 
@@ -473,8 +479,8 @@ internal static class ExecutionUtils
 
             while (Unsafe.IsAddressLessThan(ref selection, ref endSelection))
             {
-                if (data.ValueKind is not JsonValueKind.Null
-                    && data.TryGetProperty(selection.ResponseName, out var value))
+                if (data.ValueKind is not JsonValueKind.Null &&
+                    data.TryGetProperty(selection.ResponseName, out var value))
                 {
                     selectionData = selectionData.AddResult(new JsonResult(schemaName, value));
                 }
@@ -496,8 +502,8 @@ internal static class ExecutionUtils
 
                 while (Unsafe.IsAddressLessThan(ref selection, ref endSelection))
                 {
-                    if (element.ValueKind is not JsonValueKind.Null
-                        && element.TryGetProperty(selection.ResponseName, out var value))
+                    if (element.ValueKind is not JsonValueKind.Null &&
+                        element.TryGetProperty(selection.ResponseName, out var value))
                     {
                         selectionData = selectionData.AddResult(new JsonResult(schemaName, value));
                     }
@@ -625,7 +631,7 @@ internal static class ExecutionUtils
     {
         var childErrorTrie = new ErrorTrie();
 
-        foreach(var rootSelection in rootSelections)
+        foreach (var rootSelection in rootSelections)
         {
             var errorTrieForSubfield = new ErrorTrie();
             errorTrieForSubfield.AddError(error);
@@ -650,7 +656,7 @@ internal static class ExecutionUtils
 
         var errorTrieOfParentField = new ErrorTrie();
 
-        foreach(var rootSelection in rootSelections)
+        foreach (var rootSelection in rootSelections)
         {
             var errorTrieOfSubfield = new ErrorTrie();
             errorTrieOfSubfield.AddError(firstErrorOnPath);
@@ -661,7 +667,28 @@ internal static class ExecutionUtils
         return errorTrieOfParentField;
     }
 
-    public static IError? GetFirstErrorOnPath(ErrorTrie errorTrie, string[] path)
+    private static IError? GetFirstError(ErrorTrie errorTrie)
+    {
+        var stack = new Stack<ErrorTrie>();
+        stack.Push(errorTrie);
+
+        while (stack.TryPop(out var currentErrorTrie))
+        {
+            if (currentErrorTrie.Errors?.FirstOrDefault() is { } error)
+            {
+                return error;
+            }
+
+            foreach (var value in currentErrorTrie.Values)
+            {
+                stack.Push(value);
+            }
+        }
+
+        return null;
+    }
+
+    private static IError? GetFirstErrorOnPath(ErrorTrie errorTrie, string[] path)
     {
         foreach (var segment in path)
         {
@@ -752,15 +779,14 @@ internal static class ExecutionUtils
                 }
             }
 
-            if (error.TryGetProperty("locations", out var locations)
-                && locations.ValueKind is JsonValueKind.Array)
+            if (error.TryGetProperty("locations", out var locations) && locations.ValueKind is JsonValueKind.Array)
             {
                 foreach (var location in locations.EnumerateArray())
                 {
-                    if (location.TryGetProperty("line", out var lineValue)
-                        && location.TryGetProperty("column", out var columnValue)
-                        && lineValue.TryGetInt32(out var line)
-                        && columnValue.TryGetInt32(out var column))
+                    if (location.TryGetProperty("line", out var lineValue) &&
+                        location.TryGetProperty("column", out var columnValue) &&
+                        lineValue.TryGetInt32(out var line) &&
+                        columnValue.TryGetInt32(out var column))
                     {
                         errorBuilder.AddLocation(line, column);
                     }

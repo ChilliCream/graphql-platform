@@ -6,20 +6,6 @@
 {
   "errors": [
     {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 5,
-          "column": 5
-        }
-      ],
-      "path": [
-        "products",
-        0,
-        "price"
-      ]
-    },
-    {
       "message": "Cannot return null for non-nullable field.",
       "locations": [
         {
