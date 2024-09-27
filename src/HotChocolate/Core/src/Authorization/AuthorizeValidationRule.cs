@@ -8,6 +8,8 @@ internal sealed class AuthorizeValidationRule(AuthorizationCache cache) : IDocum
     private readonly AuthorizeValidationVisitor _visitor = new();
     private readonly AuthorizationCache _cache = cache ?? throw new ArgumentNullException(nameof(cache));
 
+    public ushort Priority => ushort.MaxValue;
+
     public bool IsCacheable => false;
 
     public void Validate(IDocumentValidatorContext context, DocumentNode document)

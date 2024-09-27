@@ -110,13 +110,17 @@ public static partial class HotChocolateValidationBuilderExtensions
     /// Specifies if the validation visitor`s results are cacheable or
     /// if the visitor needs to be rerun on every request.
     /// </param>
+    /// <param name="priority">
+    /// The priority of the validation visitor. The lower the value the earlier the visitor is executed.
+    /// </param>
     /// <typeparam name="T">The validation visitor type.</typeparam>
     /// <returns>
     /// Returns the validation builder for configuration chaining.
     /// </returns>
     public static IValidationBuilder TryAddValidationVisitor<T>(
         this IValidationBuilder builder,
-        bool isCacheable = true)
+        bool isCacheable = true,
+        ushort priority = ushort.MaxValue)
         where T : DocumentValidatorVisitor, new()
     {
         return builder.ConfigureValidation(m =>
@@ -124,7 +128,7 @@ public static partial class HotChocolateValidationBuilderExtensions
             {
                 if (o.Rules.All(t => t.GetType() != typeof(DocumentValidatorRule<T>)))
                 {
-                    o.Rules.Add(new DocumentValidatorRule<T>(new T(), isCacheable));
+                    o.Rules.Add(new DocumentValidatorRule<T>(new T(), isCacheable, priority));
                 }
             }));
     }
@@ -143,6 +147,9 @@ public static partial class HotChocolateValidationBuilderExtensions
     /// Specifies if the validation visitor`s results are cacheable or
     /// if the visitor needs to be rerun on every request.
     /// </param>
+    /// <param name="priority">
+    /// The priority of the validation visitor. The lower the value the earlier the visitor is executed.
+    /// </param>
     /// <param name="isEnabled">
     /// A delegate to determine if the validation visitor and should be added.
     /// </param>
@@ -154,6 +161,7 @@ public static partial class HotChocolateValidationBuilderExtensions
         this IValidationBuilder builder,
         Func<IServiceProvider, ValidationOptions, T> factory,
         bool isCacheable = true,
+        ushort priority = ushort.MaxValue,
         Func<IServiceProvider, ValidationOptions, bool>? isEnabled = null)
         where T : DocumentValidatorVisitor
     {
@@ -163,7 +171,7 @@ public static partial class HotChocolateValidationBuilderExtensions
                 if (o.Rules.All(t => t.GetType() != typeof(DocumentValidatorRule<T>))
                     && (isEnabled?.Invoke(s, o) ?? true))
                 {
-                    o.Rules.Add(new DocumentValidatorRule<T>(factory(s, o), isCacheable));
+                    o.Rules.Add(new DocumentValidatorRule<T>(factory(s, o), isCacheable, priority));
                 }
             }));
     }

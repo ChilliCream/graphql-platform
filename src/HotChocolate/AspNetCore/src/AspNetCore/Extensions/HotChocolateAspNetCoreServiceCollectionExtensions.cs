@@ -94,8 +94,8 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// <param name="maxAllowedRequestSize">
     /// The max allowed GraphQL request size.
     /// </param>
-    /// <param name="disableCostAnalyzer">
-    /// Defines if the cost analyzer should be disabled.
+    /// <param name="disableDefaultSecurity">
+    /// Defines if the default security policy should be disabled.
     /// </param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
@@ -104,7 +104,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
         this IServiceCollection services,
         string? schemaName = default,
         int maxAllowedRequestSize = MaxAllowedRequestSize,
-        bool disableCostAnalyzer = false)
+        bool disableDefaultSecurity = false)
     {
         var builder = services
             .AddGraphQLServerCore(maxAllowedRequestSize)
@@ -112,14 +112,20 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
             .AddDefaultHttpRequestInterceptor()
             .AddSubscriptionServices();
 
-        if (!disableCostAnalyzer)
+        if (!disableDefaultSecurity)
         {
             builder.AddCostAnalyzer();
             builder.AddIntrospectionAllowedRule(
                 (sp, _) =>
                 {
                     var environment = sp.GetService<IHostEnvironment>();
-                    return (environment?.IsDevelopment() ?? true) == false;
+                    return environment?.IsDevelopment() == false;
+                });
+            builder.AddMaxAllowedFieldCycleDepthRule(
+                isEnabled: (sp, _) =>
+                {
+                    var environment = sp.GetService<IHostEnvironment>();
+                    return environment?.IsDevelopment() == false;
                 });
         }
 
@@ -145,7 +151,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
         this IRequestExecutorBuilder builder,
         string? schemaName = default,
         bool disableCostAnalyzer = false)
-        => builder.Services.AddGraphQLServer(schemaName, disableCostAnalyzer: disableCostAnalyzer);
+        => builder.Services.AddGraphQLServer(schemaName, disableDefaultSecurity: disableCostAnalyzer);
 
     /// <summary>
     /// Registers the GraphQL Upload Scalar.

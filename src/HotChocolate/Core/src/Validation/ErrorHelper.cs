@@ -707,4 +707,33 @@ internal static class ErrorHelper
             .SpecifiedBy("sec-Stream-Directives-Are-Used-On-List-Fields")
             .SetPath(context.CreateErrorPath())
             .Build();
+
+    public static void ReportMaxIntrospectionDepthOverflow(
+        this IDocumentValidatorContext context,
+        ISyntaxNode selection)
+    {
+        context.FatalErrorDetected = true;
+        context.ReportError(
+            ErrorBuilder.New()
+                .SetMessage("Maximum allowed introspection depth exceeded.")
+                .SetCode(ErrorCodes.Validation.MaxIntrospectionDepthOverflow)
+                .SetLocations([selection])
+                .SetPath(context.CreateErrorPath())
+                .Build());
+    }
+
+    public static void ReportMaxCoordinateCycleDepthOverflow(
+        this IDocumentValidatorContext context,
+        ISyntaxNode selection)
+    {
+        context.FatalErrorDetected = true;
+
+        context.ReportError(
+            ErrorBuilder.New()
+                .SetMessage("Maximum allowed coordinate cycle depth was exceeded.")
+                .SetCode(ErrorCodes.Validation.MaxIntrospectionDepthOverflow)
+                .SetLocations([selection])
+                .SetPath(context.CreateErrorPath())
+                .Build());
+    }
 }
