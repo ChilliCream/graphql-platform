@@ -94,6 +94,8 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
 
     public bool UnexpectedErrorsDetected { get; set; }
 
+    public bool FatalErrorDetected { get; set; }
+
     public int Count { get; set; }
 
     public int Max { get; set; }
@@ -105,6 +107,8 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
     public List<FieldInfoPair> NextFieldPairs { get; } = new();
 
     public HashSet<FieldInfoPair> ProcessedFieldPairs { get; } = new();
+
+    public FieldDepthCycleTracker FieldDepth { get; } = new();
 
     public IList<FieldInfo> RentFieldInfoList()
     {
@@ -159,7 +163,9 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
         InputFields.Clear();
         _errors.Clear();
         List.Clear();
+        FieldDepth.Reset();
         UnexpectedErrorsDetected = false;
+        FatalErrorDetected = false;
         Count = 0;
         Max = 0;
         MaxAllowedErrors = 0;

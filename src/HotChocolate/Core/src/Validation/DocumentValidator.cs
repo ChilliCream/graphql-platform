@@ -89,6 +89,11 @@ public sealed class DocumentValidator : IDocumentValidator
             foreach (IDocumentValidatorRule? rule in rules)
             {
                 rule.Validate(context, document);
+
+                if (context.FatalErrorDetected)
+                {
+                    break;
+                }
             }
 
             return context.Errors.Count > 0

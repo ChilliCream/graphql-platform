@@ -685,4 +685,18 @@ internal static class ErrorHelper
             .SetExtension(nameof(field), field.ToString())
             .SpecifiedBy("sec-Oneof–Input-Objects-Have-Exactly-One-Field", rfc: 825)
             .Build();
+
+    public static void ReportMaxIntrospectionDepthOverflow(
+        this IDocumentValidatorContext context,
+        ISyntaxNode selection)
+    {
+        context.FatalErrorDetected = true;
+        context.ReportError(
+            ErrorBuilder.New()
+                .SetMessage("Maximum allowed introspection depth exceeded.")
+                .SetCode(ErrorCodes.Validation.MaxIntrospectionDepthOverflow)
+                .SetSyntaxNode(selection)
+                .SetPath(context.CreateErrorPath())
+                .Build());
+    }
 }

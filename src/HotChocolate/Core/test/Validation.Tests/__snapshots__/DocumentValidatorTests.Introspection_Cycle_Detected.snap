@@ -1,0 +1,86 @@
+﻿[
+  {
+    "Message": "Maximum allowed introspection depth exceeded.",
+    "Code": "HC0086",
+    "Path": {
+      "Parent": {
+        "Parent": {
+          "Parent": {
+            "Parent": null,
+            "Depth": 0,
+            "Name": "__schema"
+          },
+          "Depth": 1,
+          "Name": "types"
+        },
+        "Depth": 2,
+        "Name": "fields"
+      },
+      "Depth": 3,
+      "Name": "type"
+    },
+    "Locations": null,
+    "Extensions": {
+      "code": "HC0086"
+    },
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": null,
+      "Arguments": [],
+      "Required": null,
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 497,
+          "End": 525,
+          "Line": 37,
+          "Column": 14
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "Required": null,
+            "SelectionSet": null,
+            "Location": {
+              "Start": 507,
+              "End": 519,
+              "Line": 38,
+              "Column": 9
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 507,
+                "End": 519,
+                "Line": 38,
+                "Column": 9
+              },
+              "Value": "name"
+            },
+            "Directives": []
+          }
+        ]
+      },
+      "Location": {
+        "Start": 490,
+        "End": 525,
+        "Line": 37,
+        "Column": 7
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 490,
+          "End": 498,
+          "Line": 37,
+          "Column": 7
+        },
+        "Value": "fields"
+      },
+      "Directives": []
+    }
+  }
+]

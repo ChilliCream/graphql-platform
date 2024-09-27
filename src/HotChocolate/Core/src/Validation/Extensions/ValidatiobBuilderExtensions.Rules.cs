@@ -326,4 +326,11 @@ public static partial class HotChocolateValidationBuilderExtensions
     public static IValidationBuilder AddIntrospectionAllowedRule(
         this IValidationBuilder builder) =>
         builder.TryAddValidationVisitor((_, _) => new IntrospectionVisitor(), false);
+
+    /// <summary>
+    /// Adds a validation rule that restricts the depth of a GraphQL introspection request.
+    /// </summary>
+    public static IValidationBuilder AddIntrospectionDepthRule(
+        this IValidationBuilder builder)
+        => builder.TryAddValidationVisitor<IntrospectionDepthVisitor>();
 }

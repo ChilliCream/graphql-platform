@@ -813,6 +813,12 @@ namespace HotChocolate.Validation
             ExpectErrors(FileResource.Open("50000_query.graphql"));
         }
 
+        [Fact]
+        public void Introspection_Cycle_Detected()
+        {
+            ExpectErrors(FileResource.Open("introspection_with_cycle.graphql"));
+        }
+
         private void ExpectValid(string sourceText) => ExpectValid(null, null, sourceText);
 
         private void ExpectValid(ISchema schema, IDocumentValidator validator, string sourceText)
