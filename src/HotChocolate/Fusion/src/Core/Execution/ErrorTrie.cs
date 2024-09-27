@@ -41,7 +41,7 @@ public class ErrorTrie : Dictionary<object, ErrorTrie>
 
                 if (i == lastPathIndex)
                 {
-                    currentTrie.PushError(error);
+                    currentTrie.AddError(error);
                 }
             }
         }
@@ -49,7 +49,7 @@ public class ErrorTrie : Dictionary<object, ErrorTrie>
         return root;
     }
 
-    private void PushError(IError error)
+    public void AddError(IError error)
     {
         if (Errors is null)
         {

@@ -9,13 +9,42 @@
       "message": "Unexpected Execution Error",
       "locations": [
         {
-          "line": 2,
-          "column": 3
+          "line": 5,
+          "column": 5
         }
       ],
       "path": [
         "products",
-        0
+        0,
+        "price"
+      ]
+    },
+    {
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 5,
+          "column": 5
+        }
+      ],
+      "path": [
+        "products",
+        1,
+        "price"
+      ]
+    },
+    {
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 5,
+          "column": 5
+        }
+      ],
+      "path": [
+        "products",
+        2,
+        "price"
       ]
     }
   ],

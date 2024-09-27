@@ -600,6 +600,22 @@ internal static class ExecutionUtils
         executionState.IsInitialized = true;
     }
 
+    public static IError CreateTransportError(
+        Exception transportException,
+        IErrorHandler errorHandler,
+        string subgraphName,
+        bool addDebugInfo)
+    {
+        var errorBuilder = errorHandler.CreateUnexpectedError(transportException);
+
+        if (addDebugInfo)
+        {
+            errorBuilder.SetExtension("subgraphName", subgraphName);
+        }
+
+        return errorHandler.Handle(errorBuilder.Build());
+    }
+
     public static List<IError> CreateTransportErrors(
         Exception transportException,
         IErrorHandler errorHandler,

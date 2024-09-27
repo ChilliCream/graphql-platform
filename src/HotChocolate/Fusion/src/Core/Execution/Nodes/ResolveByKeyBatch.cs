@@ -1,9 +1,11 @@
+using System.Net;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Clients;
+using HotChocolate.Fusion.Planning;
 using HotChocolate.Language;
 using static HotChocolate.Fusion.Execution.ExecutionUtils;
 
@@ -149,51 +151,129 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
         ref var batchState = ref MemoryMarshal.GetArrayDataReference(batchExecutionState);
         ref var end = ref Unsafe.Add(ref batchState, batchExecutionState.Length);
 
-        var errors = response.TransportException is not null
-            ? CreateTransportErrors(
-                response.TransportException,
-                context.ErrorHandler,
-                batchState.SelectionSetResult,
-                RootSelections,
-                subgraphName,
-                context.ShowDebugInfo)
-            : ExtractErrors(
+        var errors = ExtractErrors(
                 context.ErrorHandler,
                 response.Errors,
                 subgraphName,
                 context.ShowDebugInfo);
 
-        ErrorTrie? unwrappedErrorTrie = null;
+        ErrorTrie? subgraphErrorTrie = null;
+        ErrorTrie? unwrappedSubgraphErrorTrie = null;
         if (errors is not null)
         {
             ApplyErrorsWithoutPathToResult(context.Result, errors);
 
-            var errorTrie = ErrorTrie.FromErrors(errors);
-            unwrappedErrorTrie = UnwrapErrors(errorTrie);
+            subgraphErrorTrie = ErrorTrie.FromErrors(errors);
+            unwrappedSubgraphErrorTrie = UnwrapErrors(subgraphErrorTrie);
+        }
+
+        IError? transportError = null;
+        if (response.TransportException is not null)
+        {
+            transportError = CreateTransportError(
+                response.TransportException,
+                context.ErrorHandler,
+                subgraphName,
+                context.ShowDebugInfo);
         }
 
         while (Unsafe.IsAddressLessThan(ref batchState, ref end))
         {
+            ErrorTrie? errorTrie = null;
+
             if (result.TryGetValue(batchState.Key, out var listResult))
             {
                 var data = listResult.Data;
 
-                if (unwrappedErrorTrie is not null && unwrappedErrorTrie.TryGetValue(listResult.Index, out var errorTrieAtIndex))
+                if (unwrappedSubgraphErrorTrie is not null
+                    && unwrappedSubgraphErrorTrie.TryGetValue(listResult.Index, out var errorTrieAtIndex))
                 {
-                    var errorTrie = ExtractErrors(SelectionSet, errorTrieAtIndex);
-
-                    if (errorTrie is not null)
-                    {
-                        batchState.SetErrorTrie(errorTrie);
-                    }
+                    errorTrie = ExtractErrors(SelectionSet, errorTrieAtIndex);
                 }
 
                 ExtractSelectionResults(SelectionSet, SubgraphName, data, batchState.SelectionSetData);
                 ExtractVariables(data, context.QueryPlan, SelectionSet, batchState.Requires, batchState.VariableValues);
             }
+            else if (subgraphErrorTrie is not null)
+            {
+                errorTrie = GetErrorTrieForChildrenFromErrorsOnPath(subgraphErrorTrie, RootSelections, Path);
+            }
+            else if (transportError is not null)
+            {
+                errorTrie = GetErrorTrieForChildren(transportError, RootSelections);
+            }
+
+            if (errorTrie is not null)
+            {
+                batchState.SetErrorTrie(errorTrie);
+            }
 
             batchState = ref Unsafe.Add(ref batchState, 1)!;
         }
+    }
+
+    private static ErrorTrie GetErrorTrieForChildren(IError error, List<RootSelection> rootSelections)
+    {
+        var childErrorTrie = new ErrorTrie();
+
+        foreach(var rootSelection in rootSelections)
+        {
+            var errorTrieForSubfield = new ErrorTrie();
+            errorTrieForSubfield.AddError(error);
+
+            childErrorTrie.Add(rootSelection.Selection.ResponseName, errorTrieForSubfield);
+        }
+
+        return childErrorTrie;
+    }
+
+    private static ErrorTrie? GetErrorTrieForChildrenFromErrorsOnPath(
+        ErrorTrie subgraphErrorTrie,
+        List<RootSelection> rootSelections,
+        string[] path)
+    {
+        var firstErrorOnPath = GetFirstErrorOnPath(subgraphErrorTrie, path);
+
+        if (firstErrorOnPath is null)
+        {
+            return null;
+        }
+
+        var errorTrieOfParentField = new ErrorTrie();
+
+        foreach(var rootSelection in rootSelections)
+        {
+            var errorTrieOfSubfield = new ErrorTrie();
+            errorTrieOfSubfield.AddError(firstErrorOnPath);
+
+            errorTrieOfParentField.Add(rootSelection.Selection.ResponseName, errorTrieOfSubfield);
+        }
+
+        return errorTrieOfParentField;
+    }
+
+    private static IError? GetFirstErrorOnPath(ErrorTrie errorTrie, string[] path)
+    {
+        foreach (var segment in path)
+        {
+            if (errorTrie.TryGetValue(segment, out var childErrorTrie))
+            {
+                errorTrie = childErrorTrie;
+
+                var firstError = errorTrie.Errors?.FirstOrDefault();
+
+                if (firstError is not null)
+                {
+                    return firstError;
+                }
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        return null;
     }
 
     private static Dictionary<string, IValueNode> BuildVariables(
