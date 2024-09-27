@@ -243,7 +243,7 @@ public class AnnotationBasedTests(RavenDBResource<CustomRavenDBDefaultOptions> r
     public ValueTask<IRequestExecutor> CreateExecutorAsync() => new ServiceCollection()
         .AddSingleton(CreateDocumentStore())
 #if NET7_0_OR_GREATER
-        .AddGraphQLServer(disableCostAnalyzer: true)
+        .AddGraphQLServer(disableDefaultSecurity: true)
 #else
         .AddGraphQLServer()
 #endif

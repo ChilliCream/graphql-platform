@@ -22,15 +22,15 @@ public static class HotChocolateAspNetCoreHostingBuilderExtensions
     /// <param name="maxAllowedRequestSize">
     /// The max allowed GraphQL request size.
     /// </param>
-    /// <param name="disableCostAnalyzer">
-    /// Defines if the cost analyzer should be disabled.
+    /// <param name="disableDefaultSecurity">
+    /// Defines if the default security policy should be disabled.
     /// </param>
     /// <returns></returns>
     public static IRequestExecutorBuilder AddGraphQL(
         this IHostApplicationBuilder builder,
         string? schemaName = default,
         int maxAllowedRequestSize = MaxAllowedRequestSize,
-        bool disableCostAnalyzer = false)
-        => builder.Services.AddGraphQLServer(schemaName, maxAllowedRequestSize, disableCostAnalyzer);
+        bool disableDefaultSecurity = false)
+        => builder.Services.AddGraphQLServer(schemaName, maxAllowedRequestSize, disableDefaultSecurity);
 }
 #endif

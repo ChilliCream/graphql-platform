@@ -14,7 +14,7 @@ public class SchemaTests
         var schema =
             await new ServiceCollection()
 #if NET7_0_OR_GREATER
-                .AddGraphQLServer(disableCostAnalyzer: true)
+                .AddGraphQLServer(disableDefaultSecurity: true)
 #else
                 .AddGraphQLServer()
 #endif
