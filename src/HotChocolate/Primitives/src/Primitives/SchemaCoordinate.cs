@@ -8,7 +8,7 @@ namespace HotChocolate;
 
 /// <summary>
 /// <para>
-/// A <see cref="SchemaCoordinate"/> is a human readable string that uniquely identifies a
+/// A <see cref="SchemaCoordinate"/> is a human-readable string that uniquely identifies a
 /// schema element within a GraphQL Schema.
 /// A schema element is a specific instance of a named type, field, input field, enum value,
 /// field argument, directive, or directive argument.
