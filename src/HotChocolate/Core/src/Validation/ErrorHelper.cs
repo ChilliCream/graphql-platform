@@ -731,7 +731,7 @@ internal static class ErrorHelper
         context.ReportError(
             ErrorBuilder.New()
                 .SetMessage("Maximum allowed coordinate cycle depth was exceeded.")
-                .SetCode(ErrorCodes.Validation.MaxIntrospectionDepthOverflow)
+                .SetCode(ErrorCodes.Validation.MaxCoordinateCycleDepthOverflow)
                 .SetLocations([selection])
                 .SetPath(context.CreateErrorPath())
                 .Build());
