@@ -32,6 +32,37 @@ public class DataLoaderTests
     }
 
     [Fact]
+    public async Task GenerateSource_BatchDataLoader_With_Group_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            [DataLoaderGroup("Group1")]
+            internal static class TestClass
+            {
+                [DataLoader]
+                [DataLoaderGroup("Group2")]
+                public static Task<IReadOnlyDictionary<int, Entity>> GetEntityByIdAsync(
+                    IReadOnlyList<int> entityIds,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+
+            public class Entity
+            {
+                public int Id { get; set; }
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
     public async Task GenerateSource_GroupedDataLoader_MatchesSnapshot()
     {
         await TestHelper.GetGeneratedSourceSnapshot(

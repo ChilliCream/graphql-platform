@@ -93,6 +93,14 @@ public sealed class DataLoaderModuleFileBuilder : IDisposable
             dataLoaderType);
     }
 
+    public void WriteAddDataLoaderGroup(string groupType, string groupInterfaceType)
+    {
+        _writer.WriteIndentedLine(
+            "services.AddScoped<global::{0}, global::{1}>();",
+            groupInterfaceType,
+            groupType);
+    }
+
     public override string ToString()
         => _sb.ToString();
 
