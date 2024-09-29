@@ -145,8 +145,8 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IRequestExecutorBuilder AddTestsTypes(this IRequestExecutorBuilder builder)
         {
             builder.AddDataLoader<global::TestNamespace.IEntityByIdDataLoader, global::TestNamespace.EntityByIdDataLoader>();
-            builder.Services.AddScoped<global::TestNamespace.IGroup2, global::TestNamespace.Group2>();
             builder.Services.AddScoped<global::TestNamespace.IGroup1, global::TestNamespace.Group1>();
+            builder.Services.AddScoped<global::TestNamespace.IGroup2, global::TestNamespace.Group2>();
             return builder;
         }
     }

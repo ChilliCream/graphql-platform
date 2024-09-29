@@ -186,7 +186,7 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
 
         if (groups is not null)
         {
-            foreach (var (interfaceName, className) in groups)
+            foreach (var (interfaceName, className) in groups.OrderBy(t => t.ClassName))
             {
                 generator.WriteRegisterDataLoaderGroup(className, interfaceName);
             }
