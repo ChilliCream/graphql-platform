@@ -69,6 +69,7 @@ namespace TestNamespace
     {
         IEntityByIdDataLoader EntityById { get; }
     }
+
     public sealed class Group1 : IGroup1
     {
         private readonly IServiceProvider _services;
