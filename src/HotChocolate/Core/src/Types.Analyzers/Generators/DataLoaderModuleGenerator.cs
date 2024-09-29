@@ -19,6 +19,7 @@ public sealed class DataLoaderModuleGenerator : ISyntaxGenerator
             return;
         }
 
+        HashSet<(string InterfaceName, string ClassName)>? groups = null;
         var generator = new DataLoaderModuleFileBuilder(module.ModuleName);
 
         generator.WriteHeader();
@@ -43,7 +44,24 @@ public sealed class DataLoaderModuleGenerator : ISyntaxGenerator
                     var typeName = $"{dataLoader.Namespace}.{dataLoader.Name}";
                     var interfaceTypeName = $"{dataLoader.Namespace}.{dataLoader.InterfaceName}";
                     generator.WriteAddDataLoader(typeName, interfaceTypeName);
+
+                    if(dataLoader.Groups.Count > 0)
+                    {
+                        groups ??= [];
+                        foreach (var groupName in dataLoader.Groups)
+                        {
+                            groups.Add(($"{dataLoader.Namespace}.I{groupName}", $"{dataLoader.Namespace}.{groupName}"));
+                        }
+                    }
                     break;
+            }
+        }
+
+        if (groups is not null)
+        {
+            foreach (var (interfaceName, className) in groups)
+            {
+                generator.WriteAddDataLoaderGroup(className, interfaceName);
             }
         }
 

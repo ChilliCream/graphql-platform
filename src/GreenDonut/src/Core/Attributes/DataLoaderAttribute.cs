@@ -28,3 +28,12 @@ public sealed class DataLoaderAttribute(string? name = null) : Attribute
     /// </summary>
     public DataLoaderAccessModifier AccessModifier { get; set; }
 }
+
+[AttributeUsage(
+    AttributeTargets.Method
+    | AttributeTargets.Class,
+    AllowMultiple = true)]
+public class DataLoaderGroupAttribute(params string[] groupNames) : Attribute
+{
+    public string[] GroupNames { get; } = groupNames;
+}

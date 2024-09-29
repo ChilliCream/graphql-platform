@@ -1,9 +1,11 @@
 using GreenDonut;
 using GreenDonut.Projections;
 using HotChocolate.Pagination;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types;
 
+[DataLoaderGroup("Group1DataLoader", "Group2DataLoader")]
 public static class DataLoaders
 {
     [DataLoader(Lookups = [nameof(CreateLookupKey)])]
@@ -22,6 +24,7 @@ public static class DataLoaders
         IReadOnlyList<int> keys)
         => default!;
 
+    [DataLoaderGroup("Group3DataLoader", "Group2DataLoader")]
     [DataLoader]
     public static Task<string> GetSomeInfoCacheById(
         int key)
