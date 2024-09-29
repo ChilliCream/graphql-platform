@@ -1,7 +1,7 @@
 {
   "errors": [
     {
-      "message": "Expected a `Name`-token, but found a `EndOfFile`-token.",
+      "message": "Expected a `RightBrace`-token, but found a `EndOfFile`-token.",
       "locations": [
         {
           "line": 1,
