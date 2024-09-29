@@ -45,10 +45,11 @@ The idea of a dataloader is to batch these two requests into one call to the dat
 Let's look at some code to understand what data loaders are doing. First, let's have a look at how we would write our field resolver without data loaders:
 
 ```csharp
-public async Task<Person> GetPerson(string id, [Service]IPersonRepository repository)
-{
-    return await repository.GetPersonById(id);
-}
+public async Task<Person> GetPersonAsync(
+    string id,
+    IPersonRepository repository,
+    CancellationToken cancellationToken)
+    => await repository.GetPersonByIdAsync(id);
 ```
 
 The above example would result in two calls to the person repository that would then fetch the persons one by one from our data source.
@@ -65,7 +66,7 @@ The data loader batches all the requests together into one request to the databa
 ```csharp
 // This is one way of implementing a data loader. You will find the different ways of declaring
 // data loaders further down the page.
-public class PersonBatchDataLoader : BatchDataLoader<string, Person>
+public class PersonByIdDataLoader : BatchDataLoader<string, Person>
 {
     private readonly IPersonRepository _repository;
 
@@ -83,17 +84,18 @@ public class PersonBatchDataLoader : BatchDataLoader<string, Person>
         CancellationToken cancellationToken)
     {
         // instead of fetching one person, we fetch multiple persons
-        var persons =  await _repository.GetPersonByIds(keys);
+        var persons =  await _repository.GetPersonByIdsAsync(keys);
         return persons.ToDictionary(x => x.Id);
     }
 }
 
 public class Query
 {
-    public async Task<Person> GetPerson(
+    public async Task<Person?> GetPerson(
         string id,
-        PersonBatchDataLoader dataLoader)
-        => await dataLoader.LoadAsync(id);
+        PersonByIdDataLoader personById,
+        CancellationToken cancellationToken)
+        => await personById.LoadAsync(id, cancellationToken);
 }
 ```
 
@@ -136,7 +138,7 @@ The batch data loader gets the keys as `IReadOnlyList<TKey>` and returns an `IRe
 ### Class
 
 ```csharp
-public class PersonBatchDataLoader : BatchDataLoader<string, Person>
+public class PersonByIdDataLoader : BatchDataLoader<string, Person>
 {
     private readonly IPersonRepository _repository;
 
@@ -154,27 +156,29 @@ public class PersonBatchDataLoader : BatchDataLoader<string, Person>
         CancellationToken cancellationToken)
     {
         // instead of fetching one person, we fetch multiple persons
-        var persons =  await _repository.GetPersonByIds(keys);
+        var persons =  await _repository.GetPersonByIdsAsync(keys);
         return persons.ToDictionary(x => x.Id);
     }
 }
 
 public class Query
 {
-    public async Task<Person> GetPerson(
+    public async Task<Person?> GetPersonAsync(
         string id,
-        PersonBatchDataLoader dataLoader)
-        => await dataLoader.LoadAsync(id);
+        PersonByIdDataLoader personById,
+        CancellationToken cancellationToken)
+        => await personById.LoadAsync(id, cancellationToken);
 }
 ```
 
 ### Delegate
 
 ```csharp
-public Task<Person> GetPerson(
+public Task<Person> GetPersonAsync(
     string id,
     IResolverContext context,
-    [Service] IPersonRepository repository)
+    IPersonRepository repository,
+    CancellationToken cancellationToken)
 {
     return context.BatchDataLoader<string, Person>(
             async (keys, ct) =>
@@ -182,7 +186,33 @@ public Task<Person> GetPerson(
                 var result = await repository.GetPersonByIds(keys);
                 return result.ToDictionary(x => x.Id);
             })
-        .LoadAsync(id);
+        .LoadAsync(id, cancellationToken);
+}
+```
+
+### Source Generated
+
+```csharp
+public static class PersonDataLoader
+{
+    [DataLoader]
+    public static async Task<Dictionary<string, Person>> GetPersonByIdAsync(
+      IReadOnlyList<string? ids,
+      IPersonRepository repository,
+      CancellationToken cancellationToken)
+    {
+        var persons = await repository.GetPersonByIdsAsync(ids, cancellationToken);
+        return persons.ToDictionary(x => x.Id);
+    }
+}
+
+public class Query
+{
+    public async Task<Person> GetPersonAsync(
+        string id,
+        IPersonByIdDataLoader personById,
+        CancellationToken cancellationToken)
+        => await dataLoader.LoadAsync(id, cancellationToken);
 }
 ```
 
@@ -237,7 +267,7 @@ public class Query
 public Task<IEnumerable<Person>> GetPersonByLastName(
    string lastName,
    IResolverContext context,
-   [Service]IPersonRepository repository)
+   IPersonRepository repository)
 {
     return context.GroupDataLoader<string, Person>(
             async (keys, ct) =>
@@ -249,6 +279,30 @@ public Task<IEnumerable<Person>> GetPersonByLastName(
 }
 ```
 
+### Source Generated
+
+```csharp
+public static class PersonDataLoader
+{
+    [DataLoader]
+    public static async Task<Dictionary<string, Person[]>> GetPersonsByLastNameAsync(
+      IReadOnlyList<string? lastNames,
+      IPersonRepository repository,
+      CancellationToken cancellationToken)
+    {
+        return await repository.GetPersonsByLastName(lastNames, cancellationToken);
+    }
+}
+
+public class Query
+{
+    public async Task<IEnumerable<Person>> GetPersonByLastName(
+        string id,
+        IPersonsByLastNameDataLoader personsByLastName)
+        => await personsByLastName.LoadAsync(id);
+}
+```
+
 ## Cache DataLoader
 
 > No batching, just caching. This data loader is used rarely. You most likely want to use the batch data loader.
@@ -256,7 +310,7 @@ public Task<IEnumerable<Person>> GetPersonByLastName(
 The cache data loader is the easiest to implement since there is no batching involved. You can just use the initial `GetPersonById` method. We do not get the benefits of batching with this one, but if in a query graph the same entity is resolved twice we will load it only once from the data source.
 
 ```csharp
-public Task<Person> GetPerson(string id, IResolverContext context, [Service]IPersonRepository repository)
+public Task<Person> GetPerson(string id, IResolverContext context, IPersonRepository repository)
 {
     return context.CacheDataLoader<string, Person>("personById", keys => repository.GetPersonById(keys)).LoadAsync(id);
 }
