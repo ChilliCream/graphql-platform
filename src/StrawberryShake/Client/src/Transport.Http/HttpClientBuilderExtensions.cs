@@ -34,15 +34,8 @@ public static class HttpClientBuilderExtensions
         Action<IHttpClientBuilder>? configureClientBuilder = null)
         where T : IStoreAccessor
     {
-        if (clientBuilder == null)
-        {
-            throw new ArgumentNullException(nameof(clientBuilder));
-        }
-
-        if (configureClient == null)
-        {
-            throw new ArgumentNullException(nameof(configureClient));
-        }
+        ArgumentNullException.ThrowIfNull(clientBuilder);
+        ArgumentNullException.ThrowIfNull(configureClient);
 
         var builder = clientBuilder.Services
             .AddHttpClient(
@@ -83,15 +76,8 @@ public static class HttpClientBuilderExtensions
         Action<IHttpClientBuilder>? configureClientBuilder = null)
         where T : IStoreAccessor
     {
-        if (clientBuilder == null)
-        {
-            throw new ArgumentNullException(nameof(clientBuilder));
-        }
-
-        if (configureClient == null)
-        {
-            throw new ArgumentNullException(nameof(configureClient));
-        }
+        ArgumentNullException.ThrowIfNull(clientBuilder);
+        ArgumentNullException.ThrowIfNull(configureClient);
 
         var builder = clientBuilder.Services
             .AddHttpClient(clientBuilder.ClientName, (sp, client) =>

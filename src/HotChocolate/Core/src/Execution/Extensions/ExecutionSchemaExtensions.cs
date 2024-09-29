@@ -15,15 +15,8 @@ public static class ExecutionSchemaExtensions
         this ISchema schema,
         Action<RequestExecutorOptions> configure)
     {
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(schema);
+        ArgumentNullException.ThrowIfNull(configure);
 
         return new ServiceCollection()
             .AddGraphQL()

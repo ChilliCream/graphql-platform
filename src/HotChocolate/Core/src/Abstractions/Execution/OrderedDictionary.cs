@@ -20,10 +20,7 @@ public class OrderedDictionary<TKey, TValue>
 
     public OrderedDictionary(IEnumerable<KeyValuePair<TKey, TValue>> values)
     {
-        if (values is null)
-        {
-            throw new ArgumentNullException(nameof(values));
-        }
+        ArgumentNullException.ThrowIfNull(values);
 
         _order = [];
         _map = new Dictionary<TKey, TValue>();
@@ -37,10 +34,7 @@ public class OrderedDictionary<TKey, TValue>
 
     private OrderedDictionary(OrderedDictionary<TKey, TValue> source)
     {
-        if (source is null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
+        ArgumentNullException.ThrowIfNull(source);
 
         _order = [..source._order,];
         _map = new Dictionary<TKey, TValue>(source._map);

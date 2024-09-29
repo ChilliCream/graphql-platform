@@ -26,10 +26,7 @@ public abstract class WebSocketGraphQLSubscriptionClient : IGraphQLSubscriptionC
         SubgraphGraphQLRequest request,
         CancellationToken cancellationToken)
     {
-        if (request is null)
-        {
-            throw new ArgumentNullException(nameof(request));
-        }
+        ArgumentNullException.ThrowIfNull(request);
 
         return SubscribeInternalAsync(request, cancellationToken);
     }

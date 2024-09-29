@@ -38,15 +38,8 @@ public static class InMemoryClientFactoryServiceCollectionExtensions
         this IServiceCollection services,
         string name)
     {
-        if (services == null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
-
-        if (name == null)
-        {
-            throw new ArgumentNullException(nameof(name));
-        }
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(name);
 
         AddInMemoryClient(services);
 
@@ -87,20 +80,9 @@ public static class InMemoryClientFactoryServiceCollectionExtensions
         string name,
         Action<IInMemoryClient> configureClient)
     {
-        if (services == null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
-
-        if (name == null)
-        {
-            throw new ArgumentNullException(nameof(name));
-        }
-
-        if (configureClient == null)
-        {
-            throw new ArgumentNullException(nameof(configureClient));
-        }
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(name);
+        ArgumentNullException.ThrowIfNull(configureClient);
 
         AddInMemoryClient(services);
 
@@ -143,20 +125,9 @@ public static class InMemoryClientFactoryServiceCollectionExtensions
         string name,
         Action<IServiceProvider, IInMemoryClient> configureClient)
     {
-        if (services == null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
-
-        if (name == null)
-        {
-            throw new ArgumentNullException(nameof(name));
-        }
-
-        if (configureClient == null)
-        {
-            throw new ArgumentNullException(nameof(configureClient));
-        }
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(name);
+        ArgumentNullException.ThrowIfNull(configureClient);
 
         AddInMemoryClient(services);
 
@@ -199,20 +170,9 @@ public static class InMemoryClientFactoryServiceCollectionExtensions
         string name,
         Func<IInMemoryClient, CancellationToken, ValueTask> configureClientAsync)
     {
-        if (services == null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
-
-        if (name == null)
-        {
-            throw new ArgumentNullException(nameof(name));
-        }
-
-        if (configureClientAsync == null)
-        {
-            throw new ArgumentNullException(nameof(configureClientAsync));
-        }
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(name);
+        ArgumentNullException.ThrowIfNull(configureClientAsync);
 
         AddInMemoryClient(services);
 
@@ -256,20 +216,9 @@ public static class InMemoryClientFactoryServiceCollectionExtensions
         Func<IServiceProvider, IInMemoryClient, CancellationToken, ValueTask>
             configureClientAsync)
     {
-        if (services == null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
-
-        if (name == null)
-        {
-            throw new ArgumentNullException(nameof(name));
-        }
-
-        if (configureClientAsync == null)
-        {
-            throw new ArgumentNullException(nameof(configureClientAsync));
-        }
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(name);
+        ArgumentNullException.ThrowIfNull(configureClientAsync);
 
         AddInMemoryClient(services);
 
@@ -280,10 +229,7 @@ public static class InMemoryClientFactoryServiceCollectionExtensions
 
     private static IServiceCollection AddInMemoryClient(this IServiceCollection services)
     {
-        if (services == null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         services.AddOptions();
 

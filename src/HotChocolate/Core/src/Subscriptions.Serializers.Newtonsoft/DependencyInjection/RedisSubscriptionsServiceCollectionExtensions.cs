@@ -26,10 +26,7 @@ public static class NewtonsoftSubscriptionsServiceCollectionExtensions
     public static IServiceCollection AddNewtonsoftMessageSerialization(
         this IServiceCollection services)
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         services.RemoveAll<IMessageSerializer>();
         services.TryAddSingleton<IMessageSerializer, NewtonsoftJsonMessageSerializer>();

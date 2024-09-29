@@ -8,10 +8,7 @@ public static class Refactor
 {
     public static bool RenameMember(this SchemaDefinition schema, SchemaCoordinate coordinate, string newName)
     {
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
+        ArgumentNullException.ThrowIfNull(schema);
 
         if (string.IsNullOrEmpty(newName))
         {
@@ -54,10 +51,7 @@ public static class Refactor
         SchemaCoordinate coordinate,
         bool onRequiredRemoveParent = false)
     {
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
+        ArgumentNullException.ThrowIfNull(schema);
 
         if (coordinate.OfDirective)
         {
@@ -186,15 +180,8 @@ public static class Refactor
         SchemaCoordinate coordinate,
         Directive directive)
     {
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
-
-        if (directive is null)
-        {
-            throw new ArgumentNullException(nameof(directive));
-        }
+        ArgumentNullException.ThrowIfNull(schema);
+        ArgumentNullException.ThrowIfNull(directive);
 
         if (schema.TryGetMember<IDirectivesProvider>(coordinate, out var member))
         {

@@ -87,10 +87,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
         string? collectionSegmentName = null,
         PagingOptions? options = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         resolvePagingProvider ??= ResolvePagingProvider;
 
@@ -215,10 +212,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
         string? collectionSegmentName = null,
         PagingOptions? options = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor.AddOffsetPagingArguments();
 
@@ -262,10 +256,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
     public static IObjectFieldDescriptor AddOffsetPagingArguments(
         this IObjectFieldDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         var skip = descriptor.Argument(OffsetPagingArgumentNames.Skip, a => a.Type<IntType>());
         skip.Extend().Definition.Flags |= FieldFlags.SkipArgument;
@@ -280,10 +271,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
     public static IInterfaceFieldDescriptor AddOffsetPagingArguments(
         this IInterfaceFieldDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         return descriptor
             .Argument(OffsetPagingArgumentNames.Skip, a => a.Type<IntType>())

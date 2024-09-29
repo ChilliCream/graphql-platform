@@ -81,15 +81,8 @@ public partial class ObjectType
     /// <inheritdoc />
     public virtual bool IsInstanceOfType(IResolverContext context, object resolverResult)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (resolverResult is null)
-        {
-            throw new ArgumentNullException(nameof(resolverResult));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(resolverResult);
 
         return _isOfType!.Invoke(context, resolverResult);
     }

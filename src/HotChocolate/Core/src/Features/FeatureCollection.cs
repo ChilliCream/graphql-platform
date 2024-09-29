@@ -67,19 +67,13 @@ public class FeatureCollection : IFeatureCollection
     {
         get
         {
-            if (key is null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
+            ArgumentNullException.ThrowIfNull(key);
 
             return _features != null && _features.TryGetValue(key, out var result) ? result : _defaults?[key];
         }
         set
         {
-            if (key is null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
+            ArgumentNullException.ThrowIfNull(key);
 
             if (value == null)
             {

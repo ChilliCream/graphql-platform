@@ -66,10 +66,7 @@ public class CompleteConfiguration : ITypeSystemMemberConfiguration
             throw new ArgumentOutOfRangeException(nameof(on));
         }
 
-        if (dependencies is null)
-        {
-            throw new ArgumentNullException(nameof(dependencies));
-        }
+        ArgumentNullException.ThrowIfNull(dependencies);
 
         _configure = configure ?? throw new ArgumentNullException(nameof(configure));
         Owner = owner ?? throw new ArgumentNullException(nameof(owner));
@@ -86,10 +83,7 @@ public class CompleteConfiguration : ITypeSystemMemberConfiguration
 
     public void AddDependency(TypeDependency dependency)
     {
-        if (dependency is null)
-        {
-            throw new ArgumentNullException(nameof(dependency));
-        }
+        ArgumentNullException.ThrowIfNull(dependency);
 
         _dependencies ??= [];
         _dependencies.Add(dependency);
@@ -100,10 +94,7 @@ public class CompleteConfiguration : ITypeSystemMemberConfiguration
 
     public ITypeSystemMemberConfiguration Copy(DefinitionBase newOwner)
     {
-        if (newOwner is null)
-        {
-            throw new ArgumentNullException(nameof(newOwner));
-        }
+        ArgumentNullException.ThrowIfNull(newOwner);
 
         return new CompleteConfiguration(_configure, newOwner, On, Dependencies);
     }

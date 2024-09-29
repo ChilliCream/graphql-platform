@@ -57,10 +57,7 @@ public sealed class OperationRequestBuilder
     /// </exception>
     public OperationRequestBuilder SetDocument(DocumentNode document)
     {
-        if (document is null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
+        ArgumentNullException.ThrowIfNull(document);
 
         _document = new OperationDocument(document);
         return this;

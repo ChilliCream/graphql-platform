@@ -26,10 +26,7 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder)
         where T : class, ITransactionScopeHandler
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         // we host the transaction scope in the global DI.
         builder.Services.TryAddSingleton<T>();
@@ -64,10 +61,7 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Func<IServiceProvider, ITransactionScopeHandler> create)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return ConfigureSchemaServices(
             builder,
@@ -94,10 +88,7 @@ public static partial class RequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder AddDefaultTransactionScopeHandler(
         this IRequestExecutorBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return AddTransactionScopeHandler<DefaultTransactionScopeHandler>(builder);
     }

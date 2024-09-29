@@ -11,15 +11,8 @@ public static class CostAnalyzerRequestContextExtensions
         this IRequestContext context,
         CostMetrics costMetrics)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (costMetrics is null)
-        {
-            throw new ArgumentNullException(nameof(costMetrics));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(costMetrics);
 
         context.ContextData[WellKnownContextData.CostMetrics] = costMetrics;
         return context;
@@ -40,10 +33,7 @@ public static class CostAnalyzerRequestContextExtensions
     public static CostMetrics GetCostMetrics(
         this IRequestContext context)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         if (context.ContextData.TryGetValue(WellKnownContextData.CostMetrics, out var value) &&
             value is CostMetrics costMetrics)
@@ -58,15 +48,8 @@ public static class CostAnalyzerRequestContextExtensions
         this IRequestContext context,
         CostOptions options)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(options);
 
         if (context.ContextData.ContainsKey(WellKnownContextData.ValidateCost))
         {

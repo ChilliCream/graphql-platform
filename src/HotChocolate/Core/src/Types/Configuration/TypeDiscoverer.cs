@@ -26,30 +26,13 @@ internal sealed class TypeDiscoverer
         TypeInterceptor interceptor,
         bool includeSystemTypes = true)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(typeRegistry);
 
-        if (typeRegistry is null)
-        {
-            throw new ArgumentNullException(nameof(typeRegistry));
-        }
+        ArgumentNullException.ThrowIfNull(typeLookup);
+        ArgumentNullException.ThrowIfNull(initialTypes);
 
-        if (typeLookup is null)
-        {
-            throw new ArgumentNullException(nameof(typeLookup));
-        }
-
-        if (initialTypes is null)
-        {
-            throw new ArgumentNullException(nameof(initialTypes));
-        }
-
-        if (interceptor is null)
-        {
-            throw new ArgumentNullException(nameof(interceptor));
-        }
+        ArgumentNullException.ThrowIfNull(interceptor);
 
         _context = context;
         _typeRegistry = typeRegistry;

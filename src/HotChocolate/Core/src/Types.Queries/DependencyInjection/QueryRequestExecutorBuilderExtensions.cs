@@ -23,10 +23,7 @@ public static class QueryRequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder AddQueryConventions(
         this IRequestExecutorBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder
             .ConfigureSchema(

@@ -108,10 +108,7 @@ internal sealed class JsonResultPatcher
 
     public void SetResponse(JsonDocument response)
     {
-        if (response is null)
-        {
-            throw new ArgumentNullException(nameof(response));
-        }
+        ArgumentNullException.ThrowIfNull(response);
 
         _json = JsonObject.Create(response.RootElement);
     }

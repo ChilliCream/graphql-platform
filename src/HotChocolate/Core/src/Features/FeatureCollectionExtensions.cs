@@ -17,10 +17,7 @@ public static class FeatureCollectionExtensions
     public static TFeature GetRequired<TFeature>(this IFeatureCollection featureCollection)
         where TFeature : notnull
     {
-        if(featureCollection is null)
-        {
-            throw new ArgumentNullException(nameof(featureCollection));
-        }
+        ArgumentNullException.ThrowIfNull(featureCollection);
 
         return featureCollection.Get<TFeature>() ??
             throw new InvalidOperationException($"Feature '{typeof(TFeature)}' is not present.");
@@ -35,15 +32,8 @@ public static class FeatureCollectionExtensions
     /// <returns>The requested feature.</returns>
     public static object GetRequired(this IFeatureCollection featureCollection, Type key)
     {
-        if(featureCollection is null)
-        {
-            throw new ArgumentNullException(nameof(featureCollection));
-        }
-
-        if(key is null)
-        {
-            throw new ArgumentNullException(nameof(key));
-        }
+        ArgumentNullException.ThrowIfNull(featureCollection);
+        ArgumentNullException.ThrowIfNull(key);
 
         return featureCollection[key] ??
             throw new InvalidOperationException($"Feature '{key}' is not present.");
@@ -63,10 +53,7 @@ public static class FeatureCollectionExtensions
     /// </exception>
     public static IFeatureCollection ToReadOnly(this IFeatureCollection featureCollection)
     {
-        if(featureCollection is null)
-        {
-            throw new ArgumentNullException(nameof(featureCollection));
-        }
+        ArgumentNullException.ThrowIfNull(featureCollection);
 
         return new ReadOnlyFeatureCollection(featureCollection);
     }

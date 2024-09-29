@@ -83,10 +83,7 @@ public partial class Schema
 
     internal void CompleteSchema(SchemaTypesDefinition schemaTypesDefinition)
     {
-        if (schemaTypesDefinition is null)
-        {
-            throw new ArgumentNullException(nameof(schemaTypesDefinition));
-        }
+        ArgumentNullException.ThrowIfNull(schemaTypesDefinition);
 
         if (_sealed)
         {

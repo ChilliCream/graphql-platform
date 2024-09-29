@@ -14,10 +14,7 @@ internal sealed class DefaultHttpGraphQLClientFactory : IGraphQLClientFactory
 
     public IGraphQLClient CreateClient(HttpClientConfiguration configuration)
     {
-        if (configuration is null)
-        {
-            throw new ArgumentNullException(nameof(configuration));
-        }
+        ArgumentNullException.ThrowIfNull(configuration);
 
         var httpClient = _httpClientFactory.CreateClient(configuration.ClientName);
         return new DefaultHttpGraphQLClient(configuration, httpClient);

@@ -10,50 +10,35 @@ internal sealed partial class ExtendedType
     {
         internal static bool IsSchemaType(Type type)
         {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
+            ArgumentNullException.ThrowIfNull(type);
 
             return Helper.IsSchemaType(type);
         }
 
         internal static bool IsGenericBaseType(Type type)
         {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
+            ArgumentNullException.ThrowIfNull(type);
 
             return BaseTypes.IsGenericBaseType(type);
         }
 
         internal static bool IsNonGenericBaseType(Type type)
         {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
+            ArgumentNullException.ThrowIfNull(type);
 
             return BaseTypes.IsNonGenericBaseType(type);
         }
 
         internal static Type? GetElementType(Type type)
         {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
+            ArgumentNullException.ThrowIfNull(type);
 
             return Helper.GetInnerListType(type);
         }
 
         internal static Type? GetNamedType(Type type)
         {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
+            ArgumentNullException.ThrowIfNull(type);
 
             if (BaseTypes.IsNamedType(type))
             {
@@ -78,10 +63,7 @@ internal sealed partial class ExtendedType
             IExtendedType type,
             ReadOnlySpan<bool?> nullabilityChange)
         {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
+            ArgumentNullException.ThrowIfNull(type);
 
             return nullabilityChange.Length == 0
                 ? Helper.CreateIdentifier(type)
@@ -93,15 +75,8 @@ internal sealed partial class ExtendedType
             ReadOnlySpan<bool?> nullable,
             TypeCache cache)
         {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            if (cache is null)
-            {
-                throw new ArgumentNullException(nameof(cache));
-            }
+            ArgumentNullException.ThrowIfNull(type);
+            ArgumentNullException.ThrowIfNull(cache);
 
             return Helper.ChangeNullability(type, nullable, cache);
         }

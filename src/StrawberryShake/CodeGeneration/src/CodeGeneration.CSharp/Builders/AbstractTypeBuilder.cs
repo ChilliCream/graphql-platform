@@ -19,10 +19,7 @@ public abstract class AbstractTypeBuilder : ITypeBuilder
 
     public void AddProperty(PropertyBuilder property)
     {
-        if (property is null)
-        {
-            throw new ArgumentNullException(nameof(property));
-        }
+        ArgumentNullException.ThrowIfNull(property);
 
         Properties.Add(property);
     }

@@ -123,20 +123,10 @@ public sealed class DirectiveCollection : IDirectiveCollection
         object source,
         IReadOnlyList<DirectiveDefinition> definitions)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(source);
 
-        if (source is null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
-
-        if (definitions is null)
-        {
-            throw new ArgumentNullException(nameof(definitions));
-        }
+        ArgumentNullException.ThrowIfNull(definitions);
 
         var directives = new Directive[definitions.Count];
         var directiveNames = TypeMemHelper.RentNameSet();

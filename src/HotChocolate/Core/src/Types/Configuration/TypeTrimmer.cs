@@ -13,10 +13,7 @@ internal sealed class TypeTrimmer
 
     public TypeTrimmer(IEnumerable<TypeSystemObjectBase> discoveredTypes)
     {
-        if (discoveredTypes is null)
-        {
-            throw new ArgumentNullException(nameof(discoveredTypes));
-        }
+        ArgumentNullException.ThrowIfNull(discoveredTypes);
 
         _discoveredTypes = discoveredTypes.ToList();
     }

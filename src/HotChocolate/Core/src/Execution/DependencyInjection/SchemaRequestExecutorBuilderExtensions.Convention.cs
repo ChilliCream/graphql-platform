@@ -15,20 +15,9 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         CreateConvention factory,
         string? scope = null)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (convention is null)
-        {
-            throw new ArgumentNullException(nameof(convention));
-        }
-
-        if (factory is null)
-        {
-            throw new ArgumentNullException(nameof(factory));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(convention);
+        ArgumentNullException.ThrowIfNull(factory);
 
         return builder.ConfigureSchema(b => b.AddConvention(convention, factory, scope));
     }
@@ -38,15 +27,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         Type type,
         string? scope = null)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(type);
 
         return builder.ConfigureSchema(b => b.AddConvention(typeof(T), type, scope));
     }
@@ -56,10 +38,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         CreateConvention conventionFactory,
         string? scope = null)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder.ConfigureSchema(
             b => b.AddConvention(typeof(T), conventionFactory, scope));
@@ -71,20 +50,9 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         IConvention concreteConvention,
         string? scope = null)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (convention is null)
-        {
-            throw new ArgumentNullException(nameof(convention));
-        }
-
-        if (concreteConvention is null)
-        {
-            throw new ArgumentNullException(nameof(concreteConvention));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(convention);
+        ArgumentNullException.ThrowIfNull(concreteConvention);
 
         if (!typeof(IConvention).IsAssignableFrom(convention))
         {
@@ -103,20 +71,9 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         Type concreteConvention,
         string? scope = null)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (convention is null)
-        {
-            throw new ArgumentNullException(nameof(convention));
-        }
-
-        if (concreteConvention is null)
-        {
-            throw new ArgumentNullException(nameof(concreteConvention));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(convention);
+        ArgumentNullException.ThrowIfNull(concreteConvention);
 
         if (!typeof(IConvention).IsAssignableFrom(convention))
         {
@@ -170,20 +127,9 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         CreateConvention factory,
         string? scope = null)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (convention is null)
-        {
-            throw new ArgumentNullException(nameof(convention));
-        }
-
-        if (factory is null)
-        {
-            throw new ArgumentNullException(nameof(factory));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(convention);
+        ArgumentNullException.ThrowIfNull(factory);
 
         return builder.ConfigureSchema(b => b.TryAddConvention(convention, factory, scope));
     }
@@ -194,20 +140,9 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         IConvention concreteConvention,
         string? scope = null)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (convention is null)
-        {
-            throw new ArgumentNullException(nameof(convention));
-        }
-
-        if (concreteConvention is null)
-        {
-            throw new ArgumentNullException(nameof(concreteConvention));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(convention);
+        ArgumentNullException.ThrowIfNull(concreteConvention);
 
         if (!typeof(IConvention).IsAssignableFrom(convention))
         {
@@ -226,20 +161,9 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         Type concreteConvention,
         string? scope = null)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (convention is null)
-        {
-            throw new ArgumentNullException(nameof(convention));
-        }
-
-        if (concreteConvention is null)
-        {
-            throw new ArgumentNullException(nameof(concreteConvention));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(convention);
+        ArgumentNullException.ThrowIfNull(concreteConvention);
 
         if (!typeof(IConvention).IsAssignableFrom(convention))
         {

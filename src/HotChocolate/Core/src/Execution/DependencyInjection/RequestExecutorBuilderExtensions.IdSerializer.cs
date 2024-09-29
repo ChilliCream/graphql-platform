@@ -36,10 +36,7 @@ public static partial class RequestExecutorBuilderExtensions
         bool outputNewIdFormat = true,
         bool useUrlSafeBase64 = false)
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         if (!builder.Services.Any(t =>
             t.ServiceType == typeof(INodeIdValueSerializer)
@@ -118,10 +115,7 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         int maxIdLength = 1024)
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.Services.RemoveService<INodeIdSerializer>();
         builder.Services.TryAddSingleton<INodeIdSerializer, LegacyNodeIdSerializer>();
@@ -155,10 +149,7 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder)
         where T : class, INodeIdValueSerializer
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.Services.AddSingleton<INodeIdValueSerializer, T>();
         return builder;
@@ -188,10 +179,7 @@ public static partial class RequestExecutorBuilderExtensions
         T serializer)
         where T : class, INodeIdValueSerializer
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.Services.AddSingleton<INodeIdValueSerializer>(serializer);
         return builder;

@@ -10,10 +10,7 @@ public static partial class SchemaBuilderExtensions
         this ISchemaBuilder builder,
         [StringSyntax("graphql")] string schema)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         if (string.IsNullOrEmpty(schema))
         {
@@ -29,10 +26,7 @@ public static partial class SchemaBuilderExtensions
         this ISchemaBuilder builder,
         string filePath)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         if (string.IsNullOrEmpty(filePath))
         {
@@ -48,15 +42,8 @@ public static partial class SchemaBuilderExtensions
         this ISchemaBuilder builder,
         DocumentNode document)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (document is null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(document);
 
         return builder.AddDocument(_ => document);
     }

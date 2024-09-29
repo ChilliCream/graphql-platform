@@ -21,10 +21,7 @@ internal sealed class FusionGraphConfigurationReader
 
     public FusionGraphConfiguration Read(DocumentNode document)
     {
-        if (document is null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
+        ArgumentNullException.ThrowIfNull(document);
 
         return ReadServiceDefinition(document);
     }

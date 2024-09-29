@@ -18,15 +18,8 @@ public class DocumentValidatorRule<TVisitor>
 
     public void Validate(IDocumentValidatorContext context, DocumentNode document)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (document is null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(document);
 
         _visitor.Visit(document, context);
     }

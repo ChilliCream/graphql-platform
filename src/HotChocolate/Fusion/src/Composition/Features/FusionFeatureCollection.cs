@@ -20,10 +20,7 @@ public sealed class FusionFeatureCollection : IReadOnlyCollection<IFusionFeature
     /// </exception>
     public FusionFeatureCollection(params IFusionFeature[] features)
     {
-        if (features == null)
-        {
-            throw new ArgumentNullException(nameof(features));
-        }
+        ArgumentNullException.ThrowIfNull(features);
 
         foreach (var feature in features)
         {
@@ -42,10 +39,7 @@ public sealed class FusionFeatureCollection : IReadOnlyCollection<IFusionFeature
     /// </exception>
     public FusionFeatureCollection(IEnumerable<IFusionFeature> features)
     {
-        if (features == null)
-        {
-            throw new ArgumentNullException(nameof(features));
-        }
+        ArgumentNullException.ThrowIfNull(features);
 
         foreach (var feature in features)
         {

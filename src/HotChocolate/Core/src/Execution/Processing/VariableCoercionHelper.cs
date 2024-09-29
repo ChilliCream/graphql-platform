@@ -23,25 +23,10 @@ internal sealed class VariableCoercionHelper
         IReadOnlyDictionary<string, object?> values,
         IDictionary<string, VariableValueOrLiteral> coercedValues)
     {
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
-
-        if (variableDefinitions is null)
-        {
-            throw new ArgumentNullException(nameof(variableDefinitions));
-        }
-
-        if (values is null)
-        {
-            throw new ArgumentNullException(nameof(values));
-        }
-
-        if (coercedValues is null)
-        {
-            throw new ArgumentNullException(nameof(coercedValues));
-        }
+        ArgumentNullException.ThrowIfNull(schema);
+        ArgumentNullException.ThrowIfNull(variableDefinitions);
+        ArgumentNullException.ThrowIfNull(values);
+        ArgumentNullException.ThrowIfNull(coercedValues);
 
         for (var i = 0; i < variableDefinitions.Count; i++)
         {

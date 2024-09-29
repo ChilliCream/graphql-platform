@@ -9,15 +9,8 @@ internal static class SchemaTools
         this ISchemaBuilder builder,
         Action<ISchemaTypeDescriptor> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         List<Action<ISchemaTypeDescriptor>> options;
 
@@ -36,15 +29,8 @@ internal static class SchemaTools
         this IDescriptorContext context,
         Action<ISchemaTypeDescriptor> configure)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(configure);
 
         List<Action<ISchemaTypeDescriptor>> options;
 
@@ -63,15 +49,8 @@ internal static class SchemaTools
         this IDescriptorContext context,
         ISchemaTypeDescriptor descriptor)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         if (context.ContextData.TryGetValue(WellKnownContextData.InternalSchemaOptions, out var value) &&
             value is List<Action<ISchemaTypeDescriptor>> options)

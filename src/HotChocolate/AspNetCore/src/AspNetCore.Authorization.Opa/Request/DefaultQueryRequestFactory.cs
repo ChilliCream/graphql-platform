@@ -7,15 +7,8 @@ public sealed class DefaultQueryRequestFactory : IOpaQueryRequestFactory
 {
     public OpaQueryRequest CreateRequest(AuthorizationContext context, AuthorizeDirective directive)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (directive is null)
-        {
-            throw new ArgumentNullException(nameof(directive));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(directive);
 
         var httpContext = (HttpContext)context.ContextData[nameof(HttpContext)]!;
         var connection = httpContext.Connection;

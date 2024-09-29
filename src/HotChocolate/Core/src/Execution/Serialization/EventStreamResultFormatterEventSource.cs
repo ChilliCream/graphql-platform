@@ -46,10 +46,7 @@ public sealed class EventStreamResultFormatterEventSource : EventSource
     [NonEvent]
     private void FormatOperationResultError(Exception ex, Guid correlationId)
     {
-        if (ex == null)
-        {
-            throw new ArgumentNullException(nameof(ex));
-        }
+        ArgumentNullException.ThrowIfNull(ex);
 
         FormatOperationResultError(ex.Message, ex.StackTrace ?? string.Empty, correlationId);
     }

@@ -28,10 +28,7 @@ public static class TypeExtensions
     /// </exception>
     public static int Depth(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (type is INamedType)
         {
@@ -55,10 +52,7 @@ public static class TypeExtensions
     /// </exception>
     public static bool IsNullableType(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return type.Kind != TypeKind.NonNull;
     }
@@ -77,10 +71,7 @@ public static class TypeExtensions
     /// </exception>
     public static bool IsNonNullType(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return type.Kind == TypeKind.NonNull;
     }
@@ -99,10 +90,7 @@ public static class TypeExtensions
     /// </exception>
     public static bool IsCompositeType(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return IsType(type, TypeKind.Object, TypeKind.Interface, TypeKind.Union);
     }
@@ -121,10 +109,7 @@ public static class TypeExtensions
     /// </exception>
     public static bool IsComplexType(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return IsType(type, TypeKind.Object, TypeKind.Interface);
     }
@@ -143,10 +128,7 @@ public static class TypeExtensions
     /// </exception>
     public static bool IsLeafType(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return IsType(type, TypeKind.Scalar, TypeKind.Enum);
     }
@@ -165,10 +147,7 @@ public static class TypeExtensions
     /// </exception>
     public static bool IsListType(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return IsType(type, TypeKind.List);
     }
@@ -187,10 +166,7 @@ public static class TypeExtensions
     /// </exception>
     public static bool IsScalarType(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return IsType(type, TypeKind.Scalar);
     }
@@ -209,60 +185,42 @@ public static class TypeExtensions
     /// </exception>
     public static bool IsObjectType(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return IsType(type, TypeKind.Object);
     }
 
     public static bool IsEnumType(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return IsType(type, TypeKind.Enum);
     }
 
     public static bool IsInterfaceType(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return IsType(type, TypeKind.Interface);
     }
 
     public static bool IsInputObjectType(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return IsType(type, TypeKind.InputObject);
     }
 
     public static bool IsInputType(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return type.NamedType() is IInputType;
     }
 
     internal static IInputType EnsureInputType(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (type.NamedType() is not IInputType)
         {
@@ -274,20 +232,14 @@ public static class TypeExtensions
 
     public static bool IsOutputType(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return type.NamedType() is IOutputType;
     }
 
     internal static IOutputType EnsureOutputType(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (type.NamedType() is not IOutputType)
         {
@@ -299,20 +251,14 @@ public static class TypeExtensions
 
     public static bool IsUnionType(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return IsType(type, TypeKind.Union);
     }
 
     public static bool IsAbstractType(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return IsType(type, TypeKind.Interface) || IsType(type, TypeKind.Union);
     }
@@ -394,10 +340,7 @@ public static class TypeExtensions
 
     public static IType InnerType(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (type.Kind == TypeKind.NonNull)
         {
@@ -414,10 +357,7 @@ public static class TypeExtensions
 
     public static IType NullableType(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return type.Kind != TypeKind.NonNull
             ? type
@@ -426,20 +366,14 @@ public static class TypeExtensions
 
     public static string TypeName(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return type.NamedType().Name;
     }
 
     public static ListType ListType(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (type.Kind == TypeKind.List)
         {
@@ -461,10 +395,7 @@ public static class TypeExtensions
 
     public static INamedType NamedType(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         var current = type;
 
@@ -525,10 +456,7 @@ public static class TypeExtensions
 
     public static Type ToRuntimeType(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (type.IsListType())
         {
@@ -556,10 +484,7 @@ public static class TypeExtensions
 
     private static Type LeafTypeToClrType(IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (type.IsLeafType() && type.NamedType() is IHasRuntimeType t)
         {
@@ -576,10 +501,7 @@ public static class TypeExtensions
 
     public static ITypeNode ToTypeNode(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (type is NonNullType nonNullType && ToTypeNode(nonNullType.Type) is INullableTypeNode nullableTypeNode)
         {
@@ -662,15 +584,8 @@ public static class TypeExtensions
     {
         while (true)
         {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            if (literal is null)
-            {
-                throw new ArgumentNullException(nameof(literal));
-            }
+            ArgumentNullException.ThrowIfNull(type);
+            ArgumentNullException.ThrowIfNull(literal);
 
             if (literal.Kind is SyntaxKind.NullValue)
             {

@@ -18,10 +18,7 @@ public static class SchemaHelper
         bool strictValidation = true,
         bool noStore = false)
     {
-        if (schemaFiles is null)
-        {
-            throw new ArgumentNullException(nameof(schemaFiles));
-        }
+        ArgumentNullException.ThrowIfNull(schemaFiles);
 
         var typeInfos = new TypeInfos();
         var lookup = new Dictionary<ISyntaxNode, string>();

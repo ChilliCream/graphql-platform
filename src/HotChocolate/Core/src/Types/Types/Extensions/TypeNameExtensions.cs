@@ -8,15 +8,8 @@ public static class TypeNameExtensions
         this IObjectTypeDescriptor descriptor,
         Func<INamedType, string> createName)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (createName is null)
-        {
-            throw new ArgumentNullException(nameof(createName));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(createName);
 
         return new ObjectTypeNameDependencyDescriptor(
             descriptor, createName);
@@ -26,15 +19,8 @@ public static class TypeNameExtensions
         this IObjectTypeDescriptor<T> descriptor,
         Func<INamedType, string> createName)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (createName is null)
-        {
-            throw new ArgumentNullException(nameof(createName));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(createName);
 
         return new ObjectTypeNameDependencyDescriptor<T>(
             descriptor, createName);
@@ -44,15 +30,8 @@ public static class TypeNameExtensions
         this IEnumTypeDescriptor descriptor,
         Func<INamedType, string> createName)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (createName is null)
-        {
-            throw new ArgumentNullException(nameof(createName));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(createName);
 
         return new EnumTypeNameDependencyDescriptor(
             descriptor, createName);
@@ -62,15 +41,8 @@ public static class TypeNameExtensions
         this IEnumTypeDescriptor<T> descriptor,
         Func<INamedType, string> createName)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (createName is null)
-        {
-            throw new ArgumentNullException(nameof(createName));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(createName);
 
         return new EnumTypeNameDependencyDescriptor<T>(
             descriptor, createName);
@@ -80,15 +52,8 @@ public static class TypeNameExtensions
         this IInputObjectTypeDescriptor descriptor,
         Func<INamedType, string> createName)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (createName is null)
-        {
-            throw new ArgumentNullException(nameof(createName));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(createName);
 
         return new InputObjectTypeNameDependencyDescriptor(
             descriptor, createName);
@@ -98,15 +63,8 @@ public static class TypeNameExtensions
         this IInputObjectTypeDescriptor<T> descriptor,
         Func<INamedType, string> createName)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (createName is null)
-        {
-            throw new ArgumentNullException(nameof(createName));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(createName);
 
         return new InputObjectTypeNameDependencyDescriptor<T>(
             descriptor, createName);
@@ -116,15 +74,8 @@ public static class TypeNameExtensions
         this IInterfaceTypeDescriptor descriptor,
         Func<INamedType, string> createName)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (createName is null)
-        {
-            throw new ArgumentNullException(nameof(createName));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(createName);
 
         return new InterfaceTypeNameDependencyDescriptor(
             descriptor, createName);
@@ -134,15 +85,8 @@ public static class TypeNameExtensions
         this IInterfaceTypeDescriptor<T> descriptor,
         Func<INamedType, string> createName)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (createName is null)
-        {
-            throw new ArgumentNullException(nameof(createName));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(createName);
 
         return new InterfaceTypeNameDependencyDescriptor<T>(
             descriptor, createName);
@@ -152,15 +96,8 @@ public static class TypeNameExtensions
         this IUnionTypeDescriptor descriptor,
         Func<INamedType, string> createName)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (createName is null)
-        {
-            throw new ArgumentNullException(nameof(createName));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(createName);
 
         return new UnionTypeNameDependencyDescriptor(
             descriptor, createName);

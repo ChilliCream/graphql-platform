@@ -12,10 +12,7 @@ public static class SchemaPrinter
 {
     public static string Print(ISchema schema)
     {
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
+        ArgumentNullException.ThrowIfNull(schema);
 
         var document = PrintSchema(schema);
         return document.Print();
@@ -23,15 +20,8 @@ public static class SchemaPrinter
 
     public static void Serialize(ISchema schema, TextWriter textWriter)
     {
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
-
-        if (textWriter is null)
-        {
-            throw new ArgumentNullException(nameof(textWriter));
-        }
+        ArgumentNullException.ThrowIfNull(schema);
+        ArgumentNullException.ThrowIfNull(textWriter);
 
         var document = PrintSchema(schema);
         textWriter.Write(document.Print());
@@ -43,15 +33,8 @@ public static class SchemaPrinter
         bool indented = true,
         CancellationToken cancellationToken = default)
     {
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
-
-        if (stream is null)
-        {
-            throw new ArgumentNullException(nameof(stream));
-        }
+        ArgumentNullException.ThrowIfNull(schema);
+        ArgumentNullException.ThrowIfNull(stream);
 
         var document = PrintSchema(schema);
         await document.PrintToAsync(stream, indented, cancellationToken).ConfigureAwait(false);
@@ -63,15 +46,8 @@ public static class SchemaPrinter
         bool indented = true,
         CancellationToken cancellationToken = default)
     {
-        if (namedTypes is null)
-        {
-            throw new ArgumentNullException(nameof(namedTypes));
-        }
-
-        if (stream is null)
-        {
-            throw new ArgumentNullException(nameof(stream));
-        }
+        ArgumentNullException.ThrowIfNull(namedTypes);
+        ArgumentNullException.ThrowIfNull(stream);
 
         var list = new List<IDefinitionNode>();
 
@@ -94,10 +70,7 @@ public static class SchemaPrinter
         bool includeSpecScalars = false,
         bool printResolverKind = false)
     {
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
+        ArgumentNullException.ThrowIfNull(schema);
 
         var typeDefinitions = GetNonScalarTypes(schema)
             .Select(t => PrintNonScalarTypeDefinition(t, printResolverKind))

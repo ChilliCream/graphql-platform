@@ -16,15 +16,8 @@ internal class InputObjectToDictionaryConverter
     public Dictionary<string, object> Convert(
         InputObjectType type, object obj)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
-
-        if (obj is null)
-        {
-            throw new ArgumentNullException(nameof(obj));
-        }
+        ArgumentNullException.ThrowIfNull(type);
+        ArgumentNullException.ThrowIfNull(obj);
 
         Dictionary<string, object> dict = null;
         void SetValue(object value) => dict = (Dictionary<string, object>)value;

@@ -108,10 +108,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         bool allowCachePropagation,
         CancellationToken ct)
     {
-        if (key is null)
-        {
-            throw new ArgumentNullException(nameof(key));
-        }
+        ArgumentNullException.ThrowIfNull(key);
 
         var cached = true;
         PromiseCacheKey cacheKey = new(cacheKeyType, key);
@@ -156,10 +153,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         bool allowCachePropagation,
         CancellationToken ct)
     {
-        if (keys is null)
-        {
-            throw new ArgumentNullException(nameof(keys));
-        }
+        ArgumentNullException.ThrowIfNull(keys);
 
         var index = 0;
         var tasks = new Task<TValue?>[keys.Count];
@@ -230,15 +224,8 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     /// <inheritdoc />
     public void SetCacheEntry(TKey key, Task<TValue?> value)
     {
-        if (key == null)
-        {
-            throw new ArgumentNullException(nameof(key));
-        }
-
-        if (value == null)
-        {
-            throw new ArgumentNullException(nameof(value));
-        }
+        ArgumentNullException.ThrowIfNull(key);
+        ArgumentNullException.ThrowIfNull(value);
 
         if (Cache is not null)
         {
@@ -250,10 +237,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     /// <inheritdoc />
     public void RemoveCacheEntry(TKey key)
     {
-        if (key is null)
-        {
-            throw new ArgumentNullException(nameof(key));
-        }
+        ArgumentNullException.ThrowIfNull(key);
 
         if (Cache is not null)
         {
@@ -287,10 +271,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             throw new ArgumentException("Value cannot be null or empty.", nameof(key));
         }
 
-        if (createBranch == null)
-        {
-            throw new ArgumentNullException(nameof(createBranch));
-        }
+        ArgumentNullException.ThrowIfNull(createBranch);
 
         if (!AllowBranching)
         {

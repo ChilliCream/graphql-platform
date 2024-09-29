@@ -42,10 +42,7 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
         string apiRoute = GraphQLAzureFunctionsConstants.DefaultGraphQLRoute,
         string? schemaName = default)
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         var executorBuilder =
             services.AddGraphQLServer(maxAllowedRequestSize: maxAllowedRequestSize);
@@ -128,15 +125,8 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
         this IRequestExecutorBuilder builder,
         Action<GraphQLServerOptions> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         builder.Services.AddSingleton(configure);
         return builder;
@@ -146,10 +136,7 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
         this PipelineBuilder requestPipeline,
         PathString path)
     {
-        if (requestPipeline is null)
-        {
-            throw new ArgumentNullException(nameof(requestPipeline));
-        }
+        ArgumentNullException.ThrowIfNull(requestPipeline);
 
         path = path.ToString().TrimEnd('/');
         var fileProvider = CreateFileProvider();

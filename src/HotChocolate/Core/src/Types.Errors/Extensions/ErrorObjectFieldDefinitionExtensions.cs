@@ -23,20 +23,10 @@ public static class ErrorObjectFieldDefinitionExtensions
         IDescriptorContext descriptorContext,
         Type errorType)
     {
-        if (fieldDefinition is null)
-        {
-            throw new ArgumentNullException(nameof(fieldDefinition));
-        }
+        ArgumentNullException.ThrowIfNull(fieldDefinition);
+        ArgumentNullException.ThrowIfNull(descriptorContext);
 
-        if (descriptorContext is null)
-        {
-            throw new ArgumentNullException(nameof(descriptorContext));
-        }
-
-        if (errorType is null)
-        {
-            throw new ArgumentNullException(nameof(errorType));
-        }
+        ArgumentNullException.ThrowIfNull(errorType);
 
         if (!descriptorContext.ContextData.ContainsKey(ErrorConventionEnabled))
         {

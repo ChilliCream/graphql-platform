@@ -11,10 +11,7 @@ public static class ReflectionUtils
         this Expression<Func<T, TPropertyType>> memberExpression,
         bool allowStatic = false)
     {
-        if (memberExpression == null)
-        {
-            throw new ArgumentNullException(nameof(memberExpression));
-        }
+        ArgumentNullException.ThrowIfNull(memberExpression);
 
         return TryExtractMemberInternal<T>(UnwrapFunc(memberExpression), allowStatic);
     }
@@ -55,10 +52,7 @@ public static class ReflectionUtils
         this Expression<Action<T>> memberExpression,
         bool allowStatic = false)
     {
-        if (memberExpression is null)
-        {
-            throw new ArgumentNullException(nameof(memberExpression));
-        }
+        ArgumentNullException.ThrowIfNull(memberExpression);
 
         return ExtractMemberInternal<T>(UnwrapAction(memberExpression), allowStatic);
     }
@@ -67,10 +61,7 @@ public static class ReflectionUtils
         this Expression<Func<T, TPropertyType>> memberExpression,
         bool allowStatic = false)
     {
-        if (memberExpression is null)
-        {
-            throw new ArgumentNullException(nameof(memberExpression));
-        }
+        ArgumentNullException.ThrowIfNull(memberExpression);
 
         return ExtractMemberInternal<T>(UnwrapFunc(memberExpression), allowStatic);
     }
@@ -189,10 +180,7 @@ public static class ReflectionUtils
 
     public static string GetTypeName(this Type type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return type.IsGenericType
             ? CreateGenericTypeName(type)

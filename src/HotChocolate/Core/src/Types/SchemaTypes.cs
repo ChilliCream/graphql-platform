@@ -14,10 +14,7 @@ internal sealed class SchemaTypes
 
     public SchemaTypes(SchemaTypesDefinition definition)
     {
-        if (definition is null)
-        {
-            throw new ArgumentNullException(nameof(definition));
-        }
+        ArgumentNullException.ThrowIfNull(definition);
 
         if (definition.Types is null || definition.DirectiveTypes is null)
         {

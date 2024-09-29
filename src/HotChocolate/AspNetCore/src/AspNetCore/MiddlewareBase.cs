@@ -26,10 +26,7 @@ public class MiddlewareBase : IDisposable
         IHttpResponseFormatter responseFormatter,
         string schemaName)
     {
-        if (executorResolver is null)
-        {
-            throw new ArgumentNullException(nameof(executorResolver));
-        }
+        ArgumentNullException.ThrowIfNull(executorResolver);
 
         _next = next ??
             throw new ArgumentNullException(nameof(next));

@@ -8,10 +8,7 @@ public abstract class SortVisitorContext<T>
     protected SortVisitorContext(
         ISortInputType initialType)
     {
-        if (initialType is null)
-        {
-            throw new ArgumentNullException(nameof(initialType));
-        }
+        ArgumentNullException.ThrowIfNull(initialType);
 
         Types.Push(initialType);
     }

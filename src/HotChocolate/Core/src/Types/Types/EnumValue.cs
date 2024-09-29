@@ -12,15 +12,8 @@ public sealed class EnumValue : IEnumValue
         ITypeCompletionContext completionContext,
         EnumValueDefinition enumValueDefinition)
     {
-        if (completionContext == null)
-        {
-            throw new ArgumentNullException(nameof(completionContext));
-        }
-
-        if (enumValueDefinition is null)
-        {
-            throw new ArgumentNullException(nameof(enumValueDefinition));
-        }
+        ArgumentNullException.ThrowIfNull(completionContext);
+        ArgumentNullException.ThrowIfNull(enumValueDefinition);
 
         if (enumValueDefinition.RuntimeValue is null)
         {

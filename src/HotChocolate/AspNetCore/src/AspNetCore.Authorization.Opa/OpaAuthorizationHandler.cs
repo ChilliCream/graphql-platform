@@ -19,10 +19,7 @@ internal sealed class OpaAuthorizationHandler : IAuthorizationHandler
         IOpaQueryRequestFactory requestFactory,
         IOptions<OpaOptions> options)
     {
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
+        ArgumentNullException.ThrowIfNull(options);
 
         _opaService = opaService ?? throw new ArgumentNullException(nameof(opaService));
         _requestFactory = requestFactory ?? throw new ArgumentNullException(nameof(requestFactory));

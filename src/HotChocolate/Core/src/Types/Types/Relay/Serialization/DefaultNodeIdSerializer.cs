@@ -39,10 +39,7 @@ public sealed class DefaultNodeIdSerializer(
                 nameof(typeName));
         }
 
-        if (internalId == null)
-        {
-            throw new ArgumentNullException(nameof(internalId));
-        }
+        ArgumentNullException.ThrowIfNull(internalId);
 
         var runtimeType = internalId.GetType();
         var serializer = TryResolveSerializer(runtimeType);
@@ -170,10 +167,7 @@ public sealed class DefaultNodeIdSerializer(
 
     public NodeId Parse(string formattedId, INodeIdRuntimeTypeLookup runtimeTypeLookup)
     {
-        if (formattedId is null)
-        {
-            throw new ArgumentNullException(nameof(formattedId));
-        }
+        ArgumentNullException.ThrowIfNull(formattedId);
 
         if (formattedId.Length > maxIdLength)
         {
@@ -241,10 +235,7 @@ public sealed class DefaultNodeIdSerializer(
 
     public NodeId Parse(string formattedId, Type runtimeType)
     {
-        if (formattedId is null)
-        {
-            throw new ArgumentNullException(nameof(formattedId));
-        }
+        ArgumentNullException.ThrowIfNull(formattedId);
 
         if (formattedId.Length > maxIdLength)
         {

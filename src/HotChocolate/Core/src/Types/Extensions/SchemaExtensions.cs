@@ -86,10 +86,7 @@ public static class SchemaExtensions
         SchemaCoordinate coordinate,
         [NotNullWhen(true)] out ITypeSystemMember? member)
     {
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
+        ArgumentNullException.ThrowIfNull(schema);
 
         if (coordinate.OfDirective)
         {
@@ -220,10 +217,7 @@ public static class SchemaExtensions
         this ISchema schema,
         SchemaCoordinate coordinate)
     {
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
+        ArgumentNullException.ThrowIfNull(schema);
 
         if (coordinate.OfDirective)
         {

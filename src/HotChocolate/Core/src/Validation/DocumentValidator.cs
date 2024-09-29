@@ -39,15 +39,8 @@ public sealed class DocumentValidator : IDocumentValidator
         IEnumerable<IValidationResultAggregator> resultAggregators,
         IErrorOptionsAccessor errorOptions)
     {
-        if (rules is null)
-        {
-            throw new ArgumentNullException(nameof(rules));
-        }
-
-        if (errorOptions is null)
-        {
-            throw new ArgumentNullException(nameof(errorOptions));
-        }
+        ArgumentNullException.ThrowIfNull(rules);
+        ArgumentNullException.ThrowIfNull(errorOptions);
 
         _contextPool = contextPool ?? throw new ArgumentNullException(nameof(contextPool));
         _allRules = rules.ToArray();
@@ -68,15 +61,8 @@ public sealed class DocumentValidator : IDocumentValidator
         bool onlyNonCacheable,
         CancellationToken cancellationToken = default)
     {
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
-
-        if (document is null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
+        ArgumentNullException.ThrowIfNull(schema);
+        ArgumentNullException.ThrowIfNull(document);
 
         if (documentId.IsEmpty)
         {

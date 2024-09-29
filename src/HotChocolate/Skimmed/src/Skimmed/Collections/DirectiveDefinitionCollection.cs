@@ -18,20 +18,14 @@ public sealed class DirectiveDefinitionCollection : IDirectiveDefinitionCollecti
 
     public void Add(DirectiveDefinition item)
     {
-        if (item is null)
-        {
-            throw new ArgumentNullException(nameof(item));
-        }
+        ArgumentNullException.ThrowIfNull(item);
 
         _types.Add(item.Name, item);
     }
 
     public bool Remove(DirectiveDefinition item)
     {
-        if (item is null)
-        {
-            throw new ArgumentNullException(nameof(item));
-        }
+        ArgumentNullException.ThrowIfNull(item);
 
         if (_types.TryGetValue(item.Name, out var itemToDelete) &&
             ReferenceEquals(item, itemToDelete))
@@ -50,10 +44,7 @@ public sealed class DirectiveDefinitionCollection : IDirectiveDefinitionCollecti
 
     public bool Contains(DirectiveDefinition item)
     {
-        if (item is null)
-        {
-            throw new ArgumentNullException(nameof(item));
-        }
+        ArgumentNullException.ThrowIfNull(item);
 
         if (_types.TryGetValue(item.Name, out var itemToDelete) &&
             ReferenceEquals(item, itemToDelete))

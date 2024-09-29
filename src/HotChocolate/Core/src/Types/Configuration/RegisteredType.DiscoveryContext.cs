@@ -29,10 +29,7 @@ internal sealed partial class RegisteredType : ITypeDiscoveryContext
 
     public void ReportError(ISchemaError error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         Errors.Add(error);
     }

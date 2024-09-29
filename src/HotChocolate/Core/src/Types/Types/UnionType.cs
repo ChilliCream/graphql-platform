@@ -127,20 +127,14 @@ public class UnionType
     /// </returns>
     public bool ContainsType(ObjectType objectType)
     {
-        if (objectType is null)
-        {
-            throw new ArgumentNullException(nameof(objectType));
-        }
+        ArgumentNullException.ThrowIfNull(objectType);
 
         return _typeMap.ContainsKey(objectType.Name);
     }
 
     bool IUnionType.ContainsType(IObjectType objectType)
     {
-        if (objectType is null)
-        {
-            throw new ArgumentNullException(nameof(objectType));
-        }
+        ArgumentNullException.ThrowIfNull(objectType);
 
         return _typeMap.ContainsKey(objectType.Name);
     }

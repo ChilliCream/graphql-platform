@@ -69,10 +69,7 @@ public abstract class OutputFieldDescriptorBase<TDefinition>
     protected void Type<TOutputType>(TOutputType outputType)
         where TOutputType : class, IOutputType
     {
-        if (outputType is null)
-        {
-            throw new ArgumentNullException(nameof(outputType));
-        }
+        ArgumentNullException.ThrowIfNull(outputType);
 
         if (!outputType.IsOutputType())
         {
@@ -85,10 +82,7 @@ public abstract class OutputFieldDescriptorBase<TDefinition>
 
     protected void Type(ITypeNode typeNode)
     {
-        if (typeNode is null)
-        {
-            throw new ArgumentNullException(nameof(typeNode));
-        }
+        ArgumentNullException.ThrowIfNull(typeNode);
         Definition.SetMoreSpecificType(typeNode, TypeContext.Output);
     }
 
@@ -96,10 +90,7 @@ public abstract class OutputFieldDescriptorBase<TDefinition>
         string name,
         Action<IArgumentDescriptor> argument)
     {
-        if (argument is null)
-        {
-            throw new ArgumentNullException(nameof(argument));
-        }
+        ArgumentNullException.ThrowIfNull(argument);
 
         name.EnsureGraphQLName();
 

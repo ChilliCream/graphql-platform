@@ -28,10 +28,7 @@ public abstract class CursorPaginationAlgorithm<TQuery, TEntity> where TQuery : 
         CursorPagingArguments arguments,
         int? totalCount)
     {
-        if (query is null)
-        {
-            throw new ArgumentNullException(nameof(query));
-        }
+        ArgumentNullException.ThrowIfNull(query);
 
         totalCount ??= int.MaxValue;
         var range = SliceRange(arguments, totalCount.Value);

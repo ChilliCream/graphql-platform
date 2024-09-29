@@ -51,10 +51,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     /// <inheritdoc />
     public ISchemaBuilder SetSchema(Type type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (typeof(Schema).IsAssignableFrom(type))
         {
@@ -72,10 +69,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     /// <inheritdoc />
     public ISchemaBuilder SetSchema(ISchema schema)
     {
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
+        ArgumentNullException.ThrowIfNull(schema);
 
         if (schema is TypeSystemObjectBase)
         {
@@ -93,10 +87,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     /// <inheritdoc />
     public ISchemaBuilder SetSchema(Action<ISchemaTypeDescriptor> configure)
     {
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(configure);
 
         _schema = _ => new SchemaTypeReference(new Schema(configure));
         return this;
@@ -106,10 +97,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     [Obsolete("Use ModifyOptions instead.")]
     public ISchemaBuilder SetOptions(IReadOnlySchemaOptions options)
     {
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
+        ArgumentNullException.ThrowIfNull(options);
 
         _options = SchemaOptions.FromOptions(options);
         return this;
@@ -118,10 +106,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     /// <inheritdoc />
     public ISchemaBuilder ModifyOptions(Action<SchemaOptions> configure)
     {
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(configure);
 
         configure(_options);
         return this;
@@ -138,10 +123,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     /// <inheritdoc />
     public ISchemaBuilder ModifyPagingOptions(Action<PagingOptions> configure)
     {
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(configure);
 
         configure(_pagingOptions);
         return this;
@@ -150,10 +132,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     /// <inheritdoc />
     public ISchemaBuilder Use(FieldMiddleware middleware)
     {
-        if (middleware is null)
-        {
-            throw new ArgumentNullException(nameof(middleware));
-        }
+        ArgumentNullException.ThrowIfNull(middleware);
 
         _globalComponents.Add(middleware);
         return this;
@@ -162,10 +141,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     /// <inheritdoc />
     public ISchemaBuilder AddDocument(LoadSchemaDocument loadSchemaDocument)
     {
-        if (loadSchemaDocument is null)
-        {
-            throw new ArgumentNullException(nameof(loadSchemaDocument));
-        }
+        ArgumentNullException.ThrowIfNull(loadSchemaDocument);
 
         _schemaFirstTypeInterceptor ??= new SchemaFirstTypeInterceptor();
         _documents.Add(loadSchemaDocument);
@@ -175,10 +151,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     /// <inheritdoc />
     public ISchemaBuilder AddType(Type type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         _types.Add(ti => ti.GetTypeRef(type));
 
@@ -191,15 +164,8 @@ public partial class SchemaBuilder : ISchemaBuilder
         CreateConvention factory,
         string? scope = null)
     {
-        if (convention is null)
-        {
-            throw new ArgumentNullException(nameof(convention));
-        }
-
-        if (factory is null)
-        {
-            throw new ArgumentNullException(nameof(factory));
-        }
+        ArgumentNullException.ThrowIfNull(convention);
+        ArgumentNullException.ThrowIfNull(factory);
 
         if (!_conventions.ContainsKey((convention, scope)))
         {
@@ -215,10 +181,7 @@ public partial class SchemaBuilder : ISchemaBuilder
         CreateConvention factory,
         string? scope = null)
     {
-        if (convention is null)
-        {
-            throw new ArgumentNullException(nameof(convention));
-        }
+        ArgumentNullException.ThrowIfNull(convention);
 
         if (!_conventions.TryGetValue(
             (convention, scope),
@@ -236,15 +199,8 @@ public partial class SchemaBuilder : ISchemaBuilder
     /// <inheritdoc />
     public ISchemaBuilder BindRuntimeType(Type runtimeType, Type schemaType)
     {
-        if (runtimeType is null)
-        {
-            throw new ArgumentNullException(nameof(runtimeType));
-        }
-
-        if (schemaType is null)
-        {
-            throw new ArgumentNullException(nameof(schemaType));
-        }
+        ArgumentNullException.ThrowIfNull(runtimeType);
+        ArgumentNullException.ThrowIfNull(schemaType);
 
         if (!schemaType.IsSchemaType())
         {
@@ -264,10 +220,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     /// <inheritdoc />
     public ISchemaBuilder AddType(INamedType namedType)
     {
-        if (namedType is null)
-        {
-            throw new ArgumentNullException(nameof(namedType));
-        }
+        ArgumentNullException.ThrowIfNull(namedType);
 
         _types.Add(_ => TypeReference.Create(namedType));
         return this;
@@ -276,10 +229,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     /// <inheritdoc />
     public ISchemaBuilder AddType(INamedTypeExtension typeExtension)
     {
-        if (typeExtension is null)
-        {
-            throw new ArgumentNullException(nameof(typeExtension));
-        }
+        ArgumentNullException.ThrowIfNull(typeExtension);
 
         _types.Add(_ => TypeReference.Create(typeExtension));
         return this;
@@ -287,10 +237,7 @@ public partial class SchemaBuilder : ISchemaBuilder
 
     internal void AddTypeReference(TypeReference typeReference)
     {
-        if (typeReference is null)
-        {
-            throw new ArgumentNullException(nameof(typeReference));
-        }
+        ArgumentNullException.ThrowIfNull(typeReference);
 
         _types.Add(_ => typeReference);
     }
@@ -298,10 +245,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     /// <inheritdoc />
     public ISchemaBuilder AddDirectiveType(DirectiveType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         _types.Add(_ => TypeReference.Create(type));
         return this;
@@ -310,10 +254,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     /// <inheritdoc />
     public ISchemaBuilder AddRootType(Type rootType, OperationType operation)
     {
-        if (rootType is null)
-        {
-            throw new ArgumentNullException(nameof(rootType));
-        }
+        ArgumentNullException.ThrowIfNull(rootType);
 
         if (!rootType.IsClass)
         {
@@ -354,10 +295,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     /// <inheritdoc />
     public ISchemaBuilder AddRootType(ObjectType rootType, OperationType operation)
     {
-        if (rootType is null)
-        {
-            throw new ArgumentNullException(nameof(rootType));
-        }
+        ArgumentNullException.ThrowIfNull(rootType);
 
         if (_operations.ContainsKey(operation))
         {
@@ -377,10 +315,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     /// <inheritdoc />
     public ISchemaBuilder TryAddRootType(Func<ObjectType> rootType, OperationType operation)
     {
-        if (rootType is null)
-        {
-            throw new ArgumentNullException(nameof(rootType));
-        }
+        ArgumentNullException.ThrowIfNull(rootType);
 
         if (_operations.ContainsKey(operation))
         {
@@ -403,10 +338,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     /// <inheritdoc />
     public ISchemaBuilder AddServices(IServiceProvider services)
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         _services = _services is null ? services : new CombinedServiceProvider(_services, services);
 
@@ -431,10 +363,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     /// <inheritdoc />
     public ISchemaBuilder TryAddTypeInterceptor(Type interceptor)
     {
-        if (interceptor is null)
-        {
-            throw new ArgumentNullException(nameof(interceptor));
-        }
+        ArgumentNullException.ThrowIfNull(interceptor);
 
         if (!typeof(TypeInterceptor).IsAssignableFrom(interceptor))
         {
@@ -454,10 +383,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     /// <inheritdoc />
     public ISchemaBuilder TryAddTypeInterceptor(TypeInterceptor interceptor)
     {
-        if (interceptor is null)
-        {
-            throw new ArgumentNullException(nameof(interceptor));
-        }
+        ArgumentNullException.ThrowIfNull(interceptor);
 
         if (!_typeInterceptors.Contains(interceptor))
         {

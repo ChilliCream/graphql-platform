@@ -29,10 +29,7 @@ public class GraphQLClientException : Exception
     /// </exception>
     public GraphQLClientException(IClientError error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         Message = error.Message;
         Errors = new[] { error, };
@@ -49,10 +46,7 @@ public class GraphQLClientException : Exception
     /// </exception>
     public GraphQLClientException(params IClientError[] errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         if (errors.Length == 0)
         {

@@ -27,10 +27,7 @@ internal static class RelayIdFieldHelpers
         IDescriptor<ArgumentDefinition> descriptor,
         string? typeName = default)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         var extend = descriptor.Extend();
 
@@ -55,10 +52,7 @@ internal static class RelayIdFieldHelpers
         IDescriptor<OutputFieldDefinitionBase> descriptor,
         string? typeName = default)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         // rewrite type
         descriptor.Extend().OnBeforeCreate(RewriteDefinition);

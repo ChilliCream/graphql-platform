@@ -66,10 +66,7 @@ internal sealed class SelectionCollection(
 
     public bool IsSelected(string fieldName)
     {
-        if (fieldName is null)
-        {
-            throw new ArgumentNullException(nameof(fieldName));
-        }
+        ArgumentNullException.ThrowIfNull(fieldName);
 
         ref var start = ref MemoryMarshal.GetReference(_selections.AsSpan());
         ref var end = ref Unsafe.Add(ref start, _selections.Length);
@@ -146,15 +143,8 @@ internal sealed class SelectionCollection(
 
     public bool IsSelected(string fieldName1, string fieldName2)
     {
-        if (fieldName1 is null)
-        {
-            throw new ArgumentNullException(nameof(fieldName1));
-        }
-
-        if (fieldName2 is null)
-        {
-            throw new ArgumentNullException(nameof(fieldName2));
-        }
+        ArgumentNullException.ThrowIfNull(fieldName1);
+        ArgumentNullException.ThrowIfNull(fieldName2);
 
         ref var start = ref MemoryMarshal.GetReference(_selections.AsSpan());
         ref var end = ref Unsafe.Add(ref start, _selections.Length);
@@ -235,20 +225,9 @@ internal sealed class SelectionCollection(
 
     public bool IsSelected(string fieldName1, string fieldName2, string fieldName3)
     {
-        if (fieldName1 is null)
-        {
-            throw new ArgumentNullException(nameof(fieldName1));
-        }
-
-        if (fieldName2 is null)
-        {
-            throw new ArgumentNullException(nameof(fieldName2));
-        }
-
-        if (fieldName3 is null)
-        {
-            throw new ArgumentNullException(nameof(fieldName3));
-        }
+        ArgumentNullException.ThrowIfNull(fieldName1);
+        ArgumentNullException.ThrowIfNull(fieldName2);
+        ArgumentNullException.ThrowIfNull(fieldName3);
 
         ref var start = ref MemoryMarshal.GetReference(_selections.AsSpan());
         ref var end = ref Unsafe.Add(ref start, _selections.Length);
@@ -333,10 +312,7 @@ internal sealed class SelectionCollection(
 
     public bool IsSelected(ISet<string> fieldNames)
     {
-        if (fieldNames is null)
-        {
-            throw new ArgumentNullException(nameof(fieldNames));
-        }
+        ArgumentNullException.ThrowIfNull(fieldNames);
 
         ref var start = ref MemoryMarshal.GetReference(_selections.AsSpan());
         ref var end = ref Unsafe.Add(ref start, _selections.Length);

@@ -46,10 +46,7 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
         bool inferred = false,
         Action<RegisteredType>? configure = null)
     {
-        if (obj is null)
-        {
-            throw new ArgumentNullException(nameof(obj));
-        }
+        ArgumentNullException.ThrowIfNull(obj);
 
         var registeredType = InitializeType(obj, scope, inferred);
 
@@ -97,30 +94,21 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
 
     public void MarkUnresolved(TypeReference typeReference)
     {
-        if (typeReference is null)
-        {
-            throw new ArgumentNullException(nameof(typeReference));
-        }
+        ArgumentNullException.ThrowIfNull(typeReference);
 
         _unresolved.Add(typeReference);
     }
 
     public void MarkResolved(TypeReference typeReference)
     {
-        if (typeReference is null)
-        {
-            throw new ArgumentNullException(nameof(typeReference));
-        }
+        ArgumentNullException.ThrowIfNull(typeReference);
 
         _unresolved.Remove(typeReference);
     }
 
     public bool IsResolved(TypeReference typeReference)
     {
-        if (typeReference is null)
-        {
-            throw new ArgumentNullException(nameof(typeReference));
-        }
+        ArgumentNullException.ThrowIfNull(typeReference);
 
         return _typeRegistry.IsRegistered(typeReference);
     }

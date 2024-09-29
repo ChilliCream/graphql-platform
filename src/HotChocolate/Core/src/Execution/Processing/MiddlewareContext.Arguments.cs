@@ -132,10 +132,7 @@ internal partial class MiddlewareContext
     public IReadOnlyDictionary<string, ArgumentValue> ReplaceArguments(
         IReadOnlyDictionary<string, ArgumentValue> argumentValues)
     {
-        if (argumentValues is null)
-        {
-            throw new ArgumentNullException(nameof(argumentValues));
-        }
+        ArgumentNullException.ThrowIfNull(argumentValues);
 
         var original = Arguments;
         Arguments = argumentValues;
@@ -145,10 +142,7 @@ internal partial class MiddlewareContext
     public IReadOnlyDictionary<string, ArgumentValue> ReplaceArguments(
         ReplaceArguments replace)
     {
-        if (replace is null)
-        {
-            throw new ArgumentNullException(nameof(replace));
-        }
+        ArgumentNullException.ThrowIfNull(replace);
 
         var original = Arguments;
         Arguments = replace(original) ??
@@ -164,10 +158,7 @@ internal partial class MiddlewareContext
             throw new ArgumentNullException(nameof(argumentName));
         }
 
-        if (newArgumentValue is null)
-        {
-            throw new ArgumentNullException(nameof(newArgumentValue));
-        }
+        ArgumentNullException.ThrowIfNull(newArgumentValue);
 
         Dictionary<string, ArgumentValue> mutableArguments;
 

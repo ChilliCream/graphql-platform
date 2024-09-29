@@ -155,15 +155,8 @@ internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocumen
         Func<HttpClient> createClient,
         Func<GraphQLHttpRequest> createRequest)
     {
-        if (createClient is null)
-        {
-            throw new ArgumentNullException(nameof(createClient));
-        }
-
-        if (createRequest is null)
-        {
-            throw new ArgumentNullException(nameof(createRequest));
-        }
+        ArgumentNullException.ThrowIfNull(createClient);
+        ArgumentNullException.ThrowIfNull(createRequest);
 
         return new ResponseEnumerable(createClient, createRequest);
     }

@@ -28,10 +28,7 @@ public sealed class TypeDependency
         IExtendedType type,
         TypeDependencyFulfilled fulfilled = TypeDependencyFulfilled.Default)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (!type.IsSchemaType)
         {

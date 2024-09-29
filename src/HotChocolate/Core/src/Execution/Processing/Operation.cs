@@ -63,15 +63,8 @@ internal sealed class Operation : IOperation
 
     public ISelectionSet GetSelectionSet(ISelection selection, IObjectType typeContext)
     {
-        if (selection is null)
-        {
-            throw new ArgumentNullException(nameof(selection));
-        }
-
-        if (typeContext is null)
-        {
-            throw new ArgumentNullException(nameof(typeContext));
-        }
+        ArgumentNullException.ThrowIfNull(selection);
+        ArgumentNullException.ThrowIfNull(typeContext);
 
         var selectionSetId = ((Selection)selection).SelectionSetId;
 
@@ -85,10 +78,7 @@ internal sealed class Operation : IOperation
 
     public IEnumerable<IObjectType> GetPossibleTypes(ISelection selection)
     {
-        if (selection is null)
-        {
-            throw new ArgumentNullException(nameof(selection));
-        }
+        ArgumentNullException.ThrowIfNull(selection);
 
         var selectionSetId = ((Selection)selection).SelectionSetId;
 

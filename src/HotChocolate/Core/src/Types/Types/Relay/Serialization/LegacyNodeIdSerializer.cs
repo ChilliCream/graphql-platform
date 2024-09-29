@@ -30,10 +30,7 @@ internal sealed class LegacyNodeIdSerializer : INodeIdSerializer
             throw new ArgumentNullException(nameof(typeName));
         }
 
-        if (internalId is null)
-        {
-            throw new ArgumentNullException(nameof(internalId));
-        }
+        ArgumentNullException.ThrowIfNull(internalId);
 
         string? idString = null;
 
@@ -164,10 +161,7 @@ internal sealed class LegacyNodeIdSerializer : INodeIdSerializer
 
     private static NodeId Parse(string formattedId)
     {
-        if (formattedId is null)
-        {
-            throw new ArgumentNullException(nameof(formattedId));
-        }
+        ArgumentNullException.ThrowIfNull(formattedId);
 
         var serializedSize = GetAllocationSize(formattedId);
 

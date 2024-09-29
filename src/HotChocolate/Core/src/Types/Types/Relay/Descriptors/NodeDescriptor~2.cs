@@ -74,10 +74,7 @@ public class NodeDescriptor<TNode, TId> : INodeDescriptor<TNode, TId>
     public IObjectFieldDescriptor ResolveNodeWith<TResolver>(
         Expression<Func<TResolver, object?>> method)
     {
-        if (method is null)
-        {
-            throw new ArgumentNullException(nameof(method));
-        }
+        ArgumentNullException.ThrowIfNull(method);
 
         var member = method.TryExtractMember();
 
@@ -96,10 +93,7 @@ public class NodeDescriptor<TNode, TId> : INodeDescriptor<TNode, TId>
 
     public IObjectFieldDescriptor ResolveNodeWith(MethodInfo method)
     {
-        if (method is null)
-        {
-            throw new ArgumentNullException(nameof(method));
-        }
+        ArgumentNullException.ThrowIfNull(method);
 
         Definition.ResolverField ??= new ObjectFieldDefinition();
         Definition.ResolverField.Member = method;

@@ -27,15 +27,8 @@ public static partial class HotChocolateValidationBuilderExtensions
         this IValidationBuilder builder,
         Action<ValidationOptionsModifiers> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         builder.Services.Configure(builder.Name, configure);
 
@@ -64,15 +57,8 @@ public static partial class HotChocolateValidationBuilderExtensions
         this IValidationBuilder builder,
         Action<IServiceProvider, ValidationOptionsModifiers> configureClient)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configureClient is null)
-        {
-            throw new ArgumentNullException(nameof(configureClient));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configureClient);
 
         builder.Services.AddTransient<IConfigureOptions<ValidationOptionsModifiers>>(sp =>
             new ConfigureNamedOptions<ValidationOptionsModifiers>(

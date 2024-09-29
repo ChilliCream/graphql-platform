@@ -27,10 +27,7 @@ internal sealed class TypeLookup
         TypeReference typeRef,
         [NotNullWhen(true)] out TypeReference? namedTypeRef)
     {
-        if (typeRef is null)
-        {
-            throw new ArgumentNullException(nameof(typeRef));
-        }
+        ArgumentNullException.ThrowIfNull(typeRef);
 
         // if we already created a lookup for this type reference we can just return the
         // the type reference to the named type.
@@ -93,10 +90,7 @@ internal sealed class TypeLookup
         ExtendedTypeReference typeRef,
         [NotNullWhen(true)] out TypeReference? namedTypeRef)
     {
-        if (typeRef is null)
-        {
-            throw new ArgumentNullException(nameof(typeRef));
-        }
+        ArgumentNullException.ThrowIfNull(typeRef);
 
         // if the typeRef refers to a schema type base class we skip since such a type is not
         // resolvable.

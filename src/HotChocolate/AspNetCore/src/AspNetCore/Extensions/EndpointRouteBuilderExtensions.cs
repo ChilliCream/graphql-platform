@@ -69,10 +69,7 @@ public static class EndpointRouteBuilderExtensions
         PathString path,
         string? schemaName = default)
     {
-        if (endpointRouteBuilder is null)
-        {
-            throw new ArgumentNullException(nameof(endpointRouteBuilder));
-        }
+        ArgumentNullException.ThrowIfNull(endpointRouteBuilder);
 
         path = path.ToString().TrimEnd('/');
         var schemaNameOrDefault = schemaName ?? Schema.DefaultName;
@@ -110,10 +107,7 @@ public static class EndpointRouteBuilderExtensions
         PathString path,
         string schemaName)
     {
-        if (applicationBuilder is null)
-        {
-            throw new ArgumentNullException(nameof(applicationBuilder));
-        }
+        ArgumentNullException.ThrowIfNull(applicationBuilder);
 
         path = path.ToString().TrimEnd('/');
 
@@ -184,15 +178,8 @@ public static class EndpointRouteBuilderExtensions
         RoutePattern pattern,
         string? schemaName = default)
     {
-        if (endpointRouteBuilder is null)
-        {
-            throw new ArgumentNullException(nameof(endpointRouteBuilder));
-        }
-
-        if (pattern is null)
-        {
-            throw new ArgumentNullException(nameof(pattern));
-        }
+        ArgumentNullException.ThrowIfNull(endpointRouteBuilder);
+        ArgumentNullException.ThrowIfNull(pattern);
 
         var requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
         var schemaNameOrDefault = schemaName ?? Schema.DefaultName;
@@ -264,15 +251,8 @@ public static class EndpointRouteBuilderExtensions
         RoutePattern pattern,
         string? schemaName = default)
     {
-        if (endpointRouteBuilder is null)
-        {
-            throw new ArgumentNullException(nameof(endpointRouteBuilder));
-        }
-
-        if (pattern is null)
-        {
-            throw new ArgumentNullException(nameof(pattern));
-        }
+        ArgumentNullException.ThrowIfNull(endpointRouteBuilder);
+        ArgumentNullException.ThrowIfNull(pattern);
 
         var requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
         var schemaNameOrDefault = schemaName ?? Schema.DefaultName;
@@ -344,15 +324,8 @@ public static class EndpointRouteBuilderExtensions
         RoutePattern pattern,
         string? schemaName = default)
     {
-        if (endpointRouteBuilder is null)
-        {
-            throw new ArgumentNullException(nameof(endpointRouteBuilder));
-        }
-
-        if (pattern is null)
-        {
-            throw new ArgumentNullException(nameof(pattern));
-        }
+        ArgumentNullException.ThrowIfNull(endpointRouteBuilder);
+        ArgumentNullException.ThrowIfNull(pattern);
 
         var requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
         var schemaNameOrDefault = schemaName ?? Schema.DefaultName;
@@ -416,10 +389,7 @@ public static class EndpointRouteBuilderExtensions
         PathString toolPath,
         string? relativeRequestPath = _graphQLToolRelativeRequestPath)
     {
-        if (endpointRouteBuilder is null)
-        {
-            throw new ArgumentNullException(nameof(endpointRouteBuilder));
-        }
+        ArgumentNullException.ThrowIfNull(endpointRouteBuilder);
 
         toolPath = toolPath.ToString().TrimEnd('/');
         relativeRequestPath ??= _graphQLToolRelativeRequestPath;

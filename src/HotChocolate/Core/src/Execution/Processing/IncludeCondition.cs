@@ -42,10 +42,7 @@ public readonly struct IncludeCondition : IEquatable<IncludeCondition>
     /// </returns>
     public bool IsIncluded(IVariableValueCollection variables)
     {
-        if (variables is null)
-        {
-            throw new ArgumentNullException(nameof(variables));
-        }
+        ArgumentNullException.ThrowIfNull(variables);
 
         if (Skip is null || Include is null)
         {
@@ -124,10 +121,7 @@ public readonly struct IncludeCondition : IEquatable<IncludeCondition>
     /// </returns>
     public static IncludeCondition FromSelection(ISelectionNode selection)
     {
-        if (selection is null)
-        {
-            throw new ArgumentNullException(nameof(selection));
-        }
+        ArgumentNullException.ThrowIfNull(selection);
 
         IValueNode? skip = null;
         IValueNode? include = null;

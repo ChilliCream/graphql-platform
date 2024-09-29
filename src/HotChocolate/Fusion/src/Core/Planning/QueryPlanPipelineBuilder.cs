@@ -22,10 +22,7 @@ internal sealed class QueryPlanPipelineBuilder
     /// <param name="middleware">The middleware to add.</param>
     public QueryPlanPipelineBuilder Use(QueryPlanMiddleware middleware)
     {
-        if (middleware is null)
-        {
-            throw new ArgumentNullException(nameof(middleware));
-        }
+        ArgumentNullException.ThrowIfNull(middleware);
 
         _pipeline.Add(middleware);
         return this;

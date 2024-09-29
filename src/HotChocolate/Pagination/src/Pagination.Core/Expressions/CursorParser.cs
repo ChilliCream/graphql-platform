@@ -32,10 +32,7 @@ public static class CursorParser
     /// </exception>
     public static object?[] Parse(string cursor, ReadOnlySpan<CursorKey> keys)
     {
-        if (cursor == null)
-        {
-            throw new ArgumentNullException(nameof(cursor));
-        }
+        ArgumentNullException.ThrowIfNull(cursor);
 
         if (keys.Length == 0)
         {

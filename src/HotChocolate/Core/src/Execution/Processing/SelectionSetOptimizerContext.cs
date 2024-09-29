@@ -111,10 +111,7 @@ public readonly ref struct SelectionSetOptimizerContext
     /// </exception>
     public void AddSelection(Selection newSelection)
     {
-        if (newSelection is null)
-        {
-            throw new ArgumentNullException(nameof(newSelection));
-        }
+        ArgumentNullException.ThrowIfNull(newSelection);
 
         _compilerContext.Fields.Add(newSelection.ResponseName, newSelection);
         _compiler.RegisterNewSelection(newSelection);
@@ -138,10 +135,7 @@ public readonly ref struct SelectionSetOptimizerContext
     [Obsolete("Use AddSelection(Selection) instead.")]
     public void AddSelection(string responseName, Selection newSelection)
     {
-        if (newSelection is null)
-        {
-            throw new ArgumentNullException(nameof(newSelection));
-        }
+        ArgumentNullException.ThrowIfNull(newSelection);
 
         responseName.EnsureGraphQLName();
 
@@ -170,10 +164,7 @@ public readonly ref struct SelectionSetOptimizerContext
     /// </exception>
     public void ReplaceSelection(Selection newSelection)
     {
-        if (newSelection is null)
-        {
-            throw new ArgumentNullException(nameof(newSelection));
-        }
+        ArgumentNullException.ThrowIfNull(newSelection);
 
         if (!_compilerContext.Fields.TryGetValue(
             newSelection.ResponseName,
@@ -217,10 +208,7 @@ public readonly ref struct SelectionSetOptimizerContext
                 string.Format(SelectionSetOptimizerContext_InvalidFieldName, responseName));
         }
 
-        if (newSelection is null)
-        {
-            throw new ArgumentNullException(nameof(newSelection));
-        }
+        ArgumentNullException.ThrowIfNull(newSelection);
 
         if (!_compilerContext.Fields.TryGetValue(responseName, out var currentSelection))
         {

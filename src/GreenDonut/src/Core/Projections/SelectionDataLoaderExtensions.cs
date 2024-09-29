@@ -37,15 +37,8 @@ public static class SelectionDataLoaderExtensions
         Expression<Func<TValue, TValue>> selector)
         where TKey : notnull
     {
-        if (dataLoader is null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
-
-        if (selector is null)
-        {
-            throw new ArgumentNullException(nameof(selector));
-        }
+        ArgumentNullException.ThrowIfNull(dataLoader);
+        ArgumentNullException.ThrowIfNull(selector);
 
         var branchKey = selector.ToString();
         return (ISelectionDataLoader<TKey, TValue>)dataLoader.Branch(branchKey, CreateBranch, selector);
@@ -91,15 +84,8 @@ public static class SelectionDataLoaderExtensions
         Expression<Func<TValue, TValue>> selector)
         where TKey : notnull
     {
-        if (dataLoader is null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
-
-        if (selector is null)
-        {
-            throw new ArgumentNullException(nameof(selector));
-        }
+        ArgumentNullException.ThrowIfNull(dataLoader);
+        ArgumentNullException.ThrowIfNull(selector);
 
         var context = (DefaultSelectorBuilder<TValue>)dataLoader.ContextData[typeof(ISelectorBuilder).FullName!]!;
         context.Add(selector);
@@ -183,15 +169,8 @@ public static class SelectionDataLoaderExtensions
         Expression<Func<TValue, object?>> includeSelector)
         where TKey : notnull
     {
-        if (dataLoader is null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
-
-        if (includeSelector is null)
-        {
-            throw new ArgumentNullException(nameof(includeSelector));
-        }
+        ArgumentNullException.ThrowIfNull(dataLoader);
+        ArgumentNullException.ThrowIfNull(includeSelector);
 
         if (includeSelector is not LambdaExpression lambda)
         {
@@ -239,15 +218,8 @@ public static class SelectionDataLoaderExtensions
         ISelectorBuilder builder,
         Expression<Func<T, object?>> key)
     {
-        if (query is null)
-        {
-            throw new ArgumentNullException(nameof(query));
-        }
-
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(query);
+        ArgumentNullException.ThrowIfNull(builder);
 
         var selector = builder.TryCompile<T>();
 

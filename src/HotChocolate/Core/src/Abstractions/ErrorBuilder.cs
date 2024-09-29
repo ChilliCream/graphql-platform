@@ -23,10 +23,7 @@ public class ErrorBuilder : IErrorBuilder
 
     private ErrorBuilder(IError error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         _message = error.Message;
         _code = error.Code;
@@ -233,10 +230,7 @@ public class ErrorBuilder : IErrorBuilder
 
     public static ErrorBuilder FromDictionary(IReadOnlyDictionary<string, object?> dict)
     {
-        if (dict is null)
-        {
-            throw new ArgumentNullException(nameof(dict));
-        }
+        ArgumentNullException.ThrowIfNull(dict);
 
         var builder = New();
         builder.SetMessage((string)dict["message"]!);

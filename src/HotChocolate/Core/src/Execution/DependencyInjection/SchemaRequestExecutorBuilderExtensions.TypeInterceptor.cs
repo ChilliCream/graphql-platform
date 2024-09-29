@@ -10,15 +10,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         TypeInterceptor typeInterceptor)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (typeInterceptor is null)
-        {
-            throw new ArgumentNullException(nameof(typeInterceptor));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(typeInterceptor);
 
         return builder.ConfigureSchema(b => b.TryAddTypeInterceptor(typeInterceptor));
     }
@@ -27,15 +20,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Type typeInterceptor)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (typeInterceptor is null)
-        {
-            throw new ArgumentNullException(nameof(typeInterceptor));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(typeInterceptor);
 
         return builder.ConfigureSchema(b => b.TryAddTypeInterceptor(typeInterceptor));
     }
@@ -44,10 +30,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder)
         where T : TypeInterceptor
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder.ConfigureSchema(b => b.TryAddTypeInterceptor(typeof(T)));
     }

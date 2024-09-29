@@ -127,10 +127,7 @@ public class ScalarExecutionErrorTests
 
         public override bool IsInstanceOfType(IValueNode literal)
         {
-            if (literal is null)
-            {
-                throw new ArgumentNullException(nameof(literal));
-            }
+            ArgumentNullException.ThrowIfNull(literal);
 
             if (literal is NullValueNode)
             {
@@ -152,10 +149,7 @@ public class ScalarExecutionErrorTests
 
         public override object? ParseLiteral(IValueNode literal)
         {
-            if (literal is null)
-            {
-                throw new ArgumentNullException(nameof(literal));
-            }
+            ArgumentNullException.ThrowIfNull(literal);
 
             if (literal is NullValueNode)
             {

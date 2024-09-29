@@ -35,10 +35,7 @@ internal sealed class PipelineBuilder
 
     public RequestDelegate Compile(IServiceProvider services)
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         if (_components.Count == 0)
         {

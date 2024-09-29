@@ -45,10 +45,7 @@ public class AutoUpdateRequestExecutorProxy : IRequestExecutor, IDisposable
         RequestExecutorProxy requestExecutorProxy,
         CancellationToken cancellationToken = default)
     {
-        if (requestExecutorProxy == null)
-        {
-            throw new ArgumentNullException(nameof(requestExecutorProxy));
-        }
+        ArgumentNullException.ThrowIfNull(requestExecutorProxy);
 
         var executor = await requestExecutorProxy
             .GetRequestExecutorAsync(cancellationToken)
@@ -73,10 +70,7 @@ public class AutoUpdateRequestExecutorProxy : IRequestExecutor, IDisposable
         RequestExecutorProxy requestExecutorProxy,
         IRequestExecutor initialExecutor)
     {
-        if (requestExecutorProxy == null)
-        {
-            throw new ArgumentNullException(nameof(requestExecutorProxy));
-        }
+        ArgumentNullException.ThrowIfNull(requestExecutorProxy);
 
         return new AutoUpdateRequestExecutorProxy(requestExecutorProxy, initialExecutor);
     }

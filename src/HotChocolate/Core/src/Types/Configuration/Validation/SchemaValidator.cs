@@ -18,15 +18,8 @@ internal static class SchemaValidator
         IDescriptorContext context,
         ISchema schema)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (schema == null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(schema);
 
         var errors = new List<ISchemaError>();
 

@@ -14,10 +14,7 @@ internal sealed class DefaultHttpGraphQLClient : IGraphQLClient
         HttpClientConfiguration configuration,
         HttpClient httpClient)
     {
-        if (httpClient == null)
-        {
-            throw new ArgumentNullException(nameof(httpClient));
-        }
+        ArgumentNullException.ThrowIfNull(httpClient);
 
         _config = configuration ?? throw new ArgumentNullException(nameof(configuration));
         _client = new DefaultGraphQLHttpClient(httpClient);
@@ -27,10 +24,7 @@ internal sealed class DefaultHttpGraphQLClient : IGraphQLClient
 
     public Task<GraphQLResponse> ExecuteAsync(SubgraphGraphQLRequest request, CancellationToken cancellationToken)
     {
-        if (request is null)
-        {
-            throw new ArgumentNullException(nameof(request));
-        }
+        ArgumentNullException.ThrowIfNull(request);
 
         return ExecuteInternalAsync(request, cancellationToken);
     }

@@ -40,10 +40,7 @@ internal class StoredOperation<T>
     public void SetResult(
         IOperationResult<T> result)
     {
-        if (result is null)
-        {
-            throw new ArgumentNullException(nameof(result));
-        }
+        ArgumentNullException.ThrowIfNull(result);
 
         var updated = LastResult is null or { Data: null, } ||
             result.Data is null ||
@@ -102,10 +99,7 @@ internal class StoredOperation<T>
     public IDisposable Subscribe(
         IObserver<IOperationResult<T>> observer)
     {
-        if (observer is null)
-        {
-            throw new ArgumentNullException(nameof(observer));
-        }
+        ArgumentNullException.ThrowIfNull(observer);
 
         var subscription = new Subscription(observer, Unsubscribe);
 

@@ -9,10 +9,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder)
         where T : ITypeModule
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder.Configure((sp, c) => c.TypeModules.Add(sp.GetRequiredService<T>()));
     }
@@ -22,15 +19,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         Func<IServiceProvider, T> factory)
         where T : ITypeModule
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (factory == null)
-        {
-            throw new ArgumentNullException(nameof(factory));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(factory);
 
         return builder.Configure((sp, c) => c.TypeModules.Add(factory(sp)));
     }

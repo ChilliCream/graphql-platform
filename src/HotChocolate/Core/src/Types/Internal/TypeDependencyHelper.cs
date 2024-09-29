@@ -11,15 +11,8 @@ public static class TypeDependencyHelper
         InterfaceTypeDefinition definition,
         ICollection<TypeDependency> dependencies)
     {
-        if (definition is null)
-        {
-            throw new ArgumentNullException(nameof(definition));
-        }
-
-        if (dependencies is null)
-        {
-            throw new ArgumentNullException(nameof(dependencies));
-        }
+        ArgumentNullException.ThrowIfNull(definition);
+        ArgumentNullException.ThrowIfNull(dependencies);
 
         if (definition.HasDependencies)
         {
@@ -45,15 +38,8 @@ public static class TypeDependencyHelper
         ObjectTypeDefinition definition,
         ICollection<TypeDependency> dependencies)
     {
-        if (definition is null)
-        {
-            throw new ArgumentNullException(nameof(definition));
-        }
-
-        if (dependencies is null)
-        {
-            throw new ArgumentNullException(nameof(dependencies));
-        }
+        ArgumentNullException.ThrowIfNull(definition);
+        ArgumentNullException.ThrowIfNull(dependencies);
 
         if (definition.HasDependencies)
         {
@@ -79,15 +65,8 @@ public static class TypeDependencyHelper
         InputObjectTypeDefinition definition,
         ICollection<TypeDependency> dependencies)
     {
-        if (definition is null)
-        {
-            throw new ArgumentNullException(nameof(definition));
-        }
-
-        if (dependencies is null)
-        {
-            throw new ArgumentNullException(nameof(dependencies));
-        }
+        ArgumentNullException.ThrowIfNull(definition);
+        ArgumentNullException.ThrowIfNull(dependencies);
 
         if (definition.HasDependencies)
         {
@@ -122,15 +101,8 @@ public static class TypeDependencyHelper
         EnumTypeDefinition definition,
         ICollection<TypeDependency> dependencies)
     {
-        if (definition is null)
-        {
-            throw new ArgumentNullException(nameof(definition));
-        }
-
-        if (dependencies is null)
-        {
-            throw new ArgumentNullException(nameof(dependencies));
-        }
+        ArgumentNullException.ThrowIfNull(definition);
+        ArgumentNullException.ThrowIfNull(dependencies);
 
         if (definition.HasDependencies)
         {
@@ -271,15 +243,8 @@ public static class TypeDependencyHelper
         this ITypeDiscoveryContext context,
         ObjectTypeDefinition definition)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (definition is null)
-        {
-            throw new ArgumentNullException(nameof(definition));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(definition);
 
         CollectDependencies(definition, context.Dependencies);
     }
@@ -288,15 +253,8 @@ public static class TypeDependencyHelper
         this ITypeDiscoveryContext context,
         InterfaceTypeDefinition definition)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (definition is null)
-        {
-            throw new ArgumentNullException(nameof(definition));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(definition);
 
         CollectDependencies(definition, context.Dependencies);
     }
@@ -305,15 +263,8 @@ public static class TypeDependencyHelper
         this ITypeDiscoveryContext context,
         EnumTypeDefinition definition)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (definition is null)
-        {
-            throw new ArgumentNullException(nameof(definition));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(definition);
 
         CollectDependencies(definition, context.Dependencies);
     }
@@ -322,15 +273,8 @@ public static class TypeDependencyHelper
         this ITypeDiscoveryContext context,
         InputObjectTypeDefinition definition)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (definition is null)
-        {
-            throw new ArgumentNullException(nameof(definition));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(definition);
 
         CollectDependencies(definition, context.Dependencies);
     }

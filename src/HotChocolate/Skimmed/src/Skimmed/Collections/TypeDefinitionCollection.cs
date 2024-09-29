@@ -31,12 +31,9 @@ public sealed class TypeDefinitionCollection : ITypeDefinitionCollection
 
     public void Add(INamedTypeDefinition item)
     {
-        if (item is null)
-        {
-            throw new ArgumentNullException(nameof(item));
-        }
+        ArgumentNullException.ThrowIfNull(item);
 
-        if(_types.TryGetValue(item.Name, out var existing))
+        if (_types.TryGetValue(item.Name, out var existing))
         {
             if (ReferenceEquals(existing, item))
             {
@@ -53,10 +50,7 @@ public sealed class TypeDefinitionCollection : ITypeDefinitionCollection
 
     public bool Remove(INamedTypeDefinition item)
     {
-        if (item is null)
-        {
-            throw new ArgumentNullException(nameof(item));
-        }
+        ArgumentNullException.ThrowIfNull(item);
 
         if (_types.TryGetValue(item.Name, out var itemToDelete)
             && ReferenceEquals(item, itemToDelete))
@@ -75,10 +69,7 @@ public sealed class TypeDefinitionCollection : ITypeDefinitionCollection
 
     public bool Contains(INamedTypeDefinition item)
     {
-        if (item is null)
-        {
-            throw new ArgumentNullException(nameof(item));
-        }
+        ArgumentNullException.ThrowIfNull(item);
 
         if (_types.TryGetValue(item.Name, out var itemToDelete)
             && ReferenceEquals(item, itemToDelete))

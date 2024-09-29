@@ -103,10 +103,7 @@ public sealed class SchemaTypeReference
 
     public SchemaTypeReference WithType(ITypeSystemMember type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return new SchemaTypeReference(type, Context, Scope);
     }
@@ -169,20 +166,14 @@ public sealed class SchemaTypeReference
 
     internal static TypeContext InferTypeContext(IExtendedType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return InferTypeContext(type.Type);
     }
 
     internal static TypeContext InferTypeContext(Type type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         var namedType = ExtendedType.Tools.GetNamedType(type);
         return InferTypeContextInternal(namedType ?? type);

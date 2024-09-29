@@ -27,10 +27,7 @@ public sealed class OperationDocumentSourceText(string sourceText) : IOperationD
     /// </exception>
     public async Task WriteToAsync(Stream output, CancellationToken cancellationToken = default)
     {
-        if (output == null)
-        {
-            throw new ArgumentNullException(nameof(output));
-        }
+        ArgumentNullException.ThrowIfNull(output);
 
         var buffer = Encoding.UTF8.GetBytes(SourceText);
         await output.WriteAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false);

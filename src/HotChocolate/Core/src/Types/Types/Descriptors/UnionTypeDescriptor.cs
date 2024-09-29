@@ -11,10 +11,7 @@ public class UnionTypeDescriptor
     protected UnionTypeDescriptor(IDescriptorContext context, Type clrType)
         : base(context)
     {
-        if (clrType is null)
-        {
-            throw new ArgumentNullException(nameof(clrType));
-        }
+        ArgumentNullException.ThrowIfNull(clrType);
 
         Definition.RuntimeType = clrType;
         Definition.Name = context.Naming.GetTypeName(clrType, TypeKind.Union);
@@ -75,20 +72,14 @@ public class UnionTypeDescriptor
     public IUnionTypeDescriptor Type<TObjectType>(TObjectType objectType)
         where TObjectType : ObjectType
     {
-        if (objectType is null)
-        {
-            throw new ArgumentNullException(nameof(objectType));
-        }
+        ArgumentNullException.ThrowIfNull(objectType);
         Definition.Types.Add(TypeReference.Create(objectType));
         return this;
     }
 
     public IUnionTypeDescriptor Type(NamedTypeNode objectType)
     {
-        if (objectType is null)
-        {
-            throw new ArgumentNullException(nameof(objectType));
-        }
+        ArgumentNullException.ThrowIfNull(objectType);
         Definition.Types.Add(TypeReference.Create(objectType, TypeContext.Output));
         return this;
     }

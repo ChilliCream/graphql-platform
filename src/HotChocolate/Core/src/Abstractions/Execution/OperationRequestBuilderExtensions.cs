@@ -21,10 +21,7 @@ public static class OperationRequestBuilderExtensions
         this OperationRequestBuilder builder,
         string message)
     {
-        if (message is null)
-        {
-            throw new ArgumentNullException(nameof(message));
-        }
+        ArgumentNullException.ThrowIfNull(message);
 
         return builder.SetGlobalState(WellKnownContextData.IntrospectionMessage, message);
     }
@@ -36,10 +33,7 @@ public static class OperationRequestBuilderExtensions
         this OperationRequestBuilder builder,
         Func<string> messageFactory)
     {
-        if (messageFactory is null)
-        {
-            throw new ArgumentNullException(nameof(messageFactory));
-        }
+        ArgumentNullException.ThrowIfNull(messageFactory);
 
         return builder.SetGlobalState(WellKnownContextData.IntrospectionMessage, messageFactory);
     }

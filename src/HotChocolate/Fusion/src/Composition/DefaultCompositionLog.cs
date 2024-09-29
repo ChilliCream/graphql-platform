@@ -17,10 +17,7 @@ internal sealed class DefaultCompositionLog : ICompositionLog, IEnumerable<LogEn
 
     public void Write(LogEntry entry)
     {
-        if (entry is null)
-        {
-            throw new ArgumentNullException(nameof(entry));
-        }
+        ArgumentNullException.ThrowIfNull(entry);
 
         if (entry.Severity is LogSeverity.Error)
         {

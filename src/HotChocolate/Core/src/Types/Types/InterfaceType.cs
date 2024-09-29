@@ -166,10 +166,7 @@ public partial class InterfaceType
         IResolverContext context,
         object resolverResult)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         return _resolveAbstractType!.Invoke(context, resolverResult);
     }

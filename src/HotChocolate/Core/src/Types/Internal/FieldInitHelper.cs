@@ -55,25 +55,11 @@ public static class FieldInitHelper
         where TFieldDefinition : FieldDefinitionBase
         where TField : class, IField
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(declaringMember);
 
-        if (declaringMember is null)
-        {
-            throw new ArgumentNullException(nameof(declaringMember));
-        }
-
-        if (fieldDefs is null)
-        {
-            throw new ArgumentNullException(nameof(fieldDefs));
-        }
-
-        if (fieldFactory is null)
-        {
-            throw new ArgumentNullException(nameof(fieldFactory));
-        }
+        ArgumentNullException.ThrowIfNull(fieldDefs);
+        ArgumentNullException.ThrowIfNull(fieldFactory);
 
         return CompleteFieldsInternal(
             context,
@@ -92,25 +78,11 @@ public static class FieldInitHelper
         where TFieldDefinition : FieldDefinitionBase
         where TField : class, IField
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(declaringMember);
 
-        if (declaringMember is null)
-        {
-            throw new ArgumentNullException(nameof(declaringMember));
-        }
-
-        if (fieldDefs is null)
-        {
-            throw new ArgumentNullException(nameof(fieldDefs));
-        }
-
-        if (fieldFactory is null)
-        {
-            throw new ArgumentNullException(nameof(fieldFactory));
-        }
+        ArgumentNullException.ThrowIfNull(fieldDefs);
+        ArgumentNullException.ThrowIfNull(fieldFactory);
 
         if (maxFieldCount < 1)
         {
@@ -134,20 +106,10 @@ public static class FieldInitHelper
         TField[] fields)
         where TField : class, IField
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(declaringMember);
 
-        if (declaringMember is null)
-        {
-            throw new ArgumentNullException(nameof(declaringMember));
-        }
-
-        if (fields is null)
-        {
-            throw new ArgumentNullException(nameof(fields));
-        }
+        ArgumentNullException.ThrowIfNull(fields);
 
         return CompleteFieldsInternal(context, declaringMember, fields);
     }

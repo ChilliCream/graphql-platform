@@ -58,10 +58,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
     public void ReportError(Exception exception, Action<IErrorBuilder>? configure = null)
     {
-        if (exception is null)
-        {
-            throw new ArgumentNullException(nameof(exception));
-        }
+        ArgumentNullException.ThrowIfNull(exception);
 
         if (exception is GraphQLException ex)
         {
@@ -92,10 +89,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
     public void ReportError(IError error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         if (error is AggregateError aggregateError)
         {
@@ -174,10 +168,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
     public object Service(Type service)
     {
-        if (service is null)
-        {
-            throw new ArgumentNullException(nameof(service));
-        }
+        ArgumentNullException.ThrowIfNull(service);
 
         return Services.GetRequiredService(service);
     }
@@ -186,10 +177,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
         Func<ValueTask> action,
         CleanAfter cleanAfter = CleanAfter.Resolver)
     {
-        if (action is null)
-        {
-            throw new ArgumentNullException(nameof(action));
-        }
+        ArgumentNullException.ThrowIfNull(action);
 
         if (cleanAfter is CleanAfter.Request)
         {

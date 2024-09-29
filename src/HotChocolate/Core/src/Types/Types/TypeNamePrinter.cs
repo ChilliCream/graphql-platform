@@ -8,10 +8,7 @@ public static class TypeNamePrinter
 
     private static string Print(IType type, int count)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (count > _maxTypeDepth)
         {

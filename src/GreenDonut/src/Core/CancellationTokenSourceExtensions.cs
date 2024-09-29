@@ -6,10 +6,7 @@ internal static class CancellationTokenSourceExtensions
         this CancellationTokenSource source,
         CancellationToken cancellationToken)
     {
-        if (source == null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
+        ArgumentNullException.ThrowIfNull(source);
 
         if (cancellationToken == CancellationToken.None)
         {

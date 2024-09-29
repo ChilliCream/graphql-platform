@@ -59,15 +59,8 @@ public class SortConventionDescriptor : ISortConventionDescriptor
     /// <inheritdoc />
     public ISortConventionDescriptor BindRuntimeType(Type runtimeType, Type sortType)
     {
-        if (runtimeType is null)
-        {
-            throw new ArgumentNullException(nameof(runtimeType));
-        }
-
-        if (sortType is null)
-        {
-            throw new ArgumentNullException(nameof(sortType));
-        }
+        ArgumentNullException.ThrowIfNull(runtimeType);
+        ArgumentNullException.ThrowIfNull(sortType);
 
         if (!typeof(SortInputType).IsAssignableFrom(sortType) &&
             !typeof(SortEnumType).IsAssignableFrom(sortType))
@@ -165,10 +158,7 @@ public class SortConventionDescriptor : ISortConventionDescriptor
     /// <inheritdoc />
     public ISortConventionDescriptor Provider(Type provider)
     {
-        if (provider is null)
-        {
-            throw new ArgumentNullException(nameof(provider));
-        }
+        ArgumentNullException.ThrowIfNull(provider);
 
         if (!typeof(ISortProvider).IsAssignableFrom(provider))
         {

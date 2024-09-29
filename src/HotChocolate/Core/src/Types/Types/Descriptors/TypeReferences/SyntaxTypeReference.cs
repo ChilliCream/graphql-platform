@@ -114,10 +114,7 @@ public sealed class SyntaxTypeReference
 
     public SyntaxTypeReference WithType(ITypeNode type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return new SyntaxTypeReference(type, Context, Scope);
     }

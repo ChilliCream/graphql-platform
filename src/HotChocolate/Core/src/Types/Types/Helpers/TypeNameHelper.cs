@@ -12,20 +12,10 @@ public static class TypeNameHelper
         Type dependency)
         where TDefinition : DefinitionBase, ITypeDefinition
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(createName);
 
-        if (createName is null)
-        {
-            throw new ArgumentNullException(nameof(createName));
-        }
-
-        if (dependency is null)
-        {
-            throw new ArgumentNullException(nameof(dependency));
-        }
+        ArgumentNullException.ThrowIfNull(dependency);
 
         if (!typeof(ITypeSystemMember).IsAssignableFrom(dependency))
         {

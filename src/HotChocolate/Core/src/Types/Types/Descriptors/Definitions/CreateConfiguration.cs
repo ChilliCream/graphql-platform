@@ -29,10 +29,7 @@ public sealed class CreateConfiguration : ITypeSystemMemberConfiguration
 
     public ITypeSystemMemberConfiguration Copy(DefinitionBase newOwner)
     {
-        if (newOwner is null)
-        {
-            throw new ArgumentNullException(nameof(newOwner));
-        }
+        ArgumentNullException.ThrowIfNull(newOwner);
 
         return new CreateConfiguration(_configure, newOwner);
     }

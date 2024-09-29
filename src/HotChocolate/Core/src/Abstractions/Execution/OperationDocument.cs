@@ -31,10 +31,7 @@ public sealed class OperationDocument(DocumentNode document) : IOperationDocumen
     /// </exception>
     public async Task WriteToAsync(Stream output, CancellationToken cancellationToken = default)
     {
-        if (output == null)
-        {
-            throw new ArgumentNullException(nameof(output));
-        }
+        ArgumentNullException.ThrowIfNull(output);
 
         await Document.PrintToAsync(output, false, cancellationToken).ConfigureAwait(false);
     }

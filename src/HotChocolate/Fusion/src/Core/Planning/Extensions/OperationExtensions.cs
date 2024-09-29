@@ -6,15 +6,8 @@ internal static class OperationExtensions
 {
     public static ISelectionSet GetSelectionSet(this IOperation operation, ExecutionStep step)
     {
-        if (operation == null)
-        {
-            throw new ArgumentNullException(nameof(operation));
-        }
-
-        if (step == null)
-        {
-            throw new ArgumentNullException(nameof(step));
-        }
+        ArgumentNullException.ThrowIfNull(operation);
+        ArgumentNullException.ThrowIfNull(step);
 
         if (step.ParentSelection == null)
         {

@@ -123,7 +123,6 @@ public sealed class EntityResolverDescriptor<TEntity>
         IReadOnlyList<string[]> required)
     {
         ArgumentNullException.ThrowIfNull(fieldResolver);
-
         ArgumentNullException.ThrowIfNull(required);
 
         Definition.ResolverDefinition = new(fieldResolver, required);

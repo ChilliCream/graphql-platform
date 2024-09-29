@@ -13,10 +13,7 @@ internal class ExecutorWarmupService : BackgroundService
         IRequestExecutorResolver executorResolver,
         IEnumerable<WarmupSchemaTask> tasks)
     {
-        if (tasks is null)
-        {
-            throw new ArgumentNullException(nameof(tasks));
-        }
+        ArgumentNullException.ThrowIfNull(tasks);
 
         _executorResolver = executorResolver ??
             throw new ArgumentNullException(nameof(executorResolver));

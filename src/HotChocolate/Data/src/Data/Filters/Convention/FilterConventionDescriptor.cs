@@ -53,15 +53,8 @@ public class FilterConventionDescriptor : IFilterConventionDescriptor
     /// <inheritdoc />
     public IFilterConventionDescriptor BindRuntimeType(Type runtimeType, Type filterType)
     {
-        if (runtimeType is null)
-        {
-            throw new ArgumentNullException(nameof(runtimeType));
-        }
-
-        if (filterType is null)
-        {
-            throw new ArgumentNullException(nameof(filterType));
-        }
+        ArgumentNullException.ThrowIfNull(runtimeType);
+        ArgumentNullException.ThrowIfNull(filterType);
 
         if (!typeof(FilterInputType).IsAssignableFrom(filterType))
         {
@@ -137,10 +130,7 @@ public class FilterConventionDescriptor : IFilterConventionDescriptor
     /// <inheritdoc />
     public IFilterConventionDescriptor Provider(Type provider)
     {
-        if (provider is null)
-        {
-            throw new ArgumentNullException(nameof(provider));
-        }
+        ArgumentNullException.ThrowIfNull(provider);
 
         if (!typeof(IFilterProvider).IsAssignableFrom(provider))
         {

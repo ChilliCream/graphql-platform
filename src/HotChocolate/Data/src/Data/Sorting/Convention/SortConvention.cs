@@ -144,10 +144,7 @@ public class SortConvention
     /// <inheritdoc />
     public virtual ExtendedTypeReference GetFieldType(MemberInfo member)
     {
-        if (member is null)
-        {
-            throw new ArgumentNullException(nameof(member));
-        }
+        ArgumentNullException.ThrowIfNull(member);
 
         if (TryCreateSortType(
             _typeInspector.GetReturnType(member, true),

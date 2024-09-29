@@ -21,10 +21,7 @@ internal sealed class MemberBindingCollection : IEnumerable<MemberBinding>
     /// </exception>
     public MemberBindingCollection(IEnumerable<MemberBinding> bindings)
     {
-        if (bindings is null)
-        {
-            throw new ArgumentNullException(nameof(bindings));
-        }
+        ArgumentNullException.ThrowIfNull(bindings);
 
         _bindings = bindings.ToDictionary(t => t.SubgraphName, StringComparer.Ordinal);
     }

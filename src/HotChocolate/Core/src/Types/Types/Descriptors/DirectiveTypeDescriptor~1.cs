@@ -75,10 +75,7 @@ public class DirectiveTypeDescriptor<T>
     public IDirectiveArgumentDescriptor Argument(
         Expression<Func<T, object>> property)
     {
-        if (property is null)
-        {
-            throw new ArgumentNullException(nameof(property));
-        }
+        ArgumentNullException.ThrowIfNull(property);
 
         if (property.ExtractMember() is PropertyInfo p)
         {

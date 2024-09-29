@@ -59,10 +59,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
         Stream stream,
         FileAccess access = FileAccess.ReadWrite)
     {
-        if (stream is null)
-        {
-            throw new ArgumentNullException(nameof(stream));
-        }
+        ArgumentNullException.ThrowIfNull(stream);
 
         if (access != FileAccess.Read && access != FileAccess.ReadWrite)
         {
@@ -94,10 +91,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
         string path,
         FileAccess access = FileAccess.ReadWrite)
     {
-        if (path is null)
-        {
-            throw new ArgumentNullException(nameof(path));
-        }
+        ArgumentNullException.ThrowIfNull(path);
 
         if (access != FileAccess.Read && access != FileAccess.ReadWrite)
         {
@@ -164,10 +158,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
         DocumentNode document,
         CancellationToken cancellationToken = default)
     {
-        if (document is null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
+        ArgumentNullException.ThrowIfNull(document);
 
         if (_package.FileOpenAccess != FileAccess.ReadWrite)
         {
@@ -218,10 +209,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
         JsonDocument document,
         CancellationToken cancellationToken = default)
     {
-        if (document is null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
+        ArgumentNullException.ThrowIfNull(document);
 
         if (_package.FileOpenAccess != FileAccess.ReadWrite)
         {
@@ -298,10 +286,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
         DocumentNode document,
         CancellationToken cancellationToken = default)
     {
-        if (document is null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
+        ArgumentNullException.ThrowIfNull(document);
 
         if (_package.FileOpenAccess != FileAccess.ReadWrite)
         {
@@ -377,10 +362,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
         string name,
         CancellationToken cancellationToken = default)
     {
-        if (name is null)
-        {
-            throw new ArgumentNullException(nameof(name));
-        }
+        ArgumentNullException.ThrowIfNull(name);
 
         if ((_package.FileOpenAccess & FileAccess.Read) != FileAccess.Read)
         {
@@ -420,10 +402,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
         SubgraphConfiguration configuration,
         CancellationToken cancellationToken = default)
     {
-        if (configuration is null)
-        {
-            throw new ArgumentNullException(nameof(configuration));
-        }
+        ArgumentNullException.ThrowIfNull(configuration);
 
         if (_package.FileOpenAccess != FileAccess.ReadWrite)
         {
@@ -457,10 +436,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
         string subgraphName,
         CancellationToken cancellationToken = default)
     {
-        if (subgraphName is null)
-        {
-            throw new ArgumentNullException(nameof(subgraphName));
-        }
+        ArgumentNullException.ThrowIfNull(subgraphName);
 
         if (_package.FileOpenAccess != FileAccess.ReadWrite)
         {

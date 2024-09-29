@@ -558,10 +558,7 @@ public class CreditCardNumberType : ScalarType
     // define which value nodes this type can be parsed from
     public override bool IsInstanceOfType(IValueNode valueSyntax)
     {
-        if (valueSyntax == null)
-        {
-            throw new ArgumentNullException(nameof(valueSyntax));
-        }
+        ArgumentNullException.ThrowIfNull(valueSyntax);
 
         return valueSyntax is StringValueNode stringValueNode &&
             _validator.ValidateCreditCard(stringValueNode.Value);

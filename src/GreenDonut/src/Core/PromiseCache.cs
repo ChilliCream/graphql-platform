@@ -46,10 +46,7 @@ public sealed class PromiseCache : IPromiseCache
             throw new ArgumentNullException(nameof(key));
         }
 
-        if (createPromise is null)
-        {
-            throw new ArgumentNullException(nameof(createPromise));
-        }
+        ArgumentNullException.ThrowIfNull(createPromise);
 
         var read = true;
 
@@ -111,10 +108,7 @@ public sealed class PromiseCache : IPromiseCache
             throw new ArgumentNullException(nameof(key));
         }
 
-        if (createPromise is null)
-        {
-            throw new ArgumentNullException(nameof(createPromise));
-        }
+        ArgumentNullException.ThrowIfNull(createPromise);
 
         var read = true;
 

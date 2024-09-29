@@ -39,10 +39,7 @@ public readonly struct FieldResult<TResult> : IFieldResult
     /// </exception>
     public FieldResult(object error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         Value = default;
         Errors = new[] { error, };
@@ -65,10 +62,7 @@ public readonly struct FieldResult<TResult> : IFieldResult
     /// </exception>
     public FieldResult(IEnumerable<object> errors)
     {
-        if (errors == null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var temp = errors.ToArray();
 
@@ -208,10 +202,7 @@ public readonly struct FieldResult<TResult, TError> : IFieldResult
     /// </exception>
     public FieldResult([DisallowNull] TError error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         Value = default;
         Errors = new object[] { error, };
@@ -234,10 +225,7 @@ public readonly struct FieldResult<TResult, TError> : IFieldResult
     /// </exception>
     public FieldResult(IEnumerable<TError> errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var list = new List<object>();
 
@@ -277,10 +265,7 @@ public readonly struct FieldResult<TResult, TError> : IFieldResult
     /// </exception>
     public FieldResult(params TError[] errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         if (errors.Length == 0)
         {
@@ -365,10 +350,7 @@ public readonly struct FieldResult<TResult, TError> : IFieldResult
     /// </exception>
     public static implicit operator FieldResult<TResult, TError>([DisallowNull] TError error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         return new FieldResult<TResult, TError>(error);
     }
@@ -416,10 +398,7 @@ public readonly struct FieldResult<TResult, TError1, TError2> : IFieldResult
     /// </exception>
     public FieldResult([DisallowNull] TError1 error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         Value = default;
         Errors = new object[] { error, };
@@ -442,10 +421,7 @@ public readonly struct FieldResult<TResult, TError1, TError2> : IFieldResult
     /// </exception>
     public FieldResult(IEnumerable<TError1> errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var list = new List<object>();
 
@@ -485,10 +461,7 @@ public readonly struct FieldResult<TResult, TError1, TError2> : IFieldResult
     /// </exception>
     public FieldResult(params TError1[] errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         if (errors.Length == 0)
         {
@@ -526,10 +499,7 @@ public readonly struct FieldResult<TResult, TError1, TError2> : IFieldResult
     /// </exception>
     public FieldResult([DisallowNull] TError2 error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         Value = default;
         Errors = new object[] { error, };
@@ -552,10 +522,7 @@ public readonly struct FieldResult<TResult, TError1, TError2> : IFieldResult
     /// </exception>
     public FieldResult(IEnumerable<TError2> errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var list = new List<object>();
 
@@ -595,10 +562,7 @@ public readonly struct FieldResult<TResult, TError1, TError2> : IFieldResult
     /// </exception>
     public FieldResult(params TError2[] errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         if (errors.Length == 0)
         {
@@ -640,10 +604,7 @@ public readonly struct FieldResult<TResult, TError1, TError2> : IFieldResult
     /// </exception>
     public FieldResult(IEnumerable<object> errors)
     {
-        if (errors == null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var temp = errors.ToArray();
 
@@ -759,10 +720,7 @@ public readonly struct FieldResult<TResult, TError1, TError2> : IFieldResult
     public static implicit operator FieldResult<TResult, TError1, TError2>(
         [DisallowNull] TError1 error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         return new FieldResult<TResult, TError1, TError2>(error);
     }
@@ -784,10 +742,7 @@ public readonly struct FieldResult<TResult, TError1, TError2> : IFieldResult
     public static implicit operator FieldResult<TResult, TError1, TError2>(
         [DisallowNull] TError2 error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         return new FieldResult<TResult, TError1, TError2>(error);
     }
@@ -838,10 +793,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3> : IFieldR
     /// </exception>
     public FieldResult([DisallowNull] TError1 error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         Value = default;
         Errors = new object[] { error, };
@@ -864,10 +816,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3> : IFieldR
     /// </exception>
     public FieldResult(IEnumerable<TError1> errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var list = new List<object>();
 
@@ -907,10 +856,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3> : IFieldR
     /// </exception>
     public FieldResult(params TError1[] errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         if (errors.Length == 0)
         {
@@ -948,10 +894,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3> : IFieldR
     /// </exception>
     public FieldResult([DisallowNull] TError2 error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         Value = default;
         Errors = new object[] { error, };
@@ -974,10 +917,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3> : IFieldR
     /// </exception>
     public FieldResult(IEnumerable<TError2> errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var list = new List<object>();
 
@@ -1017,10 +957,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3> : IFieldR
     /// </exception>
     public FieldResult(params TError2[] errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         if (errors.Length == 0)
         {
@@ -1058,10 +995,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3> : IFieldR
     /// </exception>
     public FieldResult([DisallowNull] TError3 error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         Value = default;
         Errors = new object[] { error, };
@@ -1084,10 +1018,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3> : IFieldR
     /// </exception>
     public FieldResult(IEnumerable<TError3> errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var list = new List<object>();
 
@@ -1127,10 +1058,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3> : IFieldR
     /// </exception>
     public FieldResult(params TError3[] errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         if (errors.Length == 0)
         {
@@ -1172,10 +1100,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3> : IFieldR
     /// </exception>
     public FieldResult(IEnumerable<object> errors)
     {
-        if (errors == null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var temp = errors.ToArray();
 
@@ -1291,10 +1216,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3> : IFieldR
     public static implicit operator FieldResult<TResult, TError1, TError2, TError3>(
         [DisallowNull] TError1 error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         return new FieldResult<TResult, TError1, TError2, TError3>(error);
     }
@@ -1316,10 +1238,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3> : IFieldR
     public static implicit operator FieldResult<TResult, TError1, TError2, TError3>(
         [DisallowNull] TError2 error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         return new FieldResult<TResult, TError1, TError2, TError3>(error);
     }
@@ -1341,10 +1260,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3> : IFieldR
     public static implicit operator FieldResult<TResult, TError1, TError2, TError3>(
         [DisallowNull] TError3 error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         return new FieldResult<TResult, TError1, TError2, TError3>(error);
     }
@@ -1398,10 +1314,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
     /// </exception>
     public FieldResult([DisallowNull] TError1 error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         Value = default;
         Errors = new object[] { error, };
@@ -1424,10 +1337,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
     /// </exception>
     public FieldResult(IEnumerable<TError1> errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var list = new List<object>();
 
@@ -1467,10 +1377,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
     /// </exception>
     public FieldResult(params TError1[] errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         if (errors.Length == 0)
         {
@@ -1508,10 +1415,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
     /// </exception>
     public FieldResult([DisallowNull] TError2 error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         Value = default;
         Errors = new object[] { error, };
@@ -1534,10 +1438,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
     /// </exception>
     public FieldResult(IEnumerable<TError2> errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var list = new List<object>();
 
@@ -1577,10 +1478,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
     /// </exception>
     public FieldResult(params TError2[] errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         if (errors.Length == 0)
         {
@@ -1618,10 +1516,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
     /// </exception>
     public FieldResult([DisallowNull] TError3 error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         Value = default;
         Errors = new object[] { error, };
@@ -1644,10 +1539,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
     /// </exception>
     public FieldResult(IEnumerable<TError3> errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var list = new List<object>();
 
@@ -1687,10 +1579,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
     /// </exception>
     public FieldResult(params TError3[] errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         if (errors.Length == 0)
         {
@@ -1728,10 +1617,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
     /// </exception>
     public FieldResult([DisallowNull] TError4 error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         Value = default;
         Errors = new object[] { error, };
@@ -1754,10 +1640,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
     /// </exception>
     public FieldResult(IEnumerable<TError4> errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var list = new List<object>();
 
@@ -1797,10 +1680,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
     /// </exception>
     public FieldResult(params TError4[] errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         if (errors.Length == 0)
         {
@@ -1842,10 +1722,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
     /// </exception>
     public FieldResult(IEnumerable<object> errors)
     {
-        if (errors == null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var temp = errors.ToArray();
 
@@ -1961,10 +1838,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
     public static implicit operator FieldResult<TResult, TError1, TError2, TError3, TError4>(
         [DisallowNull] TError1 error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         return new FieldResult<TResult, TError1, TError2, TError3, TError4>(error);
     }
@@ -1986,10 +1860,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
     public static implicit operator FieldResult<TResult, TError1, TError2, TError3, TError4>(
         [DisallowNull] TError2 error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         return new FieldResult<TResult, TError1, TError2, TError3, TError4>(error);
     }
@@ -2011,10 +1882,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
     public static implicit operator FieldResult<TResult, TError1, TError2, TError3, TError4>(
         [DisallowNull] TError3 error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         return new FieldResult<TResult, TError1, TError2, TError3, TError4>(error);
     }
@@ -2036,10 +1904,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
     public static implicit operator FieldResult<TResult, TError1, TError2, TError3, TError4>(
         [DisallowNull] TError4 error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         return new FieldResult<TResult, TError1, TError2, TError3, TError4>(error);
     }
@@ -2096,10 +1961,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
     /// </exception>
     public FieldResult([DisallowNull] TError1 error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         Value = default;
         Errors = new object[] { error, };
@@ -2122,10 +1984,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
     /// </exception>
     public FieldResult(IEnumerable<TError1> errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var list = new List<object>();
 
@@ -2165,10 +2024,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
     /// </exception>
     public FieldResult(params TError1[] errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         if (errors.Length == 0)
         {
@@ -2206,10 +2062,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
     /// </exception>
     public FieldResult([DisallowNull] TError2 error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         Value = default;
         Errors = new object[] { error, };
@@ -2232,10 +2085,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
     /// </exception>
     public FieldResult(IEnumerable<TError2> errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var list = new List<object>();
 
@@ -2275,10 +2125,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
     /// </exception>
     public FieldResult(params TError2[] errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         if (errors.Length == 0)
         {
@@ -2316,10 +2163,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
     /// </exception>
     public FieldResult([DisallowNull] TError3 error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         Value = default;
         Errors = new object[] { error, };
@@ -2342,10 +2186,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
     /// </exception>
     public FieldResult(IEnumerable<TError3> errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var list = new List<object>();
 
@@ -2385,10 +2226,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
     /// </exception>
     public FieldResult(params TError3[] errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         if (errors.Length == 0)
         {
@@ -2426,10 +2264,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
     /// </exception>
     public FieldResult([DisallowNull] TError4 error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         Value = default;
         Errors = new object[] { error, };
@@ -2452,10 +2287,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
     /// </exception>
     public FieldResult(IEnumerable<TError4> errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var list = new List<object>();
 
@@ -2495,10 +2327,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
     /// </exception>
     public FieldResult(params TError4[] errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         if (errors.Length == 0)
         {
@@ -2536,10 +2365,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
     /// </exception>
     public FieldResult([DisallowNull] TError5 error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         Value = default;
         Errors = new object[] { error, };
@@ -2562,10 +2388,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
     /// </exception>
     public FieldResult(IEnumerable<TError5> errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var list = new List<object>();
 
@@ -2605,10 +2428,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
     /// </exception>
     public FieldResult(params TError5[] errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         if (errors.Length == 0)
         {
@@ -2650,10 +2470,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
     /// </exception>
     public FieldResult(IEnumerable<object> errors)
     {
-        if (errors == null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var temp = errors.ToArray();
 
@@ -2769,10 +2586,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
     public static implicit operator FieldResult<TResult, TError1, TError2, TError3, TError4, TError5>(
         [DisallowNull] TError1 error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         return new FieldResult<TResult, TError1, TError2, TError3, TError4, TError5>(error);
     }
@@ -2794,10 +2608,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
     public static implicit operator FieldResult<TResult, TError1, TError2, TError3, TError4, TError5>(
         [DisallowNull] TError2 error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         return new FieldResult<TResult, TError1, TError2, TError3, TError4, TError5>(error);
     }
@@ -2819,10 +2630,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
     public static implicit operator FieldResult<TResult, TError1, TError2, TError3, TError4, TError5>(
         [DisallowNull] TError3 error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         return new FieldResult<TResult, TError1, TError2, TError3, TError4, TError5>(error);
     }
@@ -2844,10 +2652,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
     public static implicit operator FieldResult<TResult, TError1, TError2, TError3, TError4, TError5>(
         [DisallowNull] TError4 error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         return new FieldResult<TResult, TError1, TError2, TError3, TError4, TError5>(error);
     }
@@ -2869,10 +2674,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
     public static implicit operator FieldResult<TResult, TError1, TError2, TError3, TError4, TError5>(
         [DisallowNull] TError5 error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         return new FieldResult<TResult, TError1, TError2, TError3, TError4, TError5>(error);
     }

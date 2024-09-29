@@ -35,10 +35,7 @@ internal abstract class DependencyDescriptorBase
 
     protected void DependsOn(IExtendedType schemaType, bool mustBeNamedOrCompleted)
     {
-        if (schemaType is null)
-        {
-            throw new ArgumentNullException(nameof(schemaType));
-        }
+        ArgumentNullException.ThrowIfNull(schemaType);
 
         if (!schemaType.IsSchemaType)
         {

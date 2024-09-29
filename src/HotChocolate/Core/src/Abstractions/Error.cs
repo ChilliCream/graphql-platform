@@ -137,10 +137,7 @@ public class Error : IError
     /// <inheritdoc />
     public IError WithExtensions(IReadOnlyDictionary<string, object?> extensions)
     {
-        if (extensions is null)
-        {
-            throw new ArgumentNullException(nameof(extensions));
-        }
+        ArgumentNullException.ThrowIfNull(extensions);
 
         return new Error(Message, Code, Path, Locations, extensions, Exception);
     }

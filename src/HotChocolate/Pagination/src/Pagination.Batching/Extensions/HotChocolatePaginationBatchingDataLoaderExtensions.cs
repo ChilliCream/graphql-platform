@@ -38,10 +38,7 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
         PagingArguments pagingArguments)
         where TKey : notnull
     {
-        if (dataLoader is null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
+        ArgumentNullException.ThrowIfNull(dataLoader);
 
         var branchKey = CreateBranchKey(pagingArguments);
         return (IPagingDataLoader<TKey, Page<TValue>>)dataLoader.Branch(
@@ -89,15 +86,8 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
         Expression<Func<TValue, TValue>> selector)
         where TKey : notnull
     {
-        if (dataLoader is null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
-
-        if (selector is null)
-        {
-            throw new ArgumentNullException(nameof(selector));
-        }
+        ArgumentNullException.ThrowIfNull(dataLoader);
+        ArgumentNullException.ThrowIfNull(selector);
 
         var builder = dataLoader.GetOrSetState(_ => new DefaultSelectorBuilder<TValue>());
         builder.Add(selector);

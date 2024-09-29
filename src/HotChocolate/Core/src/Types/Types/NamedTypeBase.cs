@@ -110,10 +110,7 @@ public abstract class NamedTypeBase<TDefinition>
     /// </exception>
     protected void SetTypeIdentity(Type typeDefinitionOrIdentity)
     {
-        if (typeDefinitionOrIdentity is null)
-        {
-            throw new ArgumentNullException(nameof(typeDefinitionOrIdentity));
-        }
+        ArgumentNullException.ThrowIfNull(typeDefinitionOrIdentity);
 
         if (!typeDefinitionOrIdentity.IsGenericTypeDefinition)
         {

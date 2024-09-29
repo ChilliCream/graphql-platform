@@ -57,10 +57,7 @@ public class SortEnumType : EnumType
 
     public ISortEnumValue? ParseSortLiteral(IValueNode valueSyntax)
     {
-        if (valueSyntax is null)
-        {
-            throw new ArgumentNullException(nameof(valueSyntax));
-        }
+        ArgumentNullException.ThrowIfNull(valueSyntax);
 
         if (valueSyntax is EnumValueNode evn &&
             ValueLookup.TryGetValue(evn.Value, out var ev) &&

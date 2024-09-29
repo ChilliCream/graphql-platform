@@ -16,10 +16,7 @@ public class QueryableCursorPagingProvider : CursorPagingProvider
     /// <inheritdoc />
     public override bool CanHandle(IExtendedType source)
     {
-        if (source is null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
+        ArgumentNullException.ThrowIfNull(source);
 
         return source.IsArrayOrList;
     }
@@ -29,10 +26,7 @@ public class QueryableCursorPagingProvider : CursorPagingProvider
         IExtendedType source,
         PagingOptions options)
     {
-        if (source is null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
+        ArgumentNullException.ThrowIfNull(source);
 
         return (CursorPagingHandler)_createHandler
             .MakeGenericMethod(source.ElementType?.Source ?? source.Source)

@@ -39,15 +39,8 @@ public sealed class Cache<TValue>(int size)
 
     public TValue GetOrCreate(string key, Func<TValue> create)
     {
-        if (key is null)
-        {
-            throw new ArgumentNullException(nameof(key));
-        }
-
-        if (create is null)
-        {
-            throw new ArgumentNullException(nameof(create));
-        }
+        ArgumentNullException.ThrowIfNull(key);
+        ArgumentNullException.ThrowIfNull(create);
 
         var read = true;
 

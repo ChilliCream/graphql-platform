@@ -34,10 +34,7 @@ internal static class CSharpCompiler
 
     public static IReadOnlyList<Diagnostic> GetDiagnosticErrors(params string[] sourceText)
     {
-        if (sourceText == null)
-        {
-            throw new ArgumentNullException(nameof(sourceText));
-        }
+        ArgumentNullException.ThrowIfNull(sourceText);
 
         if (sourceText.Length == 0)
         {

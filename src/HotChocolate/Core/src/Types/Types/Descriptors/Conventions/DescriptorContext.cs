@@ -159,10 +159,7 @@ public sealed partial class DescriptorContext : IDescriptorContext
         string? scope = null)
         where T : class, IConvention
     {
-        if (defaultConvention is null)
-        {
-            throw new ArgumentNullException(nameof(defaultConvention));
-        }
+        ArgumentNullException.ThrowIfNull(defaultConvention);
 
         var key = (typeof(T), scope);
 

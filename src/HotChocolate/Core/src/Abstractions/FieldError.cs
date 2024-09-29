@@ -15,10 +15,7 @@ public sealed class FieldError : IFieldResult
     /// </param>
     public FieldError(object error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         Errors = new[] { error, };
     }
@@ -31,10 +28,7 @@ public sealed class FieldError : IFieldResult
     /// </param>
     public FieldError(IReadOnlyList<object> errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         if (errors.Count == 0)
         {

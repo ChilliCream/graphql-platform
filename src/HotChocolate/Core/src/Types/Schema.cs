@@ -152,10 +152,7 @@ public partial class Schema
     /// </returns>
     public IReadOnlyList<ObjectType> GetPossibleTypes(INamedType abstractType)
     {
-        if (abstractType is null)
-        {
-            throw new ArgumentNullException(nameof(abstractType));
-        }
+        ArgumentNullException.ThrowIfNull(abstractType);
 
         if (_types.TryGetPossibleTypes(abstractType.Name, out var types))
         {

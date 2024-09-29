@@ -40,10 +40,7 @@ public sealed class Directive
     /// </returns>
     public T GetArgumentValue<T>(string name)
     {
-        if (name is null)
-        {
-            throw new ArgumentNullException(name);
-        }
+        ArgumentNullException.ThrowIfNull(name);
 
         return Type.ParseArgument<T>(name, GetArgumentValueOrNull(name));
     }
@@ -141,10 +138,7 @@ public sealed class Directive
     /// </exception>
     public static implicit operator DirectiveNode(Directive directive)
     {
-        if (directive is null)
-        {
-            throw new ArgumentNullException(nameof(directive));
-        }
+        ArgumentNullException.ThrowIfNull(directive);
 
         return directive.AsSyntaxNode();
     }

@@ -11,15 +11,8 @@ public sealed class DictionaryToObjectConverter(ITypeConverter converter)
 
     public object Convert(object from, Type to)
     {
-        if (from is null)
-        {
-            throw new ArgumentNullException(nameof(from));
-        }
-
-        if (to is null)
-        {
-            throw new ArgumentNullException(nameof(to));
-        }
+        ArgumentNullException.ThrowIfNull(from);
+        ArgumentNullException.ThrowIfNull(to);
 
         var context = new ConverterContext { ClrType = to, };
         Visit(from, context);

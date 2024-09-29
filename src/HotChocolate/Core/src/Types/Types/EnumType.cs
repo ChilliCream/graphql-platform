@@ -80,10 +80,7 @@ public partial class EnumType
     /// <inheritdoc />
     public bool IsInstanceOfType(IValueNode valueSyntax)
     {
-        if (valueSyntax is null)
-        {
-            throw new ArgumentNullException(nameof(valueSyntax));
-        }
+        ArgumentNullException.ThrowIfNull(valueSyntax);
 
         if (valueSyntax is NullValueNode)
         {
@@ -113,10 +110,7 @@ public partial class EnumType
     /// <inheritdoc />
     public object? ParseLiteral(IValueNode valueSyntax)
     {
-        if (valueSyntax is null)
-        {
-            throw new ArgumentNullException(nameof(valueSyntax));
-        }
+        ArgumentNullException.ThrowIfNull(valueSyntax);
 
         if (valueSyntax is EnumValueNode evn &&
             _nameLookup.TryGetValue(evn.Value, out var ev))

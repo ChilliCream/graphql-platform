@@ -11,10 +11,7 @@ internal sealed class OpaService : IOpaService
 
     public OpaService(HttpClient httpClient, IOptions<OpaOptions> options)
     {
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
+        ArgumentNullException.ThrowIfNull(options);
 
         _client = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         _options = options.Value;
@@ -25,15 +22,8 @@ internal sealed class OpaService : IOpaService
         OpaQueryRequest request,
         CancellationToken ct)
     {
-        if (policyPath is null)
-        {
-            throw new ArgumentNullException(nameof(policyPath));
-        }
-
-        if (request is null)
-        {
-            throw new ArgumentNullException(nameof(request));
-        }
+        ArgumentNullException.ThrowIfNull(policyPath);
+        ArgumentNullException.ThrowIfNull(request);
 
         using var body = JsonContent.Create(request, options: _options.JsonSerializerOptions);
 

@@ -20,20 +20,14 @@ public abstract class FieldDefinitionCollection<TField>
 
     public void Add(TField item)
     {
-        if (item is null)
-        {
-            throw new ArgumentNullException(nameof(item));
-        }
+        ArgumentNullException.ThrowIfNull(item);
 
         _fields.Add(item.Name, item);
     }
 
     public bool Remove(TField item)
     {
-        if (item is null)
-        {
-            throw new ArgumentNullException(nameof(item));
-        }
+        ArgumentNullException.ThrowIfNull(item);
 
         if (_fields.TryGetValue(item.Name, out var itemToDelete) &&
             ReferenceEquals(item, itemToDelete))
@@ -52,10 +46,7 @@ public abstract class FieldDefinitionCollection<TField>
 
     public bool Contains(TField item)
     {
-        if (item is null)
-        {
-            throw new ArgumentNullException(nameof(item));
-        }
+        ArgumentNullException.ThrowIfNull(item);
 
         if (_fields.TryGetValue(item.Name, out var itemToDelete) &&
             ReferenceEquals(item, itemToDelete))

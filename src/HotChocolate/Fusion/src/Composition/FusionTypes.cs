@@ -16,10 +16,7 @@ public sealed class FusionTypes
 
     public FusionTypes(SchemaDefinition fusionGraph, string? prefix = null, bool prefixSelf = false)
     {
-        if (fusionGraph is null)
-        {
-            throw new ArgumentNullException(nameof(fusionGraph));
-        }
+        ArgumentNullException.ThrowIfNull(fusionGraph);
 
         var names = FusionTypeNames.Create(prefix, prefixSelf);
         _fusionGraph = fusionGraph;

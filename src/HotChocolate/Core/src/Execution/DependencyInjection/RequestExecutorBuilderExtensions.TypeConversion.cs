@@ -11,10 +11,7 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder)
         where T : class, IChangeTypeProvider
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.Services.AddSingleton<IChangeTypeProvider, T>();
         return builder;
@@ -25,10 +22,7 @@ public static partial class RequestExecutorBuilderExtensions
         Func<IServiceProvider, T> factory)
         where T : class, IChangeTypeProvider
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.Services.AddSingleton<IChangeTypeProvider>(factory);
         return builder;
@@ -38,10 +32,7 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         ChangeType<TSource, TTarget> changeType)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.Services.AddSingleton<IChangeTypeProvider>(
             sp => new DelegateChangeTypeProvider<TSource, TTarget>(changeType));
@@ -52,10 +43,7 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         ChangeTypeProvider changeType)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.Services.AddSingleton<IChangeTypeProvider>(
             sp => new DelegateChangeTypeProvider(changeType));
@@ -66,10 +54,7 @@ public static partial class RequestExecutorBuilderExtensions
         this IServiceCollection services)
         where T : class, IChangeTypeProvider
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         return services.AddSingleton<IChangeTypeProvider, T>();
     }
@@ -79,10 +64,7 @@ public static partial class RequestExecutorBuilderExtensions
         Func<IServiceProvider, T> factory)
         where T : class, IChangeTypeProvider
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         return services.AddSingleton<IChangeTypeProvider>(factory);
     }
@@ -91,10 +73,7 @@ public static partial class RequestExecutorBuilderExtensions
         this IServiceCollection services,
         ChangeType<TSource, TTarget> changeType)
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         return services.AddSingleton<IChangeTypeProvider>(
             sp => new DelegateChangeTypeProvider<TSource, TTarget>(changeType));
@@ -104,10 +83,7 @@ public static partial class RequestExecutorBuilderExtensions
         this IServiceCollection services,
         ChangeTypeProvider changeType)
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         return services.AddSingleton<IChangeTypeProvider>(
             sp => new DelegateChangeTypeProvider(changeType));

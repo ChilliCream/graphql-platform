@@ -29,10 +29,7 @@ public static partial class RequestExecutorBuilderExtensions
         bool isCacheable = true)
         where T : DocumentValidatorVisitor, new()
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return ConfigureValidation(builder, b => b.TryAddValidationVisitor<T>(isCacheable));
     }
@@ -63,15 +60,8 @@ public static partial class RequestExecutorBuilderExtensions
         bool isCacheable = true)
         where T : DocumentValidatorVisitor
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (factory is null)
-        {
-            throw new ArgumentNullException(nameof(factory));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(factory);
 
         return ConfigureValidation(
             builder,
@@ -95,10 +85,7 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder)
         where T : class, IDocumentValidatorRule, new()
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return ConfigureValidation(builder, b => b.TryAddValidationRule<T>());
     }
@@ -124,15 +111,8 @@ public static partial class RequestExecutorBuilderExtensions
         Func<IServiceProvider, ValidationOptions, T> factory)
         where T : class, IDocumentValidatorRule
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (factory is null)
-        {
-            throw new ArgumentNullException(nameof(factory));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(factory);
 
         return ConfigureValidation(builder, b => b.TryAddValidationRule(factory));
     }
@@ -159,15 +139,8 @@ public static partial class RequestExecutorBuilderExtensions
         Func<IServiceProvider, ValidationOptions, T> factory)
         where T : class, IValidationResultAggregator
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (factory is null)
-        {
-            throw new ArgumentNullException(nameof(factory));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(factory);
 
         return ConfigureValidation(builder, b => b.TryAddValidationResultAggregator(factory));
     }
@@ -196,10 +169,7 @@ public static partial class RequestExecutorBuilderExtensions
         bool skipIntrospectionFields = false,
         bool allowRequestOverrides = false)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         ConfigureValidation(
             builder,
@@ -268,10 +238,7 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         int maxAllowedValidationErrors)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         ConfigureValidation(
             builder,

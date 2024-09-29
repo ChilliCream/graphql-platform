@@ -98,10 +98,7 @@ public class Snapshot
     public static void RegisterFormatter(
         ISnapshotValueFormatter formatter)
     {
-        if (formatter is null)
-        {
-            throw new ArgumentNullException(nameof(formatter));
-        }
+        ArgumentNullException.ThrowIfNull(formatter);
 
         lock (_sync)
         {
@@ -113,10 +110,7 @@ public class Snapshot
         ISnapshotValueFormatter formatter,
         bool typeCheck = true)
     {
-        if (formatter is null)
-        {
-            throw new ArgumentNullException(nameof(formatter));
-        }
+        ArgumentNullException.ThrowIfNull(formatter);
 
         lock (_sync)
         {
@@ -172,10 +166,7 @@ public class Snapshot
 
     public Snapshot Add(SnapshotValue value)
     {
-        if (value == null)
-        {
-            throw new ArgumentNullException(nameof(value));
-        }
+        ArgumentNullException.ThrowIfNull(value);
 
         _segments.Add(value);
         return this;

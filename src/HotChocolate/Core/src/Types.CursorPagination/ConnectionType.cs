@@ -20,10 +20,7 @@ internal sealed class ConnectionType
         bool includeTotalCount,
         bool includeNodesField)
     {
-        if (nodeType is null)
-        {
-            throw new ArgumentNullException(nameof(nodeType));
-        }
+        ArgumentNullException.ThrowIfNull(nodeType);
 
         if (string.IsNullOrEmpty(connectionName))
         {
@@ -69,10 +66,7 @@ internal sealed class ConnectionType
 
     internal ConnectionType(TypeReference nodeType, bool includeTotalCount, bool includeNodesField)
     {
-        if (nodeType is null)
-        {
-            throw new ArgumentNullException(nameof(nodeType));
-        }
+        ArgumentNullException.ThrowIfNull(nodeType);
 
         var edgeType =
             TypeReference.Create(

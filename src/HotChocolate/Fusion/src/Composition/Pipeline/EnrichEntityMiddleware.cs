@@ -8,10 +8,7 @@ internal  sealed class EnrichEntityMiddleware : IMergeMiddleware
 
     public EnrichEntityMiddleware(IEnumerable<IEntityEnricher> enrichers)
     {
-        if (enrichers is null)
-        {
-            throw new ArgumentNullException(nameof(enrichers));
-        }
+        ArgumentNullException.ThrowIfNull(enrichers);
 
         _enrichers = enrichers.ToArray();
     }

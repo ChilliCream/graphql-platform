@@ -17,10 +17,7 @@ public class DirectiveTypeDescriptor
         Type clrType)
         : base(context)
     {
-        if (clrType is null)
-        {
-            throw new ArgumentNullException(nameof(clrType));
-        }
+        ArgumentNullException.ThrowIfNull(clrType);
 
         Definition.RuntimeType = clrType;
         Definition.Name = context.Naming.GetTypeName(
@@ -122,10 +119,7 @@ public class DirectiveTypeDescriptor
 
     public IDirectiveTypeDescriptor Use(DirectiveMiddleware middleware)
     {
-        if (middleware is null)
-        {
-            throw new ArgumentNullException(nameof(middleware));
-        }
+        ArgumentNullException.ThrowIfNull(middleware);
 
         Definition.MiddlewareComponents.Add(middleware);
         return this;
@@ -141,10 +135,7 @@ public class DirectiveTypeDescriptor
         Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
         where TMiddleware : class
     {
-        if (factory is null)
-        {
-            throw new ArgumentNullException(nameof(factory));
-        }
+        ArgumentNullException.ThrowIfNull(factory);
 
         return Use(DirectiveClassMiddlewareFactory.Create(factory));
     }

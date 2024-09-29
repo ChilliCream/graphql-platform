@@ -121,10 +121,7 @@ public class FilterConvention
     /// <inheritdoc />
     public virtual string GetTypeName(Type runtimeType)
     {
-        if (runtimeType is null)
-        {
-            throw new ArgumentNullException(nameof(runtimeType));
-        }
+        ArgumentNullException.ThrowIfNull(runtimeType);
 
         if (typeof(IEnumOperationFilterInputType).IsAssignableFrom(runtimeType) &&
             runtimeType.GenericTypeArguments.Length == 1 &&
@@ -196,10 +193,7 @@ public class FilterConvention
     /// <inheritdoc />
     public virtual ExtendedTypeReference GetFieldType(MemberInfo member)
     {
-        if (member is null)
-        {
-            throw new ArgumentNullException(nameof(member));
-        }
+        ArgumentNullException.ThrowIfNull(member);
 
         if (TryCreateFilterType(_typeInspector.GetReturnType(member, true), out var rt))
         {

@@ -26,10 +26,7 @@ public static class HotChocolateAuthorizeRequestExecutorBuilder
     public static IRequestExecutorBuilder AddAuthorizationCore(
         this IRequestExecutorBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.Services.TryAddSingleton<IRequestContextEnricher, AuthorizationContextEnricher>();
         builder.Services.TryAddSingleton(new AuthorizationCache());
@@ -61,15 +58,8 @@ public static class HotChocolateAuthorizeRequestExecutorBuilder
         this IRequestExecutorBuilder builder,
         Action<AuthorizationOptions> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         builder.ConfigureSchema(
             sb =>

@@ -11,15 +11,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         LoadDocumentAsync loadDocumentAsync)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (loadDocumentAsync is null)
-        {
-            throw new ArgumentNullException(nameof(loadDocumentAsync));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(loadDocumentAsync);
 
         return builder.ConfigureSchemaAsync(async (sp, b, ct) =>
         {
@@ -32,15 +25,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         DocumentNode document)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (document is null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(document);
 
         return builder.ConfigureSchema(b => b.AddDocument(document));
     }
@@ -49,15 +35,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         string sdl)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (sdl is null)
-        {
-            throw new ArgumentNullException(nameof(sdl));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(sdl);
 
         return builder.ConfigureSchema(b => b.AddDocumentFromString(sdl));
     }
@@ -66,10 +45,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         string filePath)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         if (string.IsNullOrEmpty(filePath))
         {

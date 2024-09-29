@@ -29,20 +29,9 @@ internal sealed class FieldCollector
         INamedOutputType type,
         Path path)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
-
-        if (selectionSetSyntax is null)
-        {
-            throw new ArgumentNullException(nameof(selectionSetSyntax));
-        }
-
-        if (path is null)
-        {
-            throw new ArgumentNullException(nameof(path));
-        }
+        ArgumentNullException.ThrowIfNull(type);
+        ArgumentNullException.ThrowIfNull(selectionSetSyntax);
+        ArgumentNullException.ThrowIfNull(path);
 
         if (!_cache.TryGetValue(type, out var cache))
         {

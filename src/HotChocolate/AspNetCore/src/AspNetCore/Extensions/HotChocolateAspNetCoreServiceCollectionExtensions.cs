@@ -37,10 +37,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
         this IServiceCollection services,
         int maxAllowedRequestSize = MaxAllowedRequestSize)
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         services.AddGraphQLCore();
         services.TryAddSingleton<IHttpResponseFormatter>(
@@ -159,10 +156,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     public static IRequestExecutorBuilder AddUploadType(
         this IRequestExecutorBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.AddType<UploadType>();
         return builder;

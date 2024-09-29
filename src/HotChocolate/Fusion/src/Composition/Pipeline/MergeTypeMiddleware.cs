@@ -8,10 +8,7 @@ internal sealed class MergeTypeMiddleware : IMergeMiddleware
 
     public MergeTypeMiddleware(IEnumerable<ITypeMergeHandler> mergeHandlers)
     {
-        if (mergeHandlers is null)
-        {
-            throw new ArgumentNullException(nameof(mergeHandlers));
-        }
+        ArgumentNullException.ThrowIfNull(mergeHandlers);
 
         _mergeHandlers = mergeHandlers.ToArray();
     }

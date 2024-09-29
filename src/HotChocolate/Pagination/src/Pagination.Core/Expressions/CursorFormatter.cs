@@ -35,15 +35,8 @@ public static class CursorFormatter
     /// </exception>
     public static string Format<T>(T entity, CursorKey[] keys)
     {
-        if (entity == null)
-        {
-            throw new ArgumentNullException(nameof(entity));
-        }
-
-        if (keys == null)
-        {
-            throw new ArgumentNullException(nameof(keys));
-        }
+        ArgumentNullException.ThrowIfNull(entity);
+        ArgumentNullException.ThrowIfNull(keys);
 
         if (keys.Length == 0)
         {

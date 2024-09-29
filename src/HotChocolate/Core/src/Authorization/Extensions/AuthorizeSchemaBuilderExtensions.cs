@@ -6,10 +6,7 @@ internal static class AuthorizeSchemaBuilderExtensions
 {
     public static ISchemaBuilder AddAuthorizeDirectiveType(this ISchemaBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         var authorize = new AuthorizeDirectiveType();
         var allowAnonymous = new AllowAnonymousDirectiveType();

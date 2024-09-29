@@ -27,10 +27,7 @@ internal static class SubgraphConfigJsonSerializer
     public static string Format(
         SubgraphConfigJson config)
     {
-        if (config is null)
-        {
-            throw new ArgumentNullException(nameof(config));
-        }
+        ArgumentNullException.ThrowIfNull(config);
 
         var buffer = new ArrayBufferWriter<byte>();
         using var writer = new Utf8JsonWriter(buffer);
@@ -99,15 +96,8 @@ internal static class SubgraphConfigJsonSerializer
         Stream stream,
         CancellationToken cancellationToken)
     {
-        if (config is null)
-        {
-            throw new ArgumentNullException(nameof(config));
-        }
-
-        if (stream is null)
-        {
-            throw new ArgumentNullException(nameof(stream));
-        }
+        ArgumentNullException.ThrowIfNull(config);
+        ArgumentNullException.ThrowIfNull(stream);
 
         await using var writer = new Utf8JsonWriter(stream);
 

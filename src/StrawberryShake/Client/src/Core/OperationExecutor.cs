@@ -57,10 +57,7 @@ public partial class OperationExecutor<TData, TResult>
         OperationRequest request,
         CancellationToken cancellationToken = default)
     {
-        if (request is null)
-        {
-            throw new ArgumentNullException(nameof(request));
-        }
+        ArgumentNullException.ThrowIfNull(request);
 
         IOperationResult<TResult>? result = null;
         var resultBuilder = _resultBuilder();
@@ -109,10 +106,7 @@ public partial class OperationExecutor<TData, TResult>
         OperationRequest request,
         ExecutionStrategy? strategy = null)
     {
-        if (request is null)
-        {
-            throw new ArgumentNullException(nameof(request));
-        }
+        ArgumentNullException.ThrowIfNull(request);
 
         return new OperationExecutorObservable(
             _connection,

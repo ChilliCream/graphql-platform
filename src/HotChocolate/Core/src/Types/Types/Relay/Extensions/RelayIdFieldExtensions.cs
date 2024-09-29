@@ -69,10 +69,7 @@ public static class RelayIdFieldExtensions
         this IInputFieldDescriptor descriptor,
         string? typeName = default)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         RelayIdFieldHelpers.ApplyIdToField(descriptor, typeName);
 
@@ -86,10 +83,7 @@ public static class RelayIdFieldExtensions
     /// </typeparam>
     public static IInputFieldDescriptor ID<T>(this IInputFieldDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         RelayIdFieldHelpers.ApplyIdToField(descriptor, typeof(T).Name);
 
@@ -105,10 +99,7 @@ public static class RelayIdFieldExtensions
         this IArgumentDescriptor descriptor,
         string? typeName = default)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         RelayIdFieldHelpers.ApplyIdToField(descriptor, typeName);
 
@@ -122,10 +113,7 @@ public static class RelayIdFieldExtensions
     /// </typeparam>
     public static IArgumentDescriptor ID<T>(this IArgumentDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         RelayIdFieldHelpers.ApplyIdToField(descriptor, typeof(T).Name);
 
@@ -141,10 +129,7 @@ public static class RelayIdFieldExtensions
         this IObjectFieldDescriptor descriptor,
         string? typeName = default)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         RelayIdFieldHelpers.ApplyIdToField(descriptor, typeName);
 
@@ -158,10 +143,7 @@ public static class RelayIdFieldExtensions
     /// </typeparam>
     public static IObjectFieldDescriptor ID<T>(this IObjectFieldDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         RelayIdFieldHelpers.ApplyIdToField(descriptor, typeof(T).Name);
 
@@ -172,10 +154,7 @@ public static class RelayIdFieldExtensions
     /// <param name="descriptor">the descriptor</param>
     public static IInterfaceFieldDescriptor ID(this IInterfaceFieldDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         RelayIdFieldHelpers.ApplyIdToField(descriptor);
 

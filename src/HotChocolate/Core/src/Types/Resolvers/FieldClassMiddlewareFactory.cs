@@ -19,10 +19,7 @@ public static class FieldClassMiddlewareFactory
         params (Type Service, object Instance)[] services)
         where TMiddleware : class
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         return next =>
         {
@@ -60,10 +57,7 @@ public static class FieldClassMiddlewareFactory
         Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
         where TMiddleware : class
     {
-        if (factory is null)
-        {
-            throw new ArgumentNullException(nameof(factory));
-        }
+        ArgumentNullException.ThrowIfNull(factory);
 
         return next => CreateDelegate(factory, next);
     }

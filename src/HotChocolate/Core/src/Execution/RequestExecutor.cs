@@ -65,10 +65,7 @@ internal sealed class RequestExecutor : IRequestExecutor
         IOperationRequest request,
         CancellationToken cancellationToken = default)
     {
-        if (request is null)
-        {
-            throw new ArgumentNullException(nameof(request));
-        }
+        ArgumentNullException.ThrowIfNull(request);
 
         return ExecuteAsync(request, true, null, cancellationToken);
     }
@@ -145,10 +142,7 @@ internal sealed class RequestExecutor : IRequestExecutor
         OperationRequestBatch requestBatch,
         CancellationToken cancellationToken = default)
     {
-        if (requestBatch is null)
-        {
-            throw new ArgumentNullException(nameof(requestBatch));
-        }
+        ArgumentNullException.ThrowIfNull(requestBatch);
 
         return Task.FromResult<IResponseStream>(
             new ResponseStream(

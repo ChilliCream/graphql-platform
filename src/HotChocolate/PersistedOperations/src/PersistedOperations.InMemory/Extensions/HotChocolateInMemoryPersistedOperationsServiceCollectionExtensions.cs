@@ -20,10 +20,7 @@ public static class HotChocolateInMemoryPersistedOperationsServiceCollectionExte
     public static IServiceCollection AddInMemoryOperationDocumentStorage(
         this IServiceCollection services)
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         return services
             .RemoveService<IOperationDocumentStorage>()

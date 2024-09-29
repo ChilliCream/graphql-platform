@@ -16,10 +16,7 @@ public class AggregateError : Error
     public AggregateError(IEnumerable<IError> errors)
         : base(AggregateError_Message)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         Errors = errors.ToArray();
     }

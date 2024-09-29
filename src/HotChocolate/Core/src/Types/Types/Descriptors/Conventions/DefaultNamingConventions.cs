@@ -40,10 +40,7 @@ public class DefaultNamingConventions
     /// <inheritdoc />
     public virtual string GetTypeName(Type type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (type == typeof(Schema))
         {
@@ -56,10 +53,7 @@ public class DefaultNamingConventions
     /// <inheritdoc />
     public virtual string GetTypeName(Type type, TypeKind kind)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         var name = type.GetGraphQLName();
 
@@ -118,10 +112,7 @@ public class DefaultNamingConventions
     /// <inheritdoc />
     public virtual string? GetTypeDescription(Type type, TypeKind kind)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         // we do not want the description of our internal schema types.
         if (ExtendedType.Tools.IsNonGenericBaseType(type) ||
@@ -145,10 +136,7 @@ public class DefaultNamingConventions
         MemberInfo member,
         MemberKind kind)
     {
-        if (member is null)
-        {
-            throw new ArgumentNullException(nameof(member));
-        }
+        ArgumentNullException.ThrowIfNull(member);
 
         return member.GetGraphQLName();
     }
@@ -158,10 +146,7 @@ public class DefaultNamingConventions
         MemberInfo member,
         MemberKind kind)
     {
-        if (member is null)
-        {
-            throw new ArgumentNullException(nameof(member));
-        }
+        ArgumentNullException.ThrowIfNull(member);
 
         var description = member.GetGraphQLDescription();
 
@@ -176,10 +161,7 @@ public class DefaultNamingConventions
     /// <inheritdoc />
     public virtual string GetArgumentName(ParameterInfo parameter)
     {
-        if (parameter is null)
-        {
-            throw new ArgumentNullException(nameof(parameter));
-        }
+        ArgumentNullException.ThrowIfNull(parameter);
 
         return parameter.GetGraphQLName();
     }
@@ -187,10 +169,7 @@ public class DefaultNamingConventions
     /// <inheritdoc />
     public virtual string? GetArgumentDescription(ParameterInfo parameter)
     {
-        if (parameter is null)
-        {
-            throw new ArgumentNullException(nameof(parameter));
-        }
+        ArgumentNullException.ThrowIfNull(parameter);
 
         var description = parameter.GetGraphQLDescription();
 
@@ -205,10 +184,7 @@ public class DefaultNamingConventions
     /// <inheritdoc />
     public virtual unsafe string GetEnumValueName(object value)
     {
-        if (value is null)
-        {
-            throw new ArgumentNullException(nameof(value));
-        }
+        ArgumentNullException.ThrowIfNull(value);
 
         var enumType = value.GetType();
 
@@ -311,10 +287,7 @@ public class DefaultNamingConventions
     /// <inheritdoc />
     public virtual string? GetEnumValueDescription(object value)
     {
-        if (value is null)
-        {
-            throw new ArgumentNullException(nameof(value));
-        }
+        ArgumentNullException.ThrowIfNull(value);
 
         var enumType = value.GetType();
 
@@ -339,10 +312,7 @@ public class DefaultNamingConventions
     /// <inheritdoc />
     public virtual bool IsDeprecated(MemberInfo member, out string? reason)
     {
-        if (member is null)
-        {
-            throw new ArgumentNullException(nameof(member));
-        }
+        ArgumentNullException.ThrowIfNull(member);
 
         return member.IsDeprecated(out reason);
     }
@@ -350,10 +320,7 @@ public class DefaultNamingConventions
     /// <inheritdoc />
     public virtual bool IsDeprecated(object value, out string? reason)
     {
-        if (value is null)
-        {
-            throw new ArgumentNullException(nameof(value));
-        }
+        ArgumentNullException.ThrowIfNull(value);
 
         var enumType = value.GetType();
 

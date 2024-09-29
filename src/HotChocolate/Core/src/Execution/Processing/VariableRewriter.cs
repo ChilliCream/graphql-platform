@@ -36,15 +36,8 @@ public static class VariableRewriter
         IValueNode? defaultValue,
         IVariableValueCollection variableValues)
     {
-        if (node is null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
-
-        if (variableValues is null)
-        {
-            throw new ArgumentNullException(nameof(variableValues));
-        }
+        ArgumentNullException.ThrowIfNull(node);
+        ArgumentNullException.ThrowIfNull(variableValues);
 
         return TryRewriteValue(
             node,

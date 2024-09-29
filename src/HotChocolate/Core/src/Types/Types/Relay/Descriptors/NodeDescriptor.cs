@@ -89,10 +89,7 @@ public class NodeDescriptor
     /// <inheritdoc cref="INodeDescriptor.IdField(MemberInfo)"/>
     public INodeDescriptor IdField(MemberInfo propertyOrMethod)
     {
-        if (propertyOrMethod is null)
-        {
-            throw new ArgumentNullException(nameof(propertyOrMethod));
-        }
+        ArgumentNullException.ThrowIfNull(propertyOrMethod);
 
         if (propertyOrMethod is PropertyInfo or MethodInfo)
         {

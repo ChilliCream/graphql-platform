@@ -18,10 +18,7 @@ internal sealed class GatewayConfigurationTypeModule : TypeModule
         IObservable<GatewayConfiguration> configuration,
         IEnumerable<IConfigurationRewriter> configurationRewriters)
     {
-        if (configuration == null)
-        {
-            throw new ArgumentNullException(nameof(configuration));
-        }
+        ArgumentNullException.ThrowIfNull(configuration);
 
         _configurationRewriters = configurationRewriters ??
             throw new ArgumentNullException(nameof(configurationRewriters));

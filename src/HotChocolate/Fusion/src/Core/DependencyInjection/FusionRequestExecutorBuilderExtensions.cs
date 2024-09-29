@@ -90,10 +90,7 @@ public static class FusionRequestExecutorBuilderExtensions
         this FusionGatewayBuilder builder)
         where T : class, IFusionDiagnosticEventListener
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.Services.TryAddSingleton<T>();
         builder.CoreBuilder.ConfigureSchemaServices(
@@ -168,10 +165,7 @@ public static class FusionRequestExecutorBuilderExtensions
         string gatewayConfigurationFile,
         bool watchFileForUpdates = true)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         if (string.IsNullOrEmpty(gatewayConfigurationFile))
         {
@@ -212,15 +206,8 @@ public static class FusionRequestExecutorBuilderExtensions
         this FusionGatewayBuilder builder,
         DocumentNode gatewayConfigurationDoc)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (gatewayConfigurationDoc is null)
-        {
-            throw new ArgumentNullException(nameof(gatewayConfigurationDoc));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(gatewayConfigurationDoc);
 
         return builder
             .RegisterGatewayConfiguration(
@@ -247,15 +234,8 @@ public static class FusionRequestExecutorBuilderExtensions
         this FusionGatewayBuilder builder,
         Func<IServiceProvider, IObservable<GatewayConfiguration>> factory)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (factory is null)
-        {
-            throw new ArgumentNullException(nameof(factory));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(factory);
 
         builder.Services.AddSingleton(factory);
         builder.Services.AddSingleton<GatewayConfigurationTypeModule>();
@@ -295,15 +275,8 @@ public static class FusionRequestExecutorBuilderExtensions
         this FusionGatewayBuilder builder,
         Action<RequestExecutorOptions> modify)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (modify is null)
-        {
-            throw new ArgumentNullException(nameof(modify));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(modify);
 
         builder.CoreBuilder.Configure(options => options.OnConfigureRequestExecutorOptionsHooks.Add(
             new OnConfigureRequestExecutorOptionsAction(
@@ -328,15 +301,8 @@ public static class FusionRequestExecutorBuilderExtensions
         this FusionGatewayBuilder builder,
         Action<FusionOptions> modify)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (modify is null)
-        {
-            throw new ArgumentNullException(nameof(modify));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(modify);
 
         builder.CoreBuilder.Configure(options => options.OnConfigureSchemaServicesHooks.Add(
             (ctx, sc) => sc.AddSingleton(modify)));
@@ -348,15 +314,8 @@ public static class FusionRequestExecutorBuilderExtensions
         this FusionGatewayBuilder builder,
         Func<IError, IError> errorFilter)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (errorFilter is null)
-        {
-            throw new ArgumentNullException(nameof(errorFilter));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(errorFilter);
 
         builder.CoreBuilder.ConfigureSchemaServices(
             s => s.AddSingleton<IErrorFilter>(
@@ -370,15 +329,8 @@ public static class FusionRequestExecutorBuilderExtensions
         Func<IServiceProvider, T> factory)
         where T : class, IErrorFilter
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (factory is null)
-        {
-            throw new ArgumentNullException(nameof(factory));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(factory);
 
         builder.CoreBuilder.ConfigureSchemaServices(
             s => s.AddSingleton<IErrorFilter, T>(
@@ -391,10 +343,7 @@ public static class FusionRequestExecutorBuilderExtensions
         this FusionGatewayBuilder builder)
         where T : class, IErrorFilter
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.Services.TryAddSingleton<T>();
         builder.CoreBuilder.ConfigureSchemaServices(
@@ -413,10 +362,7 @@ public static class FusionRequestExecutorBuilderExtensions
     public static FusionGatewayBuilder UseDefaultPipeline(
         this FusionGatewayBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.CoreBuilder.UseFusionDefaultPipeline();
         return builder;
@@ -437,10 +383,7 @@ public static class FusionRequestExecutorBuilderExtensions
     public static FusionGatewayBuilder UsePersistedOperationPipeline(
         this FusionGatewayBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.CoreBuilder.UseFusionPersistedOperationPipeline();
         return builder;
@@ -461,10 +404,7 @@ public static class FusionRequestExecutorBuilderExtensions
     public static FusionGatewayBuilder UseAutomaticPersistedOperationPipeline(
         this FusionGatewayBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.CoreBuilder.UseFusionAutomaticPersistedOperationPipeline();
         return builder;
@@ -483,10 +423,7 @@ public static class FusionRequestExecutorBuilderExtensions
         this FusionGatewayBuilder builder)
         where TMiddleware : class
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.CoreBuilder.UseRequest<TMiddleware>();
         return builder;
@@ -508,15 +445,8 @@ public static class FusionRequestExecutorBuilderExtensions
         this FusionGatewayBuilder builder,
         RequestCoreMiddleware middleware)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (middleware is null)
-        {
-            throw new ArgumentNullException(nameof(middleware));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(middleware);
 
         builder.CoreBuilder.UseRequest(middleware);
         return builder;
@@ -538,15 +468,8 @@ public static class FusionRequestExecutorBuilderExtensions
         this FusionGatewayBuilder builder,
         RequestMiddleware middleware)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (middleware is null)
-        {
-            throw new ArgumentNullException(nameof(middleware));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(middleware);
 
         builder.CoreBuilder.UseRequest(middleware);
         return builder;
@@ -571,10 +494,7 @@ public static class FusionRequestExecutorBuilderExtensions
     private static IRequestExecutorBuilder UseFusionPersistedOperationPipeline(
         this IRequestExecutorBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder
             .UseInstrumentation()
@@ -595,10 +515,7 @@ public static class FusionRequestExecutorBuilderExtensions
     private static IRequestExecutorBuilder UseFusionAutomaticPersistedOperationPipeline(
         this IRequestExecutorBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder
             .UseInstrumentation()
@@ -619,10 +536,7 @@ public static class FusionRequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder UseDistributedOperationExecution(
         this IRequestExecutorBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder.UseRequest(DistributedOperationExecutionMiddleware.Create());
     }

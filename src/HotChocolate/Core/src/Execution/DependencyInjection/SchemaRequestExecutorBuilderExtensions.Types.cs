@@ -39,15 +39,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         Type rootType,
         OperationType operation)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (rootType is null)
-        {
-            throw new ArgumentNullException(nameof(rootType));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(rootType);
 
         return builder.ConfigureSchema(b => b.AddRootType(rootType, operation));
     }
@@ -78,15 +71,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         ObjectType rootType,
         OperationType operation)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (rootType is null)
-        {
-            throw new ArgumentNullException(nameof(rootType));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(rootType);
 
         return builder.ConfigureSchema(b => b.AddRootType(rootType, operation));
     }
@@ -133,15 +119,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Action<IObjectTypeDescriptor> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         return builder.ConfigureSchema(b => b.AddQueryType(d =>
         {
@@ -178,15 +157,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Action<IObjectTypeDescriptor<T>> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         return builder.ConfigureSchema(b => b.AddQueryType(configure));
     }
@@ -217,15 +189,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Type queryType)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (queryType is null)
-        {
-            throw new ArgumentNullException(nameof(queryType));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(queryType);
 
         return builder.ConfigureSchema(b => b.AddQueryType(queryType));
     }
@@ -252,15 +217,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         ObjectType queryType)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (queryType is null)
-        {
-            throw new ArgumentNullException(nameof(queryType));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(queryType);
 
         return builder.ConfigureSchema(b => b.AddQueryType(queryType));
     }
@@ -290,10 +248,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder)
         where TQuery : class
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder.ConfigureSchema(b => b.AddQueryType<TQuery>());
     }
@@ -340,15 +295,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Action<IObjectTypeDescriptor> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         return builder.ConfigureSchema(b => b.AddMutationType(d =>
         {
@@ -385,15 +333,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Action<IObjectTypeDescriptor<T>> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         return builder.ConfigureSchema(b => b.AddMutationType(configure));
     }
@@ -424,15 +365,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Type mutationType)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (mutationType is null)
-        {
-            throw new ArgumentNullException(nameof(mutationType));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(mutationType);
 
         return builder.ConfigureSchema(b => b.AddMutationType(mutationType));
     }
@@ -459,15 +393,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         ObjectType mutationType)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (mutationType is null)
-        {
-            throw new ArgumentNullException(nameof(mutationType));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(mutationType);
 
         return builder.ConfigureSchema(b => b.AddMutationType(mutationType));
     }
@@ -497,10 +424,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder)
         where TMutation : class
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder.ConfigureSchema(b => b.AddMutationType<TMutation>());
     }
@@ -547,15 +471,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Action<IObjectTypeDescriptor> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         return builder.ConfigureSchema(b => b.AddSubscriptionType(d =>
         {
@@ -592,15 +509,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Action<IObjectTypeDescriptor<T>> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         return builder.ConfigureSchema(b => b.AddSubscriptionType(configure));
     }
@@ -631,15 +541,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Type subscriptionType)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (subscriptionType is null)
-        {
-            throw new ArgumentNullException(nameof(subscriptionType));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(subscriptionType);
 
         return builder.ConfigureSchema(b => b.AddSubscriptionType(subscriptionType));
     }
@@ -666,15 +569,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         ObjectType subscriptionType)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (subscriptionType is null)
-        {
-            throw new ArgumentNullException(nameof(subscriptionType));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(subscriptionType);
 
         return builder.ConfigureSchema(b => b.AddSubscriptionType(subscriptionType));
     }
@@ -704,10 +600,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder)
         where TSubscription : class
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder.ConfigureSchema(b => b.AddSubscriptionType<TSubscription>());
     }
@@ -732,15 +625,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Action<IObjectTypeDescriptor> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         return builder.ConfigureSchema(b => b.AddObjectType(configure));
     }
@@ -764,10 +650,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder AddObjectType<T>(
         this IRequestExecutorBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder.ConfigureSchema(b => b.AddObjectType<T>());
     }
@@ -796,15 +679,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Action<IObjectTypeDescriptor<T>> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         return builder.ConfigureSchema(b => b.AddObjectType(configure));
     }
@@ -829,15 +705,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
        this IRequestExecutorBuilder builder,
        Action<IUnionTypeDescriptor> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         return builder.ConfigureSchema(b => b.AddUnionType(configure));
     }
@@ -861,10 +730,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder AddUnionType<T>(
         this IRequestExecutorBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder.ConfigureSchema(b => b.AddUnionType<T>());
     }
@@ -893,15 +759,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Action<IUnionTypeDescriptor> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         return builder.ConfigureSchema(b => b.AddUnionType<T>(configure));
     }
@@ -926,15 +785,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
        this IRequestExecutorBuilder builder,
        Action<IEnumTypeDescriptor> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         return builder.ConfigureSchema(b => b.AddEnumType(configure));
     }
@@ -958,10 +810,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder AddEnumType<T>(
         this IRequestExecutorBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder.ConfigureSchema(b => b.AddEnumType<T>());
     }
@@ -990,15 +839,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Action<IEnumTypeDescriptor<T>> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         return builder.ConfigureSchema(b => b.AddEnumType(configure));
     }
@@ -1023,15 +865,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
        this IRequestExecutorBuilder builder,
        Action<IInterfaceTypeDescriptor> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         return builder.ConfigureSchema(b => b.AddInterfaceType(configure));
     }
@@ -1055,10 +890,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder AddInterfaceType<T>(
         this IRequestExecutorBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder.ConfigureSchema(b => b.AddInterfaceType<T>());
     }
@@ -1087,15 +919,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Action<IInterfaceTypeDescriptor<T>> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         return builder.ConfigureSchema(b => b.AddInterfaceType(configure));
     }
@@ -1120,15 +945,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
        this IRequestExecutorBuilder builder,
        Action<IInputObjectTypeDescriptor> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         return builder.ConfigureSchema(b => b.AddInputObjectType(configure));
     }
@@ -1152,10 +970,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder AddInputObjectType<T>(
         this IRequestExecutorBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder.ConfigureSchema(b => b.AddInputObjectType<T>());
     }
@@ -1184,15 +999,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Action<IInputObjectTypeDescriptor<T>> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         return builder.ConfigureSchema(b => b.AddInputObjectType(configure));
     }
@@ -1216,15 +1024,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Type type)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(type);
 
         return builder.ConfigureSchema(b => b.AddType(type));
     }
@@ -1248,15 +1049,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         INamedType namedType)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (namedType is null)
-        {
-            throw new ArgumentNullException(nameof(namedType));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(namedType);
 
         return builder.ConfigureSchema(b => b.AddType(namedType));
     }
@@ -1280,15 +1074,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Func<INamedType> namedTypeFactory)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (namedTypeFactory is null)
-        {
-            throw new ArgumentNullException(nameof(namedTypeFactory));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(namedTypeFactory);
 
         return builder.ConfigureSchema(sb => sb.AddType(namedTypeFactory()));
     }
@@ -1312,15 +1099,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Func<IServiceProvider, INamedType> namedTypeFactory)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (namedTypeFactory is null)
-        {
-            throw new ArgumentNullException(nameof(namedTypeFactory));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(namedTypeFactory);
 
         return builder.ConfigureSchema((sp, sb) => sb.AddType(namedTypeFactory(sp)));
     }
@@ -1343,10 +1123,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder AddType<T>(
         this IRequestExecutorBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder.ConfigureSchema(b => b.AddType<T>());
     }
@@ -1355,15 +1132,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         params Type[] types)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (types is null)
-        {
-            throw new ArgumentNullException(nameof(types));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(types);
 
         return builder.ConfigureSchema(b => b.AddTypes(types));
     }
@@ -1372,15 +1142,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         params INamedType[] types)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (types is null)
-        {
-            throw new ArgumentNullException(nameof(types));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(types);
 
         return builder.ConfigureSchema(b => b.AddTypes(types));
     }
@@ -1389,15 +1152,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Type directiveType)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (directiveType is null)
-        {
-            throw new ArgumentNullException(nameof(directiveType));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(directiveType);
 
         return builder.ConfigureSchema(b => b.AddDirectiveType(directiveType));
     }
@@ -1406,10 +1162,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder)
         where TDirective : DirectiveType
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder.ConfigureSchema(b => b.AddDirectiveType<TDirective>());
     }
@@ -1418,15 +1171,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         DirectiveType directiveType)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (directiveType is null)
-        {
-            throw new ArgumentNullException(nameof(directiveType));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(directiveType);
 
         return builder.ConfigureSchema(b => b.AddDirectiveType(directiveType));
     }
@@ -1435,10 +1181,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder)
         where TSchema : ISchema
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder.ConfigureSchema(b => b.SetSchema<TSchema>());
     }
@@ -1447,15 +1190,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Type schemaType)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (schemaType is null)
-        {
-            throw new ArgumentNullException(nameof(schemaType));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(schemaType);
 
         return builder.ConfigureSchema(b => b.SetSchema(schemaType));
     }
@@ -1464,15 +1200,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         ISchema schema)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(schema);
 
         return builder.ConfigureSchema(b => b.SetSchema(schema));
     }
@@ -1481,15 +1210,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Action<ISchemaTypeDescriptor> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         return builder.ConfigureSchema(b => b.SetSchema(configure));
     }
@@ -1498,15 +1220,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         INamedTypeExtension typeExtension)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (typeExtension is null)
-        {
-            throw new ArgumentNullException(nameof(typeExtension));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(typeExtension);
 
         return builder.ConfigureSchema(b => b.AddType(typeExtension));
     }
@@ -1515,15 +1230,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Type typeExtension)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (typeExtension is null)
-        {
-            throw new ArgumentNullException(nameof(typeExtension));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(typeExtension);
 
         return builder.ConfigureSchema(b => b.AddType(typeExtension));
     }
@@ -1531,10 +1239,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder AddTypeExtension<TExtension>(
         this IRequestExecutorBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder.ConfigureSchema(b => b.AddType<TExtension>());
     }
@@ -1599,10 +1304,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder)
         where TSchemaType : INamedType
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder.ConfigureSchema(b => b.BindRuntimeType<TRuntimeType, TSchemaType>());
     }
@@ -1612,20 +1314,9 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         Type runtimeType,
         Type schemaType)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (runtimeType is null)
-        {
-            throw new ArgumentNullException(nameof(runtimeType));
-        }
-
-        if (schemaType is null)
-        {
-            throw new ArgumentNullException(nameof(schemaType));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(runtimeType);
+        ArgumentNullException.ThrowIfNull(schemaType);
 
         return builder.ConfigureSchema(b => b.BindRuntimeType(runtimeType, schemaType));
     }
@@ -1634,10 +1325,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         string? typeName = null)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         typeName ??= typeof(TRuntimeType).Name;
         typeName.EnsureGraphQLName();
@@ -1650,15 +1338,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         Type runtimeType,
         string? typeName = null)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (runtimeType is null)
-        {
-            throw new ArgumentNullException(nameof(runtimeType));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(runtimeType);
 
         typeName ??= runtimeType.Name;
         typeName.EnsureGraphQLName();

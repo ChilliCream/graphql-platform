@@ -129,10 +129,7 @@ public readonly struct VariableBatchRequest : IOperationRequest, IEquatable<Oper
     /// </param>
     public void WriteTo(Utf8JsonWriter writer)
     {
-        if (writer == null)
-        {
-            throw new ArgumentNullException(nameof(writer));
-        }
+        ArgumentNullException.ThrowIfNull(writer);
 
         Utf8JsonWriterHelper.WriteOperationRequest(writer, this);
     }

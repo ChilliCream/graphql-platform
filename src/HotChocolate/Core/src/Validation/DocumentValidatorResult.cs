@@ -10,10 +10,7 @@ public class DocumentValidatorResult
 
     public DocumentValidatorResult(IEnumerable<IError> errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         Errors = errors.ToArray();
         HasErrors = Errors.Count > 0;

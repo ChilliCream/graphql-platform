@@ -53,10 +53,7 @@ public static class MutationRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         MutationConventionOptions options)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder
             .ConfigureSchema(c =>

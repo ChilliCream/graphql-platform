@@ -23,10 +23,7 @@ public static class AuthorizeObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         ApplyPolicy apply = ApplyPolicy.BeforeResolver)
     {
-        if (descriptor == null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         if (apply is ApplyPolicy.Validation)
         {
@@ -52,10 +49,7 @@ public static class AuthorizeObjectFieldDescriptorExtensions
         string policy,
         ApplyPolicy apply = ApplyPolicy.BeforeResolver)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         if (apply is ApplyPolicy.Validation)
         {
@@ -80,10 +74,7 @@ public static class AuthorizeObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         params string[] roles)
     {
-        if (descriptor == null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         return descriptor.Directive(new AuthorizeDirective(roles));
     }
@@ -103,10 +94,7 @@ public static class AuthorizeObjectFieldDescriptorExtensions
     public static IObjectFieldDescriptor AllowAnonymous(
         this IObjectFieldDescriptor descriptor)
     {
-        if (descriptor == null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor.Directive(AllowAnonymousDirectiveType.Names.AllowAnonymous);
         descriptor.Extend().Definition.ContextData[WellKnownContextData.AllowAnonymous] = true;

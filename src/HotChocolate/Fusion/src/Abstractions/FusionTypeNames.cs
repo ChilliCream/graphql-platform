@@ -229,10 +229,7 @@ public sealed class FusionTypeNames
 
     public static FusionTypeNames From(DocumentNode document)
     {
-        if (document is null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
+        ArgumentNullException.ThrowIfNull(document);
 
         var schemaDef = document.Definitions.OfType<SchemaDefinitionNode>().FirstOrDefault();
 

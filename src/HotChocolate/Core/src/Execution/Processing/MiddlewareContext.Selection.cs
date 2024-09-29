@@ -46,10 +46,7 @@ internal partial class MiddlewareContext
         ISelection? selection = null,
         bool allowInternals = false)
     {
-        if (typeContext is null)
-        {
-            throw new ArgumentNullException(nameof(typeContext));
-        }
+        ArgumentNullException.ThrowIfNull(typeContext);
 
         selection ??= _selection;
 

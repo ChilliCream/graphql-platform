@@ -54,10 +54,7 @@ public sealed class ReadOnlyTypeDefinitionCollection : ITypeDefinitionCollection
 
     public bool Contains(INamedTypeDefinition item)
     {
-        if (item is null)
-        {
-            throw new ArgumentNullException(nameof(item));
-        }
+        ArgumentNullException.ThrowIfNull(item);
 
         if (_types.TryGetValue(item.Name, out var itemToDelete) &&
             ReferenceEquals(item, itemToDelete))

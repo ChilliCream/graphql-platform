@@ -11,15 +11,8 @@ public sealed class SortEnumValue : ISortEnumValue
         ITypeCompletionContext completionContext,
         SortEnumValueDefinition enumValueDefinition)
     {
-        if (completionContext == null)
-        {
-            throw new ArgumentNullException(nameof(completionContext));
-        }
-
-        if (enumValueDefinition is null)
-        {
-            throw new ArgumentNullException(nameof(enumValueDefinition));
-        }
+        ArgumentNullException.ThrowIfNull(completionContext);
+        ArgumentNullException.ThrowIfNull(enumValueDefinition);
 
         if (enumValueDefinition.Value is null)
         {
