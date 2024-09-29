@@ -1,4 +1,4 @@
-# GenerateSource_BatchDataLoader_With_Group_MatchesSnapshot
+# GenerateSource_BatchDataLoader_With_Group_Only_On_Class_MatchesSnapshot
 
 ## GreenDonutDataLoader.735550c.g.cs
 
@@ -93,34 +93,6 @@ namespace TestNamespace
             }
         }
     }
-    public interface IGroup2
-    {
-        IEntityByIdDataLoader EntityById { get; }
-    }
-
-    public sealed class Group2 : IGroup2
-    {
-        private readonly IServiceProvider _services;
-        private IEntityByIdDataLoader? _entityById;
-
-        public Group2(IServiceProvider services)
-        {
-            _services = services
-                ?? throw new ArgumentNullException(nameof(services));
-        }
-        public IEntityByIdDataLoader EntityById
-        {
-            get
-            {
-                if (_entityById is null)
-                {
-                    _entityById = _services.GetRequiredService<IEntityByIdDataLoader>();
-                }
-
-                return _entityById!;
-            }
-        }
-    }
 }
 
 
@@ -148,7 +120,6 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             builder.AddDataLoader<global::TestNamespace.IEntityByIdDataLoader, global::TestNamespace.EntityByIdDataLoader>();
             builder.Services.AddScoped<global::TestNamespace.IGroup1, global::TestNamespace.Group1>();
-            builder.Services.AddScoped<global::TestNamespace.IGroup2, global::TestNamespace.Group2>();
             return builder;
         }
     }

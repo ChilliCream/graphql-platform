@@ -499,6 +499,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
 
         _writer.DecreaseIndent();
         _writer.WriteIndentedLine("}");
+        _writer.WriteLine();
 
         _writer.WriteIndentedLine("public sealed class {0} : I{0}", groupClassName);
         _writer.WriteIndentedLine("{");

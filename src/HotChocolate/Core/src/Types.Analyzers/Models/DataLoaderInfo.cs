@@ -258,7 +258,8 @@ public sealed class DataLoaderInfo : SyntaxInfo
 
     private bool Equals(DataLoaderInfo other)
         => AttributeSyntax.IsEquivalentTo(other.AttributeSyntax)
-            && MethodSyntax.IsEquivalentTo(other.MethodSyntax);
+            && MethodSyntax.IsEquivalentTo(other.MethodSyntax)
+            && Groups.SequenceEqual(other.Groups, StringComparer.Ordinal);
 
     public override int GetHashCode()
         => HashCode.Combine(AttributeSyntax, MethodSyntax);
