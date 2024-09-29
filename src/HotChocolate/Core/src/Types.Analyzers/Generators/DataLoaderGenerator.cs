@@ -99,9 +99,16 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
                 .GroupBy(t => t.Group, t => t.DataLoader, StringComparer.Ordinal)
                 .OrderBy(t => t.Key, StringComparer.Ordinal))
             {
+                var isPublic = defaults.IsInterfacePublic ?? true;
+                var groups = group.Select(
+                    t => new GroupedDataLoaderInfo(
+                        t.NameWithoutSuffix,
+                        t.InterfaceName,
+                        t.IsInterfacePublic ?? isPublic));
+
                 buffer ??= new();
                 buffer.Clear();
-                buffer.AddRange(group.Select(t => new GroupedDataLoaderInfo(t.NameWithoutSuffix, t.InterfaceName)));
+                buffer.AddRange(groups);
                 generator.WriteDataLoaderGroupClass(dataLoaderGroup.Key, buffer);
             }
 
