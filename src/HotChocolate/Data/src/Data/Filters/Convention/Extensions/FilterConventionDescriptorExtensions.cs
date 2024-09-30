@@ -112,10 +112,8 @@ public static class FilterConventionDescriptorExtensions
                 .BindComparableType<Guid>()
                 .BindComparableType<DateTime>()
                 .BindComparableType<DateTimeOffset>()
-#if NET6_0_OR_GREATER
                 .BindComparableType<DateOnly>()
                 .BindComparableType<TimeOnly>()
-#endif
                 .BindComparableType<TimeSpan>()
                 .BindRuntimeType<Uri, ComparableOperationFilterInputType<Uri>>()
                 .BindRuntimeType<Uri?, ComparableOperationFilterInputType<Uri?>>();
@@ -148,12 +146,10 @@ public static class FilterConventionDescriptorExtensions
                 .BindRuntimeType<DateTime?, DateTimeOperationFilterInputType>()
                 .BindRuntimeType<DateTimeOffset, DateTimeOperationFilterInputType>()
                 .BindRuntimeType<DateTimeOffset?, DateTimeOperationFilterInputType>()
-#if NET6_0_OR_GREATER
-               .BindRuntimeType<DateOnly, DateOperationFilterInputType>()
-               .BindRuntimeType<DateOnly?, DateOperationFilterInputType>()
-               .BindRuntimeType<TimeOnly, TimeSpanOperationFilterInputType>()
-               .BindRuntimeType<TimeOnly?, TimeSpanOperationFilterInputType>()
-#endif
+                .BindRuntimeType<DateOnly, DateOperationFilterInputType>()
+                .BindRuntimeType<DateOnly?, DateOperationFilterInputType>()
+                .BindRuntimeType<TimeOnly, TimeSpanOperationFilterInputType>()
+                .BindRuntimeType<TimeOnly?, TimeSpanOperationFilterInputType>()
                 .BindRuntimeType<TimeSpan, TimeSpanOperationFilterInputType>()
                 .BindRuntimeType<TimeSpan?, TimeSpanOperationFilterInputType>()
                 .BindRuntimeType<Uri, UrlOperationFilterInputType>()

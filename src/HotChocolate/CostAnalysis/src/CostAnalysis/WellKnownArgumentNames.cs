@@ -8,4 +8,5 @@ internal static class WellKnownArgumentNames
     public const string RequireOneSlicingArgument = "requireOneSlicingArgument";
     public const string SizedFields = "sizedFields";
     public const string SlicingArguments = "slicingArguments";
+    public const string Weight = "weight";
 }

@@ -515,10 +515,10 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             var errorFieldDef = new ObjectFieldDefinition(
                 error.Value.Name,
                 type: error.Value.Type,
-                resolver: ctx =>
+                pureResolver: ctx =>
                 {
                     ctx.ScopedContextData.TryGetValue(Errors, out var errors);
-                    return new ValueTask<object?>(errors);
+                    return errors;
                 });
             objectDef.Fields.Add(errorFieldDef);
         }

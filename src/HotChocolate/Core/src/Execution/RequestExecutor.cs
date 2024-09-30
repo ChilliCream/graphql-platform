@@ -302,13 +302,8 @@ internal sealed class RequestExecutor : IRequestExecutor
             return;
         }
 
-#if NET6_0_OR_GREATER
         ref var start = ref MemoryMarshal.GetArrayDataReference(_enricher);
         ref var end = ref Unsafe.Add(ref start, _enricher.Length);
-#else
-        ref var start = ref MemoryMarshal.GetReference(_enricher.AsSpan());
-        ref var end = ref Unsafe.Add(ref start, _enricher.Length);
-#endif
 
         while (Unsafe.IsAddressLessThan(ref start, ref end))
         {

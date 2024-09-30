@@ -26,7 +26,7 @@ public sealed class DefaultQueryRequestFactory : IOpaQueryRequestFactory
 
         var originalRequest = new OriginalRequest(
             httpContext.Request.Headers,
-            httpContext.Request.Host.Value,
+            httpContext.Request.Host.Value ?? string.Empty,
             httpContext.Request.Method,
             httpContext.Request.Path.Value!,
             httpContext.Request.Query,

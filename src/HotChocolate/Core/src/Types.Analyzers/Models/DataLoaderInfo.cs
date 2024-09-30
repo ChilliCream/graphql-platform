@@ -26,7 +26,8 @@ public sealed class DataLoaderInfo : SyntaxInfo
         _lookups = attribute.GetLookups();
         var declaringType = methodSymbol.ContainingType;
 
-        Name = GetDataLoaderName(methodSymbol.Name, attribute);
+        NameWithoutSuffix = GetDataLoaderName(methodSymbol.Name, attribute);
+        Name = NameWithoutSuffix + "DataLoader";
         InterfaceName = $"I{Name}";
         Namespace = methodSymbol.ContainingNamespace.ToDisplayString();
         FullName = $"{Namespace}.{Name}";
@@ -38,11 +39,16 @@ public sealed class DataLoaderInfo : SyntaxInfo
         KeyParameter = MethodSymbol.Parameters[0];
         ContainingType = declaringType.ToDisplayString();
         Parameters = CreateParameters(methodSymbol);
+        Groups = methodSymbol.GetDataLoaderGroupKeys();
     }
 
     public string Name { get; }
 
+    public string NameWithoutSuffix { get; }
+
     public string FullName { get; }
+
+    public ImmutableHashSet<string> Groups { get; }
 
     public string Namespace { get; }
 
@@ -252,7 +258,8 @@ public sealed class DataLoaderInfo : SyntaxInfo
 
     private bool Equals(DataLoaderInfo other)
         => AttributeSyntax.IsEquivalentTo(other.AttributeSyntax)
-            && MethodSyntax.IsEquivalentTo(other.MethodSyntax);
+            && MethodSyntax.IsEquivalentTo(other.MethodSyntax)
+            && Groups.SequenceEqual(other.Groups, StringComparer.Ordinal);
 
     public override int GetHashCode()
         => HashCode.Combine(AttributeSyntax, MethodSyntax);
@@ -274,11 +281,8 @@ public sealed class DataLoaderInfo : SyntaxInfo
             name = name.Substring(0, name.Length - 5);
         }
 
-        if (name.EndsWith("DataLoader"))
-        {
-            return name;
-        }
-
-        return name + "DataLoader";
+        return name.EndsWith("DataLoader")
+            ? name.Substring(0, name.Length - 10)
+            : name;
     }
 }

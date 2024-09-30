@@ -8,16 +8,13 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Caching;
 
-internal sealed class CacheControlTypeInterceptor : TypeInterceptor
+internal sealed class CacheControlTypeInterceptor(
+    ICacheControlOptionsAccessor accessor)
+    : TypeInterceptor
 {
     private readonly List<(RegisteredType Type, ObjectTypeDefinition TypeDef)> _types = [];
-    private readonly ICacheControlOptions _cacheControlOptions;
+    private readonly ICacheControlOptions _cacheControlOptions = accessor.CacheControl;
     private TypeDependency? _cacheControlDependency;
-
-    public CacheControlTypeInterceptor(ICacheControlOptionsAccessor accessor)
-    {
-        _cacheControlOptions = accessor.CacheControl;
-    }
 
     public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
@@ -65,11 +62,7 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
         var length = objectDef.Fields.Count;
         var appliedDefaults = false;
 
-#if NET6_0_OR_GREATER
         var fields = ((BindableList<ObjectFieldDefinition>)objectDef.Fields).AsSpan();
-#else
-        var fields = (BindableList<ObjectFieldDefinition>)objectDef.Fields;
-#endif
 
         for (var i = 0; i < length; i++)
         {

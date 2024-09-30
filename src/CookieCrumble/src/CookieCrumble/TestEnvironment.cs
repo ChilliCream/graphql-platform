@@ -7,21 +7,16 @@ namespace CookieCrumble;
 /// </summary>
 public static class TestEnvironment
 {
-#if NET6_0
-    /// <summary>
-    /// The target framework identifier.
-    /// </summary>
-    public const string TargetFramework = "NET6_0";
-#elif NET7_0
-    /// <summary>
-    /// The target framework identifier.
-    /// </summary>
-    public const string TargetFramework = "NET7_0";
-#elif NET8_0
+#if NET8_0
     /// <summary>
     /// The target framework identifier.
     /// </summary>
     public const string TargetFramework = "NET8_0";
+#elif NET9_0
+    /// <summary>
+    /// The target framework identifier.
+    /// </summary>
+    public const string TargetFramework = "NET9_0";
 #endif
 
     public static bool IsLocalEnvironment()

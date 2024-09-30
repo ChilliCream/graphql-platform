@@ -19,6 +19,7 @@ public static class PagingResultExtensions
     /// <returns>
     /// Returns a relay connection.
     /// </returns>
+#nullable disable
     public static async Task<Connection<T>> ToConnectionAsync<T>(
         this Task<Page<T>> resultPromise)
         where T : class
@@ -26,6 +27,7 @@ public static class PagingResultExtensions
         var result = await resultPromise;
         return CreateConnection(result);
     }
+#nullable restore
 
     /// <summary>
     /// Converts a <see cref="Page{T}"/> to a <see cref="Connection{T}"/>.
@@ -64,15 +66,18 @@ public static class PagingResultExtensions
         where T : class
         => CreateConnection(result);
 
-    private static Connection<T> CreateConnection<T>(Page<T> page) where T : class
+    private static Connection<T> CreateConnection<T>(Page<T>? page) where T : class
     {
+        page ??= Page<T>.Empty;
+
         return new Connection<T>(
             page.Items.Select(t => new Edge<T>(t, page.CreateCursor)).ToArray(),
             new ConnectionPageInfo(
                 page.HasNextPage,
                 page.HasPreviousPage,
                 CreateCursor(page.First, page.CreateCursor),
-                CreateCursor(page.Last, page.CreateCursor)));
+                CreateCursor(page.Last, page.CreateCursor)),
+            page.TotalCount ?? 0);
     }
 
     private static string? CreateCursor<T>(T? item, Func<T, string> createCursor) where T : class

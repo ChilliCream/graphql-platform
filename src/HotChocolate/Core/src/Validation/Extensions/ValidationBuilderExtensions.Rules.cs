@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+using HotChocolate;
 using HotChocolate.Validation.Options;
 using HotChocolate.Validation.Rules;
 
@@ -111,7 +113,7 @@ public static partial class HotChocolateValidationBuilderExtensions
     /// Field selections on scalars or enums are never allowed,
     /// because they are the leaf nodes of any GraphQL query.
     ///
-    /// Conversely the leaf field selections of GraphQL queries
+    /// Conversely, the leaf field selections of GraphQL queries
     /// must be of type scalar or enum. Leaf selections on objects,
     /// interfaces, and unions without subfields are disallowed.
     ///
@@ -169,7 +171,7 @@ public static partial class HotChocolateValidationBuilderExtensions
     /// AND
     ///
     /// The graph of fragment spreads must not form any cycles including
-    /// spreading itself. Otherwise an operation could infinitely spread or
+    /// spreading itself. Otherwise, an operation could infinitely spread or
     /// infinitely execute on cycles in the underlying data.
     ///
     /// https://spec.graphql.org/June2018/#sec-Fragment-spreads-must-not-form-cycles
@@ -312,7 +314,10 @@ public static partial class HotChocolateValidationBuilderExtensions
     /// Specifies if depth analysis is skipped for introspection queries.
     /// </param>
     /// <param name="allowRequestOverrides">
-    /// Defines if request depth overrides are allowed on a per request basis.
+    /// Defines if request depth overrides are allowed on a per-request basis.
+    /// </param>
+    /// <param name="isEnabled">
+    /// A delegate that defines if the rule is enabled.
     /// </param>
     /// <returns>
     /// Returns the <see cref="IValidationBuilder"/> for configuration chaining.
@@ -321,12 +326,15 @@ public static partial class HotChocolateValidationBuilderExtensions
         this IValidationBuilder builder,
         int maxAllowedExecutionDepth,
         bool skipIntrospectionFields = false,
-        bool allowRequestOverrides = false)
+        bool allowRequestOverrides = false,
+        Func<IServiceProvider, ValidationOptions, bool>? isEnabled = null)
     {
         return builder
             .TryAddValidationVisitor(
                 (_, o) => new MaxExecutionDepthVisitor(o),
-                isCacheable: !allowRequestOverrides)
+                priority: 2,
+                isCacheable: !allowRequestOverrides,
+                isEnabled: isEnabled)
             .ModifyValidationOptions(o =>
             {
                 o.MaxAllowedExecutionDepth = maxAllowedExecutionDepth;
@@ -335,20 +343,60 @@ public static partial class HotChocolateValidationBuilderExtensions
     }
 
     /// <summary>
+    /// Removes a validation rule that restricts the depth of a GraphQL request.
+    /// </summary>
+    public static IValidationBuilder RemoveMaxExecutionDepthRule(
+        this IValidationBuilder builder)
+        => builder.TryRemoveValidationVisitor<MaxExecutionDepthVisitor>();
+
+    /// <summary>
     /// Adds a validation rule that only allows requests to use `__schema` or `__type`
     /// if the request carries an introspection allowed flag.
     /// </summary>
     public static IValidationBuilder AddIntrospectionAllowedRule(
         this IValidationBuilder builder,
         Func<IServiceProvider, ValidationOptions, bool>? isEnabled = null)
-        => builder.TryAddValidationVisitor((_, _) => new IntrospectionVisitor(), false, isEnabled);
+        => builder.TryAddValidationVisitor(
+            (_, _) => new IntrospectionVisitor(),
+            priority: 0,
+            isCacheable: false,
+            isEnabled: isEnabled);
 
     /// <summary>
     /// Removes a validation rule that only allows requests to use `__schema` or `__type`
     /// if the request carries an introspection allowed flag.
     /// </summary>
     public static IValidationBuilder RemoveIntrospectionAllowedRule(
-        this IValidationBuilder builder,
-        Func<IServiceProvider, ValidationOptions, bool>? isEnabled = null)
+        this IValidationBuilder builder)
         => builder.TryRemoveValidationVisitor<IntrospectionVisitor>();
+
+    /// <summary>
+    /// Adds a validation rule that restricts the depth of a GraphQL introspection request.
+    /// </summary>
+    public static IValidationBuilder AddIntrospectionDepthRule(
+        this IValidationBuilder builder)
+        => builder.TryAddValidationVisitor<IntrospectionDepthVisitor>(priority: 1);
+
+    /// <summary>
+    /// Adds a validation rule that restricts the depth of coordinate cycles in GraphQL operations.
+    /// </summary>
+    public static IValidationBuilder AddMaxAllowedFieldCycleDepthRule(
+        this IValidationBuilder builder,
+        ushort? defaultCycleLimit = 3,
+        (SchemaCoordinate Coordinate, ushort MaxAllowed)[]? coordinateCycleLimits = null,
+        Func<IServiceProvider, ValidationOptions, bool>? isEnabled = null)
+        => builder.TryAddValidationVisitor(
+            (_, _) => new MaxAllowedFieldCycleDepthVisitor(
+                coordinateCycleLimits?.ToImmutableArray()
+                    ?? ImmutableArray<(SchemaCoordinate, ushort)>.Empty,
+                defaultCycleLimit),
+            priority: 3,
+            isEnabled: isEnabled);
+
+    /// <summary>
+    /// Removes a validation rule that restricts the depth of coordinate cycles in GraphQL operations.
+    /// </summary>
+    public static IValidationBuilder RemoveMaxAllowedFieldCycleDepthRule(
+        this IValidationBuilder builder)
+        => builder.TryRemoveValidationVisitor<MaxAllowedFieldCycleDepthVisitor>();
 }

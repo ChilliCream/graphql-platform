@@ -3,9 +3,7 @@ using System.Globalization;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Utilities.Properties;
-#if NET6_0_OR_GREATER
 using static System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes;
-#endif
 
 namespace HotChocolate.Utilities;
 
@@ -28,11 +26,7 @@ internal delegate IEnumerable<IParameterHandler> CreateDelegateHandlers(
 /// <summary>
 /// This helper compiles classes to middleware delegates.
 /// </summary>
-#if NET6_0_OR_GREATER
 internal static class MiddlewareCompiler<[DynamicallyAccessedMembers(PublicConstructors | PublicMethods)] TMiddleware>
-#else
-internal static class MiddlewareCompiler<TMiddleware>
-#endif
 {
     private static readonly MethodInfo _awaitHelper =
         typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.AwaitTaskHelper))!;
@@ -109,15 +103,9 @@ internal static class MiddlewareCompiler<TMiddleware>
             UtilityResources.MiddlewareCompiler_ReturnTypeNotSupported);
     }
 
-#if NET6_0_OR_GREATER
     private static NewExpression CreateMiddleware(
         [DynamicallyAccessedMembers(PublicConstructors)] Type middleware,
         IReadOnlyList<IParameterHandler> parameterHandlers)
-#else
-    private static NewExpression CreateMiddleware(
-        Type middleware,
-        IReadOnlyList<IParameterHandler> parameterHandlers)
-#endif
     {
         var constructor = CreateConstructor(middleware);
         var arguments = CreateParameters(
@@ -125,13 +113,8 @@ internal static class MiddlewareCompiler<TMiddleware>
         return Expression.New(constructor, arguments);
     }
 
-#if NET6_0_OR_GREATER
     private static ConstructorInfo CreateConstructor(
         [DynamicallyAccessedMembers(PublicConstructors)] Type middleware)
-#else
-    private static ConstructorInfo CreateConstructor(
-        Type middleware)
-#endif
     {
         var constructor =
             middleware.GetConstructors().SingleOrDefault(t => t.IsPublic);
@@ -170,13 +153,8 @@ internal static class MiddlewareCompiler<TMiddleware>
         return arguments;
     }
 
-#if NET6_0_OR_GREATER
     private static MethodInfo? GetInvokeMethod(
         [DynamicallyAccessedMembers(PublicMethods)] Type middlewareType)
-#else
-    private static MethodInfo? GetInvokeMethod(
-        Type middlewareType)
-#endif
         => middlewareType.GetMethod("InvokeAsync") ?? middlewareType.GetMethod("Invoke");
 
     private static class ExpressionHelper

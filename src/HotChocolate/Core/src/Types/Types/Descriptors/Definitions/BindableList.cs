@@ -7,9 +7,7 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 
 public sealed class BindableList<T> : IBindableList<T>
 {
-#if NET6_0_OR_GREATER
     private static readonly T[] _empty = [];
-#endif
 
     private List<T>? _list;
 
@@ -95,7 +93,6 @@ public sealed class BindableList<T> : IBindableList<T>
         }
     }
 
-#if NET6_0_OR_GREATER
     internal ReadOnlySpan<T> AsSpan()
     {
         if (_list is null)
@@ -105,7 +102,6 @@ public sealed class BindableList<T> : IBindableList<T>
 
         return CollectionsMarshal.AsSpan(_list);
     }
-#endif
 
     public IEnumerator<T> GetEnumerator()
     {

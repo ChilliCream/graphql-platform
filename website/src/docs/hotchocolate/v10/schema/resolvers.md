@@ -98,7 +98,7 @@ public string GetGreetings(ObjectType type) => type.Name;
 
 # Code-First
 
-Code-first is the second approach with which we can be describe a GraphQL schema. In Code-first, field definition and resolver logic are more closely bound together.
+Code-first is the second approach with which we can be describe a GraphQL schema. In code-first, field definition and resolver logic are more closely bound together.
 
 ```csharp
 public class QueryType

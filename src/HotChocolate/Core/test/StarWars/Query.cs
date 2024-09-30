@@ -37,7 +37,7 @@ public class Query
     /// <summary>
     /// Retrieve a heros by a particular Star Wars episodes.
     /// </summary>
-    /// <param name="episode">The episode to look up by.</param>
+    /// <param name="episodes">The episode to look up by.</param>
     /// <returns>The character.</returns>
     public IReadOnlyList<ICharacter> GetHeroes(IReadOnlyList<Episode> episodes)
     {

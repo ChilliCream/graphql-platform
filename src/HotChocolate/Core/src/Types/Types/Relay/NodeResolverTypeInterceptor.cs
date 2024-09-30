@@ -1,8 +1,6 @@
 #nullable enable
 
-#if NET5_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
-#endif
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -30,9 +28,7 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
 
     private ObjectTypeDefinition? TypeDef { get; set; }
 
-#if NET5_0_OR_GREATER
     [MemberNotNullWhen(true, nameof(QueryType), nameof(TypeDef), nameof(CompletionContext))]
-#endif
     private bool IsInitialized
         => QueryType is not null &&
             TypeDef is not null &&

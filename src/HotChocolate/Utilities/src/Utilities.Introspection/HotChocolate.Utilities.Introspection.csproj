@@ -11,10 +11,6 @@
     <InternalsVisibleTo Include="HotChocolate.Utilities.Introspection.Tests" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="System.Text.Json" />
-  </ItemGroup>
-
   <ItemGroup>
     <None Remove="Queries\inspect_argument_deprecation.graphql" />
     <EmbeddedResource Include="Queries\inspect_argument_deprecation.graphql" />

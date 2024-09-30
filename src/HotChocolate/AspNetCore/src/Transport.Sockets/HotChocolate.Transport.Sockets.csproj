@@ -1,10 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>$(LibraryTargetFrameworks)</TargetFrameworks>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <PackageId>HotChocolate.Transport.Sockets</PackageId>
     <AssemblyName>HotChocolate.Transport.Sockets</AssemblyName>
     <RootNamespace>HotChocolate.Transport.Sockets</RootNamespace>

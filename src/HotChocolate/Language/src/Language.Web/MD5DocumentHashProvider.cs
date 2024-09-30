@@ -15,7 +15,12 @@ public sealed class MD5DocumentHashProvider : DocumentHashProviderBase
 
     public override string Name => "md5Hash";
 
-#if NET6_0_OR_GREATER
+#if NETSTANDARD2_0
+    protected override byte[] ComputeHash(byte[] document, int length)
+    {
+        return _md5.Value!.ComputeHash(document, 0, length);
+    }
+#else
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected override string ComputeHash(ReadOnlySpan<byte> document, HashFormat format)
     {
@@ -30,11 +35,6 @@ public sealed class MD5DocumentHashProvider : DocumentHashProviderBase
         }
 
         return FormatHash(hashSpan, format);
-    }
-#else
-    protected override byte[] ComputeHash(byte[] document, int length)
-    {
-        return _md5.Value!.ComputeHash(document, 0, length);
     }
 #endif
 }

@@ -1,9 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <TargetFrameworks>net8.0</TargetFrameworks>
-
     <AssemblyName>HotChocolate.Fusion.Aspire</AssemblyName>
     <RootNamespace>HotChocolate.Fusion</RootNamespace>
 

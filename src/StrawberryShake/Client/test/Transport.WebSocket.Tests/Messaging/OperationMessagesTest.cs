@@ -1,5 +1,5 @@
 using System.Text.Json;
-using Snapshooter.Xunit;
+using CookieCrumble;
 using StrawberryShake.Transport.WebSockets.Messages;
 
 namespace StrawberryShake.Transport.WebSockets;

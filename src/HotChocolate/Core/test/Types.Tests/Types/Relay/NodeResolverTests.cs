@@ -1,10 +1,10 @@
 #pragma warning disable RCS1102 // Make class static
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Tests;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types;
 
@@ -190,8 +190,6 @@ public class NodeResolverTests
     [Fact]
     public async Task NodeAttribute_On_Extension()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
@@ -203,8 +201,6 @@ public class NodeResolverTests
     [Fact]
     public async Task NodeAttribute_On_Extension2()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
@@ -216,8 +212,6 @@ public class NodeResolverTests
     [Fact]
     public async Task NodeAttribute_On_Extension3()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
@@ -229,8 +223,6 @@ public class NodeResolverTests
     [Fact]
     public async Task NodeAttribute_On_Extension4()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
@@ -242,8 +234,6 @@ public class NodeResolverTests
     [Fact]
     public async Task NodeAttribute_On_Extension_Fetch_Through_Node_Field()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()

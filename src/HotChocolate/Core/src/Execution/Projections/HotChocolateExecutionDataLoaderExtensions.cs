@@ -1,15 +1,7 @@
-#if NET6_0_OR_GREATER
-#nullable enable
-
 using System.Buffers;
-using System.Buffers.Text;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq.Expressions;
-using System.Runtime.CompilerServices;
-using System.Text;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Execution.Projections;
 using HotChocolate.Pagination;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -21,13 +13,9 @@ namespace GreenDonut.Projections;
 /// <summary>
 /// Provides extension methods for projection on DataLoader.
 /// </summary>
-#if NET8_0_OR_GREATER
 [Experimental(Experiments.Projections)]
-#endif
 public static class HotChocolateExecutionDataLoaderExtensions
 {
-    private static readonly SelectionExpressionBuilder _builder = new();
-
     /// <summary>
     /// Selects the fields that where selected in the GraphQL selection tree.
     /// </summary>
@@ -51,7 +39,7 @@ public static class HotChocolateExecutionDataLoaderExtensions
         ISelection selection)
         where TKey : notnull
     {
-        var expression = GetOrCreateExpression<TKey, TValue>(selection);
+        var expression = selection.ToSelectorExpression<TValue>();
         return dataLoader.Select(expression);
     }
 
@@ -86,8 +74,8 @@ public static class HotChocolateExecutionDataLoaderExtensions
             var count = GetConnectionSelections(selection, buffer);
             for (var i = 0; i < count; i++)
             {
-                var expression = GetOrCreateExpression<TKey, TValue>(buffer[i]);
-                HotChocolatePaginationBatchingDataLoaderExtensions.Select(dataLoader, expression);
+                var expression = buffer[i].ToSelectorExpression<TValue>();
+                dataLoader.Select(expression);
             }
             ArrayPool<ISelection>.Shared.Return(buffer);
         }
@@ -97,15 +85,15 @@ public static class HotChocolateExecutionDataLoaderExtensions
             var count = GetCollectionSelections(selection, buffer);
             for (var i = 0; i < count; i++)
             {
-                var expression = GetOrCreateExpression<TKey, TValue>(buffer[i]);
-                HotChocolatePaginationBatchingDataLoaderExtensions.Select(dataLoader, expression);
+                var expression = buffer[i].ToSelectorExpression<TValue>();
+                dataLoader.Select(expression);
             }
             ArrayPool<ISelection>.Shared.Return(buffer);
         }
         else
         {
-            var expression = GetOrCreateExpression<TKey, TValue>(selection);
-            HotChocolatePaginationBatchingDataLoaderExtensions.Select(dataLoader, expression);
+            var expression = selection.ToSelectorExpression<TValue>();
+            dataLoader.Select(expression);
         }
 
         return dataLoader;
@@ -172,46 +160,4 @@ public static class HotChocolateExecutionDataLoaderExtensions
 
         return count;
     }
-
-    private static Expression<Func<TValue, TValue>> GetOrCreateExpression<TKey, TValue>(
-        ISelection selection)
-        where TKey : notnull
-    {
-        return selection.DeclaringOperation.GetOrAddState(
-            CreateExpressionKey(selection.Id),
-            static (_, ctx) => ctx._builder.BuildExpression<TValue>(ctx.selection),
-            (_builder, selection));
-    }
-
-    private static string CreateExpressionKey(int key)
-    {
-        var keyPrefix = GetKeyPrefix();
-        var requiredBufferSize = EstimateIntLength(key) + keyPrefix.Length;
-        Span<byte> span = stackalloc byte[requiredBufferSize];
-        keyPrefix.CopyTo(span);
-        Utf8Formatter.TryFormat(key, span.Slice(keyPrefix.Length), out var written, 'D');
-        return Encoding.UTF8.GetString(span.Slice(0, written + keyPrefix.Length));
-    }
-
-    private static ReadOnlySpan<byte> GetKeyPrefix()
-        => "hc-dataloader-expr-"u8;
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static int EstimateIntLength(int value)
-    {
-        if (value == 0)
-        {
-            // to print 0 we need still 1 digit
-            return 1;
-        }
-
-        // if the number is negative we need one more digit for the sign
-        var length = (value < 0) ? 1 : 0;
-
-        // we add the number of digits the number has to the length of the number.
-        length += (int)Math.Floor(Math.Log10(Math.Abs(value)) + 1);
-
-        return length;
-    }
 }
-#endif
