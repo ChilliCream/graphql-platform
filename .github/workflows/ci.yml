@@ -204,14 +204,12 @@ jobs:
           CI_BUILD: true
 
       - name: Upload Test Results as Artifact
-        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-results-${{ matrix.name }}
           path: ${{ matrix.directoryPath }}/TestResults/*.trx
 
       - name: Upload Coverage File as Artifact
-        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: coverage-${{ matrix.name }}
@@ -229,7 +227,6 @@ jobs:
   merge-coverage:
     name: Merge and Upload Coverage
     needs: library-tests
-    if: always() && needs.library-tests.result != 'cancelled'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -238,7 +235,6 @@ jobs:
           show-progress: false
 
       - name: Install .NET
-        if: ${{ !cancelled() }}
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |
@@ -246,22 +242,18 @@ jobs:
             9.x
 
       - name: Create All.sln
-        if: ${{ !cancelled() }}
         run: ./build.sh CreateAllSln
 
       - name: Build
-        if: ${{ !cancelled() }}
         run: dotnet build ./src/All.sln
 
       - name: Download all coverage artifacts
-        if: ${{ !cancelled() }}
         uses: actions/download-artifact@v4
         with:
           path: ./output/download
           pattern: coverage-*
 
       - name: Merge Coverage Files
-        if: ${{ !cancelled() }}
         timeout-minutes: 10
         run: |
           dotnet tool install -g dotnet-reportgenerator-globaltool
@@ -270,7 +262,6 @@ jobs:
           ReportGenerator_License: ${{ secrets.REPORTGENERATOR_LICENSE }}
 
       - name: Upload Combined Coverage to Codecov
-        if: ${{ !cancelled() }}
         uses: codecov/codecov-action@v4
         timeout-minutes: 10
         with:
