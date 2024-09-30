@@ -9,13 +9,12 @@
       "message": "Unexpected Execution Error",
       "locations": [
         {
-          "line": 6,
-          "column": 5
+          "line": 5,
+          "column": 3
         }
       ],
       "path": [
-        "other",
-        "userId"
+        "other"
       ]
     }
   ],

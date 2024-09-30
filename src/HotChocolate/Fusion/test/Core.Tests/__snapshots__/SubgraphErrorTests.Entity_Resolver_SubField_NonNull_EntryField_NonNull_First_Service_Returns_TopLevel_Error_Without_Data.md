@@ -6,42 +6,15 @@
 {
   "errors": [
     {
-      "message": "Unexpected Execution Error",
+      "message": "Top Level Error",
       "locations": [
         {
-          "line": 3,
-          "column": 5
+          "line": 2,
+          "column": 3
         }
       ],
       "path": [
-        "productById",
-        "id"
-      ]
-    },
-    {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 4,
-          "column": 5
-        }
-      ],
-      "path": [
-        "productById",
-        "name"
-      ]
-    },
-    {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 5,
-          "column": 5
-        }
-      ],
-      "path": [
-        "productById",
-        "price"
+        "productById"
       ]
     }
   ],

@@ -6,7 +6,7 @@
 {
   "errors": [
     {
-      "message": "Unexpected Execution Error",
+      "message": "Top Level Error",
       "locations": [
         {
           "line": 5,
@@ -15,12 +15,12 @@
       ],
       "path": [
         "products",
-        2,
+        0,
         "price"
       ]
     },
     {
-      "message": "Unexpected Execution Error",
+      "message": "Top Level Error",
       "locations": [
         {
           "line": 5,
@@ -34,7 +34,7 @@
       ]
     },
     {
-      "message": "Unexpected Execution Error",
+      "message": "Top Level Error",
       "locations": [
         {
           "line": 5,
@@ -43,7 +43,7 @@
       ],
       "path": [
         "products",
-        0,
+        2,
         "price"
       ]
     }
