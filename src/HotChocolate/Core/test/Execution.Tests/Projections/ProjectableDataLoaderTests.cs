@@ -445,6 +445,43 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
     }
 
     [Fact]
+    public async Task Brand_Details_Requires_Brand_Name_2()
+    {
+        // Arrange
+        var queries = new List<string>();
+        var connectionString = CreateConnectionString();
+        await CatalogContext.SeedAsync(connectionString);
+
+        // Act
+        var result = await new ServiceCollection()
+            .AddScoped(_ => queries)
+            .AddTransient(_ => new CatalogContext(connectionString))
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddTypeExtension<BrandExtensionsWithRequirement>()
+            .AddPagingArguments()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .ExecuteRequestAsync(
+                """
+                {
+                    brandById(id: 1) {
+                        name
+                        details
+                    }
+                }
+                """);
+
+#if NET8_0_OR_GREATER
+        Snapshot.Create()
+#else
+        Snapshot.Create(postFix: "NET7_0")
+#endif
+            .AddSql(queries)
+            .AddResult(result)
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
     public async Task Brand_Products_TypeName()
     {
         // Arrange

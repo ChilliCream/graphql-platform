@@ -143,7 +143,7 @@ internal sealed class SelectionExpressionBuilder
             {
                 foreach (var requirement in requirements)
                 {
-                    parent.AddNode(requirement.Clone());
+                    parent.TryAddNode(requirement.Clone());
                 }
             }
 
