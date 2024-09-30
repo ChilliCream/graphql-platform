@@ -119,7 +119,7 @@ public class MaxAllowedFieldCycleDepthRuleTests()
 
         var builder = serviceCollection
             .AddValidation()
-            .ConfigureValidation(c => c.Modifiers.Add(o => o.Rules.Clear()))
+            .ConfigureValidation(c => c.RulesModifiers.Add((_, r) => r.Rules.Clear()))
             .ModifyValidationOptions(o => o.MaxAllowedErrors = int.MaxValue);
         builder.AddMaxAllowedFieldCycleDepthRule(
             null,
@@ -164,7 +164,7 @@ public class MaxAllowedFieldCycleDepthRuleTests()
 
         var builder = serviceCollection
             .AddValidation()
-            .ConfigureValidation(c => c.Modifiers.Add(o => o.Rules.Clear()))
+            .ConfigureValidation(c => c.RulesModifiers.Add((_, r) => r.Rules.Clear()))
             .ModifyValidationOptions(o => o.MaxAllowedErrors = int.MaxValue);
         builder.AddMaxAllowedFieldCycleDepthRule(
             null,
