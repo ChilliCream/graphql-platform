@@ -20,7 +20,7 @@ internal sealed class IntrospectionDepthVisitor : TypeDocumentValidatorVisitor
             (new FieldCoordinate("__Type", "inputFields"), 1),
             (new FieldCoordinate("__Type", "interfaces"), 1),
             (new FieldCoordinate("__Type", "possibleTypes"), 1),
-            (new FieldCoordinate("__Type", "ofType"), 8),
+            (new FieldCoordinate("__Type", "ofType"), 16),
         };
 
     protected override ISyntaxVisitorAction Enter(
