@@ -11,11 +11,11 @@ public sealed class TestOperationDocumentStorage : IOperationDocumentStorage
     {
         _cache.Add(
             "60ddx_GGk4FDObSa6eK0sg",
-            Utf8GraphQLParser.Parse(@"{ hero { name } }"));
+            Utf8GraphQLParser.Parse(@"query GetHeroName { hero { name } }"));
 
         _cache.Add(
             "abc123",
-            Utf8GraphQLParser.Parse(@"query($if: Boolean) { hero { name @skip(if: $if) } }"));
+            Utf8GraphQLParser.Parse(@"query Test($if: Boolean) { hero { name @skip(if: $if) } }"));
     }
 
     public async ValueTask<IOperationDocument?> TryReadAsync(

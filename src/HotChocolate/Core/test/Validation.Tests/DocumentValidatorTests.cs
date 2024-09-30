@@ -861,6 +861,12 @@ public class DocumentValidatorTests
         await ExpectErrors(FileResource.Open("50000_query.graphql"));
     }
 
+    [Fact]
+    public async Task Introspection_Cycle_Detected()
+    {
+        await ExpectErrors(FileResource.Open("introspection_with_cycle.graphql"));
+    }
+
     private Task ExpectValid(string sourceText) => ExpectValid(null, null, sourceText);
 
     private async Task ExpectValid(ISchema? schema, IDocumentValidator? validator, string sourceText)

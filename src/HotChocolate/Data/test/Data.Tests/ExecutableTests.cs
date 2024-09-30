@@ -56,7 +56,8 @@ public class ExecutableTests(AuthorFixture authorFixture) : IClassFixture<Author
         var result = await executable.SingleOrDefaultAsync(default);
 
         // assert
-        new { result, executable = executable.Print(), }.MatchSnapshot();
+        new { result, executable = executable.Print(), }
+            .MatchSnapshot(postFix: TestEnvironment.TargetFramework);
     }
 
     [Fact]

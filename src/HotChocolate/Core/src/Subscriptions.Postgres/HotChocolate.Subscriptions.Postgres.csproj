@@ -7,10 +7,6 @@
     <Description>Contains a Hot Chocolate GraphQL subscription provider for Postgres.</Description>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <TargetFrameworks>$(Library3TargetFrameworks)</TargetFrameworks>
-  </PropertyGroup>
-
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Subscriptions.Postgres.Tests" />
   </ItemGroup>
@@ -37,10 +33,6 @@
 
   <ItemGroup>
     <PackageReference Include="Npgsql" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
-    <PackageReference Include="Microsoft.Bcl.TimeProvider" />
   </ItemGroup>
 
 </Project>

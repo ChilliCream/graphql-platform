@@ -4,9 +4,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
-#if NET6_0_OR_GREATER
 using static System.Runtime.InteropServices.CollectionsMarshal;
-#endif
 using static System.Runtime.InteropServices.MemoryMarshal;
 using static System.StringComparer;
 using static HotChocolate.Execution.Properties.Resources;
@@ -145,7 +143,8 @@ public sealed partial class OperationCompiler
             request.Id,
             request.Document,
             request.Definition,
-            request.RootType);
+            request.RootType,
+            request.Schema);
 
         var variants = new SelectionVariants[_selectionVariants.Count];
 
@@ -197,7 +196,6 @@ public sealed partial class OperationCompiler
                 variantsStart = ref Unsafe.Add(ref variantsStart, 1)!;
             }
 
-#if NET5_0_OR_GREATER
             var optSpan = _operationOptimizers.AsSpan();
             ref var optStart = ref GetReference(optSpan);
             ref var optEnd = ref Unsafe.Add(ref optStart, optSpan.Length);
@@ -207,12 +205,6 @@ public sealed partial class OperationCompiler
                 optStart.OptimizeOperation(context);
                 optStart = ref Unsafe.Add(ref optStart, 1)!;
             }
-#else
-            for (var i = 0; i < _operationOptimizers.Length; i++)
-            {
-                _operationOptimizers[i].OptimizeOperation(context);
-            }
-#endif
 
             CompleteResolvers(request.Schema);
 
@@ -233,7 +225,6 @@ public sealed partial class OperationCompiler
 
     private void CompleteResolvers(ISchema schema)
     {
-#if NET6_0_OR_GREATER
         ref var searchSpace = ref GetReference(AsSpan(_selections));
 
         for (var i = 0; i < _selections.Count; i++)
@@ -254,25 +245,6 @@ public sealed partial class OperationCompiler
                 selection.SetResolvers(resolver, pureResolver);
             }
         }
-
-#else
-        foreach (var selection in _selections)
-        {
-            if (selection.ResolverPipeline is null && selection.PureResolver is null)
-            {
-                var field = selection.Field;
-                var syntaxNode = selection.SyntaxNode;
-                var resolver = CreateFieldPipeline(
-                    schema,
-                    field,
-                    syntaxNode,
-                    _directiveNames,
-                    _pipelineComponents);
-                var pureResolver = TryCreatePureField(schema, field, syntaxNode);
-                selection.SetResolvers(resolver, pureResolver);
-            }
-        }
-#endif
     }
 
     private void CompileSelectionSet(CompilerContext context)

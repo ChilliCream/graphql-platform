@@ -16,11 +16,7 @@ public class JsonConsoleOutputCommand  : IDisposable
     {
         var json = JsonSerializer.Serialize(_data, new JsonSerializerOptions
         {
-#if NET5_0_OR_GREATER
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-#else
-                IgnoreNullValues = true,
-#endif
             IgnoreReadOnlyProperties = false,
         });
         Console.WriteLine(json);

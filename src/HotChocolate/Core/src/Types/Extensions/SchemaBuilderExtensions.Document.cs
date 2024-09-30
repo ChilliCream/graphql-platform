@@ -8,11 +8,7 @@ public static partial class SchemaBuilderExtensions
 {
     public static ISchemaBuilder AddDocumentFromString(
         this ISchemaBuilder builder,
-#if NET7_0_OR_GREATER
         [StringSyntax("graphql")] string schema)
-#else
-        string schema)
-#endif
     {
         if (builder is null)
         {

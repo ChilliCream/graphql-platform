@@ -1,7 +1,6 @@
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
-using Snapshooter;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Resolvers;
 
@@ -30,8 +29,7 @@ public class ResolverTaskNullTests
             $"{{ {field}(name: {arg}) }}");
 
         // assert
-        result.ToJson().MatchSnapshot(SnapshotNameExtension.Create(
-            field, argument ?? "null"));
+        result.ToJson().MatchSnapshot(postFix: $"{field}_{argument ?? "null"}");
     }
 
     public class QueryType : ObjectType<Query>

@@ -165,7 +165,6 @@ public static class PagingObjectFieldDescriptorExtensions
 
                 var resolverMember = d.ResolverMember ?? d.Member;
                 d.Type = CreateConnectionTypeRef(c, resolverMember, connectionName, typeRef, options);
-                d.CustomSettings.Add(typeof(Connection));
             });
 
         return descriptor;

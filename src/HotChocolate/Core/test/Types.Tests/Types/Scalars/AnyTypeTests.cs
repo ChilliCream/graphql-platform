@@ -1,10 +1,10 @@
 using System.Collections.Immutable;
 using System.Dynamic;
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 using static HotChocolate.Tests.TestHelper;
 
 namespace HotChocolate.Types;
@@ -59,7 +59,7 @@ public class AnyTypeTests
         var executor = schema.MakeExecutable();
 
         // act
-        var result = (await executor.ExecuteAsync("{ fooCyclic }")).ExpectQueryResult();
+        var result = (await executor.ExecuteAsync("{ fooCyclic }")).ExpectOperationResult();
 
         // assert
         Assert.Equal("Cycle in object graph detected.", result.Errors?.Single().Exception?.Message);
@@ -113,7 +113,7 @@ public class AnyTypeTests
         var executor = schema.MakeExecutable();
 
         // act
-        var result = (await executor.ExecuteAsync("{ fooCyclic }")).ExpectQueryResult();
+        var result = (await executor.ExecuteAsync("{ fooCyclic }")).ExpectOperationResult();
 
         // assert
         Assert.Equal("Cycle in object graph detected.", result.Errors?.Single().Exception?.Message);
@@ -1333,7 +1333,6 @@ public class AnyTypeTests
     [Fact]
     public async Task Dictionary_Is_Handled_As_Object()
     {
-        Snapshot.FullName();
         await ExpectValid(
                 "{ someObject }",
                 configure: c => c.AddQueryType<QueryWithDictionary>())
@@ -1343,7 +1342,6 @@ public class AnyTypeTests
     [Fact]
     public async Task UseExpandoObjectWithAny()
     {
-        Snapshot.FullName();
         await ExpectValid(
                 "{ something }",
                 configure: c => c.AddQueryType<SomeQuery>())
@@ -1353,7 +1351,6 @@ public class AnyTypeTests
     [Fact]
     public async Task UseImmutableDictWithAny()
     {
-        Snapshot.FullName();
         await ExpectValid(
                 "{ somethingImmutable }",
                 configure: c => c.AddQueryType<SomeQuery>())

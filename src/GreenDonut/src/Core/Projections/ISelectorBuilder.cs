@@ -1,4 +1,3 @@
-#if NET8_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
@@ -39,4 +38,3 @@ public interface ISelectorBuilder
     /// </returns>
     Expression<Func<T, T>>? TryCompile<T>();
 }
-#endif

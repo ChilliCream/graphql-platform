@@ -133,5 +133,20 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
                 validationContext.ReportError(error);
             }
         }
+
+        if (directive.SharedMaxAge.HasValue)
+        {
+            if (directive.SharedMaxAge.Value < 0)
+            {
+                var error = ErrorHelper.CacheControlNegativeSharedMaxAge(obj, field);
+                validationContext.ReportError(error);
+            }
+
+            if (inheritMaxAge)
+            {
+                var error = ErrorHelper.CacheControlBothSharedMaxAgeAndInheritMaxAge(obj, field);
+                validationContext.ReportError(error);
+            }
+        }
     }
 }

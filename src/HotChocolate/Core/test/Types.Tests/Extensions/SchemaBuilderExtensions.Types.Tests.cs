@@ -1,4 +1,4 @@
-using Snapshooter.Xunit;
+using CookieCrumble;
 using HotChocolate.Types;
 using HotChocolate.Language;
 

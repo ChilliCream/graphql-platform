@@ -248,7 +248,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
         }
 
         public global::System.String Name { get; }
-
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.ISearchHero_Search_Friends? Friends { get; }
 
         public virtual global::System.Boolean Equals(SearchHero_Search_Human? other)
@@ -595,7 +594,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
     public partial interface ISearchHero_Search_Human : ISearchHero_Search
     {
         public global::System.String Name { get; }
-
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.ISearchHero_Search_Friends? Friends { get; }
     }
 
@@ -695,8 +693,260 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
 
         public static SearchHeroQueryDocument Instance { get; } = new SearchHeroQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x48, 0x65, 0x72, 0x6f, 0x20, 0x7b, 0x20, 0x73, 0x65, 0x61, 0x72, 0x63, 0x68, 0x28, 0x74, 0x65, 0x78, 0x74, 0x3a, 0x20, 0x22, 0x6c, 0x22, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x48, 0x75, 0x6d, 0x61, 0x6e, 0x20, 0x7b, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x66, 0x72, 0x69, 0x65, 0x6e, 0x64, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6e, 0x6f, 0x64, 0x65, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x44, 0x72, 0x6f, 0x69, 0x64, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x48, 0x75, 0x6d, 0x61, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x44, 0x72, 0x6f, 0x69, 0x64, 0x20, 0x7b, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x7d, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x53, 0x74, 0x61, 0x72, 0x73, 0x68, 0x69, 0x70, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x48, 0x75, 0x6d, 0x61, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x44, 0x72, 0x6f, 0x69, 0x64, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d};
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
+        {
+            0x71,
+            0x75,
+            0x65,
+            0x72,
+            0x79,
+            0x20,
+            0x53,
+            0x65,
+            0x61,
+            0x72,
+            0x63,
+            0x68,
+            0x48,
+            0x65,
+            0x72,
+            0x6f,
+            0x20,
+            0x7b,
+            0x20,
+            0x73,
+            0x65,
+            0x61,
+            0x72,
+            0x63,
+            0x68,
+            0x28,
+            0x74,
+            0x65,
+            0x78,
+            0x74,
+            0x3a,
+            0x20,
+            0x22,
+            0x6c,
+            0x22,
+            0x29,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x48,
+            0x75,
+            0x6d,
+            0x61,
+            0x6e,
+            0x20,
+            0x7b,
+            0x20,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x66,
+            0x72,
+            0x69,
+            0x65,
+            0x6e,
+            0x64,
+            0x73,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x6e,
+            0x6f,
+            0x64,
+            0x65,
+            0x73,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x44,
+            0x72,
+            0x6f,
+            0x69,
+            0x64,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x48,
+            0x75,
+            0x6d,
+            0x61,
+            0x6e,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x44,
+            0x72,
+            0x6f,
+            0x69,
+            0x64,
+            0x20,
+            0x7b,
+            0x20,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x7d,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x53,
+            0x74,
+            0x61,
+            0x72,
+            0x73,
+            0x68,
+            0x69,
+            0x70,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x48,
+            0x75,
+            0x6d,
+            0x61,
+            0x6e,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x44,
+            0x72,
+            0x6f,
+            0x69,
+            0x64,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d
+        };
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "ab273d4e301554c50a6325fad57fa04d3744ef1a");
+
         public override global::System.String ToString()
         {
 #if NETCOREAPP3_1_OR_GREATER
@@ -756,6 +1006,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
         }
 
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(ISearchHeroResult);
+
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ISearchHeroResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest();
@@ -877,7 +1128,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.St
         }
 
         public global::System.String Name { get; }
-
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.State.FriendsConnectionData? Friends { get; }
     }
 
@@ -910,6 +1160,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.St
         }
 
         global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.ISearchHeroResult);
+
         public SearchHeroResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             if (snapshot is null)
@@ -986,9 +1237,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.St
         }
 
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Search { get; }
-
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
         public global::System.UInt64 Version => _version;
+
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new SearchHeroResultInfo(Search, _entityIds, version);
@@ -1220,7 +1471,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.St
         }
 
         public global::System.String __typename { get; }
-
         ///<summary>A flattened list of the nodes.</summary>
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Nodes { get; }
     }
@@ -1395,7 +1645,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.St
     public partial class StarWarsUnionListClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
         private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
-        {Indented = false};
+        {
+            Indented = false
+        };
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
             global::System.String __typename = obj.GetProperty("__typename").GetString()!;

@@ -1,4 +1,3 @@
-#if NET8_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
@@ -45,4 +44,3 @@ internal sealed class DefaultSelectorBuilder<TValue> : ISelectorBuilder
         return (Expression<Func<T, T>>)_expression;
     }
 }
-#endif

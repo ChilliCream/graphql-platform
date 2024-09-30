@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using Basic.Reference.Assemblies;
 using CookieCrumble;
 using GreenDonut;
+using HotChocolate.Pagination;
 using HotChocolate.Types.Analyzers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -24,11 +25,20 @@ internal static partial class TestHelper
 
         IEnumerable<PortableExecutableReference> references =
         [
+#if NET8_0
+            .. Net80.References.All,
+#elif NET9_0
+            .. Net90.References.All,
+#endif
+
             // HotChocolate.Types
             MetadataReference.CreateFromFile(typeof(ObjectTypeAttribute).Assembly.Location),
 
             // HotChocolate.Abstractions
             MetadataReference.CreateFromFile(typeof(ParentAttribute).Assembly.Location),
+
+            // HotChocolate.Pagination.Primitives
+            MetadataReference.CreateFromFile(typeof(PagingArguments).Assembly.Location),
 
             // GreenDonut
             MetadataReference.CreateFromFile(typeof(DataLoaderAttribute).Assembly.Location)
@@ -38,7 +48,7 @@ internal static partial class TestHelper
         var compilation = CSharpCompilation.Create(
             assemblyName: "Tests",
             syntaxTrees: [syntaxTree],
-            ReferenceAssemblies.Net80.Concat(references));
+            references);
 
         // Create an instance of our GraphQLServerGenerator incremental source generator.
         var generator = new GraphQLServerGenerator();

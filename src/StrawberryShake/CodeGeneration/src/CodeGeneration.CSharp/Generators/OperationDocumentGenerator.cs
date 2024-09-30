@@ -58,7 +58,7 @@ public class OperationDocumentGenerator : ClassBaseGenerator<OperationDescriptor
             .SetType(TypeNames.OperationKind)
             .AsLambda($"{TypeNames.OperationKind}.{operationKind}");
 
-        if (descriptor.Strategy == RequestStrategy.PersistedQuery)
+        if (descriptor.Strategy == RequestStrategy.PersistedOperation)
         {
             classBuilder
                 .AddProperty("Body")

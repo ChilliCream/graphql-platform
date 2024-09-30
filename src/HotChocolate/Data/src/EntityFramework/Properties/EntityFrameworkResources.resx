@@ -22,7 +22,7 @@
     <value>A DbContext of type `{0}` could not be retrieved from the `LocalContextData`. Most likely the `UseDbContext&lt;{0}&gt;()` middleware is missing.</value>
   </data>
   <data name="EfQueryableCursorPagingHandler_SliceAsync_NoOrder" xml:space="preserve">
-    <value>In order to use cursor pagination, you must specify at least on key using the `OrderBy` method.</value>
+    <value>In order to use cursor pagination, you must specify at least one key using the `OrderBy` method.</value>
   </data>
   <data name="EfQueryableCursorPagingHandler_SliceAsync_FirstOrLast" xml:space="preserve">
     <value>You can specify either `first` or `last`, but not both as this can lead to unpredictable results.</value>

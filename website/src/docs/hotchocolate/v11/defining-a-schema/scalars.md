@@ -75,7 +75,7 @@ It is **not** automatically inferred and the `IdType` needs to be [explicitly sp
 `ID` values are always represented as a [String](#string) in client-server communication, but can be coerced to their expected type on the server.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Product
@@ -93,7 +93,7 @@ public class Query
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp

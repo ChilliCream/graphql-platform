@@ -1,0 +1,25 @@
+{
+  "ContentType": "application/graphql-response+json; charset=utf-8",
+  "StatusCode": "OK",
+  "Data": {
+    "rolesAndPolicy": null
+  },
+  "Errors": [
+    {
+      "message": "The current user is not authorized to access this resource.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ],
+      "path": [
+        "rolesAndPolicy"
+      ],
+      "extensions": {
+        "code": "AUTH_NOT_AUTHORIZED"
+      }
+    }
+  ],
+  "Extensions": null
+}

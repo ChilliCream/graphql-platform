@@ -1,19 +1,15 @@
 # BatchPaging_Last_5
 
-## Brand 1
+## 1
 
 ```json
 {
-  "HasNextPage": false,
-  "HasPreviousPage": true,
-  "First": 1,
-  "FirstCursor": "MQ==",
-  "Last": 2,
-  "LastCursor": "Mg==",
+  "First": "MTAw",
+  "Last": "OTk=",
   "Items": [
     {
-      "Id": 1,
-      "Name": "Product 0-0",
+      "Id": 100,
+      "Name": "Product 0-99",
       "Description": null,
       "Price": 0.0,
       "ImageFileName": null,
@@ -27,8 +23,8 @@
       "OnReorder": false
     },
     {
-      "Id": 2,
-      "Name": "Product 0-1",
+      "Id": 99,
+      "Name": "Product 0-98",
       "Description": null,
       "Price": 0.0,
       "ImageFileName": null,
@@ -45,20 +41,16 @@
 }
 ```
 
-## Brand 2
+## 2
 
 ```json
 {
-  "HasNextPage": false,
-  "HasPreviousPage": true,
-  "First": 101,
-  "FirstCursor": "MTAx",
-  "Last": 102,
-  "LastCursor": "MTAy",
+  "First": "MjAw",
+  "Last": "MTk5",
   "Items": [
     {
-      "Id": 101,
-      "Name": "Product 1-0",
+      "Id": 200,
+      "Name": "Product 1-99",
       "Description": null,
       "Price": 0.0,
       "ImageFileName": null,
@@ -72,8 +64,8 @@
       "OnReorder": false
     },
     {
-      "Id": 102,
-      "Name": "Product 1-1",
+      "Id": 199,
+      "Name": "Product 1-98",
       "Description": null,
       "Price": 0.0,
       "ImageFileName": null,
@@ -90,20 +82,16 @@
 }
 ```
 
-## Brand 3
+## 3
 
 ```json
 {
-  "HasNextPage": false,
-  "HasPreviousPage": true,
-  "First": 201,
-  "FirstCursor": "MjAx",
-  "Last": 202,
-  "LastCursor": "MjAy",
+  "First": "MzAw",
+  "Last": "Mjk5",
   "Items": [
     {
-      "Id": 201,
-      "Name": "Product 2-0",
+      "Id": 300,
+      "Name": "Product 2-99",
       "Description": null,
       "Price": 0.0,
       "ImageFileName": null,
@@ -117,8 +105,8 @@
       "OnReorder": false
     },
     {
-      "Id": 202,
-      "Name": "Product 2-1",
+      "Id": 299,
+      "Name": "Product 2-98",
       "Description": null,
       "Price": 0.0,
       "ImageFileName": null,

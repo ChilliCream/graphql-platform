@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Primitives\src\Primitives\HotChocolate.Primitives.csproj" />
+    <ProjectReference Include="..\Pagination.Primitives\HotChocolate.Pagination.Primitives.csproj" />
   </ItemGroup>
 
 </Project>

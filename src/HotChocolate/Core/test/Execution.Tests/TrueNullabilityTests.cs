@@ -1,4 +1,3 @@
-#nullable enable
 using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 

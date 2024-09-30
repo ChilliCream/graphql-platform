@@ -45,22 +45,10 @@ public class DateTimeSerializer : ScalarSerializer<string, DateTimeOffset>
         [NotNullWhen(true)] out DateTimeOffset? value)
     {
         if (serialized is not null
-            && serialized.EndsWith("Z")
-            && DateTime.TryParse(
-                serialized,
-                CultureInfo.InvariantCulture,
-                DateTimeStyles.AssumeUniversal,
-                out var zuluTime))
-        {
-            value = new DateTimeOffset(
-                zuluTime.ToUniversalTime(),
-                TimeSpan.Zero);
-            return true;
-        }
-
-        if (serialized is not null
             && DateTimeOffset.TryParse(
                 serialized,
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.None,
                 out var dt))
         {
             value = dt;

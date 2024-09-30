@@ -1,4 +1,3 @@
-#if NET8_0_OR_GREATER
 using CookieCrumble;
 using GreenDonut;
 using GreenDonut.Projections;
@@ -368,6 +367,105 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             .MatchMarkdownSnapshot();
     }
 
+    [Fact]
+    public async Task Brand_Details_Requires_Brand_Name()
+    {
+        // Arrange
+        var queries = new List<string>();
+        var connectionString = CreateConnectionString();
+        await CatalogContext.SeedAsync(connectionString);
+
+        // Act
+        var result = await new ServiceCollection()
+            .AddScoped(_ => queries)
+            .AddTransient(_ => new CatalogContext(connectionString))
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddTypeExtension<BrandExtensionsWithRequirement>()
+            .AddPagingArguments()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .ExecuteRequestAsync(
+                """
+                {
+                    brandById(id: 1) {
+                        details
+                    }
+                }
+                """);
+
+        Snapshot.Create()
+            .AddSql(queries)
+            .AddResult(result)
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Brand_Products_TypeName()
+    {
+        // Arrange
+        var queries = new List<string>();
+        var connectionString = CreateConnectionString();
+        await CatalogContext.SeedAsync(connectionString);
+
+        // Act
+        var result = await new ServiceCollection()
+            .AddScoped(_ => queries)
+            .AddTransient(_ => new CatalogContext(connectionString))
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddPagingArguments()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .ExecuteRequestAsync(
+                """
+                {
+                    brandById(id: 1) {
+                        products {
+                            __typename
+                        }
+                    }
+                }
+                """);
+
+        // at the moment we do not support projections on lists
+        // so products will be empty and we will just select the brand.Id
+        Snapshot.Create()
+            .AddSql(queries)
+            .AddResult(result)
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Brand_Only_TypeName()
+    {
+        // Arrange
+        var queries = new List<string>();
+        var connectionString = CreateConnectionString();
+        await CatalogContext.SeedAsync(connectionString);
+
+        // Act
+        var result = await new ServiceCollection()
+            .AddScoped(_ => queries)
+            .AddTransient(_ => new CatalogContext(connectionString))
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddTypeExtension<BrandExtensionsWithRequirement>()
+            .AddPagingArguments()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .ExecuteRequestAsync(
+                """
+                {
+                    brandById(id: 1) {
+                        __typename
+                    }
+                }
+                """);
+
+        Snapshot.Create()
+            .AddSql(queries)
+            .AddResult(result)
+            .MatchMarkdownSnapshot();
+    }
+
     public class Query
     {
         public async Task<Brand?> GetBrandByIdAsync(
@@ -417,6 +515,15 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             => new() { Country = new Country { Name = "Germany" } };
     }
 
+    [ExtendObjectType<Brand>]
+    public class BrandExtensionsWithRequirement
+    {
+        [BindMember(nameof(Brand.Details))]
+        public string GetDetails(
+            [Parent(requires: nameof(Brand.Name))] Brand brand)
+            => "Brand Name:" + brand.Name;
+    }
+
     [ExtendObjectType<Product>]
     public class ProductExtensions
     {
@@ -464,8 +571,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
 
             var query = catalogContext.Brands
                 .Where(t => keys.Contains(t.Id))
-                .Select(context.GetSelector())
-                .SelectKey(b => b.Id);
+                .Select(context.GetSelector(), b => b.Id);
 
             lock (_queries)
             {
@@ -494,8 +600,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
 
             var query = catalogContext.Products
                 .Where(t => keys.Contains(t.Id))
-                .Select(context.GetSelector())
-                .SelectKey(b => b.Id);
+                .Select(context.GetSelector(), b => b.Id);
 
             lock (queries)
             {
@@ -523,4 +628,3 @@ file static class Extensions
         return snapshot;
     }
 }
-#endif

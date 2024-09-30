@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Collections;
 
 namespace HotChocolate.Types.Pagination;
@@ -40,18 +41,23 @@ public class CollectionSegment<T> : CollectionSegment
     {
         if(Items.Count == 0)
         {
-            observer.OnAfterSliced(Array.Empty<T>(), Info);
+            ReadOnlySpan<T> empty = Array.Empty<T>();
+            observer.OnAfterSliced(empty, Info);
             return;
         }
 
-        var items = new T[Items.Count];
+        var buffer = ArrayPool<T>.Shared.Rent(Items.Count);
 
         for (var i = 0; i < Items.Count; i++)
         {
-            items[i] = Items[i];
+            buffer[i] = Items[i];
         }
 
-        observer.OnAfterSliced(Items, Info);
+        ReadOnlySpan<T> items = buffer.AsSpan(0, Items.Count);
+        observer.OnAfterSliced(items, Info);
+
+        buffer.AsSpan().Slice(0, Items.Count).Clear();
+        ArrayPool<T>.Shared.Return(buffer);
     }
 
     /// <summary>

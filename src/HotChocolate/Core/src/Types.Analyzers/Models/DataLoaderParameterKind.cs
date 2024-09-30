@@ -7,4 +7,5 @@ public enum DataLoaderParameterKind
     ContextData = 2,
     CancellationToken = 3,
     SelectorBuilder = 4,
+    PagingArguments = 5
 }

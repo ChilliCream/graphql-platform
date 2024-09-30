@@ -16,7 +16,7 @@ public readonly struct OperationRequest : IEquatable<OperationRequest>, IOperati
     /// The query document containing the operation to execute.
     /// </param>
     /// <param name="id">
-    /// The ID of a previously persisted query that should be executed.
+    /// The ID of a previously persisted operation that should be executed.
     /// </param>
     /// <param name="operationName">
     /// The name of the operation to execute.
@@ -51,7 +51,7 @@ public readonly struct OperationRequest : IEquatable<OperationRequest>, IOperati
     /// The query string containing the operation to execute.
     /// </param>
     /// <param name="id">
-    /// The ID of a previously persisted query that should be executed.
+    /// The ID of a previously persisted operation that should be executed.
     /// </param>
     /// <param name="operationName">
     /// The name of the operation to execute.
@@ -85,7 +85,7 @@ public readonly struct OperationRequest : IEquatable<OperationRequest>, IOperati
     public static OperationRequest Empty { get; } = new();
 
     /// <summary>
-    /// Gets the ID of a previously persisted query that should be executed.
+    /// Gets the ID of a previously persisted operation that should be executed.
     /// </summary>
     public string? Id { get; }
 

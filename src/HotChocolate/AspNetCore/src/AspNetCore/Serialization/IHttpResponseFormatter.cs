@@ -46,4 +46,10 @@ public interface IHttpResponseFormatter
         AcceptMediaType[] acceptMediaTypes,
         HttpStatusCode? proposedStatusCode,
         CancellationToken cancellationToken);
+
+    ValueTask FormatAsync(
+        HttpResponse response,
+        ISchema schema,
+        ulong version,
+        CancellationToken cancellationToken);
 }

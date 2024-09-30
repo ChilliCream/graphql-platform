@@ -8,11 +8,17 @@ public class DocumentValidatorRule<TVisitor>
 {
     private readonly TVisitor _visitor;
 
-    public DocumentValidatorRule(TVisitor visitor, bool isCacheable = true)
+    public DocumentValidatorRule(
+        TVisitor visitor,
+        bool isCacheable = true,
+        ushort property = ushort.MaxValue)
     {
         _visitor = visitor;
         IsCacheable = isCacheable;
+        Priority = property;
     }
+
+    public ushort Priority { get; }
 
     public bool IsCacheable { get; }
 

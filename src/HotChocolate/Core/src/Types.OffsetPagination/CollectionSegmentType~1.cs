@@ -89,7 +89,9 @@ internal class CollectionSegmentType : ObjectType, IPageType
         definition.Fields.Add(new(
             Names.Items,
             CollectionSegmentType_Items_Description,
-            pureResolver: GetItems) {CustomSettings = {ContextDataKeys.Items, }, });
+            pureResolver: GetItems)
+            { Flags = FieldFlags.ItemsField });
+
 
         if (withTotalCount)
         {
@@ -115,17 +117,12 @@ internal class CollectionSegmentType : ObjectType, IPageType
         => context.Parent<CollectionSegment>().TotalCount;
 
     private static bool IsItemsField(ObjectFieldDefinition field)
-        => field.CustomSettings.Count > 0 && field.CustomSettings[0].Equals(ContextDataKeys.Items);
+        => (field.Flags & FieldFlags.ItemsField) == FieldFlags.ItemsField;
 
     internal static class Names
     {
         public const string PageInfo = "pageInfo";
         public const string Items = "items";
         public const string TotalCount = "totalCount";
-    }
-
-    private static class ContextDataKeys
-    {
-        public const string Items = "HotChocolate.Types.CollectionSegment.Items";
     }
 }

@@ -53,7 +53,7 @@ public static class FusionRequestExecutorBuilderExtensions
                 sp.GetRequiredService<IWebSocketConnectionFactory>()));
 
         var builder = services
-            .AddGraphQLServer(graphName, disableCostAnalyzer: true)
+            .AddGraphQLServer(graphName, disableDefaultSecurity: true)
             .UseField(next => next)
             .AddOperationCompilerOptimizer<OperationQueryPlanCompiler>()
             .AddOperationCompilerOptimizer<FieldFlagsOptimizer>()
@@ -136,7 +136,7 @@ public static class FusionRequestExecutorBuilderExtensions
                 (_, sc) =>
                 {
                     sc.RemoveAll<NodeIdParser>();
-                    sc.AddSingleton<NodeIdParser, DefaultNodeIdParser>();
+                    sc.AddSingleton<NodeIdParser, T>();
                 }));
 
         return builder;
@@ -423,7 +423,7 @@ public static class FusionRequestExecutorBuilderExtensions
     }
 
     /// <summary>
-    /// Uses the persisted query pipeline with the Fusion gateway.
+    /// Uses the persisted operation pipeline with the Fusion gateway.
     /// </summary>
     /// <param name="builder">
     /// The gateway builder.
@@ -434,7 +434,7 @@ public static class FusionRequestExecutorBuilderExtensions
     /// <exception cref="ArgumentNullException">
     /// <paramref name="builder"/> is <c>null</c>.
     /// </exception>
-    public static FusionGatewayBuilder UsePersistedQueryPipeline(
+    public static FusionGatewayBuilder UsePersistedOperationPipeline(
         this FusionGatewayBuilder builder)
     {
         if (builder is null)
@@ -442,12 +442,12 @@ public static class FusionRequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        builder.CoreBuilder.UseFusionPersistedQueryPipeline();
+        builder.CoreBuilder.UseFusionPersistedOperationPipeline();
         return builder;
     }
 
     /// <summary>
-    /// Uses the automatic persisted query pipeline with the Fusion gateway.
+    /// Uses the automatic persisted operation pipeline with the Fusion gateway.
     /// </summary>
     /// <param name="builder">
     /// The gateway builder.
@@ -458,7 +458,7 @@ public static class FusionRequestExecutorBuilderExtensions
     /// <exception cref="ArgumentNullException">
     /// <paramref name="builder"/> is <c>null</c>.
     /// </exception>
-    public static FusionGatewayBuilder UseAutomaticPersistedQueryPipeline(
+    public static FusionGatewayBuilder UseAutomaticPersistedOperationPipeline(
         this FusionGatewayBuilder builder)
     {
         if (builder is null)
@@ -466,7 +466,7 @@ public static class FusionRequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        builder.CoreBuilder.UseFusionAutomaticPersistedQueryPipeline();
+        builder.CoreBuilder.UseFusionAutomaticPersistedOperationPipeline();
         return builder;
     }
 
@@ -568,7 +568,7 @@ public static class FusionRequestExecutorBuilderExtensions
             .UseDistributedOperationExecution();
     }
 
-    private static IRequestExecutorBuilder UseFusionPersistedQueryPipeline(
+    private static IRequestExecutorBuilder UseFusionPersistedOperationPipeline(
         this IRequestExecutorBuilder builder)
     {
         if (builder is null)
@@ -581,9 +581,9 @@ public static class FusionRequestExecutorBuilderExtensions
             .UseExceptions()
             .UseTimeout()
             .UseDocumentCache()
-            .UseReadPersistedQuery()
-            .UsePersistedQueryNotFound()
-            .UseOnlyPersistedQueriesAllowed()
+            .UseReadPersistedOperation()
+            .UsePersistedOperationNotFound()
+            .UseOnlyPersistedOperationAllowed()
             .UseDocumentParser()
             .UseDocumentValidation()
             .UseOperationCache()
@@ -592,7 +592,7 @@ public static class FusionRequestExecutorBuilderExtensions
             .UseDistributedOperationExecution();
     }
 
-    private static IRequestExecutorBuilder UseFusionAutomaticPersistedQueryPipeline(
+    private static IRequestExecutorBuilder UseFusionAutomaticPersistedOperationPipeline(
         this IRequestExecutorBuilder builder)
     {
         if (builder is null)
@@ -605,9 +605,9 @@ public static class FusionRequestExecutorBuilderExtensions
             .UseExceptions()
             .UseTimeout()
             .UseDocumentCache()
-            .UseReadPersistedQuery()
-            .UseAutomaticPersistedQueryNotFound()
-            .UseWritePersistedQuery()
+            .UseReadPersistedOperation()
+            .UseAutomaticPersistedOperationNotFound()
+            .UseWritePersistedOperation()
             .UseDocumentParser()
             .UseDocumentValidation()
             .UseOperationCache()

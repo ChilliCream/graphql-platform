@@ -14,15 +14,6 @@ internal static class HttpContextExtensions
     public static GraphQLSocketOptions? GetGraphQLSocketOptions(this HttpContext context)
         => GetGraphQLServerOptions(context)?.Sockets;
 
-    public static bool IsTracingEnabled(this HttpContext context)
-    {
-        var headers = context.Request.Headers;
-
-        return (headers.TryGetValue(HttpHeaderKeys.Tracing, out var values)
-                || headers.TryGetValue(HttpHeaderKeys.ApolloTracing, out values)) &&
-               values.Any(v => v == HttpHeaderValues.TracingEnabled);
-    }
-
     public static bool IncludeQueryPlan(this HttpContext context)
     {
         var headers = context.Request.Headers;

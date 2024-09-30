@@ -1,8 +1,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-#if NET8_0_OR_GREATER
 using GreenDonut.Projections;
-#endif
 
 namespace GreenDonut;
 
@@ -20,6 +18,18 @@ public readonly struct DataLoaderFetchContext<TValue>(
     IImmutableDictionary<string, object?> contextData)
 {
     public IImmutableDictionary<string, object?> ContextData { get; } = contextData;
+
+    /// <summary>
+    /// Gets a value from the DataLoader state snapshot.
+    /// </summary>
+    /// <typeparam name="TState">
+    /// The type of the state value.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the state value if it exists.
+    /// </returns>
+    public TState? GetState<TState>()
+        => GetState<TState>(typeof(TState).FullName ?? typeof(TState).Name);
 
     /// <summary>
     /// Gets a value from the DataLoader state snapshot.
@@ -42,6 +52,21 @@ public readonly struct DataLoaderFetchContext<TValue>(
 
         return default;
     }
+
+    /// <summary>
+    /// Gets a required value from the DataLoader state snapshot.
+    /// </summary>
+    /// <typeparam name="TState">
+    /// The type of the state value.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the state value if it exists.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    /// Throws an exception if the state value does not exist.
+    /// </exception>
+    public TState GetRequiredState<TState>()
+        => GetRequiredState<TState>(typeof(TState).FullName ?? typeof(TState).Name);
 
     /// <summary>
     /// Gets a required value from the DataLoader state snapshot.
@@ -72,6 +97,21 @@ public readonly struct DataLoaderFetchContext<TValue>(
     /// <summary>
     /// Gets a value from the DataLoader state snapshot or returns a default value.
     /// </summary>
+    /// <param name="defaultValue">
+    /// The default value to return if the state value does not exist.
+    /// </param>
+    /// <typeparam name="TState">
+    /// The type of the state value.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the state value if it exists.
+    /// </returns>
+    public TState GetStateOrDefault<TState>(TState defaultValue)
+        => GetStateOrDefault(typeof(TState).FullName ?? typeof(TState).Name, defaultValue);
+
+    /// <summary>
+    /// Gets a value from the DataLoader state snapshot or returns a default value.
+    /// </summary>
     /// <param name="key">
     /// The key to look up the value.
     /// </param>
@@ -93,7 +133,6 @@ public readonly struct DataLoaderFetchContext<TValue>(
 
         return defaultValue;
     }
-#if NET8_0_OR_GREATER
 
     /// <summary>
     /// Gets the selector builder from the DataLoader state snapshot.
@@ -118,5 +157,4 @@ public readonly struct DataLoaderFetchContext<TValue>(
 
         return context;
     }
-#endif
 }

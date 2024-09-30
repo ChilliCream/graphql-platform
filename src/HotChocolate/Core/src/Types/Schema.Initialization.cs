@@ -1,6 +1,4 @@
-#if NET8_0_OR_GREATER
 using System.Collections.Frozen;
-#endif
 using HotChocolate.Configuration;
 using HotChocolate.Features;
 using HotChocolate.Types;
@@ -104,11 +102,7 @@ public partial class Schema
 
         DirectiveTypes = schemaTypesDefinition.DirectiveTypes;
         _types = new SchemaTypes(schemaTypesDefinition);
-#if NET8_0_OR_GREATER
         _directiveTypes = DirectiveTypes.ToFrozenDictionary(t => t.Name, StringComparer.Ordinal);
-#else
-        _directiveTypes = DirectiveTypes.ToDictionary(t => t.Name, StringComparer.Ordinal);
-#endif
         _sealed = true;
     }
 }

@@ -1,9 +1,9 @@
+using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types.Pagination;
 
@@ -75,8 +75,6 @@ public class IntegrationTests
     [Fact]
     public async Task Simple_StringList_Default_Items()
     {
-        Snapshot.FullName();
-
         var executor =
             await new ServiceCollection()
                 .AddGraphQL()
@@ -108,8 +106,6 @@ public class IntegrationTests
     [Fact]
     public async Task No_Boundaries_Set()
     {
-        Snapshot.FullName();
-
         var executor =
             await new ServiceCollection()
                 .AddGraphQL()
@@ -142,8 +138,6 @@ public class IntegrationTests
     [Fact]
     public async Task Attribute_Simple_StringList_Default_Items()
     {
-        Snapshot.FullName();
-
         var executor =
             await new ServiceCollection()
                 .AddGraphQL()
@@ -175,8 +169,6 @@ public class IntegrationTests
     [Fact]
     public async Task Simple_StringList_First_2()
     {
-        Snapshot.FullName();
-
         var executor =
             await new ServiceCollection()
                 .AddGraphQL()
@@ -208,8 +200,6 @@ public class IntegrationTests
     [Fact]
     public async Task MinPageSizeReached_First()
     {
-        Snapshot.FullName();
-
         var executor =
             await new ServiceCollection()
                 .AddGraphQL()
@@ -241,8 +231,6 @@ public class IntegrationTests
     [Fact]
     public async Task MaxPageSizeReached_First()
     {
-        Snapshot.FullName();
-
         var executor =
             await new ServiceCollection()
                 .AddGraphQL()
@@ -275,8 +263,6 @@ public class IntegrationTests
     [Fact]
     public async Task MinPageSizeReached_Last()
     {
-        Snapshot.FullName();
-
         var executor =
             await new ServiceCollection()
                 .AddGraphQL()
@@ -308,8 +294,6 @@ public class IntegrationTests
     [Fact]
     public async Task MaxPageSizeReached_Last()
     {
-        Snapshot.FullName();
-
         var executor =
             await new ServiceCollection()
                 .AddGraphQL()
@@ -342,8 +326,6 @@ public class IntegrationTests
     [Fact]
     public async Task Attribute_Simple_StringList_First_2()
     {
-        Snapshot.FullName();
-
         var executor =
             await new ServiceCollection()
                 .AddGraphQL()
@@ -375,8 +357,6 @@ public class IntegrationTests
     [Fact]
     public async Task Simple_StringList_First_2_After()
     {
-        Snapshot.FullName();
-
         var executor =
             await new ServiceCollection()
                 .AddGraphQL()
@@ -408,8 +388,6 @@ public class IntegrationTests
     [Fact]
     public async Task Attribute_Simple_StringList_First_2_After()
     {
-        Snapshot.FullName();
-
         var executor =
             await new ServiceCollection()
                 .AddGraphQL()
@@ -441,8 +419,6 @@ public class IntegrationTests
     [Fact]
     public async Task Simple_StringList_Global_DefaultItem_2()
     {
-        Snapshot.FullName();
-
         var executor =
             await new ServiceCollection()
                 .AddGraphQL()
@@ -475,8 +451,6 @@ public class IntegrationTests
     [Fact]
     public async Task Attribute_Simple_StringList_Global_DefaultItem_2()
     {
-        Snapshot.FullName();
-
         var executor =
             await new ServiceCollection()
                 .AddGraphQL()
@@ -509,8 +483,6 @@ public class IntegrationTests
     [Fact]
     public async Task Schema_Type_Is_Explicitly_Specified()
     {
-        Snapshot.FullName();
-
         var executor =
             await new ServiceCollection()
                 .AddGraphQL()
@@ -542,8 +514,6 @@ public class IntegrationTests
     [Fact]
     public async Task Attribute_Schema_Type_Is_Explicitly_Specified()
     {
-        Snapshot.FullName();
-
         var executor =
             await new ServiceCollection()
                 .AddGraphQL()
@@ -575,8 +545,6 @@ public class IntegrationTests
     [Fact]
     public async Task Nested_List_With_Field_Settings()
     {
-        Snapshot.FullName();
-
         var executor =
             await new ServiceCollection()
                 .AddGraphQL()
@@ -613,8 +581,6 @@ public class IntegrationTests
     [Fact]
     public async Task Executable_With_Field_Settings()
     {
-        Snapshot.FullName();
-
         var executor =
             await new ServiceCollection()
                 .AddGraphQL()
@@ -653,8 +619,6 @@ public class IntegrationTests
     [Fact]
     public async Task Attribute_Nested_List_With_Field_Settings()
     {
-        Snapshot.FullName();
-
         var executor =
             await new ServiceCollection()
                 .AddGraphQL()
@@ -691,8 +655,6 @@ public class IntegrationTests
     [Fact]
     public async Task Nested_List_With_Field_Settings_Skip_2()
     {
-        Snapshot.FullName();
-
         var executor =
             await new ServiceCollection()
                 .AddGraphQL()
@@ -729,8 +691,6 @@ public class IntegrationTests
     [Fact]
     public async Task Attribute_Nested_List_With_Field_Settings_Skip_2()
     {
-        Snapshot.FullName();
-
         var executor =
             await new ServiceCollection()
                 .AddGraphQL()
@@ -765,10 +725,50 @@ public class IntegrationTests
     }
 
     [Fact]
+    public async Task ExtendedTypeRef_Default_Items()
+    {
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .Services
+                .BuildServiceProvider()
+                .GetRequestExecutorAsync();
+
+        await executor
+            .ExecuteAsync(@"
+                {
+                    extendedTypeRef {
+                        nodes
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task ExtendedTypeRefNested_Default_Items()
+    {
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .Services
+                .BuildServiceProvider()
+                .GetRequestExecutorAsync();
+
+        await executor
+            .ExecuteAsync(@"
+                {
+                    extendedTypeRefNested {
+                        nodes
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
     public async Task Interface_With_Paging_Field()
     {
-        Snapshot.FullName();
-
         var schema =
             await new ServiceCollection()
                 .AddGraphQL()
@@ -791,8 +791,6 @@ public class IntegrationTests
     [Fact]
     public async Task Attribute_Interface_With_Paging_Field()
     {
-        Snapshot.FullName();
-
         var schema =
             await new ServiceCollection()
                 .AddGraphQL()
@@ -828,8 +826,6 @@ public class IntegrationTests
     [Fact]
     public async Task Deactivate_BackwardPagination_Interface()
     {
-        Snapshot.FullName();
-
         var schema =
             await new ServiceCollection()
                 .AddGraphQL()
@@ -846,8 +842,6 @@ public class IntegrationTests
     [Fact]
     public async Task Infer_ConnectionName_From_Field()
     {
-        Snapshot.FullName();
-
         var schema =
             await new ServiceCollection()
                 .AddGraphQL()
@@ -862,8 +856,6 @@ public class IntegrationTests
     [Fact]
     public async Task Explicit_ConnectionName()
     {
-        Snapshot.FullName();
-
         var schema =
             await new ServiceCollection()
                 .AddGraphQL()
@@ -878,8 +870,6 @@ public class IntegrationTests
     [Fact]
     public async Task SelectProviderByName()
     {
-        Snapshot.FullName();
-
         var executor =
             await new ServiceCollection()
                 .AddGraphQL()
@@ -903,8 +893,6 @@ public class IntegrationTests
     [Fact]
     public async Task SelectDefaultProvider()
     {
-        Snapshot.FullName();
-
         var executor =
             await new ServiceCollection()
                 .AddGraphQL()
@@ -949,8 +937,6 @@ public class IntegrationTests
     public async Task TotalCountWithCustomConnection()
     {
         // arrange
-        Snapshot.FullName();
-
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<CustomConnectionQuery>()
@@ -974,8 +960,6 @@ public class IntegrationTests
     [Fact]
     public async Task Invalid_After_Index_Cursor()
     {
-        Snapshot.FullName();
-
         var executor =
             await new ServiceCollection()
                 .AddGraphQL()
@@ -995,14 +979,12 @@ public class IntegrationTests
             }
             """);
 
-        await result.MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Invalid_Before_Index_Cursor()
     {
-        Snapshot.FullName();
-
         var executor =
             await new ServiceCollection()
                 .AddGraphQL()
@@ -1022,7 +1004,7 @@ public class IntegrationTests
             }
             """);
 
-        await result.MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     public class QueryType : ObjectType<Query>
@@ -1047,6 +1029,16 @@ public class IntegrationTests
                         MaxPageSize = 2,
                         IncludeTotalCount = true,
                     });
+
+            descriptor
+                .Field("extendedTypeRef")
+                .Resolve(_ => new List<string>(["one", "two"]))
+                .UsePaging();
+
+            descriptor
+                .Field("extendedTypeRefNested")
+                .Resolve(_ => new List<List<string>>([["one", "two"]]))
+                .UsePaging();
         }
     }
 

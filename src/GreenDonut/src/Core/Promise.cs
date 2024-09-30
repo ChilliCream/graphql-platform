@@ -88,7 +88,14 @@ public readonly struct Promise<TValue> : IPromise
 
     /// <inheritdoc />
     public void TryCancel()
-        => _completionSource?.TrySetCanceled();
+    {
+        if (_completionSource?.Task.IsCompleted ?? true)
+        {
+            return;
+        }
+
+        _completionSource?.TrySetCanceled();
+    }
 
     /// <summary>
     /// Registers a callback that will be called when the promise is completed.
@@ -115,11 +122,7 @@ public readonly struct Promise<TValue> : IPromise
         Task.ContinueWith(
             (task, s) =>
             {
-#if NETSTANDARD2_0
-                if(task.Status == TaskStatus.RanToCompletion
-#else
                 if (task.IsCompletedSuccessfully
-#endif
                     && task.Result is not null)
                 {
                     callback(new Promise<TValue>(task.Result), (TState)s!);

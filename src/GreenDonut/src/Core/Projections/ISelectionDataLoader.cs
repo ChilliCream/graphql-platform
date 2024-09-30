@@ -1,5 +1,3 @@
-#if NET8_0_OR_GREATER
-
 namespace GreenDonut.Projections;
 
 /// <summary>
@@ -25,4 +23,3 @@ public interface ISelectionDataLoader<in TKey, TValue>
     /// </summary>
     IDataLoader<TKey, TValue> Root { get; }
 }
-#endif
