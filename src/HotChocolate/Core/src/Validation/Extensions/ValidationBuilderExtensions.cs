@@ -2,6 +2,7 @@ using HotChocolate.Validation;
 using HotChocolate.Validation.Options;
 using Microsoft.Extensions.Options;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
@@ -94,10 +95,27 @@ public static partial class HotChocolateValidationBuilderExtensions
     /// <returns>
     /// Returns the validation builder for configuration chaining.
     /// </returns>
-    internal static IValidationBuilder ModifyValidationOptions(
+    public static IValidationBuilder ModifyValidationOptions(
         this IValidationBuilder builder,
         Action<ValidationOptions> configure)
         => builder.ConfigureValidation(m => m.Modifiers.Add(configure));
+
+    /// <summary>
+    /// Modifies the validation options object.
+    /// </summary>
+    /// <param name="builder">
+    /// The validation builder.
+    /// </param>
+    /// <param name="configure">
+    /// The delegate to mutate the validation options.
+    /// </param>
+    /// <returns>
+    /// Returns the validation builder for configuration chaining.
+    /// </returns>
+    public static IValidationBuilder ModifyValidationOptions(
+        this IValidationBuilder builder,
+        Action<IServiceProvider, ValidationOptions> configure)
+        => builder.ConfigureValidation((s, m) => m.Modifiers.Add(o => configure(s, o)));
 
     /// <summary>
     /// Registers the specified validation visitor,
@@ -124,11 +142,11 @@ public static partial class HotChocolateValidationBuilderExtensions
         where T : DocumentValidatorVisitor, new()
     {
         return builder.ConfigureValidation(m =>
-            m.Modifiers.Add(o =>
+            m.RulesModifiers.Add((_, r) =>
             {
-                if (o.Rules.All(t => t.GetType() != typeof(DocumentValidatorRule<T>)))
+                if (r.Rules.All(t => t.GetType() != typeof(DocumentValidatorRule<T>)))
                 {
-                    o.Rules.Add(new DocumentValidatorRule<T>(new T(), isCacheable, priority));
+                    r.Rules.Add(new DocumentValidatorRule<T>(new T(), isCacheable, priority));
                 }
             }));
     }
@@ -166,12 +184,12 @@ public static partial class HotChocolateValidationBuilderExtensions
         where T : DocumentValidatorVisitor
     {
         return builder.ConfigureValidation((s, m) =>
-            m.Modifiers.Add(o =>
+            m.RulesModifiers.Add((o, r) =>
             {
-                if (o.Rules.All(t => t.GetType() != typeof(DocumentValidatorRule<T>))
+                if (r.Rules.All(t => t.GetType() != typeof(DocumentValidatorRule<T>))
                     && (isEnabled?.Invoke(s, o) ?? true))
                 {
-                    o.Rules.Add(new DocumentValidatorRule<T>(factory(s, o), isCacheable, priority));
+                    r.Rules.Add(new DocumentValidatorRule<T>(factory(s, o), isCacheable, priority));
                 }
             }));
     }
@@ -184,12 +202,12 @@ public static partial class HotChocolateValidationBuilderExtensions
         where T : DocumentValidatorVisitor
     {
         return builder.ConfigureValidation((_, m) =>
-            m.Modifiers.Add(o =>
+            m.RulesModifiers.Add((_, r) =>
             {
-                var entries = o.Rules.Where(t => t.GetType() == typeof(DocumentValidatorRule<T>)).ToList();
+                var entries = r.Rules.Where(t => t.GetType() == typeof(DocumentValidatorRule<T>)).ToList();
                 foreach (var entry in entries)
                 {
-                    o.Rules.Remove(entry);
+                    r.Rules.Remove(entry);
                 }
             }));
     }
@@ -210,11 +228,11 @@ public static partial class HotChocolateValidationBuilderExtensions
         where T : class, IDocumentValidatorRule, new()
     {
         return builder.ConfigureValidation(m =>
-            m.Modifiers.Add(o =>
+            m.RulesModifiers.Add((_, r) =>
             {
-                if (o.Rules.All(t => t.GetType() != typeof(T)))
+                if (r.Rules.All(t => t.GetType() != typeof(T)))
                 {
-                    o.Rules.Add(new T());
+                    r.Rules.Add(new T());
                 }
             }));
     }
@@ -239,12 +257,12 @@ public static partial class HotChocolateValidationBuilderExtensions
         where T : class, IDocumentValidatorRule
     {
         return builder.ConfigureValidation((s, m) =>
-            m.Modifiers.Add(o =>
+            m.RulesModifiers.Add((o, r) =>
             {
                 var instance = factory(s, o);
-                if (o.Rules.All(t => t.GetType() != instance.GetType()))
+                if (r.Rules.All(t => t.GetType() != instance.GetType()))
                 {
-                    o.Rules.Add(instance);
+                    r.Rules.Add(instance);
                 }
             }));
     }
@@ -269,12 +287,12 @@ public static partial class HotChocolateValidationBuilderExtensions
         where T : class, IValidationResultAggregator
     {
         return builder.ConfigureValidation((s, m) =>
-            m.Modifiers.Add(o =>
+            m.RulesModifiers.Add((o, r) =>
             {
                 var instance = factory(s, o);
-                if (o.ResultAggregators.All(t => t.GetType() != instance.GetType()))
+                if (r.ResultAggregators.All(t => t.GetType() != instance.GetType()))
                 {
-                    o.ResultAggregators.Add(instance);
+                    r.ResultAggregators.Add(instance);
                 }
             }));
     }
