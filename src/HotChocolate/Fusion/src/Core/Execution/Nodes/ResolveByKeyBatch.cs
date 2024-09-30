@@ -161,8 +161,6 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
         ErrorTrie? unwrappedSubgraphErrorTrie = null;
         if (errors is not null)
         {
-            ApplyErrorsWithoutPathToResult(context.Result, errors);
-
             subgraphErrorTrie = ErrorTrie.FromErrors(errors);
             unwrappedSubgraphErrorTrie = UnwrapErrors(subgraphErrorTrie);
         }
@@ -476,9 +474,6 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
         /// </summary>
         public SelectionData[] SelectionSetData { get; } = executionState.SelectionSetData;
 
-        public void SetErrorTrie(ErrorTrie errorTrie)
-        {
-            executionState.ErrorTrie = errorTrie;
-        }
+        public void SetErrorTrie(ErrorTrie errorTrie) => executionState.ErrorTrie = errorTrie;
     }
 }

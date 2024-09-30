@@ -647,7 +647,7 @@ internal static class ExecutionUtils
         List<RootSelection> rootSelections,
         string[] path)
     {
-        var firstErrorOnPath = GetFirstErrorOnPath(subgraphErrorTrie, path);
+        var firstErrorOnPath = GetFirstErrorOnPathOrErrorWithoutPath(subgraphErrorTrie, path);
 
         if (firstErrorOnPath is null)
         {
@@ -688,15 +688,16 @@ internal static class ExecutionUtils
         return null;
     }
 
-    private static IError? GetFirstErrorOnPath(ErrorTrie errorTrie, string[] path)
+    private static IError? GetFirstErrorOnPathOrErrorWithoutPath(ErrorTrie errorTrie, string[] path)
     {
+        var currentErrorTrie = errorTrie;
         foreach (var segment in path)
         {
-            if (errorTrie.TryGetValue(segment, out var childErrorTrie))
+            if (currentErrorTrie.TryGetValue(segment, out var childErrorTrie))
             {
-                errorTrie = childErrorTrie;
+                currentErrorTrie = childErrorTrie;
 
-                var firstError = errorTrie.Errors?.FirstOrDefault();
+                var firstError = currentErrorTrie.Errors?.FirstOrDefault();
 
                 if (firstError is not null)
                 {
@@ -705,11 +706,13 @@ internal static class ExecutionUtils
             }
             else
             {
-                return null;
+                break;
             }
         }
 
-        return null;
+        var firstErrorWithoutPath = errorTrie.Errors?.FirstOrDefault();
+
+        return firstErrorWithoutPath;
     }
 
     public static List<IError>? ExtractErrors(
@@ -802,17 +805,6 @@ internal static class ExecutionUtils
         }
 
         return null;
-    }
-
-    public static void ApplyErrorsWithoutPathToResult(ResultBuilder resultBuilder, IEnumerable<IError> errors)
-    {
-        foreach (var error in errors)
-        {
-            if (error.Path is null)
-            {
-                resultBuilder.AddError(error);
-            }
-        }
     }
 
     public static void ExtractVariables(

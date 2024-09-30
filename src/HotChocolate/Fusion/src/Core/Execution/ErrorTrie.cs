@@ -16,6 +16,7 @@ public class ErrorTrie : Dictionary<object, ErrorTrie>
         {
             if (error.Path is null)
             {
+                root.AddError(error);
                 continue;
             }
 

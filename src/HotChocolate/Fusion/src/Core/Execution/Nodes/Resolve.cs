@@ -156,8 +156,6 @@ internal sealed class Resolve(int id, Config config) : ResolverNodeBase(id, conf
             ErrorTrie? subgraphErrorTrie = null;
             if (errors is not null)
             {
-                ApplyErrorsWithoutPathToResult(context.Result, errors);
-
                 subgraphErrorTrie = ErrorTrie.FromErrors(errors);
             }
 
