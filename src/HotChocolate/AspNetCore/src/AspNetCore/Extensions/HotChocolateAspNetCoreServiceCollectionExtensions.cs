@@ -115,7 +115,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
         if (!disableDefaultSecurity)
         {
             builder.AddCostAnalyzer();
-            builder.AddIntrospectionAllowedRule(
+            builder.DisableIntrospection(
                 (sp, _) =>
                 {
                     var environment = sp.GetService<IHostEnvironment>();

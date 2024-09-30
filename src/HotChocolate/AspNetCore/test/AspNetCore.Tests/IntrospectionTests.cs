@@ -83,7 +83,8 @@ public class IntrospectionTests(TestServerFactory serverFactory) : ServerTestBas
             {
                 if (removeRule)
                 {
-                    s.AddGraphQL().RemoveIntrospectionAllowedRule();
+                    s.AddGraphQL()
+                        .DisableIntrospection(disable: false);
                 }
             });
         return new DefaultGraphQLHttpClient(server.CreateClient());
