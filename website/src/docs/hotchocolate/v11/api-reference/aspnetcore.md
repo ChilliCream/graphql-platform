@@ -443,7 +443,7 @@ public class DefaultHttpRequestInterceptor : IHttpRequestInterceptor
     public virtual ValueTask OnCreateAsync(
         HttpContext context,
         IRequestExecutor requestExecutor,
-        OperationRequestBuilder requestBuilder,
+        IQueryRequestBuilder requestBuilder,
         CancellationToken cancellationToken)
     {
         requestBuilder.TrySetServices(context.RequestServices);
@@ -513,7 +513,7 @@ public class DefaultSocketSessionInterceptor : ISocketSessionInterceptor
 
     public virtual ValueTask OnRequestAsync(
         ISocketConnection connection,
-        OperationRequestBuilder requestBuilder,
+        IQueryRequestBuilder requestBuilder,
         CancellationToken cancellationToken)
     {
         HttpContext context = connection.HttpContext;
