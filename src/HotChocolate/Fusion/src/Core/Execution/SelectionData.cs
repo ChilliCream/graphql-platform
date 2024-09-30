@@ -25,8 +25,6 @@ internal readonly struct SelectionData
 
     public JsonResult[]? Multiple { get; }
 
-    public IError[] Errors { get; }
-
     public QualifiedTypeName GetTypeName()
     {
         var result = Multiple is null ? Single : Multiple[0];

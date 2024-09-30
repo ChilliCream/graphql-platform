@@ -72,8 +72,8 @@ internal static class ExecutionUtils
 
                 if (!data.HasValue)
                 {
-                    AddErrors(context.Result, errorTrie, responseName, selection, selectionSetResult, responseIndex,
-                        addErrorOfFieldsBelow: true);
+                    AddError(context, errorTrie, responseName, selection, selectionSetResult, responseIndex,
+                        hoistErrorOfFieldsBelow: true);
 
                     if (!partialResult)
                     {
@@ -88,7 +88,7 @@ internal static class ExecutionUtils
                 }
                 else if (namedType.IsType(TypeKind.Scalar))
                 {
-                    AddErrors(context.Result, errorTrie, responseName, selection, selectionSetResult, responseIndex);
+                    AddError(context, errorTrie, responseName, selection, selectionSetResult, responseIndex);
 
                     var value = data.Single.Element;
 
@@ -110,7 +110,7 @@ internal static class ExecutionUtils
                 }
                 else if (namedType.IsType(TypeKind.Enum))
                 {
-                    AddErrors(context.Result, errorTrie, responseName, selection, selectionSetResult, responseIndex);
+                    AddError(context, errorTrie, responseName, selection, selectionSetResult, responseIndex);
 
                     // we might need to map the enum value!
                     var value = data.Single.Element;
@@ -209,6 +209,8 @@ internal static class ExecutionUtils
     {
         if (selectionData.IsNull())
         {
+            AddError(context, errorTrie, responseName: null, selection, parent, parentIndex,
+                hoistErrorOfFieldsBelow: true);
             return null;
         }
 
@@ -238,6 +240,7 @@ internal static class ExecutionUtils
                     foreach (var error in errorTrieForArrayItem.Errors)
                     {
                         var transformedError = CreateErrorForSelectionFromError(
+                            context.ErrorHandler,
                             error,
                             selection,
                             result,
@@ -336,6 +339,8 @@ internal static class ExecutionUtils
     {
         if (selectionData.IsNull())
         {
+            AddError(context, errorTrie, responseName: null, selection, parent, parentIndex,
+                hoistErrorOfFieldsBelow: true);
             return null;
         }
 
@@ -376,27 +381,28 @@ internal static class ExecutionUtils
         return result.IsInvalidated ? null : result;
     }
 
-    private static void AddErrors(
-        ResultBuilder resultBuilder,
+    private static void AddError(
+        FusionExecutionContext context,
         ErrorTrie? errorTrie,
-        string responseName,
+        string? responseName,
         ISelection selection,
         ResultData selectionSetResult,
         int responseIndex,
-        bool addErrorOfFieldsBelow = false)
+        bool hoistErrorOfFieldsBelow = false)
     {
         if (errorTrie is null)
         {
             return;
         }
 
+        ErrorTrie? errorTrieOfField = null;
         IError? errorToAdd = null;
-        if (errorTrie.TryGetValue(responseName, out var errorTrieOfField))
+        if (responseName is not null && errorTrie.TryGetValue(responseName, out errorTrieOfField))
         {
             errorToAdd = errorTrieOfField.Errors?.FirstOrDefault();
         }
 
-        if (addErrorOfFieldsBelow)
+        if (hoistErrorOfFieldsBelow)
         {
             errorToAdd ??= (errorTrieOfField ?? errorTrie).GetFirstError();
         }
@@ -404,16 +410,18 @@ internal static class ExecutionUtils
         if (errorToAdd is not null)
         {
             var transformedError = CreateErrorForSelectionFromError(
+                context.ErrorHandler,
                 errorToAdd,
                 selection,
                 selectionSetResult,
                 responseIndex);
 
-            resultBuilder.AddError(transformedError);
+            context.Result.AddError(transformedError);
         }
     }
 
     private static IError CreateErrorForSelectionFromError(
+        IErrorHandler errorHandler,
         IError error,
         ISelection selection,
         ResultData selectionSetResult,
@@ -425,7 +433,7 @@ internal static class ExecutionUtils
         errorBuilder.ClearLocations();
         errorBuilder.AddLocation(selection.SyntaxNode);
 
-        return errorBuilder.Build();
+        return errorHandler.Handle(errorBuilder.Build());
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -33,57 +33,6 @@ internal class ErrorTrie : Dictionary<object, ErrorTrie>
     }
 
     /// <summary>
-    /// Traverses this <see cref="ErrorTrie"/> along the specified
-    /// <paramref name="path"/>. If one of the items along the path has an error,
-    /// the error is returned.
-    /// If the path can't be followed or there are no errors on the path,
-    /// the errors on this <see cref="ErrorTrie"/> are returned (if present).
-    /// </summary>
-    public IError? GetFirstErrorOnPath(string[] path)
-    {
-        var currentErrorTrie = this;
-        foreach (var segment in path)
-        {
-            if (currentErrorTrie.TryGetValue(segment, out var childErrorTrie))
-            {
-                if (childErrorTrie.Errors?.FirstOrDefault() is { } error)
-                {
-                    return error;
-                }
-
-                currentErrorTrie = childErrorTrie;
-            }
-            else
-            {
-                break;
-            }
-        }
-
-        return Errors?.FirstOrDefault();
-    }
-
-    /// <summary>
-    /// Traverses this <see cref="ErrorTrie"/> along the specified
-    /// <paramref name="path"/>. If one of the items along the path has an error,
-    /// the error is returned.
-    /// If the path can't be followed or there are no errors on the path,
-    /// the errors on this <see cref="ErrorTrie"/> are returned (if present).
-    /// </summary>
-    public IError? GetFirstErrorBelowPath(string[] path)
-    {
-        var currentErrorTrie = this;
-        foreach (var segment in path)
-        {
-            if (!currentErrorTrie.TryGetValue(segment, out currentErrorTrie))
-            {
-                return null;
-            }
-        }
-
-        return currentErrorTrie.GetFirstError();
-    }
-
-    /// <summary>
     /// Creates an <see cref="ErrorTrie"/> from the given <paramref name="errors"/>,
     /// using the <see cref="Path"/> of each error to build the trie.
     /// </summary>
@@ -152,6 +101,9 @@ internal class ErrorTrie : Dictionary<object, ErrorTrie>
     }
 
     // TODO: Better name and summary
+    /// <summary>
+    ///
+    /// </summary>
     public static ErrorTrie? FromSelections(
         ErrorTrie subgraphErrorTrie,
         List<RootSelection> rootSelections,
@@ -160,6 +112,36 @@ internal class ErrorTrie : Dictionary<object, ErrorTrie>
         var firstErrorOnPath = subgraphErrorTrie.GetFirstErrorOnPath(path);
 
         return firstErrorOnPath is null ? null : FromSelections(firstErrorOnPath, rootSelections);
+    }
+
+    /// <summary>
+    /// Traverses this <see cref="ErrorTrie"/> along the specified
+    /// <paramref name="path"/>. If one of the items along the path has an error,
+    /// the error is returned.
+    /// If the path can't be followed or there are no errors on the path,
+    /// the errors on this <see cref="ErrorTrie"/> are returned (if present).
+    /// </summary>
+    private IError? GetFirstErrorOnPath(string[] path)
+    {
+        var currentErrorTrie = this;
+        foreach (var segment in path)
+        {
+            if (currentErrorTrie.TryGetValue(segment, out var childErrorTrie))
+            {
+                if (childErrorTrie.Errors?.FirstOrDefault() is { } error)
+                {
+                    return error;
+                }
+
+                currentErrorTrie = childErrorTrie;
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        return Errors?.FirstOrDefault();
     }
 
     private void AddError(IError error)
