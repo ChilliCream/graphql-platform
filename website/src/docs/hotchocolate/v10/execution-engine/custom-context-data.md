@@ -10,7 +10,7 @@ The global context data is a thread-safe dictionary that is available though the
 
 One common use case is to aggregate some state when the GraphQL request is created and use it in field middleware or in the resolver.
 
-In order to intercept the request creation we can add an `IOperationRequestInterceptor` to our services and there build up our custom state.
+In order to intercept the request creation we can add an `IQueryRequestInterceptor` to our services and there build up our custom state.
 
 ```csharp
 services.AddQueryRequestInterceptor((ctx, builder, ct) =>
