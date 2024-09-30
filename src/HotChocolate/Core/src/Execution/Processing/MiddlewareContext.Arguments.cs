@@ -182,11 +182,7 @@ internal partial class MiddlewareContext
         // copy the argument state.
         else
         {
-#if NETSTANDARD2_0
-            mutableArguments = Arguments.ToDictionary(t => t.Key, t => t.Value);
-#else
             mutableArguments = new Dictionary<string, ArgumentValue>(Arguments);
-#endif
             Arguments = mutableArguments;
         }
 

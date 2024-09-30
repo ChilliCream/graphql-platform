@@ -3,7 +3,6 @@ using HotChocolate.Tests;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 using static HotChocolate.Tests.TestHelper;
 
 namespace HotChocolate.Execution.Integration.TypeConverter;
@@ -13,7 +12,6 @@ public class TypeConverterTests
     [Fact]
     public async Task VariablesAreCoercedToTypesOtherThanTheDefinedClrTypes()
     {
-        Snapshot.FullName();
         await ExpectValid(
                 @"
                 query foo($a: FooInput!) {
@@ -43,7 +41,6 @@ public class TypeConverterTests
     [Fact]
     public async Task VariableIsCoercedToTypesOtherThanTheDefinedClrTypes()
     {
-        Snapshot.FullName();
         await ExpectValid(
                 @"
                 query foo($time: DateTime) {
@@ -58,7 +55,6 @@ public class TypeConverterTests
     [Fact]
     public async Task VariableIsNotSerializedAndMustBeConvertedToClrType()
     {
-        Snapshot.FullName();
         var time = new DateTime(2018, 01, 01, 12, 10, 10, DateTimeKind.Utc);
         await ExpectValid(
                 @"
@@ -73,7 +69,6 @@ public class TypeConverterTests
     [Fact]
     public async Task VariableIsPartlyNotSerializedAndMustBeConvertedToClrType()
     {
-        Snapshot.FullName();
         await ExpectValid(
                 @"
                 query foo($a: FooInput!) {

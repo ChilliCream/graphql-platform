@@ -298,7 +298,6 @@ public class ResolverServiceTests
         result.MatchMarkdownSnapshot();
     }
 
-#if NET8_0_OR_GREATER
     [Fact]
     public async Task Resolver_KeyedService()
     {
@@ -315,7 +314,6 @@ public class ResolverServiceTests
 
         result.MatchMarkdownSnapshot();
     }
-#endif
 
     public sealed class SayHelloService
     {
@@ -368,7 +366,6 @@ public class ResolverServiceTests
         }
     }
 
-#if NET8_0_OR_GREATER
     public class Query
     {
         public string Foo([AbcService] KeyedService service)
@@ -381,5 +378,4 @@ public class ResolverServiceTests
     }
 
     public class AbcService() : ServiceAttribute("abc");
-#endif
 }

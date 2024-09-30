@@ -57,13 +57,28 @@
           "event": [
             {
               "Name": "exception",
-              "Tags": {
-                "exception.message": "The field `causeFatalError` does not exist on the type `Deeper`.",
-                "exception.type": "GRAPHQL_ERROR",
-                "graphql.error.path": "/deep/deeper/deeps/deeper",
-                "graphql.error.location.column": 21,
-                "graphql.error.location.line": 6
-              }
+              "Tags": [
+                {
+                  "Key": "exception.message",
+                  "Value": "The field `causeFatalError` does not exist on the type `Deeper`."
+                },
+                {
+                  "Key": "exception.type",
+                  "Value": "GRAPHQL_ERROR"
+                },
+                {
+                  "Key": "graphql.error.path",
+                  "Value": "/deep/deeper/deeps/deeper"
+                },
+                {
+                  "Key": "graphql.error.location.column",
+                  "Value": 21
+                },
+                {
+                  "Key": "graphql.error.location.line",
+                  "Value": 6
+                }
+              ]
             }
           ]
         }

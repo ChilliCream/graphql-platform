@@ -6,30 +6,30 @@ namespace HotChocolate.Data.MongoDb;
 
 public static class SortDefinitionExtensions
 {
-    public static MongoDbSortDefinition Wrap<T>(this SortDefinition<T> sortDefinition) =>
-        new SortDefinitionWrapper<T>(sortDefinition);
+    public static MongoDbSortDefinition Wrap<T>(
+        this SortDefinition<T> sortDefinition)
+        => new SortDefinitionWrapper<T>(sortDefinition);
 
-    private sealed class SortDefinitionWrapper<TDocument> : MongoDbSortDefinition
+    private sealed class SortDefinitionWrapper<TDocument>(
+        SortDefinition<TDocument> sort)
+        : MongoDbSortDefinition
     {
-        private readonly SortDefinition<TDocument> _sort;
-
-        public SortDefinitionWrapper(SortDefinition<TDocument> sort)
-        {
-            _sort = sort;
-        }
-
         public override BsonDocument Render(
             IBsonSerializer documentSerializer,
             IBsonSerializerRegistry serializerRegistry)
         {
             if (documentSerializer is IBsonSerializer<TDocument> typedSerializer)
             {
-                return _sort.Render(typedSerializer, serializerRegistry);
+                return sort.Render(
+                    new RenderArgs<TDocument>(
+                        typedSerializer,
+                        serializerRegistry));
             }
 
-            return _sort.Render(
-                serializerRegistry.GetSerializer<TDocument>(),
-                serializerRegistry);
+            return sort.Render(
+                new RenderArgs<TDocument>(
+                    serializerRegistry.GetSerializer<TDocument>(),
+                    serializerRegistry));
         }
     }
 }

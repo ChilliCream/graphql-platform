@@ -1,6 +1,4 @@
 <!-- markdownlint-disable-next-line MD041 -->
-![ChilliCream GraphQL Platform](https://chillicream.com/resources/chillicream-graphql-banner.svg)
-
 [![NuGet Package](https://img.shields.io/nuget/v/hotchocolate.svg)](https://www.nuget.org/packages/HotChocolate/)
 [![License](https://img.shields.io/badge/license-MIT-green)](https://github.com/ChilliCream/graphql-platform/blob/main/LICENSE)
 [![Slack channel](https://img.shields.io/badge/join%20the%20community-on%20slack-blue.svg)](http://slack.chillicream.com/)
@@ -47,10 +45,6 @@ Strawberry Shake is an incredible, open-source GraphQL client for the .NET ecosy
 Green Donut is a lightweight, yet powerful DataLoader that simplifies batching, caching, and solves the N+1 problem.
 
 [Documentation](https://chillicream.com/docs/hotchocolate/fetching-data/dataloader/)
-
-## Roadmap
-
-If you are interested in upcoming releases, check out our [Roadmap](https://github.com/ChilliCream/graphql-platform/projects/28).
 
 ## Official examples
 

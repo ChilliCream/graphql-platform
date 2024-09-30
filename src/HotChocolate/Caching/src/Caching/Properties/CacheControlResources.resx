@@ -126,6 +126,12 @@
   <data name="CacheControlDirectiveType_MaxAge" xml:space="preserve">
     <value>The maximum amount of time this field's cached value is valid, in seconds.</value>
   </data>
+  <data name="CacheControlDirectiveType_SharedMaxAge" xml:space="preserve">
+    <value>The maximum amount of time this field's cached value is valid in shared caches like CDNs, in seconds.</value>
+  </data>
+  <data name="CacheControlDirectiveType_Vary" xml:space="preserve">
+    <value>The Vary HTTP response header describes the parts of the request message aside from the method and URL that influenced the content of the response it occurs in. Most often, this is used to create a cache key when content negotiation is in use.</value>
+  </data>
   <data name="CacheControlDirectiveType_Scope" xml:space="preserve">
     <value>If `PRIVATE`, the field's value is specific to a single user. The default value is `PUBLIC`, which means the field's value is not tied to a single user.</value>
   </data>
@@ -141,6 +147,9 @@
   <data name="ErrorHelper_CacheControlBothMaxAgeAndInheritMaxAge" xml:space="preserve">
     <value>Can not specify `inheritMaxAge: true` and a value for `maxAge` for the @cacheControl directive on the field {0}.</value>
   </data>
+  <data name="ErrorHelper_CacheControlBothSharedMaxAgeAndInheritMaxAge" xml:space="preserve">
+    <value>Can not specify `inheritMaxAge: true` and a value for `sharedMaxAge` for the @cacheControl directive on the field {0}.</value>
+  </data>
   <data name="ErrorHelper_CacheControlInheritMaxAgeOnQueryTypeField" xml:space="preserve">
     <value>Can not specify `inheritMaxAge: true` for the @cacheControl directive on the field {0}, since it's a field of the Query root type {1}.</value>
   </data>
@@ -149,6 +158,9 @@
   </data>
   <data name="ErrorHelper_CacheControlNegativeMaxAge" xml:space="preserve">
     <value>The `maxAge` value for the @cacheControl directive on the field {0} can not be negative.</value>
+  </data>
+  <data name="ErrorHelper_CacheControlNegativeSharedMaxAge" xml:space="preserve">
+    <value>The `sharedMaxAge` value for the @cacheControl directive on the field {0} can not be negative.</value>
   </data>
   <data name="ErrorHelper_CacheControlOnInterfaceField" xml:space="preserve">
     <value>Can not specify @cacheControl directive on interface fields, such as {0}.</value>

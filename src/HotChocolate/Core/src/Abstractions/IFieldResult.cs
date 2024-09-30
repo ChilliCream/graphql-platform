@@ -15,16 +15,12 @@ public interface IFieldResult
     /// <summary>
     /// Defines if the mutation was successful and if the result represents a success result.
     /// </summary>
-#if NET5_0_OR_GREATER
     [MemberNotNullWhen(false, nameof(Value))]
-#endif
     bool IsSuccess { get; }
 
     /// <summary>
     /// Defines if the mutation had an error and if the result represents a error result.
     /// </summary>
-#if NET5_0_OR_GREATER
     [MemberNotNullWhen(true, nameof(Value))]
-#endif
     bool IsError { get; }
 }

@@ -1,4 +1,3 @@
-#if NET8_0_OR_GREATER
 using System.Buffers;
 using HotChocolate.Fusion.Execution.Nodes;
 
@@ -9,4 +8,3 @@ internal sealed class QueryPlanSnapshotValueFormatter() : SnapshotValueFormatter
     protected override void Format(IBufferWriter<byte> snapshot, QueryPlan value)
         => value.Format(snapshot);
 }
-#endif

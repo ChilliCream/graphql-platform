@@ -1,4 +1,5 @@
 using System.Net;
+using CookieCrumble;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution.Configuration;
 using Microsoft.AspNetCore.Builder;
@@ -6,7 +7,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Opa.Native;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.AspNetCore.Authorization;
 

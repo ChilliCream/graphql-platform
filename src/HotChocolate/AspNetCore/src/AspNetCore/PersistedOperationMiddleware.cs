@@ -1,4 +1,3 @@
-#if NET8_0_OR_GREATER
 using System.Net;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
@@ -251,4 +250,3 @@ internal static class PersistedOperationMiddleware
         }
     }
 }
-#endif

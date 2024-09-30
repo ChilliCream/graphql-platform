@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using CookieCrumble;
 using HotChocolate.Data.Sorting;
@@ -239,11 +239,77 @@ public class IntegrationTests(PostgreSqlResource resource)
                 """)
             .SetGlobalState("printSQL", true));
 
-#if NET6_0
-        result.MatchMarkdownSnapshot(postFix: "NET6_0");
-#else
         result.MatchMarkdownSnapshot();
-#endif
+    }
+
+    [Fact]
+    public async Task Paging_First_10_With_Default_Sorting_HasNextPage()
+    {
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        var executor = await new ServiceCollection()
+            .AddScoped(_ => new CatalogContext(connectionString))
+            .AddGraphQLServer()
+            .AddQueryType<Query>()
+            .AddSorting()
+            .AddDbContextCursorPagingProvider()
+            .BuildRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(q => q
+            .SetDocument(
+                """
+                {
+                    brands(first: 10) {
+                        nodes {
+                            name
+                        }
+                        pageInfo {
+                            hasNextPage
+                            hasPreviousPage
+                            endCursor
+                        }
+                    }
+                }
+                """)
+            .SetGlobalState("printSQL", true));
+
+        result.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Paging_Last_10_With_Default_Sorting_HasPreviousPage()
+    {
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        var executor = await new ServiceCollection()
+            .AddScoped(_ => new CatalogContext(connectionString))
+            .AddGraphQLServer()
+            .AddQueryType<Query>()
+            .AddSorting()
+            .AddDbContextCursorPagingProvider()
+            .BuildRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(q => q
+            .SetDocument(
+                """
+                {
+                    brands(last: 10) {
+                        nodes {
+                            name
+                        }
+                        pageInfo {
+                            hasNextPage
+                            hasPreviousPage
+                            endCursor
+                        }
+                    }
+                }
+                """)
+            .SetGlobalState("printSQL", true));
+
+        result.MatchMarkdownSnapshot();
     }
 
     public class Query

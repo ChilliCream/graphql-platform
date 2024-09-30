@@ -19,19 +19,6 @@ internal sealed class StringCursorKeySerializer : ICursorKeySerializer
 
     public bool TryFormat(object key, Span<byte> buffer, out int written)
     {
-#if NET8_0_OR_GREATER
         return _encoding.TryGetBytes((string)key, buffer, out written);
-#else
-
-        var s = (string)key;
-        if(_encoding.GetMaxByteCount(s.Length) > buffer.Length)
-        {
-            written = 0;
-            return false;
-        }
-
-        written = _encoding.GetBytes(s, buffer);
-        return true;
-#endif
     }
 }

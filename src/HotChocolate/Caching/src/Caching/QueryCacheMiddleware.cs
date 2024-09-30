@@ -47,6 +47,14 @@ internal sealed class QueryCacheMiddleware
                     : new ExtensionData();
 
             contextData.Add(WellKnownContextData.CacheControlHeaderValue, cacheControlHeaderValue);
+
+            if (context.Operation.ContextData.TryGetValue(VaryHeaderValue, out var varyValue)
+                && varyValue is string varyHeaderValue
+                && !string.IsNullOrEmpty(varyHeaderValue))
+            {
+                contextData.Add(VaryHeaderValue, varyHeaderValue);
+            }
+
             context.Result = operationResult.WithContextData(contextData);
         }
     }

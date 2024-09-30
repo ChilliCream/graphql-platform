@@ -99,17 +99,11 @@ namespace Foo.Bar
         }
 
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity> Amenities1 { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>? Amenities2 { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity?> Amenities3 { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity?>? Amenities4 { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>> Amenities5 { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>>? Amenities6 { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>?> Amenities7 { get; }
 
         public virtual global::System.Boolean Equals(GetAll_Listings_Offer? other)
@@ -242,17 +236,11 @@ namespace Foo.Bar
     public partial interface IOffer
     {
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity> Amenities1 { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>? Amenities2 { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity?> Amenities3 { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity?>? Amenities4 { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>> Amenities5 { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>>? Amenities6 { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>?> Amenities7 { get; }
     }
 
@@ -275,6 +263,7 @@ namespace Foo.Bar
     public partial class AmenitySerializer : global::StrawberryShake.Serialization.IInputValueFormatter, global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, Amenity>
     {
         public global::System.String TypeName => "Amenity";
+
         public Amenity Parse(global::System.String serializedValue)
         {
             return serializedValue switch
@@ -325,8 +314,166 @@ namespace Foo.Bar
 
         public static GetAllQueryDocument Instance { get; } = new GetAllQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x47, 0x65, 0x74, 0x41, 0x6c, 0x6c, 0x20, 0x7b, 0x20, 0x6c, 0x69, 0x73, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x4f, 0x66, 0x66, 0x65, 0x72, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x4f, 0x66, 0x66, 0x65, 0x72, 0x20, 0x6f, 0x6e, 0x20, 0x4f, 0x66, 0x66, 0x65, 0x72, 0x20, 0x7b, 0x20, 0x61, 0x6d, 0x65, 0x6e, 0x69, 0x74, 0x69, 0x65, 0x73, 0x31, 0x20, 0x61, 0x6d, 0x65, 0x6e, 0x69, 0x74, 0x69, 0x65, 0x73, 0x32, 0x20, 0x61, 0x6d, 0x65, 0x6e, 0x69, 0x74, 0x69, 0x65, 0x73, 0x33, 0x20, 0x61, 0x6d, 0x65, 0x6e, 0x69, 0x74, 0x69, 0x65, 0x73, 0x34, 0x20, 0x61, 0x6d, 0x65, 0x6e, 0x69, 0x74, 0x69, 0x65, 0x73, 0x35, 0x20, 0x61, 0x6d, 0x65, 0x6e, 0x69, 0x74, 0x69, 0x65, 0x73, 0x36, 0x20, 0x61, 0x6d, 0x65, 0x6e, 0x69, 0x74, 0x69, 0x65, 0x73, 0x37, 0x20, 0x7d};
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
+        {
+            0x71,
+            0x75,
+            0x65,
+            0x72,
+            0x79,
+            0x20,
+            0x47,
+            0x65,
+            0x74,
+            0x41,
+            0x6c,
+            0x6c,
+            0x20,
+            0x7b,
+            0x20,
+            0x6c,
+            0x69,
+            0x73,
+            0x74,
+            0x69,
+            0x6e,
+            0x67,
+            0x73,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x4f,
+            0x66,
+            0x66,
+            0x65,
+            0x72,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x66,
+            0x72,
+            0x61,
+            0x67,
+            0x6d,
+            0x65,
+            0x6e,
+            0x74,
+            0x20,
+            0x4f,
+            0x66,
+            0x66,
+            0x65,
+            0x72,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x4f,
+            0x66,
+            0x66,
+            0x65,
+            0x72,
+            0x20,
+            0x7b,
+            0x20,
+            0x61,
+            0x6d,
+            0x65,
+            0x6e,
+            0x69,
+            0x74,
+            0x69,
+            0x65,
+            0x73,
+            0x31,
+            0x20,
+            0x61,
+            0x6d,
+            0x65,
+            0x6e,
+            0x69,
+            0x74,
+            0x69,
+            0x65,
+            0x73,
+            0x32,
+            0x20,
+            0x61,
+            0x6d,
+            0x65,
+            0x6e,
+            0x69,
+            0x74,
+            0x69,
+            0x65,
+            0x73,
+            0x33,
+            0x20,
+            0x61,
+            0x6d,
+            0x65,
+            0x6e,
+            0x69,
+            0x74,
+            0x69,
+            0x65,
+            0x73,
+            0x34,
+            0x20,
+            0x61,
+            0x6d,
+            0x65,
+            0x6e,
+            0x69,
+            0x74,
+            0x69,
+            0x65,
+            0x73,
+            0x35,
+            0x20,
+            0x61,
+            0x6d,
+            0x65,
+            0x6e,
+            0x69,
+            0x74,
+            0x69,
+            0x65,
+            0x73,
+            0x36,
+            0x20,
+            0x61,
+            0x6d,
+            0x65,
+            0x6e,
+            0x69,
+            0x74,
+            0x69,
+            0x65,
+            0x73,
+            0x37,
+            0x20,
+            0x7d
+        };
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "2cb871ada5a49964bc9fe651d0d97bd18903b601");
+
         public override global::System.String ToString()
         {
 #if NETCOREAPP3_1_OR_GREATER
@@ -369,6 +516,7 @@ namespace Foo.Bar
         }
 
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IGetAllResult);
+
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetAllResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest();
@@ -467,6 +615,7 @@ namespace Foo.Bar.State
         }
 
         global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::Foo.Bar.IGetAllResult);
+
         public GetAllResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             if (snapshot is null)
@@ -533,9 +682,9 @@ namespace Foo.Bar.State
         }
 
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.IListingData> Listings { get; }
-
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
         public global::System.UInt64 Version => _version;
+
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new GetAllResultInfo(Listings, _entityIds, version);
@@ -814,19 +963,12 @@ namespace Foo.Bar.State
         }
 
         public global::System.String __typename { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>? Amenities1 { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>? Amenities2 { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity?>? Amenities3 { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity?>? Amenities4 { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>>? Amenities5 { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>>? Amenities6 { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>?>? Amenities7 { get; }
     }
 
@@ -835,7 +977,9 @@ namespace Foo.Bar.State
     public partial class FooClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
         private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
-        {Indented = false};
+        {
+            Indented = false
+        };
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
             global::System.String __typename = obj.GetProperty("__typename").GetString()!;

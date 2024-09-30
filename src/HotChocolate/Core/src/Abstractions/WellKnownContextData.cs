@@ -220,6 +220,11 @@ public static class WellKnownContextData
     public const string CacheControlHeaderValue = "HotChocolate.Caching.CacheControlHeaderValue";
 
     /// <summary>
+    /// The key to get the Vary header value from the context data.
+    /// </summary>
+    public const string VaryHeaderValue = "HotChocolate.Caching.VaryHeaderValue";
+
+    /// <summary>
     /// The key to to ski caching a query result.
     /// </summary>
     public const string SkipQueryCaching = "HotChocolate.Caching.SkipQueryCaching";

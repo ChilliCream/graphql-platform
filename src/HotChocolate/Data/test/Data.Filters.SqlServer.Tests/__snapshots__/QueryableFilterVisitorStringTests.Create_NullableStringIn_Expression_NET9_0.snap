@@ -1,0 +1,80 @@
+testatestAndtestb Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testatest"
+      },
+      {
+        "bar": "testbtest"
+      }
+    ]
+  }
+}
+---------------
+
+testatestAndtestb SQL:
+---------------
+.param set @__p_0 '["testatest","testbtest"]'
+
+SELECT "d"."Id", "d"."Bar"
+FROM "Data" AS "d"
+WHERE "d"."Bar" IN (
+    SELECT "p"."value"
+    FROM json_each(@__p_0) AS "p"
+)
+---------------
+
+testbtestAndNull Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testbtest"
+      },
+      {
+        "bar": null
+      }
+    ]
+  }
+}
+---------------
+
+testbtestAndNull SQL:
+---------------
+.param set @__p_0_without_nulls '["testbtest"]'
+
+SELECT "d"."Id", "d"."Bar"
+FROM "Data" AS "d"
+WHERE "d"."Bar" IN (
+    SELECT "p"."value"
+    FROM json_each(@__p_0_without_nulls) AS "p"
+) OR "d"."Bar" IS NULL
+---------------
+
+testatest Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testatest"
+      }
+    ]
+  }
+}
+---------------
+
+testatest SQL:
+---------------
+.param set @__p_0 '["testatest"]'
+
+SELECT "d"."Id", "d"."Bar"
+FROM "Data" AS "d"
+WHERE "d"."Bar" IN (
+    SELECT "p"."value"
+    FROM json_each(@__p_0) AS "p"
+)
+---------------

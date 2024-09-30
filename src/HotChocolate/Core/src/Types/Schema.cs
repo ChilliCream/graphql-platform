@@ -1,6 +1,4 @@
-#if NET8_0_OR_GREATER
 using System.Collections.Frozen;
-#endif
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Features;
 using HotChocolate.Language;
@@ -25,11 +23,7 @@ public partial class Schema
 {
     private readonly DateTimeOffset _createdAt = DateTimeOffset.UtcNow;
     private SchemaTypes _types = default!;
-#if NET8_0_OR_GREATER
     private FrozenDictionary<string, DirectiveType> _directiveTypes = default!;
-#else
-    private Dictionary<string, DirectiveType> _directiveTypes = default!;
-#endif
     private AggregateSchemaDocumentFormatter? _formatter;
 
     /// <summary>

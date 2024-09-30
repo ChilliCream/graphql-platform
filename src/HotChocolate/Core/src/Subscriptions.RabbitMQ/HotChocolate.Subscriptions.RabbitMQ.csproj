@@ -7,10 +7,6 @@
     <Description>Contains a Hot Chocolate GraphQL subscription provider for RabbitMQ.</Description>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <TargetFrameworks>$(Library2TargetFrameworks)</TargetFrameworks>
-  </PropertyGroup>
-
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Subscriptions.RabbitMQ.Tests" />
   </ItemGroup>

@@ -1,4 +1,3 @@
-#if NET6_0_OR_GREATER
 using System.Collections.Immutable;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -143,7 +142,7 @@ internal sealed class SelectionExpressionBuilder
             {
                 foreach (var requirement in requirements)
                 {
-                    parent.AddNode(requirement.Clone());
+                    parent.TryAddNode(requirement.Clone());
                 }
             }
 
@@ -215,4 +214,3 @@ internal sealed class SelectionExpressionBuilder
             => Operation.GetSelectionSet(selection, (ObjectType)selection.Type.NamedType());
     }
 }
-#endif

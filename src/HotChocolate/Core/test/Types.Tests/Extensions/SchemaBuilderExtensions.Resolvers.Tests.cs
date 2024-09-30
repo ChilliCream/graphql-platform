@@ -1,4 +1,3 @@
-using Snapshooter.Xunit;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
@@ -47,7 +46,6 @@ public class SchemaBuilderExtensionsResolversTests
     public async Task AddResolverContextObject_ResolveField()
     {
         // arrange
-        Snapshot.FullName();
         var builder = new SchemaBuilder();
         builder.AddDocumentFromString("type Query { foo: String }");
 
@@ -105,7 +103,6 @@ public class SchemaBuilderExtensionsResolversTests
     public async Task AddResolverContextTaskObject_ResolveField()
     {
         // arrange
-        Snapshot.FullName();
         var builder = new SchemaBuilder();
         builder.AddDocumentFromString("type Query { foo: String }");
 
@@ -166,7 +163,6 @@ public class SchemaBuilderExtensionsResolversTests
     public async Task AddResolverContextTResult_ResolveField()
     {
         // arrange
-        Snapshot.FullName();
         var builder = new SchemaBuilder();
         builder.AddDocumentFromString("type Query { foo: String }");
 
@@ -227,7 +223,6 @@ public class SchemaBuilderExtensionsResolversTests
     public async  Task AddResolverContextTaskTResult_ResolveField()
     {
         // arrange
-        Snapshot.FullName();
         var builder = new SchemaBuilder();
         builder.AddDocumentFromString("type Query { foo: String }");
 
@@ -287,7 +282,6 @@ public class SchemaBuilderExtensionsResolversTests
     public async Task AddResolverObject_ResolveField()
     {
         // arrange
-        Snapshot.FullName();
         var builder = new SchemaBuilder();
         builder.AddDocumentFromString("type Query { foo: String }");
 
