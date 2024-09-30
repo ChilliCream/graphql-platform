@@ -6,21 +6,6 @@
 {
   "errors": [
     {
-      "message": "Cannot return null for non-nullable field.",
-      "locations": [
-        {
-          "line": 2,
-          "column": 3
-        }
-      ],
-      "path": [
-        "viewer"
-      ],
-      "extensions": {
-        "code": "HC0018"
-      }
-    },
-    {
       "message": "Unexpected Execution Error",
       "locations": [
         {
