@@ -143,15 +143,10 @@ internal sealed class Resolve(int id, Config config) : ResolverNodeBase(id, conf
             var data = UnwrapResult(response);
             var selectionSet = state.SelectionSet;
             var selectionSetData = state.SelectionSetData;
-            var selectionSetResult = state.SelectionSetResult;
             var exportKeys = state.Requires;
             var variableValues = state.VariableValues;
 
-            var errors = ExtractErrors(
-                    context.ErrorHandler,
-                    response.Errors,
-                    subgraphName,
-                    context.ShowDebugInfo);
+            var errors = ExtractErrors(response.Errors, subgraphName, context.ShowDebugInfo);
 
             ErrorTrie? subgraphErrorTrie = null;
             if (errors is not null)
@@ -173,16 +168,12 @@ internal sealed class Resolve(int id, Config config) : ResolverNodeBase(id, conf
             if (subgraphErrorTrie is not null)
             {
                 var unwrappedErrorTrie = UnwrapErrors(subgraphErrorTrie);
-                errorTrie = ExtractErrors(SelectionSet, unwrappedErrorTrie);
-
-                if (errorTrie is null)
-                {
-                    errorTrie = GetErrorTrieForChildrenFromErrorsOnPath(subgraphErrorTrie, RootSelections, Path);
-                }
+                errorTrie = ExtractErrors(SelectionSet, unwrappedErrorTrie)
+                    ?? ErrorTrie.FromSelections(subgraphErrorTrie, RootSelections, Path);
             }
             else if (transportError is not null)
             {
-                errorTrie = GetErrorTrieForChildren(transportError, RootSelections);
+                errorTrie = ErrorTrie.FromSelections(transportError, RootSelections);
             }
 
             if (errorTrie is not null)

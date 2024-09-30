@@ -151,11 +151,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
         ref var batchState = ref MemoryMarshal.GetArrayDataReference(batchExecutionState);
         ref var end = ref Unsafe.Add(ref batchState, batchExecutionState.Length);
 
-        var errors = ExtractErrors(
-                context.ErrorHandler,
-                response.Errors,
-                subgraphName,
-                context.ShowDebugInfo);
+        var errors = ExtractErrors(response.Errors, subgraphName, context.ShowDebugInfo);
 
         ErrorTrie? subgraphErrorTrie = null;
         ErrorTrie? unwrappedSubgraphErrorTrie = null;
@@ -194,11 +190,11 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
             }
             else if (subgraphErrorTrie is not null)
             {
-                errorTrie = GetErrorTrieForChildrenFromErrorsOnPath(subgraphErrorTrie, RootSelections, Path);
+                errorTrie = ErrorTrie.FromSelections(subgraphErrorTrie, RootSelections, Path);
             }
             else if (transportError is not null)
             {
-                errorTrie = GetErrorTrieForChildren(transportError, RootSelections);
+                errorTrie = ErrorTrie.FromSelections(transportError, RootSelections);
             }
 
             if (errorTrie is not null)

@@ -398,7 +398,7 @@ internal static class ExecutionUtils
 
         if (addErrorOfFieldsBelow)
         {
-            errorToAdd ??= GetFirstError(errorTrieOfField ?? errorTrie);
+            errorToAdd ??= (errorTrieOfField ?? errorTrie).GetFirstError();
         }
 
         if (errorToAdd is not null)
@@ -624,99 +624,10 @@ internal static class ExecutionUtils
             errorBuilder.SetExtension("subgraphName", subgraphName);
         }
 
-        return errorHandler.Handle(errorBuilder.Build());
-    }
-
-    public static ErrorTrie GetErrorTrieForChildren(IError error, List<RootSelection> rootSelections)
-    {
-        var childErrorTrie = new ErrorTrie();
-
-        foreach (var rootSelection in rootSelections)
-        {
-            var errorTrieForSubfield = new ErrorTrie();
-            errorTrieForSubfield.AddError(error);
-
-            childErrorTrie.Add(rootSelection.Selection.ResponseName, errorTrieForSubfield);
-        }
-
-        return childErrorTrie;
-    }
-
-    public static ErrorTrie? GetErrorTrieForChildrenFromErrorsOnPath(
-        ErrorTrie subgraphErrorTrie,
-        List<RootSelection> rootSelections,
-        string[] path)
-    {
-        var firstErrorOnPath = GetFirstErrorOnPathOrErrorWithoutPath(subgraphErrorTrie, path);
-
-        if (firstErrorOnPath is null)
-        {
-            return null;
-        }
-
-        var errorTrieOfParentField = new ErrorTrie();
-
-        foreach (var rootSelection in rootSelections)
-        {
-            var errorTrieOfSubfield = new ErrorTrie();
-            errorTrieOfSubfield.AddError(firstErrorOnPath);
-
-            errorTrieOfParentField.Add(rootSelection.Selection.ResponseName, errorTrieOfSubfield);
-        }
-
-        return errorTrieOfParentField;
-    }
-
-    private static IError? GetFirstError(ErrorTrie errorTrie)
-    {
-        var stack = new Stack<ErrorTrie>();
-        stack.Push(errorTrie);
-
-        while (stack.TryPop(out var currentErrorTrie))
-        {
-            if (currentErrorTrie.Errors?.FirstOrDefault() is { } error)
-            {
-                return error;
-            }
-
-            foreach (var value in currentErrorTrie.Values)
-            {
-                stack.Push(value);
-            }
-        }
-
-        return null;
-    }
-
-    private static IError? GetFirstErrorOnPathOrErrorWithoutPath(ErrorTrie errorTrie, string[] path)
-    {
-        var currentErrorTrie = errorTrie;
-        foreach (var segment in path)
-        {
-            if (currentErrorTrie.TryGetValue(segment, out var childErrorTrie))
-            {
-                currentErrorTrie = childErrorTrie;
-
-                var firstError = currentErrorTrie.Errors?.FirstOrDefault();
-
-                if (firstError is not null)
-                {
-                    return firstError;
-                }
-            }
-            else
-            {
-                break;
-            }
-        }
-
-        var firstErrorWithoutPath = errorTrie.Errors?.FirstOrDefault();
-
-        return firstErrorWithoutPath;
+        return errorBuilder.Build();
     }
 
     public static List<IError>? ExtractErrors(
-        IErrorHandler errorHandler,
         JsonElement rawErrors,
         string subgraphName,
         bool addDebugInfo)
@@ -729,7 +640,7 @@ internal static class ExecutionUtils
         var errors = new List<IError>();
         foreach (var rawError in rawErrors.EnumerateArray())
         {
-            var error = ExtractError(errorHandler, rawError, subgraphName, addDebugInfo);
+            var error = ExtractError(rawError, subgraphName, addDebugInfo);
 
             if (error is null)
             {
@@ -743,7 +654,6 @@ internal static class ExecutionUtils
     }
 
     private static IError? ExtractError(
-        IErrorHandler errorHandler,
         JsonElement error,
         string subgraphName,
         bool addDebugInfo)
@@ -782,26 +692,12 @@ internal static class ExecutionUtils
                 }
             }
 
-            if (error.TryGetProperty("locations", out var locations) && locations.ValueKind is JsonValueKind.Array)
-            {
-                foreach (var location in locations.EnumerateArray())
-                {
-                    if (location.TryGetProperty("line", out var lineValue) &&
-                        location.TryGetProperty("column", out var columnValue) &&
-                        lineValue.TryGetInt32(out var line) &&
-                        columnValue.TryGetInt32(out var column))
-                    {
-                        errorBuilder.AddLocation(line, column);
-                    }
-                }
-            }
-
             if (addDebugInfo)
             {
                 errorBuilder.SetExtension("subgraphName", subgraphName);
             }
 
-            return errorHandler.Handle(errorBuilder.Build());
+            return errorBuilder.Build();
         }
 
         return null;
