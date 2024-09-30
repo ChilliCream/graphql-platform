@@ -93,11 +93,11 @@ public static partial class HotChocolateValidationBuilderExtensions
         this IValidationBuilder builder)
     {
         return builder.ConfigureValidation(
-            m => m.Modifiers.Add(o =>
+            m => m.RulesModifiers.Add((_, r) =>
             {
-                if (o.Rules.All(t => t.GetType() != typeof(DocumentRule)))
+                if (r.Rules.All(t => t.GetType() != typeof(DocumentRule)))
                 {
-                    o.Rules.Add(new DocumentRule());
+                    r.Rules.Add(new DocumentRule());
                 }
             }));
     }
@@ -343,39 +343,26 @@ public static partial class HotChocolateValidationBuilderExtensions
     }
 
     /// <summary>
-    /// Removes a validation rule that restricts the depth of a GraphQL request.
-    /// </summary>
-    public static IValidationBuilder RemoveMaxExecutionDepthRule(
-        this IValidationBuilder builder)
-        => builder.TryRemoveValidationVisitor<MaxExecutionDepthVisitor>();
-
-    /// <summary>
     /// Adds a validation rule that only allows requests to use `__schema` or `__type`
     /// if the request carries an introspection allowed flag.
     /// </summary>
     public static IValidationBuilder AddIntrospectionAllowedRule(
-        this IValidationBuilder builder,
-        Func<IServiceProvider, ValidationOptions, bool>? isEnabled = null)
+        this IValidationBuilder builder)
         => builder.TryAddValidationVisitor(
             (_, _) => new IntrospectionVisitor(),
             priority: 0,
             isCacheable: false,
-            isEnabled: isEnabled);
-
-    /// <summary>
-    /// Removes a validation rule that only allows requests to use `__schema` or `__type`
-    /// if the request carries an introspection allowed flag.
-    /// </summary>
-    public static IValidationBuilder RemoveIntrospectionAllowedRule(
-        this IValidationBuilder builder)
-        => builder.TryRemoveValidationVisitor<IntrospectionVisitor>();
+            isEnabled: (_, o) => o.DisableIntrospection);
 
     /// <summary>
     /// Adds a validation rule that restricts the depth of a GraphQL introspection request.
     /// </summary>
     public static IValidationBuilder AddIntrospectionDepthRule(
         this IValidationBuilder builder)
-        => builder.TryAddValidationVisitor<IntrospectionDepthVisitor>(priority: 1);
+        => builder.TryAddValidationVisitor<IntrospectionDepthVisitor>(
+            priority: 1,
+            factory: (_, o) => new IntrospectionDepthVisitor(o),
+            isEnabled: (_, o) => !o.DisableDepthRule);
 
     /// <summary>
     /// Adds a validation rule that restricts the depth of coordinate cycles in GraphQL operations.
