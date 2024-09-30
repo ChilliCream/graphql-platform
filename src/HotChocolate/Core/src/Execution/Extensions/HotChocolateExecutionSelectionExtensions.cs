@@ -1,3 +1,4 @@
+#if NET6_0_OR_GREATER
 using System.Buffers.Text;
 using System.Linq.Expressions;
 using System.Text;
@@ -70,3 +71,4 @@ public static class HotChocolateExecutionSelectionExtensions
         return length;
     }
 }
+#endif

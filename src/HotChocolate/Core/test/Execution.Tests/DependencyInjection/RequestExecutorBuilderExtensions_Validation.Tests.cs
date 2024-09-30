@@ -70,6 +70,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
     }
 
     [Fact]
+    [Obsolete]
     public async Task AddIntrospectionAllowedRule_IntegrationTest_NotAllowed()
     {
         Snapshot.FullName();
@@ -87,6 +88,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
     }
 
     [Fact]
+    [Obsolete]
     public async Task AllowIntrospection_IntegrationTest_NotAllowed()
     {
         Snapshot.FullName();
@@ -104,6 +106,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
     }
 
     [Fact]
+    [Obsolete]
     public async Task AllowIntrospection_IntegrationTest_Allowed()
     {
         Snapshot.FullName();
@@ -121,6 +124,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
     }
 
     [Fact]
+    [Obsolete]
     public async Task AllowIntrospection_IntegrationTest_NotAllowed_CustomMessage()
     {
         Snapshot.FullName();
@@ -139,6 +143,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
     }
 
     [Fact]
+    [Obsolete]
     public async Task AddIntrospectionAllowedRule_IntegrationTest_NotAllowed_CustomMessageFact()
     {
         Snapshot.FullName();
@@ -157,6 +162,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
     }
 
     [Fact]
+    [Obsolete]
     public async Task AddIntrospectionAllowedRule_IntegrationTest_NotAllowed_CustomMessage()
     {
         Snapshot.FullName();
@@ -175,6 +181,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
     }
 
     [Fact]
+    [Obsolete]
     public async Task AddIntrospectionAllowedRule_IntegrationTest_Allowed()
     {
         Snapshot.FullName();
