@@ -27,7 +27,7 @@ public static class HotChocolateExecutionSelectionExtensions
     /// <returns>
     /// Returns a selector expression that can be used for data projections.
     /// </returns>
-    public static Expression<Func<TValue, TValue>> ToSelectorExpression<TValue>(
+    public static Expression<Func<TValue, TValue>> AsSelector<TValue>(
         this ISelection selection)
         => GetOrCreateExpression<TValue>(selection);
 

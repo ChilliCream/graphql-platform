@@ -44,7 +44,7 @@ public static class HotChocolateExecutionDataLoaderExtensions
         ISelection selection)
         where TKey : notnull
     {
-        var expression = selection.ToSelectorExpression<TValue>();
+        var expression = selection.AsSelector<TValue>();
         return dataLoader.Select(expression);
     }
 
@@ -79,7 +79,7 @@ public static class HotChocolateExecutionDataLoaderExtensions
             var count = GetConnectionSelections(selection, buffer);
             for (var i = 0; i < count; i++)
             {
-                var expression = buffer[i].ToSelectorExpression<TValue>();
+                var expression = buffer[i].AsSelector<TValue>();
                 dataLoader.Select(expression);
             }
             ArrayPool<ISelection>.Shared.Return(buffer);
@@ -90,14 +90,14 @@ public static class HotChocolateExecutionDataLoaderExtensions
             var count = GetCollectionSelections(selection, buffer);
             for (var i = 0; i < count; i++)
             {
-                var expression = buffer[i].ToSelectorExpression<TValue>();
+                var expression = buffer[i].AsSelector<TValue>();
                 dataLoader.Select(expression);
             }
             ArrayPool<ISelection>.Shared.Return(buffer);
         }
         else
         {
-            var expression = selection.ToSelectorExpression<TValue>();
+            var expression = selection.AsSelector<TValue>();
             dataLoader.Select(expression);
         }
 
