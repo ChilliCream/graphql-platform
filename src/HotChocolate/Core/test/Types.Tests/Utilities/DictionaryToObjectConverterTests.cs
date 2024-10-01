@@ -1,4 +1,4 @@
-using Snapshooter.Xunit;
+using CookieCrumble;
 
 namespace HotChocolate.Utilities;
 

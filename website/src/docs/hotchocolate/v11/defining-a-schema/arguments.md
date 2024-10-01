@@ -37,7 +37,7 @@ Learn more about arguments [here](https://graphql.org/learn/schema/#arguments) a
 Arguments can be defined like the following.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Query
@@ -61,7 +61,7 @@ public class Query
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp

@@ -139,7 +139,7 @@ public class QueryableFilterVisitorStringTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddResult(res1, "testatestAndtestb")
             .AddResult(res2, "testbtestAndNull")
             .AddResult(res3, "testatest")
@@ -201,7 +201,7 @@ public class QueryableFilterVisitorStringTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddResult(res1, "a")
             .AddResult(res2, "b")
             .AddResult(res3, "null")
@@ -233,7 +233,7 @@ public class QueryableFilterVisitorStringTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddResult(res1, "testa")
             .AddResult(res2, "testb")
             .AddResult(res3, "null")
@@ -264,7 +264,7 @@ public class QueryableFilterVisitorStringTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddResult(res1, "testa")
             .AddResult(res2, "testb")
             .AddResult(res3, "null")
@@ -295,7 +295,7 @@ public class QueryableFilterVisitorStringTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddResult(res1, "atest")
             .AddResult(res2, "btest")
             .AddResult(res3, "null")
@@ -326,7 +326,7 @@ public class QueryableFilterVisitorStringTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddResult(res1, "atest")
             .AddResult(res2, "btest")
             .AddResult(res3, "null")
@@ -421,7 +421,7 @@ public class QueryableFilterVisitorStringTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddResult(res1, "testatestAndtestb")
             .AddResult(res2, "testbtestAndNull")
             .AddResult(res3, "testatest")
@@ -454,7 +454,7 @@ public class QueryableFilterVisitorStringTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddResult(res1, "testatestAndtestb")
             .AddResult(res2, "testbtestAndNull")
             .AddResult(res3, "testatest")
@@ -517,7 +517,7 @@ public class QueryableFilterVisitorStringTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddResult(res1, "a")
             .AddResult(res2, "b")
             .AddResult(res3, "null")
@@ -549,7 +549,7 @@ public class QueryableFilterVisitorStringTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddResult(res1, "testa")
             .AddResult(res2, "testb")
             .AddResult(res3, "null")
@@ -581,7 +581,7 @@ public class QueryableFilterVisitorStringTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddResult(res1, "testa")
             .AddResult(res2, "testb")
             .AddResult(res3, "null")
@@ -613,7 +613,7 @@ public class QueryableFilterVisitorStringTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddResult(res1, "atest")
             .AddResult(res2, "btest")
             .AddResult(res3, "null")
@@ -646,7 +646,7 @@ public class QueryableFilterVisitorStringTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddResult(res1, "atest")
             .AddResult(res2, "btest")
             .AddResult(res3, "null")

@@ -54,7 +54,7 @@ public sealed class StaticQueryAnalysisTests
         // assert
         await snapshot
             .Add(Utf8GraphQLParser.Parse(operation), "Query")
-            .AddResult(result.ExpectSingleResult(), "Result")
+            .AddResult(result.ExpectOperationResult(), "Result")
             .Add(schema, "Schema")
             .MatchMarkdownAsync();
     }
@@ -139,7 +139,7 @@ public sealed class StaticQueryAnalysisTests
         // assert
         await snapshot
             .Add(Utf8GraphQLParser.Parse(operation), "Query")
-            .AddResult(result.ExpectSingleResult(), "Result")
+            .AddResult(result.ExpectOperationResult(), "Result")
             .Add(schema, "Schema")
             .MatchMarkdownAsync();
     }

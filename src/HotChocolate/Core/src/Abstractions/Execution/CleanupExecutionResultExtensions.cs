@@ -99,7 +99,7 @@ public static class CleanupExecutionResultExtensions
     /// <summary>
     /// Expects a single GraphQL operation result.
     /// </summary>
-    public static OperationResult ExpectSingleResult(this IExecutionResult result)
+    public static OperationResult ExpectOperationResult(this IExecutionResult result)
     {
         if (result is OperationResult qr)
         {

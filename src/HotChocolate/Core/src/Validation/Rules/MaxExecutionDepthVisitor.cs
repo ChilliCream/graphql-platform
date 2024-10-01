@@ -5,15 +5,10 @@ using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Validation.Rules;
 
-internal sealed class MaxExecutionDepthVisitor : DocumentValidatorVisitor
+internal sealed class MaxExecutionDepthVisitor(
+    IMaxExecutionDepthOptionsAccessor options)
+    : DocumentValidatorVisitor
 {
-    private readonly IMaxExecutionDepthOptionsAccessor _options;
-
-    public MaxExecutionDepthVisitor(IMaxExecutionDepthOptionsAccessor options)
-    {
-        _options = options;
-    }
-
     protected override ISyntaxVisitorAction Enter(
         DocumentNode node,
         IDocumentValidatorContext context)
@@ -33,9 +28,9 @@ internal sealed class MaxExecutionDepthVisitor : DocumentValidatorVisitor
         }
 
         // otherwise we will go with the configured value
-        else if(_options.MaxAllowedExecutionDepth.HasValue)
+        else if(options.MaxAllowedExecutionDepth.HasValue)
         {
-            context.Allowed = _options.MaxAllowedExecutionDepth.Value;
+            context.Allowed = options.MaxAllowedExecutionDepth.Value;
         }
 
         // if there is no configured value we will just stop traversing the graph
@@ -80,7 +75,7 @@ internal sealed class MaxExecutionDepthVisitor : DocumentValidatorVisitor
         FieldNode node,
         IDocumentValidatorContext context)
     {
-        if (_options.SkipIntrospectionFields &&
+        if (options.SkipIntrospectionFields &&
             node.Name.Value.StartsWith("__"))
         {
             return Skip;

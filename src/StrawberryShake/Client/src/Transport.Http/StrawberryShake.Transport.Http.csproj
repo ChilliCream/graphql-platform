@@ -13,10 +13,6 @@
     <PackageReference Include="Microsoft.Extensions.Http" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1' OR '$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="System.Net.Http.Json" />
-  </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Core\StrawberryShake.Core.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\AspNetCore\src\Transport.Http\HotChocolate.Transport.Http.csproj" />

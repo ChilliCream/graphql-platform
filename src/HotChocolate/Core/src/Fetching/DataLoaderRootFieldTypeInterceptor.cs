@@ -26,6 +26,9 @@ internal sealed class DataLoaderRootFieldTypeInterceptor : TypeInterceptor
         _services = context.Services.GetService<IApplicationServiceProvider>();
     }
 
+    internal override bool IsEnabled(IDescriptorContext context)
+        => context.Options.PublishRootFieldPagesToPromiseCache;
+
     internal override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
         ObjectTypeDefinition definition,
@@ -51,18 +54,16 @@ internal sealed class DataLoaderRootFieldTypeInterceptor : TypeInterceptor
 
             var dataLoaderValueTypes = GetDataLoaderValueTypes();
 
-            if(dataLoaderValueTypes.Count == 0)
+            if (dataLoaderValueTypes.Count == 0)
             {
                 return;
             }
 
             foreach (var field in typeDef.Fields)
             {
-                if ((field.Flags & FieldFlags.Connection) == FieldFlags.Connection
-                    && field.ResultType != null
-                    && field.ResultType != typeof(object))
+                if (IsUsableFieldConnection(field))
                 {
-                    var resultType = completionContext.TypeInspector.GetType(field.ResultType);
+                    var resultType = completionContext.TypeInspector.GetType(field.ResultType!);
                     if (resultType.IsArrayOrList && dataLoaderValueTypes.Contains(resultType.ElementType.Type))
                     {
                         field.MiddlewareDefinitions.Insert(
@@ -85,6 +86,17 @@ internal sealed class DataLoaderRootFieldTypeInterceptor : TypeInterceptor
                 }
             }
         }
+    }
+
+    private static bool IsUsableFieldConnection(ObjectFieldDefinition field)
+    {
+        var isConnection = (field.Flags & FieldFlags.Connection) == FieldFlags.Connection;
+        var usesProjection = (field.Flags & FieldFlags.UsesProjections) == FieldFlags.UsesProjections;
+
+        return isConnection
+            && !usesProjection
+            && field.ResultType != null
+            && field.ResultType != typeof(object);
     }
 
     private HashSet<Type> GetDataLoaderValueTypes()
@@ -126,9 +138,9 @@ internal sealed class DataLoaderRootFieldTypeInterceptor : TypeInterceptor
 
     private sealed class PromiseCachePagePublisher(IPromiseCache cache) : IPageObserver
     {
-        public void OnAfterSliced<T>(IReadOnlyList<T> items, IPageInfo pageInfo)
+        public void OnAfterSliced<T>(ReadOnlySpan<T> items, IPageInfo pageInfo)
         {
-            if (items.Count == 0)
+            if (items.Length == 0)
             {
                 return;
             }

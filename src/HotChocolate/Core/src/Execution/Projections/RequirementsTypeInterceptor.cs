@@ -1,4 +1,3 @@
-#if NET6_0_OR_GREATER
 using System.Collections.Immutable;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
@@ -66,4 +65,3 @@ internal sealed class RequirementsTypeInterceptor : TypeInterceptor
         ISchema schema)
         => _metadata.Seal();
 }
-#endif

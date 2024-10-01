@@ -444,7 +444,6 @@ public static class EndpointRouteBuilderExtensions
         return new BananaCakePopEndpointConventionBuilder(builder);
     }
 
-#if NET8_0_OR_GREATER
     /// <summary>
     /// Adds a persisted operation endpoint to the endpoint configurations.
     /// </summary>
@@ -500,7 +499,6 @@ public static class EndpointRouteBuilderExtensions
         group.MapPersistedOperationMiddleware(schemaNameOrDefault, requireOperationName);
         return group;
     }
-#endif
 
     /// <summary>
     /// Specifies the GraphQL server options.

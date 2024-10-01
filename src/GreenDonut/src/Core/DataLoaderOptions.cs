@@ -22,11 +22,6 @@ public sealed class DataLoaderOptions
     public IPromiseCache? Cache { get; set; }
 
     /// <summary>
-    /// Gets the cancellation token that shall be used for dispatch tasks.
-    /// </summary>
-    public CancellationToken CancellationToken { get; set; }
-
-    /// <summary>
     /// Gets the <see cref="IDataLoaderDiagnosticEvents"/> to intercept DataLoader events.
     /// </summary>
     public IDataLoaderDiagnosticEvents? DiagnosticEvents { get; set; }
@@ -43,6 +38,5 @@ public sealed class DataLoaderOptions
             MaxBatchSize = MaxBatchSize,
             Cache = Cache,
             DiagnosticEvents = DiagnosticEvents,
-            CancellationToken = CancellationToken,
         };
 }

@@ -45,7 +45,7 @@ You can learn more about this in the [GraphQL Cursor Connections Specification](
 Adding pagination capabilities to our fields is a breeze. All we have to do is add the `UsePaging` middleware.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Query
@@ -64,7 +64,7 @@ The `UsePaging` attribute also allows us to configure some other properties, lik
 [UsePaging(MaxPageSize = 50)]
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -111,7 +111,7 @@ For the `UsePaging` middleware to work, our resolver needs to return an `IEnumer
 If we need more control over the pagination process we can do so, by returning a `Connection<T>`.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Query
@@ -134,7 +134,7 @@ public class Query
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -185,13 +185,13 @@ Sometimes we might want to return the total number of pageable entries.
 For this to work we need to enable the `IncludeTotalCount` flag on the `UsePaging` middleware.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 [UsePaging(IncludeTotalCount = true)]
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -258,7 +258,7 @@ type CollectionSegmentInfo {
 To add _offset-based_ pagination capabilities to our fields we have to add the `UseOffsetPaging` middleware.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Query
@@ -277,7 +277,7 @@ The `UseOffsetPaging` attribute also allows us to configure some other propertie
 [UseOffsetPaging(MaxPageSize = 50)]
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -324,7 +324,7 @@ For the `UseOffsetPaging` middleware to work, our resolver needs to return an `I
 If we need more control over the pagination process we can do so, by returning a `CollectionSegment<T>`.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Query
@@ -347,7 +347,7 @@ public class Query
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -398,13 +398,13 @@ Sometimes we might want to return the total number of pageable entries.
 For this to work we need to enable the `IncludeTotalCount` flag on the `UseOffsetPaging` middleware.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 [UseOffsetPaging(IncludeTotalCount = true)]
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp

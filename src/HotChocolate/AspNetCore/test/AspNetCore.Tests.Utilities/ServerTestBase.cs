@@ -52,9 +52,7 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                     .UseWritePersistedOperation()
                     .UseDocumentParser()
                     .UseDocumentValidation()
-#if NET7_0_OR_GREATER
                     .UseCostAnalyzer()
-#endif
                     .UseOperationCache()
                     .UseOperationResolver()
                     .UseOperationVariableCoercion()
@@ -119,9 +117,7 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                 .UseEndpoints(
                     endpoints =>
                     {
-#if NET8_0_OR_GREATER
                         endpoints.MapGraphQLPersistedOperations(requireOperationName: requireOperationName);
-#endif
 
                         var builder = endpoints.MapGraphQL(pattern)
                             .WithOptions(new GraphQLServerOptions

@@ -1,7 +1,7 @@
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types;
 

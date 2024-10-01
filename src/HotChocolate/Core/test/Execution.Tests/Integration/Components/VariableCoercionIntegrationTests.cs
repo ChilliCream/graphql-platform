@@ -2,7 +2,6 @@ using HotChocolate.Language;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Execution.Integration.Components;
 
@@ -11,8 +10,6 @@ public class VariableCoercionIntegrationTests
     [Fact]
     public async Task Nullables_And_NonNullables_Are_Set()
     {
-        Snapshot.FullName();
-
         var executor = await CreateSchemaAsync();
 
         var user = new ObjectValueNode(
@@ -32,8 +29,6 @@ public class VariableCoercionIntegrationTests
     [Fact]
     public async Task Nullables_Are_Not_Set_NonNullables_Are_Set()
     {
-        Snapshot.FullName();
-
         var executor = await CreateSchemaAsync();
 
         var user = new ObjectValueNode(
@@ -52,8 +47,6 @@ public class VariableCoercionIntegrationTests
     [Fact]
     public async Task Nullables_Are_Set_And_NonNullables_Are_Set_To_Null()
     {
-        Snapshot.FullName();
-
         var executor = await CreateSchemaAsync();
 
         var user = new ObjectValueNode(
@@ -73,8 +66,6 @@ public class VariableCoercionIntegrationTests
     [Fact]
     public async Task Nullables_Are_Set_And_NonNullables_Not_Are_Set()
     {
-        Snapshot.FullName();
-
         var executor = await CreateSchemaAsync();
 
         var user = new ObjectValueNode(
@@ -93,8 +84,6 @@ public class VariableCoercionIntegrationTests
     [Fact]
     public async Task Empty_Object()
     {
-        Snapshot.FullName();
-
         var executor = await CreateSchemaAsync();
 
         var user = new ObjectValueNode();
@@ -112,8 +101,6 @@ public class VariableCoercionIntegrationTests
     [Fact]
     public async Task Variable_Null()
     {
-        Snapshot.FullName();
-
         var executor = await CreateSchemaAsync();
 
         var request =
@@ -129,8 +116,6 @@ public class VariableCoercionIntegrationTests
     [Fact]
     public async Task Variable_Not_Provided()
     {
-        Snapshot.FullName();
-
         var executor = await CreateSchemaAsync();
 
         var request =
@@ -145,8 +130,6 @@ public class VariableCoercionIntegrationTests
     [Fact]
     public async Task Invalid_Field_Provided()
     {
-        Snapshot.FullName();
-
         var executor = await CreateSchemaAsync();
 
         var user = new ObjectValueNode(

@@ -1,11 +1,11 @@
-﻿{
+{
   "errors": [
     {
-      "message": "Unable to create the operation type \u0060QueryPrivateConstructor\u0060 instance. Try adding the following service: \u0060services.AddScoped\u003CHotChocolate.Execution.CodeFirstTests\u002BQueryPrivateConstructor\u003E();\u0060",
+      "message": "Unable to create the operation type `QueryPrivateConstructor` instance. Try adding the following service: `services.AddScoped<HotChocolate.Execution.CodeFirstTests+QueryPrivateConstructor>();`",
       "extensions": {
         "code": "HC0019",
         "operationType": "QueryPrivateConstructor",
-        "runtimeType": "HotChocolate.Execution.CodeFirstTests\u002BQueryPrivateConstructor"
+        "runtimeType": "HotChocolate.Execution.CodeFirstTests+QueryPrivateConstructor"
       }
     }
   ]

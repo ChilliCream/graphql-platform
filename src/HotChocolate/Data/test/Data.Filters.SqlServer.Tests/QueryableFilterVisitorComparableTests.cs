@@ -570,7 +570,7 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "14")
@@ -644,7 +644,7 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "14")
@@ -718,7 +718,7 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "14")
@@ -792,7 +792,7 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "14")
@@ -824,7 +824,7 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddResult(res1, "12and13")
             .AddResult(res2, "13and14")
             .AddResult(res3, "13andNull")
@@ -855,7 +855,7 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddResult(res1, "12and13")
             .AddResult(res2, "13and14")
             .AddResult(res3, "13andNull")

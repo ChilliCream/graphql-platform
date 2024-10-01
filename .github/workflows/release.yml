@@ -3,11 +3,13 @@ name: Release
 on:
   push:
     tags:
-      - '14.*'
+      - '15.*'
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -18,9 +20,8 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: |
-          6.x
-          7.x
           8.x
+          9.x
 
     - name: Get the version
       id: get_version

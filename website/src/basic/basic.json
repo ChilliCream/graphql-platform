@@ -1,0 +1,22 @@
+[
+  {
+    "path": "legal/acceptable-use-policy",
+    "title": "Acceptable Use Policy"
+  },
+  {
+    "path": "legal/cookie-policy",
+    "title": "Cookie Policy"
+  },
+  {
+    "path": "legal/privacy-policy",
+    "title": "Privacy Policy"
+  },
+  {
+    "path": "legal/terms-of-service",
+    "title": "Terms of Service"
+  },
+  {
+    "path": "licensing/chillicream-license",
+    "title": "ChilliCream License"
+  }
+]

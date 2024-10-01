@@ -101,7 +101,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectSingleResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -154,7 +154,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectSingleResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -208,7 +208,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectSingleResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -253,7 +253,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectSingleResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -298,8 +298,8 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.NotNull(result.ExpectSingleResult().Errors);
-        Assert.NotEmpty(result.ExpectSingleResult().Errors!);
+        Assert.NotNull(result.ExpectOperationResult().Errors);
+        Assert.NotEmpty(result.ExpectOperationResult().Errors!);
     }
 
     [Fact]
@@ -563,7 +563,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectSingleResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact(Skip = "Do we want to reformat ids?")]
@@ -613,7 +613,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectSingleResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact(Skip = "this does not work yet")]
@@ -663,7 +663,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectSingleResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -714,7 +714,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectSingleResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -766,7 +766,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectSingleResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -819,7 +819,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectSingleResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -866,7 +866,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectSingleResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -876,13 +876,14 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         using var demoProject = await DemoProject.CreateAsync();
 
         // act
-        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
-            new[]
-            {
-                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
-            });
+        var fusionGraph =
+            await new FusionGraphComposer(logFactory: _logFactory)
+                .ComposeAsync(
+                [
+                    demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+                    demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                    demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+                ]);
 
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
@@ -922,7 +923,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectSingleResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -974,7 +975,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectSingleResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -1074,7 +1075,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectSingleResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -1179,7 +1180,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectSingleResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -1296,7 +1297,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectSingleResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -1348,7 +1349,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectSingleResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -1405,7 +1406,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectSingleResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -1461,7 +1462,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectSingleResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -1515,7 +1516,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectSingleResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -1571,7 +1572,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectSingleResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -1631,7 +1632,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectSingleResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -1690,7 +1691,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectSingleResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -1755,7 +1756,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectSingleResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -1802,7 +1803,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectSingleResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -1858,7 +1859,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectSingleResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     // TODO : FIX THIS TEST

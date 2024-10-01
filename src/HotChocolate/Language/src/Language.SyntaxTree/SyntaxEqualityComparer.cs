@@ -749,15 +749,15 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
     private int GetHashCode(FloatValueNode node)
     {
-#if NET6_0_OR_GREATER
+#if NETSTANDARD2_0
         var hashCode = new HashCode();
         hashCode.Add(node.Kind);
-        hashCode.AddBytes(node.AsSpan());
+        HashCodeExtensions.AddBytes(ref hashCode, node.AsSpan());
         return hashCode.ToHashCode();
 #else
         var hashCode = new HashCode();
         hashCode.Add(node.Kind);
-        HashCodeExtensions.AddBytes(ref hashCode, node.AsSpan());
+        hashCode.AddBytes(node.AsSpan());
         return hashCode.ToHashCode();
 #endif
     }
@@ -938,10 +938,10 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
     {
         var hashCode = new HashCode();
         hashCode.Add(node.Kind);
-#if NET6_0_OR_GREATER
-        hashCode.AddBytes(node.AsSpan());
-#else
+#if NETSTANDARD2_0
         HashCodeExtensions.AddBytes(ref hashCode, node.AsSpan());
+#else
+        hashCode.AddBytes(node.AsSpan());
 #endif
         return hashCode.ToHashCode();
     }
@@ -1203,10 +1203,10 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
         var hashCode = new HashCode();
         hashCode.Add(node.Kind);
-#if NET6_0_OR_GREATER
-        hashCode.AddBytes(node.AsSpan());
-#else
+#if NETSTANDARD2_0
         HashCodeExtensions.AddBytes(ref hashCode, node.AsSpan());
+#else
+        hashCode.AddBytes(node.AsSpan());
 #endif
         return hashCode.ToHashCode();
     }
