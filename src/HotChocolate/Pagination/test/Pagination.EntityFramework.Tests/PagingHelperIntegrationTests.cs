@@ -927,7 +927,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         await context.SaveChangesAsync();
     }
 
-    public static async Task SeedFooAsync(string connectionString)
+    private static async Task SeedFooAsync(string connectionString)
     {
         await using var context = new FooBarContext(connectionString);
         await context.Database.EnsureCreatedAsync();
