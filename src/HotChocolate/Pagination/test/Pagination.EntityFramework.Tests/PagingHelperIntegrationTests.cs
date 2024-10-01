@@ -673,6 +673,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                 },
                 name: page.Key.ToString());
         }
+
         snapshot.MatchMarkdownSnapshot();
     }
 
@@ -706,6 +707,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                 },
                 name: page.Key.ToString());
         }
+
         snapshot.MatchMarkdownSnapshot();
     }
 
@@ -787,6 +789,140 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
             .MatchMarkdownAsync();
     }
 
+    [Fact]
+    public async Task Ensure_Nullable_Connections_Dont_Throw()
+    {
+        // Arrange
+        var connectionString = CreateConnectionString();
+        await SeedFooAsync(connectionString);
+
+        // Act
+        var result = await new ServiceCollection()
+            .AddScoped(_ => new FooBarContext(connectionString))
+            .AddGraphQL()
+            .AddQueryType<QueryNullable>()
+            .AddPagingArguments()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .ExecuteRequestAsync(
+                """
+                {
+                    foos(first: 10) {
+                        edges {
+                            cursor
+                        }
+                        nodes {
+                            id
+                            name
+                            bar {
+                                id
+                                description
+                            }
+                        }
+                        pageInfo {
+                            hasNextPage
+                            hasPreviousPage
+                            startCursor
+                            endCursor
+                        }
+                    }
+                }
+                """);
+
+        // Assert
+        string? sql = null;
+        string? expression = null;
+        var operationResult = result.ExpectOperationResult();
+        if (operationResult.Extensions?.TryGetValue("sql", out var value) ?? false)
+        {
+            sql = value!.ToString();
+        }
+
+        if (operationResult.Extensions?.TryGetValue("expression", out value) ?? false)
+        {
+            expression = value!.ToString();
+        }
+
+#if NET8_0_OR_GREATER
+        await Snapshot.Create()
+#elif NET7_0
+        await Snapshot.Create(postFix: "NET7_0")
+#elif NET6_0
+        await Snapshot.Create(postFix: "NET6_0")
+#endif
+            .Add(sql, "SQL")
+            .Add(expression, "Expression")
+            .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty), "Result")
+            .MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Ensure_Nullable_Connections_Dont_Throw_2()
+    {
+        // Arrange
+        var connectionString = CreateConnectionString();
+        await SeedFooAsync(connectionString);
+
+        // Act
+        var result = await new ServiceCollection()
+            .AddScoped(_ => new FooBarContext(connectionString))
+            .AddGraphQL()
+            .AddQueryType<QueryNullable>()
+            .AddPagingArguments()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .ExecuteRequestAsync(
+                """
+                {
+                    foos(first: 10) {
+                        edges {
+                            cursor
+                        }
+                        nodes {
+                            id
+                            name
+                            bar {
+                                id
+                                description
+                                someField1
+                                someField2
+                            }
+                        }
+                        pageInfo {
+                            hasNextPage
+                            hasPreviousPage
+                            startCursor
+                            endCursor
+                        }
+                    }
+                }
+                """);
+
+        // Assert
+        string? sql = null;
+        string? expression = null;
+        var operationResult = result.ExpectOperationResult();
+        if (operationResult.Extensions?.TryGetValue("sql", out var value) ?? false)
+        {
+            sql = value!.ToString();
+        }
+
+        if (operationResult.Extensions?.TryGetValue("expression", out value) ?? false)
+        {
+            expression = value!.ToString();
+        }
+
+#if NET8_0_OR_GREATER
+        await Snapshot.Create()
+#elif NET7_0
+        await Snapshot.Create(postFix: "NET7_0")
+#elif NET6_0
+        await Snapshot.Create(postFix: "NET6_0")
+#endif
+            .Add(sql, "SQL")
+            .Add(expression, "Expression")
+            .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty), "Result")
+            .MatchMarkdownAsync();
+    }
+
     private static async Task SeedAsync(string connectionString)
     {
         await using var context = new CatalogContext(connectionString);
@@ -807,15 +943,52 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
 
             for (var j = 0; j < 100; j++)
             {
-                var product = new Product
-                {
-                    Name = $"Product {i}-{j}",
-                    Type = type,
-                    Brand = brand,
-                };
+                var product = new Product { Name = $"Product {i}-{j}", Type = type, Brand = brand, };
                 context.Products.Add(product);
             }
         }
+
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task SeedFooAsync(string connectionString)
+    {
+        await using var context = new FooBarContext(connectionString);
+        await context.Database.EnsureCreatedAsync();
+
+        context.Bars.Add(
+            new Bar
+            {
+                Id = 1,
+                Description = "Bar 1",
+                SomeField1 = "abc",
+                SomeField2 = null
+            });
+
+        context.Bars.Add(
+            new Bar
+            {
+                Id = 2,
+                Description = "Bar 2",
+                SomeField1 = "def",
+                SomeField2 = "ghi"
+            });
+
+        context.Foos.Add(
+            new Foo
+            {
+                Id = 1,
+                Name = "Foo 1",
+                BarId = null
+            });
+
+        context.Foos.Add(
+            new Foo
+            {
+                Id = 2,
+                Name = "Foo 2",
+                BarId = 1
+            });
 
         await context.SaveChangesAsync();
     }
@@ -908,6 +1081,40 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                 .ThenBy(t => t.Id)
                 .ToPageAsync(arguments, cancellationToken: ct)
                 .ToConnectionAsync((brand, cursor) => new BrandEdge2(brand, cursor));
+    }
+
+    public class QueryNullable
+    {
+        [UsePaging]
+        public async Task<Connection<Foo>> GetFoosAsync(
+            FooBarContext context,
+            PagingArguments arguments,
+            ISelection selection,
+            IResolverContext rc,
+            CancellationToken ct)
+        {
+            var sql = context.Foos
+                .OrderBy(t => t.Name)
+                .ThenBy(t => t.Id)
+                .Select(selection.AsSelector<Foo>())
+                .ToQueryString();
+
+            var expression = context.Foos
+                .OrderBy(t => t.Name)
+                .ThenBy(t => t.Id)
+                .Select(selection.AsSelector<Foo>())
+                .Expression.ToString();
+
+            ((IMiddlewareContext)rc).OperationResult.SetExtension("sql", sql);
+            ((IMiddlewareContext)rc).OperationResult.SetExtension("expression", expression);
+
+            return await context.Foos
+                .OrderBy(t => t.Name)
+                .ThenBy(t => t.Id)
+                .Select(selection.AsSelector<Foo>())
+                .ToPageAsync(arguments, cancellationToken: ct)
+                .ToConnectionAsync();
+        }
     }
 
     [ExtendObjectType("BrandConnectionEdge")]

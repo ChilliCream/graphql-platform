@@ -3,7 +3,7 @@
 ## SQL
 
 ```text
-SELECT b."Name", b."Details_Country_Name" AS "Name", b."Id"
+SELECT b."Name", FALSE, b."Details_Country_Name", b."Id"
 FROM "Brands" AS b
 WHERE b."Id" = 1
 ```
