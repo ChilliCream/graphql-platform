@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HotChocolate.Data.Projections;
 
-#if NET8_0_OR_GREATER
 public class QueryableProjectionComplexTypeTests
 {
     private static readonly Foo[] _fooEntities =
@@ -59,4 +58,3 @@ public class QueryableProjectionComplexTypeTests
         public string Baz { get; set; } = null!;
     }
 }
-#endif
