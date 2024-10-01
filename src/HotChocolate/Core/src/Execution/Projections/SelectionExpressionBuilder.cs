@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Features;
 using HotChocolate.Types;
@@ -158,7 +159,19 @@ internal sealed class SelectionExpressionBuilder
 
         if (node.Nodes.Count == 0)
         {
-            return Expression.Bind(node.Property, propertyAccessor);
+            if (IsNullableType(node.Property))
+            {
+                var nullCheck = Expression.Condition(
+                    Expression.Equal(propertyAccessor, Expression.Constant(null)),
+                    Expression.Constant(null, node.Property.PropertyType),
+                    propertyAccessor);
+
+                return Expression.Bind(node.Property, nullCheck);
+            }
+            else
+            {
+                return Expression.Bind(node.Property, propertyAccessor);
+            }
         }
 
         if(node.IsArrayOrCollection)
@@ -167,8 +180,36 @@ internal sealed class SelectionExpressionBuilder
         }
 
         var newContext = context with { Parent = propertyAccessor, ParentType = node.Property.PropertyType };
-        var requirementsExpression = BuildExpression(node.Nodes, newContext);
-        return requirementsExpression is null ? null : Expression.Bind(node.Property, requirementsExpression);
+        var nestedExpression = BuildExpression(node.Nodes, newContext);
+
+        if (IsNullableType(node.Property))
+        {
+            var nullCheck = Expression.Condition(
+                Expression.Equal(propertyAccessor, Expression.Constant(null)),
+                Expression.Constant(null, node.Property.PropertyType),
+                nestedExpression ?? (Expression)Expression.Constant(null, node.Property.PropertyType));
+
+            return Expression.Bind(node.Property, nullCheck);
+        }
+
+        return nestedExpression is null ? null : Expression.Bind(node.Property, nestedExpression);
+    }
+
+    private static bool IsNullableType(PropertyInfo propertyInfo)
+    {
+        if (propertyInfo.PropertyType.IsValueType)
+        {
+            return Nullable.GetUnderlyingType(propertyInfo.PropertyType) != null;
+        }
+
+        var nullableAttribute = propertyInfo.GetCustomAttribute<NullableAttribute>();
+
+        if (nullableAttribute != null)
+        {
+            return nullableAttribute.NullableFlags[0] == 2;
+        }
+
+        return false;
     }
 
     private MemberInitExpression? BuildExpression(
