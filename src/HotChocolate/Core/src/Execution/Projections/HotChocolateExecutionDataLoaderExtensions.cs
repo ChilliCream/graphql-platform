@@ -29,7 +29,7 @@ public static class HotChocolateExecutionDataLoaderExtensions
     /// <returns>
     /// Returns a new data loader that applies the selection.
     /// </returns>
-    public static ISelectionDataLoader<TKey, TValue> Select<TKey, TValue>(
+    public static IDataLoader<TKey, TValue> Select<TKey, TValue>(
         this IDataLoader<TKey, TValue> dataLoader,
         ISelection selection)
         where TKey : notnull
@@ -46,43 +46,5 @@ public static class HotChocolateExecutionDataLoaderExtensions
 
         var expression = selection.AsSelector<TValue>();
         return dataLoader.Select(expression);
-    }
-
-    /// <summary>
-    /// Selects the fields that where selected in the GraphQL selection tree.
-    /// </summary>
-    /// <param name="dataLoader">
-    /// The data loader.
-    /// </param>
-    /// <param name="selection">
-    /// The selection that shall be applied to the data loader.
-    /// </param>
-    /// <typeparam name="TKey">
-    /// The key type.
-    /// </typeparam>
-    /// <typeparam name="TValue">
-    /// The value type.
-    /// </typeparam>
-    /// <returns>
-    /// Returns a new data loader that applies the selection.
-    /// </returns>
-    public static IPagingDataLoader<TKey, Page<TValue>> Select<TKey, TValue>(
-        this IPagingDataLoader<TKey, Page<TValue>> dataLoader,
-        ISelection selection)
-        where TKey : notnull
-    {
-        if (dataLoader == null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
-
-        if (selection == null)
-        {
-            throw new ArgumentNullException(nameof(selection));
-        }
-
-        var expression = selection.AsSelector<TValue>();
-        dataLoader.Select(expression);
-        return dataLoader;
     }
 }

@@ -33,7 +33,7 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
     /// <exception cref="ArgumentNullException">
     /// Throws if the <paramref name="dataLoader"/> is <c>null</c>.
     /// </exception>
-    public static IPagingDataLoader<TKey, Page<TValue>> WithPagingArguments<TKey, TValue>(
+    public static IDataLoader<TKey, Page<TValue>> WithPagingArguments<TKey, TValue>(
         this IDataLoader<TKey, Page<TValue>> dataLoader,
         PagingArguments pagingArguments)
         where TKey : notnull
@@ -84,8 +84,8 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
     /// Throws if the <paramref name="dataLoader"/> is <c>null</c>.
     /// </exception>
     [Experimental(Experiments.Projections)]
-    public static IPagingDataLoader<TKey, Page<TValue>> Select<TKey, TValue>(
-        this IPagingDataLoader<TKey, Page<TValue>> dataLoader,
+    public static IDataLoader<TKey, Page<TValue>> Select<TKey, TValue>(
+        this IDataLoader<TKey, Page<TValue>> dataLoader,
         Expression<Func<TValue, TValue>>? selector)
         where TKey : notnull
     {

@@ -111,31 +111,6 @@ public static class SelectionDataLoaderExtensions
         return dataLoader;
     }
 
-    /*
-    /// <summary>
-    /// Includes a property in the query.
-    /// </summary>
-    /// <param name="dataLoader">
-    /// The DataLoader to include the property in.
-    /// </param>
-    /// <param name="includeSelector">
-    /// The property selector.
-    /// </param>
-    /// <typeparam name="TKey">
-    /// The key type.
-    /// </typeparam>
-    /// <typeparam name="TValue">
-    /// The value type.
-    /// </typeparam>
-    /// <returns>
-    /// Returns the DataLoader with the property included.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// Throws if <paramref name="dataLoader"/> is <c>null</c>.
-    /// </exception>
-    /// <exception cref="ArgumentException">
-    /// Throws if the include selector is not a property selector.
-    /// </exception>
     public static IDataLoader<TKey, TValue> Include<TKey, TValue>(
         this IDataLoader<TKey, TValue> dataLoader,
         Expression<Func<TValue, object?>> includeSelector)
@@ -151,14 +126,7 @@ public static class SelectionDataLoaderExtensions
             throw new ArgumentNullException(nameof(includeSelector));
         }
 
-        if (includeSelector is not LambdaExpression lambda)
-        {
-            throw new ArgumentException(
-                "The include selector must be a lambda expression.",
-                nameof(includeSelector));
-        }
-
-        if (lambda.Body is not MemberExpression member
+        if (includeSelector.Body is not MemberExpression member
             || member.Member.MemberType != MemberTypes.Property)
         {
             throw new ArgumentException(
@@ -166,54 +134,9 @@ public static class SelectionDataLoaderExtensions
                 nameof(includeSelector));
         }
 
-        DefaultSelectorBuilder<TValue> context;
-        if (dataLoader.ContextData.TryGetValue(typeof(ISelectorBuilder).FullName!, out var value)
-            && value is DefaultSelectorBuilder<TValue> casted)
-        {
-            context = casted;
-        }
-        else
-        {
-            context = new DefaultSelectorBuilder<TValue>();
-        }
-
-        context.Add(ExpressionHelpers.Rewrite(includeSelector));
-        dataLoader.ContextData = dataLoader.ContextData.SetItem(typeof(ISelectorBuilder).FullName!, context);
-        return dataLoader;
-    }
-    */
-
-    public static ISelectionDataLoader<TKey, TValue> Include<TKey, TValue>(
-        this ISelectionDataLoader<TKey, TValue> dataLoader,
-        Expression<Func<TValue, object?>> includeSelector)
-        where TKey : notnull
-    {
-        if (dataLoader is null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
-
-        if (includeSelector is null)
-        {
-            throw new ArgumentNullException(nameof(includeSelector));
-        }
-
-        if (includeSelector is not LambdaExpression lambda)
-        {
-            throw new ArgumentException(
-                "The include selector must be a lambda expression.",
-                nameof(includeSelector));
-        }
-
-        if (lambda.Body is not MemberExpression member
-            || member.Member.MemberType != MemberTypes.Property)
-        {
-            throw new ArgumentException(
-                "The include selector must be a property selector.",
-                nameof(includeSelector));
-        }
-
-        var context = (DefaultSelectorBuilder<TValue>)dataLoader.ContextData[typeof(ISelectorBuilder).FullName!]!;
+        var context = dataLoader.GetOrSetState(
+            typeof(ISelectorBuilder).FullName!,
+            _ => new DefaultSelectorBuilder<TValue>());
         context.Add(Rewrite(includeSelector));
         return dataLoader;
     }
