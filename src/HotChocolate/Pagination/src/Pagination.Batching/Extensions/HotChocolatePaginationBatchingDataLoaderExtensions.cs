@@ -86,7 +86,7 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
     [Experimental(Experiments.Projections)]
     public static IPagingDataLoader<TKey, Page<TValue>> Select<TKey, TValue>(
         this IPagingDataLoader<TKey, Page<TValue>> dataLoader,
-        Expression<Func<TValue, TValue>> selector)
+        Expression<Func<TValue, TValue>>? selector)
         where TKey : notnull
     {
         if (dataLoader is null)
@@ -94,9 +94,9 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
             throw new ArgumentNullException(nameof(dataLoader));
         }
 
-        if (selector is null)
+        if(selector is null)
         {
-            throw new ArgumentNullException(nameof(selector));
+            return dataLoader;
         }
 
         var builder = dataLoader.GetOrSetState(_ => new DefaultSelectorBuilder<TValue>());

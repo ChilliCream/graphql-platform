@@ -32,9 +32,9 @@ public static class SelectionDataLoaderExtensions
     /// <exception cref="ArgumentNullException">
     /// Throws if <paramref name="dataLoader"/> is <c>null</c>.
     /// </exception>
-    public static ISelectionDataLoader<TKey, TValue> Select<TKey, TValue>(
+    public static IDataLoader<TKey, TValue> Select<TKey, TValue>(
         this IDataLoader<TKey, TValue> dataLoader,
-        Expression<Func<TValue, TValue>> selector)
+        Expression<Func<TValue, TValue>>? selector)
         where TKey : notnull
     {
         if (dataLoader is null)
@@ -44,7 +44,12 @@ public static class SelectionDataLoaderExtensions
 
         if (selector is null)
         {
-            throw new ArgumentNullException(nameof(selector));
+            return dataLoader;
+        }
+
+        if(dataLoader is ISelectionDataLoader<TKey, TValue> selectionDataLoader)
+        {
+            return selectionDataLoader.Select(selector);
         }
 
         var branchKey = selector.ToString();
@@ -88,7 +93,7 @@ public static class SelectionDataLoaderExtensions
     /// </exception>
     public static ISelectionDataLoader<TKey, TValue> Select<TKey, TValue>(
         this ISelectionDataLoader<TKey, TValue> dataLoader,
-        Expression<Func<TValue, TValue>> selector)
+        Expression<Func<TValue, TValue>>? selector)
         where TKey : notnull
     {
         if (dataLoader is null)
@@ -98,7 +103,7 @@ public static class SelectionDataLoaderExtensions
 
         if (selector is null)
         {
-            throw new ArgumentNullException(nameof(selector));
+            return dataLoader;
         }
 
         var context = (DefaultSelectorBuilder<TValue>)dataLoader.ContextData[typeof(ISelectorBuilder).FullName!]!;
