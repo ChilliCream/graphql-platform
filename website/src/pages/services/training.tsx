@@ -15,7 +15,6 @@ import {
   NewsletterSection,
   PublicWorkshopSection,
 } from "@/components/widgets";
-import { useAnimationIntersectionObserver } from "@/hooks";
 import { State, WorkshopsState } from "@/state";
 
 interface Service {
@@ -55,8 +54,6 @@ const TrainingPage: FC = () => {
   const workshops = useSelector<State, WorkshopsState>((state) =>
     state.workshops.filter(({ active }) => active)
   );
-
-  useAnimationIntersectionObserver();
 
   return (
     <SiteLayout>

@@ -1,6 +1,6 @@
 using System.Drawing;
 using System.Text.RegularExpressions;
-using Snapshooter.Xunit;
+using CookieCrumble;
 
 namespace HotChocolate.Types.Descriptors;
 

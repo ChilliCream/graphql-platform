@@ -876,13 +876,14 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         using var demoProject = await DemoProject.CreateAsync();
 
         // act
-        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
-            new[]
-            {
-                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
-            });
+        var fusionGraph =
+            await new FusionGraphComposer(logFactory: _logFactory)
+                .ComposeAsync(
+                [
+                    demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+                    demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                    demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+                ]);
 
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)

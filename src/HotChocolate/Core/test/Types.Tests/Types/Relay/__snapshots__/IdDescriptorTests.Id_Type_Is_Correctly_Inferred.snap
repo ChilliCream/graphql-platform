@@ -1,13 +1,15 @@
-﻿schema {
+schema {
   query: Query
 }
 
 interface IFooPayload {
   someId: ID
+  anotherId: ID
 }
 
 type FooPayload implements IFooPayload {
   someId: ID
+  anotherId: ID
 }
 
 type Query {
@@ -19,4 +21,5 @@ type Query {
 
 input FooInput {
   someId: ID
+  anotherId: ID
 }

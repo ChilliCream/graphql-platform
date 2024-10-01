@@ -538,11 +538,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
             {
                 if (!builder.IsDefaultHandler && builder.CanHandle(parameter))
                 {
-#if NETSTANDARD
-                    _cache[parameter] = builder;
-#else
                     _cache.TryAdd(parameter, builder);
-#endif
                     return builder;
                 }
             }
@@ -552,11 +548,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         {
             if (builder.CanHandle(parameter))
             {
-#if NETSTANDARD
-                _cache[parameter] = builder;
-#else
                 _cache.TryAdd(parameter, builder);
-#endif
                 return builder;
             }
         }
@@ -567,11 +559,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
             {
                 if (builder.IsDefaultHandler && builder.CanHandle(parameter))
                 {
-#if NETSTANDARD
-                    _cache[parameter] = builder;
-#else
                     _cache.TryAdd(parameter, builder);
-#endif
                     return builder;
                 }
             }
@@ -583,21 +571,13 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
             {
                 if (builder.CanHandle(parameter))
                 {
-#if NETSTANDARD
-                _cache[parameter] = builder;
-#else
                     _cache.TryAdd(parameter, builder);
-#endif
                     return builder;
                 }
             }
         }
 
-#if NETSTANDARD
-        _cache[parameter] = _defaultExprBuilder;
-#else
         _cache.TryAdd(parameter, _defaultExprBuilder);
-#endif
         return _defaultExprBuilder;
     }
 

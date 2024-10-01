@@ -1,7 +1,5 @@
 using System.Runtime.CompilerServices;
-#if NET6_0_OR_GREATER
 using System.Runtime.InteropServices;
-#endif
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -592,17 +590,11 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         var directives = (List<DirectiveDefinition>)definition.Directives;
         var length = directives.Count;
 
-#if NET6_0_OR_GREATER
         ref var start = ref MemoryMarshal.GetReference(CollectionsMarshal.AsSpan(directives));
-#endif
 
         for (var i = 0; i < length; i++)
         {
-#if NET6_0_OR_GREATER
             var directiveDef = Unsafe.Add(ref start, i);
-#else
-            var directiveDef = directives[i];
-#endif
 
             if (directiveDef.Type is NameDirectiveReference { Name: Authorize, } ||
                 (directiveDef.Type is ExtendedTypeDirectiveReference { Type.Type: { } type, } &&

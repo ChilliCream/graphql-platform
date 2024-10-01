@@ -1,4 +1,3 @@
-#if NET6_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
@@ -9,9 +8,7 @@ namespace GreenDonut.Projections;
 /// by adding expressions that will be merged into a
 /// single selector expression.
 /// </summary>
-#if NET8_0_OR_GREATER
 [Experimental(Experiments.Projections)]
-#endif
 public interface ISelectorBuilder
 {
     /// <summary>
@@ -41,4 +38,3 @@ public interface ISelectorBuilder
     /// </returns>
     Expression<Func<T, T>>? TryCompile<T>();
 }
-#endif

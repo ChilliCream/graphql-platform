@@ -1,7 +1,7 @@
-﻿{
+{
   "errors": [
     {
-      "message": "The fields \u0060\u0060field3\u0060, \u0060field4\u0060\u0060 do not exist on the type \u0060TestInput\u0060.",
+      "message": "The fields ``field3`, `field4`` do not exist on the type `TestInput`.",
       "path": [
         "root"
       ],

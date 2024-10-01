@@ -31,10 +31,8 @@ public static class Scalars
         { typeof(byte[]), typeof(ByteArrayType) },
         { typeof(TimeSpan), typeof(TimeSpanType) },
 
-#if NET6_0_OR_GREATER
         { typeof(DateOnly), typeof(DateType) },
         { typeof(TimeOnly), typeof(TimeSpanType) },
-#endif
         { typeof(JsonElement), typeof(JsonType) },
     };
 

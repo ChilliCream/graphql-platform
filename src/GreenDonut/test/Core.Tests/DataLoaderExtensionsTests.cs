@@ -6,22 +6,22 @@ namespace GreenDonut;
 
 public class DataLoaderExtensionsTests
 {
-    [Fact(DisplayName = "Set: Should throw an argument null exception for dataLoader")]
-    public void SetDataLoaderNull()
+    [Fact(DisplayName = "SetCacheEntry: Should throw an argument null exception for dataLoader")]
+    public void SetCacheEntryDataLoaderNull()
     {
         // arrange
         var key = "Foo";
         var value = "Bar";
 
         // act
-        void Verify() => default(IDataLoader<string, string>)!.Set(key, value);
+        void Verify() => default(IDataLoader<string, string>)!.SetCacheEntry(key, value);
 
         // assert
         Assert.Throws<ArgumentNullException>("dataLoader", Verify);
     }
 
-    [Fact(DisplayName = "Set: Should throw an argument null exception for key")]
-    public void SetKeyNull()
+    [Fact(DisplayName = "SetCacheEntry: Should throw an argument null exception for key")]
+    public void SetCacheEntryKeyNull()
     {
         // arrange
         var fetch = TestHelpers.CreateFetch<string, string>();
@@ -30,14 +30,14 @@ public class DataLoaderExtensionsTests
         var value = "Bar";
 
         // act
-        void Verify() => loader.Set(null!, value);
+        void Verify() => loader.SetCacheEntry(null!, value);
 
         // assert
         Assert.Throws<ArgumentNullException>("key", Verify);
     }
 
-    [Fact(DisplayName = "Set: Should not throw any exception")]
-    public void SetNoException()
+    [Fact(DisplayName = "SetCacheEntry: Should not throw any exception")]
+    public void SetCacheEntryNoException()
     {
         // arrange
         var fetch = TestHelpers.CreateFetch<string, string>();
@@ -46,14 +46,14 @@ public class DataLoaderExtensionsTests
         var key = "Foo";
 
         // act
-        void Verify() => loader.Set(key, null!);
+        void Verify() => loader.SetCacheEntry(key, null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Verify);
     }
 
-    [Fact(DisplayName = "Set: Should result in a new cache entry")]
-    public async Task SetNewCacheEntry()
+    [Fact(DisplayName = "SetCacheEntry: Should result in a new cache entry")]
+    public async Task SetCacheEntry()
     {
         // arrange
         using var cacheOwner = new PromiseCacheOwner();
@@ -71,7 +71,7 @@ public class DataLoaderExtensionsTests
         const string  value = "Bar";
 
         // act
-        loader.Set(key, value);
+        loader.SetCacheEntry(key, value);
 
         // assert
         var loadResult = await loader.LoadAsync(key);
@@ -79,8 +79,8 @@ public class DataLoaderExtensionsTests
         Assert.Equal(value, loadResult);
     }
 
-    [Fact(DisplayName = "Set: Should result in 'Bar'")]
-    public async Task SetTwice()
+    [Fact(DisplayName = "SetCacheEntry: Should result in 'Bar'")]
+    public async Task SetCacheEntryTwice()
     {
         // arrange
         using var cacheOwner = new PromiseCacheOwner();
@@ -99,8 +99,8 @@ public class DataLoaderExtensionsTests
         const string second = "Baz";
 
         // act
-        loader.Set(key, first);
-        loader.Set(key, second);
+        loader.SetCacheEntry(key, first);
+        loader.SetCacheEntry(key, second);
 
         // assert
         var loadResult = await loader.LoadAsync(key);
@@ -108,22 +108,22 @@ public class DataLoaderExtensionsTests
         Assert.Equal(first, loadResult);
     }
 
-    [Fact(DisplayName = "IDataLoader.Set: Should throw an argument null exception for dataLoader")]
-    public void IDataLoaderSetDataLoaderNull()
+    [Fact(DisplayName = "IDataLoader.SetCacheEntry: Should throw an argument null exception for dataLoader")]
+    public void IDataLoaderSetCacheEntryDataLoaderNull()
     {
         // arrange
         object key = "Foo";
         object value = "Bar";
 
         // act
-        void Verify() => default(IDataLoader)!.Set(key, value);
+        void Verify() => default(IDataLoader)!.SetCacheEntry(key, value);
 
         // assert
         Assert.Throws<ArgumentNullException>("dataLoader", Verify);
     }
 
-    [Fact(DisplayName = "IDataLoader.Set: Should throw an argument null exception for key")]
-    public void IDataLoaderSetKeyNull()
+    [Fact(DisplayName = "IDataLoader.SetCacheEntry: Should throw an argument null exception for key")]
+    public void IDataLoaderSetCacheEntryKeyNull()
     {
         // arrange
         using var cacheOwner = new PromiseCacheOwner();
@@ -139,14 +139,14 @@ public class DataLoaderExtensionsTests
         object value = "Bar";
 
         // act
-        void Verify() => loader.Set(null!, value);
+        void Verify() => loader.SetCacheEntry(null!, value);
 
         // assert
         Assert.Throws<ArgumentNullException>("key", Verify);
     }
 
-    [Fact(DisplayName = "IDataLoader.Set: Should not throw any exception")]
-    public void IDataLoaderSetNoException()
+    [Fact(DisplayName = "IDataLoader.SetCacheEntry: Should not throw any exception")]
+    public void IDataLoaderSetCacheEntryNoException()
     {
         // arrange
         var fetch = TestHelpers.CreateFetch<string, string>();
@@ -155,7 +155,7 @@ public class DataLoaderExtensionsTests
         object key = "Foo";
 
         // act
-        void Verify() => loader.Set(key, null!);
+        void Verify() => loader.SetCacheEntry(key, null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Verify);

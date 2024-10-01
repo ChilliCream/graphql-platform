@@ -1,0 +1,19 @@
+﻿{
+  "Headers": [
+    {
+      "Key": "Cache-Control",
+      "Value": [
+        "max-age=30, private"
+      ]
+    }
+  ],
+  "ContentHeaders": [
+    {
+      "Key": "Content-Type",
+      "Value": [
+        "application/graphql-response+json; charset=utf-8"
+      ]
+    }
+  ],
+  "Body": "{\"data\":{\"field1\":\"\",\"field2\":\"\"}}"
+}

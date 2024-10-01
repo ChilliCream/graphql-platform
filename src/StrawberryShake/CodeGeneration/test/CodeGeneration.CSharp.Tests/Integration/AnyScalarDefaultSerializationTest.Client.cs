@@ -189,8 +189,33 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.AnyScalarDefaultSeri
 
         public static GetJsonQueryDocument Instance { get; } = new GetJsonQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x47, 0x65, 0x74, 0x4a, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x6a, 0x73, 0x6f, 0x6e, 0x20, 0x7d};
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
+        {
+            0x71,
+            0x75,
+            0x65,
+            0x72,
+            0x79,
+            0x20,
+            0x47,
+            0x65,
+            0x74,
+            0x4a,
+            0x73,
+            0x6f,
+            0x6e,
+            0x20,
+            0x7b,
+            0x20,
+            0x6a,
+            0x73,
+            0x6f,
+            0x6e,
+            0x20,
+            0x7d
+        };
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "90a00e07ca153decc5937eb356401940e7c6b66a");
+
         public override global::System.String ToString()
         {
 #if NETCOREAPP3_1_OR_GREATER
@@ -220,6 +245,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.AnyScalarDefaultSeri
         }
 
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IGetJsonResult);
+
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetJsonResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest();
@@ -305,6 +331,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.AnyScalarDefaultSeri
         }
 
         global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::StrawberryShake.CodeGeneration.CSharp.Integration.AnyScalarDefaultSerialization.IGetJsonResult);
+
         public GetJsonResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             if (snapshot is null)
@@ -340,9 +367,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.AnyScalarDefaultSeri
         }
 
         public global::System.Text.Json.JsonElement Json { get; }
-
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
         public global::System.UInt64 Version => _version;
+
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new GetJsonResultInfo(Json, _entityIds, version);
@@ -398,7 +425,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.AnyScalarDefaultSeri
     public partial class AnyScalarDefaultSerializationClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
         private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
-        {Indented = false};
+        {
+            Indented = false
+        };
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
             global::System.String __typename = obj.GetProperty("__typename").GetString()!;

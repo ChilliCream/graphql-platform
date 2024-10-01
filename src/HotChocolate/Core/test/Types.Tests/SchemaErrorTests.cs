@@ -1,8 +1,8 @@
+using CookieCrumble;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using Snapshooter.Xunit;
 
 namespace HotChocolate;
 

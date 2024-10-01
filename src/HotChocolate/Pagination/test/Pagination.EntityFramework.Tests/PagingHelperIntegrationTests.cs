@@ -435,13 +435,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         var operationResult = result.ExpectOperationResult();
         var sql = operationResult.Extensions!["sql"]!.ToString();
 
-#if NET8_0_OR_GREATER
         await Snapshot.Create()
-#elif NET7_0_OR_GREATER
-        await Snapshot.Create("NET7")
-#else
-        await Snapshot.Create("NET6")
-#endif
             .Add(sql, "SQL", "sql")
             .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty))
             .MatchMarkdownAsync();
@@ -490,13 +484,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         var operationResult = result.ExpectOperationResult();
         var sql = operationResult.Extensions!["sql"]!.ToString();
 
-#if NET8_0_OR_GREATER
         await Snapshot.Create()
-#elif NET7_0_OR_GREATER
-        await Snapshot.Create("NET7")
-#else
-        await Snapshot.Create("NET6")
-#endif
             .Add(sql, "SQL", "sql")
             .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty))
             .MatchMarkdownAsync();
@@ -518,14 +506,14 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         // Assert
         await Snapshot.Create()
             .Add(new
-                {
-                    result.HasNextPage,
-                    result.HasPreviousPage,
-                    First = result.First?.Id,
-                    FirstCursor = result.First is not null ? result.CreateCursor(result.First) : null,
-                    Last = result.Last?.Id,
-                    LastCursor = result.Last is not null ? result.CreateCursor(result.Last) : null
-                })
+            {
+                result.HasNextPage,
+                result.HasPreviousPage,
+                First = result.First?.Id,
+                FirstCursor = result.First is not null ? result.CreateCursor(result.First) : null,
+                Last = result.Last?.Id,
+                LastCursor = result.Last is not null ? result.CreateCursor(result.Last) : null
+            })
             .Add(result.Items)
             .MatchMarkdownAsync();
     }
@@ -709,6 +697,84 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         snapshot.MatchMarkdownSnapshot();
     }
 
+    [Fact]
+    public async Task Map_Page_To_Connection_With_Dto()
+    {
+        // Arrange
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        // Act
+        var result = await new ServiceCollection()
+            .AddScoped(_ => new CatalogContext(connectionString))
+            .AddGraphQL()
+            .AddQueryType<QueryConnection>()
+            .AddTypeExtension(typeof(BrandConnectionEdgeExtensions))
+            .AddPagingArguments()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .ExecuteRequestAsync(
+                """
+                {
+                    brands(first: 2) {
+                        edges {
+                            cursor
+                            displayName
+                            node {
+                                id
+                                name
+                            }
+                        }
+                    }
+                }
+                """);
+
+        // Assert
+        var operationResult = result.ExpectOperationResult();
+
+        await Snapshot.Create()
+            .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty))
+            .MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Map_Page_To_Connection_With_Dto_2()
+    {
+        // Arrange
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        // Act
+        var result = await new ServiceCollection()
+            .AddScoped(_ => new CatalogContext(connectionString))
+            .AddGraphQL()
+            .AddQueryType<QueryConnection2>()
+            .AddTypeExtension(typeof(BrandConnectionEdgeExtensions2))
+            .AddPagingArguments()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .ExecuteRequestAsync(
+                """
+                {
+                    brands(first: 2) {
+                        edges {
+                            cursor
+                            displayName
+                            node {
+                                id
+                                name
+                            }
+                        }
+                    }
+                }
+                """);
+
+        // Assert
+        var operationResult = result.ExpectOperationResult();
+
+        await Snapshot.Create()
+            .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty))
+            .MatchMarkdownAsync();
+    }
+
     private static async Task SeedAsync(string connectionString)
     {
         await using var context = new CatalogContext(connectionString);
@@ -731,7 +797,9 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
             {
                 var product = new Product
                 {
-                    Name = $"Product {i}-{j}", Type = type, Brand = brand,
+                    Name = $"Product {i}-{j}",
+                    Type = type,
+                    Brand = brand,
                 };
                 context.Products.Add(product);
             }
@@ -800,6 +868,84 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                 .ThenBy(t => t.Id)
                 .ToPageAsync(arguments, cancellationToken: ct)
                 .ToConnectionAsync();
+    }
+
+    public class QueryConnection
+    {
+        [UsePaging(ConnectionName = "BrandConnection")]
+        public async Task<Connection<BrandDto>> GetBrandsAsync(
+            CatalogContext context,
+            PagingArguments arguments,
+            CancellationToken ct)
+            => await context.Brands
+                .OrderBy(t => t.Name)
+                .ThenBy(t => t.Id)
+                .ToPageAsync(arguments, cancellationToken: ct)
+                .ToConnectionAsync((brand, page) => new BrandEdge(brand, edge => page.CreateCursor(edge.Brand)));
+    }
+
+    public class QueryConnection2
+    {
+        [UsePaging(ConnectionName = "BrandConnection")]
+        public async Task<Connection<BrandDto>> GetBrandsAsync(
+            CatalogContext context,
+            PagingArguments arguments,
+            CancellationToken ct)
+            => await context.Brands
+                .OrderBy(t => t.Name)
+                .ThenBy(t => t.Id)
+                .ToPageAsync(arguments, cancellationToken: ct)
+                .ToConnectionAsync((brand, cursor) => new BrandEdge2(brand, cursor));
+    }
+
+    [ExtendObjectType("BrandConnectionEdge")]
+    public class BrandConnectionEdgeExtensions
+    {
+        public string? GetDisplayName([Parent] BrandEdge edge)
+            => edge.Brand.DisplayName;
+    }
+
+    [ExtendObjectType("BrandConnectionEdge")]
+    public class BrandConnectionEdgeExtensions2
+    {
+        public string? GetDisplayName([Parent] BrandEdge2 edge)
+            => edge.Brand.DisplayName;
+    }
+
+    public class BrandEdge : Edge<BrandDto>
+    {
+        public BrandEdge(Brand brand, Func<BrandEdge, string> cursor)
+            : base(new BrandDto(brand.Id, brand.Name), edge => cursor((BrandEdge)edge))
+        {
+            Brand = brand;
+        }
+
+        public Brand Brand { get; }
+    }
+
+    public class BrandEdge2 : Edge<BrandDto>
+    {
+        public BrandEdge2(Brand brand, string cursor)
+            : base(new BrandDto(brand.Id, brand.Name), cursor)
+        {
+            Brand = brand;
+        }
+
+        public Brand Brand { get; }
+    }
+
+
+    public class BrandDto
+    {
+        public BrandDto(int id, string name)
+        {
+            Id = id;
+            Name = name;
+        }
+
+        public int Id { get; }
+
+        public string Name { get; }
     }
 
     [ExtendObjectType<Brand>]

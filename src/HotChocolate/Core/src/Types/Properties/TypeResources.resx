@@ -55,7 +55,7 @@
     <value>The `Date` scalar represents an ISO-8601 compliant date type.</value>
   </data>
   <data name="DecimalType_Description" xml:space="preserve">
-    <value>The built-in `Decimal` scalar type.</value>
+    <value>The `Decimal` scalar type represents a decimal floating-point number.</value>
   </data>
   <data name="DefaultTypeInspector_MemberInvalid" xml:space="preserve">
     <value>The specified member has to be a method or a property.</value>

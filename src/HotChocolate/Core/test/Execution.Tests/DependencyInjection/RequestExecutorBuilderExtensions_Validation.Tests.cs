@@ -1,9 +1,9 @@
+using CookieCrumble;
 using HotChocolate.Language;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Execution.DependencyInjection;
 
@@ -70,10 +70,9 @@ public class RequestExecutorBuilderExtensionsValidationTests
     }
 
     [Fact]
+    [Obsolete]
     public async Task AddIntrospectionAllowedRule_IntegrationTest_NotAllowed()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
@@ -87,10 +86,9 @@ public class RequestExecutorBuilderExtensionsValidationTests
     }
 
     [Fact]
+    [Obsolete]
     public async Task AllowIntrospection_IntegrationTest_NotAllowed()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
@@ -104,10 +102,9 @@ public class RequestExecutorBuilderExtensionsValidationTests
     }
 
     [Fact]
+    [Obsolete]
     public async Task AllowIntrospection_IntegrationTest_Allowed()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
@@ -121,10 +118,9 @@ public class RequestExecutorBuilderExtensionsValidationTests
     }
 
     [Fact]
+    [Obsolete]
     public async Task AllowIntrospection_IntegrationTest_NotAllowed_CustomMessage()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
@@ -139,10 +135,9 @@ public class RequestExecutorBuilderExtensionsValidationTests
     }
 
     [Fact]
+    [Obsolete]
     public async Task AddIntrospectionAllowedRule_IntegrationTest_NotAllowed_CustomMessageFact()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
@@ -157,10 +152,9 @@ public class RequestExecutorBuilderExtensionsValidationTests
     }
 
     [Fact]
+    [Obsolete]
     public async Task AddIntrospectionAllowedRule_IntegrationTest_NotAllowed_CustomMessage()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
@@ -175,10 +169,9 @@ public class RequestExecutorBuilderExtensionsValidationTests
     }
 
     [Fact]
+    [Obsolete]
     public async Task AddIntrospectionAllowedRule_IntegrationTest_Allowed()
     {
-        Snapshot.FullName();
-
         var executor =
             await new ServiceCollection()
                 .AddGraphQLServer()
@@ -221,6 +214,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
 
     public class MockRule : IDocumentValidatorRule
     {
+        public ushort Priority => ushort.MaxValue;
         public bool IsCacheable => true;
 
         public void Validate(IDocumentValidatorContext context, DocumentNode document)

@@ -1,17 +1,5 @@
-﻿{
-  "Kind": "SingleResult",
-  "RequestIndex": null,
-  "VariableIndex": null,
-  "Label": null,
-  "Path": null,
-  "Data": {
+{
+  "data": {
     "a": "b"
-  },
-  "Items": null,
-  "Errors": null,
-  "Extensions": null,
-  "Incremental": null,
-  "ContextData": null,
-  "HasNext": null,
-  "IsDataSet": true
+  }
 }

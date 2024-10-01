@@ -1,6 +1,6 @@
+using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Execution.DependencyInjection;
 

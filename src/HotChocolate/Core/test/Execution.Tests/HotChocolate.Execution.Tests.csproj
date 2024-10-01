@@ -4,7 +4,7 @@
     <AssemblyName>HotChocolate.Execution.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Execution</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
-    <NoWarn>GD0001</NoWarn>
+    <NoWarn>$(NoWarn);GD0001</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

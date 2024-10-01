@@ -328,19 +328,13 @@ public sealed class DefaultNodeIdSerializer(
     }
 
     private static readonly byte[] _delimiters = [_delimiter, _legacyDelimiter];
-#if NET8_0_OR_GREATER
     private static readonly SearchValues<byte> _delimiterSearchValues =
         SearchValues.Create(_delimiters);
-#endif
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int FindDelimiterIndex(ReadOnlySpan<byte> span)
     {
-#if NET8_0_OR_GREATER
         return span.IndexOfAny(_delimiterSearchValues);
-#else
-        return span.IndexOfAny(_delimiters);
-#endif
     }
 
     private static void Clear(byte[]? rentedBuffer = null)

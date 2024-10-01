@@ -47,11 +47,7 @@ public class FileSystemOperationDocumentStorage : IOperationDocumentStorage
         string filePath,
         CancellationToken cancellationToken)
     {
-#if NETSTANDARD2_0
-        using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-#else
         await using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-#endif
 
         var document = await BufferHelper.ReadAsync(
                 stream,
@@ -96,11 +92,7 @@ public class FileSystemOperationDocumentStorage : IOperationDocumentStorage
             return;
         }
 
-#if NETSTANDARD2_0
-        using var stream = new FileStream(filePath, FileMode.CreateNew, FileAccess.Write);
-#else
         await using var stream = new FileStream(filePath, FileMode.CreateNew, FileAccess.Write);
-#endif
         await document.WriteToAsync(stream, cancellationToken).ConfigureAwait(false);
         await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
     }

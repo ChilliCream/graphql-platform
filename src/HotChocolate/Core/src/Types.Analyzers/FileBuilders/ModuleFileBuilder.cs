@@ -269,6 +269,12 @@ public sealed class ModuleFileBuilder : IDisposable
     public void WriteRegisterDataLoader(string typeName, string interfaceTypeName)
         => _writer.WriteIndentedLine("builder.AddDataLoader<global::{0}, global::{1}>();", interfaceTypeName, typeName);
 
+    public void WriteRegisterDataLoaderGroup(string typeName, string interfaceTypeName)
+        => _writer.WriteIndentedLine(
+            "builder.Services.AddScoped<global::{0}, global::{1}>();",
+            interfaceTypeName,
+            typeName);
+
     public void WriteTryAddOperationType(OperationType type)
     {
         _writer.WriteIndentedLine("builder.ConfigureSchema(");
