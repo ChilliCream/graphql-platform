@@ -933,16 +933,38 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         await context.Database.EnsureCreatedAsync();
 
         context.Bars.Add(
-            new Bar { Id = 1, Description = "Bar 1", SomeField1 = "abc", SomeField2 = null });
+            new Bar
+            {
+                Id = 1,
+                Description = "Bar 1",
+                SomeField1 = "abc",
+                SomeField2 = null
+            });
 
         context.Bars.Add(
-            new Bar { Id = 2, Description = "Bar 2", SomeField1 = "def", SomeField2 = "ghi" });
+            new Bar
+            {
+                Id = 2,
+                Description = "Bar 2",
+                SomeField1 = "def",
+                SomeField2 = "ghi"
+            });
 
         context.Foos.Add(
-            new Foo { Id = 1, Name = "Foo 1", BarId = null });
+            new Foo
+            {
+                Id = 1,
+                Name = "Foo 1",
+                BarId = null
+            });
 
         context.Foos.Add(
-            new Foo { Id = 2, Name = "Foo 2", BarId = 1 });
+            new Foo
+            {
+                Id = 2,
+                Name = "Foo 2",
+                BarId = 1
+            });
 
         await context.SaveChangesAsync();
     }
