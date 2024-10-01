@@ -8,6 +8,8 @@ public sealed class FusionGatewayResource(ProjectResource projectResource)
     , IResourceWithEnvironment
     , IResourceWithServiceDiscovery
 {
+    public override ResourceAnnotationCollection Annotations => projectResource.Annotations;
+
     public ProjectResource ProjectResource { get; } = projectResource;
 
     public EndpointReference GetEndpoint(string endpointName)
