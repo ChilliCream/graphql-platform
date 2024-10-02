@@ -2,13 +2,13 @@ using System.Reflection;
 
 namespace HotChocolate.Execution.Projections;
 
-internal class PropertyNodeContainer(
-    List<PropertyNode>? nodes = null)
-    : IPropertyNodeProvider
+internal sealed class TypeNode(Type type, List<PropertyNode>? nodes = null)
 {
     private static readonly IReadOnlyList<PropertyNode> _emptyNodes = Array.Empty<PropertyNode>();
-    private List<PropertyNode>? _nodes = nodes;
+    private List<PropertyNode>? _nodes = nodes ?? [];
     private bool _sealed;
+
+    public Type Type => type;
 
     public IReadOnlyList<PropertyNode> Nodes
         => _nodes ?? _emptyNodes;
@@ -58,10 +58,28 @@ internal class PropertyNodeContainer(
                 {
                     node.TryAddNode(newChild);
                 }
+
+                return;
             }
         }
 
         _nodes.Add(newNode);
+    }
+
+    public TypeNode Clone()
+    {
+        List<PropertyNode>? nodes = null;
+
+        if (Nodes.Count > 0)
+        {
+            nodes = new(Nodes.Count);
+            foreach (var node in Nodes)
+            {
+                nodes.Add(node.Clone());
+            }
+        }
+
+        return new TypeNode(Type, nodes);
     }
 
     public void Seal()

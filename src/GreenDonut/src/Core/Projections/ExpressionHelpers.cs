@@ -9,10 +9,10 @@ internal static class ExpressionHelpers
         Expression<Func<T, T>> first,
         Expression<Func<T, T>> second)
     {
-        var parameter = Expression.Parameter(typeof(T), "entity");
-        var firstBody = (MemberInitExpression)ReplaceParameter(first.Body, first.Parameters[0], parameter);
-        var secondBody = (MemberInitExpression)ReplaceParameter(second.Body, second.Parameters[0], parameter);
-        var combinedBody = CombineMemberInitExpressions(firstBody, secondBody);
+        var parameter = Expression.Parameter(typeof(T), "root");
+        var firstBody = ReplaceParameter(first.Body, first.Parameters[0], parameter);
+        var secondBody = ReplaceParameter(second.Body, second.Parameters[0], parameter);
+        var combinedBody = CombineExpressions(firstBody, secondBody);
         return Expression.Lambda<Func<T, T>>(combinedBody, parameter);
     }
 
@@ -21,6 +21,32 @@ internal static class ExpressionHelpers
         ParameterExpression toReplace,
         Expression replacement)
         => new ParameterReplacer(toReplace, replacement).Visit(body);
+
+    private static Expression CombineExpressions(Expression first, Expression second)
+    {
+        if (first is MemberInitExpression firstInit && second is MemberInitExpression secondInit)
+        {
+            return CombineMemberInitExpressions(firstInit, secondInit);
+        }
+
+        if (first is ConditionalExpression firstCond && second is ConditionalExpression secondCond)
+        {
+            return CombineConditionalExpressions(firstCond, secondCond);
+        }
+
+        if (first is ConditionalExpression firstConditional && second is MemberInitExpression secondMemberInit)
+        {
+            return CombineConditionalAndMemberInit(firstConditional, secondMemberInit);
+        }
+
+        if (first is MemberInitExpression firstMemberInit && second is ConditionalExpression secondConditional)
+        {
+            return CombineConditionalAndMemberInit(secondConditional, firstMemberInit);
+        }
+
+        // as a fallback we return the second body, assuming it overwrites the first.
+        return second;
+    }
 
     private static MemberInitExpression CombineMemberInitExpressions(
         MemberInitExpression first,
@@ -39,6 +65,26 @@ internal static class ExpressionHelpers
         }
 
         return Expression.MemberInit(first.NewExpression, bindings.Values);
+    }
+
+    private static ConditionalExpression CombineConditionalExpressions(
+        ConditionalExpression first,
+        ConditionalExpression second)
+    {
+        var test = first.Test;
+        var ifTrue = CombineExpressions(first.IfTrue, second.IfTrue);
+        var ifFalse = CombineExpressions(first.IfFalse, second.IfFalse);
+        return Expression.Condition(test, ifTrue, ifFalse);
+    }
+
+    private static Expression CombineConditionalAndMemberInit(
+        ConditionalExpression condition,
+        MemberInitExpression memberInit)
+    {
+        var ifTrue = CombineExpressions(condition.IfTrue, memberInit);
+        var ifFalse = condition.IfFalse;
+
+        return Expression.Condition(condition.Test, ifTrue, ifFalse);
     }
 
     public static Expression<Func<TRoot, TRoot>> Rewrite<TRoot>(
