@@ -282,7 +282,11 @@ public ref partial struct Utf8GraphQLRequestParser
             {
                 queryId ??= request.QueryHash = _hashProvider!.ComputeHash(unescapedSpan);
 
-                if (!_cache!.TryGetDocument(queryId, out document))
+                if (_cache!.TryGetDocument(queryId, out var cachedDocument))
+                {
+                    document = cachedDocument.Body;
+                }
+                else
                 {
                     document = unescapedSpan.Length == 0
                         ? null

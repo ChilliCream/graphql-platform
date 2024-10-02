@@ -214,7 +214,7 @@ public class GraphQLRequestParserTests
 
         var first = requestParser.Parse();
 
-        cache.TryAddDocument(first[0].QueryId!, first[0].Query!);
+        cache.TryAddDocument(first[0].QueryId!, new CachedDocument(first[0].Query!, false));
 
         // act
         requestParser = new Utf8GraphQLRequestParser(
@@ -763,13 +763,13 @@ public class GraphQLRequestParserTests
 
     private sealed class DocumentCache : IDocumentCache
     {
-        private readonly Dictionary<string, DocumentNode> _cache = new();
+        private readonly Dictionary<string, CachedDocument> _cache = new();
 
         public int Capacity => int.MaxValue;
 
         public int Count => _cache.Count;
 
-        public void TryAddDocument(string documentId, DocumentNode document)
+        public void TryAddDocument(string documentId, CachedDocument document)
         {
             if (!_cache.ContainsKey(documentId))
             {
@@ -779,7 +779,7 @@ public class GraphQLRequestParserTests
 
         public bool TryGetDocument(
             string documentId,
-            [NotNullWhen(true)] out DocumentNode? document) =>
+            [NotNullWhen(true)] out CachedDocument? document) =>
             _cache.TryGetValue(documentId, out document);
 
         public void Clear()
