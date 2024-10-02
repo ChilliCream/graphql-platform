@@ -3,11 +3,16 @@ using System.Linq.Expressions;
 
 namespace GreenDonut.Projections;
 
+/// <summary>
+/// A default implementation of the <see cref="ISelectorBuilder"/>.
+/// </summary>
+/// <typeparam name="TValue"></typeparam>
 [Experimental(Experiments.Projections)]
-internal sealed class DefaultSelectorBuilder<TValue> : ISelectorBuilder
+public sealed class DefaultSelectorBuilder<TValue> : ISelectorBuilder
 {
     private LambdaExpression? _expression;
 
+    /// <inheritdoc />
     public void Add<T>(Expression<Func<T, T>> selector)
     {
         if (typeof(T) != typeof(TValue))
@@ -29,6 +34,7 @@ internal sealed class DefaultSelectorBuilder<TValue> : ISelectorBuilder
         }
     }
 
+    /// <inheritdoc />
     public Expression<Func<T, T>>? TryCompile<T>()
     {
         if (_expression is null)
