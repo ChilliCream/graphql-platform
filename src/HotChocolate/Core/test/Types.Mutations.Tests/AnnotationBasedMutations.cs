@@ -1275,6 +1275,31 @@ public class AnnotationBasedMutations
         result.Print().MatchSnapshot();
     }
 
+    [Fact]
+    public async Task InferErrorEvenIfExplicitFieldBindingIsUsed()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d => d.Field("abc").Resolve("def"))
+                .AddMutationType<ExplicitMutation>(c => c.Field(t => t.DoSomething(default)))
+                .AddMutationConventions()
+                .BuildSchemaAsync();
+
+        schema.Print().MatchSnapshot();
+    }
+
+    public class ExplicitMutation
+    {
+        public FieldResult<int, ExplicitCustomError> DoSomething(int status)
+            => new ExplicitCustomError { Message = "Error" };
+    }
+
+    public sealed class ExplicitCustomError
+    {
+        public required string Message { get; set; }
+    }
+
     public class SimpleMutation
     {
         public string DoSomething(string something)
