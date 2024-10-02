@@ -6,7 +6,7 @@ namespace HotChocolate.Execution.Projections;
 
 internal static class PropertyTreeBuilder
 {
-    public static ImmutableArray<PropertyNode> Build(
+    public static TypeNode Build(
         SchemaCoordinate fieldCoordinate,
         Type type,
         string requirements)
@@ -16,18 +16,19 @@ internal static class PropertyTreeBuilder
             requirements = "{" + requirements + "}";
         }
 
+        var typeNode = new TypeNode(type);
         var selectionSet = Utf8GraphQLParser.Syntax.ParseSelectionSet(requirements);
-        return Build(fieldCoordinate, type, selectionSet, Path.Root).ToImmutableArray();
+        CollectProperties(typeNode, fieldCoordinate, type, selectionSet, Path.Root);
+        return typeNode;
     }
 
-    private static List<PropertyNode> Build(
+    private static void CollectProperties(
+        TypeNode parent,
         SchemaCoordinate fieldCoordinate,
         Type type,
         SelectionSetNode selectionSet,
         Path path)
     {
-        var nodes = new List<PropertyNode>();
-
         foreach (var selection in selectionSet.Selections)
         {
             if (selection is FieldNode field)
@@ -71,14 +72,22 @@ internal static class PropertyTreeBuilder
                             .Build());
                 }
 
-                var children =
-                    field.SelectionSet is not null
-                        ? Build(fieldCoordinate, property.PropertyType, field.SelectionSet, fieldPath)
-                        : null;
+                var propertyNode = new PropertyNode(property);
 
-                var node = new PropertyNode(property, children);
-                nodes.Add(node);
-                node.Seal();
+                if (field.SelectionSet is not null)
+                {
+                    var typeNode = new TypeNode(property.PropertyType);
+                    CollectProperties(
+                        typeNode,
+                        fieldCoordinate,
+                        property.PropertyType,
+                        field.SelectionSet,
+                        fieldPath);
+                    propertyNode.TryAddNode(typeNode);
+                }
+
+                propertyNode.Seal();
+                parent.TryAddNode(propertyNode);
             }
             else
             {
@@ -88,8 +97,6 @@ internal static class PropertyTreeBuilder
                         .Build());
             }
         }
-
-        return nodes;
     }
 }
 #endif

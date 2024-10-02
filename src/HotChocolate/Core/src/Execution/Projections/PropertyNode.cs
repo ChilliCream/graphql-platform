@@ -3,10 +3,9 @@ using System.Reflection;
 
 namespace HotChocolate.Execution.Projections;
 
-internal sealed class PropertyNode : PropertyNodeContainer
+internal sealed class PropertyNode : TypeContainer
 {
-    public PropertyNode(PropertyInfo property, List<PropertyNode>? nodes = null)
-        : base(nodes)
+    public PropertyNode(PropertyInfo property, List<TypeNode>? nodes = null) : base(nodes)
     {
         Property = property;
         IsArray = property.PropertyType.IsArray;
@@ -33,7 +32,7 @@ internal sealed class PropertyNode : PropertyNodeContainer
 
     private PropertyNode(
         PropertyInfo property,
-        List<PropertyNode>? nodes,
+        List<TypeNode>? nodes,
         bool isArray,
         bool isCollection,
         Type? elementType)
@@ -57,7 +56,7 @@ internal sealed class PropertyNode : PropertyNodeContainer
 
     public PropertyNode Clone()
     {
-        List<PropertyNode>? nodes = null;
+        List<TypeNode>? nodes = null;
 
         if (Nodes.Count > 0)
         {
@@ -70,6 +69,7 @@ internal sealed class PropertyNode : PropertyNodeContainer
 
         return new PropertyNode(Property, nodes, IsArray, IsCollection, ElementType);
     }
+
 
     private static Type? GetCollectionType(Type type)
     {

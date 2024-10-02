@@ -44,7 +44,7 @@ internal sealed class RequirementsTypeInterceptor : TypeInterceptor
                 // requirements we will take it and skip compilation.
                 if (fieldDef.ContextData.TryGetValue(FieldRequirements, out var value))
                 {
-                    _metadata.TryAddRequirements(fieldCoordinate, (ImmutableArray<PropertyNode>)value!);
+                    _metadata.TryAddRequirements(fieldCoordinate, (TypeNode)value!);
                     continue;
                 }
 

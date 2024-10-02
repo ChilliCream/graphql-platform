@@ -1248,12 +1248,12 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
             CancellationToken cancellationToken)
         {
             var pagingArgs = context.GetPagingArguments();
-            var sql = context.GetState<SqlQuery>();
+            var sql = context.GetRequiredState<SqlQuery>();
 
             await using var scope = _services.CreateAsyncScope();
             await using var catalogContext = scope.ServiceProvider.GetRequiredService<CatalogContext>();
 
-            sql!.Text = catalogContext.Products
+            sql.Text = catalogContext.Products
                 .Where(t => keys.Contains(t.BrandId))
                 .Select(context.GetSelector(), b => b.Id)
                 .OrderBy(t => t.Name).ThenBy(t => t.Id)
