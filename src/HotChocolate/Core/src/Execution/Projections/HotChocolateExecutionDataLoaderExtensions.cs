@@ -35,7 +35,7 @@ public static class HotChocolateExecutionDataLoaderExtensions
     /// <returns>
     /// Returns a new data loader that applies the selection.
     /// </returns>
-    public static ISelectionDataLoader<TKey, TValue> Select<TKey, TValue>(
+    public static IDataLoader<TKey, TValue> Select<TKey, TValue>(
         this IDataLoader<TKey, TValue> dataLoader,
         ISelection selection)
         where TKey : notnull
