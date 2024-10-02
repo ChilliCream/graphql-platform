@@ -1,0 +1,31 @@
+schema {
+  query: Query
+  mutation: ExplicitMutation
+}
+
+interface Error {
+  message: String!
+}
+
+type DoSomethingPayload {
+  int: Int
+  errors: [DoSomethingError!]
+}
+
+type ExplicitCustomError implements Error {
+  message: String!
+}
+
+type ExplicitMutation {
+  doSomething(input: DoSomethingInput!): DoSomethingPayload!
+}
+
+type Query {
+  abc: String
+}
+
+union DoSomethingError = ExplicitCustomError
+
+input DoSomethingInput {
+  status: Int!
+}
