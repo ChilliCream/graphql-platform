@@ -400,6 +400,70 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
     }
 
     [Fact]
+    public async Task Brand_Details_Requires_Brand_Name_With_Proper_Type()
+    {
+        // Arrange
+        var queries = new List<string>();
+        var connectionString = CreateConnectionString();
+        await CatalogContext.SeedAsync(connectionString);
+
+        // Act
+        var result = await new ServiceCollection()
+            .AddScoped(_ => queries)
+            .AddTransient(_ => new CatalogContext(connectionString))
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddType<BrandWithRequirementType>()
+            .AddPagingArguments()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .ExecuteRequestAsync(
+                """
+                {
+                    brandById(id: 1) {
+                        details
+                    }
+                }
+                """);
+
+        Snapshot.Create()
+            .AddSql(queries)
+            .AddResult(result)
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Brand_Details_Requires_Brand_Name_With_Proper_Type_With_Explicit_Generic()
+    {
+        // Arrange
+        var queries = new List<string>();
+        var connectionString = CreateConnectionString();
+        await CatalogContext.SeedAsync(connectionString);
+
+        // Act
+        var result = await new ServiceCollection()
+            .AddScoped(_ => queries)
+            .AddTransient(_ => new CatalogContext(connectionString))
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddType<BrandWithRequirementTypeWithGeneric>()
+            .AddPagingArguments()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .ExecuteRequestAsync(
+                """
+                {
+                    brandById(id: 1) {
+                        details
+                    }
+                }
+                """);
+
+        Snapshot.Create()
+            .AddSql(queries)
+            .AddResult(result)
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
     public async Task Brand_Details_Requires_Brand_Name_2()
     {
         // Arrange
@@ -460,7 +524,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 """);
 
         // at the moment we do not support projections on lists
-        // so products will be empty and we will just select the brand.Id
+        // so products will be empty, and we will just select the brand.Id
         Snapshot.Create()
             .AddSql(queries)
             .AddResult(result)
@@ -529,14 +593,12 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             CancellationToken cancellationToken)
             => await productById.Select(selection).Include(c => c.Brand).LoadAsync(id, cancellationToken);
 
-        /*
         public async Task<Product?> GetProductByIdWithBrandNoSelectionAsync(
             int id,
             ISelection selection,
             ProductByIdDataLoader productById,
             CancellationToken cancellationToken)
             => await productById.Include(c => c.Brand).LoadAsync(id, cancellationToken);
-            */
     }
 
     [ExtendObjectType<Brand>]
@@ -555,6 +617,28 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
         public string GetDetails(
             [Parent(requires: nameof(Brand.Name))] Brand brand)
             => "Brand Name:" + brand.Name;
+    }
+
+    public class BrandWithRequirementType : ObjectType<Brand>
+    {
+        protected override void Configure(IObjectTypeDescriptor<Brand> descriptor)
+        {
+            descriptor
+                .Field(t => t.Details)
+                .ParentRequires(nameof(Brand.Name))
+                .Resolve(ctx => "Brand Name:" + ctx.Parent<Brand>().Name);
+        }
+    }
+
+    public class BrandWithRequirementTypeWithGeneric : ObjectType<Brand>
+    {
+        protected override void Configure(IObjectTypeDescriptor<Brand> descriptor)
+        {
+            descriptor
+                .Field(t => t.Details)
+                .ParentRequires<Brand>(nameof(Brand.Name))
+                .Resolve(ctx => "Brand Name:" + ctx.Parent<Brand>().Name);
+        }
     }
 
     [ExtendObjectType<Product>]
