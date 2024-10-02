@@ -25,7 +25,7 @@ public class DocumentCacheMiddlewareTests
             .Build();
 
         var document = Utf8GraphQLParser.Parse("{ a }");
-        cache.TryAddDocument("a", document);
+        cache.TryAddDocument("a", new CachedDocument(document, false));
 
         var requestContext = new Mock<IRequestContext>();
         var schema = new Mock<ISchema>();
@@ -63,7 +63,7 @@ public class DocumentCacheMiddlewareTests
             .Build();
 
         var document = Utf8GraphQLParser.Parse("{ a }");
-        cache.TryAddDocument("a", document);
+        cache.TryAddDocument("a", new CachedDocument(document, false));
 
         var requestContext = new Mock<IRequestContext>();
         var schema = new Mock<ISchema>();
@@ -101,7 +101,7 @@ public class DocumentCacheMiddlewareTests
             .Build();
 
         var document = Utf8GraphQLParser.Parse("{ a }");
-        cache.TryAddDocument("b", document);
+        cache.TryAddDocument("b", new CachedDocument(document, false));
 
         var requestContext = new Mock<IRequestContext>();
         var schema = new Mock<ISchema>();
