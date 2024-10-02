@@ -100,7 +100,7 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
                 .OrderBy(t => t.Key, StringComparer.Ordinal))
             {
                 var isPublic = defaults.IsInterfacePublic ?? true;
-                var groups = group.Select(
+                var dataLoaderGroups = dataLoaderGroup.Select(
                     t => new GroupedDataLoaderInfo(
                         t.NameWithoutSuffix,
                         t.InterfaceName,
@@ -108,7 +108,7 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
 
                 buffer ??= new();
                 buffer.Clear();
-                buffer.AddRange(groups);
+                buffer.AddRange(dataLoaderGroups);
                 generator.WriteDataLoaderGroupClass(dataLoaderGroup.Key, buffer);
             }
 
