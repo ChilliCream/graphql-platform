@@ -2,7 +2,7 @@ namespace CookieCrumble;
 
 public sealed class QueryInfo
 {
-    public required string QueryText { get; init; }
+    public string QueryText { get; init; } = default!;
 
-    public required string ExpressionText { get; init; }
+    public string ExpressionText { get; init; } = default!;
 }

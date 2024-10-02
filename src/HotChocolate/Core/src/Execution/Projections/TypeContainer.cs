@@ -1,3 +1,4 @@
+#if NET6_0_OR_GREATER
 namespace HotChocolate.Execution.Projections;
 
 internal class TypeContainer(List<TypeNode>? nodes = null)
@@ -53,3 +54,4 @@ internal class TypeContainer(List<TypeNode>? nodes = null)
         }
     }
 }
+#endif

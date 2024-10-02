@@ -66,7 +66,13 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
 
         var operationResult = result.ExpectOperationResult();
 
+#if NET6_0
+        await Snapshot.Create("NET_6_0")
+#elif NET7_0
+        await Snapshot.Create("NET_7_0")
+#else
         await Snapshot.Create()
+#endif
             .AddQueries(queries)
             .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty))
             .MatchMarkdownAsync();
@@ -121,12 +127,17 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
 
         var operationResult = result.ExpectOperationResult();
 
+#if NET6_0
+        await Snapshot.Create("NET_6_0")
+#elif NET7_0
+        await Snapshot.Create("NET_7_0")
+#else
         await Snapshot.Create()
+#endif
             .AddQueries(queries)
             .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty))
             .MatchMarkdownAsync();
     }
-
 
     private static async Task SeedAsync(string connectionString)
     {

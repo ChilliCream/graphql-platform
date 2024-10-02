@@ -1297,7 +1297,7 @@ public class AnnotationBasedMutations
 
     public sealed class ExplicitCustomError
     {
-        public required string Message { get; set; }
+        public string Message { get; set; } = default!;
     }
 
     public class SimpleMutation

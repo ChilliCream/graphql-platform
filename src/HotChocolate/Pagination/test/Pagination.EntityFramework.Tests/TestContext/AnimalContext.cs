@@ -6,9 +6,9 @@ namespace HotChocolate.Data.TestContext;
 
 public class AnimalContext(string connectionString) : DbContext
 {
-    public DbSet<Owner> Owners { get; set; }
-    public DbSet<Dog> Dogs { get; set; }
-    public DbSet<Cat> Cats { get; set; }
+    public DbSet<Owner> Owners { get; set; } = default!;
+    public DbSet<Dog> Dogs { get; set; } = default!;
+    public DbSet<Cat> Cats { get; set; } = default!;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseNpgsql(connectionString);
@@ -35,7 +35,7 @@ public class Owner
     public int Id { get; set; }
 
     [MaxLength(100)]
-    public required string Name { get; set; }
+    public string Name { get; set; } = default!;
 
     public List<Animal> Pets { get; set; } = new();
 }
@@ -46,7 +46,7 @@ public abstract class Animal
     public int Id { get; set; }
 
     [MaxLength(100)]
-    public required string Name { get; set; }
+    public string Name { get; set; } = default!;
 
     public int OwnerId { get; set; }
 
