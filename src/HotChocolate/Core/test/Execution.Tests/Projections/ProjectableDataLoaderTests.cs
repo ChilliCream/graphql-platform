@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using CookieCrumble;
 using GreenDonut;
 using GreenDonut.Projections;
@@ -38,6 +39,37 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 """
                 {
                     brandById(id: 1) {
+                        name
+                    }
+                }
+                """);
+
+        Snapshot.Create()
+            .AddSql(queries)
+            .AddResult(result)
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Brand_With_Name_Selector_is_Null()
+    {
+        // Arrange
+        var queries = new List<string>();
+        var connectionString = CreateConnectionString();
+        await CatalogContext.SeedAsync(connectionString);
+
+        // Act
+        var result = await new ServiceCollection()
+            .AddScoped(_ => queries)
+            .AddTransient(_ => new CatalogContext(connectionString))
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddPagingArguments()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .ExecuteRequestAsync(
+                """
+                {
+                    brandByIdSelectorNull(id: 1) {
                         name
                     }
                 }
@@ -599,6 +631,12 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             ProductByIdDataLoader productById,
             CancellationToken cancellationToken)
             => await productById.Include(c => c.Brand).LoadAsync(id, cancellationToken);
+
+        public async Task<Brand?> GetBrandByIdSelectorNullAsync(
+            int id,
+            BrandByIdDataLoader brandById,
+            CancellationToken cancellationToken)
+            => await brandById.Select(default(Expression<Func<Brand, Brand>>)).LoadAsync(id, cancellationToken);
     }
 
     [ExtendObjectType<Brand>]
