@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using static HotChocolate.Execution.Options.PersistedOperationOptions;
 
 namespace HotChocolate.Execution.Options;
 
@@ -43,20 +44,42 @@ public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
     }
 
     /// <summary>
+    /// <para>
     /// Gets or sets a value indicating whether the <c>GraphQL</c> errors
     /// should be extended with exception details.
-    ///
-    /// The default value is <see cref="Debugger.IsAttached"/>.
+    /// </para>
+    /// <para>The default value is <see cref="Debugger.IsAttached"/>.</para>
     /// </summary>
     public bool IncludeExceptionDetails { get; set; } = Debugger.IsAttached;
 
     /// <summary>
+    /// <para>
     /// Specifies if only persisted operations are allowed when using
     /// the persisted operation pipeline.
-    ///
-    /// The default is <c>false</c>.
+    /// </para>
+    /// <para>The default is <c>false</c>.</para>
     /// </summary>
-    public bool OnlyAllowPersistedOperations { get; set; } = false;
+    [Obsolete("Use PersistedOperationOptions instead.")]
+    public bool OnlyAllowPersistedOperations
+    {
+        get => (PersistedOperationOptions & OnlyPersistedOperations) == OnlyPersistedOperations;
+        set
+        {
+            if (value)
+            {
+                PersistedOperationOptions |= OnlyPersistedOperations;
+            }
+            else
+            {
+                PersistedOperationOptions &= ~OnlyPersistedOperations;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Specifies the behavior of the persisted operation middleware.
+    /// </summary>
+    public PersistedOperationOptions PersistedOperationOptions { get; set; } = None;
 
     /// <summary>
     /// The error that will be thrown when only persisted
