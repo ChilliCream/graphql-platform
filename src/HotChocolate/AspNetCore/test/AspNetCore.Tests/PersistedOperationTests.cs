@@ -289,7 +289,7 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
         var server = CreateStarWarsServer(
             configureServices: s => s
                 .AddGraphQL("StarWars")
-                .ModifyRequestOptions(o => o.PersistedOperationOptions = OnlyPersistedOperations)
+                .ModifyRequestOptions(o => o.PersistedOperations.OnlyAllowPersistedDocuments = true)
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline());
 
@@ -316,7 +316,7 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
         var server = CreateStarWarsServer(
             configureServices: s => s
                 .AddGraphQL("StarWars")
-                .ModifyRequestOptions(o => o.PersistedOperationOptions |= OnlyPersistedOperations)
+                .ModifyRequestOptions(o => o.PersistedOperations.OnlyAllowPersistedDocuments = true)
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline());
 
@@ -344,9 +344,10 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
             configureServices: s => s
                 .AddGraphQL("StarWars")
                 .ModifyRequestOptions(o =>
-                    o.PersistedOperationOptions =
-                        OnlyPersistedOperations
-                        | MatchStandardDocument)
+                {
+                    o.PersistedOperations.OnlyAllowPersistedDocuments = true;
+                    o.PersistedOperations.AllowDocumentBody = true;
+                })
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline());
 
@@ -372,8 +373,8 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
                 .AddGraphQL("StarWars")
                 .ModifyRequestOptions(o =>
                 {
-                    o.PersistedOperationOptions = OnlyPersistedOperations;
-                    o.OnlyPersistedOperationsAreAllowedError =
+                    o.PersistedOperations.OnlyAllowPersistedDocuments = true;
+                    o.PersistedOperations.OperationNotAllowedError =
                         ErrorBuilder.New()
                             .SetMessage("Not allowed!")
                             .Build();
@@ -403,7 +404,7 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
                 .AddGraphQL("StarWars")
                 .ModifyRequestOptions(o =>
                 {
-                    o.PersistedOperationOptions = OnlyPersistedOperations;
+                    o.PersistedOperations.OnlyAllowPersistedDocuments = true;
                 })
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline()
