@@ -12,6 +12,31 @@ Start by installing the latest `14.x.x` version of **all** of the `HotChocolate.
 
 Things that have been removed or had a change in behavior that may cause your code not to compile or lead to unexpected behavior at runtime if not addressed.
 
+## Banana Cake Pop and Barista renamed to Nitro
+
+| Old                      | New                   | Notes                         |
+| ------------------------ | --------------------- | ----------------------------- |
+| AddBananaCakePopExporter | AddNitroExporter      |                               |
+| AddBananaCakePopServices | AddNitro              |                               |
+| barista                  | nitro                 | CLI executable                |
+| Barista                  | ChilliCream.Nitro.CLI | CLI NuGet package             |
+| BARISTA_API_ID           | NITRO_API_ID          |                               |
+| BARISTA_API_KEY          | NITRO_API_KEY         |                               |
+| BARISTA_CLIENT_ID        | NITRO_CLIENT_ID       |                               |
+| BARISTA_OPERATIONS_FILE  | NITRO_OPERATIONS_FILE |                               |
+| BARISTA_OUTPUT_FILE      | NITRO_OUTPUT_FILE     |                               |
+| BARISTA_SCHEMA_FILE      | NITRO_SCHEMA_FILE     |                               |
+| BARISTA_STAGE            | NITRO_STAGE           |                               |
+| BARISTA_SUBGRAPH_ID      | NITRO_SUBGRAPH_ID     |                               |
+| BARISTA_SUBGRAPH_NAME    | NITRO_SUBGRAPH_NAME   |                               |
+| BARISTA_TAG              | NITRO_TAG             |                               |
+| bcp                      | nitro                 | Key in `subgraph-config.json` |
+| BCP_API_ID               | NITRO_API_ID          |                               |
+| BCP_API_KEY              | NITRO_API_KEY         |                               |
+| BCP_STAGE                | NITRO_STAGE           |                               |
+| eat.bananacakepop.com    | nitro.chillicream.com |                               |
+| MapBananaCakePop         | MapNitroApp           |                               |
+
 ## New GID format
 
 This release introduces a more performant GID serializer, which also simplifies the underlying format of globally unique IDs.

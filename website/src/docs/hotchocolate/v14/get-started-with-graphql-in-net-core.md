@@ -113,7 +113,7 @@ The project can be started by either pressing `Ctrl + F5` or clicking the green 
 </InputChoiceTabs.VisualStudio>
 </InputChoiceTabs>
 
-If you have set everything up correctly, you should be able to open <a href="http://localhost:5095/graphql" target="_blank" rel="noopener noreferrer">http://localhost:5095/graphql</a> in your browser and be greeted by our GraphQL IDE [Banana Cake Pop](/products/bananacakepop).
+If you have set everything up correctly, you should be able to open <a href="http://localhost:5095/graphql" target="_blank" rel="noopener noreferrer">http://localhost:5095/graphql</a> in your browser and be greeted by our GraphQL IDE [Nitro](/products/nitro).
 
 ![GraphQL IDE](../../../images/getting-started-bcp.webp)
 
@@ -155,11 +155,11 @@ To execute the query, simply press the `Run` button. The result should be displa
 
 ![GraphQL IDE: Executing a query](../../../images/getting-started-bcp-query.webp)
 
-You can also view and browse the schema from within Banana Cake Pop. Click on the `Schema Reference` tab next to `Operation` in order to browse the schema. There's also a `Schema Definition` tab, pictured below, which shows the schema using the raw SDL (Schema Definition Language).
+You can also view and browse the schema from within Nitro. Click on the `Schema Reference` tab next to `Operation` in order to browse the schema. There's also a `Schema Definition` tab, pictured below, which shows the schema using the raw SDL (Schema Definition Language).
 
 ![GraphQL IDE: Schema](../../../images/getting-started-bcp-schema.webp)
 
-Congratulations, you've built your first Hot Chocolate GraphQL server and sent a query using the Banana Cake Pop GraphQL IDE. 🎉🚀
+Congratulations, you've built your first Hot Chocolate GraphQL server and sent a query using the Nitro GraphQL IDE. 🎉🚀
 
 # Additional resources
 

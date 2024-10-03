@@ -30,8 +30,8 @@ exports.onPreBuild = async ({
   }
 
   const knownLinks = [
-    "/products/bananacakepop",
     "/products/hotchocolate",
+    "/products/nitro",
     "/products/strawberryshake",
   ];
 
