@@ -11,7 +11,7 @@ public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
 {
     private static readonly TimeSpan _minExecutionTimeout = TimeSpan.FromMilliseconds(100);
     private TimeSpan _executionTimeout;
-    private IError _onlyPersistedOperationsAreAllowedError = ErrorHelper.OnlyPersistedOperationsAreAllowed();
+    private PersistedOperationOptions _persistedOperations = new();
 
     /// <summary>
     /// <para>Initializes a new instance of <see cref="RequestExecutorOptions"/>.</para>
@@ -53,51 +53,20 @@ public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
     public bool IncludeExceptionDetails { get; set; } = Debugger.IsAttached;
 
     /// <summary>
-    /// <para>
-    /// Specifies if only persisted operations are allowed when using
-    /// the persisted operation pipeline.
-    /// </para>
-    /// <para>The default is <c>false</c>.</para>
-    /// </summary>
-    [Obsolete("Use PersistedOperationOptions instead.")]
-    public bool OnlyAllowPersistedOperations
-    {
-        get => (PersistedOperationOptions & OnlyPersistedOperations) == OnlyPersistedOperations;
-        set
-        {
-            if (value)
-            {
-                PersistedOperationOptions |= OnlyPersistedOperations;
-            }
-            else
-            {
-                PersistedOperationOptions &= ~OnlyPersistedOperations;
-            }
-        }
-    }
-
-    /// <summary>
-    /// Specifies the behavior of the persisted operation middleware.
-    /// </summary>
-    public PersistedOperationOptions PersistedOperationOptions { get; set; } = None;
-
-    /// <summary>
-    /// The error that will be thrown when only persisted
-    /// operations are allowed and a normal operation is issued.
-    /// </summary>
-    public IError OnlyPersistedOperationsAreAllowedError
-    {
-        get => _onlyPersistedOperationsAreAllowedError;
-        set
-        {
-            _onlyPersistedOperationsAreAllowedError = value
-                ?? throw new ArgumentNullException(
-                    nameof(OnlyPersistedOperationsAreAllowedError));
-        }
-    }
-
-    /// <summary>
     /// Specifies that the transport is allowed to provide the schema SDL document as a file.
     /// </summary>
     public bool EnableSchemaFileSupport { get; set; } = true;
+
+    /// <summary>
+    /// Specifies the behavior of the persisted operation pipeline.
+    /// </summary>
+    public PersistedOperationOptions PersistedOperations
+    {
+        get => _persistedOperations;
+        set
+        {
+            _persistedOperations = value
+                ?? throw new ArgumentNullException(nameof(PersistedOperations));
+        }
+    }
 }

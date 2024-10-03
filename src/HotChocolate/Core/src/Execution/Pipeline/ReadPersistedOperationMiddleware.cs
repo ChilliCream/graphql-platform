@@ -3,7 +3,6 @@ using HotChocolate.Execution.Options;
 using HotChocolate.Language;
 using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
-using static HotChocolate.Execution.Options.PersistedOperationOptions;
 
 namespace HotChocolate.Execution.Pipeline;
 
@@ -61,7 +60,7 @@ internal sealed class ReadPersistedOperationMiddleware
                 context.ValidationResult = DocumentValidatorResult.Ok;
                 context.IsCachedDocument = true;
                 context.IsPersistedDocument = true;
-                if ((_options & SkipValidationForPersistedDocument) == SkipValidationForPersistedDocument)
+                if (_options.SkipPersistedDocumentValidation)
                 {
                     context.ValidationResult = DocumentValidatorResult.Ok;
                 }
@@ -75,7 +74,7 @@ internal sealed class ReadPersistedOperationMiddleware
                 context.ValidationResult = DocumentValidatorResult.Ok;
                 context.IsCachedDocument = true;
                 context.IsPersistedDocument = true;
-                if ((_options & SkipValidationForPersistedDocument) == SkipValidationForPersistedDocument)
+                if (_options.SkipPersistedDocumentValidation)
                 {
                     context.ValidationResult = DocumentValidatorResult.Ok;
                 }
@@ -93,7 +92,7 @@ internal sealed class ReadPersistedOperationMiddleware
                 next,
                 diagnosticEvents,
                 persistedOperationStore,
-                core.Options.PersistedOperationOptions);
+                core.Options.PersistedOperations);
             return context => middleware.InvokeAsync(context);
         };
 }
