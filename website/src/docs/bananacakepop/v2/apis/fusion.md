@@ -254,7 +254,7 @@ To complete the deployment, you need to commit the deployment. This will notify 
 You can commit the deployment by calling:
 
 ```bash
-dotnet barista fusion-configuration publish commit --api-key <<your-fusion-api-key>>
+dotnet barista fusion-configuration publish commit --configuration ./gateway.fgp --api-key <<your-fusion-api-key>>
 ```
 
 # Distributed Telemetry
