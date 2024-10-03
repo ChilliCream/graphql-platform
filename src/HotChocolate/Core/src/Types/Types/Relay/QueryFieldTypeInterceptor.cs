@@ -19,7 +19,7 @@ internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
     private ObjectFieldDefinition _queryField = default!;
     private ObjectTypeDefinition? _mutationDefinition;
 
-    internal override void OnAfterResolveRootType(
+    public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
         ObjectTypeDefinition definition,
         OperationType operationType)

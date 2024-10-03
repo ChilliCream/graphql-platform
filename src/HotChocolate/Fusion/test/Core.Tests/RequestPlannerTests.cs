@@ -1450,9 +1450,8 @@ public class RequestPlannerTests
     {
         // arrange
         var fusionGraph = await FusionGraphComposer.ComposeAsync(
-            new[]
-            {
-                new SubgraphConfiguration(
+        [
+            new SubgraphConfiguration(
                     "Test",
                     """
                     type Query {
@@ -1469,12 +1468,11 @@ public class RequestPlannerTests
                     }
                     """,
                     "",
-                    new []
-                    {
-                        new HttpClientConfiguration(new Uri("http://client"), "Test"),
-                    },
-                    null),
-            });
+                    [
+                        new HttpClientConfiguration(new Uri("http://client"), "Test")
+                    ],
+                    null)
+        ]);
 
         // act
         var result = await CreateQueryPlanAsync(

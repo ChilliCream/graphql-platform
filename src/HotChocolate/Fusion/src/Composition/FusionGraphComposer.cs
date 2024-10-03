@@ -33,6 +33,7 @@ public sealed class FusionGraphComposer
         Func<ICompositionLog>? logFactory = null)
         : this(
             [
+                new LookupEntityEnricher(),
                 new RefResolverEntityEnricher(),
                 new PatternEntityEnricher(),
                 new RequireEnricher(),

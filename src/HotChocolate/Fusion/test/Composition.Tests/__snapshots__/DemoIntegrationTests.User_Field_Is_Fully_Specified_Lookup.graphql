@@ -1,0 +1,24 @@
+schema
+  @fusion(version: 1)
+  @transport(subgraph: "Schema1", group: "Schema1", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP") {
+  query: Query
+}
+
+type Query {
+  user(id: Int!): User
+    @variable(subgraph: "Schema1", name: "id", argument: "id")
+    @resolver(subgraph: "Schema1", select: "{ user(id: $id) }", arguments: [ { name: "id", type: "Int!" } ])
+}
+
+type User
+  @variable(subgraph: "Schema1", name: "User_id", select: "id")
+  @resolver(subgraph: "Schema1", select: "{ user(id: $User_id) }", arguments: [ { name: "User_id", type: "Int!" } ]) {
+  email: String!
+    @source(subgraph: "Schema1")
+  id: Int!
+    @source(subgraph: "Schema1")
+  name: String!
+    @source(subgraph: "Schema1")
+  password: String!
+    @source(subgraph: "Schema1")
+}

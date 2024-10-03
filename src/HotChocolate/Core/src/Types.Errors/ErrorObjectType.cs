@@ -6,6 +6,7 @@ internal sealed class ErrorObjectType<T> : ObjectType<T>
     {
         descriptor.Extend().OnBeforeCreate(RewriteMessageFieldToNonNullableStringType);
         descriptor.Extend().Definition.ContextData.MarkAsError();
+        descriptor.BindFieldsImplicitly();
     }
 
     private void RewriteMessageFieldToNonNullableStringType(

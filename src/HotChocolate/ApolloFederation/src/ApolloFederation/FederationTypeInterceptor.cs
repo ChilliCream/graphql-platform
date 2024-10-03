@@ -314,7 +314,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         }
     }
 
-    internal override void OnAfterResolveRootType(
+    public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
         ObjectTypeDefinition definition,
         OperationType operationType)
