@@ -13,6 +13,7 @@
     <PackageId>HotChocolate.Caching</PackageId>
     <AssemblyName>HotChocolate.Caching</AssemblyName>
     <RootNamespace>HotChocolate.Caching</RootNamespace>
+    <NoWarn>HC8001;$(NoWarn)</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

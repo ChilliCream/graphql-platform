@@ -26,7 +26,7 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
         _errorTypeHelper.InitializerErrorTypeInterface(_context);
     }
 
-    internal override void OnAfterResolveRootType(
+    public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
         ObjectTypeDefinition definition,
         OperationType operationType)

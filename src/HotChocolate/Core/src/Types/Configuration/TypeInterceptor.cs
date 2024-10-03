@@ -124,6 +124,9 @@ public abstract class TypeInterceptor
     {
     }
 
+    /// <summary>
+    /// This event is called after all types are initialized.
+    /// </summary>
     public virtual void OnTypesInitialized() { }
 
     /// <summary>
@@ -198,7 +201,22 @@ public abstract class TypeInterceptor
     {
     }
 
-    internal virtual void OnAfterResolveRootType(
+    /// <summary>
+    /// This event is called after the root type is resolved.
+    /// </summary>
+    /// <param name="completionContext">
+    /// The type completion context.
+    /// </param>
+    /// <param name="definition">
+    /// The type definition of the type system member.
+    /// </param>
+    /// <param name="operationType">
+    /// Specifies what kind of operation type is resolved.
+    /// </param>
+    #if NET8_0_OR_GREATER
+    [Experimental(Experiments.RootTypeResolved)]
+    #endif
+    public virtual void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
         ObjectTypeDefinition definition,
         OperationType operationType)
