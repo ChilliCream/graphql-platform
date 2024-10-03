@@ -55,7 +55,7 @@ internal sealed class SelectionExpressionBuilder
 
         if (typeNode.Nodes.Count == 0)
         {
-            TryAddAnyLeafField(selection, typeNode);
+            TryAddAnyLeafField(typeNode, entityType);
         }
 
         CollectTypes(context, selection, root);
@@ -90,7 +90,7 @@ internal sealed class SelectionExpressionBuilder
 
                 if (possibleTypeNode.Nodes.Count == 0)
                 {
-                    TryAddAnyLeafField(selection, possibleTypeNode);
+                    TryAddAnyLeafField(possibleTypeNode, possibleType);
                 }
             }
 
@@ -105,7 +105,7 @@ internal sealed class SelectionExpressionBuilder
 
         if (typeNode.Nodes.Count == 0)
         {
-            TryAddAnyLeafField(selection, typeNode);
+            TryAddAnyLeafField(typeNode, objectType);
         }
     }
 
@@ -201,22 +201,21 @@ internal sealed class SelectionExpressionBuilder
     }
 
     private static void TryAddAnyLeafField(
-        ISelection selection,
-        TypeNode parent)
+        TypeNode parent,
+        IObjectType selectionType)
     {
         // if we could not collect anything it means that either all fields
         // are skipped or that __typename is the only field that is selected.
         // in this case we will try to select the id field or if that does
         // not exist we will look for a leaf field that we can select.
-        var type = (ObjectType)selection.Type.NamedType();
-        if (type.Fields.TryGetField("id", out var idField)
+        if (selectionType.Fields.TryGetField("id", out var idField)
             && idField.Member is PropertyInfo idProperty)
         {
             parent.AddOrGetNode(idProperty);
         }
         else
         {
-            var anyProperty = type.Fields.FirstOrDefault(t => t.Type.IsLeafType() && t.Member is PropertyInfo);
+            var anyProperty = selectionType.Fields.FirstOrDefault(t => t.Type.IsLeafType() && t.Member is PropertyInfo);
             if (anyProperty?.Member is PropertyInfo anyPropertyInfo)
             {
                 parent.AddOrGetNode(anyPropertyInfo);
