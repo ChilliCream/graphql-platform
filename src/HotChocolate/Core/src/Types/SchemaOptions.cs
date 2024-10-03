@@ -141,12 +141,12 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <summary>
     /// Defines if the OneOf spec RFC is enabled. This feature is experimental.
     /// </summary>
-    public bool EnableOneOf { get; set; }
+    public bool EnableOneOf { get; set; } = true;
 
     /// <summary>
     /// Defines if the schema building process shall validate that all nodes are resolvable through `node`.
     /// </summary>
-    public bool EnsureAllNodesCanBeResolved { get; set; }
+    public bool EnsureAllNodesCanBeResolved { get; set; } = true;
 
     /// <summary>
     /// Defines if flag enums should be inferred as object value nodes

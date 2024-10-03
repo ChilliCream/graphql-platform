@@ -1,5 +1,3 @@
-#if NET6_0_OR_GREATER
-using System.Collections.Immutable;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -44,7 +42,7 @@ internal sealed class RequirementsTypeInterceptor : TypeInterceptor
                 // requirements we will take it and skip compilation.
                 if (fieldDef.ContextData.TryGetValue(FieldRequirements, out var value))
                 {
-                    _metadata.TryAddRequirements(fieldCoordinate, (ImmutableArray<PropertyNode>)value!);
+                    _metadata.TryAddRequirements(fieldCoordinate, (TypeNode)value!);
                     continue;
                 }
 
@@ -66,4 +64,3 @@ internal sealed class RequirementsTypeInterceptor : TypeInterceptor
         ISchema schema)
         => _metadata.Seal();
 }
-#endif

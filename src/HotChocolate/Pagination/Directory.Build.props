@@ -2,7 +2,6 @@
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))"/>
 
   <PropertyGroup>
-    <TargetFrameworks>$(Library2TargetFrameworks)</TargetFrameworks>
     <NoWarn>$(NoWarn);CA1062</NoWarn>
     <NeutralLanguage>en</NeutralLanguage>
   </PropertyGroup>

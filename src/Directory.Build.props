@@ -7,6 +7,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <NuGetAuditMode>direct</NuGetAuditMode>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(CI)' == 'true'">
@@ -39,13 +40,8 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <LibraryTargetFrameworks>net8.0; net7.0; net6.0; netstandard2.0</LibraryTargetFrameworks>
-    <Library2TargetFrameworks>net8.0; net7.0; net6.0</Library2TargetFrameworks>
-    <Library3TargetFrameworks>net8.0; net7.0</Library3TargetFrameworks>
-    <TestTargetFrameworks>net8.0; net7.0; net6.0</TestTargetFrameworks>
-    <AspNetTargetFrameworks>net8.0; net7.0; net6.0</AspNetTargetFrameworks>
-    <AzfTargetFrameworks>net7.0; net6.0</AzfTargetFrameworks>
-    <AzfIsoProcTargetFrameworks>net8.0; net7.0; net6.0</AzfIsoProcTargetFrameworks>
+    <TargetFrameworks>net9.0; net8.0</TargetFrameworks>
+    <ExtendedTargetFrameworks>net9.0; net8.0; netstandard2.0</ExtendedTargetFrameworks>
     <SourceGenTargetFrameworks>netstandard2.0</SourceGenTargetFrameworks>
   </PropertyGroup>
 

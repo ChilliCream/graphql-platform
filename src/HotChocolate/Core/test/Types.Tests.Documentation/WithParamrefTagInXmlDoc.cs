@@ -1,10 +1,9 @@
-namespace HotChocolate.Types.Descriptors
+namespace HotChocolate.Types.Descriptors;
+
+public class WithParamrefTagInXmlDoc
 {
-    public class WithParamrefTagInXmlDoc
-    {
-        /// <summary>
-        /// This is a parameter reference to <paramref name="id"/>.
-        /// </summary>
-        public int Foo(int id) => id;
-    }
+    /// <summary>
+    /// This is a parameter reference to <paramref name="id"/>.
+    /// </summary>
+    public int Foo(int id) => id;
 }

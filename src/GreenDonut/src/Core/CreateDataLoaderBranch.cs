@@ -1,4 +1,3 @@
-#if NET6_0_OR_GREATER
 namespace GreenDonut;
 
 /// <summary>
@@ -18,4 +17,3 @@ public delegate IDataLoader CreateDataLoaderBranch<out TKey, TValue, in TState>(
     IDataLoader<TKey, TValue> dataLoader,
     TState state)
     where TKey : notnull;
-#endif

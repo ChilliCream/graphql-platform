@@ -1,6 +1,6 @@
+using CookieCrumble;
 using GreenDonut;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Execution.Integration.DataLoader;
 

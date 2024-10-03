@@ -179,18 +179,18 @@ public ref partial struct Utf8GraphQLParser
     }
 
     public static DocumentNode Parse(
-#if NET7_0_OR_GREATER
-        [StringSyntax("graphql")] string sourceText) =>
-#else
+#if NETSTANDARD2_0
         string sourceText) =>
+#else
+        [StringSyntax("graphql")] string sourceText) =>
 #endif
         Parse(sourceText, ParserOptions.Default);
 
     public static DocumentNode Parse(
-#if NET7_0_OR_GREATER
-        [StringSyntax("graphql")] string sourceText,
-#else
+#if NETSTANDARD2_0
         string sourceText,
+#else
+        [StringSyntax("graphql")] string sourceText,
 #endif
         ParserOptions options)
     {

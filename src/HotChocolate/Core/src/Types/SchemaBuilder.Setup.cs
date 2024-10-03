@@ -270,7 +270,7 @@ public partial class SchemaBuilder
                 {
                     if (interceptorOrType is Type type)
                     {
-                        var obj = ServiceFactory.CreateInstance(services, type);
+                        var obj = ActivatorUtilities.CreateInstance(services, type);
                         if (obj is T casted)
                         {
                             interceptors.Add(casted);

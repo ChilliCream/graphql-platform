@@ -31,9 +31,7 @@ public class Snapshot
             new HttpResponseSnapshotValueFormatter(),
             new OperationResultSnapshotValueFormatter(),
             new JsonElementSnapshotValueFormatter(),
-#if NET8_0_OR_GREATER
             new QueryPlanSnapshotValueFormatter(),
-#endif
         });
     private static readonly JsonSnapshotValueFormatter _defaultFormatter = new();
 
@@ -555,7 +553,7 @@ public class Snapshot
         var directoryName = GetDirectoryName(_fileName)!;
 
         return mismatch
-            ? Combine(directoryName, "__snapshots__", "__MISMATCH__")
+            ? Combine(directoryName, "__snapshots__", "__mismatch__")
             : Combine(directoryName, "__snapshots__");
     }
 

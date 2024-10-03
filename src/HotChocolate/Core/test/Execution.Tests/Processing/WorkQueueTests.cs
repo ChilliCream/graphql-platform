@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace HotChocolate.Execution.Processing;
 
 public class WorkQueueTests

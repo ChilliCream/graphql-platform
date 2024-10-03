@@ -1,8 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Types.Descriptors;
 
-#nullable enable
-
 namespace HotChocolate.Execution.DependencyInjection;
 
 public class SchemaRequestExecutorBuilderExtensionsConventionsTests

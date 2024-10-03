@@ -885,6 +885,18 @@
               },
               "IsDeprecated": false,
               "DeprecationReason": null
+            },
+            {
+              "Name": "oneOf",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "Kind": "Scalar",
+                "Name": "Boolean",
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
             }
           ],
           "InputFields": null,
@@ -4082,6 +4094,26 @@
               "Type": {
                 "__typename": "__Type",
                 "Name": "String",
+                "Kind": "Scalar",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
+              "Name": "oneOf",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "__typename": "__Type",
+                "Name": "Boolean",
                 "Kind": "Scalar",
                 "Description": null,
                 "Fields": null,

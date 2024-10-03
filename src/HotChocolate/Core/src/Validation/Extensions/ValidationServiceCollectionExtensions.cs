@@ -28,6 +28,8 @@ public static class HotChocolateValidationServiceCollectionExtensions
         var builder = new DefaultValidationBuilder(schemaName, services);
 
         builder
+            .AddIntrospectionAllowedRule()
+            .AddIntrospectionDepthRule()
             .AddDocumentRules()
             .AddOperationRules()
             .AddFieldRules()

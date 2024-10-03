@@ -1,22 +1,22 @@
-﻿[
+[
   {
     "Message": "Bar",
     "Code": "HC0046",
     "Path": null,
     "Locations": [
       {
-        "Line": 3,
-        "Column": 21
+        "Line": 2,
+        "Column": 5
       }
     ],
     "Extensions": {
       "field": {
         "Kind": "Name",
         "Location": {
-          "Start": 39,
-          "End": 65,
-          "Line": 3,
-          "Column": 21
+          "Start": 6,
+          "End": 16,
+          "Line": 2,
+          "Column": 5
         },
         "Value": "__schema"
       },

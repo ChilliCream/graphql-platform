@@ -1,7 +1,5 @@
 using System.Collections;
-#if NET8_0_OR_GREATER
 using System.Collections.Frozen;
-#endif
 
 namespace HotChocolate.Features;
 
@@ -10,11 +8,7 @@ namespace HotChocolate.Features;
 /// </summary>
 public sealed class ReadOnlyFeatureCollection : IFeatureCollection
 {
-#if NET8_0_OR_GREATER
     private readonly FrozenDictionary<Type, object> _features;
-#else
-    private readonly Dictionary<Type, object> _features;
-#endif
     private volatile int _containerRevision;
 
     /// <summary>
@@ -25,11 +19,7 @@ public sealed class ReadOnlyFeatureCollection : IFeatureCollection
     /// </param>
     public ReadOnlyFeatureCollection(IFeatureCollection features)
     {
-#if NET8_0_OR_GREATER
         _features = features.ToFrozenDictionary();
-#else
-        _features = features.ToDictionary(t => t.Key, t => t.Value);
-#endif
 
         foreach (var feature in _features.Values)
         {

@@ -9,9 +9,6 @@ using HotChocolate.Execution.Serialization;
 using HotChocolate.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Net.Http.Headers;
-#if !NET6_0_OR_GREATER
-using Microsoft.Net.Http.Headers;
-#endif
 using static HotChocolate.AspNetCore.AcceptMediaTypeKind;
 using static HotChocolate.Execution.ExecutionResultKind;
 using static HotChocolate.WellKnownContextData;
@@ -185,6 +182,13 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                     && value is CacheControlHeaderValue cacheControlHeaderValue)
                 {
                     response.GetTypedHeaders().CacheControl = cacheControlHeaderValue;
+                }
+
+                if (result.ContextData is not null
+                    && result.ContextData.TryGetValue(VaryHeaderValue, out var varyValue)
+                    && varyValue is string varyHeaderValue)
+                {
+                    response.Headers.Vary = varyHeaderValue;
                 }
 
                 OnWriteResponseHeaders(operationResult, format, response.Headers);

@@ -1,7 +1,7 @@
-﻿{
+{
   "errors": [
     {
-      "message": "The required input field \u0060field1\u0060 is missing.",
+      "message": "The required input field `field1` is missing.",
       "path": [
         "field1"
       ],

@@ -19,7 +19,7 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
     /// The DataLoader that shall be branched.
     /// </param>
     /// <param name="pagingArguments">
-    /// The paging arguments that shall be exist as state in the branched DataLoader.
+    /// The paging arguments that shall exist as state in the branched DataLoader.
     /// </param>
     /// <typeparam name="TKey">
     /// The key type of the DataLoader.
@@ -83,12 +83,10 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
     /// <exception cref="ArgumentNullException">
     /// Throws if the <paramref name="dataLoader"/> is <c>null</c>.
     /// </exception>
-#if NET8_0_OR_GREATER
     [Experimental(Experiments.Projections)]
-#endif
     public static IPagingDataLoader<TKey, Page<TValue>> Select<TKey, TValue>(
         this IPagingDataLoader<TKey, Page<TValue>> dataLoader,
-        Expression<Func<TValue, TValue>> selector)
+        Expression<Func<TValue, TValue>>? selector)
         where TKey : notnull
     {
         if (dataLoader is null)
@@ -98,7 +96,7 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
 
         if (selector is null)
         {
-            throw new ArgumentNullException(nameof(selector));
+            return dataLoader;
         }
 
         var builder = dataLoader.GetOrSetState(_ => new DefaultSelectorBuilder<TValue>());

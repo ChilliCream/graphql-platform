@@ -186,17 +186,7 @@ public abstract class CursorPagingHandler<TQuery, TEntity>(PagingOptions options
 
         if (moreItemsReturnedThanRequested)
         {
-#if NET7_OR_GREATER
             edges = edges.Slice(0, length);
-#else
-            var builder = ImmutableArray.CreateBuilder<Edge<TEntity>>(length);
-            for (var i = 0; i < length; i++)
-            {
-                builder.Add(edges[i]);
-            }
-
-            edges = builder.MoveToImmutable();
-#endif
         }
 
         var pageInfo = CreatePageInfo(isSequenceFromStart, moreItemsReturnedThanRequested, edges);

@@ -72,12 +72,14 @@ public static class PagingQueryableExtensions
             throw new ArgumentNullException(nameof(source));
         }
 
+        source = QueryHelpers.EnsureOrderPropsAreSelected(source);
+
         var keys = ParseDataSetKeys(source);
 
         if (keys.Length == 0)
         {
             throw new ArgumentException(
-                "In order to use cursor pagination, you must specify at least on key using the `OrderBy` method.",
+                "In order to use cursor pagination, you must specify at least one key using the `OrderBy` method.",
                 nameof(source));
         }
 
@@ -214,6 +216,8 @@ public static class PagingQueryableExtensions
                 "You can specify either `first` or `last`, but not both as this can lead to unpredictable results.",
                 nameof(arguments));
         }
+
+        source = QueryHelpers.EnsureOrderPropsAreSelected(source);
 
         // we need to move the ordering into the select expression we are constructing
         // so that the groupBy will not remove it. The first thing we do here is to extract the order expressions

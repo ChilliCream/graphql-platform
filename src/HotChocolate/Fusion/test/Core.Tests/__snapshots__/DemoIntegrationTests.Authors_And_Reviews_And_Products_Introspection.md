@@ -304,6 +304,13 @@
                 "name": "String",
                 "kind": "SCALAR"
               }
+            },
+            {
+              "name": "oneOf",
+              "type": {
+                "name": "Boolean",
+                "kind": "SCALAR"
+              }
             }
           ]
         },

@@ -29,10 +29,8 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     private readonly IBatchScheduler _batchScheduler;
     private readonly int _maxBatchSize;
     private readonly IDataLoaderDiagnosticEvents _diagnosticEvents;
-#if NET6_0_OR_GREATER
     private ImmutableDictionary<string, IDataLoader> _branches =
         ImmutableDictionary<string, IDataLoader>.Empty;
-#endif
     private Batch<TKey>? _currentBatch;
 
     /// <summary>
@@ -230,22 +228,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     }
 
     /// <inheritdoc />
-    public void Remove(TKey key)
-    {
-        if (key is null)
-        {
-            throw new ArgumentNullException(nameof(key));
-        }
-
-        if (Cache is not null)
-        {
-            PromiseCacheKey cacheKey = new(CacheKeyType, key);
-            Cache.TryRemove(cacheKey);
-        }
-    }
-
-    /// <inheritdoc />
-    public void Set(TKey key, Task<TValue?> value)
+    public void SetCacheEntry(TKey key, Task<TValue?> value)
     {
         if (key == null)
         {
@@ -263,7 +246,35 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             Cache.TryAdd(cacheKey, new Promise<TValue?>(value));
         }
     }
-#if NET6_0_OR_GREATER
+
+    /// <inheritdoc />
+    public void RemoveCacheEntry(TKey key)
+    {
+        if (key is null)
+        {
+            throw new ArgumentNullException(nameof(key));
+        }
+
+        if (Cache is not null)
+        {
+            PromiseCacheKey cacheKey = new(CacheKeyType, key);
+            Cache.TryRemove(cacheKey);
+        }
+    }
+
+    /// <inheritdoc />
+    [Obsolete("Use SetCacheEntry instead.")]
+    public void Set(TKey key, Task<TValue?> value)
+    {
+        SetCacheEntry(key, value);
+    }
+
+    /// <inheritdoc />
+    [Obsolete("Use RemoveCacheEntry instead.")]
+    public void Remove(TKey key)
+    {
+        RemoveCacheEntry(key);
+    }
 
     /// <inheritdoc />
     public IDataLoader Branch<TState>(
@@ -302,7 +313,6 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
         return branch;
     }
-#endif
 
     private void BatchOperationFailed(
         Batch<TKey> batch,

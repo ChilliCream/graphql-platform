@@ -1,0 +1,14 @@
+{
+  "ContentType": "application/graphql-response+json; charset=utf-8",
+  "StatusCode": "BadRequest",
+  "Data": null,
+  "Errors": [
+    {
+      "message": "Only persisted operations are allowed.",
+      "extensions": {
+        "code": "HC0067"
+      }
+    }
+  ],
+  "Extensions": null
+}

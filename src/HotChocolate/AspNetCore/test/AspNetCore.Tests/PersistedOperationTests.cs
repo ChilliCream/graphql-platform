@@ -5,17 +5,13 @@ using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Server.HttpSys;
+using static HotChocolate.Execution.Options.PersistedOperationOptions;
 
 namespace HotChocolate.AspNetCore;
 
-public class PersistedOperationTests : ServerTestBase
+public class PersistedOperationTests(TestServerFactory serverFactory)
+    : ServerTestBase(serverFactory)
 {
-    public PersistedOperationTests(TestServerFactory serverFactory)
-        : base(serverFactory)
-    {
-    }
-
     [Fact]
     public async Task HotChocolateStyle_MD5Hash_Success()
     {
@@ -293,11 +289,68 @@ public class PersistedOperationTests : ServerTestBase
         var server = CreateStarWarsServer(
             configureServices: s => s
                 .AddGraphQL("StarWars")
-                .ModifyRequestOptions(o => o.OnlyAllowPersistedOperations = true)
+                .ModifyRequestOptions(o => o.PersistedOperationOptions = OnlyPersistedOperations)
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline());
 
         var query = "{ __typename }";
+
+        // act
+        var result = await server.PostAsync(
+            new ClientQueryRequest { Query = query, },
+            path: "/starwars");
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Standard_Query_Not_Allowed_Even_When_Persisted()
+    {
+        // arrange
+        var storage = new OperationStorage();
+        storage.AddOperation(
+            "a73defcdf38e5891e91b9ba532cf4c36",
+            "query GetHeroName { hero { name } }");
+
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQL("StarWars")
+                .ModifyRequestOptions(o => o.PersistedOperationOptions |= OnlyPersistedOperations)
+                .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
+                .UsePersistedOperationPipeline());
+
+        var query = "query GetHeroName { hero { name } }";
+
+        // act
+        var result = await server.PostAsync(
+            new ClientQueryRequest { Query = query, },
+            path: "/starwars");
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Standard_Query_Allowed_When_Persisted()
+    {
+        // arrange
+        var storage = new OperationStorage();
+        storage.AddOperation(
+            "a73defcdf38e5891e91b9ba532cf4c36",
+            "query GetHeroName { hero { name } }");
+
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQL("StarWars")
+                .ModifyRequestOptions(o =>
+                    o.PersistedOperationOptions =
+                        OnlyPersistedOperations
+                        | MatchStandardDocument)
+                .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
+                .UsePersistedOperationPipeline());
+
+        var query = "query GetHeroName { hero { name } }";
 
         // act
         var result = await server.PostAsync(
@@ -319,7 +372,7 @@ public class PersistedOperationTests : ServerTestBase
                 .AddGraphQL("StarWars")
                 .ModifyRequestOptions(o =>
                 {
-                    o.OnlyAllowPersistedOperations = true;
+                    o.PersistedOperationOptions = OnlyPersistedOperations;
                     o.OnlyPersistedOperationsAreAllowedError =
                         ErrorBuilder.New()
                             .SetMessage("Not allowed!")
@@ -350,7 +403,7 @@ public class PersistedOperationTests : ServerTestBase
                 .AddGraphQL("StarWars")
                 .ModifyRequestOptions(o =>
                 {
-                    o.OnlyAllowPersistedOperations = true;
+                    o.PersistedOperationOptions = OnlyPersistedOperations;
                 })
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline()

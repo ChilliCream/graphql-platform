@@ -29,7 +29,7 @@ internal sealed class DataLoaderRootFieldTypeInterceptor : TypeInterceptor
     internal override bool IsEnabled(IDescriptorContext context)
         => context.Options.PublishRootFieldPagesToPromiseCache;
 
-    internal override void OnAfterResolveRootType(
+    public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
         ObjectTypeDefinition definition,
         OperationType operationType)
