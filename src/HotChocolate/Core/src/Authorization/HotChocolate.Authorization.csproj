@@ -5,6 +5,7 @@
     <AssemblyName>HotChocolate.Authorization</AssemblyName>
     <RootNamespace>HotChocolate.Authorization</RootNamespace>
     <Description>This package contains the authorization abstractions for Hot Chocolate.</Description>
+    <NoWarn>HC8001;$(NoWarn)</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

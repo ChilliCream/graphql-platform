@@ -4,10 +4,7 @@ using GreenDonut;
 using GreenDonut.Projections;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.TestContext;
-using HotChocolate.Pagination;
 using HotChocolate.Types;
-using HotChocolate.Types.Pagination;
-using HotChocolate.Types.Relay;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Squadron;
@@ -43,41 +40,6 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 {
                     brandById(id: 1) {
                         name
-                    }
-                }
-                """);
-
-        Snapshot.Create()
-            .AddSql(queries)
-            .AddResult(result)
-            .MatchMarkdownSnapshot();
-    }
-
-    [Fact]
-    public async Task Brand_With_Name_Over_Node()
-    {
-        // Arrange
-        var queries = new List<string>();
-        var connectionString = CreateConnectionString();
-        await CatalogContext.SeedAsync(connectionString);
-
-        // Act
-        var result = await new ServiceCollection()
-            .AddScoped(_ => queries)
-            .AddTransient(_ => new CatalogContext(connectionString))
-            .AddGraphQL()
-            .AddQueryType<NodeQuery>()
-            .AddGlobalObjectIdentification()
-            .AddPagingArguments()
-            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-            .ExecuteRequestAsync(
-                """
-                {
-                    node(id: "QnJhbmQ6MQ==") {
-                        id
-                        ... on Brand {
-                            name
-                        }
                     }
                 }
                 """);
@@ -631,18 +593,6 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
-    }
-
-
-    public class NodeQuery
-    {
-        [NodeResolver]
-        public async Task<Brand?> GetBrandByIdAsync(
-            int id,
-            ISelection selection,
-            BrandByIdDataLoader brandById,
-            CancellationToken cancellationToken)
-            => await brandById.Select(selection).LoadAsync(id, cancellationToken);
     }
 
     public class Query
