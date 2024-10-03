@@ -234,7 +234,7 @@ dotnet fusion compose -p ./gateway.fgp -s path/to/your/subgraph/config.fsp
 If you want to make sure that your subgraph is compatible with the schema and client registry, you can validate it by calling:
 
 ```bash
-barista fusion-configuration publish validate --configuration ./gateway.fgp --api-key <<your-fusion-api-key>>
+dotnet barista fusion-configuration publish validate --configuration ./gateway.fgp --api-key <<your-fusion-api-key>>
 ```
 
 In case the validation fails, you will get an error message. You have to cancel the deployment manually though. You can add deployment step to your CI/CD pipeline which will cancel the deployment if the validation fails by calling:
