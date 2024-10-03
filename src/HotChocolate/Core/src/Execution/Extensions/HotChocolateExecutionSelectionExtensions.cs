@@ -77,6 +77,11 @@ public static class HotChocolateExecutionSelectionExtensions
             return GetOrCreateExpression<TValue>(selection, builder);
         }
 
+        if ((flags & FieldFlags.NodesField) == FieldFlags.NodesField)
+        {
+            return GetOrCreateNodeExpression<TValue>(selection);
+        }
+
         return GetOrCreateExpression<TValue>(selection);
     }
 
@@ -97,6 +102,13 @@ public static class HotChocolateExecutionSelectionExtensions
             CreateExpressionKey(selection.Id),
             static (_, ctx) => ctx.builder.TryCompile<TValue>()!,
             (builder, selection));
+
+    private static Expression<Func<TValue, TValue>> GetOrCreateNodeExpression<TValue>(
+        ISelection selection)
+        => selection.DeclaringOperation.GetOrAddState(
+            CreateNodeExpressionKey<TValue>(selection.Id),
+            static (_, ctx) => ctx._builder.BuildNodeExpression<TValue>(ctx.selection),
+            (_builder, selection));
 
     private static bool TryGetExpression<TValue>(
         ISelection selection,
@@ -173,6 +185,30 @@ public static class HotChocolateExecutionSelectionExtensions
         keyPrefix.CopyTo(span);
         Utf8Formatter.TryFormat(key, span.Slice(keyPrefix.Length), out var written, 'D');
         return Encoding.UTF8.GetString(span.Slice(0, written + keyPrefix.Length));
+    }
+
+    private static string CreateNodeExpressionKey<TValue>(int key)
+    {
+        var typeName = typeof(TValue).FullName!;
+        var typeNameLength = Encoding.UTF8.GetMaxByteCount(typeName.Length);
+        var keyPrefix = GetKeyPrefix();
+        var requiredBufferSize = EstimateIntLength(key) + keyPrefix.Length + typeNameLength;
+        byte[]? rented = null;
+        var span =  requiredBufferSize <= 256
+            ? stackalloc byte[requiredBufferSize]
+            : (rented = ArrayPool<byte>.Shared.Rent(requiredBufferSize));
+
+        keyPrefix.CopyTo(span);
+        Utf8Formatter.TryFormat(key, span.Slice(keyPrefix.Length), out var written, 'D');
+        var typeNameWritten = Encoding.UTF8.GetBytes(typeName, span.Slice(written + keyPrefix.Length));
+        var keyString = Encoding.UTF8.GetString(span.Slice(0, written + keyPrefix.Length + typeNameWritten));
+
+        if (rented is not null)
+        {
+            ArrayPool<byte>.Shared.Return(rented);
+        }
+
+        return keyString;
     }
 
     private static ReadOnlySpan<byte> GetKeyPrefix()

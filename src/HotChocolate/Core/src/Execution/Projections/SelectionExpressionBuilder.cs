@@ -32,6 +32,44 @@ internal sealed class SelectionExpressionBuilder
         return Expression.Lambda<Func<TRoot, TRoot>>(selectionSetExpression, parameter);
     }
 
+    public Expression<Func<TRoot, TRoot>> BuildNodeExpression<TRoot>(ISelection selection)
+    {
+        var rootType = typeof(TRoot);
+        var parameter = Expression.Parameter(rootType, "root");
+        var requirements = selection.DeclaringOperation.Schema.Features.GetRequired<FieldRequirementsMetadata>();
+        var context = new Context(parameter, rootType, requirements);
+        var root = new TypeContainer();
+
+        var entityType = selection.DeclaringOperation.GetPossibleTypes(selection).FirstOrDefault(t => t.RuntimeType == typeof(TRoot));
+
+        if (entityType is null)
+        {
+            throw new InvalidOperationException(
+                $"Unable to resolve the entity type from `{typeof(TRoot).FullName}`.");
+        }
+
+        var typeNode = new TypeNode(entityType.RuntimeType);
+        var selectionSet = selection.DeclaringOperation.GetSelectionSet(selection, entityType);
+        CollectSelections(context, selectionSet, typeNode);
+        root.TryAddNode(typeNode);
+
+        if (typeNode.Nodes.Count == 0)
+        {
+            TryAddAnyLeafField(selection, typeNode);
+        }
+
+        CollectTypes(context, selection, root);
+
+        var selectionSetExpression = BuildTypeSwitchExpression(context, root);
+
+        if (selectionSetExpression is null)
+        {
+            throw new InvalidOperationException("The selection set is empty.");
+        }
+
+        return Expression.Lambda<Func<TRoot, TRoot>>(selectionSetExpression, parameter);
+    }
+
     private void CollectTypes(Context context, ISelection selection, TypeContainer parent)
     {
         var namedType = selection.Type.NamedType();
@@ -50,11 +88,12 @@ internal sealed class SelectionExpressionBuilder
                 CollectSelections(context, possibleSelectionSet, possibleTypeNode);
                 parent.TryAddNode(possibleTypeNode);
 
-                if(possibleTypeNode.Nodes.Count == 0)
+                if (possibleTypeNode.Nodes.Count == 0)
                 {
                     TryAddAnyLeafField(selection, possibleTypeNode);
                 }
             }
+
             return;
         }
 
@@ -64,7 +103,7 @@ internal sealed class SelectionExpressionBuilder
         CollectSelections(context, selectionSet, typeNode);
         parent.TryAddNode(typeNode);
 
-        if(typeNode.Nodes.Count == 0)
+        if (typeNode.Nodes.Count == 0)
         {
             TryAddAnyLeafField(selection, typeNode);
         }
@@ -81,7 +120,7 @@ internal sealed class SelectionExpressionBuilder
             foreach (var typeNode in parent.Nodes)
             {
                 var newParent = Expression.Convert(context.Parent, typeNode.Type);
-                var newContext = context with { Parent  = newParent, ParentType = typeNode.Type };
+                var newContext = context with { Parent = newParent, ParentType = typeNode.Type };
                 var typeCondition = Expression.TypeIs(context.Parent, typeNode.Type);
                 var selectionSet = BuildSelectionSetExpression(newContext, typeNode);
 
@@ -226,7 +265,7 @@ internal sealed class SelectionExpressionBuilder
             return Expression.Bind(node.Property, propertyAccessor);
         }
 
-        if(node.IsArrayOrCollection)
+        if (node.IsArrayOrCollection)
         {
             throw new NotSupportedException("List projections are not supported.");
         }
