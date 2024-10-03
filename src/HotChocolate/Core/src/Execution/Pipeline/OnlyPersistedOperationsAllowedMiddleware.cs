@@ -30,8 +30,8 @@ internal sealed class OnlyPersistedOperationsAllowedMiddleware
             ?? throw new ArgumentNullException(nameof(diagnosticEvents));
 
         // prepare options.
-        _options = options.PersistedOperationOptions;
-        var error = options.OnlyPersistedOperationsAreAllowedError;
+        _options = options.PersistedOperations;
+        var error = options.PersistedOperations.OperationNotAllowedError;
         _errorResult =  OperationResultBuilder.CreateError(error, _statusCode);
         _exception = new GraphQLException(error);
     }
@@ -39,7 +39,7 @@ internal sealed class OnlyPersistedOperationsAllowedMiddleware
     public ValueTask InvokeAsync(IRequestContext context)
     {
         // if all operations are allowed we can skip this middleware.
-        if((_options & OnlyPersistedOperations) != OnlyPersistedOperations)
+        if(!_options.OnlyAllowPersistedDocuments)
         {
             return _next(context);
         }
@@ -51,7 +51,7 @@ internal sealed class OnlyPersistedOperationsAllowedMiddleware
             // however this could still be a standard GraphQL request that contains a document
             // that just matches a persisted operation document.
             // either this is allowed by the configuration and we can skip this middleware
-            if ((_options & MatchStandardDocument) == MatchStandardDocument)
+            if (_options.AllowDocumentBody)
             {
                 return _next(context);
             }

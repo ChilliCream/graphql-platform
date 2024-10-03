@@ -289,7 +289,7 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
         var server = CreateStarWarsServer(
             configureServices: s => s
                 .AddGraphQL("StarWars")
-                .ModifyRequestOptions(o => o.PersistedOperationOptions = OnlyPersistedOperations)
+                .ModifyRequestOptions(o => o.PersistedOperations.OnlyAllowPersistedDocuments = true)
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline());
 
@@ -316,7 +316,7 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
         var server = CreateStarWarsServer(
             configureServices: s => s
                 .AddGraphQL("StarWars")
-                .ModifyRequestOptions(o => o.PersistedOperationOptions |= OnlyPersistedOperations)
+                .ModifyRequestOptions(o => o.PersistedOperations.OnlyAllowPersistedDocuments = true)
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline());
 
@@ -344,9 +344,10 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
             configureServices: s => s
                 .AddGraphQL("StarWars")
                 .ModifyRequestOptions(o =>
-                    o.PersistedOperationOptions =
-                        OnlyPersistedOperations
-                        | MatchStandardDocument)
+                {
+                    o.PersistedOperations.OnlyAllowPersistedDocuments = true;
+                    o.PersistedOperations.AllowDocumentBody = true;
+                })
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline());
 
@@ -372,8 +373,8 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
                 .AddGraphQL("StarWars")
                 .ModifyRequestOptions(o =>
                 {
-                    o.PersistedOperationOptions = OnlyPersistedOperations;
-                    o.OnlyPersistedOperationsAreAllowedError =
+                    o.PersistedOperations.OnlyAllowPersistedDocuments = true;
+                    o.PersistedOperations.OperationNotAllowedError =
                         ErrorBuilder.New()
                             .SetMessage("Not allowed!")
                             .Build();
@@ -403,7 +404,7 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
                 .AddGraphQL("StarWars")
                 .ModifyRequestOptions(o =>
                 {
-                    o.PersistedOperationOptions = OnlyPersistedOperations;
+                    o.PersistedOperations.OnlyAllowPersistedDocuments = true;
                 })
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline()
@@ -418,6 +419,50 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
 
         // assert
         result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Ensure_Pooled_Objects_Are_Cleared()
+    {
+        // arrange
+        // we have one operation in our storage that is allowed.
+        var storage = new OperationStorage();
+        storage.AddOperation(
+            "a73defcdf38e5891e91b9ba532cf4c36",
+            "query GetHeroName { hero { name } }");
+
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQL("StarWars")
+                .ModifyRequestOptions(o =>
+                {
+                    // we only allow persisted operations but we also allow standard requests
+                    // as long as they match a persisted operation.
+                    o.PersistedOperations.OnlyAllowPersistedDocuments = true;
+                    o.PersistedOperations.AllowDocumentBody = true;
+                })
+                .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
+                .UsePersistedOperationPipeline());
+
+        // act
+        var result1ShouldBeOk = await server.PostAsync(
+            new ClientQueryRequest { Id = "a73defcdf38e5891e91b9ba532cf4c36" },
+            path: "/starwars");
+
+        var result2ShouldBeOk = await server.PostAsync(
+            new ClientQueryRequest { Query = "query GetHeroName { hero { name } }"},
+            path: "/starwars");
+
+        var result3ShouldFail = await server.PostAsync(
+            new ClientQueryRequest { Query = "{ __typename }" },
+            path: "/starwars");
+
+        // assert
+        await Snapshot.Create()
+            .Add(result1ShouldBeOk, "Result 1 - Should be OK")
+            .Add(result2ShouldBeOk, "Result 2 - Should be OK")
+            .Add(result3ShouldFail, "Result 3 - Should fail")
+            .MatchMarkdownAsync();
     }
 
     private ClientQueryRequest CreateApolloStyleRequest(string hashName, string key)
