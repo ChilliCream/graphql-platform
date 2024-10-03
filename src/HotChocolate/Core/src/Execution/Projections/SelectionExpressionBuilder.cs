@@ -58,8 +58,6 @@ internal sealed class SelectionExpressionBuilder
             TryAddAnyLeafField(typeNode, entityType);
         }
 
-        CollectTypes(context, selection, root);
-
         var selectionSetExpression = BuildTypeSwitchExpression(context, root);
 
         if (selectionSetExpression is null)

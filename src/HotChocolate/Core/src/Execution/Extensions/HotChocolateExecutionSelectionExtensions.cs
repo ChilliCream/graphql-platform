@@ -77,7 +77,8 @@ public static class HotChocolateExecutionSelectionExtensions
             return GetOrCreateExpression<TValue>(selection, builder);
         }
 
-        if ((flags & FieldFlags.NodesField) == FieldFlags.NodesField)
+        if ((flags & FieldFlags.GlobalIdNodeField) == FieldFlags.GlobalIdNodeField
+            || (flags & FieldFlags.GlobalIdNodeField) == FieldFlags.GlobalIdNodeField)
         {
             return GetOrCreateNodeExpression<TValue>(selection);
         }
