@@ -5,10 +5,6 @@ using GreenDonut.Projections;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.TestContext;
 using HotChocolate.Types;
-<<<<<<< Updated upstream
-=======
-using HotChocolate.Types.Relay;
->>>>>>> Stashed changes
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Squadron;
