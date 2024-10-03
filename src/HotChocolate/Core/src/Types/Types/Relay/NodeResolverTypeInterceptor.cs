@@ -34,7 +34,7 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
             TypeDef is not null &&
             CompletionContext is not null;
 
-    internal override void OnAfterResolveRootType(
+    public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
         ObjectTypeDefinition definition,
         OperationType operationType)

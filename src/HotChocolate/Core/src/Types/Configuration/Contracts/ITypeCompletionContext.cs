@@ -73,6 +73,16 @@ public interface ITypeCompletionContext : ITypeSystemObjectContext
     /// </summary>
     IEnumerable<T> GetTypes<T>() where T : IType;
 
+    /// <summary>
+    /// Tries to resolve a directive type by its <paramref name="directiveRef" />.
+    /// </summary>
+    /// <param name="directiveRef">
+    /// The directive reference representing the directive.
+    /// </param>
+    /// <param name="directiveType">
+    /// The resolved directive type.
+    /// </param>
+    /// <returns></returns>
     bool TryGetDirectiveType(
         TypeReference directiveRef,
         [NotNullWhen(true)] out DirectiveType? directiveType);

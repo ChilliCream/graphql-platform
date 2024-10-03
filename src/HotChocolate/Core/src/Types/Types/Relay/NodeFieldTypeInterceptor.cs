@@ -22,7 +22,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
 
     internal override uint Position => uint.MaxValue - 100;
 
-    internal override void OnAfterResolveRootType(
+    public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
         ObjectTypeDefinition definition,
         OperationType operationType)
