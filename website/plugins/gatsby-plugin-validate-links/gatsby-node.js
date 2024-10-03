@@ -30,6 +30,8 @@ exports.onPreBuild = async ({
   }
 
   const knownLinks = [
+    "/docs/bananacakepop/v2/apis/client-registry",
+    "/products/bananacakepop",
     "/products/hotchocolate",
     "/products/nitro",
     "/products/strawberryshake",
