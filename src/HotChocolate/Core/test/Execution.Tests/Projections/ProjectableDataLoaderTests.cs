@@ -751,6 +751,15 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             BrandByIdDataLoader brandById,
             CancellationToken cancellationToken)
             => await brandById.Select(selection).LoadAsync(id, cancellationToken);
+
+        [NodeResolver]
+        public async Task<Product?> GetProductByIdAsync(
+            int id,
+            CancellationToken cancellationToken)
+        {
+            await Task.Run(() => new InvalidOperationException(), cancellationToken);
+            return default!;
+        }
     }
 
     [ExtendObjectType<Brand>]
