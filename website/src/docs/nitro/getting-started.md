@@ -15,20 +15,6 @@ To begin your exploration, simply visit [nitro.chillicream.com](https://nitro.ch
 
 You can install the Nitro App directly from our [download page](/products/nitro). The download page provides DMG installers for macOS, x64 installers for Windows, and AppImage/Snap installers for Ubuntu and Ubuntu-based Linux distributions. Note that other Linux distributions or installer formats are currently unsupported.
 
-## Package Managers
-
-1. **Homebrew**: If you have [Homebrew](https://brew.sh) installed, use this command to install the app:
-
-```bash
-brew install --cask banana-cake-pop
-```
-
-2. **Windows Package Manager**: For Windows 11 or a supported version of Windows 10 with the [Windows Package Manager](https://docs.microsoft.com/en-us/windows/package-manager/) installed, use:
-
-   ```powershell
-   winget install banana-cake-pop
-   ```
-
 Upon successful installation, follow the steps in the [Your first Query](#your-first-query) guide to execute your first GraphQL query using Nitro.
 
 # Your First Query

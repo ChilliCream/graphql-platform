@@ -173,6 +173,5 @@ vsix
 VXNlcjox
 websockets
 Wilhuff
-winget
 Wunder
 xunit
