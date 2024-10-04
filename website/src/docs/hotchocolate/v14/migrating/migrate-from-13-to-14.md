@@ -14,28 +14,31 @@ Things that have been removed or had a change in behavior that may cause your co
 
 ## Banana Cake Pop and Barista renamed to Nitro
 
-| Old                      | New                   | Notes                         |
-| ------------------------ | --------------------- | ----------------------------- |
-| AddBananaCakePopExporter | AddNitroExporter      |                               |
-| AddBananaCakePopServices | AddNitro              |                               |
-| barista                  | nitro                 | CLI executable                |
-| Barista                  | ChilliCream.Nitro.CLI | CLI NuGet package             |
-| BARISTA_API_ID           | NITRO_API_ID          |                               |
-| BARISTA_API_KEY          | NITRO_API_KEY         |                               |
-| BARISTA_CLIENT_ID        | NITRO_CLIENT_ID       |                               |
-| BARISTA_OPERATIONS_FILE  | NITRO_OPERATIONS_FILE |                               |
-| BARISTA_OUTPUT_FILE      | NITRO_OUTPUT_FILE     |                               |
-| BARISTA_SCHEMA_FILE      | NITRO_SCHEMA_FILE     |                               |
-| BARISTA_STAGE            | NITRO_STAGE           |                               |
-| BARISTA_SUBGRAPH_ID      | NITRO_SUBGRAPH_ID     |                               |
-| BARISTA_SUBGRAPH_NAME    | NITRO_SUBGRAPH_NAME   |                               |
-| BARISTA_TAG              | NITRO_TAG             |                               |
-| bcp                      | nitro                 | Key in `subgraph-config.json` |
-| BCP_API_ID               | NITRO_API_ID          |                               |
-| BCP_API_KEY              | NITRO_API_KEY         |                               |
-| BCP_STAGE                | NITRO_STAGE           |                               |
-| eat.bananacakepop.com    | nitro.chillicream.com |                               |
-| MapBananaCakePop         | MapNitroApp           |                               |
+| Old                                           | New                                   | Notes                                    |
+| --------------------------------------------- | ------------------------------------- | ---------------------------------------- |
+| AddBananaCakePopExporter                      | AddNitroExporter                      |                                          |
+| AddBananaCakePopServices                      | AddNitro                              |                                          |
+| barista                                       | nitro                                 | CLI executable                           |
+| Barista                                       | ChilliCream.Nitro.CLI                 | CLI NuGet package                        |
+| BARISTA_API_ID                                | NITRO_API_ID                          |                                          |
+| BARISTA_API_KEY                               | NITRO_API_KEY                         |                                          |
+| BARISTA_CLIENT_ID                             | NITRO_CLIENT_ID                       |                                          |
+| BARISTA_OPERATIONS_FILE                       | NITRO_OPERATIONS_FILE                 |                                          |
+| BARISTA_OUTPUT_FILE                           | NITRO_OUTPUT_FILE                     |                                          |
+| BARISTA_SCHEMA_FILE                           | NITRO_SCHEMA_FILE                     |                                          |
+| BARISTA_STAGE                                 | NITRO_STAGE                           |                                          |
+| BARISTA_SUBGRAPH_ID                           | NITRO_SUBGRAPH_ID                     |                                          |
+| BARISTA_SUBGRAPH_NAME                         | NITRO_SUBGRAPH_NAME                   |                                          |
+| BARISTA_TAG                                   | NITRO_TAG                             |                                          |
+| bcp                                           | nitro                                 | Key in `subgraph-config.json`            |
+| bcp-config.json                               | nitro-config.json                     |                                          |
+| BCP_API_ID                                    | NITRO_API_ID                          |                                          |
+| BCP_API_KEY                                   | NITRO_API_KEY                         |                                          |
+| BCP_STAGE                                     | NITRO_STAGE                           |                                          |
+| eat.bananacakepop.com                         | nitro.chillicream.com                 |                                          |
+| MapBananaCakePop                              | MapNitroApp                           |                                          |
+| @chillicream/bananacakepop-express-middleware | @chillicream/nitro-express-middleware |                                          |
+| @chillicream/bananacakepop-graphql-ide        | @chillicream/nitro-embedded           | `mode: "self"` is now `mode: "embedded"` |
 
 ## New GID format
 
