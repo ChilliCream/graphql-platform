@@ -1,30 +1,41 @@
 namespace HotChocolate.Execution.Options;
 
 /// <summary>
-/// Represents the options to configure the
-/// behavior of the persisted operation middleware.
+/// Represents the persisted operation options.
 /// </summary>
-[Flags]
-public enum PersistedOperationOptions
+public sealed class PersistedOperationOptions
 {
-    /// <summary>
-    /// Nothing is configured.
-    /// </summary>
-    None = 0,
+    private IError _operationNotAllowedError = ErrorHelper.OnlyPersistedOperationsAreAllowed();
 
     /// <summary>
-    /// Only persisted operations are allowed.
+    /// Specifies if only persisted operation documents are allowed.
     /// </summary>
-    OnlyPersistedOperations = 1,
+    public bool OnlyAllowPersistedDocuments { get; set; }
 
     /// <summary>
-    /// Allow standard GraphQL requests if the GraphQL document
-    /// match a persisted operation document.
+    /// Specifies that if <see cref="OnlyAllowPersistedDocuments"/> is switched on
+    /// whether a standard GraphQL request with document body is allowed as long as
+    /// it matches a persisted document.
     /// </summary>
-    MatchStandardDocument = 2,
+    public bool AllowDocumentBody { get; set; }
 
     /// <summary>
-    /// Skip validation for persisted operations documents.
+    /// Specifies if persisted operation documents
+    /// need to be validated.
     /// </summary>
-    SkipValidationForPersistedDocument = 4
+    public bool SkipPersistedDocumentValidation { get; set; }
+
+    /// <summary>
+    /// The error that will be thrown when only persisted
+    /// operations are allowed and a normal operation is issued.
+    /// </summary>
+    public IError OperationNotAllowedError
+    {
+        get => _operationNotAllowedError;
+        set
+        {
+            _operationNotAllowedError = value
+                ?? throw new ArgumentNullException(nameof(OperationNotAllowedError));
+        }
+    }
 }
