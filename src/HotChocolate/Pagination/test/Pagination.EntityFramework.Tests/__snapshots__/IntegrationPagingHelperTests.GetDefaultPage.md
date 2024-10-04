@@ -1,5 +1,23 @@
 # GetDefaultPage
 
+## SQL 0
+
+```sql
+-- @__p_0='11'
+SELECT b."Id", b."AlwaysNull", b."DisplayName", b."Name", b."BrandDetails_Country_Name"
+FROM "Brands" AS b
+ORDER BY b."Name", b."Id"
+LIMIT @__p_0
+```
+
+## Expression 0
+
+```text
+[Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].OrderBy(t => t.Name).ThenBy(t => t.Id).Take(11)
+```
+
+## Result
+
 ```json
 {
   "data": {
@@ -56,3 +74,4 @@
   }
 }
 ```
+
