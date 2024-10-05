@@ -66,7 +66,11 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
 
         var operationResult = result.ExpectOperationResult();
 
+#if NET9_0_OR_GREATER
+        await Snapshot.Create("NET_9_0")
+#else
         await Snapshot.Create()
+#endif
             .AddQueries(queries)
             .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty))
             .MatchMarkdownAsync();
@@ -121,7 +125,11 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
 
         var operationResult = result.ExpectOperationResult();
 
+#if NET9_0_OR_GREATER
+        await Snapshot.Create("NET_9_0")
+#else
         await Snapshot.Create()
+#endif
             .AddQueries(queries)
             .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty))
             .MatchMarkdownAsync();
@@ -327,7 +335,7 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
             CancellationToken cancellationToken)
         {
             var pagingArgs = context.GetPagingArguments();
-            var selector = context.GetSelector();
+            // var selector = context.GetSelector();
 
             await using var scope = _services.CreateAsyncScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<AnimalContext>();
@@ -349,11 +357,6 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
 
 file static class Extensions
 {
-    public static OperationRequestBuilder AddQueries(
-        this OperationRequestBuilder builder,
-        List<QueryInfo> queries)
-        => builder.SetGlobalState("queries", queries);
-
     public static Snapshot AddQueries(
         this Snapshot snapshot,
         List<QueryInfo> queries)
