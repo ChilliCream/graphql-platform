@@ -30,6 +30,7 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
         await SeedAsync(connectionString);
 
         var queries = new List<QueryInfo>();
+        using var capture = new CapturePagingQueryInterceptor(queries);
 
         var result = await new ServiceCollection()
             .AddScoped(_ => new AnimalContext(connectionString))
@@ -61,7 +62,6 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .AddQueries(queries)
                     .Build());
 
         var operationResult = result.ExpectOperationResult();
@@ -79,6 +79,7 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
         await SeedAsync(connectionString);
 
         var queries = new List<QueryInfo>();
+        using var capture = new CapturePagingQueryInterceptor(queries);
 
         var result = await new ServiceCollection()
             .AddScoped(_ => new AnimalContext(connectionString))
@@ -116,7 +117,6 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .AddQueries(queries)
                     .Build());
 
         var operationResult = result.ExpectOperationResult();
@@ -127,6 +127,47 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
             .MatchMarkdownAsync();
     }
 
+    [Fact]
+    public async Task Query_Pets()
+    {
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        var queries = new List<QueryInfo>();
+        using var capture = new CapturePagingQueryInterceptor(queries);
+
+        var result = await new ServiceCollection()
+            .AddScoped(_ => new AnimalContext(connectionString))
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddTypeExtension(typeof(OwnerExtensions))
+            .AddDataLoader<AnimalsByOwnerDataLoader>()
+            .AddObjectType<Cat>()
+            .AddObjectType<Dog>()
+            .AddPagingArguments()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .ExecuteRequestAsync(
+                OperationRequestBuilder.New()
+                    .SetDocument(
+                        """
+                        {
+                            pets(first: 10) {
+                                nodes {
+                                    id
+                                    name
+                                }
+                            }
+                        }
+                        """)
+                    .Build());
+
+        var operationResult = result.ExpectOperationResult();
+
+        await Snapshot.Create()
+            .AddQueries(queries)
+            .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty))
+            .MatchMarkdownAsync();
+    }
 
     private static async Task SeedAsync(string connectionString)
     {
@@ -141,8 +182,16 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
                 Pets =
                 [
                     new Cat { Name = "Cat 1" },
-                    new Dog { Name = "Dog 1", IsBarking = true },
-                    new Dog { Name = "Dog 2", IsBarking = false }
+                    new Dog
+                    {
+                        Name = "Dog 1",
+                        IsBarking = true
+                    },
+                    new Dog
+                    {
+                        Name = "Dog 2",
+                        IsBarking = false
+                    }
                 ]
             },
             new Owner
@@ -151,8 +200,16 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
                 Pets =
                 [
                     new Cat { Name = "Cat 2" },
-                    new Dog { Name = "Dog 3", IsBarking = true },
-                    new Dog { Name = "Dog 4", IsBarking = false }
+                    new Dog
+                    {
+                        Name = "Dog 3",
+                        IsBarking = true
+                    },
+                    new Dog
+                    {
+                        Name = "Dog 4",
+                        IsBarking = false
+                    }
                 ]
             },
             new Owner
@@ -160,15 +217,24 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
                 Name = "Owner 3",
                 Pets =
                 [
-                    new Cat { Name = "Cat 3 (Not Pure)", IsPurring = true },
-                    new Dog { Name = "Dog 5", IsBarking = true },
-                    new Dog { Name = "Dog 6", IsBarking = false }
+                    new Cat
+                    {
+                        Name = "Cat 3 (Not Pure)",
+                        IsPurring = true
+                    },
+                    new Dog
+                    {
+                        Name = "Dog 5",
+                        IsBarking = true
+                    },
+                    new Dog
+                    {
+                        Name = "Dog 6",
+                        IsBarking = false
+                    }
                 ]
             },
-            new Owner
-            {
-                Name = "Owner 4 - No Pets"
-            },
+            new Owner { Name = "Owner 4 - No Pets" },
             new Owner
             {
                 Name = "Owner 5 - Only Cat",
@@ -177,7 +243,14 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
             new Owner
             {
                 Name = "Owner 6 - Only Dog",
-                Pets = [new Dog { Name = "Only Dog", IsBarking = true }]
+                Pets =
+                [
+                    new Dog
+                    {
+                        Name = "Only Dog",
+                        IsBarking = true
+                    }
+                ]
             }
         };
 
@@ -193,17 +266,27 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
             AnimalContext context,
             ISelection selection,
             IResolverContext resolverContext,
-            [GlobalState] List<QueryInfo> queries,
             CancellationToken cancellationToken)
-        {
-            return await context.Owners
-                .Select(selection.AsSelector<Owner>())
+            => await context.Owners
                 .OrderBy(t => t.Name)
                 .ThenBy(t => t.Id)
-                .Capture(queries)
+                .Select(selection.AsSelector<Owner>())
                 .ToPageAsync(pagingArgs, cancellationToken)
                 .ToConnectionAsync();
-        }
+
+        [UsePaging]
+        public async Task<Connection<Animal>> GetPetsAsync(
+            PagingArguments pagingArgs,
+            AnimalContext context,
+            ISelection selection,
+            IResolverContext resolverContext,
+            CancellationToken cancellationToken)
+            => await context.Pets
+                .OrderBy(t => t.Name)
+                .ThenBy(t => t.Id)
+                .Select(selection.AsSelector<Animal>())
+                .ToPageAsync(pagingArgs, cancellationToken)
+                .ToConnectionAsync();
     }
 
     [ExtendObjectType<Owner>]
@@ -216,16 +299,12 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
             PagingArguments pagingArgs,
             AnimalsByOwnerDataLoader animalsByOwner,
             ISelection selection,
-            [GlobalState] List<QueryInfo> queries,
             CancellationToken cancellationToken)
-        {
-            return await animalsByOwner
+            => await animalsByOwner
                 .WithPagingArguments(pagingArgs)
                 .Select(selection)
-                .SetState(queries)
                 .LoadAsync(owner.Id, cancellationToken)
                 .ToConnectionAsync();
-        }
     }
 
     public sealed class AnimalsByOwnerDataLoader
@@ -258,8 +337,8 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
                 .SelectMany(t => t.Pets)
                 .OrderBy(t => t.Name)
                 .ThenBy(t => t.Id)
-                .Select(selector, t => t.OwnerId)
-                .Capture(context.GetQueries())
+                // selections do not work when inheritance is used for nested batching.
+                // .Select(selector, t => t.OwnerId)
                 .ToBatchPageAsync(
                     t => t.OwnerId,
                     pagingArgs,
@@ -270,23 +349,6 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
 
 file static class Extensions
 {
-    public static IQueryable<T> Capture<T>(
-        this IQueryable<T> query,
-        List<QueryInfo> queryInfos)
-    {
-        queryInfos.Add(
-            new QueryInfo
-            {
-                QueryText = query.ToQueryString(),
-                ExpressionText = query.Expression.ToString()
-            });
-        return query;
-    }
-
-    public static List<QueryInfo> GetQueries<T>(
-        this DataLoaderFetchContext<Page<T>> context)
-        => context.GetRequiredState<List<QueryInfo>>();
-
     public static OperationRequestBuilder AddQueries(
         this OperationRequestBuilder builder,
         List<QueryInfo> queries)
@@ -304,5 +366,28 @@ file static class Extensions
         }
 
         return snapshot;
+    }
+}
+
+file sealed class CapturePagingQueryInterceptor(List<QueryInfo> queries) : PagingQueryInterceptor
+{
+    public override void OnBeforeExecute<T>(IQueryable<T> query)
+    {
+        string queryText;
+        try
+        {
+            queryText = query.ToQueryString();
+        }
+        catch (Exception ex)
+        {
+            queryText = ex.Message;
+        }
+
+        queries.Add(
+            new QueryInfo
+            {
+                ExpressionText = query.Expression.ToString(),
+                QueryText = queryText
+            });
     }
 }

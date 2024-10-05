@@ -36,24 +36,9 @@ internal static class QueryHelpers
         List<MemberExpression> properties)
     {
         var parameter = selector.Parameters[0];
-        var bindings = ((MemberInitExpression)selector.Body).Bindings.Cast<MemberAssignment>().ToList();
-
-        foreach (var property in properties)
-        {
-            var propertyName = property.Member.Name;
-            if(property.Expression is not ParameterExpression parameterExpression
-                || bindings.Any(b => b.Member.Name == propertyName))
-            {
-                continue;
-            }
-
-            var replacer = new ReplacerParameterVisitor(parameterExpression, parameter);
-            var rewrittenProperty = (MemberExpression)replacer.Visit(property);
-            bindings.Add(Expression.Bind(rewrittenProperty.Member, rewrittenProperty));
-        }
-
-        var newBody = Expression.MemberInit(Expression.New(typeof(T)), bindings);
-        return Expression.Lambda<Func<T, T>>(newBody, parameter);
+        var visitor = new AddPropertiesVisitorRewriter<T>(properties, parameter);
+        var updatedBody = visitor.Visit(selector.Body);
+        return Expression.Lambda<Func<T, T>>(updatedBody, parameter);
     }
 
     private static List<MemberExpression> ExtractOrderProperties<T>(
@@ -71,5 +56,41 @@ internal static class QueryHelpers
         var visitor = new ReplaceSelectorVisitor<T>(newSelector);
         var newExpression = visitor.Visit(query.Expression);
         return query.Provider.CreateQuery<T>(newExpression);
+    }
+
+    public class AddPropertiesVisitorRewriter<T> : ExpressionVisitor
+    {
+        private readonly List<MemberExpression> _propertiesToAdd;
+        private readonly ParameterExpression _parameter;
+
+        public AddPropertiesVisitorRewriter(
+            List<MemberExpression> propertiesToAdd,
+            ParameterExpression parameter)
+        {
+            _propertiesToAdd = propertiesToAdd;
+            _parameter = parameter;
+        }
+
+        protected override Expression VisitMemberInit(MemberInitExpression node)
+        {
+            // Get existing bindings (properties in the current selector)
+            var existingBindings = node.Bindings.Cast<MemberAssignment>().ToList();
+
+            // Add the properties that are not already present in the bindings
+            foreach (var property in _propertiesToAdd)
+            {
+                var propertyName = property.Member.Name;
+                if (property.Expression is ParameterExpression parameterExpression
+                    && existingBindings.All(b => b.Member.Name != propertyName))
+                {
+                    var replacer = new ReplacerParameterVisitor(parameterExpression, _parameter);
+                    var rewrittenProperty = (MemberExpression)replacer.Visit(property);
+                    existingBindings.Add(Expression.Bind(rewrittenProperty.Member, rewrittenProperty));
+                }
+            }
+
+            // Create new MemberInitExpression with updated bindings
+            return Expression.MemberInit(node.NewExpression, existingBindings);
+        }
     }
 }

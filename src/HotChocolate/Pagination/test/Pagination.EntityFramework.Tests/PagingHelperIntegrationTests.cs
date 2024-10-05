@@ -30,6 +30,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         var connectionString = CreateConnectionString();
         await SeedAsync(connectionString);
         var queries = new List<QueryInfo>();
+        using var capture = new CapturePagingQueryInterceptor(queries);
 
         // Act
         var result = await new ServiceCollection()
@@ -56,7 +57,6 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .AddQueries(queries)
                     .Build());
 
         // Assert
@@ -73,6 +73,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         var connectionString = CreateConnectionString();
         await SeedAsync(connectionString);
         var queries = new List<QueryInfo>();
+        using var capture = new CapturePagingQueryInterceptor(queries);
 
         // Act
         var result = await new ServiceCollection()
@@ -99,7 +100,6 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .AddQueries(queries)
                     .Build());
 
         // Assert
@@ -116,6 +116,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         var connectionString = CreateConnectionString();
         await SeedAsync(connectionString);
         var queries = new List<QueryInfo>();
+        using var capture = new CapturePagingQueryInterceptor(queries);
 
         // Act
         var result = await new ServiceCollection()
@@ -142,7 +143,6 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .AddQueries(queries)
                     .Build());
 
         // Assert
@@ -159,6 +159,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         var connectionString = CreateConnectionString();
         await SeedAsync(connectionString);
         var queries = new List<QueryInfo>();
+        using var capture = new CapturePagingQueryInterceptor(queries);
 
         // Act
         var result = await new ServiceCollection()
@@ -194,7 +195,6 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .AddQueries(queries)
                     .Build());
 
         // Assert
@@ -211,6 +211,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         var connectionString = CreateConnectionString();
         await SeedAsync(connectionString);
         var queries = new List<QueryInfo>();
+        using var capture = new CapturePagingQueryInterceptor(queries);
 
         // Act
         var result = await new ServiceCollection()
@@ -246,7 +247,6 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .AddQueries(queries)
                     .Build());
 
         // Assert
@@ -263,6 +263,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         var connectionString = CreateConnectionString();
         await SeedAsync(connectionString);
         var queries = new List<QueryInfo>();
+        using var capture = new CapturePagingQueryInterceptor(queries);
 
         // Act
         var result = await new ServiceCollection()
@@ -298,7 +299,6 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .AddQueries(queries)
                     .Build());
 
         // Assert
@@ -315,6 +315,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         var connectionString = CreateConnectionString();
         await SeedAsync(connectionString);
         var queries = new List<QueryInfo>();
+        using var capture = new CapturePagingQueryInterceptor(queries);
 
         // Act
         var result = await new ServiceCollection()
@@ -350,7 +351,6 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .AddQueries(queries)
                     .Build());
 
         // Assert
@@ -367,6 +367,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         var connectionString = CreateConnectionString();
         await SeedAsync(connectionString);
         var queries = new List<QueryInfo>();
+        using var capture = new CapturePagingQueryInterceptor(queries);
 
         // Act
         var result = await new ServiceCollection()
@@ -402,7 +403,6 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .AddQueries(queries)
                     .Build());
 
         // Assert
@@ -419,6 +419,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         var connectionString = CreateConnectionString();
         await SeedAsync(connectionString);
         var queries = new List<QueryInfo>();
+        using var capture = new CapturePagingQueryInterceptor(queries);
 
         // Act
         var result = await new ServiceCollection()
@@ -454,7 +455,6 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .AddQueries(queries)
                     .Build());
 
         // Assert
@@ -471,6 +471,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         var connectionString = CreateConnectionString();
         await SeedAsync(connectionString);
         var queries = new List<QueryInfo>();
+        using var capture = new CapturePagingQueryInterceptor(queries);
 
         // Act
         var result = await new ServiceCollection()
@@ -505,13 +506,16 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .AddQueries(queries)
                     .Build());
 
         // Assert
         var operationResult = result.ExpectOperationResult();
 
+#if NET8_0
         await Snapshot.Create()
+#else
+        await Snapshot.Create("NET9_0")
+#endif
             .AddQueries(queries)
             .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty))
             .MatchMarkdownAsync();
@@ -525,6 +529,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         await SeedAsync(connectionString);
 
         var queries = new List<QueryInfo>();
+        using var capture = new CapturePagingQueryInterceptor(queries);
 
         // Act
         var result = await new ServiceCollection()
@@ -559,13 +564,16 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .AddQueries(queries)
                     .Build());
 
         // Assert
         var operationResult = result.ExpectOperationResult();
 
+#if NET8_0
         await Snapshot.Create()
+#else
+        await Snapshot.Create("NET9_0")
+#endif
             .AddQueries(queries)
             .Add(operationResult, "Result")
             .MatchMarkdownAsync();
@@ -743,6 +751,12 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
     public async Task BatchPaging_First_5()
     {
         // Arrange
+#if NET8_0
+        var snapshot = Snapshot.Create();
+#else
+        var snapshot = Snapshot.Create("NET9_0");
+#endif
+
         var connectionString = CreateConnectionString();
         await SeedAsync(connectionString);
         var queries = new List<QueryInfo>();
@@ -760,7 +774,6 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
             .ToBatchPageAsync(k => k.BrandId, pagingArgs);
 
         // Assert
-        var snapshot = Snapshot.Create();
         foreach (var page in results)
         {
             snapshot.Add(
@@ -781,6 +794,12 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
     public async Task BatchPaging_Last_5()
     {
         // Arrange
+#if NET8_0
+        var snapshot = Snapshot.Create();
+#else
+        var snapshot = Snapshot.Create("NET9_0");
+#endif
+
         var connectionString = CreateConnectionString();
         await SeedAsync(connectionString);
         var queries = new List<QueryInfo>();
@@ -797,7 +816,6 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
             .ToBatchPageAsync(k => k.BrandId, pagingArgs);
 
         // Assert
-        var snapshot = Snapshot.Create();
         foreach (var page in results)
         {
             snapshot.Add(
@@ -821,6 +839,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         var connectionString = CreateConnectionString();
         await SeedAsync(connectionString);
         var queries = new List<QueryInfo>();
+        using var capture = new CapturePagingQueryInterceptor(queries);
 
         // Act
         var result = await new ServiceCollection()
@@ -847,7 +866,6 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .AddQueries(queries)
                     .Build());
 
         // Assert
@@ -866,6 +884,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         var connectionString = CreateConnectionString();
         await SeedAsync(connectionString);
         var queries = new List<QueryInfo>();
+        using var capture = new CapturePagingQueryInterceptor(queries);
 
         // Act
         var result = await new ServiceCollection()
@@ -892,7 +911,6 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .AddQueries(queries)
                     .Build());
 
         // Assert
@@ -911,6 +929,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         var connectionString = CreateConnectionString();
         await SeedFooAsync(connectionString);
         var queries = new List<QueryInfo>();
+        using var capture = new CapturePagingQueryInterceptor(queries);
 
         // Act
         var result = await new ServiceCollection()
@@ -945,13 +964,16 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .AddQueries(queries)
                     .Build());
 
         // Assert
         var operationResult = result.ExpectOperationResult();
 
+#if NET8_0
         await Snapshot.Create()
+#else
+        await Snapshot.Create("NET9_0")
+#endif
             .AddQueries(queries)
             .Add(operationResult, "Result")
             .MatchMarkdownAsync();
@@ -964,6 +986,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         var connectionString = CreateConnectionString();
         await SeedFooAsync(connectionString);
         var queries = new List<QueryInfo>();
+        using var capture = new CapturePagingQueryInterceptor(queries);
 
         // Act
         var result = await new ServiceCollection()
@@ -1000,13 +1023,16 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .AddQueries(queries)
                     .Build());
 
         // Assert
         var operationResult = result.ExpectOperationResult();
 
+#if NET8_0
         await Snapshot.Create()
+#else
+        await Snapshot.Create("NET9_0")
+#endif
             .AddQueries(queries)
             .Add(operationResult, "Result")
             .MatchMarkdownAsync();
@@ -1096,11 +1122,8 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         public async Task<Connection<Brand>> GetBrandsAsync(
             CatalogContext context,
             PagingArguments arguments,
-            [GlobalState] List<QueryInfo> queries,
             CancellationToken ct)
         {
-            using var capture = new CapturePagingQueryInterceptor(queries);
-
             return await context.Brands
                 .OrderBy(t => t.Name)
                 .ThenBy(t => t.Id)
@@ -1112,11 +1135,8 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         public async Task<Connection<Brand>> GetBrands2Async(
             CatalogContext context,
             PagingArguments arguments,
-            [GlobalState] List<QueryInfo> queries,
             CancellationToken ct)
         {
-            using var capture = new CapturePagingQueryInterceptor(queries);
-
             var page = await context.Brands
                 .OrderBy(t => t.Name)
                 .ThenBy(t => t.Id)
@@ -1129,11 +1149,8 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         public async Task<Connection<Brand>> GetBrandsNullable(
             CatalogContext context,
             PagingArguments arguments,
-            [GlobalState] List<QueryInfo> queries,
             CancellationToken ct)
         {
-            using var capture = new CapturePagingQueryInterceptor(queries);
-
             return await context.Brands
                 .OrderBy(t => t.Name)
                 .ThenBy(x => x.AlwaysNull)
@@ -1146,11 +1163,8 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         public async Task<Connection<Brand>> GetBrandsNullableFallback(
             CatalogContext context,
             PagingArguments arguments,
-            [GlobalState] List<QueryInfo> queries,
             CancellationToken ct)
         {
-            using var capture = new CapturePagingQueryInterceptor(queries);
-
             return await context.Brands
                 .OrderBy(t => t.DisplayName ?? t.Name)
                 .ThenBy(t => t.Id)
@@ -1162,11 +1176,8 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         public async Task<Connection<Brand>> GetBrandsDeep(
             CatalogContext context,
             PagingArguments arguments,
-            [GlobalState] List<QueryInfo> queries,
             CancellationToken ct)
         {
-            using var capture = new CapturePagingQueryInterceptor(queries);
-
             return await context.Brands
                 .OrderBy(x => x.BrandDetails.Country.Name)
                 .ThenBy(t => t.Id)
@@ -1181,11 +1192,8 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         public async Task<Connection<BrandDto>> GetBrandsAsync(
             CatalogContext context,
             PagingArguments arguments,
-            [GlobalState] List<QueryInfo> queries,
             CancellationToken ct)
         {
-            using var capture = new CapturePagingQueryInterceptor(queries);
-
             return await context.Brands
                 .OrderBy(t => t.Name)
                 .ThenBy(t => t.Id)
@@ -1200,11 +1208,8 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         public async Task<Connection<BrandDto>> GetBrandsAsync(
             CatalogContext context,
             PagingArguments arguments,
-            [GlobalState] List<QueryInfo> queries,
             CancellationToken ct)
         {
-            using var capture = new CapturePagingQueryInterceptor(queries);
-
             return await context.Brands
                 .OrderBy(t => t.Name)
                 .ThenBy(t => t.Id)
@@ -1221,11 +1226,8 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
             PagingArguments arguments,
             ISelection selection,
             IResolverContext rc,
-            [GlobalState] List<QueryInfo> queries,
             CancellationToken ct)
         {
-            using var capture = new CapturePagingQueryInterceptor(queries);
-
             return await context.Foos
                 .OrderBy(t => t.Name)
                 .ThenBy(t => t.Id)
@@ -1294,11 +1296,9 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
             ProductsByBrandDataLoader dataLoader,
             PagingArguments arguments,
             IResolverContext context,
-            [GlobalState] List<QueryInfo> queries,
             CancellationToken cancellationToken)
             => await dataLoader
                 .WithPagingArguments(arguments)
-                .SetState(queries)
                 .LoadAsync(brand.Id, cancellationToken)
                 .ToConnectionAsync();
     }
@@ -1313,12 +1313,10 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
             ISelection selection,
             PagingArguments arguments,
             IResolverContext context,
-            [GlobalState] List<QueryInfo> queries,
             CancellationToken cancellationToken)
             => await dataLoader
                 .WithPagingArguments(arguments)
                 .Select(selection)
-                .SetState(queries)
                 .LoadAsync(brand.Id, cancellationToken)
                 .ToConnectionAsync();
     }
@@ -1345,7 +1343,6 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
 
             await using var scope = _services.CreateAsyncScope();
             await using var catalogContext = scope.ServiceProvider.GetRequiredService<CatalogContext>();
-            using var captureQuery = new CapturePagingQueryInterceptor(context.GetQueries());
 
             return await catalogContext.Products
                 .Where(t => keys.Contains(t.BrandId))
@@ -1358,28 +1355,6 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
 
 file static class Extensions
 {
-    public static IQueryable<T> Capture<T>(
-        this IQueryable<T> query,
-        List<QueryInfo> queryInfos)
-    {
-        queryInfos.Add(
-            new QueryInfo
-            {
-                QueryText = query.ToQueryString(),
-                ExpressionText = query.Expression.ToString()
-            });
-        return query;
-    }
-
-    public static List<QueryInfo> GetQueries<T>(
-        this DataLoaderFetchContext<Page<T>> context)
-        => context.GetRequiredState<List<QueryInfo>>();
-
-    public static OperationRequestBuilder AddQueries(
-        this OperationRequestBuilder builder,
-        List<QueryInfo> queries)
-        => builder.SetGlobalState("queries", queries);
-
     public static Snapshot AddQueries(
         this Snapshot snapshot,
         List<QueryInfo> queries)
