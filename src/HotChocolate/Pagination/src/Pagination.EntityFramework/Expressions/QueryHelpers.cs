@@ -36,7 +36,7 @@ internal static class QueryHelpers
         List<MemberExpression> properties)
     {
         var parameter = selector.Parameters[0];
-        var visitor = new AddPropertiesVisitorRewriter<T>(properties, parameter);
+        var visitor = new AddPropertiesVisitorRewriter(properties, parameter);
         var updatedBody = visitor.Visit(selector.Body);
         return Expression.Lambda<Func<T, T>>(updatedBody, parameter);
     }
@@ -58,7 +58,7 @@ internal static class QueryHelpers
         return query.Provider.CreateQuery<T>(newExpression);
     }
 
-    public class AddPropertiesVisitorRewriter<T> : ExpressionVisitor
+    public class AddPropertiesVisitorRewriter : ExpressionVisitor
     {
         private readonly List<MemberExpression> _propertiesToAdd;
         private readonly ParameterExpression _parameter;
