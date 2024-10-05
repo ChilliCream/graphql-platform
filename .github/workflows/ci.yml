@@ -224,53 +224,25 @@ jobs:
           name: mismatch-files-${{ matrix.name }}
           path: ${{ matrix.directoryPath }}/**/__mismatch__/*
 
-  merge-coverage:
-    name: Merge and Upload Coverage
+  upload-coverage:
+    name: Upload Coverage
     needs: library-tests
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          show-progress: false
-
-      - name: Install .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: |
-            8.x
-            9.x
-
-      - name: Create All.sln
-        run: ./build.sh CreateAllSln
-
-      - name: Build
-        run: dotnet build ./src/All.sln
-
       - name: Download all coverage artifacts
         uses: actions/download-artifact@v4
         with:
           path: ./output/download
           pattern: coverage-*
 
-      - name: Merge Coverage Files
-        timeout-minutes: 10
-        run: |
-          dotnet tool install -g dotnet-reportgenerator-globaltool
-          reportgenerator "-reports:./output/download/**/*.xml" "-targetdir:./output/coverage/merged" -reporttypes:Opencover -license:$ReportGenerator_License
-        env:
-          ReportGenerator_License: ${{ secrets.REPORTGENERATOR_LICENSE }}
-
-      - name: Upload Combined Coverage to Codecov
+      - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         timeout-minutes: 10
         with:
-          file: ./output/coverage/merged/OpenCover.xml
           token: ${{ secrets.CODECOV_TOKEN }}
           name: graphql-platform
           flags: unittests
           fail_ci_if_error: true
-          disable_search: true
 
   ci-status-check:
     name: "CI Status Check"
