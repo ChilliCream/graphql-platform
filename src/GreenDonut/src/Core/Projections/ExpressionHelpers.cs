@@ -24,8 +24,7 @@ internal static class ExpressionHelpers
 
     private static Expression CombineExpressions(Expression first, Expression second)
     {
-        // Handle Convert expressions
-        if (first is UnaryExpression firstUnary && firstUnary.NodeType == ExpressionType.Convert)
+        if (first is UnaryExpression { NodeType: ExpressionType.Convert } firstUnary)
         {
             return CombineWithConvertExpression(firstUnary, second);
         }
@@ -57,120 +56,94 @@ internal static class ExpressionHelpers
 
     private static Expression CombineWithConvertExpression(UnaryExpression first, Expression second)
     {
-        // Check if we are combining with another MemberInitExpression
         if (second is MemberInitExpression otherMemberInit)
         {
             var combinedInit = CombineMemberInitExpressions((MemberInitExpression)first.Operand, otherMemberInit);
             return Expression.Convert(combinedInit, first.Type);
         }
 
-        // Check if we are combining with a ConditionalExpression
         if (second is ConditionalExpression otherConditional)
         {
             var combinedCond = CombineConditionalExpressions((ConditionalExpression)first.Operand, otherConditional);
             return Expression.Convert(combinedCond, first.Type);
         }
 
-        // Fallback if it's another kind of expression
         return Expression.Convert(second, first.Type);
     }
 
-   private static MemberInitExpression CombineMemberInitExpressions(
-    MemberInitExpression first,
-    MemberInitExpression second)
-{
-    var bindings = new Dictionary<string, MemberAssignment>();
-
-    // Collect bindings from the first expression
-    foreach (var binding in first.Bindings.Cast<MemberAssignment>())
+    private static MemberInitExpression CombineMemberInitExpressions(
+        MemberInitExpression first,
+        MemberInitExpression second)
     {
-        bindings[binding.Member.Name] = binding;
-    }
+        var bindings = new Dictionary<string, MemberAssignment>();
 
-    // Extract the root expression from the first expression
-    var firstRootExpression = ExtractRootExpressionFromBindings(first.Bindings.Cast<MemberAssignment>());
-    var parameterToReplace = ExtractParameterExpression(firstRootExpression);
-
-    // Adjust the second expression's bindings
-    if (firstRootExpression != null && parameterToReplace != null)
-    {
-        var replacer = new RootExpressionReplacerVisitor(parameterToReplace, firstRootExpression);
-
-        foreach (var binding in second.Bindings.Cast<MemberAssignment>())
-        {
-            var newBindingExpression = replacer.Visit(binding.Expression);
-            bindings[binding.Member.Name] = Expression.Bind(binding.Member, newBindingExpression);
-        }
-    }
-    else
-    {
-        // If unable to extract, use the original bindings
-        foreach (var binding in second.Bindings.Cast<MemberAssignment>())
+        foreach (var binding in first.Bindings.Cast<MemberAssignment>())
         {
             bindings[binding.Member.Name] = binding;
         }
-    }
 
-    // Create a new MemberInitExpression with the combined bindings
-    return Expression.MemberInit(first.NewExpression, bindings.Values);
-}
+        var firstRootExpression = ExtractRootExpressionFromBindings(first.Bindings.Cast<MemberAssignment>());
+        var parameterToReplace = ExtractParameterExpression(firstRootExpression);
 
-private static Expression ExtractRootExpressionFromBindings(IEnumerable<MemberAssignment> bindings)
-{
-    var firstBinding = bindings.FirstOrDefault();
-    if (firstBinding?.Expression is MemberExpression memberExpr)
-    {
-        return memberExpr.Expression;
-    }
-    return null;
-}
-
-private static ParameterExpression ExtractParameterExpression(Expression expression)
-{
-    if (expression is UnaryExpression unaryExpr && unaryExpr.NodeType == ExpressionType.Convert)
-    {
-        return ExtractParameterExpression(unaryExpr.Operand);
-    }
-    else if (expression is ParameterExpression paramExpr)
-    {
-        return paramExpr;
-    }
-    else
-    {
-        return null;
-    }
-}
-
-class RootExpressionReplacerVisitor : ExpressionVisitor
-{
-    private readonly ParameterExpression _parameterToReplace;
-    private readonly Expression _replacementExpression;
-
-    public RootExpressionReplacerVisitor(ParameterExpression parameterToReplace, Expression replacementExpression)
-    {
-        _parameterToReplace = parameterToReplace;
-        _replacementExpression = replacementExpression;
-    }
-
-    protected override Expression VisitParameter(ParameterExpression node)
-    {
-        if (node == _parameterToReplace)
+        if (firstRootExpression != null && parameterToReplace != null)
         {
-            return _replacementExpression;
+            var replacer = new RootExpressionReplacerVisitor(parameterToReplace, firstRootExpression);
+
+            foreach (var binding in second.Bindings.Cast<MemberAssignment>())
+            {
+                var newBindingExpression = replacer.Visit(binding.Expression);
+                bindings[binding.Member.Name] = Expression.Bind(binding.Member, newBindingExpression);
+            }
         }
-        return base.VisitParameter(node);
+        else
+        {
+            foreach (var binding in second.Bindings.Cast<MemberAssignment>())
+            {
+                bindings[binding.Member.Name] = binding;
+            }
+        }
+
+        return Expression.MemberInit(first.NewExpression, bindings.Values);
     }
 
-    protected override Expression VisitMember(MemberExpression node)
-    {
-        var expr = Visit(node.Expression);
-        if (expr != node.Expression)
+    private static Expression? ExtractRootExpressionFromBindings(
+        IEnumerable<MemberAssignment> bindings)
+        => bindings.FirstOrDefault()?.Expression is MemberExpression memberExpr
+            ? memberExpr.Expression
+            : null;
+
+    private static ParameterExpression? ExtractParameterExpression(Expression? expression)
+        => expression switch
         {
-            return Expression.MakeMemberAccess(expr, node.Member);
+            UnaryExpression { NodeType: ExpressionType.Convert } expr => ExtractParameterExpression(expr.Operand),
+            ParameterExpression paramExpr => paramExpr,
+            _ => null
+        };
+
+    private sealed class RootExpressionReplacerVisitor(
+        ParameterExpression parameterToReplace,
+        Expression replacementExpression)
+        : ExpressionVisitor
+    {
+        protected override Expression VisitParameter(ParameterExpression node)
+        {
+            if (node == parameterToReplace)
+            {
+                return replacementExpression;
+            }
+            return base.VisitParameter(node);
         }
-        return base.VisitMember(node);
+
+        protected override Expression VisitMember(MemberExpression node)
+        {
+            var expr = Visit(node.Expression);
+            if (expr != node.Expression)
+            {
+                return Expression.MakeMemberAccess(expr, node.Member);
+            }
+            return base.VisitMember(node);
+        }
     }
-}
 
     private static ConditionalExpression CombineConditionalExpressions(
         ConditionalExpression first,
