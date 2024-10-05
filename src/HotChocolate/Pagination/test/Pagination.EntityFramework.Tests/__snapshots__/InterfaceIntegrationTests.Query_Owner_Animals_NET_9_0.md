@@ -20,25 +20,25 @@ LIMIT @__p_0
 
 ```sql
 -- @__keys_0={ '6', '5', '4', '3', '2', ... } (DbType = Object)
-SELECT t."OwnerId", t0."Id", t0."AnimalType", t0."Name", t0."OwnerId", t0."IsPurring", t0."IsBarking", t0."Id0"
+SELECT s."OwnerId", s1."Id", s1."AnimalType", s1."Name", s1."OwnerId", s1."IsPurring", s1."IsBarking", s1."Id0"
 FROM (
     SELECT p."OwnerId"
     FROM "Owners" AS o
     INNER JOIN "Pets" AS p ON o."Id" = p."OwnerId"
     WHERE o."Id" = ANY (@__keys_0)
     GROUP BY p."OwnerId"
-) AS t
+) AS s
 LEFT JOIN (
-    SELECT t1."Id", t1."AnimalType", t1."Name", t1."OwnerId", t1."IsPurring", t1."IsBarking", t1."Id0"
+    SELECT s0."Id", s0."AnimalType", s0."Name", s0."OwnerId", s0."IsPurring", s0."IsBarking", s0."Id0"
     FROM (
         SELECT p0."Id", p0."AnimalType", p0."Name", p0."OwnerId", p0."IsPurring", p0."IsBarking", o0."Id" AS "Id0", ROW_NUMBER() OVER(PARTITION BY p0."OwnerId" ORDER BY p0."Name", p0."Id") AS row
         FROM "Owners" AS o0
         INNER JOIN "Pets" AS p0 ON o0."Id" = p0."OwnerId"
         WHERE o0."Id" = ANY (@__keys_0)
-    ) AS t1
-    WHERE t1.row <= 11
-) AS t0 ON t."OwnerId" = t0."OwnerId"
-ORDER BY t."OwnerId", t0."OwnerId", t0."Name", t0."Id"
+    ) AS s0
+    WHERE s0.row <= 11
+) AS s1 ON s."OwnerId" = s1."OwnerId"
+ORDER BY s."OwnerId", s1."OwnerId", s1."Name", s1."Id"
 ```
 
 ## Expression 1

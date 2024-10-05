@@ -10,6 +10,8 @@ namespace HotChocolate.Pagination;
 /// </summary>
 public static class PagingQueryableExtensions
 {
+    private static readonly AsyncLocal<InterceptorHolder> _interceptor = new();
+
     /// <summary>
     /// Executes a query with paging and returns the selected page.
     /// </summary>
@@ -126,6 +128,8 @@ public static class PagingQueryableExtensions
         {
             var combinedQuery = source.Select(t => new { TotalCount = originalQuery.Count(), Item = t });
 
+            TryGetQueryInterceptor()?.OnBeforeExecute(combinedQuery);
+
             await foreach (var item in combinedQuery.AsAsyncEnumerable()
                 .WithCancellation(cancellationToken).ConfigureAwait(false))
             {
@@ -142,6 +146,8 @@ public static class PagingQueryableExtensions
         }
         else
         {
+            TryGetQueryInterceptor()?.OnBeforeExecute(source);
+
             await foreach (var item in source.AsAsyncEnumerable()
                 .WithCancellation(cancellationToken).ConfigureAwait(false))
             {
@@ -239,6 +245,8 @@ public static class PagingQueryableExtensions
         // we apply our new expression here.
         source = source.Provider.CreateQuery<TValue>(ordering.Expression);
 
+        TryGetQueryInterceptor()?.OnBeforeExecute(source.GroupBy(keySelector).Select(selectExpression));
+
         await foreach (var item in source
             .GroupBy(keySelector)
             .Select(selectExpression)
@@ -305,7 +313,12 @@ public static class PagingQueryableExtensions
             hasNext = true;
         }
 
-        return new Page<T>(items, hasNext, hasPrevious, item => CursorFormatter.Format(item, keys), totalCount);
+        return new Page<T>(
+            items,
+            hasNext,
+            hasPrevious,
+            item => CursorFormatter.Format(item, keys),
+            totalCount);
     }
 
     private static CursorKey[] ParseDataSetKeys<T>(IQueryable<T> source)
@@ -313,5 +326,31 @@ public static class PagingQueryableExtensions
         var parser = new CursorKeyParser();
         parser.Visit(source.Expression);
         return parser.Keys.ToArray();
+    }
+
+    private sealed class InterceptorHolder
+    {
+        public PagingQueryInterceptor? Interceptor { get; set; }
+    }
+
+    private static PagingQueryInterceptor? TryGetQueryInterceptor()
+        => _interceptor.Value?.Interceptor;
+
+    internal static void SetQueryInterceptor(PagingQueryInterceptor pagingQueryInterceptor)
+    {
+        if (_interceptor.Value is null)
+        {
+            _interceptor.Value = new InterceptorHolder();
+        }
+
+        _interceptor.Value.Interceptor = pagingQueryInterceptor;
+    }
+
+    internal static void ClearQueryInterceptor(PagingQueryInterceptor pagingQueryInterceptor)
+    {
+        if (_interceptor.Value is not null)
+        {
+            _interceptor.Value.Interceptor = null;
+        }
     }
 }

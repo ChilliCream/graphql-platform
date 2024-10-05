@@ -1,6 +1,20 @@
 # Paging_Empty_PagingArgs
 
-## Result 1
+## SQL 0
+
+```sql
+SELECT b."Id", b."AlwaysNull", b."DisplayName", b."Name", b."BrandDetails_Country_Name"
+FROM "Brands" AS b
+ORDER BY b."Name", b."Id"
+```
+
+## Expression 0
+
+```text
+[Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].OrderBy(t => t.Name).ThenBy(t => t.Id)
+```
+
+## Result 3
 
 ```json
 {
@@ -13,7 +27,7 @@
 }
 ```
 
-## Result 2
+## Result 4
 
 ```json
 [
