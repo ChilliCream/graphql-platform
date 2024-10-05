@@ -4,15 +4,15 @@
 
 ```sql
 -- @__p_0='11'
-SELECT t."Id", t."Name", b."Id" IS NULL, b."Id", b."Description"
+SELECT f0."Id", f0."Name", b."Id" IS NULL, b."Id", b."Description"
 FROM (
     SELECT f."Id", f."BarId", f."Name"
     FROM "Foos" AS f
     ORDER BY f."Name", f."Id"
     LIMIT @__p_0
-) AS t
-LEFT JOIN "Bars" AS b ON t."BarId" = b."Id"
-ORDER BY t."Name", t."Id"
+) AS f0
+LEFT JOIN "Bars" AS b ON f0."BarId" = b."Id"
+ORDER BY f0."Name", f0."Id"
 ```
 
 ## Expression 0
