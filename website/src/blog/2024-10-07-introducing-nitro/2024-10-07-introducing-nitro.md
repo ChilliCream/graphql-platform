@@ -1,4 +1,3 @@
-<!-- markdownlint-disable MD026 -->
 ---
 path: "/blog/2024/10/07/introducing-nitro"
 date: "2024-10-07"
@@ -9,7 +8,6 @@ author: Rafael Staib
 authorUrl: https://github.com/rstaib
 authorImageUrl: https://avatars0.githubusercontent.com/u/4325318?s=100&v=4
 ---
-<!-- markdownlint-enable MD026 -->
 
 At ChilliCream, we’ve always had a playful and creative approach to naming our products. From **HotChocolate** to **StrawberryShake**, our GraphQL tools have been inspired by delicious drinks that keep things fresh and exciting. Today, we’re taking that tradition to the next level with **Nitro** – the newest addition to our product family that unifies and simplifies how you build, manage, and scale your GraphQL APIs.
 
@@ -42,7 +40,7 @@ Before upgrading from Banana Cake Pop to the Nitro App, please note that **local
 
 As part of our transition to Nitro, we’ve renamed our NuGet and NPM packages to create a more cohesive experience:
 
-## NuGet Packages:
+## NuGet Packages
 
 | Old Name                   | New Name              |
 | -------------------------- | --------------------- |
@@ -50,7 +48,7 @@ As part of our transition to Nitro, we’ve renamed our NuGet and NPM packages t
 | Banana Cake Pop.Services   | ChilliCream.Nitro     |
 | Barista                    | ChilliCream.Nitro.CLI |
 
-## NPM Packages:
+## NPM Packages
 
 | Old Name                                         | New Name                                 |
 | ------------------------------------------------ | ---------------------------------------- |
