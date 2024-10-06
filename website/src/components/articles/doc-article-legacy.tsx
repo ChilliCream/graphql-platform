@@ -1,36 +1,28 @@
-import React, { FC, useEffect } from "react";
+import React, { FC, useCallback } from "react";
 import { useCookies } from "react-cookie";
-import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
 
 import { Link } from "@/components/misc/link";
 import { Icon } from "@/components/sprites";
-import { State } from "@/state";
-import { hideLegacyDocHeader, showLegacyDocInfo } from "@/state/common";
 
 // Icons
 import XmarkIconSvg from "@/images/icons/xmark.svg";
 
+const COOKIE_NAME = "chillicream_website_legacy_doc_shown";
+
 export const DocArticleLegacy: FC = () => {
-  const show = useSelector<State, boolean>(
-    (state) => state.common.showLegacyDocInfo
-  );
-  const dispatch = useDispatch();
-  const cookieName = "chillicream-legacy-doc-info";
-  const [cookies, setCookie] = useCookies([cookieName]);
-  const cookieValue = cookies[cookieName];
+  const [cookies, setCookie] = useCookies([COOKIE_NAME]);
 
-  const clickDismiss = () => {
-    setCookie(cookieName, "true", { path: "/" });
-  };
+  const clickDismiss = useCallback(() => {
+    setCookie(COOKIE_NAME, true, {
+      path: "/",
+      sameSite: "lax",
+    });
+  }, [setCookie]);
 
-  useEffect(() => {
-    if (cookieValue === "true") {
-      dispatch(hideLegacyDocHeader());
-    } else {
-      dispatch(showLegacyDocInfo());
-    }
-  }, [cookieValue]);
+  if (cookies[COOKIE_NAME]) {
+    return null;
+  }
 
   return (
     <Dialog
@@ -38,7 +30,7 @@ export const DocArticleLegacy: FC = () => {
       aria-live="polite"
       aria-label="legacydoc"
       aria-describedby="legacydoc:desc"
-      show={show}
+      show
     >
       <Container>
         <Message id="legacydoc:desc">

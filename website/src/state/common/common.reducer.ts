@@ -5,12 +5,8 @@ import {
   closeTOC,
   hasScrolled,
   hidePromo,
-  hideCookieConsent,
-  hideLegacyDocHeader,
   setArticleHeight,
-  showCookieConsent,
   showPromo,
-  showLegacyDocInfo,
   toggleAside,
   toggleTOC,
 } from "./common.actions";
@@ -36,21 +32,6 @@ export const commonReducer = createReducer<CommonState>(
     showTOC: false,
   })),
 
-  onAction(hideLegacyDocHeader, (state) => ({
-    ...state,
-    showLegacyDocInfo: false,
-  })),
-
-  onAction(hideCookieConsent, (state) => ({
-    ...state,
-    showCookieConsent: false,
-  })),
-
-  onAction(showCookieConsent, (state) => ({
-    ...state,
-    showCookieConsent: true,
-  })),
-
   onAction(showPromo, (state) => ({
     ...state,
     showPromo: true,
@@ -59,11 +40,6 @@ export const commonReducer = createReducer<CommonState>(
   onAction(hidePromo, (state) => ({
     ...state,
     showPromo: false,
-  })),
-
-  onAction(showLegacyDocInfo, (state) => ({
-    ...state,
-    showLegacyDocInfo: true,
   })),
 
   onAction(toggleAside, (state) => ({
