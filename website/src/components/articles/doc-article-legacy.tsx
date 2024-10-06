@@ -1,4 +1,4 @@
-import React, { FC, useCallback } from "react";
+import React, { FC, useCallback, useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
 import styled from "styled-components";
 
@@ -12,19 +12,21 @@ const COOKIE_NAME = "chillicream_website_legacy_doc_shown";
 
 export const DocArticleLegacy: FC = () => {
   const [cookies, setCookie] = useCookies([COOKIE_NAME]);
+  const [show, setShow] = useState(false);
 
   const clickDismiss = useCallback(() => {
     setCookie(COOKIE_NAME, true, {
       path: "/",
       sameSite: "lax",
     });
-  }, [setCookie]);
+    setShow(false);
+  }, [setCookie, setShow]);
 
-  if (cookies[COOKIE_NAME]) {
-    return null;
-  }
+  useEffect(() => {
+    setShow(!cookies[COOKIE_NAME]);
+  }, [cookies, setShow]);
 
-  return (
+  return show ? (
     <Dialog
       role="dialog"
       aria-live="polite"
@@ -47,7 +49,7 @@ export const DocArticleLegacy: FC = () => {
         </CloseButton>
       </Container>
     </Dialog>
-  );
+  ) : null;
 };
 
 const Dialog = styled.div<{ show: boolean }>`

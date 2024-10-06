@@ -40,7 +40,7 @@ Before upgrading from Banana Cake Pop to the Nitro App, please note that **local
 
 As part of our transition to Nitro, we’ve renamed our NuGet and NPM packages to create a more cohesive experience:
 
-## NuGet Packages:
+## NuGet Packages
 
 | Old Name                   | New Name              |
 | -------------------------- | --------------------- |
@@ -48,7 +48,7 @@ As part of our transition to Nitro, we’ve renamed our NuGet and NPM packages t
 | Banana Cake Pop.Services   | ChilliCream.Nitro     |
 | Barista                    | ChilliCream.Nitro.CLI |
 
-## NPM Packages:
+## NPM Packages
 
 | Old Name                                         | New Name                                 |
 | ------------------------------------------------ | ---------------------------------------- |

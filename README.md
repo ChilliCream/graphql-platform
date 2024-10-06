@@ -1,9 +1,9 @@
-<!-- markdownlint-disable-next-line MD041 -->
-
+<!-- markdownlint-disable MD041 -->
 [![NuGet Package](https://img.shields.io/nuget/v/hotchocolate.svg)](https://www.nuget.org/packages/HotChocolate/)
 [![License](https://img.shields.io/badge/license-MIT-green)](https://github.com/ChilliCream/graphql-platform/blob/main/LICENSE)
 [![Slack channel](https://img.shields.io/badge/join%20the%20community-on%20slack-blue.svg)](http://slack.chillicream.com/)
 [![Twitter](https://img.shields.io/badge/join%20us-on%20twitter-green.svg)](https://twitter.com/chilli_cream)
+<!-- markdownlint-enable MD041 -->
 
 ---
 
@@ -121,5 +121,4 @@ Examples of things built on top of the ChilliCream GraphQL Platform that are ope
 <a href="https://opencollective.com/chillicream/backer/17/website?requireActive=false" target="_blank"  rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/backer/17/avatar.svg?requireActive=false"></a>
 <a href="https://opencollective.com/chillicream/backer/18/website?requireActive=false" target="_blank"  rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/backer/18/avatar.svg?requireActive=false"></a>
 <a href="https://opencollective.com/chillicream/backer/19/website?requireActive=false" target="_blank"  rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/backer/19/avatar.svg?requireActive=false"></a>
-
 <!-- markdownlint-enable MD045 -->

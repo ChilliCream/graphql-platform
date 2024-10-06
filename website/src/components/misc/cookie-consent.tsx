@@ -1,4 +1,4 @@
-import React, { FC, useCallback } from "react";
+import React, { FC, useCallback, useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
 
 import styled from "styled-components";
@@ -8,6 +8,7 @@ const COOKIE_NAME = "chillicream_website_cookie_consent_shown";
 
 export const CookieConsent: FC = () => {
   const [cookies, setCookie] = useCookies([COOKIE_NAME]);
+  const [show, setShow] = useState(false);
 
   const clickDismiss = useCallback(() => {
     const expires = new Date();
@@ -19,13 +20,14 @@ export const CookieConsent: FC = () => {
       expires,
       sameSite: "lax",
     });
-  }, [setCookie]);
+    setShow(false);
+  }, [setCookie, setShow]);
 
-  if (cookies[COOKIE_NAME]) {
-    return null;
-  }
+  useEffect(() => {
+    setShow(!cookies[COOKIE_NAME]);
+  }, [cookies, setShow]);
 
-  return (
+  return show ? (
     <Dialog
       role="dialog"
       aria-live="polite"
@@ -50,7 +52,7 @@ export const CookieConsent: FC = () => {
         </DialogButton>
       </Container>
     </Dialog>
-  );
+  ) : null;
 };
 
 const Container = styled(DialogContainer)`
