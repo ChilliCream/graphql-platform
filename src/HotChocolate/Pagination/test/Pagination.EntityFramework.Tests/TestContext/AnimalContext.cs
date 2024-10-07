@@ -7,6 +7,7 @@ namespace HotChocolate.Data.TestContext;
 public class AnimalContext(string connectionString) : DbContext
 {
     public DbSet<Owner> Owners { get; set; } = default!;
+    public DbSet<Animal> Pets { get; set; } = default!;
     public DbSet<Dog> Dogs { get; set; } = default!;
     public DbSet<Cat> Cats { get; set; } = default!;
 

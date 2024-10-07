@@ -695,7 +695,11 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
+#if NET7_0
+        Snapshot.Create("NET7_0")
+#else
         Snapshot.Create()
+#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -729,7 +733,11 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
+#if NET7_0
+        Snapshot.Create("NET7_0")
+#else
         Snapshot.Create()
+#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -761,7 +769,11 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
+#if NET7_0
+        Snapshot.Create("NET7_0")
+#else
         Snapshot.Create()
+#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();

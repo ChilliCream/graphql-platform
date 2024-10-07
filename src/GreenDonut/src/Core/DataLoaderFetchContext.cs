@@ -151,18 +151,15 @@ public readonly struct DataLoaderFetchContext<TValue>(
 #endif
     public ISelectorBuilder GetSelector()
     {
-        DefaultSelectorBuilder<TValue> context;
         if (ContextData.TryGetValue(typeof(ISelectorBuilder).FullName!, out var value)
-            && value is DefaultSelectorBuilder<TValue> casted)
+            && value is ISelectorBuilder casted)
         {
-            context = casted;
-        }
-        else
-        {
-            context = new DefaultSelectorBuilder<TValue>();
+            return casted;
         }
 
-        return context;
+        // if no selector was found we will just return
+        // a new default selector builder.
+        return new DefaultSelectorBuilder<TValue>();
     }
 #endif
 }

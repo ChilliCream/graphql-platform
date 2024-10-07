@@ -101,7 +101,9 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
             return dataLoader;
         }
 
-        var builder = dataLoader.GetOrSetState(_ => new DefaultSelectorBuilder<TValue>());
+        var builder = dataLoader.GetOrSetState(
+            typeof(ISelectorBuilder).FullName!,
+            _ => new DefaultSelectorBuilder<TValue>());
         builder.Add(selector);
         return dataLoader;
     }
