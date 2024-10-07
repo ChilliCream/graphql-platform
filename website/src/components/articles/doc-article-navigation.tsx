@@ -103,7 +103,7 @@ export const DocArticleNavigation: FC<DocArticleNavigationProps> = ({
       })) ?? [];
 
   const basePath = `/docs/${activeProduct!.path!}${
-    !!activeVersion?.path?.length ? "/" + activeVersion.path! : ""
+    !!activeVersion?.path?.length ? "/" + activeVersion.path : ""
   }`;
 
   return (
@@ -144,7 +144,11 @@ export const DocArticleNavigation: FC<DocArticleNavigationProps> = ({
             <ProductLink
               active={product === activeProduct}
               key={product.path!}
-              to={`/docs/${product.path!}/${product.latestStableVersion}`}
+              to={`/docs/${product.path!}${
+                product.latestStableVersion
+                  ? "/" + product.latestStableVersion
+                  : ""
+              }`}
             >
               <ProductTitle>{product.title!}</ProductTitle>
               <ProductDescription>{product.description!}</ProductDescription>
@@ -158,8 +162,8 @@ export const DocArticleNavigation: FC<DocArticleNavigationProps> = ({
       >
         {activeProduct?.versions?.map((version, index) => {
           const newVersionUrl = selectedPath.replace(
-            "/" + selectedVersion,
-            "/" + version!.path
+            selectedVersion ? "/" + selectedVersion : "",
+            version?.path ? "/" + version.path : ""
           );
 
           return (

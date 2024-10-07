@@ -22,7 +22,6 @@ import { Icon, Logo } from "@/components/sprites";
 import { GitHubStarButton } from "@/components/widgets";
 import {
   DocsJson,
-  DocsJsonVersions,
   GetHeaderDataQuery,
   Maybe,
   SiteSiteMetadataTools,
@@ -85,9 +84,6 @@ export const Header: FC = () => {
           path
           title
           latestStableVersion
-          versions {
-            path
-          }
         }
       }
       allMdx(
@@ -648,9 +644,7 @@ const ServicesNavItem: FC<ServicesNavItemProps> = ({
 
 interface DeveloperNavItemProps {
   readonly products: Maybe<
-    Pick<DocsJson, "path" | "title" | "latestStableVersion"> & {
-      versions?: Maybe<Maybe<Pick<DocsJsonVersions, "path">>[]>;
-    }
+    Pick<DocsJson, "path" | "title" | "latestStableVersion">
   >[];
   readonly tools: Pick<
     SiteSiteMetadataTools,
@@ -688,7 +682,11 @@ const DeveloperNavItem: FC<DeveloperNavItemProps> = ({
             {products.map((product, index) => (
               <SubNavLink
                 key={index}
-                to={`/docs/${product!.path!}/${product?.latestStableVersion}`}
+                to={`/docs/${product!.path!}${
+                  product?.latestStableVersion
+                    ? "/" + product?.latestStableVersion
+                    : ""
+                }`}
                 onClick={hideTopAndSubNav}
               >
                 <IconContainer $size={16}>

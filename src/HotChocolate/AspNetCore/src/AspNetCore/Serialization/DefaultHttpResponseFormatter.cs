@@ -184,6 +184,13 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                     response.GetTypedHeaders().CacheControl = cacheControlHeaderValue;
                 }
 
+                if (result.ContextData is not null
+                    && result.ContextData.TryGetValue(VaryHeaderValue, out var varyValue)
+                    && varyValue is string varyHeaderValue)
+                {
+                    response.Headers.Vary = varyHeaderValue;
+                }
+
                 OnWriteResponseHeaders(operationResult, format, response.Headers);
 
                 await format.Formatter.FormatAsync(result, response.Body, cancellationToken);

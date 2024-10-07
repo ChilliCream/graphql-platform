@@ -1,6 +1,6 @@
+using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Utilities;
-using Snapshooter.Xunit;
 using Squadron;
 using StackExchange.Redis;
 

@@ -50,6 +50,9 @@ public static partial class RequestExecutorBuilderExtensions
             builder.Services.AddSingleton<INodeIdValueSerializer, Int32NodeIdValueSerializer>();
             builder.Services.AddSingleton<INodeIdValueSerializer, Int64NodeIdValueSerializer>();
             builder.Services.AddSingleton<INodeIdValueSerializer>(new GuidNodeIdValueSerializer(compress: outputNewIdFormat));
+            builder.Services.AddSingleton<INodeIdValueSerializer, DecimalNodeIdValueSerializer>();
+            builder.Services.AddSingleton<INodeIdValueSerializer, SingleNodeIdValueSerializer>();
+            builder.Services.AddSingleton<INodeIdValueSerializer, DoubleNodeIdValueSerializer>();
         }
 
         builder.Services.TryAddSingleton<INodeIdSerializer>(sp =>

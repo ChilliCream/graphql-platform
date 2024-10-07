@@ -54,6 +54,9 @@ public sealed class DocumentValidator : IDocumentValidator
         _nonCacheableRules = _allRules.Where(t => !t.IsCacheable).ToArray();
         _aggregators = resultAggregators.ToArray();
         _maxAllowedErrors = errorOptions.MaxAllowedErrors;
+
+        Array.Sort(_allRules, (a, b) => a.Priority.CompareTo(b.Priority));
+        Array.Sort(_nonCacheableRules, (a, b) => a.Priority.CompareTo(b.Priority));
     }
 
     /// <inheritdoc />
@@ -102,6 +105,11 @@ public sealed class DocumentValidator : IDocumentValidator
             for (var i = 0; i < length; i++)
             {
                 Unsafe.Add(ref start, i).Validate(context, document);
+
+                if (context.FatalErrorDetected)
+                {
+                    break;
+                }
             }
 
             if (_aggregators.Length == 0)

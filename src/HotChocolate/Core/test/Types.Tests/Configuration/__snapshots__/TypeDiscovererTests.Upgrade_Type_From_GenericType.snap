@@ -1,4 +1,4 @@
-﻿{
+{
   "registered": [
     {
       "type": "HotChocolate.Types.Introspection.__Directive",
@@ -70,6 +70,14 @@
         "HotChocolate.Types.Introspection.__TypeKind",
         "__TypeKind",
         "EnumType<TypeKind!>"
+      ]
+    },
+    {
+      "type": "HotChocolate.Types.OneOfDirectiveType",
+      "runtimeType": "System.Object",
+      "references": [
+        "HotChocolate.Types.OneOfDirectiveType",
+        "OneOfDirectiveType"
       ]
     },
     {

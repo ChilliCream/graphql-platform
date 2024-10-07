@@ -1,7 +1,6 @@
 using HotChocolate.Execution.Processing;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Execution.Pipeline;
 
@@ -51,8 +50,6 @@ public class TransactionScopeHandlerTests
     [Fact]
     public async Task DefaultTransactionScopeHandler_Creates_SystemTransactionScope()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
@@ -65,8 +62,6 @@ public class TransactionScopeHandlerTests
     [Fact]
     public async Task By_Default_There_Is_No_TransactionScope()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()

@@ -310,6 +310,16 @@ public static class ErrorCodes
         /// The introspection is not allowed for the current request
         /// </summary>
         public const string IntrospectionNotAllowed = "HC0046";
+
+        /// <summary>
+        /// The maximum allowed introspection depth was exceeded.
+        /// </summary>
+        public const string MaxIntrospectionDepthOverflow = "HC0086";
+
+        /// <summary>
+        /// The maximum allowed coordinate cycle depth was exceeded.
+        /// </summary>
+        public const string MaxCoordinateCycleDepthOverflow = "HC0087";
     }
 
     /// <summary>

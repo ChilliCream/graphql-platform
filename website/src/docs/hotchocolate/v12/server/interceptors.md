@@ -14,7 +14,7 @@ We can create a new class inheriting from `DefaultHttpRequestInterceptor` to pro
 public class HttpRequestInterceptor : DefaultHttpRequestInterceptor
 {
     public override ValueTask OnCreateAsync(HttpContext context,
-        IRequestExecutor requestExecutor, OperationRequestBuilder requestBuilder,
+        IRequestExecutor requestExecutor, IQueryRequestBuilder requestBuilder,
         CancellationToken cancellationToken)
     {
         return base.OnCreateAsync(context, requestExecutor, requestBuilder,
@@ -39,7 +39,7 @@ This method is invoked for **every** GraphQL request sent via HTTP. It is a grea
 
 ```csharp
 public override ValueTask OnCreateAsync(HttpContext context,
-    IRequestExecutor requestExecutor, OperationRequestBuilder requestBuilder,
+    IRequestExecutor requestExecutor, IQueryRequestBuilder requestBuilder,
     CancellationToken cancellationToken)
 {
     return base.OnCreateAsync(context, requestExecutor, requestBuilder,
@@ -49,9 +49,9 @@ public override ValueTask OnCreateAsync(HttpContext context,
 
 > Warning: `base.OnCreateAsync` should always be invoked, since the default implementation takes care of adding the dependency injection services as well as some important global state variables, such as the `ClaimsPrincipal`. Not doing this can lead to unexpected issues.
 
-Most of the configuration will be done through the `OperationRequestBuilder`, injected as argument to this method.
+Most of the configuration will be done through the `IQueryRequestBuilder`, injected as argument to this method.
 
-[Learn more about the OperationRequestBuilder](#operationrequestbuilder)
+[Learn more about the IQueryRequestBuilder](#iqueryrequestbuilder)
 
 If we want to fail the request, before it is being executed, we can throw a `GraphQLException`. The middleware will then translate this exception to a proper GraphQL error response for the client.
 
@@ -72,7 +72,7 @@ public class SocketSessionInterceptor : DefaultSocketSessionInterceptor
     }
 
     public override ValueTask OnRequestAsync(ISocketConnection connection,
-        OperationRequestBuilder requestBuilder,
+        IQueryRequestBuilder requestBuilder,
         CancellationToken cancellationToken)
     {
         return base.OnRequestAsync(connection, requestBuilder,
@@ -139,7 +139,7 @@ This method is invoked for **every** GraphQL request a client sends using the al
 
 ```csharp
 public override ValueTask OnRequestAsync(ISocketConnection connection,
-    OperationRequestBuilder requestBuilder, CancellationToken cancellationToken)
+    IQueryRequestBuilder requestBuilder, CancellationToken cancellationToken)
 {
     return base.OnRequestAsync(connection, requestBuilder, cancellationToken);
 }
@@ -147,9 +147,9 @@ public override ValueTask OnRequestAsync(ISocketConnection connection,
 
 > Warning: `base.OnRequestAsync` should always be invoked, since the default implementation takes care of adding the dependency injection services as well as some important global state variables, such as the `ClaimsPrincipal`. Not doing this can lead to unexpected issues.
 
-Most of the configuration will be done through the `OperationRequestBuilder`, injected as argument to this method.
+Most of the configuration will be done through the `IQueryRequestBuilder`, injected as argument to this method.
 
-[Learn more about the OperationRequestBuilder](#operationrequestbuilder)
+[Learn more about the IQueryRequestBuilder](#iqueryrequestbuilder)
 
 If we want to fail the request, before it is being executed, we can throw a `GraphQLException`. The middleware will then translate this exception to a proper GraphQL error response for the client.
 
@@ -157,15 +157,15 @@ If we want to fail the request, before it is being executed, we can throw a `Gra
 
 This method is invoked, once a client closes the WebSocket connection or the connection is terminated in any other way.
 
-# OperationRequestBuilder
+# IQueryRequestBuilder
 
-The `OperationRequestBuilder` allows us to influence the execution of a GraphQL request.
+The `IQueryRequestBuilder` allows us to influence the execution of a GraphQL request.
 
 It has many capabilities, but most of them are only used internally. In the following we are going to cover the methods that are most relevant to us as consumers.
 
 ## Properties
 
-We can set `Properties`, also called Global State, on the `OperationRequestBuilder`, which can then be referenced in middleware, field resolvers, etc.
+We can set `Properties`, also called Global State, on the `IQueryRequestBuilder`, which can then be referenced in middleware, field resolvers, etc.
 
 [Learn more about Global State](/docs/hotchocolate/v12/server/global-state)
 

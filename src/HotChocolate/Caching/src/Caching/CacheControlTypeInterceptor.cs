@@ -8,16 +8,13 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Caching;
 
-internal sealed class CacheControlTypeInterceptor : TypeInterceptor
+internal sealed class CacheControlTypeInterceptor(
+    ICacheControlOptionsAccessor accessor)
+    : TypeInterceptor
 {
     private readonly List<(RegisteredType Type, ObjectTypeDefinition TypeDef)> _types = [];
-    private readonly ICacheControlOptions _cacheControlOptions;
+    private readonly ICacheControlOptions _cacheControlOptions = accessor.CacheControl;
     private TypeDependency? _cacheControlDependency;
-
-    public CacheControlTypeInterceptor(ICacheControlOptionsAccessor accessor)
-    {
-        _cacheControlOptions = accessor.CacheControl;
-    }
 
     public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,

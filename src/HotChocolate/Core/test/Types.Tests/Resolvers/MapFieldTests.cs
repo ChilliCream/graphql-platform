@@ -2,7 +2,6 @@ using HotChocolate.Execution;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Resolvers;
 
@@ -11,8 +10,6 @@ public class MapFieldTests
     [Fact]
     public async Task MapField_WithDelegate()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(d => d
@@ -32,8 +29,6 @@ public class MapFieldTests
     [Fact]
     public async Task MapField_WithClass()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(d => d
@@ -48,7 +43,6 @@ public class MapFieldTests
     [Fact]
     public async Task MapField_WithFactory()
     {
-        Snapshot.FullName();
         var services = new ServiceCollection();
         services.AddSingleton<Middleware>();
 

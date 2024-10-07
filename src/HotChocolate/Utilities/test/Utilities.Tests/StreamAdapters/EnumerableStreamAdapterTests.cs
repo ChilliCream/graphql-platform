@@ -1,7 +1,5 @@
 using Xunit;
 
-#nullable enable
-
 namespace HotChocolate.Utilities.StreamAdapters;
 
 public class EnumerableStreamAdapterTests

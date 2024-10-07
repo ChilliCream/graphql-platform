@@ -1,7 +1,7 @@
 using System.Reflection;
+using CookieCrumble;
 using HotChocolate.Tests;
 using HotChocolate.Types.Descriptors;
-using Snapshooter.Xunit;
 using OperationRequestBuilder = HotChocolate.Execution.OperationRequestBuilder;
 
 namespace HotChocolate.Types;

@@ -180,7 +180,8 @@ public ref partial struct Utf8GraphQLParser
         // skip opening token
         MoveNext();
 
-        while (_reader.Kind != TokenKind.RightBrace)
+        while (_reader.Kind != TokenKind.RightBrace
+            && _reader.Kind != TokenKind.EndOfFile)
         {
             selections.Add(ParseSelection());
         }

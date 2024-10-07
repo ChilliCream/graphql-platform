@@ -11,28 +11,10 @@ namespace HotChocolate.Fetching;
 public sealed class DataLoaderScopeHolder
 {
     private static readonly AsyncLocal<InstanceHolder> _currentScope = new();
-    private readonly FrozenDictionary<Type, DataLoaderRegistration> _registrations;
+    private readonly IReadOnlyDictionary<Type, DataLoaderRegistration> _registrations;
 
-    public DataLoaderScopeHolder(IEnumerable<DataLoaderRegistration> registrations)
-    {
-        _registrations = CreateRegistrations().ToFrozenDictionary(t => t.Item1, t => t.Item2);
-
-        IEnumerable<(Type, DataLoaderRegistration)> CreateRegistrations()
-        {
-            foreach (var reg in registrations)
-            {
-                if (reg.ServiceType == reg.InstanceType)
-                {
-                    yield return (reg.ServiceType, reg);
-                }
-                else
-                {
-                    yield return (reg.ServiceType, reg);
-                    yield return (reg.InstanceType, reg);
-                }
-            }
-        }
-    }
+    public DataLoaderScopeHolder(DataLoaderRegistrar registrar)
+        => _registrations = registrar.Registrations;
 
     /// <summary>
     /// Creates and pins a new <see cref="IDataLoaderScope"/>.
