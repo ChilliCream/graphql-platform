@@ -92,6 +92,26 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
                 hasDataLoaders = true;
             }
 
+            List<GroupedDataLoaderInfo>? buffer = null;
+            foreach (var dataLoaderGroup in group
+                .Where(d => d.Groups.Count > 0)
+                .SelectMany(d => d.Groups, (d, g) => new { DataLoader = d, Group = g })
+                .GroupBy(t => t.Group, t => t.DataLoader, StringComparer.Ordinal)
+                .OrderBy(t => t.Key, StringComparer.Ordinal))
+            {
+                var isPublic = defaults.IsInterfacePublic ?? true;
+                var dataLoaderGroups = dataLoaderGroup.Select(
+                    t => new GroupedDataLoaderInfo(
+                        t.NameWithoutSuffix,
+                        t.InterfaceName,
+                        t.IsInterfacePublic ?? isPublic));
+
+                buffer ??= new();
+                buffer.Clear();
+                buffer.AddRange(dataLoaderGroups);
+                generator.WriteDataLoaderGroupClass(dataLoaderGroup.Key, buffer);
+            }
+
             generator.WriteEndNamespace();
         }
 

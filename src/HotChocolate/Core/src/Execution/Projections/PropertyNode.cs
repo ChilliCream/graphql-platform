@@ -1,12 +1,10 @@
-#if NET6_0_OR_GREATER
 using System.Reflection;
 
 namespace HotChocolate.Execution.Projections;
 
-internal sealed class PropertyNode : PropertyNodeContainer
+internal sealed class PropertyNode : TypeContainer
 {
-    public PropertyNode(PropertyInfo property, List<PropertyNode>? nodes = null)
-        : base(nodes)
+    public PropertyNode(PropertyInfo property, List<TypeNode>? nodes = null) : base(nodes)
     {
         Property = property;
         IsArray = property.PropertyType.IsArray;
@@ -33,7 +31,7 @@ internal sealed class PropertyNode : PropertyNodeContainer
 
     private PropertyNode(
         PropertyInfo property,
-        List<PropertyNode>? nodes,
+        List<TypeNode>? nodes,
         bool isArray,
         bool isCollection,
         Type? elementType)
@@ -57,7 +55,7 @@ internal sealed class PropertyNode : PropertyNodeContainer
 
     public PropertyNode Clone()
     {
-        List<PropertyNode>? nodes = null;
+        List<TypeNode>? nodes = null;
 
         if (Nodes.Count > 0)
         {
@@ -70,6 +68,7 @@ internal sealed class PropertyNode : PropertyNodeContainer
 
         return new PropertyNode(Property, nodes, IsArray, IsCollection, ElementType);
     }
+
 
     private static Type? GetCollectionType(Type type)
     {
@@ -91,80 +90,3 @@ internal sealed class PropertyNode : PropertyNodeContainer
         return null;
     }
 }
-
-internal class PropertyNodeContainer(
-    List<PropertyNode>? nodes = null)
-    : IPropertyNodeProvider
-{
-    private static readonly IReadOnlyList<PropertyNode> _emptyNodes = Array.Empty<PropertyNode>();
-    private List<PropertyNode>? _nodes = nodes;
-    private bool _sealed;
-
-    public IReadOnlyList<PropertyNode> Nodes
-        => _nodes ?? _emptyNodes;
-
-    public PropertyNode AddOrGetNode(PropertyInfo property)
-    {
-        if (_sealed)
-        {
-            throw new InvalidOperationException("The property node container is sealed.");
-        }
-
-        _nodes ??= new();
-
-        foreach (var node in Nodes)
-        {
-            if (node.Property.Name.Equals(property.Name))
-            {
-                return node;
-            }
-        }
-
-        var newNode = new PropertyNode(property);
-        _nodes.Add(newNode);
-        return newNode;
-    }
-
-    public void AddNode(PropertyNode newNode)
-    {
-        if (_sealed)
-        {
-            throw new InvalidOperationException("The property node container is sealed.");
-        }
-
-        _nodes ??= new();
-
-        foreach (var node in Nodes)
-        {
-            if (node.Property.Name.Equals(node.Property.Name))
-            {
-                throw new InvalidOperationException("Duplicate property.");
-            }
-        }
-
-        _nodes.Add(newNode);
-    }
-
-    public void Seal()
-    {
-        if (!_sealed)
-        {
-            foreach (var node in Nodes)
-            {
-                node.Seal();
-            }
-
-            _sealed = true;
-        }
-    }
-}
-
-internal interface IPropertyNodeProvider
-{
-    IReadOnlyList<PropertyNode> Nodes { get; }
-
-    PropertyNode AddOrGetNode(PropertyInfo property);
-
-    void AddNode(PropertyNode newNode);
-}
-#endif

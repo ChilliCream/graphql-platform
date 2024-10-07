@@ -1,16 +1,18 @@
-#if NET6_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
 namespace GreenDonut.Projections;
 
-#if NET8_0_OR_GREATER
+/// <summary>
+/// A default implementation of the <see cref="ISelectorBuilder"/>.
+/// </summary>
+/// <typeparam name="TValue"></typeparam>
 [Experimental(Experiments.Projections)]
-#endif
-internal sealed class DefaultSelectorBuilder<TValue> : ISelectorBuilder
+public sealed class DefaultSelectorBuilder<TValue> : ISelectorBuilder
 {
-    private LambdaExpression? _expression;
+    private List<LambdaExpression>? _selectors;
 
+    /// <inheritdoc />
     public void Add<T>(Expression<Func<T, T>> selector)
     {
         if (typeof(T) != typeof(TValue))
@@ -20,21 +22,17 @@ internal sealed class DefaultSelectorBuilder<TValue> : ISelectorBuilder
                 nameof(selector));
         }
 
-        if (_expression is null)
+        _selectors ??= new List<LambdaExpression>();
+        if (!_selectors.Contains(selector))
         {
-            _expression = selector;
-        }
-        else
-        {
-            _expression = ExpressionHelpers.Combine(
-                (Expression<Func<T, T>>)_expression,
-                selector);
+            _selectors.Add(selector);
         }
     }
 
+    /// <inheritdoc />
     public Expression<Func<T, T>>? TryCompile<T>()
     {
-        if (_expression is null)
+        if (_selectors is null)
         {
             return null;
         }
@@ -44,7 +42,26 @@ internal sealed class DefaultSelectorBuilder<TValue> : ISelectorBuilder
             return null;
         }
 
-        return (Expression<Func<T, T>>)_expression;
+        if (_selectors.Count == 1)
+        {
+            return (Expression<Func<T, T>>)_selectors[0];
+        }
+
+        if (_selectors.Count == 2)
+        {
+            return ExpressionHelpers.Combine(
+                (Expression<Func<T, T>>)_selectors[0],
+                (Expression<Func<T, T>>)_selectors[1]);
+        }
+
+        var expression = (Expression<Func<T, T>>)_selectors[0];
+        for (var i = 1; i < _selectors.Count; i++)
+        {
+            expression = ExpressionHelpers.Combine(
+                expression,
+                (Expression<Func<T, T>>)_selectors[i]);
+        }
+
+        return expression;
     }
 }
-#endif

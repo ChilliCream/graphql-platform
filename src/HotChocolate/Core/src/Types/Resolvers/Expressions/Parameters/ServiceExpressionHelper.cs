@@ -18,13 +18,11 @@ internal static class ServiceExpressionHelper
                 method.IsGenericMethod &&
                 method.GetParameters().Length == 0);
 
-#if NET8_0_OR_GREATER
     private static readonly MethodInfo _getKeyedServiceMethod =
         ParameterExpressionBuilderHelpers.ContextType.GetMethods().First(
             method => method.Name.Equals(_service, StringComparison.Ordinal) &&
                 method.IsGenericMethod &&
                 method.GetParameters().Length == 1);
-#endif
 
     /// <summary>
     /// Builds the service expression.
@@ -34,7 +32,6 @@ internal static class ServiceExpressionHelper
         Expression context)
         => BuildDefaultService(parameter, context);
 
-#if NET8_0_OR_GREATER
     /// <summary>
     /// Builds the service expression.
     /// </summary>
@@ -43,7 +40,6 @@ internal static class ServiceExpressionHelper
         Expression context,
         string key)
         => BuildDefaultService(parameter, context, key);
-#endif
 
     private static Expression BuildDefaultService(ParameterInfo parameter, Expression context)
     {
@@ -52,7 +48,6 @@ internal static class ServiceExpressionHelper
         return Expression.Call(context, argumentMethod);
     }
 
-#if NET8_0_OR_GREATER
     private static Expression BuildDefaultService(ParameterInfo parameter, Expression context, string key)
     {
         var parameterType = parameter.ParameterType;
@@ -60,5 +55,4 @@ internal static class ServiceExpressionHelper
         var keyExpression = Expression.Constant(key, typeof(object));
         return Expression.Call(context, argumentMethod, keyExpression);
     }
-#endif
 }

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Linq.Expressions;
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -8,7 +9,6 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Snapshooter.Xunit;
 using static HotChocolate.Types.FieldBindingFlags;
 using static HotChocolate.WellKnownContextData;
 using SnapshotExtensions = CookieCrumble.SnapshotExtensions;
@@ -1305,7 +1305,6 @@ public class ObjectTypeTests : TypeTestBase
         schema.ToString().MatchSnapshot();
     }
 
-#if NET6_0_OR_GREATER
     [Fact]
     public void Support_Argument_Generic_Attributes()
     {
@@ -1318,7 +1317,6 @@ public class ObjectTypeTests : TypeTestBase
         // assert
         schema.ToString().MatchSnapshot();
     }
-#endif
 
     [Fact]
     public void Argument_Type_IsInferred_From_Parameter()
@@ -1845,8 +1843,6 @@ public class ObjectTypeTests : TypeTestBase
     [Fact]
     public async Task Override_Instance_Check_With_Options()
     {
-        Snapshot.FullName();
-
         var globalCheck = false;
 
         await new ServiceCollection()
@@ -1871,8 +1867,6 @@ public class ObjectTypeTests : TypeTestBase
     public async Task AnotationBased_DeprecatedArgument_Should_BeDeprecated()
     {
         // arrangt
-        Snapshot.FullName();
-
         // act
         var executor = await new ServiceCollection()
             .AddGraphQL()
@@ -1887,8 +1881,6 @@ public class ObjectTypeTests : TypeTestBase
     public async Task AnotationBased_DeprecatedArgument_NonNullableIsDeprecated_Throw()
     {
         // arrange
-        Snapshot.FullName();
-
         // act
         Func<Task> call = async () => await new ServiceCollection()
             .AddGraphQL()
@@ -1904,8 +1896,6 @@ public class ObjectTypeTests : TypeTestBase
     public async Task CodeFirst_DeprecatedArgument_Should_BeDeprecated()
     {
         // arrange
-        Snapshot.FullName();
-
         // act
         var executor = await new ServiceCollection()
             .AddGraphQL()
@@ -1924,8 +1914,6 @@ public class ObjectTypeTests : TypeTestBase
     public async Task CodeFirst_DeprecatedArgument_NonNullableIsDeprecated_Throw()
     {
         // arrange
-        Snapshot.FullName();
-
         // act
         Func<Task> call = async () => await new ServiceCollection()
             .AddGraphQL()
@@ -1947,8 +1935,6 @@ public class ObjectTypeTests : TypeTestBase
     public async Task SchemaFirst_DeprecatedArgument_Should_BeDeprecated()
     {
         // arrange
-        Snapshot.FullName();
-
         // act
         var executor = await new ServiceCollection()
             .AddGraphQL()
@@ -1969,8 +1955,6 @@ public class ObjectTypeTests : TypeTestBase
     public async Task SchemaFirst_DeprecatedArgument_NonNullableIsDeprecated_Throw()
     {
         // arrange
-        Snapshot.FullName();
-
         // act
         Func<Task> call = async () => await new ServiceCollection()
             .AddGraphQL()
@@ -2213,7 +2197,6 @@ public class ObjectTypeTests : TypeTestBase
         public string Quux([GraphQLType(typeof(ListType<StringType>))] string arg) => arg;
     }
 
-#if NET6_0_OR_GREATER
     public class Baz2
     {
         public string Qux(
@@ -2222,7 +2205,6 @@ public class ObjectTypeTests : TypeTestBase
 
         public string Quux([GraphQLType<ListType<StringType>>] string arg) => arg;
     }
-#endif
 
     public class FooType
         : ObjectType<Foo>

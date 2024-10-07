@@ -183,29 +183,17 @@ namespace Foo.Bar
         }
 
         public global::System.String? InventoryId { get; }
-
         public global::System.String? Area { get; }
-
         public global::System.String? Source { get; }
-
         public global::System.String? Type { get; }
-
         public global::System.String? Name { get; }
-
         public global::System.String? Category { get; }
-
         public global::System.String? Specification { get; }
-
         public global::System.String? Commodity { get; }
-
         public global::Foo.Bar.IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_Resolution? Resolution { get; }
-
         public global::System.String? Unit { get; }
-
         public global::Foo.Bar.IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria? ValidationCriteria { get; }
-
         public global::Foo.Bar.IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification? ImportSpecification { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes__dataPoints>? _dataPoints { get; }
 
         public virtual global::System.Boolean Equals(GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_bwr_TimeSeries? other)
@@ -337,7 +325,6 @@ namespace Foo.Bar
         }
 
         public global::Foo.Bar.TimeUnit TimeUnit { get; }
-
         public global::System.Int32 Factor { get; }
 
         public virtual global::System.Boolean Equals(GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_Resolution_Resolution? other)
@@ -406,13 +393,9 @@ namespace Foo.Bar
         }
 
         public global::System.String? _inventoryItemId { get; }
-
         public global::System.String? Name { get; }
-
         public global::System.String? Completeness { get; }
-
         public global::System.Decimal? LowerBound { get; }
-
         public global::System.Decimal? UpperBound { get; }
 
         public virtual global::System.Boolean Equals(GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria_bwr_ValidationCriteria? other)
@@ -501,7 +484,6 @@ namespace Foo.Bar
         }
 
         public global::System.Int32? FromPeriod { get; }
-
         public global::System.Int32? ToPeriod { get; }
 
         public virtual global::System.Boolean Equals(GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification_bwr_ImportSpecification? other)
@@ -576,9 +558,7 @@ namespace Foo.Bar
         }
 
         public global::System.DateTimeOffset Timestamp { get; }
-
         public global::System.Double Value { get; }
-
         public global::Foo.Bar.DataFlag Flag { get; }
 
         public virtual global::System.Boolean Equals(GetBwr_TimeSeries_Bwr_TimeSeries_Nodes__dataPoints_DataPoint? other)
@@ -668,29 +648,17 @@ namespace Foo.Bar
     public partial interface IBwr_TimeSeries
     {
         public global::System.String? InventoryId { get; }
-
         public global::System.String? Area { get; }
-
         public global::System.String? Source { get; }
-
         public global::System.String? Type { get; }
-
         public global::System.String? Name { get; }
-
         public global::System.String? Category { get; }
-
         public global::System.String? Specification { get; }
-
         public global::System.String? Commodity { get; }
-
         public global::Foo.Bar.IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_Resolution? Resolution { get; }
-
         public global::System.String? Unit { get; }
-
         public global::Foo.Bar.IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria? ValidationCriteria { get; }
-
         public global::Foo.Bar.IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification? ImportSpecification { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes__dataPoints>? _dataPoints { get; }
     }
 
@@ -711,7 +679,6 @@ namespace Foo.Bar
     public partial interface IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_Resolution
     {
         public global::Foo.Bar.TimeUnit TimeUnit { get; }
-
         public global::System.Int32 Factor { get; }
     }
 
@@ -726,13 +693,9 @@ namespace Foo.Bar
     public partial interface IBwr_ValidationCriteria
     {
         public global::System.String? _inventoryItemId { get; }
-
         public global::System.String? Name { get; }
-
         public global::System.String? Completeness { get; }
-
         public global::System.Decimal? LowerBound { get; }
-
         public global::System.Decimal? UpperBound { get; }
     }
 
@@ -753,7 +716,6 @@ namespace Foo.Bar
     public partial interface IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification
     {
         public global::System.Int32? FromPeriod { get; }
-
         public global::System.Int32? ToPeriod { get; }
     }
 
@@ -768,9 +730,7 @@ namespace Foo.Bar
     public partial interface IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes__dataPoints
     {
         public global::System.DateTimeOffset Timestamp { get; }
-
         public global::System.Double Value { get; }
-
         public global::Foo.Bar.DataFlag Flag { get; }
     }
 
@@ -789,6 +749,7 @@ namespace Foo.Bar
         private global::StrawberryShake.Serialization.IInputValueFormatter _referenceTyOfbwr_TimeSeriesFilterInputFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _listRefFilterTyOfbwr_TimeSeriesFilterInputFormatter = default !;
         public global::System.String TypeName => "bwr_TimeSeriesFilterInput";
+
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _bwr_TimeSeriesFilterInputFormatter = serializerResolver.GetInputValueFormatter("bwr_TimeSeriesFilterInput");
@@ -1268,6 +1229,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IBwr_TimeSeriesFilterInputInfo.IsAndSet => _set_and;
+
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.bwr_TimeSeriesFilterInput>? Or
         {
             get => _value_or;
@@ -1279,6 +1241,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IBwr_TimeSeriesFilterInputInfo.IsOrSet => _set_or;
+
         public global::Foo.Bar.StringOperationFilterInput? Name
         {
             get => _value_name;
@@ -1290,6 +1253,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IBwr_TimeSeriesFilterInputInfo.IsNameSet => _set_name;
+
         public global::Foo.Bar.StringOperationFilterInput? Category
         {
             get => _value_category;
@@ -1301,6 +1265,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IBwr_TimeSeriesFilterInputInfo.IsCategorySet => _set_category;
+
         public global::Foo.Bar.StringOperationFilterInput? Specification
         {
             get => _value_specification;
@@ -1312,6 +1277,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IBwr_TimeSeriesFilterInputInfo.IsSpecificationSet => _set_specification;
+
         public global::Foo.Bar.StringOperationFilterInput? Commodity
         {
             get => _value_commodity;
@@ -1323,6 +1289,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IBwr_TimeSeriesFilterInputInfo.IsCommoditySet => _set_commodity;
+
         public global::Foo.Bar.StringOperationFilterInput? Area
         {
             get => _value_area;
@@ -1334,6 +1301,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IBwr_TimeSeriesFilterInputInfo.IsAreaSet => _set_area;
+
         public global::Foo.Bar.StringOperationFilterInput? Source
         {
             get => _value_source;
@@ -1345,6 +1313,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IBwr_TimeSeriesFilterInputInfo.IsSourceSet => _set_source;
+
         public global::Foo.Bar.StringOperationFilterInput? Type
         {
             get => _value_type;
@@ -1356,6 +1325,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IBwr_TimeSeriesFilterInputInfo.IsTypeSet => _set_type;
+
         public global::Foo.Bar.StringOperationFilterInput? Resolution
         {
             get => _value_resolution;
@@ -1367,6 +1337,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IBwr_TimeSeriesFilterInputInfo.IsResolutionSet => _set_resolution;
+
         public global::Foo.Bar.StringOperationFilterInput? Unit
         {
             get => _value_unit;
@@ -1378,6 +1349,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IBwr_TimeSeriesFilterInputInfo.IsUnitSet => _set_unit;
+
         public global::Foo.Bar.ReferenceTyOfbwr_TimeSeriesFilterInput? ImportSpecification
         {
             get => _value_importSpecification;
@@ -1389,6 +1361,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IBwr_TimeSeriesFilterInputInfo.IsImportSpecificationSet => _set_importSpecification;
+
         public global::Foo.Bar.ReferenceTyOfbwr_TimeSeriesFilterInput? ValidationCriteria
         {
             get => _value_validationCriteria;
@@ -1400,6 +1373,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IBwr_TimeSeriesFilterInputInfo.IsValidationCriteriaSet => _set_validationCriteria;
+
         public global::Foo.Bar.ListRefFilterTyOfbwr_TimeSeriesFilterInput? ValidationResults
         {
             get => _value_validationResults;
@@ -1411,6 +1385,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IBwr_TimeSeriesFilterInputInfo.IsValidationResultsSet => _set_validationResults;
+
         public global::Foo.Bar.StringOperationFilterInput? _inventoryItemId
         {
             get => _value__inventoryItemId;
@@ -1431,6 +1406,7 @@ namespace Foo.Bar
         private global::StrawberryShake.Serialization.IInputValueFormatter _stringOperationFilterInputFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter = default !;
         public global::System.String TypeName => "StringOperationFilterInput";
+
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _stringOperationFilterInputFormatter = serializerResolver.GetInputValueFormatter("StringOperationFilterInput");
@@ -1874,6 +1850,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IStringOperationFilterInputInfo.IsAndSet => _set_and;
+
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.StringOperationFilterInput>? Or
         {
             get => _value_or;
@@ -1885,6 +1862,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IStringOperationFilterInputInfo.IsOrSet => _set_or;
+
         public global::System.String? Eq
         {
             get => _value_eq;
@@ -1896,6 +1874,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IStringOperationFilterInputInfo.IsEqSet => _set_eq;
+
         public global::System.String? Neq
         {
             get => _value_neq;
@@ -1907,6 +1886,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IStringOperationFilterInputInfo.IsNeqSet => _set_neq;
+
         public global::System.String? Contains
         {
             get => _value_contains;
@@ -1918,6 +1898,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IStringOperationFilterInputInfo.IsContainsSet => _set_contains;
+
         public global::System.String? Ncontains
         {
             get => _value_ncontains;
@@ -1929,6 +1910,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IStringOperationFilterInputInfo.IsNcontainsSet => _set_ncontains;
+
         public global::System.Collections.Generic.IReadOnlyList<global::System.String?>? In
         {
             get => _value_in;
@@ -1940,6 +1922,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IStringOperationFilterInputInfo.IsInSet => _set_in;
+
         public global::System.Collections.Generic.IReadOnlyList<global::System.String?>? Nin
         {
             get => _value_nin;
@@ -1951,6 +1934,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IStringOperationFilterInputInfo.IsNinSet => _set_nin;
+
         public global::System.String? StartsWith
         {
             get => _value_startsWith;
@@ -1962,6 +1946,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IStringOperationFilterInputInfo.IsStartsWithSet => _set_startsWith;
+
         public global::System.String? NstartsWith
         {
             get => _value_nstartsWith;
@@ -1973,6 +1958,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IStringOperationFilterInputInfo.IsNstartsWithSet => _set_nstartsWith;
+
         public global::System.String? EndsWith
         {
             get => _value_endsWith;
@@ -1984,6 +1970,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IStringOperationFilterInputInfo.IsEndsWithSet => _set_endsWith;
+
         public global::System.String? NendsWith
         {
             get => _value_nendsWith;
@@ -2004,6 +1991,7 @@ namespace Foo.Bar
         private global::StrawberryShake.Serialization.IInputValueFormatter _referenceTyOfbwr_TimeSeriesFilterInputFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _stringOperationFilterInputFormatter = default !;
         public global::System.String TypeName => "ReferenceTyOfbwr_TimeSeriesFilterInput";
+
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _referenceTyOfbwr_TimeSeriesFilterInputFormatter = serializerResolver.GetInputValueFormatter("ReferenceTyOfbwr_TimeSeriesFilterInput");
@@ -2193,6 +2181,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IReferenceTyOfbwr_TimeSeriesFilterInputInfo.IsAndSet => _set_and;
+
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.ReferenceTyOfbwr_TimeSeriesFilterInput>? Or
         {
             get => _value_or;
@@ -2204,6 +2193,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IReferenceTyOfbwr_TimeSeriesFilterInputInfo.IsOrSet => _set_or;
+
         public global::Foo.Bar.StringOperationFilterInput? _inventoryItemId
         {
             get => _value__inventoryItemId;
@@ -2224,6 +2214,7 @@ namespace Foo.Bar
         private global::StrawberryShake.Serialization.IInputValueFormatter _referenceTyOfbwr_TimeSeriesFilterInputFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _booleanFormatter = default !;
         public global::System.String TypeName => "ListRefFilterTyOfbwr_TimeSeriesFilterInput";
+
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _referenceTyOfbwr_TimeSeriesFilterInputFormatter = serializerResolver.GetInputValueFormatter("ReferenceTyOfbwr_TimeSeriesFilterInput");
@@ -2409,6 +2400,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IListRefFilterTyOfbwr_TimeSeriesFilterInputInfo.IsAllSet => _set_all;
+
         public global::Foo.Bar.ReferenceTyOfbwr_TimeSeriesFilterInput? None
         {
             get => _value_none;
@@ -2420,6 +2412,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IListRefFilterTyOfbwr_TimeSeriesFilterInputInfo.IsNoneSet => _set_none;
+
         public global::Foo.Bar.ReferenceTyOfbwr_TimeSeriesFilterInput? Some
         {
             get => _value_some;
@@ -2431,6 +2424,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IListRefFilterTyOfbwr_TimeSeriesFilterInputInfo.IsSomeSet => _set_some;
+
         public global::System.Boolean? Any
         {
             get => _value_any;
@@ -2453,6 +2447,7 @@ namespace Foo.Bar
         private global::StrawberryShake.Serialization.IInputValueFormatter _resolutionInputFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _aggregationFormatter = default !;
         public global::System.String TypeName => "ReadDataInput";
+
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _stringFormatter = serializerResolver.GetInputValueFormatter("String");
@@ -2642,6 +2637,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IReadDataInputInfo.IsUnitSet => _set_unit;
+
         public global::System.DateTimeOffset From
         {
             get => _value_from;
@@ -2653,6 +2649,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IReadDataInputInfo.IsFromSet => _set_from;
+
         public global::System.DateTimeOffset To
         {
             get => _value_to;
@@ -2664,6 +2661,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IReadDataInputInfo.IsToSet => _set_to;
+
         public global::Foo.Bar.ResolutionInput? Resolution
         {
             get => _value_resolution;
@@ -2675,6 +2673,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IReadDataInputInfo.IsResolutionSet => _set_resolution;
+
         public global::Foo.Bar.Aggregation? Aggregation
         {
             get => _value_aggregation;
@@ -2695,6 +2694,7 @@ namespace Foo.Bar
         private global::StrawberryShake.Serialization.IInputValueFormatter _timeUnitFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _intFormatter = default !;
         public global::System.String TypeName => "ResolutionInput";
+
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _timeUnitFormatter = serializerResolver.GetInputValueFormatter("TimeUnit");
@@ -2810,6 +2810,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IResolutionInputInfo.IsTimeUnitSet => _set_timeUnit;
+
         public global::System.Int32 Factor
         {
             get => _value_factor;
@@ -2843,6 +2844,7 @@ namespace Foo.Bar
     public partial class TimeUnitSerializer : global::StrawberryShake.Serialization.IInputValueFormatter, global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, TimeUnit>
     {
         public global::System.String TypeName => "TimeUnit";
+
         public TimeUnit Parse(global::System.String serializedValue)
         {
             return serializedValue switch
@@ -2891,6 +2893,7 @@ namespace Foo.Bar
     public partial class AggregationSerializer : global::StrawberryShake.Serialization.IInputValueFormatter, global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, Aggregation>
     {
         public global::System.String TypeName => "Aggregation";
+
         public Aggregation Parse(global::System.String serializedValue)
         {
             return serializedValue switch
@@ -2928,6 +2931,7 @@ namespace Foo.Bar
     public partial class DataFlagSerializer : global::StrawberryShake.Serialization.IInputValueFormatter, global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, DataFlag>
     {
         public global::System.String TypeName => "DataFlag";
+
         public DataFlag Parse(global::System.String serializedValue)
         {
             return serializedValue switch
@@ -3022,8 +3026,778 @@ namespace Foo.Bar
 
         public static GetBwr_TimeSeriesQueryDocument Instance { get; } = new GetBwr_TimeSeriesQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x47, 0x65, 0x74, 0x42, 0x77, 0x72, 0x5f, 0x54, 0x69, 0x6d, 0x65, 0x53, 0x65, 0x72, 0x69, 0x65, 0x73, 0x28, 0x24, 0x77, 0x68, 0x65, 0x72, 0x65, 0x3a, 0x20, 0x62, 0x77, 0x72, 0x5f, 0x54, 0x69, 0x6d, 0x65, 0x53, 0x65, 0x72, 0x69, 0x65, 0x73, 0x46, 0x69, 0x6c, 0x74, 0x65, 0x72, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x2c, 0x20, 0x24, 0x72, 0x65, 0x61, 0x64, 0x44, 0x61, 0x74, 0x61, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x3a, 0x20, 0x52, 0x65, 0x61, 0x64, 0x44, 0x61, 0x74, 0x61, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x21, 0x29, 0x20, 0x7b, 0x20, 0x62, 0x77, 0x72, 0x5f, 0x54, 0x69, 0x6d, 0x65, 0x53, 0x65, 0x72, 0x69, 0x65, 0x73, 0x28, 0x77, 0x68, 0x65, 0x72, 0x65, 0x3a, 0x20, 0x24, 0x77, 0x68, 0x65, 0x72, 0x65, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6e, 0x6f, 0x64, 0x65, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x42, 0x77, 0x72, 0x5f, 0x54, 0x69, 0x6d, 0x65, 0x53, 0x65, 0x72, 0x69, 0x65, 0x73, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x62, 0x77, 0x72, 0x5f, 0x54, 0x69, 0x6d, 0x65, 0x53, 0x65, 0x72, 0x69, 0x65, 0x73, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x42, 0x77, 0x72, 0x5f, 0x54, 0x69, 0x6d, 0x65, 0x53, 0x65, 0x72, 0x69, 0x65, 0x73, 0x20, 0x6f, 0x6e, 0x20, 0x62, 0x77, 0x72, 0x5f, 0x54, 0x69, 0x6d, 0x65, 0x53, 0x65, 0x72, 0x69, 0x65, 0x73, 0x20, 0x7b, 0x20, 0x69, 0x6e, 0x76, 0x65, 0x6e, 0x74, 0x6f, 0x72, 0x79, 0x49, 0x64, 0x3a, 0x20, 0x5f, 0x69, 0x6e, 0x76, 0x65, 0x6e, 0x74, 0x6f, 0x72, 0x79, 0x49, 0x74, 0x65, 0x6d, 0x49, 0x64, 0x20, 0x61, 0x72, 0x65, 0x61, 0x20, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x20, 0x74, 0x79, 0x70, 0x65, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x63, 0x61, 0x74, 0x65, 0x67, 0x6f, 0x72, 0x79, 0x20, 0x73, 0x70, 0x65, 0x63, 0x69, 0x66, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x63, 0x6f, 0x6d, 0x6d, 0x6f, 0x64, 0x69, 0x74, 0x79, 0x20, 0x72, 0x65, 0x73, 0x6f, 0x6c, 0x75, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x74, 0x69, 0x6d, 0x65, 0x55, 0x6e, 0x69, 0x74, 0x20, 0x66, 0x61, 0x63, 0x74, 0x6f, 0x72, 0x20, 0x7d, 0x20, 0x75, 0x6e, 0x69, 0x74, 0x20, 0x76, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x43, 0x72, 0x69, 0x74, 0x65, 0x72, 0x69, 0x61, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x42, 0x77, 0x72, 0x5f, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x43, 0x72, 0x69, 0x74, 0x65, 0x72, 0x69, 0x61, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x62, 0x77, 0x72, 0x5f, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x43, 0x72, 0x69, 0x74, 0x65, 0x72, 0x69, 0x61, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x69, 0x6d, 0x70, 0x6f, 0x72, 0x74, 0x53, 0x70, 0x65, 0x63, 0x69, 0x66, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x66, 0x72, 0x6f, 0x6d, 0x50, 0x65, 0x72, 0x69, 0x6f, 0x64, 0x20, 0x74, 0x6f, 0x50, 0x65, 0x72, 0x69, 0x6f, 0x64, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x62, 0x77, 0x72, 0x5f, 0x49, 0x6d, 0x70, 0x6f, 0x72, 0x74, 0x53, 0x70, 0x65, 0x63, 0x69, 0x66, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x5f, 0x64, 0x61, 0x74, 0x61, 0x50, 0x6f, 0x69, 0x6e, 0x74, 0x73, 0x28, 0x69, 0x6e, 0x70, 0x75, 0x74, 0x3a, 0x20, 0x24, 0x72, 0x65, 0x61, 0x64, 0x44, 0x61, 0x74, 0x61, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x20, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x20, 0x66, 0x6c, 0x61, 0x67, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x42, 0x77, 0x72, 0x5f, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x43, 0x72, 0x69, 0x74, 0x65, 0x72, 0x69, 0x61, 0x20, 0x6f, 0x6e, 0x20, 0x62, 0x77, 0x72, 0x5f, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x43, 0x72, 0x69, 0x74, 0x65, 0x72, 0x69, 0x61, 0x20, 0x7b, 0x20, 0x5f, 0x69, 0x6e, 0x76, 0x65, 0x6e, 0x74, 0x6f, 0x72, 0x79, 0x49, 0x74, 0x65, 0x6d, 0x49, 0x64, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x63, 0x6f, 0x6d, 0x70, 0x6c, 0x65, 0x74, 0x65, 0x6e, 0x65, 0x73, 0x73, 0x20, 0x6c, 0x6f, 0x77, 0x65, 0x72, 0x42, 0x6f, 0x75, 0x6e, 0x64, 0x20, 0x75, 0x70, 0x70, 0x65, 0x72, 0x42, 0x6f, 0x75, 0x6e, 0x64, 0x20, 0x7d};
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
+        {
+            0x71,
+            0x75,
+            0x65,
+            0x72,
+            0x79,
+            0x20,
+            0x47,
+            0x65,
+            0x74,
+            0x42,
+            0x77,
+            0x72,
+            0x5f,
+            0x54,
+            0x69,
+            0x6d,
+            0x65,
+            0x53,
+            0x65,
+            0x72,
+            0x69,
+            0x65,
+            0x73,
+            0x28,
+            0x24,
+            0x77,
+            0x68,
+            0x65,
+            0x72,
+            0x65,
+            0x3a,
+            0x20,
+            0x62,
+            0x77,
+            0x72,
+            0x5f,
+            0x54,
+            0x69,
+            0x6d,
+            0x65,
+            0x53,
+            0x65,
+            0x72,
+            0x69,
+            0x65,
+            0x73,
+            0x46,
+            0x69,
+            0x6c,
+            0x74,
+            0x65,
+            0x72,
+            0x49,
+            0x6e,
+            0x70,
+            0x75,
+            0x74,
+            0x2c,
+            0x20,
+            0x24,
+            0x72,
+            0x65,
+            0x61,
+            0x64,
+            0x44,
+            0x61,
+            0x74,
+            0x61,
+            0x49,
+            0x6e,
+            0x70,
+            0x75,
+            0x74,
+            0x3a,
+            0x20,
+            0x52,
+            0x65,
+            0x61,
+            0x64,
+            0x44,
+            0x61,
+            0x74,
+            0x61,
+            0x49,
+            0x6e,
+            0x70,
+            0x75,
+            0x74,
+            0x21,
+            0x29,
+            0x20,
+            0x7b,
+            0x20,
+            0x62,
+            0x77,
+            0x72,
+            0x5f,
+            0x54,
+            0x69,
+            0x6d,
+            0x65,
+            0x53,
+            0x65,
+            0x72,
+            0x69,
+            0x65,
+            0x73,
+            0x28,
+            0x77,
+            0x68,
+            0x65,
+            0x72,
+            0x65,
+            0x3a,
+            0x20,
+            0x24,
+            0x77,
+            0x68,
+            0x65,
+            0x72,
+            0x65,
+            0x29,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x6e,
+            0x6f,
+            0x64,
+            0x65,
+            0x73,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x42,
+            0x77,
+            0x72,
+            0x5f,
+            0x54,
+            0x69,
+            0x6d,
+            0x65,
+            0x53,
+            0x65,
+            0x72,
+            0x69,
+            0x65,
+            0x73,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x62,
+            0x77,
+            0x72,
+            0x5f,
+            0x54,
+            0x69,
+            0x6d,
+            0x65,
+            0x53,
+            0x65,
+            0x72,
+            0x69,
+            0x65,
+            0x73,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x66,
+            0x72,
+            0x61,
+            0x67,
+            0x6d,
+            0x65,
+            0x6e,
+            0x74,
+            0x20,
+            0x42,
+            0x77,
+            0x72,
+            0x5f,
+            0x54,
+            0x69,
+            0x6d,
+            0x65,
+            0x53,
+            0x65,
+            0x72,
+            0x69,
+            0x65,
+            0x73,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x62,
+            0x77,
+            0x72,
+            0x5f,
+            0x54,
+            0x69,
+            0x6d,
+            0x65,
+            0x53,
+            0x65,
+            0x72,
+            0x69,
+            0x65,
+            0x73,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x6e,
+            0x76,
+            0x65,
+            0x6e,
+            0x74,
+            0x6f,
+            0x72,
+            0x79,
+            0x49,
+            0x64,
+            0x3a,
+            0x20,
+            0x5f,
+            0x69,
+            0x6e,
+            0x76,
+            0x65,
+            0x6e,
+            0x74,
+            0x6f,
+            0x72,
+            0x79,
+            0x49,
+            0x74,
+            0x65,
+            0x6d,
+            0x49,
+            0x64,
+            0x20,
+            0x61,
+            0x72,
+            0x65,
+            0x61,
+            0x20,
+            0x73,
+            0x6f,
+            0x75,
+            0x72,
+            0x63,
+            0x65,
+            0x20,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x20,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x63,
+            0x61,
+            0x74,
+            0x65,
+            0x67,
+            0x6f,
+            0x72,
+            0x79,
+            0x20,
+            0x73,
+            0x70,
+            0x65,
+            0x63,
+            0x69,
+            0x66,
+            0x69,
+            0x63,
+            0x61,
+            0x74,
+            0x69,
+            0x6f,
+            0x6e,
+            0x20,
+            0x63,
+            0x6f,
+            0x6d,
+            0x6d,
+            0x6f,
+            0x64,
+            0x69,
+            0x74,
+            0x79,
+            0x20,
+            0x72,
+            0x65,
+            0x73,
+            0x6f,
+            0x6c,
+            0x75,
+            0x74,
+            0x69,
+            0x6f,
+            0x6e,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x74,
+            0x69,
+            0x6d,
+            0x65,
+            0x55,
+            0x6e,
+            0x69,
+            0x74,
+            0x20,
+            0x66,
+            0x61,
+            0x63,
+            0x74,
+            0x6f,
+            0x72,
+            0x20,
+            0x7d,
+            0x20,
+            0x75,
+            0x6e,
+            0x69,
+            0x74,
+            0x20,
+            0x76,
+            0x61,
+            0x6c,
+            0x69,
+            0x64,
+            0x61,
+            0x74,
+            0x69,
+            0x6f,
+            0x6e,
+            0x43,
+            0x72,
+            0x69,
+            0x74,
+            0x65,
+            0x72,
+            0x69,
+            0x61,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x42,
+            0x77,
+            0x72,
+            0x5f,
+            0x56,
+            0x61,
+            0x6c,
+            0x69,
+            0x64,
+            0x61,
+            0x74,
+            0x69,
+            0x6f,
+            0x6e,
+            0x43,
+            0x72,
+            0x69,
+            0x74,
+            0x65,
+            0x72,
+            0x69,
+            0x61,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x62,
+            0x77,
+            0x72,
+            0x5f,
+            0x56,
+            0x61,
+            0x6c,
+            0x69,
+            0x64,
+            0x61,
+            0x74,
+            0x69,
+            0x6f,
+            0x6e,
+            0x43,
+            0x72,
+            0x69,
+            0x74,
+            0x65,
+            0x72,
+            0x69,
+            0x61,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x69,
+            0x6d,
+            0x70,
+            0x6f,
+            0x72,
+            0x74,
+            0x53,
+            0x70,
+            0x65,
+            0x63,
+            0x69,
+            0x66,
+            0x69,
+            0x63,
+            0x61,
+            0x74,
+            0x69,
+            0x6f,
+            0x6e,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x66,
+            0x72,
+            0x6f,
+            0x6d,
+            0x50,
+            0x65,
+            0x72,
+            0x69,
+            0x6f,
+            0x64,
+            0x20,
+            0x74,
+            0x6f,
+            0x50,
+            0x65,
+            0x72,
+            0x69,
+            0x6f,
+            0x64,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x62,
+            0x77,
+            0x72,
+            0x5f,
+            0x49,
+            0x6d,
+            0x70,
+            0x6f,
+            0x72,
+            0x74,
+            0x53,
+            0x70,
+            0x65,
+            0x63,
+            0x69,
+            0x66,
+            0x69,
+            0x63,
+            0x61,
+            0x74,
+            0x69,
+            0x6f,
+            0x6e,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x5f,
+            0x64,
+            0x61,
+            0x74,
+            0x61,
+            0x50,
+            0x6f,
+            0x69,
+            0x6e,
+            0x74,
+            0x73,
+            0x28,
+            0x69,
+            0x6e,
+            0x70,
+            0x75,
+            0x74,
+            0x3a,
+            0x20,
+            0x24,
+            0x72,
+            0x65,
+            0x61,
+            0x64,
+            0x44,
+            0x61,
+            0x74,
+            0x61,
+            0x49,
+            0x6e,
+            0x70,
+            0x75,
+            0x74,
+            0x29,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x74,
+            0x69,
+            0x6d,
+            0x65,
+            0x73,
+            0x74,
+            0x61,
+            0x6d,
+            0x70,
+            0x20,
+            0x76,
+            0x61,
+            0x6c,
+            0x75,
+            0x65,
+            0x20,
+            0x66,
+            0x6c,
+            0x61,
+            0x67,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x66,
+            0x72,
+            0x61,
+            0x67,
+            0x6d,
+            0x65,
+            0x6e,
+            0x74,
+            0x20,
+            0x42,
+            0x77,
+            0x72,
+            0x5f,
+            0x56,
+            0x61,
+            0x6c,
+            0x69,
+            0x64,
+            0x61,
+            0x74,
+            0x69,
+            0x6f,
+            0x6e,
+            0x43,
+            0x72,
+            0x69,
+            0x74,
+            0x65,
+            0x72,
+            0x69,
+            0x61,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x62,
+            0x77,
+            0x72,
+            0x5f,
+            0x56,
+            0x61,
+            0x6c,
+            0x69,
+            0x64,
+            0x61,
+            0x74,
+            0x69,
+            0x6f,
+            0x6e,
+            0x43,
+            0x72,
+            0x69,
+            0x74,
+            0x65,
+            0x72,
+            0x69,
+            0x61,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x69,
+            0x6e,
+            0x76,
+            0x65,
+            0x6e,
+            0x74,
+            0x6f,
+            0x72,
+            0x79,
+            0x49,
+            0x74,
+            0x65,
+            0x6d,
+            0x49,
+            0x64,
+            0x20,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x63,
+            0x6f,
+            0x6d,
+            0x70,
+            0x6c,
+            0x65,
+            0x74,
+            0x65,
+            0x6e,
+            0x65,
+            0x73,
+            0x73,
+            0x20,
+            0x6c,
+            0x6f,
+            0x77,
+            0x65,
+            0x72,
+            0x42,
+            0x6f,
+            0x75,
+            0x6e,
+            0x64,
+            0x20,
+            0x75,
+            0x70,
+            0x70,
+            0x65,
+            0x72,
+            0x42,
+            0x6f,
+            0x75,
+            0x6e,
+            0x64,
+            0x20,
+            0x7d
+        };
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "fd97876c1fe57bcb23d5c9cf665e79aff6ded9e3");
+
         public override global::System.String ToString()
         {
 #if NETCOREAPP3_1_OR_GREATER
@@ -3112,6 +3886,7 @@ namespace Foo.Bar
         }
 
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IGetBwr_TimeSeriesResult);
+
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetBwr_TimeSeriesResult>> ExecuteAsync(global::Foo.Bar.bwr_TimeSeriesFilterInput? @where, global::Foo.Bar.ReadDataInput readDataInput, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(@where, readDataInput);
@@ -3288,29 +4063,17 @@ namespace Foo.Bar.State
         }
 
         public global::System.String? InventoryId { get; }
-
         public global::System.String? Area { get; }
-
         public global::System.String? Source { get; }
-
         public global::System.String? Type { get; }
-
         public global::System.String? Name { get; }
-
         public global::System.String? Category { get; }
-
         public global::System.String? Specification { get; }
-
         public global::System.String? Commodity { get; }
-
         public global::Foo.Bar.State.ResolutionData? Resolution { get; }
-
         public global::System.String? Unit { get; }
-
         public global::StrawberryShake.EntityId? ValidationCriteria { get; }
-
         public global::StrawberryShake.EntityId? ImportSpecification { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.DataPointData>? _dataPoints { get; }
     }
 
@@ -3328,13 +4091,9 @@ namespace Foo.Bar.State
         }
 
         public global::System.String? _inventoryItemId { get; }
-
         public global::System.String? Name { get; }
-
         public global::System.String? Completeness { get; }
-
         public global::System.Decimal? LowerBound { get; }
-
         public global::System.Decimal? UpperBound { get; }
     }
 
@@ -3349,7 +4108,6 @@ namespace Foo.Bar.State
         }
 
         public global::System.Int32? FromPeriod { get; }
-
         public global::System.Int32? ToPeriod { get; }
     }
 
@@ -3370,6 +4128,7 @@ namespace Foo.Bar.State
         }
 
         global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::Foo.Bar.IGetBwr_TimeSeriesResult);
+
         public GetBwr_TimeSeriesResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             if (snapshot is null)
@@ -3537,9 +4296,9 @@ namespace Foo.Bar.State
         }
 
         public global::Foo.Bar.State.Bwr_TimeSeriesConnectionData? Bwr_TimeSeries { get; }
-
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
         public global::System.UInt64 Version => _version;
+
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new GetBwr_TimeSeriesResultInfo(Bwr_TimeSeries, _entityIds, version);
@@ -4035,7 +4794,6 @@ namespace Foo.Bar.State
         }
 
         public global::System.String __typename { get; }
-
         ///<summary>A flattened list of the nodes.</summary>
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Nodes { get; }
     }
@@ -4052,9 +4810,7 @@ namespace Foo.Bar.State
         }
 
         public global::System.String __typename { get; }
-
         public global::Foo.Bar.TimeUnit? TimeUnit { get; }
-
         public global::System.Int32? Factor { get; }
     }
 
@@ -4071,11 +4827,8 @@ namespace Foo.Bar.State
         }
 
         public global::System.String __typename { get; }
-
         public global::System.DateTimeOffset? Timestamp { get; }
-
         public global::System.Double? Value { get; }
-
         public global::Foo.Bar.DataFlag? Flag { get; }
     }
 
@@ -4232,7 +4985,9 @@ namespace Foo.Bar.State
     public partial class FooClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
         private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
-        {Indented = false};
+        {
+            Indented = false
+        };
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
             global::System.String __typename = obj.GetProperty("__typename").GetString()!;

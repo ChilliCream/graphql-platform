@@ -11,13 +11,13 @@ authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 
 The last major release of Hot Chocolate was on the 27th of September, and since then, I have stopped writing blogs and focused more attention on YouTube. But for this occasion, it feels right to write and would have anyway resulted in a video that is too long.
 
-## What is Version 13 about?
+# What is Version 13 about?
 
 When we started on Hot Chocolate 13, the release focused on our Gateway, aka schema stitching. As we worked on schema stitching, it became apparent to us that we wanted to change and make it much easier than the current solutions that are out there. Distributed graphs should work with GraphQL and not force you to build them in a certain way but still yield best-in-class performance. At some point, our work branched off the original stitching project, and we created a new component called Hot Chocolate Fusion. As we were working on Hot Chocolate Fusion, we saw the time pass by and estimated that it would take considerable time more to get it done in the quality it should be. At this point, we already had so many great features and bugfixes merged into version 13 that we decided to focus development on delivering a Hot Chocolate 13 core with many improvements and ship Fusion as a dot release of 13 when it's ready.
 
 If you asked me what the focus is of version 13, then I would say developer experience and more :)
 
-## GraphQL over Internet
+# GraphQL over Internet
 
 One major focus we put on Hot Chocolate 13 is transport. With Hot Chocolate 13, we are one of two servers (GraphQL-yoga and Hot Chocolate) fully supporting the new GraphQL over HTTP spec draft. The transport spec defines when to use which HTTP status code and introduces a new response content-type, `application/graphql-response+json`. The new transport spec makes proper use of the HTTP accept headers, meaning your client can now define what response content-types it understands and can handle. If your client, for instance, can only deal with `application/json` as a response content-type, then you can define that now in your request.
 
@@ -67,7 +67,7 @@ But we also brought the WebSocket transport up to speed with GraphQL-WS. We now 
 [GraphQL-SSE Protocol](https://github.com/enisdenjo/graphql-sse) /
 [GraphQL-WS Protocol](https://github.com/enisdenjo/graphql-ws)
 
-### Cache-Control
+## Cache-Control
 
 We now have implemented the GraphQL cache-control feature, which allows you to specify cache-control headers for GraphQL query responses based on the entities you query.
 
@@ -107,7 +107,7 @@ public static class Query
 
 The GraphQL cache-control header will collect the allowed amount of time the response is cacheable and exposes this as a cache-control header which consequently can be used by CDNs or browsers to cache the result.
 
-### Null Values
+## Null Values
 
 Another smaller optimization option we have introduced to Hot Chocolate is the null value erasure.
 
@@ -161,11 +161,11 @@ Writing now a query where we fetch a field that is null ...
 
 So, by opting into this formatter feature, we will no longer serialize null fields. Relay now supports this, and you can opt for the same thing when using it.
 
-## Developer Experience
+# Developer Experience
 
 We developers generally like to write less code, or more precisely, to write less repetitive code. The more we can focus on building awesome APIs, the happier we are. This is one of our guiding principles when looking at features. This is why I like source generators so much: we can offload the tedious bits and let someone else write those. The other plus side is that we can still get best-in-class performance since things analyzed and generated with source generators at build time are already computed, with no overhead and unpredictability at runtime.
 
-### Type Auto Registration
+## Type Auto Registration
 
 With Hot Chocolate 13, we are embracing more features driven by source generators. Let me give you an example here. The following code shows you the GraphQL configuration of a smaller project with five entities without our source generators.
 
@@ -223,7 +223,7 @@ This is amazing! You focus on your code, and the Hot Chocolate source generator 
 
 <Video videoId="s1rXR46h86o" />
 
-### DataLoader
+## DataLoader
 
 But this is not where this ends. One of the most dreaded pieces of code in a GraphQL project is the class DataLoader. DataLoader are amazing as they help you write APIs that take advantage of batched fetches to data sources and ensure that your graph is consistent. But they are just so much fricking code.
 
@@ -289,7 +289,7 @@ The source generator will take the above code and generate the actual DataLoader
 
 <Video videoId="72WVRPwzwLk" />
 
-### Resolver Compiler
+## Resolver Compiler
 
 While we love source generators, we also use runtime code generation to remove clutter further. When we register a DBContext globally, we actually register an `IParameterExpressionBuilder` that will analyze resolver code and generate and compile expressions at runtimes so that you get the best-optimized resolver possible with the least amount of code. We simplified how you can now write your own expression builder to handle global states or other things you want to simplify.
 
@@ -305,7 +305,7 @@ For a deep dive into resolver compilers, you can watch the following YouTube epi
 
 <Video videoId="c2hymm0FLio" />
 
-### Directives
+## Directives
 
 Directives are one of the last APIs we had that were Code-First and Schema-First only but could not be created with the annotation-based approach. With Hot Chocolate 13, we have revamped directives, and they are now super sleek.
 
@@ -342,7 +342,7 @@ If you want to learn more about the improvements we have made for GraphQL direct
 
 <Video videoId="egyO7rZOoMI" />
 
-### JSON Scalar
+## JSON Scalar
 
 For some time, we had a scalar called Any, which allowed us to have some untyped data in our graph. But it was ugly how it was constructed with dictionary structures in our resolvers. Further, many of you just wanted to use clean JSON to specify the data. With Hot Chocolate 13, we are now introducing a clean JSON scalar that uses JsonElement as its runtime type.
 
@@ -381,7 +381,7 @@ builder.Services
 
 <Video videoId="wODiVDT8ECI" />
 
-### Generic Attributes
+## Generic Attributes
 
 With Hot Chocolate 13 we are taking advantage of generic attributes in .NET 7. Instead of writing an ugly attribute like the following:
 
@@ -399,7 +399,7 @@ public static class FooResolvers
 
 The same goes for many other projects.
 
-### Entity Framework
+## Entity Framework
 
 In the past, we have optimized Hot Chocolate to use the pooled factory approach when using Entity Framework. This did not sit well with many developers since it forced them to rewrite their long-established code patterns with scoped repositories. Hot Chocolate 13 will help you here and reduce the code and complexity of using Entity Framework to almost nothing.
 
@@ -441,7 +441,7 @@ Just in the case of `RegisterService`, you have to explicitly opt into the resol
 public static async Task<IReadOnlyList<Asset>> GetAssets(AssetRepository repository) => await repository.GetAssetsAsync();
 ```
 
-## Authorization
+# Authorization
 
 Using the built-in authorization directives in Hot Chocolate was a pain. They only worked on fields and were executed for each field they were annotated to. So, basically, like with MVC, and this does not really fit into our graph world.
 
@@ -514,7 +514,7 @@ type User @authorize @authorize(policy: "READ_USER", apply: AFTER_RESOLVER) {
 | BEFORE_RESOLVER | The authorization directives are merged into the resolver pipeline and executed before the resolver. The authorize policies have access to the `IMiddlewareContext` but not to the resolved data. |
 | AFTER_RESOLVER  | The authorization directives are merged into the resolver pipeline and executed after the resolver. The authorize policies have access to the `IMiddlewareContext` and the resolved data.         |
 
-### Open Policy Agent
+## Open Policy Agent
 
 With Hot Chocolate 13, we have abstracted our authorization API and can now support multiple authorization solutions. You can even create your own if you want to. All you have to do is to implement the `IAuthorizationHandler` interface.
 
@@ -543,7 +543,7 @@ dotnet install HotChocolate.AspNetCore.Authorization.Opa
 
 If you want to learn more about Open Policy agent, you can find more information [here](https://www.openpolicyagent.org/).
 
-## Subscriptions
+# Subscriptions
 
 Subscription is another area where we put a lot of effort into. With Hot Chocolate 12, we had support for Redis as a backing pub-sub, and if you ran a single instance of your service, you could have used our in-memory implementation.
 
@@ -552,7 +552,7 @@ We also added support for RabbitMQ, a popular solution many of you asked us to s
 
 Implementing a new subscription provider now also has become so much easier. If you want to support another system, look at the [NATS implementation](https://github.com/ChilliCream/graphql-platform/tree/main/src/HotChocolate/Core/src/Subscriptions.Nats).
 
-## Data
+# Data
 
 As with almost every release, we have added more integrations to HotChocolate.Data. With Hot Chocolate 13, we are happy to announce built-in support for RavenDB and Marten.
 
@@ -609,7 +609,7 @@ The Marten integration works very similarly. The main difference here is that yo
 dotnet install HotChocolate.Data.Marten
 ```
 
-## Azure Functions
+# Azure Functions
 
 With version 12, we introduced the Azure Functions integration but only targeted in-process Azure Functions. Now, with Hot Chocolate 13, we have doubled down on Azure Functions and provided the ability to now run in the isolated process model, along with templates for both.
 
@@ -629,7 +629,7 @@ With version 12, we introduced the Azure Functions integration but only targeted
    Or use Visual Studio.
    ![HotChocolate Azure Functions Project Templates](az-func-templates-vs.png)
 
-## Performance
+# Performance
 
 Performance is, in every release, a core concern that we have. For this release, we have looked at the memory consumption of the execution engine and were able to reduce consumption by 78% while at the same time improving execution performance by 24%.
 
@@ -642,7 +642,7 @@ Performance is, in every release, a core concern that we have. For this release,
 
 As always, we micro-optimize Hot Chocolate to make more room for your own application logic. What these optimizations mean in your use case might be very different.
 
-## Strawberry Shake
+# Strawberry Shake
 
 While we did not have a strong focus on Strawberry Shake for this release, we wanted to address some user pain points. The first one was that it was too complex to set up and configure since you needed to fill in configuration and match it with the right packages. With Strawberry Shake 13, we wanted to improve the developer experience and simplify things. We now have three application profiles which translate to three meta-packages, Blazor, Maui, and Server.
 
@@ -703,11 +703,11 @@ If you need a deep dive into the setup of persisted queries with Strawberry Shak
 
 <Video videoId="CYpBafzytB0" />
 
-## Banana Cake Pop
+# Banana Cake Pop
 
 With version 13, we are also releasing Banana Cake Pop 4, which packs many new features. You can read all about this [here](https://chillicream.com/blog/2023/02/07/new-in-banana-cake-pop-4).
 
-## Outlook
+# Outlook
 
 There are many more features and fixes in Hot Chocolate 13; too many to go into each of them. Instead, let me give you a couple of numbers around this release. We had 81 contributors, including the core team working on Hot Chocolate 13, and more than 400 PRs went into this release. Not all of them were code; some were bits and pieces of documentation, unit tests, code fixes, or even complete features. The Marten database provider, for instance, was contributed to us by a single member of the community. When I saw this, I remembered the time it was just me. I remember when my brother Rafi and I started the slack channel, and there was this single other person in there asking me questions about Hot Chocolate. Now we are over 4400 on slack.chillicream.com.
 

@@ -1,10 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>$(LibraryTargetFrameworks)</TargetFrameworks>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <PackageId>HotChocolate.Transport.Http</PackageId>
     <AssemblyName>HotChocolate.Transport.Http</AssemblyName>
     <RootNamespace>HotChocolate.Transport.Http</RootNamespace>

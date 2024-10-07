@@ -26,14 +26,7 @@ public class SerializerResolver : ISerializerResolver
 
         foreach (var serializer in serializers)
         {
-#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             _serializers.TryAdd(serializer.TypeName, serializer);
-#else
-            if (!_serializers.ContainsKey(serializer.TypeName))
-            {
-                _serializers[serializer.TypeName] = serializer;
-            }
-#endif
         }
 
         foreach (var serializer in

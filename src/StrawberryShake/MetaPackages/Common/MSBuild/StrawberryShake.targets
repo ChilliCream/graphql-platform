@@ -39,20 +39,18 @@
     Condition="'@(GraphQL)' != ''">
 
     <PropertyGroup>
-      <DotNetMajor Condition="$([MSBuild]::VersionGreaterThanOrEquals($(NETCoreSdkVersion), 6))">6</DotNetMajor>
-      <DotNetMajor Condition="$([MSBuild]::VersionGreaterThanOrEquals($(NETCoreSdkVersion), 7))">7</DotNetMajor>
       <DotNetMajor Condition="$([MSBuild]::VersionGreaterThanOrEquals($(NETCoreSdkVersion), 8))">8</DotNetMajor>
+      <DotNetMajor Condition="$([MSBuild]::VersionGreaterThanOrEquals($(NETCoreSdkVersion), 9))">9</DotNetMajor>
     </PropertyGroup>
 
     <Error
-      Text="The Strawberry Shake code generation requires .NET SDK 6, .NET SDK 7 or .NET SDK 8 to work."
-      Condition="'$(DotNetMajor)' != '6' AND '$(DotNetMajor)' != '7' AND '$(DotNetMajor)' != '8'" />
+      Text="The Strawberry Shake code generation requires .NET SDK 8 or .NET SDK 9 to work."
+      Condition="'$(DotNetMajor)' != '8' AND '$(DotNetMajor)' != '9'" />
 
     <PropertyGroup>
       <GraphQLOperationGenerationRoot>$(MSBuildProjectDirectory)\$(GraphQLPersistedOperationOutput.TrimEnd('/').TrimEnd('\'))</GraphQLOperationGenerationRoot>
-      <GenTool Condition="'$(DotNetMajor)' == '6'">$([System.IO.Path]::Combine($(MSBuildThisFileDirectory), "..", "tools", "net6", "dotnet-graphql.dll"))</GenTool>
-      <GenTool Condition="'$(DotNetMajor)' == '7'">$([System.IO.Path]::Combine($(MSBuildThisFileDirectory), "..", "tools", "net7", "dotnet-graphql.dll"))</GenTool>
       <GenTool Condition="'$(DotNetMajor)' == '8'">$([System.IO.Path]::Combine($(MSBuildThisFileDirectory), "..", "tools", "net8", "dotnet-graphql.dll"))</GenTool>
+      <GenTool Condition="'$(DotNetMajor)' == '9'">$([System.IO.Path]::Combine($(MSBuildThisFileDirectory), "..", "tools", "net9", "dotnet-graphql.dll"))</GenTool>
     </PropertyGroup>
 
     <PropertyGroup>

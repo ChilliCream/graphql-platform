@@ -270,7 +270,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
         }
     }
 
-    internal override void OnAfterResolveRootType(
+    public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
         ObjectTypeDefinition definition,
         OperationType operationType)
@@ -467,10 +467,6 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
     private ref TypeInterceptor GetReference()
     {
-#if NET6_0_OR_GREATER
         return ref MemoryMarshal.GetArrayDataReference(_typeInterceptors);
-#else
-        return ref MemoryMarshal.GetReference(_typeInterceptors.AsSpan());
-#endif
     }
 }

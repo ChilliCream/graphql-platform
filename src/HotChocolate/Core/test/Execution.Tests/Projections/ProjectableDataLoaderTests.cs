@@ -1,10 +1,11 @@
-#if NET7_0_OR_GREATER
+using System.Linq.Expressions;
 using CookieCrumble;
 using GreenDonut;
 using GreenDonut.Projections;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.TestContext;
 using HotChocolate.Types;
+using HotChocolate.Types.Relay;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Squadron;
@@ -44,11 +45,38 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-#if NET8_0_OR_GREATER
         Snapshot.Create()
-#else
-        Snapshot.Create(postFix: "NET7_0")
-#endif
+            .AddSql(queries)
+            .AddResult(result)
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Brand_With_Name_Selector_is_Null()
+    {
+        // Arrange
+        var queries = new List<string>();
+        var connectionString = CreateConnectionString();
+        await CatalogContext.SeedAsync(connectionString);
+
+        // Act
+        var result = await new ServiceCollection()
+            .AddScoped(_ => queries)
+            .AddTransient(_ => new CatalogContext(connectionString))
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddPagingArguments()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .ExecuteRequestAsync(
+                """
+                {
+                    brandByIdSelectorNull(id: 1) {
+                        name
+                    }
+                }
+                """);
+
+        Snapshot.Create()
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -79,11 +107,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-#if NET8_0_OR_GREATER
         Snapshot.Create()
-#else
-        Snapshot.Create(postFix: "NET7_0")
-#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -118,11 +142,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-#if NET8_0_OR_GREATER
         Snapshot.Create()
-#else
-        Snapshot.Create(postFix: "NET7_0")
-#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -153,11 +173,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-#if NET8_0_OR_GREATER
         Snapshot.Create()
-#else
-        Snapshot.Create(postFix: "NET7_0")
-#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -191,11 +207,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-#if NET8_0_OR_GREATER
         Snapshot.Create()
-#else
-        Snapshot.Create(postFix: "NET7_0")
-#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -229,11 +241,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-#if NET8_0_OR_GREATER
         Snapshot.Create()
-#else
-        Snapshot.Create(postFix: "NET7_0")
-#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -273,11 +281,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-#if NET8_0_OR_GREATER
         Snapshot.Create()
-#else
-        Snapshot.Create(postFix: "NET7_0")
-#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -317,11 +321,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-#if NET8_0_OR_GREATER
         Snapshot.Create()
-#else
-        Snapshot.Create(postFix: "NET7_0")
-#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -357,11 +357,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-#if NET8_0_OR_GREATER
         Snapshot.Create()
-#else
-        Snapshot.Create(postFix: "NET7_0")
-#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -398,11 +394,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-#if NET8_0_OR_GREATER
         Snapshot.Create()
-#else
-        Snapshot.Create(postFix: "NET7_0")
-#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -434,11 +426,104 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-#if NET8_0_OR_GREATER
         Snapshot.Create()
-#else
-        Snapshot.Create(postFix: "NET7_0")
-#endif
+            .AddSql(queries)
+            .AddResult(result)
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Brand_Details_Requires_Brand_Name_With_Proper_Type()
+    {
+        // Arrange
+        var queries = new List<string>();
+        var connectionString = CreateConnectionString();
+        await CatalogContext.SeedAsync(connectionString);
+
+        // Act
+        var result = await new ServiceCollection()
+            .AddScoped(_ => queries)
+            .AddTransient(_ => new CatalogContext(connectionString))
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddType<BrandWithRequirementType>()
+            .AddPagingArguments()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .ExecuteRequestAsync(
+                """
+                {
+                    brandById(id: 1) {
+                        details
+                    }
+                }
+                """);
+
+        Snapshot.Create()
+            .AddSql(queries)
+            .AddResult(result)
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Brand_Details_Requires_Brand_Name_With_Proper_Type_With_Explicit_Generic()
+    {
+        // Arrange
+        var queries = new List<string>();
+        var connectionString = CreateConnectionString();
+        await CatalogContext.SeedAsync(connectionString);
+
+        // Act
+        var result = await new ServiceCollection()
+            .AddScoped(_ => queries)
+            .AddTransient(_ => new CatalogContext(connectionString))
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddType<BrandWithRequirementTypeWithGeneric>()
+            .AddPagingArguments()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .ExecuteRequestAsync(
+                """
+                {
+                    brandById(id: 1) {
+                        details
+                    }
+                }
+                """);
+
+        Snapshot.Create()
+            .AddSql(queries)
+            .AddResult(result)
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Brand_Details_Requires_Brand_Name_2()
+    {
+        // Arrange
+        var queries = new List<string>();
+        var connectionString = CreateConnectionString();
+        await CatalogContext.SeedAsync(connectionString);
+
+        // Act
+        var result = await new ServiceCollection()
+            .AddScoped(_ => queries)
+            .AddTransient(_ => new CatalogContext(connectionString))
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddTypeExtension<BrandExtensionsWithRequirement>()
+            .AddPagingArguments()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .ExecuteRequestAsync(
+                """
+                {
+                    brandById(id: 1) {
+                        name
+                        details
+                    }
+                }
+                """);
+
+        Snapshot.Create()
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -472,12 +557,8 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 """);
 
         // at the moment we do not support projections on lists
-        // so products will be empty and we will just select the brand.Id
-#if NET8_0_OR_GREATER
+        // so products will be empty, and we will just select the brand.Id
         Snapshot.Create()
-#else
-        Snapshot.Create(postFix: "NET7_0")
-#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -509,11 +590,109 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-#if NET8_0_OR_GREATER
         Snapshot.Create()
-#else
-        Snapshot.Create(postFix: "NET7_0")
-#endif
+            .AddSql(queries)
+            .AddResult(result)
+            .MatchMarkdownSnapshot();
+    }
+
+
+    [Fact]
+    public async Task Brand_With_Id_And_Name_Over_Node()
+    {
+        // Arrange
+        var queries = new List<string>();
+        var connectionString = CreateConnectionString();
+        await CatalogContext.SeedAsync(connectionString);
+
+        // Act
+        var result = await new ServiceCollection()
+            .AddScoped(_ => queries)
+            .AddTransient(_ => new CatalogContext(connectionString))
+            .AddGraphQL()
+            .AddQueryType<NodeQuery>()
+            .AddGlobalObjectIdentification()
+            .AddPagingArguments()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .ExecuteRequestAsync(
+                """
+                {
+                    node(id: "QnJhbmQ6MQ==") {
+                        id
+                        ... on Brand {
+                            name
+                        }
+                    }
+                }
+                """);
+
+        Snapshot.Create()
+            .AddSql(queries)
+            .AddResult(result)
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Brand_With_Name_Over_Node()
+    {
+        // Arrange
+        var queries = new List<string>();
+        var connectionString = CreateConnectionString();
+        await CatalogContext.SeedAsync(connectionString);
+
+        // Act
+        var result = await new ServiceCollection()
+            .AddScoped(_ => queries)
+            .AddTransient(_ => new CatalogContext(connectionString))
+            .AddGraphQL()
+            .AddQueryType<NodeQuery>()
+            .AddGlobalObjectIdentification()
+            .AddPagingArguments()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .ExecuteRequestAsync(
+                """
+                {
+                    node(id: "QnJhbmQ6MQ==") {
+                        ... on Brand {
+                            name
+                        }
+                    }
+                }
+                """);
+
+        Snapshot.Create()
+            .AddSql(queries)
+            .AddResult(result)
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Brand_With_Default_Field_Over_Node()
+    {
+        // Arrange
+        var queries = new List<string>();
+        var connectionString = CreateConnectionString();
+        await CatalogContext.SeedAsync(connectionString);
+
+        // Act
+        var result = await new ServiceCollection()
+            .AddScoped(_ => queries)
+            .AddTransient(_ => new CatalogContext(connectionString))
+            .AddGraphQL()
+            .AddQueryType<NodeQuery>()
+            .AddGlobalObjectIdentification()
+            .AddPagingArguments()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .ExecuteRequestAsync(
+                """
+                {
+                    node(id: "QnJhbmQ6MQ==") {
+                        __typename
+                    }
+                }
+                """);
+
+        Snapshot.Create()
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -549,14 +728,38 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             CancellationToken cancellationToken)
             => await productById.Select(selection).Include(c => c.Brand).LoadAsync(id, cancellationToken);
 
-        /*
         public async Task<Product?> GetProductByIdWithBrandNoSelectionAsync(
             int id,
             ISelection selection,
             ProductByIdDataLoader productById,
             CancellationToken cancellationToken)
             => await productById.Include(c => c.Brand).LoadAsync(id, cancellationToken);
-            */
+
+        public async Task<Brand?> GetBrandByIdSelectorNullAsync(
+            int id,
+            BrandByIdDataLoader brandById,
+            CancellationToken cancellationToken)
+            => await brandById.Select(default(Expression<Func<Brand, Brand>>)).LoadAsync(id, cancellationToken);
+    }
+
+    public class NodeQuery
+    {
+        [NodeResolver]
+        public async Task<Brand?> GetBrandByIdAsync(
+            int id,
+            ISelection selection,
+            BrandByIdDataLoader brandById,
+            CancellationToken cancellationToken)
+            => await brandById.Select(selection).LoadAsync(id, cancellationToken);
+
+        [NodeResolver]
+        public async Task<Product?> GetProductByIdAsync(
+            int id,
+            CancellationToken cancellationToken)
+        {
+            await Task.Run(() => new InvalidOperationException(), cancellationToken);
+            return default!;
+        }
     }
 
     [ExtendObjectType<Brand>]
@@ -575,6 +778,28 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
         public string GetDetails(
             [Parent(requires: nameof(Brand.Name))] Brand brand)
             => "Brand Name:" + brand.Name;
+    }
+
+    public class BrandWithRequirementType : ObjectType<Brand>
+    {
+        protected override void Configure(IObjectTypeDescriptor<Brand> descriptor)
+        {
+            descriptor
+                .Field(t => t.Details)
+                .ParentRequires(nameof(Brand.Name))
+                .Resolve(ctx => "Brand Name:" + ctx.Parent<Brand>().Name);
+        }
+    }
+
+    public class BrandWithRequirementTypeWithGeneric : ObjectType<Brand>
+    {
+        protected override void Configure(IObjectTypeDescriptor<Brand> descriptor)
+        {
+            descriptor
+                .Field(t => t.Details)
+                .ParentRequires<Brand>(nameof(Brand.Name))
+                .Resolve(ctx => "Brand Name:" + ctx.Parent<Brand>().Name);
+        }
     }
 
     [ExtendObjectType<Product>]
@@ -681,4 +906,3 @@ file static class Extensions
         return snapshot;
     }
 }
-#endif

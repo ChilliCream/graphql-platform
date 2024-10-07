@@ -1,10 +1,6 @@
 using System.Collections.Immutable;
-#if NET8_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
-#endif
-#if NET6_0_OR_GREATER
 using GreenDonut.Projections;
-#endif
 
 namespace GreenDonut;
 
@@ -137,7 +133,6 @@ public readonly struct DataLoaderFetchContext<TValue>(
 
         return defaultValue;
     }
-#if NET6_0_OR_GREATER
 
     /// <summary>
     /// Gets the selector builder from the DataLoader state snapshot.
@@ -146,23 +141,17 @@ public readonly struct DataLoaderFetchContext<TValue>(
     /// <returns>
     /// Returns the selector builder if it exists.
     /// </returns>
-#if NET8_0_OR_GREATER
     [Experimental(Experiments.Projections)]
-#endif
     public ISelectorBuilder GetSelector()
     {
-        DefaultSelectorBuilder<TValue> context;
         if (ContextData.TryGetValue(typeof(ISelectorBuilder).FullName!, out var value)
-            && value is DefaultSelectorBuilder<TValue> casted)
+            && value is ISelectorBuilder casted)
         {
-            context = casted;
-        }
-        else
-        {
-            context = new DefaultSelectorBuilder<TValue>();
+            return casted;
         }
 
-        return context;
+        // if no selector was found we will just return
+        // a new default selector builder.
+        return new DefaultSelectorBuilder<TValue>();
     }
-#endif
 }

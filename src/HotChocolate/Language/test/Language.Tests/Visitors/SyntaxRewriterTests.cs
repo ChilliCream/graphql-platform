@@ -1,6 +1,5 @@
-using ChilliCream.Testing;
+using CookieCrumble;
 using HotChocolate.Language.Utilities;
-using Snapshooter.Xunit;
 using Xunit;
 using static HotChocolate.Language.Utf8GraphQLParser;
 

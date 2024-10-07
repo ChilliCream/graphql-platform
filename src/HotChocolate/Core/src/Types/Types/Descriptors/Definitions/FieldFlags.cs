@@ -23,9 +23,11 @@ internal enum FieldFlags
     TotalCount = 65536,
     SourceGenerator = 131072,
     MutationQueryField = 262144,
-    EdgesField = 524288,
-    NodesField = 1048576,
+    ConnectionEdgesField = 524288,
+    ConnectionNodesField = 1048576,
     ItemsField = 2097152,
     WithRequirements = 4194304,
     UsesProjections = 8388608,
+    GlobalIdNodeField = 16777216,
+    GlobalIdNodesField = 33554432,
 }

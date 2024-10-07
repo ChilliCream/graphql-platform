@@ -38,6 +38,34 @@ public class DefaultNodeIdSerializerTests
     }
 
     [Fact]
+    public void Format_Small_StringId_UrlSafe()
+    {
+        var serializer = CreateSerializer(
+            new StringNodeIdValueSerializer(),
+            outputNewIdFormat: false,
+            useUrlSafeBase64: true);
+
+        var value = Encoding.UTF8.GetString(Convert.FromBase64String("Rm9vOkberW9vVHlwZe+/vSs="));
+        var id = serializer.Format("Foo", value);
+
+        Assert.Equal("Rm9vCmRGb286Rt6tb29UeXBl77-9Kw==", id);
+    }
+
+    [Fact]
+    public void Parse_Small_StringId_UrlSafe()
+    {
+        var serializer = CreateSerializer(
+            new StringNodeIdValueSerializer(),
+            outputNewIdFormat: false,
+            useUrlSafeBase64: true);
+
+        var id = serializer.Parse("Rm9vCmRGb286Rt6tb29UeXBl77-9Kw==", typeof(string));
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal("Foo:F\u07adooType\ufffd+", id.InternalId);
+    }
+
+    [Fact]
     public void Format_480_Byte_Long_StringId()
     {
         var serializer = CreateSerializer(new StringNodeIdValueSerializer());
@@ -582,11 +610,13 @@ public class DefaultNodeIdSerializerTests
 
     private static DefaultNodeIdSerializer CreateSerializer(
         INodeIdValueSerializer serializer,
-        bool outputNewIdFormat = true)
+        bool outputNewIdFormat = true,
+        bool useUrlSafeBase64 = false)
     {
         return new DefaultNodeIdSerializer(
             serializers: [serializer],
-            outputNewIdFormat: outputNewIdFormat);
+            outputNewIdFormat: outputNewIdFormat,
+            urlSafeBase64: useUrlSafeBase64);
     }
 
     private sealed class CompositeIdNodeIdValueSerializer : CompositeNodeIdValueSerializer<CompositeId>

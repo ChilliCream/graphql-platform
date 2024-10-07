@@ -29,11 +29,8 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     private readonly IBatchScheduler _batchScheduler;
     private readonly int _maxBatchSize;
     private readonly IDataLoaderDiagnosticEvents _diagnosticEvents;
-    private readonly CancellationToken _ct;
-#if NET6_0_OR_GREATER
     private ImmutableDictionary<string, IDataLoader> _branches =
         ImmutableDictionary<string, IDataLoader>.Empty;
-#endif
     private Batch<TKey>? _currentBatch;
 
     /// <summary>
@@ -54,7 +51,6 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         options ??= new DataLoaderOptions();
         _diagnosticEvents = options.DiagnosticEvents ?? Default;
         Cache = options.Cache;
-        _ct = options.CancellationToken;
         _batchScheduler = batchScheduler;
         _maxBatchSize = options.MaxBatchSize;
         CacheKeyType = GetCacheKeyType(GetType());
@@ -98,21 +94,19 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     /// Gets the options of this DataLoader.
     /// </summary>
     protected internal DataLoaderOptions Options
-        => new()
-        {
-            MaxBatchSize = _maxBatchSize, Cache = Cache, DiagnosticEvents = _diagnosticEvents, CancellationToken = _ct,
-        };
+        => new() { MaxBatchSize = _maxBatchSize, Cache = Cache, DiagnosticEvents = _diagnosticEvents };
 
     /// <inheritdoc />
     public Task<TValue?> LoadAsync(
         TKey key,
         CancellationToken cancellationToken = default)
-        => LoadAsync(key, CacheKeyType, AllowCachePropagation);
+        => LoadAsync(key, CacheKeyType, AllowCachePropagation, cancellationToken);
 
     private Task<TValue?> LoadAsync(
         TKey key,
         string cacheKeyType,
-        bool allowCachePropagation)
+        bool allowCachePropagation,
+        CancellationToken ct)
     {
         if (key is null)
         {
@@ -142,7 +136,11 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         Promise<TValue?> CreatePromise()
         {
             cached = false;
-            return GetOrCreatePromiseUnsafe(key, allowCachePropagation);
+            return GetOrCreatePromiseUnsafe(
+                key,
+                allowCachePropagation,
+                scheduleOnNewBatch: true,
+                ct);
         }
     }
 
@@ -156,7 +154,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         IReadOnlyCollection<TKey> keys,
         string cacheKeyType,
         bool allowCachePropagation,
-        CancellationToken cancellationToken)
+        CancellationToken ct)
     {
         if (keys is null)
         {
@@ -181,7 +179,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             // we dispatch after everything is enqueued.
             if (_currentBatch is { IsScheduled: false })
             {
-                ScheduleBatchUnsafe(_currentBatch);
+                ScheduleBatchUnsafe(_currentBatch, ct);
             }
         }
 
@@ -191,7 +189,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         {
             foreach (var key in keys)
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                ct.ThrowIfCancellationRequested();
 
                 cached = true;
                 PromiseCacheKey cacheKey = new(cacheKeyType, key);
@@ -210,7 +208,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         {
             foreach (var key in keys)
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                ct.ThrowIfCancellationRequested();
                 tasks[index++] = CreatePromise(key).Task;
             }
         }
@@ -221,27 +219,16 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         Promise<TValue?> CreatePromise(TKey key)
         {
             cached = false;
-            return GetOrCreatePromiseUnsafe(key, allowCachePropagation, scheduleOnNewBatch: false);
+            return GetOrCreatePromiseUnsafe(
+                key,
+                allowCachePropagation,
+                scheduleOnNewBatch: false,
+                ct);
         }
     }
 
     /// <inheritdoc />
-    public void Remove(TKey key)
-    {
-        if (key is null)
-        {
-            throw new ArgumentNullException(nameof(key));
-        }
-
-        if (Cache is not null)
-        {
-            PromiseCacheKey cacheKey = new(CacheKeyType, key);
-            Cache.TryRemove(cacheKey);
-        }
-    }
-
-    /// <inheritdoc />
-    public void Set(TKey key, Task<TValue?> value)
+    public void SetCacheEntry(TKey key, Task<TValue?> value)
     {
         if (key == null)
         {
@@ -259,7 +246,35 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             Cache.TryAdd(cacheKey, new Promise<TValue?>(value));
         }
     }
-#if NET6_0_OR_GREATER
+
+    /// <inheritdoc />
+    public void RemoveCacheEntry(TKey key)
+    {
+        if (key is null)
+        {
+            throw new ArgumentNullException(nameof(key));
+        }
+
+        if (Cache is not null)
+        {
+            PromiseCacheKey cacheKey = new(CacheKeyType, key);
+            Cache.TryRemove(cacheKey);
+        }
+    }
+
+    /// <inheritdoc />
+    [Obsolete("Use SetCacheEntry instead.")]
+    public void Set(TKey key, Task<TValue?> value)
+    {
+        SetCacheEntry(key, value);
+    }
+
+    /// <inheritdoc />
+    [Obsolete("Use RemoveCacheEntry instead.")]
+    public void Remove(TKey key)
+    {
+        RemoveCacheEntry(key);
+    }
 
     /// <inheritdoc />
     public IDataLoader Branch<TState>(
@@ -298,7 +313,6 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
         return branch;
     }
-#endif
 
     private void BatchOperationFailed(
         Batch<TKey> batch,
@@ -391,7 +405,8 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     private Promise<TValue?> GetOrCreatePromiseUnsafe(
         TKey key,
         bool allowCachePropagation,
-        bool scheduleOnNewBatch = true)
+        bool scheduleOnNewBatch,
+        CancellationToken ct)
     {
         var current = _currentBatch;
 
@@ -407,7 +422,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             // we will schedule it before issuing a new batch.
             if (!current.IsScheduled)
             {
-                ScheduleBatchUnsafe(current);
+                ScheduleBatchUnsafe(current, ct);
             }
         }
 
@@ -416,16 +431,16 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
         if (scheduleOnNewBatch)
         {
-            ScheduleBatchUnsafe(newBatch);
+            ScheduleBatchUnsafe(newBatch, ct);
         }
 
         return newPromise;
     }
 
-    private void ScheduleBatchUnsafe(Batch<TKey> batch)
+    private void ScheduleBatchUnsafe(Batch<TKey> batch, CancellationToken ct)
     {
         batch.IsScheduled = true;
-        _batchScheduler.Schedule(() => DispatchBatchAsync(batch, _ct));
+        _batchScheduler.Schedule(() => DispatchBatchAsync(batch, ct));
     }
 
     private void SetSingleResult(

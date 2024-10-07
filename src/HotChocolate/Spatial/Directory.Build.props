@@ -3,7 +3,6 @@
 
   <PropertyGroup>
     <NeutralLanguage>en</NeutralLanguage>
-    <TargetFrameworks>$(Library2TargetFrameworks)</TargetFrameworks>
   </PropertyGroup>
 
 </Project>

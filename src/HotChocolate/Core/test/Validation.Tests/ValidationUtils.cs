@@ -3,8 +3,6 @@ using HotChocolate.Types;
 using HotChocolate.Validation.Types;
 using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 
-#nullable enable
-
 namespace HotChocolate.Validation;
 
 public static class ValidationUtils

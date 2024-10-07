@@ -180,14 +180,14 @@ internal sealed class ConnectionType
             ConnectionType_Edges_Description,
             edgesType,
             pureResolver: GetEdges)
-        { Flags = FieldFlags.EdgesField });
+        { Flags = FieldFlags.ConnectionEdgesField });
         if (includeNodesField)
         {
             definition.Fields.Add(new(
                 Names.Nodes,
                 ConnectionType_Nodes_Description,
                 pureResolver: GetNodes)
-                { Flags = FieldFlags.NodesField });
+                { Flags = FieldFlags.ConnectionNodesField });
         }
 
         if (includeTotalCount)
@@ -206,10 +206,10 @@ internal sealed class ConnectionType
     }
 
     private static bool IsEdgesField(ObjectFieldDefinition field)
-        => (field.Flags & FieldFlags.EdgesField) == FieldFlags.EdgesField;
+        => (field.Flags & FieldFlags.ConnectionEdgesField) == FieldFlags.ConnectionEdgesField;
 
     private static bool IsNodesField(ObjectFieldDefinition field)
-        => (field.Flags & FieldFlags.NodesField) == FieldFlags.NodesField;
+        => (field.Flags & FieldFlags.ConnectionNodesField) == FieldFlags.ConnectionNodesField;
 
     private static IPageInfo GetPagingInfo(IResolverContext context)
         => context.Parent<Connection>().Info;

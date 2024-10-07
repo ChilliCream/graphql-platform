@@ -3,6 +3,7 @@ export * from "./banana-cake-pop";
 export * from "./continuous-integration";
 export * from "./ecosystem";
 export * from "./fullstack-workshop";
+export * from "./nitro-banner";
 export * from "./startpage";
 export * from "./workshop-ndc-copenhagen";
 export * from "./workshop-ndc-oslo";

@@ -38,11 +38,7 @@ internal sealed class DefaultQueryableExecutable<T>(IQueryable<T> source, Func<I
             return await enumerator.MoveNextAsync().ConfigureAwait(false) ? enumerator.Current : default;
         }
 
-#if NET6_0_OR_GREATER
         return await Task.Run(() => source.FirstOrDefault<T>(), cancellationToken).WaitAsync(cancellationToken);
-#else
-        return await Task.Run(() => source.FirstOrDefault<T>(), cancellationToken);
-#endif
     }
 
     public override ValueTask<T?> SingleOrDefaultAsync(CancellationToken cancellationToken = default)
@@ -75,11 +71,7 @@ internal sealed class DefaultQueryableExecutable<T>(IQueryable<T> source, Func<I
             return default;
         }
 
-#if NET6_0_OR_GREATER
         return await Task.Run(() => SingleOrDefaultSync(source), cancellationToken).WaitAsync(cancellationToken);
-#else
-        return await Task.Run(() => SingleOrDefaultSync(source), cancellationToken);
-#endif
     }
 
     private static T? SingleOrDefaultSync(IQueryable<T> query)
@@ -135,11 +127,7 @@ internal sealed class DefaultQueryableExecutable<T>(IQueryable<T> source, Func<I
             return result;
         }
 
-#if NET6_0_OR_GREATER
         return await Task.Run(() => source.ToList(), cancellationToken).WaitAsync(cancellationToken);
-#else
-        return await Task.Run(() => source.ToList(), cancellationToken);
-#endif
     }
 
     public override async IAsyncEnumerable<T> ToAsyncEnumerable(
@@ -161,11 +149,7 @@ internal sealed class DefaultQueryableExecutable<T>(IQueryable<T> source, Func<I
         }
         else
         {
-#if NET6_0_OR_GREATER
             var list = await Task.Run(() => source.ToList(), cancellationToken).WaitAsync(cancellationToken);
-#else
-            var list = await Task.Run(() => source.ToList(), cancellationToken);
-#endif
 
             foreach (var element in list)
             {
@@ -186,11 +170,7 @@ internal sealed class DefaultQueryableExecutable<T>(IQueryable<T> source, Func<I
 
     private async ValueTask<int> CountFromDataSourceAsync(CancellationToken cancellationToken = default)
     {
-#if NET6_0_OR_GREATER
         return await Task.Run(source.Count, cancellationToken).WaitAsync(cancellationToken);
-#else
-        return await Task.Run(source.Count, cancellationToken);
-#endif
     }
 
     public override string Print() => _printer(source);

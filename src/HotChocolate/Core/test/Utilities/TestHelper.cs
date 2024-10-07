@@ -1,4 +1,5 @@
 using System.Text;
+using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
@@ -111,7 +112,7 @@ public static class TestHelper
             Assert.Collection(operationResult.Errors!, elementInspectors);
         }
 
-        await operationResult.MatchSnapshotAsync();
+        operationResult.MatchSnapshot();
     }
 
     public static async Task<T> CreateTypeAsync<T>()

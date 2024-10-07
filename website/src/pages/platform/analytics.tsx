@@ -16,7 +16,6 @@ import {
   MostRecentBlogPostsSection,
   NewsletterSection,
 } from "@/components/widgets";
-import { useAnimationIntersectionObserver } from "@/hooks";
 
 // Images
 import {
@@ -30,8 +29,6 @@ import {
 } from "../../components/images";
 
 const AnalyticsPage: FC = () => {
-  useAnimationIntersectionObserver();
-
   return (
     <SiteLayout>
       <SEO title="Analytics" />

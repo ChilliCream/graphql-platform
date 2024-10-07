@@ -13,7 +13,7 @@ We are almost ready to release a new major version of Hot Chocolate, and with it
 
 I will be focusing mainly on the Hot Chocolate server, but we have also been busy working on Hot Chocolate Fusion and the Composite Schema Specification. We will be releasing more information on these projects in the coming weeks.
 
-## Ease of Use
+# Ease of Use
 
 We have focused on making Hot Chocolate easier to use and more intuitive. To achieve this, we have added many new features that will simplify your workflow. This will be apparent right from the start when you begin using Hot Chocolate 14. One major area where you can see this improvement is in dependency injection. Hot Chocolate 13 was incredibly flexible in this area, allowing you to specify which services are multi-thread capable, which services are pooled resources, or which services must be synchronized. While this was a powerful feature, it could be somewhat complex to use, especially for newcomers to our platform.
 
@@ -64,7 +64,7 @@ public static async Task<Connection<Brand>> GetBrandsAsync(
 
 > We have applied the same DI handling to source generated DataLoader which by default will now use an explicit service scope for each DataLoader fetch.
 
-## Query Inspection
+# Query Inspection
 
 <Video videoId="XZVpimb6sKg" />
 
@@ -131,7 +131,7 @@ public sealed class BrandService(CatalogContext context)
 
 If you want to go all in and have the full power of the operation executor, you can still inject `ISelection` and traverse the compiled operation tree.
 
-## Pagination
+# Pagination
 
 Pagination is a common requirement in GraphQL APIs, and Hot Chocolate 14 makes it easier than ever to implement, no matter if you are building layered applications or using `DbContext` right in your resolvers.
 
@@ -313,7 +313,7 @@ public static async IQueryable<Brand> GetBrands(
 
 With the new paging providers, we now also inline the total count into the database query that slices the page, meaning you have a single call to the database. The paging middleware will inspect what data is actually needed and either fetch the page and the total count in one database query, just the page if the total count is not needed, or just the total count if the page is not needed. All of this is built on top of the new `IsSelected` query inspection API.
 
-## DataLoader
+# DataLoader
 
 Let's talk about DataLoader. As we already touched on how DataLoader is now more flexible with pagination, what's underneath all of this is the new state that can be associated with DataLoader. Since DataLoader can be accessed from multiple threads concurrently and also be dispatched at multiple points during execution, you have unreliable state that can be used when it's available but should not cause the DataLoader to fail. However, you can also have state that is used to branch a DataLoader, where the state is guaranteed within that branch.
 
@@ -509,7 +509,7 @@ internal static class ProductDataLoader
 }
 ```
 
-## Source Generators
+# Source Generators
 
 With Hot Chocolate 14, we have started to expand our use of source-generated code. We have already used source generators in the past to automatically register types or generate the boilerplate code for DataLoader. With Hot Chocolate 14, we are now beginning to use source generators to generate resolvers. This feature is opt-in and, at the moment, only available for our new type extension API.
 
@@ -620,7 +620,7 @@ The field definition and the resolver are inherited by all implementing object t
 
 This is also available through the fluent API, where you now have `Resolve` descriptors on interface fields.
 
-## Relay Support
+# Relay Support
 
 With Hot Chocolate 14, we have also improved our Relay support. We have made it easier to integrate aggregations into the connection type and to add custom data to edges. You now have more control over the shape of the connection type, allowing you to disable the `nodes` field — either to remove it as unnecessary or to replace it with a custom field.
 
@@ -654,7 +654,7 @@ With Hot Chocolate 14, we have decided to remove CCN and add a new HTTP header `
 
 We have prefixed the header with `hc-` to signal that this is a Hot Chocolate-specific header and to avoid collision with the eventual GraphQL specification header.
 
-## Data
+# Data
 
 To make it easier to integrate new data sources into Hot Chocolate, we have made our `IExecutable` abstraction simpler to implement and integrated it more fully into our resolver pipeline. This allows for easier integration of `IQueryable`-based data drivers, like Entity Framework Core or Cosmos DB, without the need to branch the entire data provider in Hot Chocolate.
 
@@ -676,7 +676,7 @@ public static class Query
 
 However, if you are already trying out EF Core 9, you should give the new Cosmos driver within EF Core a second look, as it was rewritten from the ground up and is now on par with the Cosmos DB SDK driver.
 
-## Query Conventions
+# Query Conventions
 
 <Video videoId="yoW2Mt6C0Cg" />
 
@@ -740,7 +740,7 @@ public class Query
 }
 ```
 
-## Transport
+# Transport
 
 Let's talk about the GraphQL transport layer and what has changed with Hot Chocolate 14. The GraphQL over HTTP spec is now in its final stages, and we have been adopting the latest changes. This means that we no longer return status code 500 when the full result has been erased due to a non-null violation. Instead, we return status code 200 with a JSON body that contains the error information and `data` as null.
 
@@ -798,7 +798,7 @@ Since a variable batch request has the same structure as a standard GraphQL requ
 
 This new batching API within your backend allows for new use cases and is a great way to optimize your GraphQL server.
 
-## Security
+# Security
 
 We have seen countless GraphQL servers over the last year as part of our consulting engagements, and in many cases, they were not configured in a secure way. This was not due to a lack of functionality in Hot Chocolate but because engineers transitioning to GraphQL often did not know good security practices for GraphQL.
 
@@ -889,7 +889,7 @@ builder
     .ModifyRequestOptions(o => o.EnableSchemaFile = false);
 ```
 
-## Fusion
+# Fusion
 
 OK, with that, let's talk about Fusion, our GraphQL solution for federated APIs. With version 14, we have focused heavily on stability. Based on feedback from the community, we have improved how errors traverse from the source schemas to the composite schema.
 
@@ -923,7 +923,7 @@ Apart from these smaller changes, we are currently working on three major areas 
 
 Additionally, recognizing that many people use Apollo Federation and may want to migrate to a pure .NET solution, we are also working on compatibility with the Apollo Federation spec. As the composite schema specification merges Fusion concepts around lookups and the Apollo Federation spec around schema evolution and traffic steering, the step from Fusion to supporting Apollo Federation is not that big anymore. However, we have moved these tasks from Hot Chocolate 14 to Hot Chocolate 15 as we still have lots to do here.
 
-## Client
+# Client
 
 For Hot Chocolate Fusion, we have created a low-level GraphQL client that supports a variety of GraphQL protocols. We have refactored Strawberry Shake to use this basic client for HTTP traffic. For many server-to-server use cases, we recommend using this client as it is geared toward performance and allows you to bring your own models.
 
@@ -950,7 +950,7 @@ using var body = await response.ReadAsResultAsync(cts.Token);
 var mode = body.Data.Deserialize<MyResponseModel>()
 ```
 
-## GraphQL Cockpit
+# GraphQL Cockpit
 
 With Banana Cake Pop, we have further shifted to give you more control over your applications with an end-to-end GraphQL cockpit that provides a schema registry, client registry, operation store, GraphQL telemetry, end-to-end OpenTelemetry tracing, logging, metrics, and strong schema evolution workflows that put you in control.
 
@@ -960,7 +960,7 @@ With Banana Cake Pop you have the best solution to manage your distributed Graph
 
 <Video videoId="KfBV3GQ3760" />
 
-## Community
+# Community
 
 In this release, we had a staggering **30** new contributors who helped alongside the team of core contributors. Overall, we had 46 contributors working on Hot Chocolate 14. These contributions ranged from fixing typos to optimizing our filter expressions, like the [pull request](https://github.com/ChilliCream/graphql-platform/pull/7311) from @nikolai-mb. We are very grateful to have such a vibrant community that helps us make Hot Chocolate better every day.
 
@@ -970,7 +970,7 @@ For this reason, we have now created a GitHub DevContainer template so that you 
 
 Or you can run it locally on your own Docker. If you do not know what DevContainers are, you can read up on them [here](https://docs.github.com/en/codespaces/setting-up-your-project-for-codespaces/adding-a-dev-container-configuration/introduction-to-dev-containers).
 
-## Documentation and Courses
+# Documentation and Courses
 
 We are still hard at work updating the documentation and are also taking feedback on this version. This post is based on 14.0.0-rc.1 which will be out in a couple of days.
 
@@ -982,7 +982,7 @@ If you use the code `STAIB`, you will get a 20% discount on the course.
 
 Apart from the in-depth workshop at DomeTrain we have also reworked our Getting Started workshop that you can now find [here](https://github.com/ChilliCream/graphql-workshop).
 
-## Hot Chocolate 15
+# Hot Chocolate 15
 
 Lastly, let's talk about the roadmap ahead. We have already started work on Hot Chocolate 15, which is slated for release in December/January. Hot Chocolate 15 will have a heavy focus on Hot Chocolate Fusion and will introduce a brand new gateway and new composition tooling. As I outlined in the Fusion section, we are working on three key areas that will reinvent what Fusion is.
 
