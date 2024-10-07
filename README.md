@@ -1,8 +1,9 @@
-<!-- markdownlint-disable-next-line MD041 -->
+<!-- markdownlint-disable MD041 -->
 [![NuGet Package](https://img.shields.io/nuget/v/hotchocolate.svg)](https://www.nuget.org/packages/HotChocolate/)
 [![License](https://img.shields.io/badge/license-MIT-green)](https://github.com/ChilliCream/graphql-platform/blob/main/LICENSE)
 [![Slack channel](https://img.shields.io/badge/join%20the%20community-on%20slack-blue.svg)](http://slack.chillicream.com/)
 [![Twitter](https://img.shields.io/badge/join%20us-on%20twitter-green.svg)](https://twitter.com/chilli_cream)
+<!-- markdownlint-enable MD041 -->
 
 ---
 
@@ -28,9 +29,9 @@ Hot Chocolate is the most efficient, feature-rich, open-source GraphQL server in
 
 ### Nitro
 
-Nitro is an awesome, performant, feature-rich GraphQL IDE that helps developers and data scientists to explore, share, and test any GraphQL API.
+Nitro App is an awesome, performant, feature-rich GraphQL IDE / API Cockpit that helps developers and data scientists to explore, share, and test any GraphQL API.
 
-Nitro can be installed as a [Desktop App](https://chillicream.com/products/nitro), used as a[Web App](https://nitro.chillicream.com/), which can be installed through your browser of choice as well, or used as middleware on your GraphQL endpoint. Middlewares are available in [.NET](https://www.nuget.org/packages/HotChocolate.AspNetCore) and [NodeJS](https://www.npmjs.com/package/@chillicream/nitro-express-middleware). More middlewares will follow.
+Nitro App can be installed as a [Desktop App](https://get-nitro.chillicream.com), used as a [Web App](https://nitro.chillicream.com), which can be installed through your browser of choice as well, or used as middleware on your GraphQL endpoint. Middlewares are available in [.NET](https://www.nuget.org/packages/HotChocolate.AspNetCore) and [NodeJS](https://www.npmjs.com/package/@chillicream/nitro-express-middleware). More middlewares will follow.
 
 [Documentation](https://chillicream.com/docs/nitro/)
 
@@ -70,6 +71,7 @@ Examples of things built on top of the ChilliCream GraphQL Platform that are ope
 [Become a sponsor](https://opencollective.com/chillicream#contribute) and get your logo on our README on Github with a link to your site.
 
 <!-- markdownlint-disable MD045 -->
+
 <a href="https://opencollective.com/chillicream/sponsor/0/website?requireActive=false" target="_blank" rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/sponsor/0/avatar.svg?requireActive=false"></a>
 <a href="https://opencollective.com/chillicream/sponsor/1/website?requireActive=false" target="_blank" rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/sponsor/1/avatar.svg?requireActive=false"></a>
 <a href="https://opencollective.com/chillicream/sponsor/2/website?requireActive=false" target="_blank" rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/sponsor/2/avatar.svg?requireActive=false"></a>
@@ -90,6 +92,7 @@ Examples of things built on top of the ChilliCream GraphQL Platform that are ope
 <a href="https://opencollective.com/chillicream/sponsor/17/website?requireActive=false" target="_blank" rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/sponsor/17/avatar.svg?requireActive=false"></a>
 <a href="https://opencollective.com/chillicream/sponsor/18/website?requireActive=false" target="_blank" rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/sponsor/18/avatar.svg?requireActive=false"></a>
 <a href="https://opencollective.com/chillicream/sponsor/19/website?requireActive=false" target="_blank" rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/sponsor/19/avatar.svg?requireActive=false"></a>
+
 <!-- markdownlint-enable MD045 -->
 
 ### Backer
@@ -97,6 +100,7 @@ Examples of things built on top of the ChilliCream GraphQL Platform that are ope
 [Become a backer](https://opencollective.com/chillicream#contribute) and get your image on our README on Github with a link to your site.
 
 <!-- markdownlint-disable MD045 -->
+
 <a href="https://opencollective.com/chillicream/backer/0/website?requireActive=false" target="_blank"  rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/backer/0/avatar.svg?requireActive=false"></a>
 <a href="https://opencollective.com/chillicream/backer/1/website?requireActive=false" target="_blank"  rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/backer/1/avatar.svg?requireActive=false"></a>
 <a href="https://opencollective.com/chillicream/backer/2/website?requireActive=false" target="_blank"  rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/backer/2/avatar.svg?requireActive=false"></a>
