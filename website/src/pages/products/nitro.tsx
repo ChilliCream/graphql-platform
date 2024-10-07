@@ -799,7 +799,7 @@ interface LatestWindowsAppInfo extends LatestAppInfoBase {
   readonly executable: AppInfoFile;
 }
 
-type Variant = "latest" | "insider";
+type Variant = "nitro" | "nitro-insider";
 
 async function fetchAppInfo(variant: Variant, os: OS): Promise<LatestAppInfo> {
   const filename = getFilename(variant, os);
@@ -893,12 +893,12 @@ function useAppInfos(): AppInfos | undefined {
 
   useEffect(() => {
     Promise.all([
-      fetchLinuxAppInfo("latest"),
-      fetchLinuxAppInfo("insider"),
-      fetchMacOSAppInfo("latest"),
-      fetchMacOSAppInfo("insider"),
-      fetchWindowsAppInfo("latest"),
-      fetchWindowsAppInfo("insider"),
+      fetchLinuxAppInfo("nitro"),
+      fetchLinuxAppInfo("nitro-insider"),
+      fetchMacOSAppInfo("nitro"),
+      fetchMacOSAppInfo("nitro-insider"),
+      fetchWindowsAppInfo("nitro"),
+      fetchWindowsAppInfo("nitro-insider"),
     ]).then(
       ([linux, linuxInsider, macOS, macOSInsider, windows, windowsInsider]) => {
         const os = getOS();
