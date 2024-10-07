@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Features;
 using HotChocolate.Types;
@@ -15,18 +16,12 @@ internal sealed class SelectionExpressionBuilder
         var rootType = typeof(TRoot);
         var parameter = Expression.Parameter(rootType, "root");
         var requirements = selection.DeclaringOperation.Schema.Features.GetRequired<FieldRequirementsMetadata>();
-        var context = new Context(selection.DeclaringOperation, parameter, rootType, requirements);
-        var root = new PropertyNodeContainer();
-        var selectionSet = context.GetSelectionSet(selection);
+        var context = new Context(parameter, rootType, requirements);
+        var root = new TypeContainer();
 
-        CollectSelections(context, selectionSet, root);
+        CollectTypes(context, selection, root);
 
-        if (root.Nodes.Count == 0)
-        {
-            TryAddAnyLeafField(selection, root);
-        }
-
-        var selectionSetExpression = BuildSelectionSetExpression(context, root);
+        var selectionSetExpression = BuildTypeSwitchExpression(context, root);
 
         if (selectionSetExpression is null)
         {
@@ -36,15 +31,120 @@ internal sealed class SelectionExpressionBuilder
         return Expression.Lambda<Func<TRoot, TRoot>>(selectionSetExpression, parameter);
     }
 
-    private MemberInitExpression? BuildSelectionSetExpression(
+    public Expression<Func<TRoot, TRoot>> BuildNodeExpression<TRoot>(ISelection selection)
+    {
+        var rootType = typeof(TRoot);
+        var parameter = Expression.Parameter(rootType, "root");
+        var requirements = selection.DeclaringOperation.Schema.Features.GetRequired<FieldRequirementsMetadata>();
+        var context = new Context(parameter, rootType, requirements);
+        var root = new TypeContainer();
+
+        var entityType = selection.DeclaringOperation.GetPossibleTypes(selection).FirstOrDefault(t => t.RuntimeType == typeof(TRoot));
+
+        if (entityType is null)
+        {
+            throw new InvalidOperationException(
+                $"Unable to resolve the entity type from `{typeof(TRoot).FullName}`.");
+        }
+
+        var typeNode = new TypeNode(entityType.RuntimeType);
+        var selectionSet = selection.DeclaringOperation.GetSelectionSet(selection, entityType);
+        CollectSelections(context, selectionSet, typeNode);
+        root.TryAddNode(typeNode);
+
+        if (typeNode.Nodes.Count == 0)
+        {
+            TryAddAnyLeafField(typeNode, entityType);
+        }
+
+        var selectionSetExpression = BuildTypeSwitchExpression(context, root);
+
+        if (selectionSetExpression is null)
+        {
+            throw new InvalidOperationException("The selection set is empty.");
+        }
+
+        return Expression.Lambda<Func<TRoot, TRoot>>(selectionSetExpression, parameter);
+    }
+
+    private void CollectTypes(Context context, ISelection selection, TypeContainer parent)
+    {
+        var namedType = selection.Type.NamedType();
+
+        if (namedType.IsLeafType())
+        {
+            return;
+        }
+
+        if (namedType.IsAbstractType())
+        {
+            foreach (var possibleType in selection.DeclaringOperation.GetPossibleTypes(selection))
+            {
+                var possibleTypeNode = new TypeNode(possibleType.RuntimeType);
+                var possibleSelectionSet = selection.DeclaringOperation.GetSelectionSet(selection, possibleType);
+                CollectSelections(context, possibleSelectionSet, possibleTypeNode);
+                parent.TryAddNode(possibleTypeNode);
+
+                if (possibleTypeNode.Nodes.Count == 0)
+                {
+                    TryAddAnyLeafField(possibleTypeNode, possibleType);
+                }
+            }
+
+            return;
+        }
+
+        var objectType = (ObjectType)namedType;
+        var typeNode = new TypeNode(objectType.RuntimeType);
+        var selectionSet = selection.DeclaringOperation.GetSelectionSet(selection, (ObjectType)namedType);
+        CollectSelections(context, selectionSet, typeNode);
+        parent.TryAddNode(typeNode);
+
+        if (typeNode.Nodes.Count == 0)
+        {
+            TryAddAnyLeafField(typeNode, objectType);
+        }
+    }
+
+    private static Expression? BuildTypeSwitchExpression(
         Context context,
-        PropertyNodeContainer parent)
+        TypeContainer parent)
+    {
+        if (parent.Nodes.Count > 1)
+        {
+            Expression switchExpression = Expression.Constant(null, context.ParentType);
+
+            foreach (var typeNode in parent.Nodes)
+            {
+                var newParent = Expression.Convert(context.Parent, typeNode.Type);
+                var newContext = context with { Parent = newParent, ParentType = typeNode.Type };
+                var typeCondition = Expression.TypeIs(context.Parent, typeNode.Type);
+                var selectionSet = BuildSelectionSetExpression(newContext, typeNode);
+
+                if (selectionSet is null)
+                {
+                    throw new InvalidOperationException();
+                }
+
+                var castedSelectionSet = Expression.Convert(selectionSet, context.ParentType);
+                switchExpression = Expression.Condition(typeCondition, castedSelectionSet, switchExpression);
+            }
+
+            return switchExpression;
+        }
+
+        return BuildSelectionSetExpression(context, parent.Nodes[0]);
+    }
+
+    private static MemberInitExpression? BuildSelectionSetExpression(
+        Context context,
+        TypeNode parent)
     {
         var assignments = ImmutableArray.CreateBuilder<MemberAssignment>();
 
         foreach (var property in parent.Nodes)
         {
-            var assignment = BuildExpression(property, context);
+            var assignment = BuildAssignmentExpression(property, context);
             if (assignment is not null)
             {
                 assignments.Add(assignment);
@@ -64,12 +164,11 @@ internal sealed class SelectionExpressionBuilder
     private void CollectSelection(
         Context context,
         ISelection selection,
-        PropertyNodeContainer parent)
+        TypeNode parent)
     {
         var namedType = selection.Field.Type.NamedType();
 
-        if (namedType.IsAbstractType()
-            || selection.Field.Type.IsListType() && !namedType.IsLeafType()
+        if (selection.Field.Type.IsListType() && !namedType.IsLeafType()
             || selection.Field.PureResolver is null
             || selection.Field.ResolverMember?.ReflectedType != selection.Field.DeclaringType.RuntimeType)
         {
@@ -95,34 +194,25 @@ internal sealed class SelectionExpressionBuilder
             return;
         }
 
-        var selectionSet = context.GetSelectionSet(selection);
-        CollectSelections(context, selectionSet, propertyNode);
-
-        if (propertyNode.Nodes.Count > 0)
-        {
-            return;
-        }
-
-        TryAddAnyLeafField(selection, propertyNode);
+        CollectTypes(context, selection, propertyNode);
     }
 
     private static void TryAddAnyLeafField(
-        ISelection selection,
-        PropertyNodeContainer parent)
+        TypeNode parent,
+        IObjectType selectionType)
     {
         // if we could not collect anything it means that either all fields
         // are skipped or that __typename is the only field that is selected.
         // in this case we will try to select the id field or if that does
         // not exist we will look for a leaf field that we can select.
-        var type = (ObjectType)selection.Type.NamedType();
-        if (type.Fields.TryGetField("id", out var idField)
+        if (selectionType.Fields.TryGetField("id", out var idField)
             && idField.Member is PropertyInfo idProperty)
         {
             parent.AddOrGetNode(idProperty);
         }
         else
         {
-            var anyProperty = type.Fields.FirstOrDefault(t => t.Type.IsLeafType() && t.Member is PropertyInfo);
+            var anyProperty = selectionType.Fields.FirstOrDefault(t => t.Type.IsLeafType() && t.Member is PropertyInfo);
             if (anyProperty?.Member is PropertyInfo anyPropertyInfo)
             {
                 parent.AddOrGetNode(anyPropertyInfo);
@@ -133,14 +223,14 @@ internal sealed class SelectionExpressionBuilder
     private void CollectSelections(
         Context context,
         ISelectionSet selectionSet,
-        PropertyNodeContainer parent)
+        TypeNode parent)
     {
         foreach (var selection in selectionSet.Selections)
         {
             var requirements = context.GetRequirements(selection);
             if (requirements is not null)
             {
-                foreach (var requirement in requirements)
+                foreach (var requirement in requirements.Nodes)
                 {
                     parent.TryAddNode(requirement.Clone());
                 }
@@ -150,7 +240,7 @@ internal sealed class SelectionExpressionBuilder
         }
     }
 
-    private MemberAssignment? BuildExpression(
+    private static MemberAssignment? BuildAssignmentExpression(
         PropertyNode node,
         Context context)
     {
@@ -158,59 +248,68 @@ internal sealed class SelectionExpressionBuilder
 
         if (node.Nodes.Count == 0)
         {
+            if (IsNullableType(node.Property))
+            {
+                var nullCheck = Expression.Condition(
+                    Expression.Equal(propertyAccessor, Expression.Constant(null)),
+                    Expression.Constant(null, node.Property.PropertyType),
+                    propertyAccessor);
+
+                return Expression.Bind(node.Property, nullCheck);
+            }
+
             return Expression.Bind(node.Property, propertyAccessor);
         }
 
-        if(node.IsArrayOrCollection)
+        if (node.IsArrayOrCollection)
         {
             throw new NotSupportedException("List projections are not supported.");
         }
 
         var newContext = context with { Parent = propertyAccessor, ParentType = node.Property.PropertyType };
-        var requirementsExpression = BuildExpression(node.Nodes, newContext);
-        return requirementsExpression is null ? null : Expression.Bind(node.Property, requirementsExpression);
+        var nestedExpression = BuildTypeSwitchExpression(newContext, node);
+
+        if (IsNullableType(node.Property))
+        {
+            var nullCheck = Expression.Condition(
+                Expression.Equal(propertyAccessor, Expression.Constant(null)),
+                Expression.Constant(null, node.Property.PropertyType),
+                nestedExpression ?? Expression.Constant(null, node.Property.PropertyType));
+
+            return Expression.Bind(node.Property, nullCheck);
+        }
+
+        return nestedExpression is null ? null : Expression.Bind(node.Property, nestedExpression);
     }
 
-    private MemberInitExpression? BuildExpression(
-        IReadOnlyList<PropertyNode> properties,
-        Context context)
+    private static bool IsNullableType(PropertyInfo propertyInfo)
     {
-        var allAssignments = ImmutableArray.CreateBuilder<MemberAssignment>();
-
-        foreach (var property in properties)
+        if (propertyInfo.PropertyType.IsValueType)
         {
-            var assignment = BuildExpression(property, context);
-            if (assignment is not null)
-            {
-                allAssignments.Add(assignment);
-            }
+            return Nullable.GetUnderlyingType(propertyInfo.PropertyType) != null;
         }
 
-        if (allAssignments.Count == 0)
+        var nullableAttribute = propertyInfo.GetCustomAttribute<NullableAttribute>();
+
+        if (nullableAttribute != null)
         {
-            return null;
+            return nullableAttribute.NullableFlags[0] == 2;
         }
 
-        return Expression.MemberInit(
-            Expression.New(context.ParentType),
-            allAssignments.ToImmutable());
+        return false;
     }
 
     private readonly record struct Context(
-        IOperation Operation,
         Expression Parent,
         Type ParentType,
         FieldRequirementsMetadata Requirements)
     {
-        public ImmutableArray<PropertyNode>? GetRequirements(ISelection selection)
+        public TypeNode? GetRequirements(ISelection selection)
         {
             var flags = ((ObjectField)selection.Field).Flags;
             return (flags & FieldFlags.WithRequirements) == FieldFlags.WithRequirements
                 ? Requirements.GetRequirements(selection.Field)
                 : null;
         }
-
-        public ISelectionSet GetSelectionSet(ISelection selection)
-            => Operation.GetSelectionSet(selection, (ObjectType)selection.Type.NamedType());
     }
 }

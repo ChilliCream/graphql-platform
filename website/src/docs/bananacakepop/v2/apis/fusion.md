@@ -52,7 +52,7 @@ builder.Services
   .AddFusionGatewayServer()
   .ConfigureFromCloud(x =>
   {
-      x.ApiKey = "<<your-api-key>>";
+      x.ApiKey = "<<your-fusion-api-key>>";
       x.ApiId = "QXBpCmc5NGYwZTIzNDZhZjQ0NjBmYTljNDNhZDA2ZmRkZDA2Ng==";
       x.Stage = "dev";
   })
@@ -98,7 +98,7 @@ services
     .AddQueryType<Query>()
     .AddBananaCakePopServices(x =>
     {
-        x.ApiKey = "<<your-api-key>>";
+        x.ApiKey = "<<your-subgraph-api-key>>";
         x.ApiId = "<<your-subgraph-api-id>>";
         x.Stage = "dev";
     })
@@ -182,10 +182,11 @@ Banana Cake Pop helps you coordinate your subgraph deployments. You register for
 
 ```bash
 dotnet barista fusion-configuration publish begin \
+  --stage <<stage-id>> \
   --tag <<tag>> \
-  --api-id <<api-id>> \
+  --api-id <<your-fusion-api-id>> \
   --subgraph-name <<subgraph-name>> \
-  --api-key <<api-key>>
+  --api-key <<your-fusion-api-key>>
 ```
 
 This command will complete once your turn has come and you can start deploying your subgraph.
@@ -195,7 +196,7 @@ This command will complete once your turn has come and you can start deploying y
 Once you have a deployment slot, you need to notify Banana Cake Pop that you are still interested in the slot. You do this by calling:
 
 ```bash
-dotnet barista fusion-configuration publish start --api-key <<api-key>>
+dotnet barista fusion-configuration publish start --api-key <<your-fusion-api-key>>
 ```
 
 ### 4. Configure the subgraph
@@ -214,10 +215,10 @@ To compose the subgraph, you first need to fetch the latest configuration from B
 
 ```bash
 dotnet barista fusion-configuration download \
-  --api-id <<api-key>> \
+  --api-id <<your-fusion-api-id>> \
   --stage <<name-of-the-stage>> \
   --output-file ./gateway.fgp \
-  --api-key <<api-key>>
+  --api-key <<your-fusion-api-key>>
 ```
 
 This will download the latest configuration from Banana Cake Pop and save it to the specified file (`gateway.fgp`).
@@ -233,13 +234,13 @@ dotnet fusion compose -p ./gateway.fgp -s path/to/your/subgraph/config.fsp
 If you want to make sure that your subgraph is compatible with the schema and client registry, you can validate it by calling:
 
 ```bash
-barista fusion-configuration publish validate --configuration ./gateway.fgp --api-key <<api-key>>
+dotnet barista fusion-configuration publish validate --configuration ./gateway.fgp --api-key <<your-fusion-api-key>>
 ```
 
 In case the validation fails, you will get an error message. You have to cancel the deployment manually though. You can add deployment step to your CI/CD pipeline which will cancel the deployment if the validation fails by calling:
 
 ```bash
-dotnet barista fusion-configuration publish cancel --api-key <<api-key>>
+dotnet barista fusion-configuration publish cancel --api-key <<your-fusion-api-key>>
 ```
 
 ### 7. Deploy the subgraph
@@ -253,7 +254,7 @@ To complete the deployment, you need to commit the deployment. This will notify 
 You can commit the deployment by calling:
 
 ```bash
-dotnet barista fusion-configuration publish commit --api-key <<api-key>>
+dotnet barista fusion-configuration publish commit --configuration ./gateway.fgp --api-key <<your-fusion-api-key>>
 ```
 
 # Distributed Telemetry

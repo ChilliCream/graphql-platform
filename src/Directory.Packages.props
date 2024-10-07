@@ -40,7 +40,7 @@
     <PackageVersion Include="NetTopologySuite" Version="2.0.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageVersion Include="NodaTime" Version="3.0.0" />
-    <PackageVersion Include="Npgsql" Version="8.0.3" />
+    <PackageVersion Include="Npgsql" Version="8.0.4" />
     <PackageVersion Include="Opa.Native" Version="0.41.0" />
     <PackageVersion Include="OpenTelemetry.Api" Version="1.1.0" />
     <PackageVersion Include="ProjNET" Version="2.0.0" />
@@ -107,8 +107,8 @@
     <PackageVersion Include="Microsoft.Extensions.ObjectPool" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Options" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Net.Http.Headers" Version="8.0.4" />
-    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0" />
-    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="8.0.0" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.8" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="8.0.8" />
     <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="8.0.0" />
     <PackageVersion Include="System.IO.Packaging" Version="8.0.0" />
     <PackageVersion Include="System.IO.Pipelines" Version="8.0.0" />
