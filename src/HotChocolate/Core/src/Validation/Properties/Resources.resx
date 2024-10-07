@@ -126,7 +126,7 @@
     <value>The field `{0}` does not exist on the type `{1}`.</value>
   </data>
   <data name="ErrorHelper_LeafFieldsCannotHaveSelections" xml:space="preserve">
-    <value>`{0}` returns {1} value. Selections on scalars or enums are never allowed, because they are the leaf nodes of any GraphQL query.</value>
+    <value>Field "{0}" must not have a selection since type "{1}" has no subfields.</value>
   </data>
   <data name="ErrorHelper_ArgumentValueIsNotCompatible" xml:space="preserve">
     <value>The specified argument value does not match the argument type.</value>
@@ -138,7 +138,7 @@
     <value>The specified value type of variable `{0}` does not match the variable type.</value>
   </data>
   <data name="ErrorHelper_NoSelectionOnCompositeField" xml:space="preserve">
-    <value>`{0}` is an object, interface or union type field. Leaf selections on objects, interfaces, and unions without subfields are disallowed.</value>
+    <value>Field "{0}" of type "{1}" must have a selection of subfields. Did you mean "{0} {{ ... }}"?</value>
   </data>
   <data name="ErrorHelper_NoSelectionOnRootType" xml:space="preserve">
     <value>Operation `{0}` has a empty selection set. Root types without subfields are disallowed.</value>
