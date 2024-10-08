@@ -1,6 +1,6 @@
-﻿[
+[
   {
-    "Message": "`doesKnowCommand` returns a scalar value. Selections on scalars or enums are never allowed, because they are the leaf nodes of any GraphQL query.",
+    "Message": "Field \"doesKnowCommand\" must not have a selection since type \"Boolean!\" has no subfields.",
     "Code": null,
     "Path": {
       "Name": "dog",

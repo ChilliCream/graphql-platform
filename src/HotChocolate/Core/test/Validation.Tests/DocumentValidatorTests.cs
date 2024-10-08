@@ -441,8 +441,8 @@ public class DocumentValidatorTests
                 }
             ",
             t => Assert.Equal(
-                "`barkVolume` returns a scalar value. Selections on scalars or enums" +
-                " are never allowed, because they are the leaf nodes of any GraphQL query.",
+                "Field \"barkVolume\" must not have a selection since type \"Int\" has no " +
+                "subfields.",
                 t.Message));
     }
 
