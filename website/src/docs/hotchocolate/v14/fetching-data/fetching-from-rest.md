@@ -81,14 +81,14 @@ To expose the API you can inject the generated client into your resolvers.
 public class Query
 {
     public Task<ICollection<TodoItem>> GetTodosAsync(
-        [Service]TodoService service,
+        TodoService service,
         CancellationToken cancellationToken)
     {
         return service.GetAllAsync(cancellationToken);
     }
 
     public Task<TodoItem> GetTodoByIdAsync(
-        [Service]TodoService service,
+        TodoService service,
         long id,
         CancellationToken cancellationToken)
     {
@@ -119,14 +119,14 @@ public class Startup
 public class Query
 {
     public Task<ICollection<TodoItem>> GetTodosAsync(
-        [Service]TodoService service,
+        TodoService service,
         CancellationToken cancellationToken)
     {
         return service.GetAllAsync(cancellationToken);
     }
 
     public Task<TodoItem> GetTodoByIdAsync(
-        [Service]TodoService service,
+        TodoService service,
         long id,
         CancellationToken cancellationToken)
     {
@@ -190,14 +190,14 @@ public class Startup
 public class Query
 {
     public Task<ICollection<TodoItem>> GetTodosAsync(
-        [Service]TodoService service,
+        TodoService service,
         CancellationToken cancellationToken)
     {
         return service.GetAllAsync(cancellationToken);
     }
 
     public Task<TodoItem> GetTodoByIdAsync(
-        [Service]TodoService service,
+        TodoService service,
         long id,
         CancellationToken cancellationToken)
     {

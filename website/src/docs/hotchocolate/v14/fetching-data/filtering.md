@@ -61,7 +61,7 @@ Hot Chocolate will infer the filters directly from your .Net Model and then use 
 public class Query
 {
     [UseFiltering]
-    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+    public IQueryable<User> GetUsers(IUserRepository repository)
         => repository.GetUsers();
 }
 ```
@@ -72,7 +72,7 @@ public class Query
 ```csharp
 public class Query
 {
-    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+    public IQueryable<User> GetUsers(IUserRepository repository)
         => repository.GetUsers();
 }
 
@@ -167,7 +167,7 @@ To apply this filter type we just have to provide it to the `UseFiltering` exten
 public class Query
 {
     [UseFiltering(typeof(UserFilterType))]
-    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+    public IQueryable<User> GetUsers(IUserRepository repository)
         => repository.GetUsers();
 }
 ```
@@ -272,7 +272,7 @@ public class User
 public class Query
 {
     [UseFiltering]
-    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+    public IQueryable<User> GetUsers(IUserRepository repository)
         => repository.GetUsers();
 }
 
@@ -308,7 +308,7 @@ public class User
 public class Query
 {
     [UseFiltering]
-    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+    public IQueryable<User> GetUsers(IUserRepository repository)
         => repository.GetUsers();
 }
 
@@ -354,7 +354,7 @@ public class User
 public class Query
 {
     [UseFiltering]
-    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+    public IQueryable<User> GetUsers(IUserRepository repository)
         => repository.GetUsers();
 }
 
@@ -406,7 +406,7 @@ public class User
 public class Query
 {
     [UseFiltering]
-    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+    public IQueryable<User> GetUsers(IUserRepository repository)
         => repository.GetUsers();
 }
 
@@ -452,7 +452,7 @@ public class Address
 public class Query
 {
     [UseFiltering]
-    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+    public IQueryable<User> GetUsers(IUserRepository repository)
         => repository.GetUsers();
 }
 
@@ -519,7 +519,7 @@ public class Address
 public class Query
 {
     [UseFiltering]
-    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+    public IQueryable<User> GetUsers(IUserRepository repository)
         => repository.GetUsers();
 }
 

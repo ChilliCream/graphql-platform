@@ -26,9 +26,7 @@ If you return an object, this object is the parent of the resolver in the subtre
 // Query.cs
 public class Query
 {
-    public Task<Book?> GetBookById(
-        [Service] IMongoCollection<Book> collection,
-        Guid id)
+    public Task<Book?> GetBookById(IMongoCollection<Book> collection, Guid id)
     {
         return collection.Find(x => x.Id == id).FirstOrDefaultAsync();
     }
@@ -63,9 +61,7 @@ public class Startup
 // Query.cs
 public class Query
 {
-    public Task<Book?> GetBookById(
-        [Service] IMongoCollection<Book> collection,
-        Guid id)
+    public Task<Book?> GetBookById(IMongoCollection<Book> collection, Guid id)
     {
         return collection.Find(x => x.Id == id).FirstOrDefaultAsync();
     }
@@ -126,9 +122,7 @@ public class Startup
 // Query.cs
 public class Query
 {
-    public Task<Book?> GetBookById(
-        [Service] IMongoCollection<Book> collection,
-        Guid id)
+    public Task<Book?> GetBookById(IMongoCollection<Book> collection, Guid id)
     {
         return collection.Find(x => x.Id == id).FirstOrDefaultAsync();
     }
