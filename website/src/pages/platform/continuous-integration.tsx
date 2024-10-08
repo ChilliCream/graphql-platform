@@ -48,14 +48,14 @@ const ContinuousIntegrationPage: FC = () => {
           from pull request to deployment. Integrate effortlessly with GitHub
           and DevOps tools for precise and confident API management.
         </HeroTeaser>
-        <HeroLink to="/docs/bananacakepop/v2/apis/fusion">Get Started</HeroLink>
+        <HeroLink to="/docs/nitro/apis/fusion">Get Started</HeroLink>
       </ContinuousIntegrationPageHero>
       <ContentSection
         title="Connect Your Ecosystem"
         text="
-          Easily integrate your CI/CD pipelines with our CLI command,
-          Barista. Whether you're using GitHub Actions, Azure DevOps, or
-          other tools, Barista simplifies interactions with our service.
+          Easily integrate your CI/CD pipelines with our Nitro CLI.
+          Whether you're using GitHub Actions, Azure DevOps, or
+          other tools, Nitro CLI simplifies interactions with our service.
           This seamless integration fits into any deployment environment,
           allowing you to maintain your existing workflow without
           requiring significant changes.

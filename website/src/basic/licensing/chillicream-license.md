@@ -1,6 +1,6 @@
 ---
 title: "ChilliCream License 1.0"
-description: "This is the license we use for our proprietary software like Banana Cake Pop."
+description: "This is the license we use for our proprietary software like Nitro."
 ---
 
 # Acceptance

@@ -65,10 +65,10 @@ export const Header: FC = () => {
         siteMetadata {
           siteUrl
           tools {
-            bcp
             blog
             github
             linkedIn
+            nitro
             shop
             slack
             youtube
@@ -410,7 +410,7 @@ const Nav = styled.ol`
 
 interface PlatformNavItemProps {
   readonly firstBlogPost: any;
-  readonly tools: Pick<SiteSiteMetadataTools, "bcp">;
+  readonly tools: Pick<SiteSiteMetadataTools, "nitro">;
   readonly onTopNavClose: () => void;
   readonly onSearchOpen: () => void;
 }
@@ -495,14 +495,14 @@ const PlatformNavItem: FC<PlatformNavItemProps> = ({
           <SubNavGroup>
             <SubNavTitle>Products</SubNavTitle>
             <SubNavLinkWithDescription
-              to="/products/bananacakepop"
+              to="/products/nitro"
               onClick={hideTopAndSubNav}
             >
               <IconContainer $size={24}>
                 <Icon {...LollipopIconSvg} />
               </IconContainer>
               <SubNavLinkTextGroup>
-                <div className="title">Banana Cake Pop</div>
+                <div className="title">Nitro (<abbr title="Formerly Known As">fka</abbr> Banana Cake Pop)</div>
                 <div className="desc">GraphQL IDE / API Cockpit</div>
               </SubNavLinkTextGroup>
             </SubNavLinkWithDescription>
@@ -548,7 +548,7 @@ const PlatformNavItem: FC<PlatformNavItemProps> = ({
 };
 
 interface ServicesNavItemProps {
-  readonly tools: Pick<SiteSiteMetadataTools, "bcp">;
+  readonly tools: Pick<SiteSiteMetadataTools, "nitro">;
   readonly onTopNavClose: () => void;
   readonly onSearchOpen: () => void;
 }
@@ -648,7 +648,14 @@ interface DeveloperNavItemProps {
   >[];
   readonly tools: Pick<
     SiteSiteMetadataTools,
-    "bcp" | "blog" | "github" | "linkedIn" | "shop" | "slack" | "x" | "youtube"
+    | "blog"
+    | "github"
+    | "linkedIn"
+    | "nitro"
+    | "shop"
+    | "slack"
+    | "x"
+    | "youtube"
   >;
   readonly onTopNavClose: () => void;
   readonly onSearchOpen: () => void;
@@ -777,7 +784,7 @@ const DeveloperNavItem: FC<DeveloperNavItemProps> = ({
 interface CompanyNavItemProps {
   readonly tools: Pick<
     SiteSiteMetadataTools,
-    "bcp" | "github" | "linkedIn" | "shop" | "slack" | "x" | "youtube"
+    "github" | "linkedIn" | "nitro" | "shop" | "slack" | "x" | "youtube"
   >;
   readonly onTopNavClose: () => void;
   readonly onSearchOpen: () => void;
@@ -909,7 +916,7 @@ const HelpNavItem: FC = () => {
 };
 
 interface DemoAndLaunchProps {
-  readonly tools: Pick<SiteSiteMetadataTools, "bcp">;
+  readonly tools: Pick<SiteSiteMetadataTools, "nitro">;
 }
 
 const DemoAndLaunch: FC<DemoAndLaunchProps> = ({ tools }) => {
@@ -921,7 +928,7 @@ const DemoAndLaunch: FC<DemoAndLaunchProps> = ({ tools }) => {
       >
         Request a Demo
       </RequestDemoLink>
-      <LaunchLink to={tools!.bcp!}>Launch</LaunchLink>
+      <LaunchLink to={tools!.nitro!}>Launch</LaunchLink>
     </>
   );
 };

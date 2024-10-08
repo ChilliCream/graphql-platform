@@ -52,7 +52,7 @@ In transitioning your persisted operation setup to production, simply setting up
 
 The client registry simplifies the management of your GraphQL clients. It allows for the storage and retrieval of persisted operation documents through their hashes but also ensures that these operations are validated against the current schema on publish, preventing runtime errors due to schema-operation mismatches. Additionally, it supports versioning of your clients, allowing seamless updates and maintenance without disrupting existing operations.
 
-Check out the [client registry documentation](/docs/bananacakepop/v2/apis/client-registry) for
+Check out the [client registry documentation](/docs/nitro/apis/client-registry) for
 more information.
 
 # Other Storage mechanisms

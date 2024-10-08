@@ -305,9 +305,9 @@ To output the cost metrics, set an HTTP header named `GraphQL-Cost` with one of 
 | `report`   | The request is executed, and the costs are reported in the response.   |
 | `validate` | The costs are reported in the response, without executing the request. |
 
-> Note: When using `validate`, Banana Cake Pop will currently _not_ display the response in the `Response` pane. Until this is fixed, you can inspect the response body in the request log.
+> Note: When using `validate`, Nitro will currently _not_ display the response in the `Response` pane. Until this is fixed, you can inspect the response body in the request log.
 
-![Reporting costs in BCP](../../../../images/reporting-costs.webp)
+![Reporting costs in Nitro](../../../../images/reporting-costs.webp)
 
 # Cost calculation examples
 
