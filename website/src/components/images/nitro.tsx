@@ -2,13 +2,13 @@ import { graphql, useStaticQuery } from "gatsby";
 import { GatsbyImage } from "gatsby-plugin-image";
 import React, { FC } from "react";
 
-import { GetNitroImageQuery } from "@/graphql-types";
+import { GetNitroAppImageQuery } from "@/graphql-types";
 
-export const NitroImage: FC = () => {
-  const data = useStaticQuery<GetNitroImageQuery>(graphql`
-    query getNitroImage {
+export const NitroAppImage: FC = () => {
+  const data = useStaticQuery<GetNitroAppImageQuery>(graphql`
+    query getNitroAppImage {
       file(
-        relativePath: { eq: "banana-cake-pop.png" }
+        relativePath: { eq: "nitro-app.png" }
         sourceInstanceName: { eq: "images" }
       ) {
         childImageSharp {
@@ -21,7 +21,7 @@ export const NitroImage: FC = () => {
   return (
     <GatsbyImage
       image={data.file?.childImageSharp?.gatsbyImageData}
-      alt="Nitro"
+      alt="Nitro App"
     />
   );
 };

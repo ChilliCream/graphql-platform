@@ -9,7 +9,7 @@ import React, {
 import styled, { css } from "styled-components";
 import { parse } from "yaml";
 
-import { NitroImage } from "@/components/images";
+import { NitroAppImage } from "@/components/images";
 import { SiteLayout } from "@/components/layout";
 import {
   ContentSection,
@@ -72,7 +72,7 @@ const NitroPage: FC = () => {
             <ProductDetailsFooter></ProductDetailsFooter>
           </ProductDetails>
           <ProductImage>
-            <NitroImage />
+            <NitroAppImage />
           </ProductImage>
         </Product>
       </Hero>
