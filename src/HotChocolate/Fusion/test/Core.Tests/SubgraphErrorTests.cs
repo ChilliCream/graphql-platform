@@ -2098,6 +2098,120 @@ public class SubgraphErrorTests(ITestOutputHelper output)
         MatchMarkdownSnapshot(request, result);
     }
 
+    [Fact]
+    public async Task Entity_Resolver_SubField_NonNull_EntryField_Nullable_Both_Services_Error_SubField()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              productById(id: ID!): Product
+            }
+
+            type Product implements Node {
+              id: ID!
+              name: String!
+              price: Float! @error
+            }
+
+            interface Node {
+              id: ID!
+            }
+            """);
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              productById(id: ID!): Product
+            }
+
+            type Product implements Node {
+              id: ID!
+              score: Int! @error
+            }
+
+            interface Node {
+              id: ID!
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        productById(id: "1") {
+                          id
+                          name
+                          price
+                          score
+                        }
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        MatchMarkdownSnapshot(request, result);
+    }
+
+    [Fact]
+    public async Task Entity_Resolver_SubField_Nullable_EntryField_Nullable_Both_Services_Error_SubField()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              productById(id: ID!): Product
+            }
+
+            type Product implements Node {
+              id: ID!
+              name: String!
+              price: Float @error
+            }
+
+            interface Node {
+              id: ID!
+            }
+            """);
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              productById(id: ID!): Product
+            }
+
+            type Product implements Node {
+              id: ID!
+              score: Int @error
+            }
+
+            interface Node {
+              id: ID!
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        productById(id: "1") {
+                          id
+                          name
+                          price
+                          score
+                        }
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        MatchMarkdownSnapshot(request, result);
+    }
+
     #endregion
 
     #region Resolve Sequence
