@@ -8,7 +8,7 @@ export const NitroAppImage: FC = () => {
   const data = useStaticQuery<GetNitroAppImageQuery>(graphql`
     query getNitroAppImage {
       file(
-        relativePath: { eq: "nitro-app.png" }
+        relativePath: { eq: "nitro/nitro-app.png" }
         sourceInstanceName: { eq: "images" }
       ) {
         childImageSharp {

@@ -39,8 +39,10 @@ import {
 } from "@/style";
 
 // Icons
+import { GetNitroPageQuery } from "@/graphql-types";
 import ChevronDownIconSvg from "@/images/icons/chevron-down.svg";
 import CircleDownIconSvg from "@/images/icons/circle-down.svg";
+import { graphql, useStaticQuery } from "gatsby";
 
 const DOWNLOAD_BASE_URL = "https://cdn.chillicream.com/app/";
 
@@ -52,12 +54,27 @@ const TITLE = "Nitro / GraphQL IDE";
 
 const NitroPage: FC = () => {
   const appInfos = useAppInfos();
+  const data = useStaticQuery<GetNitroPageQuery>(graphql`
+    query getNitroPage {
+      file(
+        relativePath: { eq: "nitro/nitro-banner.png" }
+        sourceInstanceName: { eq: "images" }
+      ) {
+        childImageSharp {
+          gatsbyImageData(layout: CONSTRAINED, width: 800, quality: 100)
+        }
+      }
+    }
+  `);
 
   return (
     <SiteLayout>
       <SEO
         title={TITLE}
         description="Nitro is an incredible, beautiful, and feature-rich GraphQL IDE for developers that works with any GraphQL APIs."
+        imageUrl={
+          data.file?.childImageSharp?.gatsbyImageData.images.fallback.src
+        }
       />
       <Hero>
         <Product>
