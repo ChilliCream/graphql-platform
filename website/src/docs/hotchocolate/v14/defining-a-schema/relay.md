@@ -172,7 +172,7 @@ Unique (or global) Ids are generated using the `IIdSerializer`. We can access it
 ```csharp
 public class Query
 {
-    public string Example([Service] IIdSerializer serializer)
+    public string Example(IIdSerializer serializer)
     {
         string serializedId = serializer.Serialize(null, "Product", "123");
 
@@ -340,8 +340,7 @@ public class Product
 {
     public string Id { get; set; }
 
-    public static async Task<Product> Get(string id,
-        [Service] ProductService service)
+    public static async Task<Product> Get(string id, ProductService service)
     {
         Product product = await service.GetByIdAsync(id);
 

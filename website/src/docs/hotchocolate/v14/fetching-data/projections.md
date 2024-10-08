@@ -55,7 +55,7 @@ to the database. If the middleware encounters a field that specifies `UseProject
 public class Query
 {
     [UseProjection]
-    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+    public IQueryable<User> GetUsers(IUserRepository repository)
         => repository.GetUsers();
 }
 ```
@@ -74,7 +74,7 @@ public class QueryType : ObjectType<Query>
 
 public class Query
 {
-    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+    public IQueryable<User> GetUsers(IUserRepository repository)
         => repository.GetUsers();
 }
 ```

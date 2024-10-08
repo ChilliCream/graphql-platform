@@ -562,7 +562,7 @@ public class Product
     public string Id { get; set; }
 
     public async Task<IEnumerable<Review>> GetReviews(
-        [Service] ReviewRepository repo // example of how you might resolve this data
+        ReviewRepository repo // example of how you might resolve this data
     )
     {
         return await repo.GetReviewsByProductIdAsync(Id);
@@ -580,7 +580,7 @@ public class Product
     public string Id { get; set; }
 
     public async Task<IEnumerable<Review>> GetReviews(
-        [Service] ReviewRepository repo // example of how you might resolve this data
+        ReviewRepository repo // example of how you might resolve this data
     )
     {
         return await repo.GetReviewsByProductIdAsync(Id);
@@ -626,7 +626,7 @@ public class Product
     public string Id { get; set; }
 
     public async Task<IEnumerable<Review>> GetReviews(
-        [Service] ReviewRepository repo // example of how you might resolve this data
+        ReviewRepository repo // example of how you might resolve this data
     )
     {
         return await repo.GetReviewsByProductIdAsync(Id);
@@ -647,7 +647,7 @@ public class Product
     public string Id { get; set; }
 
     public async Task<IEnumerable<Review>> GetReviews(
-        [Service] ReviewRepository repo // example of how you might resolve this data
+        ReviewRepository repo // example of how you might resolve this data
     )
     {
         return await repo.GetReviewsByProductIdAsync(Id);

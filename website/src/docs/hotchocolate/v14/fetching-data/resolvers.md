@@ -221,7 +221,7 @@ But there's a third way. We can describe our field using the `descriptor`, but i
 ```csharp
 public class FooResolvers
 {
-    public string GetFoo(string arg, [Service] FooService service)
+    public string GetFoo(string arg, FooService service)
     {
         // Omitted code for brevity
     }
@@ -266,7 +266,7 @@ We can now access it like the following in our resolvers.
 ```csharp
 public class Query
 {
-    public List<User> GetUsers([Service] UserService userService)
+    public List<User> GetUsers(UserService userService)
         => userService.GetUsers();
 }
 ```
@@ -294,7 +294,7 @@ public class Startup
 After this we can inject it into our resolvers and make use of the the `HttpContext` property.
 
 ```csharp
-public string Foo(string id, [Service] IHttpContextAccessor httpContextAccessor)
+public string Foo(string id, IHttpContextAccessor httpContextAccessor)
 {
     if (httpContextAccessor.HttpContext is not null)
     {

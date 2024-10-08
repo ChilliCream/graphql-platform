@@ -45,7 +45,7 @@ The idea of a dataloader is to batch these two requests into one call to the dat
 Let's look at some code to understand what data loaders are doing. First, let's have a look at how we would write our field resolver without data loaders:
 
 ```csharp
-public async Task<Person> GetPerson(string id, [Service]IPersonRepository repository)
+public async Task<Person> GetPerson(string id, IPersonRepository repository)
 {
     return await repository.GetPersonById(id);
 }
@@ -174,7 +174,7 @@ public class Query
 public Task<Person> GetPerson(
     string id,
     IResolverContext context,
-    [Service] IPersonRepository repository)
+    IPersonRepository repository)
 {
     return context.BatchDataLoader<string, Person>(
             async (keys, ct) =>
@@ -237,7 +237,7 @@ public class Query
 public Task<IEnumerable<Person>> GetPersonByLastName(
    string lastName,
    IResolverContext context,
-   [Service]IPersonRepository repository)
+   IPersonRepository repository)
 {
     return context.GroupDataLoader<string, Person>(
             async (keys, ct) =>
@@ -256,7 +256,7 @@ public Task<IEnumerable<Person>> GetPersonByLastName(
 The cache data loader is the easiest to implement since there is no batching involved. You can just use the initial `GetPersonById` method. We do not get the benefits of batching with this one, but if in a query graph the same entity is resolved twice we will load it only once from the data source.
 
 ```csharp
-public Task<Person> GetPerson(string id, IResolverContext context, [Service]IPersonRepository repository)
+public Task<Person> GetPerson(string id, IResolverContext context, IPersonRepository repository)
 {
     return context.CacheDataLoader<string, Person>("personById", keys => repository.GetPersonById(keys)).LoadAsync(id);
 }
