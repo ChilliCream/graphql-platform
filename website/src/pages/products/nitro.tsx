@@ -266,9 +266,9 @@ const ProductDownload: FC<DownloadHeroProps> = ({ appInfos }) => {
     case "windows":
       return (
         <DownloadButton
-          url={DOWNLOAD_BASE_URL + active.executable.filename}
-          text={"Download " + active.executable.text}
-          filename={active.executable.filename}
+          url={DOWNLOAD_BASE_URL + active.universal.filename}
+          text={"Download " + active.universal.text}
+          filename={active.universal.filename}
           stable={stable}
           insider={insider}
         />
@@ -351,7 +351,7 @@ const DownloadButton: FC<DownloadButtonProps> = ({
           <tbody>
             <tr>
               <td className="os" scope="row">
-                macOS x64
+                macOS 64
               </td>
               <td className="type">Universal</td>
               <td className="stable">
@@ -363,7 +363,7 @@ const DownloadButton: FC<DownloadButtonProps> = ({
             </tr>
             <tr>
               <td className="os" scope="row">
-                <SrOnly>macOS x64</SrOnly>
+                <SrOnly>macOS arm64</SrOnly>
               </td>
               <td className="type">Silicon</td>
               <td className="stable">
@@ -390,18 +390,40 @@ const DownloadButton: FC<DownloadButtonProps> = ({
           <tbody>
             <tr>
               <td className="os" scope="row">
-                Windows x64
+                Windows 64
               </td>
-              <td className="type">User Installer</td>
+              <td className="type">Universal</td>
               <td className="stable">
-                <DownloadAppLink
-                  filename={stable.windows.executable.filename}
-                />
+                <DownloadAppLink filename={stable.windows.universal.filename} />
               </td>
               <td className="insider">
                 <DownloadAppLink
-                  filename={insider.windows.executable.filename}
+                  filename={insider.windows.universal.filename}
                 />
+              </td>
+            </tr>
+            <tr>
+              <td className="os" scope="row">
+                <SrOnly>Windows arm64</SrOnly>
+              </td>
+              <td className="type">arm64</td>
+              <td className="stable">
+                <DownloadAppLink filename={stable.windows.arm64.filename} />
+              </td>
+              <td className="insider">
+                <DownloadAppLink filename={insider.windows.arm64.filename} />
+              </td>
+            </tr>
+            <tr>
+              <td className="os" scope="row">
+                <SrOnly>Windows x64</SrOnly>
+              </td>
+              <td className="type">x64</td>
+              <td className="stable">
+                <DownloadAppLink filename={stable.windows.x64.filename} />
+              </td>
+              <td className="insider">
+                <DownloadAppLink filename={insider.windows.x64.filename} />
               </td>
             </tr>
           </tbody>
@@ -813,7 +835,9 @@ interface LatestMacOSAppInfo extends LatestAppInfoBase {
 
 interface LatestWindowsAppInfo extends LatestAppInfoBase {
   readonly os: "windows";
-  readonly executable: AppInfoFile;
+  readonly arm64: AppInfoFile;
+  readonly x64: AppInfoFile;
+  readonly universal: AppInfoFile;
 }
 
 type Variant = "nitro" | "nitro-insider";
@@ -883,9 +907,17 @@ async function fetchWindowsAppInfo(
   return {
     os: "windows",
     version,
-    executable: {
+    arm64: {
+      filename: files[1].url,
+      text: "Windows arm64",
+    },
+    x64: {
+      filename: files[2].url,
+      text: "Windows x64",
+    },
+    universal: {
       filename: files[0].url,
-      text: "Windows",
+      text: "Windows Universal",
     },
   };
 }
