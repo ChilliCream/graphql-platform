@@ -40,9 +40,7 @@ const IndexPage: FC = () => {
   return (
     <SiteLayout>
       <SEO title="Home" />
-      <BackgroundContainer>
-        <Fusion />
-      </BackgroundContainer>
+      <BackgroundContainer>{/* <Fusion /> */}</BackgroundContainer>
       <IndexPageHero>
         <HeroTitleFirst>Unleash the Power</HeroTitleFirst>
         <HeroTitleSecond>of Unified Services</HeroTitleSecond>
@@ -52,8 +50,8 @@ const IndexPage: FC = () => {
           manage and interact with your data.
         </HeroTeaser>
         <HeroLink to="/docs/bananacakepop/v2/apis/fusion">Get Started</HeroLink>
+        <CompaniesSection />
       </IndexPageHero>
-      <CompaniesSection />
       <ContentSection
         title="Move Faster"
         text="
@@ -221,21 +219,5 @@ const BackgroundContainer = styled.div`
 `;
 
 const IndexPageHero = styled(Hero)`
-  padding-bottom: 180px;
-
-  @media only screen and (min-width: 447px) {
-    padding-bottom: 260px;
-  }
-
-  @media only screen and (min-width: 565px) {
-    padding-bottom: 360px;
-  }
-
-  @media only screen and (min-width: 600px) {
-    padding-bottom: 440px;
-  }
-
-  @media only screen and (min-width: 992px) {
-    padding-bottom: 380px;
-  }
+  padding-bottom: 0px;
 `;
