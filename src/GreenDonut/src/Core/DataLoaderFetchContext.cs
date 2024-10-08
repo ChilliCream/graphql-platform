@@ -152,6 +152,6 @@ public readonly struct DataLoaderFetchContext<TValue>(
 
         // if no selector was found we will just return
         // a new default selector builder.
-        return new DefaultSelectorBuilder<TValue>();
+        return new DefaultSelectorBuilder();
     }
 }

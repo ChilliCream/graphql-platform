@@ -50,7 +50,7 @@ public static class HotChocolateExecutionSelectionExtensions
 
         if ((flags & FieldFlags.Connection) == FieldFlags.Connection)
         {
-            var builder = new DefaultSelectorBuilder<TValue>();
+            var builder = new DefaultSelectorBuilder();
             var buffer = ArrayPool<ISelection>.Shared.Rent(16);
             var count = GetConnectionSelections(selection, buffer);
             for (var i = 0; i < count; i++)
@@ -63,7 +63,7 @@ public static class HotChocolateExecutionSelectionExtensions
 
         if ((flags & FieldFlags.CollectionSegment) == FieldFlags.CollectionSegment)
         {
-            var builder = new DefaultSelectorBuilder<TValue>();
+            var builder = new DefaultSelectorBuilder();
             var buffer = ArrayPool<ISelection>.Shared.Rent(16);
             var count = GetCollectionSelections(selection, buffer);
             for (var i = 0; i < count; i++)

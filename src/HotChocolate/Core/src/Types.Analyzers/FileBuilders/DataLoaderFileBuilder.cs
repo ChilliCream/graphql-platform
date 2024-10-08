@@ -264,8 +264,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
                         parameter.StateKey);
                     _writer.IncreaseIndent();
                     _writer.WriteIndentedLine(
-                        "?? new global::GreenDonut.Projections.DefaultSelectorBuilder<{0}>();",
-                        value.ToFullyQualified());
+                        "?? new global::GreenDonut.Projections.DefaultSelectorBuilder();");
                     _writer.DecreaseIndent();
                 }
                 else if (parameter.Kind is DataLoaderParameterKind.PagingArguments)
