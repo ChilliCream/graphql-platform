@@ -61,6 +61,10 @@ jobs:
           unzip -P ${{ secrets.ICON_PASSWORD }} src/images/icons.zip -d src/images/
         working-directory: website
 
+      - name: Clean Website
+        run: yarn clean
+        working-directory: website
+
       - name: Build Website
         run: yarn build --prefix-paths
         working-directory: website

@@ -84,7 +84,7 @@ export const Footer: FC = () => {
                 <NavLink to="/platform/collaboration">Collaboration</NavLink>
               )}
               <NavLink to="/platform/ecosystem">Ecosystem</NavLink>
-              <NavLink to="/products/bananacakepop">Banana Cake Pop</NavLink>
+              <NavLink to="/products/nitro">Nitro</NavLink>
             </Navigation>
           </Links>
           <Links>

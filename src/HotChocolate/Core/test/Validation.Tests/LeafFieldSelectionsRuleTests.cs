@@ -45,9 +45,8 @@ public class LeafFieldSelectionsRuleTests
                 }
             ",
             t => Assert.Equal(
-                "`barkVolume` returns a scalar value. Selections on scalars " +
-                "or enums are never allowed, because they are the leaf " +
-                "nodes of any GraphQL query.",
+                "Field \"barkVolume\" must not have a selection since type \"Int\" has no " +
+                "subfields.",
                 t.Message));
     }
 
@@ -60,9 +59,8 @@ public class LeafFieldSelectionsRuleTests
                 }
             ",
             t => Assert.Equal(
-                "`human` is an object, interface or union type " +
-                "field. Leaf selections on objects, interfaces, and " +
-                "unions without subfields are disallowed.",
+                "Field \"human\" of type \"Human\" must have a selection of subfields. Did you " +
+                "mean \"human { ... }\"?",
                 t.Message));
     }
 
@@ -75,9 +73,8 @@ public class LeafFieldSelectionsRuleTests
                 }
             ",
             t => Assert.Equal(
-                "`human` is an object, interface or union type " +
-                "field. Leaf selections on objects, interfaces, and " +
-                "unions without subfields are disallowed.",
+                "Field \"human\" of type \"Human\" must have a selection of subfields. Did you " +
+                "mean \"human { ... }\"?",
                 t.Message));
     }
 
@@ -90,9 +87,8 @@ public class LeafFieldSelectionsRuleTests
                 }
             ",
             t => Assert.Equal(
-                "`pet` is an object, interface or union type " +
-                "field. Leaf selections on objects, interfaces, and " +
-                "unions without subfields are disallowed.",
+                "Field \"pet\" of type \"Human\" must have a selection of subfields. Did you mean " +
+                "\"pet { ... }\"?",
                 t.Message));
     }
 
@@ -105,9 +101,8 @@ public class LeafFieldSelectionsRuleTests
                 }
             ",
             t => Assert.Equal(
-                "`pet` is an object, interface or union type " +
-                "field. Leaf selections on objects, interfaces, and " +
-                "unions without subfields are disallowed.",
+                "Field \"pet\" of type \"Human\" must have a selection of subfields. Did you mean " +
+                "\"pet { ... }\"?",
                 t.Message));
     }
 
@@ -120,9 +115,8 @@ public class LeafFieldSelectionsRuleTests
                 }
             ",
             t => Assert.Equal(
-                "`catOrDog` is an object, interface or union type " +
-                "field. Leaf selections on objects, interfaces, and " +
-                "unions without subfields are disallowed.",
+                "Field \"catOrDog\" of type \"CatOrDog\" must have a selection of subfields. Did " +
+                "you mean \"catOrDog { ... }\"?",
                 t.Message));
     }
 
@@ -135,9 +129,8 @@ public class LeafFieldSelectionsRuleTests
                 }
             ",
             t => Assert.Equal(
-                "`catOrDog` is an object, interface or union type " +
-                "field. Leaf selections on objects, interfaces, and " +
-                "unions without subfields are disallowed.",
+                "Field \"catOrDog\" of type \"CatOrDog\" must have a selection of subfields. Did " +
+                "you mean \"catOrDog { ... }\"?",
                 t.Message));
     }
 
@@ -150,9 +143,8 @@ public class LeafFieldSelectionsRuleTests
                 }
             ",
             t => Assert.Equal(
-                "`pets` is an object, interface or union type " +
-                "field. Leaf selections on objects, interfaces, and " +
-                "unions without subfields are disallowed.",
+                "Field \"pets\" of type \"[Pet]\" must have a selection of subfields. Did you " +
+                "mean \"pets { ... }\"?",
                 t.Message));
     }
 
@@ -165,9 +157,8 @@ public class LeafFieldSelectionsRuleTests
                 }
             ",
             t => Assert.Equal(
-                "`pets` is an object, interface or union type " +
-                "field. Leaf selections on objects, interfaces, and " +
-                "unions without subfields are disallowed.",
+                "Field \"pets\" of type \"[Pet]\" must have a selection of subfields. Did you " +
+                "mean \"pets { ... }\"?",
                 t.Message));
     }
 
@@ -256,9 +247,8 @@ public class LeafFieldSelectionsRuleTests
                 }
             ",
             t => Assert.Equal(
-                "`barks` returns a scalar value. Selections on scalars " +
-                "or enums are never allowed, because they are the leaf " +
-                "nodes of any GraphQL query.",
+                "Field \"barks\" must not have a selection since type \"Boolean!\" has no " +
+                "subfields.",
                 t.Message));
     }
 
@@ -277,9 +267,40 @@ public class LeafFieldSelectionsRuleTests
                 }
             ",
             t => Assert.Equal(
-                "`furColor` returns an enum value. Selections on scalars " +
-                "or enums are never allowed, because they are the leaf " +
-                "nodes of any GraphQL query.",
+                "Field \"furColor\" must not have a selection since type \"FurColor\" has no " +
+                "subfields.",
+                t.Message));
+    }
+
+    [Fact]
+    public void ScalarSelectionNotAllowedOnListOfScalars()
+    {
+        ExpectErrors(@"
+                {
+                    listOfScalars {
+                        x
+                    }
+                }
+            ",
+            t => Assert.Equal(
+                "Field \"listOfScalars\" must not have a selection since type \"[String]\" has " +
+                "no subfields.",
+                t.Message));
+    }
+
+    [Fact]
+    public void ScalarSelectionNotAllowedOnListOfListOfScalars()
+    {
+        ExpectErrors(@"
+                {
+                    listOfListOfScalars {
+                        x
+                    }
+                }
+            ",
+            t => Assert.Equal(
+                "Field \"listOfListOfScalars\" must not have a selection since type " +
+                "\"[[String]]\" has no subfields.",
                 t.Message));
     }
 
@@ -294,9 +315,8 @@ public class LeafFieldSelectionsRuleTests
                 }
             ",
             t => Assert.Equal(
-                "`doesKnowCommand` returns a scalar value. Selections on scalars " +
-                "or enums are never allowed, because they are the leaf " +
-                "nodes of any GraphQL query.",
+                "Field \"doesKnowCommand\" must not have a selection since type \"Boolean!\" has " +
+                "no subfields.",
                 t.Message));
     }
 
@@ -311,9 +331,7 @@ public class LeafFieldSelectionsRuleTests
                 }
             ",
             t => Assert.Equal(
-                "`name` returns a scalar value. Selections on scalars " +
-                "or enums are never allowed, because they are the leaf " +
-                "nodes of any GraphQL query.",
+                "Field \"name\" must not have a selection since type \"String!\" has no subfields.",
                 t.Message));
     }
 
@@ -328,9 +346,8 @@ public class LeafFieldSelectionsRuleTests
                 }
             ",
             t => Assert.Equal(
-                "`doesKnowCommand` returns a scalar value. Selections on scalars " +
-                "or enums are never allowed, because they are the leaf " +
-                "nodes of any GraphQL query.",
+                "Field \"doesKnowCommand\" must not have a selection since type \"Boolean!\" has " +
+                "no subfields.",
                 t.Message));
     }
 }

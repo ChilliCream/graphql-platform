@@ -1,7 +1,7 @@
 {
   "errors": [
     {
-      "message": "`error13` is an object, interface or union type field. Leaf selections on objects, interfaces, and unions without subfields are disallowed.",
+      "message": "Field \"error13\" of type \"Foo\" must have a selection of subfields. Did you mean \"error13 { ... }\"?",
       "locations": [
         {
           "line": 1,

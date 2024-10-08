@@ -6,7 +6,7 @@ namespace HotChocolate.AspNetCore;
 public sealed class GraphQLServerOptions
 {
     /// <summary>
-    /// Gets the GraphQL tool options for Banana Cake Pop.
+    /// Gets the GraphQL tool options for Nitro.
     /// </summary>
     public GraphQLToolOptions Tool { get; internal set; } = new();
 
