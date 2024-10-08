@@ -72,11 +72,11 @@ internal static class ExecutionUtils
 
                 if (!data.HasValue)
                 {
-                    AddError(context, errorTrie, responseName, selection, selectionSetResult, responseIndex,
-                        hoistErrorOfFieldsBelow: true);
-
                     if (!partialResult)
                     {
+                        AddError(context, errorTrie, responseName, selection, selectionSetResult, responseIndex,
+                            hoistErrorOfFieldsBelow: true);
+
                         if (!nullable)
                         {
                             PropagateNullValues(context.Result, selection, selectionSetResult, responseIndex);
