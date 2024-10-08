@@ -3,9 +3,10 @@
 ## SQL
 
 ```text
+-- @__keys_0={ '1' } (DbType = Object)
 SELECT b."Id", b."Name"
 FROM "Brands" AS b
-WHERE b."Id" = 1
+WHERE b."Id" = ANY (@__keys_0)
 ```
 
 ## Result

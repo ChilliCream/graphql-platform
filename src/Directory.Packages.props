@@ -11,7 +11,7 @@
     <PackageVersion Include="Aspire.Hosting.RabbitMQ" Version="8.0.0" />
     <PackageVersion Include="Aspire.Hosting.Redis" Version="8.0.0" />
     <PackageVersion Include="AutoMapper" Version="10.1.1" />
-    <PackageVersion Include="BananaCakePop.Middleware" Version="$(BananaCakePopVersion)" />
+    <PackageVersion Include="ChilliCream.Nitro.App" Version="$(NitroVersion)" />
     <PackageVersion Include="Basic.Reference.Assemblies" Version="1.6.0" />
     <PackageVersion Include="ChilliCream.Testing.Utilities" Version="0.2.0" />
     <PackageVersion Include="coverlet.collector" Version="6.0.2" />

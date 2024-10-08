@@ -1,4 +1,4 @@
-using BananaCakePop.Middleware;
+using ChilliCream.Nitro.App;
 using HotChocolate.AspNetCore;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -11,13 +11,13 @@ internal sealed class DefaultGraphQLRequestExecutor : IGraphQLRequestExecutor
     private readonly EmptyResult _result = new();
     private readonly RequestDelegate _pipeline;
     private readonly GraphQLServerOptions _options;
-    private readonly BananaCakePopOptions _bcpOptions;
+    private readonly NitroAppOptions _nitroAppOptions;
 
     public DefaultGraphQLRequestExecutor(RequestDelegate pipeline, GraphQLServerOptions options)
     {
         _pipeline = pipeline ?? throw new ArgumentNullException(nameof(pipeline));
         _options = options ?? throw new ArgumentNullException(nameof(options));
-        _bcpOptions = _options.Tool.ToBcpOptions();
+        _nitroAppOptions = _options.Tool.ToNitroAppOptions();
     }
 
     public async Task<IActionResult> ExecuteAsync(HttpContext context)
@@ -29,7 +29,7 @@ internal sealed class DefaultGraphQLRequestExecutor : IGraphQLRequestExecutor
 
         // First we need to populate the HttpContext with the current GraphQL server options ...
         context.Items.Add(nameof(GraphQLServerOptions), _options);
-        context.Items.Add(nameof(BananaCakePopOptions), _bcpOptions);
+        context.Items.Add(nameof(NitroAppOptions), _nitroAppOptions);
 
         // after that we can execute the pipeline ...
         await _pipeline.Invoke(context).ConfigureAwait(false);
