@@ -11,6 +11,12 @@ namespace GreenDonut.Projections;
 [Experimental(Experiments.Projections)]
 public static class SelectionDataLoaderExtensions
 {
+    private static readonly MethodInfo _selectMethod =
+        typeof(Enumerable)
+            .GetMethods()
+            .Where(m => m.Name == nameof(Enumerable.Select) && m.GetParameters().Length == 2)
+            .First(m => m.GetParameters()[1].ParameterType.GetGenericTypeDefinition() == typeof(Func<,>));
+
     /// <summary>
     /// Branches a DataLoader and applies a selector to load the data.
     /// </summary>
@@ -62,7 +68,7 @@ public static class SelectionDataLoaderExtensions
             IDataLoader<TKey, TValue> dataLoader,
             Expression<Func<TValue, TValue>> selector)
         {
-            var branch =  new SelectionDataLoader<TKey, TValue>(
+            var branch = new SelectionDataLoader<TKey, TValue>(
                 (DataLoaderBase<TKey, TValue>)dataLoader,
                 key);
             var context = new DefaultSelectorBuilder<TValue>();
@@ -137,13 +143,13 @@ public static class SelectionDataLoaderExtensions
     /// Applies the selector from the DataLoader state to a queryable.
     /// </summary>
     /// <param name="query">
-    /// The queryable to apply the selector to.
-    /// </param>
-    /// <param name="builder">
-    /// The selector builder.
+    ///  The queryable to apply the selector to.
     /// </param>
     /// <param name="key">
     /// The DataLoader key.
+    /// </param>
+    /// <param name="builder">
+    ///  The selector builder.
     /// </param>
     /// <typeparam name="T">
     /// The queryable type.
@@ -154,10 +160,9 @@ public static class SelectionDataLoaderExtensions
     /// <exception cref="ArgumentNullException">
     /// Throws if <paramref name="query"/> is <c>null</c>.
     /// </exception>
-    public static IQueryable<T> Select<T>(
-        this IQueryable<T> query,
-        ISelectorBuilder builder,
-        Expression<Func<T, object?>> key)
+    public static IQueryable<T> Select<T>(this IQueryable<T> query,
+        Expression<Func<T, object?>> key,
+        ISelectorBuilder builder)
     {
         if (query is null)
         {
@@ -178,4 +183,98 @@ public static class SelectionDataLoaderExtensions
 
         return query;
     }
+
+    /// <summary>
+    /// Applies the selector from the DataLoader state to a queryable.
+    /// </summary>
+    /// <param name="query">
+    /// The queryable to apply the selector to.
+    /// </param>
+    /// <param name="key">
+    /// The DataLoader key.
+    /// </param>
+    /// <param name="list">
+    /// The list selector.
+    /// </param>
+    /// <param name="elementSelector">
+    /// The element selector.
+    /// </param>
+    /// <typeparam name="T">
+    /// The queryable type.
+    /// </typeparam>
+    /// <typeparam name="TKey">
+    /// The key type.
+    /// </typeparam>
+    /// <typeparam name="TValue">
+    /// The value type.
+    /// </typeparam>
+    /// <returns>
+    /// Returns a selector query on which a key must be applied to fetch the data.
+    /// </returns>
+    public static IQueryable<KeyValueResult<TKey, IEnumerable<TValue>>> Select<T, TKey, TValue>(
+        this IQueryable<T> query,
+        Expression<Func<T, TKey?>> key,
+        Expression<Func<T, IEnumerable<TValue>>> list,
+        ISelectorBuilder elementSelector)
+    {
+        // we first create a new parameter expression for the root as we need
+        // a unified parameter for both expressions (key and list)
+        var parameter = Expression.Parameter(typeof(T), "root");
+
+        // next we replace the parameter within the key and list selectors with the
+        // unified parameter.
+        var rewrittenKey = ReplaceParameter(key, key.Parameters[0], parameter);
+        var rewrittenList = ReplaceParameter(list, list.Parameters[0], parameter);
+
+        // next we try to compile an element selector expression.
+        var elementSelectorExpr = elementSelector.TryCompile<TValue>();
+
+        // if we have a element selector to project properties on the list expression
+        // we will need to combine this into the list expression.
+        if (elementSelectorExpr is not null)
+        {
+            var selectMethod = _selectMethod.MakeGenericMethod(typeof(TValue), typeof(TValue));
+
+            list = Expression.Lambda<Func<T, IEnumerable<TValue>>>(
+                Expression.Call(
+                    selectMethod,
+                    rewrittenList.Body,
+                    elementSelectorExpr),
+                parameter);
+        }
+
+        // finally we combine key and list expression into a single selector expression
+        var keyValueSelectorExpr = Expression.Lambda<Func<T, KeyValueResult<TKey, IEnumerable<TValue>>>>(
+            Expression.MemberInit(
+                Expression.New(typeof(KeyValueResult<TKey, IEnumerable<TValue>>)),
+                Expression.Bind(
+                    typeof(KeyValueResult<TKey, IEnumerable<TValue>>).GetProperty(
+                        nameof(KeyValueResult<TKey, IEnumerable<TValue>>.Key))!,
+                    rewrittenKey.Body),
+                Expression.Bind(
+                    typeof(KeyValueResult<TKey, IEnumerable<TValue>>).GetProperty(
+                        nameof(KeyValueResult<TKey, IEnumerable<TValue>>.Value))!,
+                    list.Body)),
+            parameter);
+
+        // lastly we apply the selector expression to the queryable.
+        return query.Select(keyValueSelectorExpr);
+    }
+
+    private static Expression<T> ReplaceParameter<T>(
+        Expression<T> expression,
+        ParameterExpression oldParameter,
+        ParameterExpression newParameter)
+        => (Expression<T>)new ReplaceParameterVisitor(oldParameter, newParameter).Visit(expression);
+}
+
+file sealed class ReplaceParameterVisitor(
+    ParameterExpression oldParameter,
+    ParameterExpression newParameter)
+    : ExpressionVisitor
+{
+    protected override Expression VisitParameter(ParameterExpression node)
+        => node == oldParameter
+            ? newParameter
+            : base.VisitParameter(node);
 }

@@ -168,8 +168,8 @@ internal static class ExpressionHelpers
         return Expression.Condition(condition.Test, ifTrue, ifFalse);
     }
 
-    public static Expression<Func<TRoot, TRoot>> Rewrite<TRoot>(
-        Expression<Func<TRoot, object?>> selector)
+    public static Expression<Func<TRoot, TRoot>> Rewrite<TRoot, TKey>(
+        Expression<Func<TRoot, TKey?>> selector)
     {
         var parameter = selector.Parameters[0];
         var bindings = new List<MemberBinding>();
