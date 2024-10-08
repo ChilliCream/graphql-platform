@@ -779,6 +779,36 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             .MatchMarkdownSnapshot();
     }
 
+    [Fact]
+    public async Task Project_Key_To_Collection_Expression()
+    {
+        // Arrange
+        var queries = new List<string>();
+        var connectionString = CreateConnectionString();
+        await CatalogContext.SeedAsync(connectionString);
+
+        var services = new ServiceCollection()
+            .AddScoped(_ => queries)
+            .AddTransient(_ => new CatalogContext(connectionString))
+            .AddDataLoader(
+                sp => new ProductByBrandIdDataLoader(
+                    sp,
+                    sp.GetRequiredService<List<string>>(),
+                    sp.GetRequiredService<IBatchScheduler>(),
+                    sp.GetRequiredService<DataLoaderOptions>()))
+            .BuildServiceProvider();
+
+        // Act
+        await using var scope = services.CreateAsyncScope();
+        var dataLoader = scope.ServiceProvider.GetRequiredService<ProductByBrandIdDataLoader>();
+        await dataLoader.LoadAsync(1);
+
+        // Assert
+        Snapshot.Create()
+            .AddSql(queries)
+            .MatchMarkdownSnapshot();
+    }
+
     public class Query
     {
         public async Task<Brand?> GetBrandByIdAsync(
@@ -930,7 +960,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
 
             var query = catalogContext.Brands
                 .Where(t => keys.Contains(t.Id))
-                .Select(context.GetSelector(), b => b.Id);
+                .Select(b => b.Id, context.GetSelector());
 
             lock (_queries)
             {
@@ -959,7 +989,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
 
             var query = catalogContext.Products
                 .Where(t => keys.Contains(t.Id))
-                .Select(context.GetSelector(), b => b.Id);
+                .Select(b => b.Id, context.GetSelector());
 
             lock (queries)
             {
@@ -967,6 +997,37 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             }
 
             var x = await query.ToDictionaryAsync(t => t.Id, cancellationToken);
+
+            return x;
+        }
+    }
+
+    public class ProductByBrandIdDataLoader(
+        IServiceProvider services,
+        List<string> queries,
+        IBatchScheduler batchScheduler,
+        DataLoaderOptions options)
+        : StatefulBatchDataLoader<int, Product[]>(batchScheduler, options)
+    {
+        protected override async Task<IReadOnlyDictionary<int, Product[]>> LoadBatchAsync(
+            IReadOnlyList<int> keys,
+            DataLoaderFetchContext<Product[]> context,
+            CancellationToken cancellationToken)
+        {
+            var catalogContext = services.GetRequiredService<CatalogContext>();
+            var selector = new DefaultSelectorBuilder<Product>();
+            selector.Add<Product>(t => new Product { Name = t.Name });
+
+            var query = catalogContext.Brands
+                .Where(t => keys.Contains(t.Id))
+                .Select(t => t.Id, t => t.Products, selector);
+
+            lock (queries)
+            {
+                queries.Add(query.ToQueryString());
+            }
+
+            var x = await query.ToDictionaryAsync(t => t.Key, t => t.Value.ToArray(), cancellationToken);
 
             return x;
         }
