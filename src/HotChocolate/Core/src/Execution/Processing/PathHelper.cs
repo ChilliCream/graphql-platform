@@ -18,9 +18,11 @@ internal static class PathHelper
             _ => throw new NotSupportedException($"{parent.GetType().FullName} is not a supported parent type."),
         };
 
-    public static Path CombinePath(Path path, JsonElement errorSubPath, int skipSubElements)
+    public static Path CreatePathFromJson(JsonElement errorSubPath)
     {
-        for (var i = skipSubElements; i < errorSubPath.GetArrayLength(); i++)
+        var path = Path.Root;
+
+        for (var i = 0; i < errorSubPath.GetArrayLength(); i++)
         {
             path = errorSubPath[i] switch
             {

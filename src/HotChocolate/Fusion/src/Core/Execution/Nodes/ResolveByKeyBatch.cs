@@ -1,9 +1,11 @@
+using System.Net;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Clients;
+using HotChocolate.Fusion.Planning;
 using HotChocolate.Language;
 using static HotChocolate.Fusion.Execution.ExecutionUtils;
 
@@ -148,44 +150,56 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
         var result = UnwrapResult(response, Requires);
         ref var batchState = ref MemoryMarshal.GetArrayDataReference(batchExecutionState);
         ref var end = ref Unsafe.Add(ref batchState, batchExecutionState.Length);
-        var pathLength = Path.Length;
-        var first = true;
 
+        var errors = ExtractErrors(response.Errors, subgraphName, context.ShowDebugInfo);
+
+        ErrorTrie? subgraphErrorTrie = null;
+        ErrorTrie? unwrappedSubgraphErrorTrie = null;
+        if (errors is not null)
+        {
+            subgraphErrorTrie = ErrorTrie.FromErrors(errors);
+            unwrappedSubgraphErrorTrie = UnwrapErrors(subgraphErrorTrie);
+        }
+
+        IError? transportError = null;
         if (response.TransportException is not null)
         {
-            foreach (var state in batchExecutionState)
-            {
-                CreateTransportErrors(
-                    response.TransportException,
-                    context.Result,
-                    context.ErrorHandler,
-                    state.SelectionSetResult,
-                    RootSelections,
-                    subgraphName,
-                    context.ShowDebugInfo);
-            }
+            transportError = CreateTransportError(
+                response.TransportException,
+                context.ErrorHandler,
+                subgraphName,
+                context.ShowDebugInfo);
         }
 
         while (Unsafe.IsAddressLessThan(ref batchState, ref end))
         {
-            if (first)
-            {
-                ExtractErrors(
-                    context.Operation.Document,
-                    context.Operation.Definition,
-                    context.Result,
-                    context.ErrorHandler,
-                    response.Errors,
-                    batchState.SelectionSetResult,
-                    pathLength + 1,
-                    context.ShowDebugInfo);
-                first = false;
-            }
+            ErrorTrie? errorTrie = null;
 
-            if (result.TryGetValue(batchState.Key, out var data))
+            if (result.TryGetValue(batchState.Key, out var listResult))
             {
+                var data = listResult.Data;
+
+                if (unwrappedSubgraphErrorTrie is not null
+                    && unwrappedSubgraphErrorTrie.TryGetValue(listResult.Index, out var errorTrieAtIndex))
+                {
+                    errorTrie = ExtractErrors(SelectionSet, errorTrieAtIndex);
+                }
+
                 ExtractSelectionResults(SelectionSet, SubgraphName, data, batchState.SelectionSetData);
                 ExtractVariables(data, context.QueryPlan, SelectionSet, batchState.Requires, batchState.VariableValues);
+            }
+            else if (subgraphErrorTrie is not null)
+            {
+                errorTrie = ErrorTrie.FromSelections(subgraphErrorTrie, RootSelections, Path);
+            }
+            else if (transportError is not null)
+            {
+                errorTrie = ErrorTrie.FromSelections(transportError, RootSelections);
+            }
+
+            if (errorTrie is not null)
+            {
+                batchState.SetErrorTrie(errorTrie);
             }
 
             batchState = ref Unsafe.Add(ref batchState, 1)!;
@@ -250,7 +264,9 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
         return variableValues;
     }
 
-    private Dictionary<string, JsonElement> UnwrapResult(
+    private record ListResult(int Index, JsonElement Data);
+
+    private Dictionary<string, ListResult> UnwrapResult(
         GraphQLResponse response,
         IReadOnlyList<string> exportKeys)
     {
@@ -259,7 +275,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
 
         if (data.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
         {
-            return new Dictionary<string, JsonElement>();
+            return new Dictionary<string, ListResult>();
         }
 
         if (path.Length > 0)
@@ -269,26 +285,31 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
 
         if (data.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
         {
-            return new Dictionary<string, JsonElement>();
+            return new Dictionary<string, ListResult>();
         }
 
-        var result = new Dictionary<string, JsonElement>();
+        var result = new Dictionary<string, ListResult>();
 
         if (exportKeys.Count == 1)
         {
             var key = exportKeys[0];
 
+            var index = 0;
             foreach (var element in data.EnumerateArray())
             {
                 if (element.ValueKind is not JsonValueKind.Null &&
                     element.TryGetProperty(key, out var keyValue))
                 {
-                    result.TryAdd(FormatKeyValue(keyValue), element);
+                    var listItem = new ListResult(index, element);
+                    result.TryAdd(FormatKeyValue(keyValue), listItem);
                 }
+
+                index++;
             }
         }
         else
         {
+            var index = 0;
             foreach (var element in data.EnumerateArray())
             {
                 var key = string.Empty;
@@ -301,7 +322,10 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
                     }
                 }
 
-                result.TryAdd(key, element);
+                var listItem = new ListResult(index, element);
+                result.TryAdd(key, listItem);
+
+                index++;
             }
         }
 
@@ -445,5 +469,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
         /// from the subgraphs for the <see cref="ExecutionState.SelectionSet"/>.
         /// </summary>
         public SelectionData[] SelectionSetData { get; } = executionState.SelectionSetData;
+
+        public void SetErrorTrie(ErrorTrie errorTrie) => executionState.ErrorTrie = errorTrie;
     }
 }

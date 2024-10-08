@@ -1,4 +1,4 @@
-# Entity_Resolver_SubField_NonNull_EntryField_NonNull_Second_Service_Errors_EntryField
+# Entity_Resolver_SubField_NonNull_EntryField_Nullable_Both_Services_Error_SubField
 
 ## Result
 
@@ -9,17 +9,18 @@
       "message": "Unexpected Execution Error",
       "locations": [
         {
-          "line": 6,
-          "column": 5
+          "line": 2,
+          "column": 3
         }
       ],
       "path": [
-        "productById",
-        "score"
+        "productById"
       ]
     }
   ],
-  "data": null
+  "data": {
+    "productById": null
+  }
 }
 ```
 

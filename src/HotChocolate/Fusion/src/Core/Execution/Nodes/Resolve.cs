@@ -137,38 +137,49 @@ internal sealed class Resolve(int id, Config config) : ResolverNodeBase(id, conf
         ref var request = ref MemoryMarshal.GetArrayDataReference(requests);
         ref var response = ref MemoryMarshal.GetArrayDataReference(responses);
         ref var end = ref Unsafe.Add(ref state, executionStates.Count);
-        var pathLength = Path.Length;
 
         while (Unsafe.IsAddressLessThan(ref state, ref end))
         {
             var data = UnwrapResult(response);
             var selectionSet = state.SelectionSet;
             var selectionSetData = state.SelectionSetData;
-            var selectionSetResult = state.SelectionSetResult;
             var exportKeys = state.Requires;
             var variableValues = state.VariableValues;
 
+            var errors = ExtractErrors(response.Errors, subgraphName, context.ShowDebugInfo);
+
+            ErrorTrie? subgraphErrorTrie = null;
+            if (errors is not null)
+            {
+                subgraphErrorTrie = ErrorTrie.FromErrors(errors);
+            }
+
+            IError? transportError = null;
             if (response.TransportException is not null)
             {
-                CreateTransportErrors(
+                transportError = CreateTransportError(
                     response.TransportException,
-                    context.Result,
                     context.ErrorHandler,
-                    selectionSetResult,
-                    RootSelections,
                     subgraphName,
                     context.ShowDebugInfo);
             }
 
-            ExtractErrors(
-                context.Operation.Document,
-                context.Operation.Definition,
-                context.Result,
-                context.ErrorHandler,
-                response.Errors,
-                selectionSetResult,
-                pathLength,
-                context.ShowDebugInfo);
+            ErrorTrie? errorTrie = null;
+            if (subgraphErrorTrie is not null)
+            {
+                var unwrappedErrorTrie = UnwrapErrors(subgraphErrorTrie);
+                errorTrie = ExtractErrors(SelectionSet, unwrappedErrorTrie)
+                    ?? ErrorTrie.FromSelections(subgraphErrorTrie, RootSelections, Path);
+            }
+            else if (transportError is not null)
+            {
+                errorTrie = ErrorTrie.FromSelections(transportError, RootSelections);
+            }
+
+            if (errorTrie is not null)
+            {
+                state.ErrorTrie = errorTrie;
+            }
 
             // we extract the selection data from the request and add it to the
             // workItem results.

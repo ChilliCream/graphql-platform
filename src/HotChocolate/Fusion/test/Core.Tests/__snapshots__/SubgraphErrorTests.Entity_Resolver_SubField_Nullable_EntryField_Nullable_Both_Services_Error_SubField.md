@@ -1,4 +1,4 @@
-# Resolve_Sequence_SubField_NonNull_Parent_NonNull_One_Service_Errors_EntryField
+# Entity_Resolver_SubField_Nullable_EntryField_Nullable_Both_Services_Error_SubField
 
 ## Result
 
@@ -9,19 +9,36 @@
       "message": "Unexpected Execution Error",
       "locations": [
         {
-          "line": 6,
-          "column": 7
+          "line": 5,
+          "column": 5
         }
       ],
       "path": [
-        "product",
-        "brand",
-        "name"
+        "productById",
+        "price"
+      ]
+    },
+    {
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 6,
+          "column": 5
+        }
+      ],
+      "path": [
+        "productById",
+        "score"
       ]
     }
   ],
   "data": {
-    "product": null
+    "productById": {
+      "id": "1",
+      "name": "string",
+      "price": null,
+      "score": null
+    }
   }
 }
 ```
@@ -30,12 +47,11 @@
 
 ```graphql
 {
-  product {
+  productById(id: "1") {
     id
-    brand {
-      id
-      name
-    }
+    name
+    price
+    score
   }
 }
 ```
@@ -43,21 +59,21 @@
 ## QueryPlan Hash
 
 ```text
-10F6CB69F78A0E4FD176C0F4651E2E37CF47C9C5
+A5FE502D9F6F0548B898BC17A33BC0F2A2A13AE6
 ```
 
 ## QueryPlan
 
 ```json
 {
-  "document": "{ product { id brand { id name } } }",
+  "document": "{ productById(id: \u00221\u0022) { id name price score } }",
   "rootNode": {
     "type": "Sequence",
     "nodes": [
       {
         "type": "Resolve",
         "subgraph": "Subgraph_1",
-        "document": "query fetch_product_1 { product { id brand { id __fusion_exports__1: id } } }",
+        "document": "query fetch_productById_1 { productById(id: \u00221\u0022) { id name price __fusion_exports__1: id } }",
         "selectionSetId": 0,
         "provides": [
           {
@@ -74,10 +90,10 @@
       {
         "type": "Resolve",
         "subgraph": "Subgraph_2",
-        "document": "query fetch_product_2($__fusion_exports__1: ID!) { brandById(id: $__fusion_exports__1) { name } }",
-        "selectionSetId": 2,
+        "document": "query fetch_productById_2($__fusion_exports__1: ID!) { productById(id: $__fusion_exports__1) { score } }",
+        "selectionSetId": 1,
         "path": [
-          "brandById"
+          "productById"
         ],
         "requires": [
           {
@@ -88,13 +104,13 @@
       {
         "type": "Compose",
         "selectionSetIds": [
-          2
+          1
         ]
       }
     ]
   },
   "state": {
-    "__fusion_exports__1": "Brand_id"
+    "__fusion_exports__1": "Product_id"
   }
 }
 ```
