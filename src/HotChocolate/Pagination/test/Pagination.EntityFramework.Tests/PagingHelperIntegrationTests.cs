@@ -1346,7 +1346,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
 
             return await catalogContext.Products
                 .Where(t => keys.Contains(t.BrandId))
-                .Select(context.GetSelector(), b => b.BrandId)
+                .Select(b => b.BrandId, context.GetSelector())
                 .OrderBy(t => t.Name).ThenBy(t => t.Id)
                 .ToBatchPageAsync(t => t.BrandId, pagingArgs, cancellationToken);
         }

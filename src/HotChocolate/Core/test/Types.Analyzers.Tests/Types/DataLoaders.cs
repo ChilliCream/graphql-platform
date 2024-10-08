@@ -74,7 +74,7 @@ public static class DataLoaders
         IQueryable<Author> query,
         ISelectorBuilder selector,
         CancellationToken ct)
-        => await Task.FromResult(query.Select(selector, t => t.Id).ToDictionary(t => t.Id));
+        => await Task.FromResult(query.Select(t => t.Id, selector).ToDictionary(t => t.Id));
 
     [DataLoader]
     public static async Task<IDictionary<int, Author>> GetAuthorWithPagingById(
