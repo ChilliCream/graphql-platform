@@ -35,15 +35,18 @@ public static class SelectionDataLoaderExtensions
     /// <typeparam name="TValue">
     /// The value type.
     /// </typeparam>
+    /// <typeparam name="TElement">
+    /// The element type.
+    /// </typeparam>
     /// <returns>
     /// Returns a branched DataLoader with the selector applied.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// Throws if <paramref name="dataLoader"/> is <c>null</c>.
     /// </exception>
-    public static IDataLoader<TKey, TValue> Select<TKey, TValue>(
+    public static IDataLoader<TKey, TValue> Select<TKey, TValue, TElement>(
         this IDataLoader<TKey, TValue> dataLoader,
-        Expression<Func<TValue, TValue>>? selector)
+        Expression<Func<TElement, TElement>>? selector)
         where TKey : notnull
     {
         if (dataLoader is null)
@@ -58,7 +61,7 @@ public static class SelectionDataLoaderExtensions
 
         if (dataLoader is ISelectionDataLoader<TKey, TValue>)
         {
-            var context = (DefaultSelectorBuilder<TValue>)dataLoader.ContextData[typeof(ISelectorBuilder).FullName!]!;
+            var context = (DefaultSelectorBuilder)dataLoader.ContextData[typeof(ISelectorBuilder).FullName!]!;
             context.Add(selector);
             return dataLoader;
         }
@@ -69,12 +72,12 @@ public static class SelectionDataLoaderExtensions
         static IDataLoader CreateBranch(
             string key,
             IDataLoader<TKey, TValue> dataLoader,
-            Expression<Func<TValue, TValue>> selector)
+            Expression<Func<TElement, TElement>> selector)
         {
             var branch = new SelectionDataLoader<TKey, TValue>(
                 (DataLoaderBase<TKey, TValue>)dataLoader,
                 key);
-            var context = new DefaultSelectorBuilder<TValue>();
+            var context = new DefaultSelectorBuilder();
             branch.ContextData = branch.ContextData.SetItem(typeof(ISelectorBuilder).FullName!, context);
             context.Add(selector);
             return branch;
@@ -137,7 +140,7 @@ public static class SelectionDataLoaderExtensions
 
         var context = dataLoader.GetOrSetState(
             typeof(ISelectorBuilder).FullName!,
-            _ => new DefaultSelectorBuilder<TValue>());
+            _ => new DefaultSelectorBuilder());
         context.Add(Rewrite(includeSelector));
         return dataLoader;
     }
@@ -238,7 +241,7 @@ public static class SelectionDataLoaderExtensions
         {
             var selectMethod = _selectMethod.MakeGenericMethod(typeof(TValue), typeof(TValue));
 
-            list = Expression.Lambda<Func<T, IEnumerable<TValue>>>(
+            rewrittenList = Expression.Lambda<Func<T, IEnumerable<TValue>>>(
                 Expression.Call(
                     selectMethod,
                     rewrittenList.Body,
@@ -257,7 +260,7 @@ public static class SelectionDataLoaderExtensions
                 Expression.Bind(
                     typeof(KeyValueResult<TKey, IEnumerable<TValue>>).GetProperty(
                         nameof(KeyValueResult<TKey, IEnumerable<TValue>>.Value))!,
-                    list.Body)),
+                    rewrittenList.Body)),
             parameter);
 
         // lastly we apply the selector expression to the queryable.

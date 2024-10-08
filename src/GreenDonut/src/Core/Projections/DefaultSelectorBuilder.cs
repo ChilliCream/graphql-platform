@@ -7,24 +7,16 @@ namespace GreenDonut.Projections;
 /// <summary>
 /// A default implementation of the <see cref="ISelectorBuilder"/>.
 /// </summary>
-/// <typeparam name="TValue"></typeparam>
 #if NET8_0_OR_GREATER
 [Experimental(Experiments.Projections)]
 #endif
-public sealed class DefaultSelectorBuilder<TValue> : ISelectorBuilder
+public sealed class DefaultSelectorBuilder : ISelectorBuilder
 {
     private List<LambdaExpression>? _selectors;
 
     /// <inheritdoc />
     public void Add<T>(Expression<Func<T, T>> selector)
     {
-        if (typeof(T) != typeof(TValue))
-        {
-            throw new ArgumentException(
-                "The projection type must match the DataLoader value type.",
-                nameof(selector));
-        }
-
         _selectors ??= new List<LambdaExpression>();
         if (!_selectors.Contains(selector))
         {
@@ -36,11 +28,6 @@ public sealed class DefaultSelectorBuilder<TValue> : ISelectorBuilder
     public Expression<Func<T, T>>? TryCompile<T>()
     {
         if (_selectors is null)
-        {
-            return null;
-        }
-
-        if (typeof(T) != typeof(TValue))
         {
             return null;
         }

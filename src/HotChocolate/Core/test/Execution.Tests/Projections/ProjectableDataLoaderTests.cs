@@ -809,6 +809,38 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             .MatchMarkdownSnapshot();
     }
 
+    [Fact]
+    public async Task Project_Key_To_Collection_Expression_Integration()
+    {
+        // Arrange
+        var queries = new List<string>();
+        var connectionString = CreateConnectionString();
+        await CatalogContext.SeedAsync(connectionString);
+
+        // Act
+        var result = await new ServiceCollection()
+            .AddScoped(_ => queries)
+            .AddTransient(_ => new CatalogContext(connectionString))
+            .AddGraphQLServer()
+            .AddQueryType<BrandsQuery>()
+            .AddTypeExtension(typeof(BrandListExtensions))
+            .ExecuteRequestAsync(
+                """
+                {
+                    brandById(id: 1) {
+                        products {
+                            name
+                        }
+                    }
+                }
+                """);
+        // Assert
+        Snapshot.Create()
+            .AddSql(queries)
+            .Add(result, "Result")
+            .MatchMarkdownSnapshot();
+    }
+
     public class Query
     {
         public async Task<Brand?> GetBrandByIdAsync(
@@ -873,6 +905,19 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
         }
     }
 
+    public class BrandsQuery
+    {
+        public async Task<IEnumerable<Brand>> GetBrandByIdAsync(
+            int id,
+            ISelection selection,
+            CatalogContext context,
+            CancellationToken cancellationToken)
+            => await context.Brands
+                .Select(selection.AsSelector<Brand>())
+                .Take(2)
+                .ToListAsync(cancellationToken);
+    }
+
     [ExtendObjectType<Brand>]
     public class BrandExtensions
     {
@@ -889,6 +934,18 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
         public string GetDetails(
             [Parent(requires: nameof(Brand.Name))] Brand brand)
             => "Brand Name:" + brand.Name;
+    }
+
+    [ExtendObjectType<Brand>]
+    public class BrandListExtensions
+    {
+        [BindMember(nameof(Brand.Products))]
+        public async Task<IEnumerable<Product>?> GetProductsAsync(
+            [Parent] Brand brand,
+            ProductByBrandIdDataLoader2 productByBrandId,
+            ISelection selection,
+            CancellationToken cancellationToken)
+            => await productByBrandId.Select(selection).LoadAsync(brand.Id, cancellationToken);
     }
 
     public class BrandWithRequirementType : ObjectType<Brand>
@@ -1015,12 +1072,41 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             CancellationToken cancellationToken)
         {
             var catalogContext = services.GetRequiredService<CatalogContext>();
-            var selector = new DefaultSelectorBuilder<Product>();
+            var selector = new DefaultSelectorBuilder();
             selector.Add<Product>(t => new Product { Name = t.Name });
 
             var query = catalogContext.Brands
                 .Where(t => keys.Contains(t.Id))
                 .Select(t => t.Id, t => t.Products, selector);
+
+            lock (queries)
+            {
+                queries.Add(query.ToQueryString());
+            }
+
+            var x = await query.ToDictionaryAsync(t => t.Key, t => t.Value.ToArray(), cancellationToken);
+
+            return x;
+        }
+    }
+
+    public class ProductByBrandIdDataLoader2(
+        IServiceProvider services,
+        List<string> queries,
+        IBatchScheduler batchScheduler,
+        DataLoaderOptions options)
+        : StatefulBatchDataLoader<int, Product[]>(batchScheduler, options)
+    {
+        protected override async Task<IReadOnlyDictionary<int, Product[]>> LoadBatchAsync(
+            IReadOnlyList<int> keys,
+            DataLoaderFetchContext<Product[]> context,
+            CancellationToken cancellationToken)
+        {
+            var catalogContext = services.GetRequiredService<CatalogContext>();
+
+            var query = catalogContext.Brands
+                .Where(t => keys.Contains(t.Id))
+                .Select(t => t.Id, t => t.Products, context.GetSelector());
 
             lock (queries)
             {
