@@ -62,6 +62,7 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
         }
     }
 
+#if NET8_0_OR_GREATER
     /// <summary>
     /// Adds a projection as state to the DataLoader.
     /// </summary>
@@ -86,7 +87,6 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
     /// <exception cref="ArgumentNullException">
     /// Throws if the <paramref name="dataLoader"/> is <c>null</c>.
     /// </exception>
-#if NET8_0_OR_GREATER
     [Experimental(Experiments.Projections)]
     public static IPagingDataLoader<TKey, Page<TValue>> Select<TElement, TKey, TValue>(
         this IPagingDataLoader<TKey, Page<TValue>> dataLoader,
@@ -109,6 +109,7 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
         builder.Add(selector);
         return dataLoader;
     }
+#endif
 
     private static string CreateBranchKey(
         PagingArguments pagingArguments)
