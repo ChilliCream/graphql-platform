@@ -804,7 +804,11 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
         await dataLoader.LoadAsync(1);
 
         // Assert
+#if NET7_0
+        Snapshot.Create("NET7_0")
+#else
         Snapshot.Create()
+#endif
             .AddSql(queries)
             .MatchMarkdownSnapshot();
     }
@@ -835,7 +839,11 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
         // Assert
+#if NET7_0
+        Snapshot.Create("NET7_0")
+#else
         Snapshot.Create()
+#endif
             .AddSql(queries)
             .Add(result, "Result")
             .MatchMarkdownSnapshot();
