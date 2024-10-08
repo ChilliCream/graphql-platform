@@ -31,32 +31,34 @@ public class ErrorTrieTests
             {
               Errors: [
                 Root level error,
-              ]
+              ],
               [first]: {
                  Errors: [
                    First level error,
                    Another first level error,
-                 ]
+                 ],
                  [second]: {
                     Errors: [
                       Second level error,
-                    ]
+                    ],
                     [1]: {
                        Errors: [
                          Third level error,
-                       ]
-                    }
-                 }
+                         Third level error 2,
+                         Another third level error,
+                       ],
+                    },
+                 },
                  [test]: {
                     [1]: {
                        [other]: {
                           Errors: [
                             Fourth level error,
-                          ]
-                       }
-                    }
-                 }
-              }
+                          ],
+                       },
+                    },
+                 },
+              },
             }
             """,
             formatter: new ErrorTrieSnapshotFormatter());
