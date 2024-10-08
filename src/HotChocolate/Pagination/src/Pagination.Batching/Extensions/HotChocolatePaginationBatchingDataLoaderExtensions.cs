@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using GreenDonut.Projections;
 using HotChocolate.Pagination;
 
-namespace GreenDonut;
+namespace GreenDonut.Projections;
 
 /// <summary>
 /// Provides extension methods to pass a pagination context to a DataLoader.
@@ -77,6 +77,9 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
     /// <typeparam name="TValue">
     /// The value type of the DataLoader.
     /// </typeparam>
+    /// <typeparam name="TElement">
+    /// The element type of the projection.
+    /// </typeparam>
     /// <returns>
     /// Returns the DataLoader with the added projection.
     /// </returns>
@@ -84,9 +87,9 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
     /// Throws if the <paramref name="dataLoader"/> is <c>null</c>.
     /// </exception>
     [Experimental(Experiments.Projections)]
-    public static IPagingDataLoader<TKey, Page<TValue>> Select<TKey, TValue>(
+    public static IPagingDataLoader<TKey, Page<TValue>> Select<TElement, TKey, TValue>(
         this IPagingDataLoader<TKey, Page<TValue>> dataLoader,
-        Expression<Func<TValue, TValue>>? selector)
+        Expression<Func<TElement, TElement>>? selector)
         where TKey : notnull
     {
         if (dataLoader is null)
@@ -101,7 +104,7 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
 
         var builder = dataLoader.GetOrSetState(
             typeof(ISelectorBuilder).FullName!,
-            _ => new DefaultSelectorBuilder<TValue>());
+            _ => new DefaultSelectorBuilder());
         builder.Add(selector);
         return dataLoader;
     }
