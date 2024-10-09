@@ -69,16 +69,17 @@ internal static class ExecutionUtils
 
             if (!field.IsIntrospectionField)
             {
-                var nullable = selection.TypeKind is not TypeKind.NonNull;
+                var nullable = selectionType.IsNullableType();
+                var isSemanticNonNull = selectionType.IsSemanticNonNullType();
                 var namedType = selectionType.NamedType();
 
                 if (!data.HasValue)
                 {
                     if (!partialResult)
                     {
-                        if (!nullable)
+                        if (!nullable || isSemanticNonNull)
                         {
-                            PropagateNullValues(context.Result, selection, selectionSetResult, responseIndex);
+                            PropagateNullValues(context.Result, selection, selectionSetResult, responseIndex, isSemanticNonNull);
                             break;
                         }
 
@@ -89,9 +90,9 @@ internal static class ExecutionUtils
                 {
                     var value = data.Single.Element;
 
-                    if (value.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined && !nullable)
+                    if (value.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined && (!nullable || isSemanticNonNull))
                     {
-                        PropagateNullValues(context.Result, selection, selectionSetResult, responseIndex);
+                        PropagateNullValues(context.Result, selection, selectionSetResult, responseIndex, isSemanticNonNull);
                         break;
                     }
 
@@ -110,9 +111,9 @@ internal static class ExecutionUtils
                     // we might need to map the enum value!
                     var value = data.Single.Element;
 
-                    if (value.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined && !nullable)
+                    if (value.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined && (!nullable || isSemanticNonNull))
                     {
-                        PropagateNullValues(context.Result, selection, selectionSetResult, responseIndex);
+                        PropagateNullValues(context.Result, selection, selectionSetResult, responseIndex, isSemanticNonNull);
                         break;
                     }
 
@@ -133,9 +134,9 @@ internal static class ExecutionUtils
                             selection,
                             data);
 
-                        if (value is null && !nullable)
+                        if (value is null && (!nullable || isSemanticNonNull))
                         {
-                            PropagateNullValues(context.Result, selection, selectionSetResult, responseIndex);
+                            PropagateNullValues(context.Result, selection, selectionSetResult, responseIndex, isSemanticNonNull);
                             break;
                         }
 
@@ -154,9 +155,9 @@ internal static class ExecutionUtils
                             data,
                             selectionType);
 
-                        if (value is null && !nullable)
+                        if (value is null && (!nullable || isSemanticNonNull))
                         {
-                            PropagateNullValues(context.Result, selection, selectionSetResult, responseIndex);
+                            PropagateNullValues(context.Result, selection, selectionSetResult, responseIndex, isSemanticNonNull);
                             break;
                         }
 
@@ -206,6 +207,7 @@ internal static class ExecutionUtils
         var index = 0;
         var elementType = type.ElementType();
         var nullable = elementType.IsNullableType();
+        var isSemanticNonNull = elementType.IsSemanticNonNullType();
         var result = context.Result.RentList(json.GetArrayLength());
 
         result.IsNullable = nullable;
@@ -225,9 +227,9 @@ internal static class ExecutionUtils
                 new SelectionData(new JsonResult(schemaName, item)),
                 elementType);
 
-            if (!nullable && element is null)
+            if (element is null && (!nullable || isSemanticNonNull))
             {
-                PropagateNullValues(context.Result, selection, result, index);
+                PropagateNullValues(context.Result, selection, result, index, isSemanticNonNull);
                 return null;
             }
 
@@ -699,11 +701,17 @@ internal static class ExecutionUtils
         ResultBuilder resultBuilder,
         Selection selection,
         ResultData selectionSetResult,
-        int responseIndex)
+        int responseIndex,
+        bool isSemanticNonNull)
     {
         var path = PathHelper.CreatePathFromContext(selection, selectionSetResult, responseIndex);
+        // TODO: Use another error for semantic non-null violations.
         resultBuilder.AddNonNullViolation(selection, path);
-        ValueCompletion.PropagateNullValues(selectionSetResult);
+
+        if (!isSemanticNonNull)
+        {
+            ValueCompletion.PropagateNullValues(selectionSetResult);
+        }
     }
 
     private sealed class ErrorPathContext
