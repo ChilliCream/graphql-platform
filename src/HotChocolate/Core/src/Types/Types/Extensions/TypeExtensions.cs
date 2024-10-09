@@ -42,6 +42,29 @@ public static class TypeExtensions
     }
 
     /// <summary>
+    /// Defines if a type is semantically non-null.
+    /// </summary>
+    /// <param name="type">
+    /// The type.
+    /// </param>
+    /// <returns>
+    /// Returns <c>true</c> if the type is semantically non-null; otherwise, <c>false</c>.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="type"/> is <c>null</c>.
+    /// </exception>
+    public static bool IsSemanticNonNullType(this IType type)
+    {
+        if (type is null)
+        {
+            throw new ArgumentNullException(nameof(type));
+        }
+
+        // TODO: Properly implement
+        return type.Kind != TypeKind.NonNull;
+    }
+
+    /// <summary>
     /// Defines if a type is nullable.
     /// </summary>
     /// <param name="type">
