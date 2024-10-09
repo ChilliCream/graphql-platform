@@ -40,7 +40,9 @@ internal sealed class SelectionExpressionBuilder
         var context = new Context(parameter, rootType, requirements);
         var root = new TypeContainer();
 
-        var entityType = selection.DeclaringOperation.GetPossibleTypes(selection).FirstOrDefault(t => t.RuntimeType == typeof(TRoot));
+        var entityType = selection.DeclaringOperation
+            .GetPossibleTypes(selection)
+            .FirstOrDefault(t => t.RuntimeType == typeof(TRoot));
 
         if (entityType is null)
         {
@@ -176,7 +178,7 @@ internal sealed class SelectionExpressionBuilder
             return;
         }
 
-        if (selection.Field.Member is not PropertyInfo property)
+        if (selection.Field.Member is not PropertyInfo { CanRead: true, CanWrite: true } property)
         {
             return;
         }
