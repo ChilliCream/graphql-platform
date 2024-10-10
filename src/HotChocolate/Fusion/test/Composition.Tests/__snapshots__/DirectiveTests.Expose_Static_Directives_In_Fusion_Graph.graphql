@@ -1,21 +1,21 @@
-schema {
+schema @test {
   query: Query
   mutation: Mutation
   subscription: Subscription
 }
 
-type Query {
+type Query @test {
   enumField: TestEnum
-  objectField(input: TestInput): TestOutput
+  objectField(input: TestInput @test): TestOutput
   scalarField: Test @test
 }
 
-type Mutation {
-  mutationField: String
+type Mutation @test {
+  mutationField(input: TestInput @test): String @test
 }
 
-type Subscription {
-  subscriptionField: String
+type Subscription @test {
+  subscriptionField(input: TestInput @test): String @test
 }
 
 type TestOutput implements TestInterface @test {

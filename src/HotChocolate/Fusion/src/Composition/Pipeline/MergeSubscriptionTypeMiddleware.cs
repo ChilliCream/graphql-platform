@@ -21,6 +21,7 @@ internal sealed class MergeSubscriptionTypeMiddleware : IMergeMiddleware
             {
                 subscriptionType = context.FusionGraph.SubscriptionType = new ObjectTypeDefinition(schema.SubscriptionType.Name);
                 subscriptionType.MergeDescriptionWith(schema.SubscriptionType);
+                subscriptionType.MergeDirectivesWith(schema.SubscriptionType, context);
                 context.FusionGraph.Types.Add(subscriptionType);
             }
 
