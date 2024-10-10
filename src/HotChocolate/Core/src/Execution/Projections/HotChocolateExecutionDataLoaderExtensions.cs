@@ -200,8 +200,7 @@ public static class HotChocolateExecutionDataLoaderExtensions
         }
 
         var expression = selection.AsSelector<TValue>();
-        dataLoader.Select(expression);
-        return dataLoader;
+        return dataLoader.Select(expression);
     }
 }
 #endif

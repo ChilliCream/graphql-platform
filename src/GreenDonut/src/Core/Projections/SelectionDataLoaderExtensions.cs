@@ -59,9 +59,9 @@ public static class SelectionDataLoaderExtensions
             return dataLoader;
         }
 
-        if (dataLoader is ISelectionDataLoader<TKey, TValue>)
+        if (dataLoader.ContextData.TryGetValue(typeof(ISelectorBuilder).FullName!, out var value))
         {
-            var context = (DefaultSelectorBuilder)dataLoader.ContextData[typeof(ISelectorBuilder).FullName!]!;
+            var context = (DefaultSelectorBuilder)value!;
             context.Add(selector);
             return dataLoader;
         }
