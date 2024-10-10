@@ -23,9 +23,31 @@ public class TestSubgraphCollection(ITestOutputHelper outputHelper, TestSubgraph
         FusionFeatureCollection? features = null,
         Action<FusionGatewayBuilder>? configureBuilder = null)
     {
-        var fusionGraph = await ComposeFusionGraphAsync(features);
+        var fusionGraph = await GetFusionGraphAsync(features);
 
         return await GetExecutorAsync(fusionGraph, configureBuilder);
+    }
+
+    public async Task<Skimmed.SchemaDefinition> GetFusionGraphAsync(FusionFeatureCollection? features = null)
+    {
+        features ??= new FusionFeatureCollection(FusionFeatures.NodeField);
+
+        var configurations = GetSubgraphs()
+            .Select(s =>
+            {
+                return new SubgraphConfiguration(
+                    s.SubgraphName,
+                    s.Subgraph.Schema.ToString(),
+                    s.Subgraph.SchemaExtensions,
+                    new IClientConfiguration[]
+                    {
+                        new HttpClientConfiguration(new Uri("http://localhost:5000/graphql")),
+                    },
+                    null);
+            });
+
+        return await new FusionGraphComposer(logFactory: () => new TestCompositionLog(outputHelper))
+            .ComposeAsync(configurations, features);
     }
 
     public void Dispose()
@@ -50,28 +72,6 @@ public class TestSubgraphCollection(ITestOutputHelper outputHelper, TestSubgraph
         configureBuilder?.Invoke(builder);
 
         return await builder.BuildRequestExecutorAsync();
-    }
-
-    private async Task<Skimmed.SchemaDefinition> ComposeFusionGraphAsync(FusionFeatureCollection? features = null)
-    {
-        features ??= new FusionFeatureCollection(FusionFeatures.NodeField);
-
-        var configurations = GetSubgraphs()
-            .Select(s =>
-            {
-                return new SubgraphConfiguration(
-                    s.SubgraphName,
-                    s.Subgraph.Schema.ToString(),
-                    s.Subgraph.SchemaExtensions,
-                    new IClientConfiguration[]
-                    {
-                        new HttpClientConfiguration(new Uri("http://localhost:5000/graphql")),
-                    },
-                    null);
-            });
-
-        return await new FusionGraphComposer(logFactory: () => new TestCompositionLog(outputHelper))
-            .ComposeAsync(configurations, features);
     }
 
     private IEnumerable<(string SubgraphName, TestSubgraph Subgraph)> GetSubgraphs()
