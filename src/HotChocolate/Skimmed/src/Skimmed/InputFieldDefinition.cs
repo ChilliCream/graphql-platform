@@ -74,7 +74,7 @@ public sealed class InputFieldDefinition(string name, ITypeDefinition? type = nu
         }
     }
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IFieldDefinition.IsDeprecated" />
     public bool IsDeprecated
     {
         get => _isDeprecated;
@@ -95,7 +95,7 @@ public sealed class InputFieldDefinition(string name, ITypeDefinition? type = nu
         }
     }
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IFieldDefinition.DeprecationReason" />
     public string? DeprecationReason
     {
         get => _deprecationReason;

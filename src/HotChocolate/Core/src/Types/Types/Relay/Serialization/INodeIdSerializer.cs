@@ -48,8 +48,3 @@ public interface INodeIdSerializer
     /// </returns>
     NodeId Parse(string formattedId, Type runtimeType);
 }
-
-public interface INodeIdRuntimeTypeLookup
-{
-    Type? GetNodeIdRuntimeType(string typeName);
-}
