@@ -46,6 +46,21 @@ internal sealed class PrepareFusionSchemaMiddleware : IMergeMiddleware
                     }
                 }
             }
+
+            foreach (var directiveDefinition in schema.DirectiveDefinitions)
+            {
+                if (context.FusionGraph.DirectiveDefinitions.ContainsName(directiveDefinition.Name))
+                {
+                    continue;
+                }
+
+                context.FusionGraph.DirectiveDefinitions.Add(new DirectiveDefinition(directiveDefinition.Name)
+                {
+                    Locations = directiveDefinition.Locations,
+                    IsRepeatable = directiveDefinition.IsRepeatable,
+                    IsSpecDirective = directiveDefinition.IsSpecDirective
+                });
+            }
         }
 
         await next(context);

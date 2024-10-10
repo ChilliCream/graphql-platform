@@ -165,6 +165,14 @@ internal static class MergeExtensions
         }
     }
 
+    internal static void MergeDescriptionWith(this DirectiveDefinition target, DirectiveDefinition source)
+    {
+        if (string.IsNullOrWhiteSpace(target.Description) && !string.IsNullOrWhiteSpace(source.Description))
+        {
+            target.Description = source.Description;
+        }
+    }
+
     internal static void MergeDescriptionWith(this EnumValue target, EnumValue source)
     {
         if (string.IsNullOrWhiteSpace(target.Description) && !string.IsNullOrWhiteSpace(source.Description))

@@ -42,7 +42,7 @@ public sealed class FusionGraphComposer
             [
                 new InterfaceTypeMergeHandler(), new UnionTypeMergeHandler(),
                 new InputObjectTypeMergeHandler(), new EnumTypeMergeHandler(),
-                new ScalarTypeMergeHandler(), new DirectiveTypeMergeHandler()
+                new ScalarTypeMergeHandler()
             ],
             fusionTypePrefix,
             fusionTypeSelf,
