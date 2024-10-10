@@ -176,6 +176,17 @@ Please ensure that your clients are sending date/time strings in the correct for
 | MutationResult&lt;TResult&gt; | FieldResult&lt;TResult&gt; |
 | IMutationResult               | IFieldResult               |
 
+## IReadStoredQueries and IWriteStoredQueries now IOperationDocumentStorage
+
+`IReadStoredQueries` and `IWriteStoredQueries` have been merged into a single interface named `IOperationDocumentStorage`.
+
+Renamed interface methods:
+
+| Old name          | New name     |
+| ----------------- | ------------ |
+| TryReadQueryAsync | TryReadAsync |
+| WriteQueryAsync   | SaveAsync    |
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.
