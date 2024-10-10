@@ -40,18 +40,10 @@ public class Book
     public string Author { get; set; }
 }
 
-// Startup.cs
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddQueryType<Query>();
-    }
-
-    // Omitted code for brevity
-}
+// Program.cs
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>();
 ```
 
 </Implementation>
@@ -101,18 +93,10 @@ public class BookType : ObjectType<Book>
     }
 }
 
-// Startup.cs
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddQueryType<QueryType>();
-    }
-
-    // Omitted code for brevity
-}
+// Program.cs
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<QueryType>();
 ```
 
 </Code>
@@ -128,28 +112,20 @@ public class Query
     }
 }
 
-// Startup.cs
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddDocumentFromString(@"
-                type Query {
-                  bookById(id: Uuid): Book
-                }
+// Program.cs
+builder.Services
+    .AddGraphQLServer()
+    .AddDocumentFromString(@"
+        type Query {
+          bookById(id: Uuid): Book
+        }
 
-                type Book {
-                  title: String
-                  author: String
-                }
-            ")
-            .BindRuntimeType<Query>();
-    }
-
-    // Omitted code for brevity
-}
+        type Book {
+          title: String
+          author: String
+        }
+    ")
+    .BindRuntimeType<Query>();
 ```
 
 </Schema>

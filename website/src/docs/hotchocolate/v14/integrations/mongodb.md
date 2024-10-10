@@ -42,7 +42,7 @@ public IExecutable<Person> GetPersonById(IMongoCollection<Person> collection, Gu
 To use MongoDB filtering you need to register the convention on the schema builder:
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddQueryType<Query>()
     .AddMongoDbFiltering();
@@ -90,7 +90,7 @@ _Mongo Query_
 To use MongoDB sorting you need to register the convention on the schema builder:
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddQueryType<Query>()
     .AddMongoDbSorting();
@@ -131,7 +131,7 @@ _Mongo Query_
 To use MongoDB projections you need to register the convention on the schema builder:
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddQueryType<Query>()
     .AddMongoDbProjections();
@@ -173,7 +173,7 @@ _Mongo Query_
 In order to use pagination with MongoDB, we have to register the MongoDB specific pagination providers.
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddMongoDbPagingProviders();
 ```

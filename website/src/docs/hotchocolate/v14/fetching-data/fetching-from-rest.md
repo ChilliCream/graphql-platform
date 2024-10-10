@@ -96,19 +96,11 @@ public class Query
     }
 }
 
-// Startup.cs
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services.AddHttpClient<TodoService>();
-        services
-            .AddGraphQLServer()
-            .AddQueryType<Query>();
-    }
-
-    // Omitted code for brevity
-}
+// Program.cs
+builder.Services.AddHttpClient<TodoService>();
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>();
 ```
 
 </Implementation>
@@ -168,18 +160,10 @@ public class TodoType : ObjectType<Todo>
     }
 }
 
-// Startup.cs
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddQueryType<QueryType>();
-    }
-
-    // Omitted code for brevity
-}
+// Program.cs
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<QueryType>();
 ```
 
 </Code>
@@ -205,30 +189,22 @@ public class Query
     }
 }
 
-// Startup.cs
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddDocumentFromString(@"
-                type Query {
-                  todos: [TodoItem!]!
-                  todoById(id: Uuid): TodoItem
-                }
+// Program.cs
+builder.Services
+    .AddGraphQLServer()
+    .AddDocumentFromString(@"
+        type Query {
+          todos: [TodoItem!]!
+          todoById(id: Uuid): TodoItem
+        }
 
-                type TodoItem {
-                  id: Long
-                  name: String
-                  isCompleted: Boolean
-                }
-            ")
-            .BindRuntimeType<Query>();
-    }
-
-    // Omitted code for brevity
-}
+        type TodoItem {
+          id: Long
+          name: String
+          isCompleted: Boolean
+        }
+    ")
+    .BindRuntimeType<Query>();
 ```
 
 </Schema>

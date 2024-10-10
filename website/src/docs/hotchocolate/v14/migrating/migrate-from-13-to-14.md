@@ -51,10 +51,10 @@ This change is breaking if your consumers depend on the format of the GIDs, by f
 If you don't want to switch to the new format yet, you can register the legacy serializer, which only supports parsing and emitting the old ID format:
 
 ```csharp
-services
-  .AddGraphQLServer()
-  .AddLegacyNodeIdSerializer()
-  .AddGlobalObjectIdentification();
+builder.Services
+    .AddGraphQLServer()
+    .AddLegacyNodeIdSerializer()
+    .AddGlobalObjectIdentification();
 ```
 
 > Note: `AddLegacyNodeIdSerializer()` needs to be called before `AddGlobalObjectIdentification()`.
@@ -68,10 +68,10 @@ Therefore, you'll first want to make sure that all of your services support pars
 This can be done, by configuring the new default serializer to not yet emit the new format:
 
 ```csharp
-services
-  .AddGraphQLServer()
-  .AddDefaultNodeIdSerializer(outputNewIdFormat: false)
-  .AddGlobalObjectIdentification();
+builder.Services
+    .AddGraphQLServer()
+    .AddDefaultNodeIdSerializer(outputNewIdFormat: false)
+    .AddGlobalObjectIdentification();
 ```
 
 > Note: `AddDefaultNodeIdSerializer()` needs to be called before `AddGlobalObjectIdentification()`.
@@ -79,9 +79,9 @@ services
 Once all of your services have been updated to this, you can start emitting the new format service-by-service, by removing the `AddDefaultNodeIdSerializer()` call and switching to the new default behavior:
 
 ```csharp
-services
-  .AddGraphQLServer()
-  .AddGlobalObjectIdentification();
+builder.Services
+    .AddGraphQLServer()
+    .AddGlobalObjectIdentification();
 ```
 
 ## Node Resolver validation
@@ -91,9 +91,9 @@ We now enforce that each object type implementing the `Node` interface also defi
 You can opt out of this new behavior by setting the `EnsureAllNodesCanBeResolved` option to `false`.
 
 ```csharp
-services
-  .AddGraphQLServer()
-  .ModifyOptions(o => o.EnsureAllNodesCanBeResolved = false)
+builder.Services
+    .AddGraphQLServer()
+    .ModifyOptions(o => o.EnsureAllNodesCanBeResolved = false)
 ```
 
 ## Builder APIs
@@ -198,23 +198,23 @@ In an effort to align our configuration APIs, we're now also offering a delegate
 **Before**
 
 ```csharp
-services
-  .AddGraphQLServer()
-  .SetPagingOptions(new PagingOptions
-  {
-      MaxPageSize = 100,
-      DefaultPageSize = 25
-  });
+builder.Services
+    .AddGraphQLServer()
+    .SetPagingOptions(new PagingOptions
+    {
+        MaxPageSize = 100,
+        DefaultPageSize = 25
+    });
 ```
 
 **After**
 
 ```csharp
-services
-  .AddGraphQLServer()
-  .ModifyPagingOptions(opt =>
-  {
-      opt.MaxPageSize = 100;
-      opt.DefaultPageSize = 25;
-  });
+builder.Services
+    .AddGraphQLServer()
+    .ModifyPagingOptions(opt =>
+    {
+        opt.MaxPageSize = 100;
+        opt.DefaultPageSize = 25;
+    });
 ```

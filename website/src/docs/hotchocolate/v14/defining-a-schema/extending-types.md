@@ -43,16 +43,12 @@ public class BookExtensions
         // Omitted code for brevity
     }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddTypeExtension<BookExtensions>();
-    }
-}
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddTypeExtension<BookExtensions>();
 ```
 
 One of the most common use-cases for this would be adding new resolvers to one of our root types.
@@ -66,16 +62,12 @@ public class QueryBookResolvers
         // Omitted code for brevity
     }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddTypeExtension<QueryBookResolvers>();
-    }
-}
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddTypeExtension<QueryBookResolvers>();
 ```
 
 </Implementation>
@@ -97,16 +89,12 @@ public class BookTypeExtensions : ObjectTypeExtension<Book>
             });
     }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddTypeExtension<BookTypeExtensions>();
-    }
-}
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddTypeExtension<BookTypeExtensions>();
 ```
 
 One of the most common use-cases for this would be adding new resolvers to one of our root types.
@@ -125,16 +113,12 @@ public class QueryTypeBookResolvers : ObjectTypeExtension<Query>
             });
     }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddTypeExtension<QueryTypeBookResolvers>();
-    }
-}
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddTypeExtension<QueryTypeBookResolvers>();
 ```
 
 </Code>
@@ -158,16 +142,12 @@ We can also ignore fields of the type we are extending.
 public class BookExtensions
 {
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddTypeExtension<BookExtensions>();
-    }
-}
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddTypeExtension<BookExtensions>();
 ```
 
 </Implementation>
@@ -181,16 +161,12 @@ public class BookTypeExtensions : ObjectTypeExtension<Book>
         descriptor.Ignore(f => f.AuthorId);
     }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddTypeExtension<BookTypeExtensions>();
-    }
-}
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddTypeExtension<BookTypeExtensions>();
 ```
 
 </Code>
@@ -220,16 +196,12 @@ public class BookExtensions
         // Omitted code for brevity
     }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddTypeExtension<BookExtensions>();
-    }
-}
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddTypeExtension<BookExtensions>();
 ```
 
 </Implementation>
@@ -254,16 +226,12 @@ public class BookTypeExtensions : ObjectTypeExtension<Book>
             });
     }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddTypeExtension<BookTypeExtensions>();
-    }
-}
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddTypeExtension<BookTypeExtensions>();
 ```
 
 </Code>

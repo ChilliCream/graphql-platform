@@ -9,18 +9,12 @@ Hot Chocolate comes with a set of ASP.NET Core middleware used for making the Gr
 We can call `MapGraphQL()` on the `IEndpointRouteBuilder` to register all of the middleware a standard GraphQL server requires.
 
 ```csharp
-public class Startup
-{
-    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-    {
-        app.UseRouting();
+app.UseRouting();
 
-        app.UseEndpoints(endpoints =>
-        {
-            endpoints.MapGraphQL();
-        });
-    }
-}
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapGraphQL();
+});
 ```
 
 If you are using .NET 6 Minimal APIs, you can also call `MapGraphQL()` on the `app` builder directly, since it implements `IEndpointRouteBuilder`:
@@ -120,23 +114,17 @@ We can specify options for the Nitro using the `Tool` property.
 We could for example only enable Nitro during development.
 
 ```csharp
-public class Startup
-{
-    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-    {
-        app.UseRouting();
+app.UseRouting();
 
-        app.UseEndpoints(endpoints =>
-        {
-            endpoints.MapGraphQL().WithOptions(new GraphQLServerOptions
-            {
-                Tool = {
-                    Enable = env.IsDevelopment()
-                }
-            });
-        });
-    }
-}
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapGraphQL().WithOptions(new GraphQLServerOptions
+    {
+        Tool = {
+            Enable = env.IsDevelopment()
+        }
+    });
+});
 ```
 
 [Learn more about possible GraphQLToolOptions](#graphqltooloptions)
@@ -146,18 +134,12 @@ public class Startup
 We can call `MapNitroApp()` on the `IEndpointRouteBuilder` to serve [Nitro](/products/nitro) on a different endpoint than the actual GraphQL endpoint.
 
 ```csharp
-public class Startup
-{
-    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-    {
-        app.UseRouting();
+app.UseRouting();
 
-        app.UseEndpoints(endpoints =>
-        {
-            endpoints.MapNitroApp("/graphql/ui");
-        });
-    }
-}
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapNitroApp("/graphql/ui");
+});
 ```
 
 This would make Nitro accessible via a Web Browser at the `/graphql/ui` endpoint.
@@ -296,18 +278,12 @@ The following information is collected:
 We can call `MapGraphQLHttp()` on the `IEndpointRouteBuilder` to make our GraphQL server available via HTTP at a specific endpoint.
 
 ```csharp
-public class Startup
-{
-    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-    {
-        app.UseRouting();
+app.UseRouting();
 
-        app.UseEndpoints(endpoints =>
-        {
-            endpoints.MapGraphQLHttp("/graphql/http");
-        });
-    }
-}
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapGraphQLHttp("/graphql/http");
+});
 ```
 
 With the above configuration we could now issue HTTP GET / POST requests against the `/graphql/http` endpoint.
@@ -332,18 +308,12 @@ The `GraphQLHttpOptions` are the same as the `GraphQLServerOptions` except that 
 We can call `MapGraphQLWebSocket()` on the `IEndpointRouteBuilder` to make our GraphQL server available via WebSockets at a specific endpoint.
 
 ```csharp
-public class Startup
-{
-    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-    {
-        app.UseRouting();
+app.UseRouting();
 
-        app.UseEndpoints(endpoints =>
-        {
-            endpoints.MapGraphQLWebSocket("/graphql/ws");
-        });
-    }
-}
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapGraphQLWebSocket("/graphql/ws");
+});
 ```
 
 With the above configuration we could now issue GraphQL subscription requests via WebSocket against the `/graphql/ws` endpoint.
@@ -353,18 +323,12 @@ With the above configuration we could now issue GraphQL subscription requests vi
 We can call `MapGraphQLSchema()` on the `IEndpointRouteBuilder` to make our GraphQL schema available at a specific endpoint.
 
 ```csharp
-public class Startup
-{
-    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-    {
-        app.UseRouting();
+app.UseRouting();
 
-        app.UseEndpoints(endpoints =>
-        {
-            endpoints.MapGraphQLSchema("/graphql/schema");
-        });
-    }
-}
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapGraphQLSchema("/graphql/schema");
+});
 ```
 
 With the above configuration we could now download our `schema.graphql` file from the `/graphql/schema` endpoint.

@@ -76,18 +76,12 @@ public class Subscription
     [Subscribe]
     public Book BookAdded([EventMessage] Book book) => book;
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddSubscriptionType<Subscription>();
-    }
-
-    // Omitted code for brevity
-}
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddSubscriptionType<Subscription>();
 ```
 
 </Implementation>
@@ -113,18 +107,12 @@ public class SubscriptionType : ObjectType
             });
     }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddSubscriptionType<SubscriptionType>();
-    }
-
-    // Omitted code for brevity
-}
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddSubscriptionType<SubscriptionType>();
 ```
 
 </Code>
@@ -136,28 +124,22 @@ public class Subscription
     [Subscribe]
     public Book BookAdded([EventMessage] Book book) => book;
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddDocumentFromString(@"
-                type Subscription {
-                  bookAdded: Book!
-                }
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddDocumentFromString(@"
+        type Subscription {
+          bookAdded: Book!
+        }
 
-                type Book {
-                  title: String
-                  author: String
-                }
-            ")
-            .BindRuntimeType<Subscription>();
-    }
-
-    // Omitted code for brevity
-}
+        type Book {
+          title: String
+          author: String
+        }
+    ")
+    .BindRuntimeType<Subscription>();
 ```
 
 </Schema>
@@ -176,22 +158,14 @@ A subscription type is just a regular object type, so everything that applies to
 After defining the subscription type, we need to add the WebSockets middleware to our request pipeline.
 
 ```csharp
-public class Startup
+app.UseRouting();
+
+app.UseWebSockets();
+
+app.UseEndpoints(endpoints =>
 {
-    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-    {
-        app.UseRouting();
-
-        app.UseWebSockets();
-
-        app.UseEndpoints(endpoints =>
-        {
-            endpoints.MapGraphQL();
-        });
-    }
-
-    // Omitted code for brevity
-}
+    endpoints.MapGraphQL();
+});
 ```
 
 To make pub/sub work, we also have to register a subscription provider. A subscription provider represents a pub/sub implementation used to handle events. Out of the box we support two subscription providers.
@@ -201,7 +175,7 @@ To make pub/sub work, we also have to register a subscription provider. A subscr
 The In-Memory subscription provider does not need any configuration and is easily setup.
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddInMemorySubscriptions();
 ```
@@ -217,7 +191,7 @@ In order to use the Redis provider we have to add the `HotChocolate.Subscription
 After we have added the package we can setup the Redis subscription provider.
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddRedisSubscriptions((sp) => ConnectionMultiplexer.Connect("host:port"));
 ```
@@ -237,11 +211,11 @@ dotnet add package HotChocolate.Subscriptions.Postgres
 To enable Postgres subscriptions with your HotChocolate server, add `AddPostgresSubscriptions` to your GraphQL server configuration:
 
 ```csharp
-services
-  .AddGraphQLServer()
-  .AddQueryType<Query>() // every GraphQL server needs a query
-  .AddSubscriptionType<Subscriptions>()
-  .AddPostgresSubscriptions((sp, options) => options.ConnectionFactory = ct => /*create you connection*/);
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>() // every GraphQL server needs a query
+    .AddSubscriptionType<Subscriptions>()
+    .AddPostgresSubscriptions((sp, options) => options.ConnectionFactory = ct => /*create you connection*/);
 ```
 
 ### Options
