@@ -49,6 +49,11 @@ internal sealed class PrepareFusionSchemaMiddleware : IMergeMiddleware
 
             foreach (var directiveDefinition in schema.DirectiveDefinitions)
             {
+                if (context.FusionTypes.IsFusionDirective(directiveDefinition.Name))
+                {
+                    continue;
+                }
+
                 if (context.FusionGraph.DirectiveDefinitions.ContainsName(directiveDefinition.Name))
                 {
                     continue;

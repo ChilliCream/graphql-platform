@@ -34,10 +34,9 @@ file static class MergeEntitiesMiddlewareExtensions
     {
         context.TryApplySource(source.Type, source.Schema, target);
 
-        if (string.IsNullOrEmpty(target.Description))
-        {
-            target.Description = source.Type.Description;
-        }
+        target.MergeDescriptionWith(source.Type);
+
+        target.MergeDirectivesWith(source.Type, context);
 
         foreach (var interfaceType in source.Type.Implements)
         {

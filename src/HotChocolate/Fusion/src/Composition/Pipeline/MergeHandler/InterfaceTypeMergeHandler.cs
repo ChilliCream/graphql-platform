@@ -47,6 +47,8 @@ internal sealed class InterfaceTypeMergeHandler : ITypeMergeHandler
         // If the target type does not have a description, use the source type's description.
         target.MergeDescriptionWith(source);
 
+        target.MergeDirectivesWith(source, context);
+
         // Add all of the interfaces that the source type implements to the target type.
         foreach (var interfaceType in source.Implements)
         {

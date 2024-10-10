@@ -45,6 +45,27 @@ internal sealed class MergeTypeMiddleware : IMergeMiddleware
             }
         }
 
+        foreach (var (directiveName, directiveDefinitions) in groupedDirectives)
+        {
+            if (context.FusionTypes.IsFusionDirective(directiveName))
+            {
+                continue;
+            }
+
+            var target = context.FusionGraph.DirectiveDefinitions[directiveName];
+
+            foreach (var directiveDefinition in directiveDefinitions)
+            {
+                var source = directiveDefinition;
+
+                // TODO: Merge arguments
+                // TODO: Remove executable locations
+                // TODO: Check IsRepeatable is the same
+
+                target.MergeDescriptionWith(source);
+            }
+        }
+
         foreach (var types in groupedTypes)
         {
             var typeGroup = new TypeGroup(types.Key, types.Value);
@@ -74,22 +95,6 @@ internal sealed class MergeTypeMiddleware : IMergeMiddleware
             if (status is MergeStatus.Skipped)
             {
                 context.Log.Write(LogEntryHelper.UnableToMergeType(typeGroup));
-            }
-        }
-
-        foreach (var (directiveName, directiveDefinitions) in groupedDirectives)
-        {
-            var target = context.FusionGraph.DirectiveDefinitions[directiveName];
-
-            foreach (var directiveDefinition in directiveDefinitions)
-            {
-                var source = directiveDefinition;
-
-                // TODO: Merge arguments
-                // TODO: Remove executable locations
-                // TODO: Check IsRepeatable is the same
-
-                target.MergeDescriptionWith(source);
             }
         }
 

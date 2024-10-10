@@ -20,6 +20,7 @@ internal static class InputObjectMergeExtensions
         var target = new InputFieldDefinition(source.Name, targetFieldType);
         target.MergeDescriptionWith(source);
         target.MergeDeprecationWith(source);
+        target.MergeDirectivesWith(source, context);
         target.DefaultValue = source.DefaultValue;
         return target;
     }
@@ -55,5 +56,6 @@ internal static class InputObjectMergeExtensions
 
         target.MergeDescriptionWith(source);
         target.MergeDeprecationWith(source);
+        target.MergeDirectivesWith(source, context);
     }
 }

@@ -1,37 +1,42 @@
-schema
-  @fusion(version: 1)
-  @transport(subgraph: "Subgraph_1", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP") {
+schema {
   query: Query
+  mutation: Mutation
+  subscription: Subscription
 }
 
 type Query {
   enumField: TestEnum
-    @resolver(subgraph: "Subgraph_1", select: "{ enumField }")
   objectField(input: TestInput): TestOutput
-    @variable(subgraph: "Subgraph_1", name: "input", argument: "input")
-    @resolver(subgraph: "Subgraph_1", select: "{ objectField(input: $input) }", arguments: [ { name: "input", type: "TestInput" } ])
-  scalarField: Test
-    @resolver(subgraph: "Subgraph_1", select: "{ scalarField }")
+  scalarField: Test @test
 }
 
-type TestOutput implements TestInterface {
-  field: Int
-    @source(subgraph: "Subgraph_1")
+type Mutation {
+  mutationField: String
 }
 
-interface TestInterface {
-  field: Int
+type Subscription {
+  subscriptionField: String
 }
 
-union TestUnion = TestOutput
-
-input TestInput {
-  inputField: Int
+type TestOutput implements TestInterface @test {
+  field: Int @test
 }
 
-enum TestEnum {
-  ENUM_VALUE
-    @source(subgraph: "Subgraph_1")
+interface TestInterface @test {
+  field: Int @test
 }
 
-scalar Test
+union TestUnion @test = TestOutput
+
+input TestInput @test {
+  inputField: Int @test
+}
+
+enum TestEnum @test {
+  ENUM_VALUE @test
+}
+
+scalar Test @test
+
+"A test directive"
+directive @test repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
