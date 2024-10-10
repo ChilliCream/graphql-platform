@@ -86,6 +86,16 @@ internal static class LogEntryHelper
             coordinate: coordinate,
             member: field);
 
+    public static LogEntry DirectiveDefinitionArgumentMismatch(
+        SchemaCoordinate coordinate,
+        DirectiveDefinition directiveDefinition)
+        => new LogEntry(
+            LogEntryHelper_DirectiveDefinitionArgumentMismatch,
+            code: LogEntryCodes.DirectiveDefinitionArgumentMismatch,
+            severity: LogSeverity.Error,
+            coordinate: coordinate,
+            member: directiveDefinition);
+
     public static LogEntry OutputFieldArgumentSetMismatch(
         SchemaCoordinate coordinate,
         OutputFieldDefinition field,
@@ -193,5 +203,8 @@ static file class LogEntryCodes
     public const string FieldDependencyCannotBeResolved = "HF0008";
 
     public const string TypeNotDeclared = "HF0009";
+
     public const string RootNameMismatch = "HF0010";
+
+    public const string DirectiveDefinitionArgumentMismatch = "HF0011";
 }

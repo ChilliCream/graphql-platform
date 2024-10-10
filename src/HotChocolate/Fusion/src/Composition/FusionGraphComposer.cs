@@ -68,6 +68,7 @@ public sealed class FusionGraphComposer
                 .Use<MergeEntityMiddleware>()
                 .Use<EntityFieldDependencyMiddleware>()
                 .Use(() => new MergeTypeMiddleware(mergeHandlers))
+                .Use<RemoveDirectivesWithoutLocationMiddleware>()
                 .Use<MergeQueryAndMutationTypeMiddleware>()
                 .Use<MergeSchemaDefinitionMiddleware>()
                 .Use<MergeSubscriptionTypeMiddleware>()

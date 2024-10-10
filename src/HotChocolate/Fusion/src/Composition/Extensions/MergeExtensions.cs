@@ -172,7 +172,7 @@ internal static class MergeExtensions
     {
         foreach (var directive in source.Directives)
         {
-            if (!target.Directives.Contains(directive))
+            if (!target.Directives.ContainsName(directive.Name))
             {
                 target.Directives.Add(directive);
             }
