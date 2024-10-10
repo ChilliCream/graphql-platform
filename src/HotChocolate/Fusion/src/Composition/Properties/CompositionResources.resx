@@ -72,4 +72,7 @@ Source Arguments: {2}</value>
   <data name="LogEntryHelper_RootTypeNameMismatch" xml:space="preserve">
     <value>The {0} type name `{1}` does not match to the {0} type name `{2}` on subgraph `{3}`. Make sure that the root type names on the various subgraph match.</value>
   </data>
+  <data name="LogEntryHelper_DirectiveDefinitionArgumentMismatch" xml:space="preserve">
+    <value>The number of arguments in a directive definition does not match the number of arguments in the same directive definition in another subgraph schema.</value>
+  </data>
 </root>

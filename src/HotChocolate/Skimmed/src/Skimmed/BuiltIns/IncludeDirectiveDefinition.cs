@@ -5,7 +5,7 @@ public sealed class IncludeDirectiveDefinition : DirectiveDefinition
     internal IncludeDirectiveDefinition(BooleanTypeDefinition booleanType)
         : base(BuiltIns.Include.Name)
     {
-        IsSpecScalar = true;
+        IsSpecDirective = true;
         Arguments.Add(new InputFieldDefinition(BuiltIns.Include.If, booleanType));
     }
 

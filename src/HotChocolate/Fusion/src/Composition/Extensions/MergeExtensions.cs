@@ -165,6 +165,37 @@ internal static class MergeExtensions
         }
     }
 
+    internal static void MergeDirectivesWith(
+        this IDirectivesProvider target,
+        IDirectivesProvider source,
+        CompositionContext context)
+    {
+        foreach (var directive in source.Directives)
+        {
+            if (!target.Directives.ContainsName(directive.Name))
+            {
+                target.Directives.Add(directive);
+            }
+            else
+            {
+                var directiveDefinition = context.FusionGraph.DirectiveDefinitions[directive.Name];
+
+                if (directiveDefinition.IsRepeatable)
+                {
+                    target.Directives.Add(directive);
+                }
+            }
+        }
+    }
+
+    internal static void MergeDescriptionWith(this DirectiveDefinition target, DirectiveDefinition source)
+    {
+        if (string.IsNullOrWhiteSpace(target.Description) && !string.IsNullOrWhiteSpace(source.Description))
+        {
+            target.Description = source.Description;
+        }
+    }
+
     internal static void MergeDescriptionWith(this EnumValue target, EnumValue source)
     {
         if (string.IsNullOrWhiteSpace(target.Description) && !string.IsNullOrWhiteSpace(source.Description))
