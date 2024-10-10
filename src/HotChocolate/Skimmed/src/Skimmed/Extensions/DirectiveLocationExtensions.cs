@@ -37,6 +37,10 @@ internal static class DirectiveLocationExtensions
                Language.DirectiveLocation.InlineFragment
            },
            {
+               DirectiveLocation.VariableDefinition,
+               Language.DirectiveLocation.VariableDefinition
+           },
+           {
                DirectiveLocation.Schema,
                Language.DirectiveLocation.Schema
            },
@@ -112,6 +116,10 @@ internal static class DirectiveLocationExtensions
             {
                 Language.DirectiveLocation.InlineFragment,
                 DirectiveLocation.InlineFragment
+            },
+            {
+                Language.DirectiveLocation.VariableDefinition,
+                DirectiveLocation.VariableDefinition
             },
             {
                 Language.DirectiveLocation.Schema,
