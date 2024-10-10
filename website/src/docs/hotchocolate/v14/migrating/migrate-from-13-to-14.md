@@ -141,6 +141,13 @@ Please ensure that your clients are sending date/time strings in the correct for
 | -------------- | ------------------- | ---------------------- |
 | cacheDirectory | "persisted_queries" | "persisted_operations" |
 
+## MutationResult renamed to FieldResult
+
+| Old name                      | New name                   |
+| ----------------------------- | -------------------------- |
+| MutationResult&lt;TResult&gt; | FieldResult&lt;TResult&gt; |
+| IMutationResult               | IFieldResult               |
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.
