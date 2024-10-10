@@ -1,3 +1,4 @@
+using HotChocolate.Skimmed;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
@@ -19,6 +20,7 @@ internal sealed class MergeTypeMiddleware : IMergeMiddleware
     public async ValueTask InvokeAsync(CompositionContext context, MergeDelegate next)
     {
         var groupedTypes = new Dictionary<string, List<TypePart>>();
+        var groupedDirectives = new Dictionary<string, List<DirectiveDefinition>>();
 
         foreach (var schema in context.Subgraphs)
         {
@@ -30,6 +32,16 @@ internal sealed class MergeTypeMiddleware : IMergeMiddleware
                     groupedTypes.Add(type.Name, types);
                 }
                 types.Add(new TypePart(type, schema));
+            }
+
+            foreach (var directiveDefinition in schema.DirectiveDefinitions)
+            {
+                if (!groupedDirectives.TryGetValue(directiveDefinition.Name, out var directiveDefinitions))
+                {
+                    directiveDefinitions = [];
+                    groupedDirectives.Add(directiveDefinition.Name, directiveDefinitions);
+                }
+                directiveDefinitions.Add(directiveDefinition);
             }
         }
 
@@ -62,6 +74,22 @@ internal sealed class MergeTypeMiddleware : IMergeMiddleware
             if (status is MergeStatus.Skipped)
             {
                 context.Log.Write(LogEntryHelper.UnableToMergeType(typeGroup));
+            }
+        }
+
+        foreach (var (directiveName, directiveDefinitions) in groupedDirectives)
+        {
+            var target = context.FusionGraph.DirectiveDefinitions[directiveName];
+
+            foreach (var directiveDefinition in directiveDefinitions)
+            {
+                var source = directiveDefinition;
+
+                // TODO: Merge arguments
+                // TODO: Remove executable locations
+                // TODO: Check IsRepeatable is the same
+
+                target.MergeDescriptionWith(source);
             }
         }
 

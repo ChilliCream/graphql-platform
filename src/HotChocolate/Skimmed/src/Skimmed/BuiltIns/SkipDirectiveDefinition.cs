@@ -5,7 +5,7 @@ public sealed class SkipDirectiveDefinition : DirectiveDefinition
     internal SkipDirectiveDefinition(BooleanTypeDefinition booleanType)
         : base(BuiltIns.Skip.Name)
     {
-        IsSpecScalar = true;
+        IsSpecDirective = true;
         Arguments.Add(new InputFieldDefinition(BuiltIns.Skip.If, booleanType));
     }
 

@@ -48,6 +48,7 @@ public class DirectiveTests(ITestOutputHelper output)
 
                                        scalar Test @test
 
+                                       "A test directive"
                                        directive @test repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
                                        """)
                 .AddType(new AnyType("Test"))
