@@ -13,6 +13,7 @@ public sealed class FusionTypes
 {
     private readonly SchemaDefinition _fusionGraph;
     private readonly bool _prefixSelf;
+    private readonly FusionTypeNames _fusionTypeNames;
 
     public FusionTypes(SchemaDefinition fusionGraph, string? prefix = null, bool prefixSelf = false)
     {
@@ -22,6 +23,7 @@ public sealed class FusionTypes
         }
 
         var names = FusionTypeNames.Create(prefix, prefixSelf);
+        _fusionTypeNames = names;
         _fusionGraph = fusionGraph;
         _prefixSelf = prefixSelf;
 
@@ -119,6 +121,8 @@ public sealed class FusionTypes
     public DirectiveDefinition Transport { get; }
 
     public DirectiveDefinition Fusion { get; }
+
+    public bool IsFusionDirective(string directiveName) => _fusionTypeNames.IsFusionDirective(directiveName);
 
     private ScalarTypeDefinition RegisterScalarType(string name)
     {

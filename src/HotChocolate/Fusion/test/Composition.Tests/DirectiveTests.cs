@@ -1,5 +1,7 @@
 using CookieCrumble;
+using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Shared;
+using HotChocolate.Language;
 using HotChocolate.Skimmed.Serialization;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,12 +22,22 @@ public class DirectiveTests(ITestOutputHelper output)
                 .AddDocumentFromString("""
                                        schema @test {
                                          query: Query
+                                         mutation: Mutation
+                                         subscription: Subscription
                                        }
 
-                                       type Query {
+                                       type Query @test {
                                          scalarField: Test @test
                                          enumField: TestEnum
                                          objectField(input: TestInput @test): TestOutput
+                                       }
+
+                                       type Mutation {
+                                         mutationField: String
+                                       }
+
+                                       type Subscription {
+                                         subscriptionField: String
                                        }
 
                                        input TestInput @test {
@@ -33,11 +45,11 @@ public class DirectiveTests(ITestOutputHelper output)
                                        }
 
                                        type TestOutput implements TestInterface @test {
-                                         field: Int
+                                         field: Int @test
                                        }
 
                                        interface TestInterface @test {
-                                         field: Int
+                                         field: Int @test
                                        }
 
                                        enum TestEnum @test {
@@ -57,8 +69,11 @@ public class DirectiveTests(ITestOutputHelper output)
         using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
         var fusionGraph = await subgraphs.GetFusionGraphAsync();
 
-        SchemaFormatter
-            .FormatAsString(fusionGraph)
-            .MatchSnapshot(extension: ".graphql");
+        var fusionGraphDoc = Utf8GraphQLParser.Parse(SchemaFormatter.FormatAsString(fusionGraph));
+        var typeNames = FusionTypeNames.From(fusionGraphDoc);
+        var rewriter = new FusionGraphConfigurationToSchemaRewriter();
+        var schemaDoc = (DocumentNode)rewriter.Rewrite(fusionGraphDoc, new(typeNames))!;
+
+        schemaDoc.MatchSnapshot(extension: ".graphql");
     }
 }
