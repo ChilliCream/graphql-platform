@@ -69,6 +69,7 @@ public sealed class FusionGraphComposer
                 .Use<EntityFieldDependencyMiddleware>()
                 .Use(() => new MergeTypeMiddleware(mergeHandlers))
                 .Use<MergeQueryAndMutationTypeMiddleware>()
+                .Use<MergeSchemaDefinitionMiddleware>()
                 .Use<MergeSubscriptionTypeMiddleware>()
                 .Use<NodeMiddleware>()
                 .Use<ApplyTagDirectiveMiddleware>()

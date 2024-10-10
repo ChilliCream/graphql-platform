@@ -34,6 +34,7 @@ internal static class ComplexTypeMergeExtensions
             targetArgument.Type = sourceArgument.Type.ReplaceNameType(n => targetSchema.Types[n]);
 
             targetArgument.MergeDeprecationWith(sourceArgument);
+            targetArgument.MergeDirectivesWith(sourceArgument, context);
 
             target.Arguments.Add(targetArgument);
         }

@@ -32,12 +32,12 @@ public class DirectiveTests(ITestOutputHelper output)
                                          objectField(input: TestInput @test): TestOutput
                                        }
 
-                                       type Mutation {
-                                         mutationField: String
+                                       type Mutation @test {
+                                         mutationField(input: TestInput @test): String @test
                                        }
 
-                                       type Subscription {
-                                         subscriptionField: String
+                                       type Subscription @test {
+                                         subscriptionField(input: TestInput @test): String @test
                                        }
 
                                        input TestInput @test {
