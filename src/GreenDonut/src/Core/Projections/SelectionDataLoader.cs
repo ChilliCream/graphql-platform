@@ -14,6 +14,7 @@ internal sealed class SelectionDataLoader<TKey, TValue>
     {
         _root = root;
         CacheKeyType = $"{root.CacheKeyType}:{selectionKey}";
+        ContextData = root.ContextData;
     }
 
     public IDataLoader<TKey, TValue> Root => _root;
@@ -22,7 +23,7 @@ internal sealed class SelectionDataLoader<TKey, TValue>
 
     protected override bool AllowCachePropagation => false;
 
-    protected override bool AllowBranching => false;
+    protected override bool AllowBranching => true;
 
     protected internal override ValueTask FetchAsync(
         IReadOnlyList<TKey> keys,
