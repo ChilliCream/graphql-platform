@@ -172,6 +172,11 @@ internal static class CostAnalyzerUtilities
             {
                 if (listSizeDirective.SlicingArguments.Contains(argumentNode.Name.Value))
                 {
+                    if(argumentNode.Value.Kind == SyntaxKind.NullValue)
+                    {
+                        continue;
+                    }
+
                     argumentCount++;
 
                     if(argumentNode.Value.Kind == SyntaxKind.Variable)
