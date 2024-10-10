@@ -140,15 +140,9 @@ Since there could be multiple enum types inheriting from `EnumType<UserRole>`, b
 We can either [explicitly specify the type on a per-resolver basis](/docs/hotchocolate/v14/defining-a-schema/object-types#explicit-types) or we can register the type once globally:
 
 ```csharp
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddType<UserRoleType>();
-    }
-}
+builder.Services
+    .AddGraphQLServer()
+    .AddType<UserRoleType>();
 ```
 
 With this configuration each `UserRole` CLR type we return from our resolvers would be assumed to be a `UserRoleType`.
@@ -157,7 +151,7 @@ With this configuration each `UserRole` CLR type we return from our resolvers wo
 <Schema>
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddDocumentFromString(@"
         type Query {
@@ -230,7 +224,7 @@ In the code-first approach we can also enable explicit binding, where we have to
 We can configure our preferred binding behavior globally like the following.
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .ModifyOptions(options =>
     {

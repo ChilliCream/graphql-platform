@@ -37,9 +37,10 @@ Filtering is part of the `HotChocolate.Data` package.
 To use projections with your GraphQL endpoint you have to register projections on the schema:
 
 ```csharp
-services.AddGraphQLServer()
-  // Your schema configuration
-  .AddProjections();
+builder.Services
+    .AddGraphQLServer()
+    // Your schema configuration
+    .AddProjections();
 ```
 
 Projections can be registered on a field. A middleware will apply the selected fields on the result.

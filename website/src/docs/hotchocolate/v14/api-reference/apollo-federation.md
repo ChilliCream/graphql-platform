@@ -19,9 +19,8 @@ To use the Apollo Federation tools, you need to first install v12.6 or later of 
 After installing the necessary package, you'll need to register the Apollo Federation services with the GraphQL server.
 
 ```csharp
-IServiceCollection services;
-
-services.AddGraphQLServer()
+builder.Services
+    .AddGraphQLServer()
     .AddApolloFederation();
 ```
 
@@ -295,7 +294,8 @@ _Entity type registration_
 <Implementation>
 
 ```csharp
-services.AddGraphQLServer()
+builder.Services
+    .AddGraphQLServer()
     .AddApolloFederation()
     .AddType<Product>()
     // other registrations...
@@ -307,7 +307,8 @@ services.AddGraphQLServer()
 <Code>
 
 ```csharp
-services.AddGraphQLServer()
+builder.Services
+    .AddGraphQLServer()
     .AddApolloFederation()
     .AddType<ProductType>()
     // other registrations...
@@ -392,8 +393,9 @@ public class Product
     public string Id { get; set; }
 }
 
-// In your Startup or Program
-services.AddGraphQLServer()
+// In your Program
+builder.Services
+    .AddGraphQLServer()
     .AddApolloFederation()
     .AddType<Product>();
 ```
@@ -419,8 +421,9 @@ public class ProductType : ObjectType<Product>
     }
 }
 
-// In your Startup or Program
-services.AddGraphQLServer()
+// In your Program
+builder.Services
+    .AddGraphQLServer()
     .AddApolloFederation()
     .AddType<ProductType>();
 ```
@@ -462,8 +465,9 @@ public class Review
     }
 }
 
-// In your Startup or Program
-services.AddGraphQLServer()
+// In your Program
+builder.Services
+    .AddGraphQLServer()
     .AddApolloFederation()
     .AddType<Product>()
     .AddType<Review>();
@@ -501,8 +505,9 @@ public class ReviewType : ObjectType<Review>
     }
 }
 
-// In your Startup or Program
-services.AddGraphQLServer()
+// In your Program
+builder.Services
+    .AddGraphQLServer()
     .AddApolloFederation()
     .AddType<ProductType>()
     .AddType<ReviewType>();

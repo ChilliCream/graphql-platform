@@ -80,17 +80,13 @@ public class Query
         // Omitted code for brevity
     }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddQueryType<Query>()
-            .AddType<TextMessage>();
-    }
-}
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>()
+    .AddType<TextMessage>();
 ```
 
 We can also use classes to define an interface.
@@ -108,17 +104,13 @@ public class TextMessage : Message
 {
     public string Content { get; set; }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            // ...
-            .AddType<TextMessage>();
-    }
-}
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    // ...
+    .AddType<TextMessage>();
 ```
 
 </Implementation>
@@ -178,17 +170,13 @@ public class QueryType : ObjectType<Query>
             .Field(f => f.GetMessages(default));
     }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddQueryType<QueryType>()
-            .AddType<TextMessageType>();
-    }
-}
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<QueryType>()
+    .AddType<TextMessageType>();
 ```
 
 </Code>
@@ -210,36 +198,32 @@ public class TextMessage : IMessage
 
     public string Content { get; set; }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddDocumentFromString(@"
+        type Query {
+          messages: [Message]
+        }
+
+        interface Message {
+          author: User!
+          createdAt: DateTime!
+        }
+
+        type TextMessage implements Message {
+          author: User!
+          createdAt: DateTime!
+          content: String!
+        }
+    ")
+    .BindRuntimeType<TextMessage>()
+    .AddResolver("Query", "messages", (context) =>
     {
-        services
-            .AddGraphQLServer()
-            .AddDocumentFromString(@"
-                type Query {
-                  messages: [Message]
-                }
-
-                interface Message {
-                  author: User!
-                  createdAt: DateTime!
-                }
-
-                type TextMessage implements Message {
-                  author: User!
-                  createdAt: DateTime!
-                  content: String!
-                }
-            ")
-            .BindRuntimeType<TextMessage>()
-            .AddResolver("Query", "messages", (context) =>
-            {
-                // Omitted code for brevity
-            });
-    }
-}
+        // Omitted code for brevity
+    });
 ```
 
 </Schema>
@@ -262,7 +246,7 @@ In the code-first approach we can also enable explicit binding, where we have to
 We can configure our preferred binding behavior globally like the following.
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .ModifyOptions(options =>
     {
@@ -469,18 +453,14 @@ public class Query
         // Omitted code for brevity
     }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddQueryType<Query>()
-            .AddType<IDatedMessage>()
-            .AddType<TextMessage>();
-    }
-}
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>()
+    .AddType<IDatedMessage>()
+    .AddType<TextMessage>();
 ```
 
 </Implementation>
@@ -554,18 +534,14 @@ public class QueryType : ObjectType<Query>
             .Field(f => f.GetMessages(default));
     }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddQueryType<QueryType>()
-            .AddType<DatedMessageType>()
-            .AddType<TextMessageType>();
-    }
-}
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<QueryType>()
+    .AddType<DatedMessageType>()
+    .AddType<TextMessageType>();
 ```
 
 </Code>
@@ -590,40 +566,36 @@ public class TextMessage : IDatedMessage
 
     public string Content { get; set; }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddDocumentFromString(@"
+        type Query {
+          messages: [Message]
+        }
+
+        interface Message {
+          author: User
+        }
+
+        interface DatedMessage implements Message {
+          createdAt: DateTime!
+          author: User
+        }
+
+        type TextMessage implements DatedMessage & Message {
+          author: User
+          createdAt: DateTime!
+          content: String
+        }
+    ")
+    .BindRuntimeType<TextMessage>()
+    .AddResolver("Query", "messages", (context) =>
     {
-        services
-            .AddGraphQLServer()
-            .AddDocumentFromString(@"
-                type Query {
-                  messages: [Message]
-                }
-
-                interface Message {
-                  author: User
-                }
-
-                interface DatedMessage implements Message {
-                  createdAt: DateTime!
-                  author: User
-                }
-
-                type TextMessage implements DatedMessage & Message {
-                  author: User
-                  createdAt: DateTime!
-                  content: String
-                }
-            ")
-            .BindRuntimeType<TextMessage>()
-            .AddResolver("Query", "messages", (context) =>
-            {
-                // Omitted code for brevity
-            });
-    }
-}
+        // Omitted code for brevity
+    });
 ```
 
 </Schema>

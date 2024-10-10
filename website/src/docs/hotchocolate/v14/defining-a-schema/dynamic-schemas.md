@@ -172,7 +172,8 @@ Finally, we create the `ObjectType` and register it:
 
 ```csharp
 var productType = ObjectType.CreateUnsafe(objectTypeDefinition);
-services.AddGraphQLServer()
+builder.Services
+    .AddGraphQLServer()
     .AddQueryType()
     ... // other configuration
     .AddType(productType);
@@ -271,7 +272,8 @@ inputObjectTypeDefinition.Fields.Add(nameFieldDefinition);
 inputObjectTypeDefinition.Fields.Add(priceFieldDefinition);
 
 var productInputType = InputObjectType.CreateUnsafe(inputObjectTypeDefinition);
-services.AddGraphQLServer()
+builder.Services
+    .AddGraphQLServer()
     .AddQueryType()
     ... // other configuration
     .AddType(productInputType);
@@ -316,7 +318,8 @@ var mutationTypeDefinition = new ObjectTypeDefinition("Mutation")
 mutationTypeDefinition.Fields.Add(createProductMutationFieldDefinition);
 
 var mutationType = ObjectType.CreateUnsafe(mutationTypeDefinition);
-services.AddGraphQLServer()
+builder.Services
+    .AddGraphQLServer()
     .AddQueryType()
     .AddMutationType(mutationType)
     ... // other configuration

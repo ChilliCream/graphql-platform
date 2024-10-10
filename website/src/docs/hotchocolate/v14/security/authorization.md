@@ -21,20 +21,14 @@ After we have successfully setup authentication, there are only a few things lef
 2. Register the necessary ASP.NET Core services
 
 ```csharp
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services.AddAuthorization();
+builder.Services.AddAuthorization();
 
-        // Omitted code for brevity
+// Omitted code for brevity
 
-        services
-            .AddGraphQLServer()
-            .AddAuthorization()
-            .AddQueryType<Query>();
-    }
-}
+builder.Services
+    .AddGraphQLServer()
+    .AddAuthorization()
+    .AddQueryType<Query>();
 ```
 
 > Warning: We need to call `AddAuthorization()` on the `IServiceCollection`, to register the services needed by ASP.NET Core, and on the `IRequestExecutorBuilder` to register the `@authorize` directive and middleware.
@@ -42,21 +36,15 @@ public class Startup
 3. Register the ASP.NET Core authorization middleware with the request pipeline by calling `UseAuthorization`
 
 ```csharp
-public class Startup
+app.UseRouting();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.UseEndpoints(endpoints =>
 {
-    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-    {
-        app.UseRouting();
-
-        app.UseAuthentication();
-        app.UseAuthorization();
-
-        app.UseEndpoints(endpoints =>
-        {
-            endpoints.MapGraphQL();
-        });
-    }
-}
+    endpoints.MapGraphQL();
+});
 ```
 
 # Usage
@@ -205,30 +193,24 @@ A policy consists of an [IAuthorizationRequirement](https://docs.microsoft.com/a
 Once defined, we can register our policies like the following.
 
 ```csharp
-public class Startup
+builder.Services.AddAuthorization(options =>
 {
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services.AddAuthorization(options =>
-        {
-            options.AddPolicy("AtLeast21", policy =>
-                policy.Requirements.Add(new MinimumAgeRequirement(21)));
+    options.AddPolicy("AtLeast21", policy =>
+        policy.Requirements.Add(new MinimumAgeRequirement(21)));
 
-            options.AddPolicy("HasCountry", policy =>
-                policy.RequireAssertion(context =>
-                    context.User.HasClaim(c => c.Type == ClaimTypes.Country)));
-        });
+    options.AddPolicy("HasCountry", policy =>
+        policy.RequireAssertion(context =>
+            context.User.HasClaim(c => c.Type == ClaimTypes.Country)));
+});
 
-        services.AddSingleton<IAuthorizationHandler, MinimumAgeHandler>();
+builder.Services.AddSingleton<IAuthorizationHandler, MinimumAgeHandler>();
 
-        // Omitted code for brevity
+// Omitted code for brevity
 
-        services
-            .AddGraphQLServer()
-            .AddAuthorization()
-            .AddQueryType<Query>();
-    }
-}
+builder.Services
+    .AddGraphQLServer()
+    .AddAuthorization()
+    .AddQueryType<Query>();
 ```
 
 We can then use these policies to restrict access to our fields.
@@ -376,21 +358,15 @@ In this example, only authenticated users can access the `AddAddressAsync` metho
 We can also apply authorization to our entire GraphQL endpoint. To do this, simply call `RequireAuthorization()` on the `GraphQLEndpointConventionBuilder`.
 
 ```csharp
-public class Startup
+app.UseRouting();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.UseEndpoints(endpoints =>
 {
-    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-    {
-        app.UseRouting();
-
-        app.UseAuthentication();
-        app.UseAuthorization();
-
-        app.UseEndpoints(endpoints =>
-        {
-            endpoints.MapGraphQL().RequireAuthorization();
-        });
-    }
-}
+    endpoints.MapGraphQL().RequireAuthorization();
+});
 ```
 
 This method also accepts [roles](#roles) and [policies](#policies) as arguments, similar to the `Authorize` attribute / methods.
@@ -421,18 +397,14 @@ public class HttpRequestInterceptor : DefaultHttpRequestInterceptor
             cancellationToken);
     }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddHttpRequestInterceptor<HttpRequestInterceptor>();
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddHttpRequestInterceptor<HttpRequestInterceptor>();
 
-        // Omitted code for brevity
-    }
-}
+// Omitted code for brevity
 ```
 
 [Learn more about interceptors](/docs/hotchocolate/v14/server/interceptors)
