@@ -1,0 +1,37 @@
+schema
+  @fusion(version: 1)
+  @transport(subgraph: "Subgraph_1", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP") {
+  query: Query
+}
+
+type Query {
+  enumField: TestEnum
+    @resolver(subgraph: "Subgraph_1", select: "{ enumField }")
+  objectField(input: TestInput): TestOutput
+    @variable(subgraph: "Subgraph_1", name: "input", argument: "input")
+    @resolver(subgraph: "Subgraph_1", select: "{ objectField(input: $input) }", arguments: [ { name: "input", type: "TestInput" } ])
+  scalarField: Test
+    @resolver(subgraph: "Subgraph_1", select: "{ scalarField }")
+}
+
+type TestOutput implements TestInterface {
+  field: Int
+    @source(subgraph: "Subgraph_1")
+}
+
+interface TestInterface {
+  field: Int
+}
+
+union TestUnion = TestOutput
+
+input TestInput {
+  inputField: Int
+}
+
+enum TestEnum {
+  ENUM_VALUE
+    @source(subgraph: "Subgraph_1")
+}
+
+scalar Test
