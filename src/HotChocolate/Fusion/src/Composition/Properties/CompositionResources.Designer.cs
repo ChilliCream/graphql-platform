@@ -146,5 +146,11 @@ namespace HotChocolate.Fusion.Composition.Properties {
                 return ResourceManager.GetString("LogEntryHelper_RootTypeNameMismatch", resourceCulture);
             }
         }
+        
+        internal static string LogEntryHelper_DirectiveDefinitionArgumentMismatch {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_DirectiveDefinitionArgumentMismatch", resourceCulture);
+            }
+        }
     }
 }

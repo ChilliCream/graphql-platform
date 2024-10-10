@@ -58,11 +58,7 @@ internal sealed class MergeTypeMiddleware : IMergeMiddleware
             {
                 var source = directiveDefinition;
 
-                // TODO: Merge arguments
-                // TODO: Remove executable locations
-                // TODO: Check IsRepeatable is the same
-
-                target.MergeDescriptionWith(source);
+                MergeDirectiveDefinition(source, target, context);
             }
         }
 
@@ -102,5 +98,50 @@ internal sealed class MergeTypeMiddleware : IMergeMiddleware
         {
             await next(context).ConfigureAwait(false);
         }
+    }
+
+    private static void MergeDirectiveDefinition(
+        DirectiveDefinition source,
+        DirectiveDefinition target,
+        CompositionContext context)
+    {
+        if (!target.IsRepeatable)
+        {
+            target.IsRepeatable = source.IsRepeatable;
+        }
+
+        foreach (var sourceArgument in source.Arguments)
+        {
+            if (!target.Arguments.TryGetField(sourceArgument.Name, out var targetArgument))
+            {
+                context.Log.Write(LogEntryHelper.DirectiveDefinitionArgumentMismatch(new SchemaCoordinate(source.Name), source));
+                return;
+            }
+
+            if (!sourceArgument.Type.Equals(targetArgument.Type, TypeComparison.Structural))
+            {
+                context.Log.Write(LogEntryHelper.DirectiveDefinitionArgumentMismatch(new SchemaCoordinate(source.Name), source));
+                return;
+            }
+        }
+
+        // Directive definitions without a location will be removed by RemoveDirectivesWithoutLocationMiddleware
+        // in a later stage.
+        target.Locations = RemoveExecutableLocations(source.Locations & target.Locations);
+
+        target.MergeDescriptionWith(source);
+    }
+
+    private static DirectiveLocation RemoveExecutableLocations(DirectiveLocation location)
+    {
+        return location
+            & ~DirectiveLocation.Query
+            & ~DirectiveLocation.Mutation
+            & ~DirectiveLocation.Subscription
+            & ~DirectiveLocation.Field
+            & ~DirectiveLocation.FragmentDefinition
+            & ~DirectiveLocation.FragmentSpread
+            & ~DirectiveLocation.InlineFragment
+            & ~DirectiveLocation.VariableDefinition;
     }
 }
