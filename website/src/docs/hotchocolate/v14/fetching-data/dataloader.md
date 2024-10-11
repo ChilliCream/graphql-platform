@@ -197,7 +197,7 @@ public static class PersonDataLoader
 {
     [DataLoader]
     public static async Task<Dictionary<string, Person>> GetPersonByIdAsync(
-      IReadOnlyList<string? ids,
+      IReadOnlyList<string?> ids,
       IPersonRepository repository,
       CancellationToken cancellationToken)
     {
