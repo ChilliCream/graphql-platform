@@ -18,6 +18,10 @@ Things that have been removed or had a change in behavior that may cause your co
 | --------------------------------------------- | ------------------------------------- | ---------------------------------------- |
 | AddBananaCakePopExporter                      | AddNitroExporter                      |                                          |
 | AddBananaCakePopServices                      | AddNitro                              |                                          |
+| BananaCakePop.Middleware                      | ChilliCream.Nitro.App                 |                                          |
+| BananaCakePop.Services                        | ChilliCream.Nitro                     |                                          |
+| BananaCakePop.Services.Azure                  | ChilliCream.Nitro.Azure               |                                          |
+| BananaCakePop.Services.Fusion                 | ChilliCream.Nitro.Fusion              |                                          |
 | barista                                       | nitro                                 | CLI executable                           |
 | Barista                                       | ChilliCream.Nitro.CLI                 | CLI NuGet package                        |
 | BARISTA_API_ID                                | NITRO_API_ID                          |                                          |
