@@ -6,13 +6,13 @@ using GreenDonut.Projections;
 using HotChocolate.Data;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Execution.TestContext;
+using HotChocolate.Data.TestContext;
 using HotChocolate.Types;
 using HotChocolate.Types.Relay;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.Execution.Projections;
+namespace HotChocolate.Data.Predicates;
 
 public sealed class DataLoaderTests
 {
