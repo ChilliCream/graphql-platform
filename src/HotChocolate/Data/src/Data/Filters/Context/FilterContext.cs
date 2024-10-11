@@ -1,3 +1,5 @@
+using System.Linq.Expressions;
+using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -51,6 +53,19 @@ public class FilterContext : IFilterContext
     /// <inheritdoc />
     public IDictionary<string, object?>? ToDictionary()
         => Serialize(_value) as IDictionary<string, object?>;
+
+    public Expression<Func<T, bool>>? AsPredicate<T>()
+    {
+        var localContextData = _context.LocalContextData;
+
+        if (localContextData.TryGetValue(ContextAsPredicateKey, out var asPredicateObj) &&
+            asPredicateObj is AsPredicate<T> asPredicate)
+        {
+            return asPredicate(_context, false);
+        }
+
+        return null;
+    }
 
     private object? Serialize(IFilterValueNode? value)
     {

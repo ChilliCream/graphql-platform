@@ -4,11 +4,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HotChocolate.Execution.TestContext;
 
-public class CatalogContext(string connectionString) : DbContext
+public class CatalogContext : DbContext
 {
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseNpgsql(connectionString);
+        var randomDbName = Guid.NewGuid().ToString("N");
+        optionsBuilder.UseSqlite($"Data Source={randomDbName}.db");
     }
 
     public DbSet<Product> Products { get; set; } = default!;
@@ -27,13 +28,12 @@ public class CatalogContext(string connectionString) : DbContext
         // builder.UseIntegrationEventLogs();
     }
 
-    public static async Task SeedAsync(string connectionString)
+    public async Task SeedAsync()
     {
-        await using var context = new CatalogContext(connectionString);
-        await context.Database.EnsureCreatedAsync();
+        await Database.EnsureCreatedAsync();
 
         var type = new ProductType { Name = "T-Shirt", };
-        context.ProductTypes.Add(type);
+        ProductTypes.Add(type);
 
         for (var i = 0; i < 100; i++)
         {
@@ -43,18 +43,20 @@ public class CatalogContext(string connectionString) : DbContext
                 DisplayName = i % 2 == 0 ? "BrandDisplay" + i : null,
                 Details = new() { Country = new() { Name = "Country" + i } }
             };
-            context.Brands.Add(brand);
+            Brands.Add(brand);
 
             for (var j = 0; j < 100; j++)
             {
                 var product = new Product
                 {
-                    Name = $"Product {i}-{j}", Type = type, Brand = brand,
+                    Name = $"Product {i}-{j}",
+                    Type = type,
+                    Brand = brand,
                 };
-                context.Products.Add(product);
+                Products.Add(product);
             }
         }
 
-        await context.SaveChangesAsync();
+        await SaveChangesAsync();
     }
 }
