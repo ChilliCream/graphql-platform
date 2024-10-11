@@ -412,7 +412,7 @@ internal static class ProductDataLoader
 
 In order to apply the selector we provide an extension method called `Select` which applies the `selector` in addition to the key selector. Since the required data might not contain the DataLoader key we have to always provide a key selector as well.
 
-This `ProductByIdDataLoader` is no projectable but will only apply projections if at least one selection passed in from the usage side.
+This `ProductByIdDataLoader` is now projectable but will only apply projections if at least one selection is passed in from the usage side.
 
 If we would use the `ProductByIdDataLoader` without providing a selection it would just return the full entity.
 
