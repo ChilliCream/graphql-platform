@@ -41,6 +41,8 @@ internal sealed class UnionTypeMergeHandler : ITypeMergeHandler
     {
         context.TryApplySource(source, sourceSchema, target);
 
+        target.MergeDirectivesWith(source, context);
+
         target.MergeDescriptionWith(source);
 
         foreach (var sourceType in source.Types)
