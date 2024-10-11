@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Fusion.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Composition.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Tests.Shared" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.CommandLine" />
     <InternalsVisibleTo Include="ChilliCream.Nitro.Fusion" />
