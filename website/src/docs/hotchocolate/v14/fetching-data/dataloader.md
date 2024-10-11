@@ -288,7 +288,7 @@ public static class PersonDataLoader
 {
     [DataLoader]
     public static async Task<Dictionary<string, Person[]>> GetPersonsByLastNameAsync(
-        IReadOnlyList<string? lastNames,
+        IReadOnlyList<string?> lastNames,
         IPersonRepository repository,
         CancellationToken cancellationToken)
     {
