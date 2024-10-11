@@ -247,7 +247,7 @@ public class PersonsByLastNameDataloader
         IReadOnlyList<string> names,
         CancellationToken cancellationToken)
     {
-        var persons = await _repository.GetPersonsByLastNameAsync(names);
+        var persons = await _repository.GetPersonsByLastNameAsync(names, cancellationToken);
         return persons.ToLookup(x => x.LastName);
     }
 }
