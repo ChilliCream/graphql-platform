@@ -443,7 +443,7 @@ public class Query
 }
 ```
 
-Important to note here is that when using projections we can no longer make use of the cache in the same way as before. When we branch a DataLoader we assign the DataLoader a different partition of the cache. This means that only resolvers will share the same cache partition if their selection is translated into the exact same selector expression.
+Important to note here is that when using projections we can no longer make use of the cache in the same way as before. When we branch a DataLoader we assign the DataLoader a different partition of the cache. This means that resolvers will only share the same cache partition if their selection is translated into the exact same selector expression.
 
 In addition to the GraphQL selection we can also chain in manual includes to our DataLoader call.
 
