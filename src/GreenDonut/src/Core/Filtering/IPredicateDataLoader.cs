@@ -1,5 +1,3 @@
-#if NET6_0_OR_GREATER
-
 namespace GreenDonut.Predicates;
 
 /// <summary>
@@ -23,4 +21,3 @@ public interface IPredicateDataLoader<in TKey, TValue>
     /// </summary>
     IDataLoader<TKey, TValue> Root { get; }
 }
-#endif

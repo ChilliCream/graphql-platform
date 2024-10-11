@@ -1,4 +1,3 @@
-#if NET6_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
@@ -36,4 +35,3 @@ public interface IPredicateBuilder
     /// </returns>
     Expression<Func<T, bool>>? TryCompile<T>();
 }
-#endif

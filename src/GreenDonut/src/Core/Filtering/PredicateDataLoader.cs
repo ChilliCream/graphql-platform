@@ -1,5 +1,3 @@
-#if NET6_0_OR_GREATER
-
 namespace GreenDonut.Predicates;
 
 internal sealed class PredicateDataLoader<TKey, TValue>
@@ -34,4 +32,3 @@ internal sealed class PredicateDataLoader<TKey, TValue>
         CancellationToken cancellationToken)
         => _root.FetchAsync(keys, results, context, cancellationToken);
 }
-#endif

@@ -1,9 +1,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using GreenDonut.Projections;
-#if NET6_0_OR_GREATER
 using GreenDonut.Predicates;
-#endif
 
 namespace GreenDonut;
 

@@ -1,4 +1,3 @@
-#if NET6_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using static GreenDonut.ExpressionHelpers;
@@ -117,4 +116,3 @@ public static class PredicateDataLoaderExtensions
         return query;
     }
 }
-#endif
