@@ -3,6 +3,7 @@ using CookieCrumble;
 using GreenDonut;
 using GreenDonut.Predicates;
 using GreenDonut.Projections;
+using HotChocolate.Execution;
 using HotChocolate.Data;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution.Processing;
