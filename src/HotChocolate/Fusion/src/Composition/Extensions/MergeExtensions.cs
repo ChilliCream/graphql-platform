@@ -172,7 +172,10 @@ internal static class MergeExtensions
     {
         foreach (var directive in source.Directives)
         {
-            if (context.FusionTypes.IsFusionDirective(directive.Name) || BuiltIns.IsBuiltInDirective(directive.Name))
+            if (context.FusionTypes.IsFusionDirective(directive.Name)
+                || BuiltIns.IsBuiltInDirective(directive.Name)
+                // @tag is handled separately
+                || directive.Name == "tag")
             {
                 continue;
             }
