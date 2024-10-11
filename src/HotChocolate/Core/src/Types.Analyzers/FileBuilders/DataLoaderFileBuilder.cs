@@ -255,8 +255,19 @@ public sealed class DataLoaderFileBuilder : IDisposable
                         isScoped ? "scope.ServiceProvider" : "_services",
                         parameter.Type.ToFullyQualified());
                 }
-                else if (parameter.Kind is DataLoaderParameterKind.SelectorBuilder
-                    || parameter.Kind is DataLoaderParameterKind.PagingArguments)
+                else if (parameter.Kind is DataLoaderParameterKind.SelectorBuilder)
+                {
+                    _writer.WriteIndentedLine(
+                        "var {0} = context.GetState<{1}>(\"{2}\")",
+                        parameter.VariableName,
+                        parameter.Type.ToFullyQualified(),
+                        parameter.StateKey);
+                    _writer.IncreaseIndent();
+                    _writer.WriteIndentedLine(
+                        "?? new global::GreenDonut.Projections.DefaultSelectorBuilder();");
+                    _writer.DecreaseIndent();
+                }
+                else if (parameter.Kind is DataLoaderParameterKind.PagingArguments)
                 {
                     _writer.WriteIndentedLine(
                         "var {0} = context.GetRequiredState<{1}>(\"{2}\");",
@@ -499,6 +510,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
 
         _writer.DecreaseIndent();
         _writer.WriteIndentedLine("}");
+        _writer.WriteLine();
 
         _writer.WriteIndentedLine("public sealed class {0} : I{0}", groupClassName);
         _writer.WriteIndentedLine("{");

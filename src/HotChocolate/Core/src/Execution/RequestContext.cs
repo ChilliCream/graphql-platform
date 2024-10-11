@@ -127,6 +127,7 @@ internal sealed class RequestContext(
         DocumentId = default;
         DocumentHash = default;
         IsCachedDocument = false;
+        IsPersistedDocument = false;
         Document = default;
         ValidationResult = default;
         IsValidDocument = false;
@@ -138,3 +139,4 @@ internal sealed class RequestContext(
         RequestIndex = default;
     }
 }
+

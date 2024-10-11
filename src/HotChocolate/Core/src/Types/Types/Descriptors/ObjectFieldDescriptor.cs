@@ -472,6 +472,39 @@ public class ObjectFieldDescriptor
         return this;
     }
 
+    /// <inheritdoc />
+    public IObjectFieldDescriptor ParentRequires<TParent>(string? requires)
+    {
+        if (!(requires?.Length > 0))
+        {
+            Definition.Flags &= ~FieldFlags.WithRequirements;
+            Definition.ContextData.Remove(FieldRequirementsSyntax);
+            Definition.ContextData.Remove(FieldRequirementsEntity);
+            return this;
+        }
+
+        Definition.Flags |= FieldFlags.WithRequirements;
+        Definition.ContextData[FieldRequirementsSyntax] = requires;
+        Definition.ContextData[FieldRequirementsEntity] = typeof(TParent);
+        return this;
+    }
+
+    public IObjectFieldDescriptor ParentRequires(string? requires)
+    {
+        if (!(requires?.Length > 0))
+        {
+            Definition.Flags &= ~FieldFlags.WithRequirements;
+            Definition.ContextData.Remove(FieldRequirementsSyntax);
+            Definition.ContextData.Remove(FieldRequirementsEntity);
+            return this;
+        }
+
+        Definition.Flags |= FieldFlags.WithRequirements;
+        Definition.ContextData[FieldRequirementsSyntax] = requires;
+        Definition.ContextData[FieldRequirementsEntity] = Definition.SourceType;
+        return this;
+    }
+
     /// <summary>
     /// Creates a new instance of <see cref="ObjectFieldDescriptor"/>
     /// </summary>

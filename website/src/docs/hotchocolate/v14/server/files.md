@@ -32,7 +32,7 @@ Hot Chocolate implements the [GraphQL multipart request specification](https://g
 In order to use file upload streams in our input types or as an argument register the `Upload` scalar like the following:
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddType<UploadType>();
 ```
@@ -187,7 +187,7 @@ Both Relay and Apollo support this specification through community packages:
 If you need to upload larger files or set custom upload size limits, you can configure those by registering custom [`FormOptions`](https://docs.microsoft.com/dotnet/api/microsoft.aspnetcore.http.features.formoptions).
 
 ```csharp
-services.Configure<FormOptions>(options =>
+builder.Services.Configure<FormOptions>(options =>
 {
     // Set the limit to 256 MB
     options.MultipartBodyLengthLimit = 268435456;

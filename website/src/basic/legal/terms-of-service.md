@@ -4,9 +4,9 @@ title: "Terms of Service"
 
 This policy is effective as of 26 August 2021.
 
-Last updated: 11 September 2023
+Last updated: 1 October 2024
 
-These Terms of Service govern your use of our "Services", which refers collectively to: (1) [https://chillicream.com](https://chillicream.com) and any other websites we operate and that link to this policy (collectively, "Websites"), and (2) all versions of ChilliCream software, platforms or services (including but not limited to Banana Cake Pop).
+These Terms of Service govern your use of our "Services", which refers collectively to: (1) [https://chillicream.com](https://chillicream.com) and any other websites we operate and that link to this policy (collectively, "Websites"), and (2) all versions of ChilliCream software, platforms or services (including but not limited to Nitro).
 
 By downloading, installing, using or accessing the Services, you agree that you have read and understood these Terms of Service, that you will abide by them and that you agree to comply with all applicable laws and regulations. If you do not agree with these Terms of Service, you are prohibited from using or accessing the Services provided by ChilliCream Inc..
 
@@ -28,9 +28,9 @@ By using the Services, you warrant on behalf of yourself, your users, and other 
 
 # Use of the Services
 
-## Right to Use Banana Cake Pop
+## Right to Use Nitro
 
-ChilliCream Inc. grants you a non-exclusive, non-transferable, revocable, non-sublicensable right to use the software application Banana Cake Pop on your computer. That right will terminate on any violation of these Terms of Service.
+ChilliCream Inc. grants you a non-exclusive, non-transferable, revocable, non-sublicensable right to use the software application Nitro on your computer. That right will terminate on any violation of these Terms of Service.
 
 # Third party software
 

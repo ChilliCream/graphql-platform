@@ -25,15 +25,13 @@ You are free to use any form of aggregation or find a pipeline before you execut
 [UseProjection]
 [UseSorting]
 [UseFiltering]
-public IExecutable<Person> GetPersons([Service] IMongoCollection<Person> collection)
+public IExecutable<Person> GetPersons(IMongoCollection<Person> collection)
 {
     return collection.AsExecutable();
 }
 
 [UseFirstOrDefault]
-public IExecutable<Person> GetPersonById(
-    [Service] IMongoCollection<Person> collection,
-    Guid id)
+public IExecutable<Person> GetPersonById(IMongoCollection<Person> collection, Guid id)
 {
     return collection.Find(x => x.Id == id).AsExecutable();
 }
@@ -44,7 +42,7 @@ public IExecutable<Person> GetPersonById(
 To use MongoDB filtering you need to register the convention on the schema builder:
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddQueryType<Query>()
     .AddMongoDbFiltering();
@@ -92,7 +90,7 @@ _Mongo Query_
 To use MongoDB sorting you need to register the convention on the schema builder:
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddQueryType<Query>()
     .AddMongoDbSorting();
@@ -133,7 +131,7 @@ _Mongo Query_
 To use MongoDB projections you need to register the convention on the schema builder:
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddQueryType<Query>()
     .AddMongoDbProjections();
@@ -175,7 +173,7 @@ _Mongo Query_
 In order to use pagination with MongoDB, we have to register the MongoDB specific pagination providers.
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddMongoDbPagingProviders();
 ```
@@ -188,7 +186,7 @@ To use cursor based pagination annotate your resolver with `[UsePaging]` or `.Us
 
 ```csharp
 [UsePaging]
-public IExecutable<Person> GetPersons([Service] IMongoCollection<Person> collection)
+public IExecutable<Person> GetPersons(IMongoCollection<Person> collection)
 {
     return collection.AsExecutable();
 }
@@ -221,7 +219,7 @@ To use offset based pagination annotate your resolver with `[UseOffsetPaging]` o
 
 ```csharp
 [UseOffsetPaging]
-public IExecutable<Person> GetPersons([Service] IMongoCollection<Person> collection)
+public IExecutable<Person> GetPersons(IMongoCollection<Person> collection)
 {
     return collection.AsExecutable();
 }
@@ -254,9 +252,7 @@ Hot Chocolate will rewrite the type of the field from a list type to an object t
 
 ```csharp
 [UseFirstOrDefault]
-public IExecutable<Person> GetPersonById(
-    [Service] IMongoCollection<Person> collection,
-    Guid id)
+public IExecutable<Person> GetPersonById(IMongoCollection<Person> collection, Guid id)
 {
     return collection.Find(x => x.Id == id).AsExecutable();
 }

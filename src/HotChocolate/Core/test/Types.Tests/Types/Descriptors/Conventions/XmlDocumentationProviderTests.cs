@@ -316,7 +316,7 @@ public class XmlDocumentationProviderTests
             typeof(ClassWithSummary));
 
         // assert
-        Assert.Equal("I am a test class.", description);
+        Assert.Equal("I am a test class. This should not be escaped: >", description);
     }
 
     [Fact]

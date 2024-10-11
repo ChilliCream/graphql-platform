@@ -48,18 +48,12 @@ public class Mutation
         // Omitted code for brevity
     }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddMutationType<Mutation>();
-    }
-
-    // Omitted code for brevity
-}
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddMutationType<Mutation>();
 ```
 
 </Implementation>
@@ -82,16 +76,12 @@ public class MutationType : ObjectType<Mutation>
         descriptor.Field(f => f.AddBook(default));
     }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddMutationType<MutationType>();
-    }
-}
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddMutationType<MutationType>();
 ```
 
 </Code>
@@ -105,31 +95,27 @@ public class Mutation
         // Omitted code for brevity
     }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddDocumentFromString(@"
-                type Mutation {
-                    addBook(input: BookInput): Book
-                }
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddDocumentFromString(@"
+        type Mutation {
+            addBook(input: BookInput): Book
+        }
 
-                input BookInput {
-                    title: String
-                    author: String
-                }
+        input BookInput {
+            title: String
+            author: String
+        }
 
-                type Book {
-                    title: String
-                    author: String
-                }
-                ")
-            .BindRuntimeType<Mutation>();
-    }
-}
+        type Book {
+            title: String
+            author: String
+        }
+        ")
+    .BindRuntimeType<Mutation>();
 ```
 
 </Schema>
@@ -154,7 +140,7 @@ Hot Chocolate provides a default implementation based on the `System.Transaction
 The default transaction scope handler can be added like the following.
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddDefaultTransactionScopeHandler();
 ```
@@ -194,7 +180,7 @@ public class DefaultTransactionScopeHandler : ITransactionScopeHandler
 If we implement a custom transaction scope handler or if we choose to extend upon the default transaction scope handler, we can add it like the following.
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddTransactionScopeHandler<CustomTransactionScopeHandler>();
 ```
@@ -904,7 +890,7 @@ The naming patterns for inputs, payloads and errors can be adjusted globally as 
 In order to change the global mutation naming patterns you can pass in the `MutationConventionOptions` into the `AddMutationConventions` configuration method.
 
 ```csharp
-services
+builder.Services
     .AddGraphQL()
     .AddMutationConventions(
         new MutationConventionOptions
@@ -992,17 +978,13 @@ public interface IUserError
 
   string Code { get; }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            // ... Omitted code for brevity
-            .AddErrorInterfaceType<IUserError>();
-    }
-}
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    // ... Omitted code for brevity
+    .AddErrorInterfaceType<IUserError>();
 ```
 
 </Implementation>
@@ -1018,17 +1000,13 @@ public class CustomErrorInterfaceType : InterfaceType
         descriptor.Field("code").Type<NonNullType<StringType>>();
     }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            // ... Omitted code for brevity
-            .AddErrorInterfaceType<CustomErrorInterfaceType>();
-    }
-}
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    // ... Omitted code for brevity
+    .AddErrorInterfaceType<CustomErrorInterfaceType>();
 ```
 
 </Code>

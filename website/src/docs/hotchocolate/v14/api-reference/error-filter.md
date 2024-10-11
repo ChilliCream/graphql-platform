@@ -38,7 +38,7 @@ IQueryExecuter executer = schema.MakeExecutable(builder =>
 OR
 
 ```csharp
-services.AddErrorFilter<MyErrorFilter>();
+builder.Services.AddErrorFilter<MyErrorFilter>();
 ```
 
 It is also possible to just register the error filter as a delegate like the following.

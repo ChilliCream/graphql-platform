@@ -63,6 +63,66 @@ public class DataLoaderTests
     }
 
     [Fact]
+    public async Task GenerateSource_BatchDataLoader_With_Group_Only_On_Class_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            [DataLoaderGroup("Group1")]
+            internal static class TestClass
+            {
+                [DataLoader]
+                public static Task<IReadOnlyDictionary<int, Entity>> GetEntityByIdAsync(
+                    IReadOnlyList<int> entityIds,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+
+            public class Entity
+            {
+                public int Id { get; set; }
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task GenerateSource_BatchDataLoader_With_Group_Only_On_Method_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal static class TestClass
+            {
+                [DataLoaderGroup("Group1")]
+                [DataLoader]
+                public static Task<IReadOnlyDictionary<int, Entity>> GetEntityByIdAsync(
+                    IReadOnlyList<int> entityIds,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+
+            public class Entity
+            {
+                public int Id { get; set; }
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
     public async Task GenerateSource_GroupedDataLoader_MatchesSnapshot()
     {
         await TestHelper.GetGeneratedSourceSnapshot(

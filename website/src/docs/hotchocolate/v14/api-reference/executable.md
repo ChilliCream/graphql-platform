@@ -20,7 +20,7 @@ public interface IUserRepository
 
 public class Query
 {
-    public IExecutable<User> GetUsers([Service] IUserRepository repo) =>
+    public IExecutable<User> GetUsers(IUserRepository repo) =>
         repo.FindAll();
 }
 ```

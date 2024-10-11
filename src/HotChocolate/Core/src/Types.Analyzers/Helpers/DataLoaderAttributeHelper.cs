@@ -28,11 +28,15 @@ public static class DataLoaderAttributeHelper
             {
                 if (IsDataLoaderGroupAttribute(attribute.AttributeClass))
                 {
-                    foreach (var arg in attribute.ConstructorArguments.FirstOrDefault().Values)
+                    var constructorArguments = attribute.ConstructorArguments;
+                    if (constructorArguments.Length > 0)
                     {
-                        if (arg.Value is string groupName)
+                        foreach (var arg in constructorArguments[0].Values)
                         {
-                            builder.Add(groupName);
+                            if (arg.Value is string groupName)
+                            {
+                                builder.Add(groupName);
+                            }
                         }
                     }
                 }

@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using GreenDonut.Projections;
 using HotChocolate.Pagination;
 
-namespace GreenDonut;
+namespace GreenDonut.Projections;
 
 /// <summary>
 /// Provides extension methods to pass a pagination context to a DataLoader.
@@ -19,7 +19,7 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
     /// The DataLoader that shall be branched.
     /// </param>
     /// <param name="pagingArguments">
-    /// The paging arguments that shall be exist as state in the branched DataLoader.
+    /// The paging arguments that shall exist as state in the branched DataLoader.
     /// </param>
     /// <typeparam name="TKey">
     /// The key type of the DataLoader.
@@ -54,9 +54,7 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
             IDataLoader<TKey, Page<TValue>> root,
             PagingArguments pagingArguments)
         {
-            var branch = new PagingDataLoader<TKey, Page<TValue>>(
-                (DataLoaderBase<TKey, Page<TValue>>)root,
-                branchKey);
+            var branch = new PagingDataLoader<TKey, Page<TValue>>(root, branchKey);
             branch.SetState(pagingArguments);
             return branch;
         }
@@ -77,6 +75,9 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
     /// <typeparam name="TValue">
     /// The value type of the DataLoader.
     /// </typeparam>
+    /// <typeparam name="TElement">
+    /// The element type of the projection.
+    /// </typeparam>
     /// <returns>
     /// Returns the DataLoader with the added projection.
     /// </returns>
@@ -84,9 +85,9 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
     /// Throws if the <paramref name="dataLoader"/> is <c>null</c>.
     /// </exception>
     [Experimental(Experiments.Projections)]
-    public static IPagingDataLoader<TKey, Page<TValue>> Select<TKey, TValue>(
+    public static IPagingDataLoader<TKey, Page<TValue>> Select<TElement, TKey, TValue>(
         this IPagingDataLoader<TKey, Page<TValue>> dataLoader,
-        Expression<Func<TValue, TValue>> selector)
+        Expression<Func<TElement, TElement>>? selector)
         where TKey : notnull
     {
         if (dataLoader is null)
@@ -96,12 +97,30 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
 
         if (selector is null)
         {
-            throw new ArgumentNullException(nameof(selector));
+            return dataLoader;
         }
 
-        var builder = dataLoader.GetOrSetState(_ => new DefaultSelectorBuilder<TValue>());
-        builder.Add(selector);
-        return dataLoader;
+        if (dataLoader.ContextData.TryGetValue(typeof(ISelectorBuilder).FullName!, out var value))
+        {
+            var context = (DefaultSelectorBuilder)value!;
+            context.Add(selector);
+            return dataLoader;
+        }
+
+        var branchKey = selector.ToString();
+        return (IPagingDataLoader<TKey, Page<TValue>>)dataLoader.Branch(branchKey, CreateBranch, selector);
+
+        static IDataLoader CreateBranch(
+            string key,
+            IDataLoader<TKey, Page<TValue>> dataLoader,
+            Expression<Func<TElement, TElement>> selector)
+        {
+            var branch = new PagingDataLoader<TKey, Page<TValue>>(dataLoader, key);
+            var context = new DefaultSelectorBuilder();
+            branch.ContextData = branch.ContextData.SetItem(typeof(ISelectorBuilder).FullName!, context);
+            context.Add(selector);
+            return branch;
+        }
     }
 
     private static string CreateBranchKey(
@@ -110,14 +129,15 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
         var requiredBufferSize = 1;
 
         requiredBufferSize += EstimateIntLength(pagingArguments.First);
-        if(pagingArguments.After is not null)
+        if (pagingArguments.After is not null)
         {
             requiredBufferSize += pagingArguments.After?.Length ?? 0;
             requiredBufferSize += 2;
         }
+
         requiredBufferSize += EstimateIntLength(pagingArguments.Last);
 
-        if(pagingArguments.Before is not null)
+        if (pagingArguments.Before is not null)
         {
             requiredBufferSize += pagingArguments.Before?.Length ?? 0;
             requiredBufferSize += 2;
@@ -129,7 +149,7 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
         }
 
         char[]? rentedBuffer = null;
-        Span<char> buffer = requiredBufferSize <= 128
+        var buffer = requiredBufferSize <= 128
             ? stackalloc char[requiredBufferSize]
             : (rentedBuffer = ArrayPool<char>.Shared.Rent(requiredBufferSize));
 
@@ -147,6 +167,7 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
             {
                 throw new InvalidOperationException("Buffer is too small.");
             }
+
             written += charsWritten;
         }
 
@@ -173,6 +194,7 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
             {
                 throw new InvalidOperationException("Buffer is too small.");
             }
+
             written += charsWritten;
         }
 
@@ -202,7 +224,7 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
     private static int EstimateIntLength(int? value)
     {
         // if the value is null we need 0 digits.
-        if(value is null)
+        if (value is null)
         {
             return 0;
         }

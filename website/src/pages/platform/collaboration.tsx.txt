@@ -42,7 +42,7 @@ const CollaborationPage: FC = () => {
           by defining connection details just once. Collaborate across teams to
           test and refine your API, and keep your projects organized with
           customizable workspaces and environments. Unlock the full potential of
-          GraphQL with Banana Cake Pop.
+          GraphQL with Nitro.
         </HeroTeaser>
         <HeroLink to="">Get Started</HeroLink>
       </CollaborationPageHero>
@@ -92,7 +92,7 @@ const CollaborationPage: FC = () => {
                 </h5>
               </header>
               <p>
-                Use your favorite Browser to install Banana Cake Pop as PWA on
+                Use your favorite Browser to install Nitro as a PWA on
                 your Device without requiring administrative privileges.
               </p>
             </CardOffer>

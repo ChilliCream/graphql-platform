@@ -17,15 +17,9 @@ We will learn more about creating diagnostic event listeners for these event typ
 After creating a diagnostic event listener for any event type, we can register it by calling `AddDiagnosticEventListener` on the `IRequestExecutorBuilder`, specifying the newly developed diagnostic event listener as the generic type parameter.
 
 ```csharp
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddDiagnosticEventListener<MyExecutionEventListener>();
-    }
-}
+builder.Services
+    .AddGraphQLServer()
+    .AddDiagnosticEventListener<MyExecutionEventListener>();
 ```
 
 If we need to access services within our event handlers, we can inject them using the constructor. Please note that injected services are effectively singleton since the diagnostic event listener is instantiated once.
@@ -444,21 +438,15 @@ The above request would result in the below response if _Apollo Tracing_ is enab
 _Apollo Tracing_ needs to be explicitly enabled by calling `AddApolloTracing` on the `IRequestExecutorBuilder`.
 
 ```csharp
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddApolloTracing();
-    }
-}
+builder.Services
+    .AddGraphQLServer()
+    .AddApolloTracing();
 ```
 
 Further, we can specify a `TracingPreference`. Per default, it is `TracingPreference.OnDemand`.
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddApolloTracing(TracingPreference.Always);
 ```
