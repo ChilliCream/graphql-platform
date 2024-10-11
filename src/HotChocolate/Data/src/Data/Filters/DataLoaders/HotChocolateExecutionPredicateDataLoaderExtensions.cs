@@ -1,4 +1,3 @@
-#if NET6_0_OR_GREATER
 #nullable enable
 
 using System.Diagnostics.CodeAnalysis;
@@ -77,4 +76,3 @@ public static class HotChocolateExecutionPredicateDataLoaderExtensions
         return dataLoader.Where(expression);
     }
 }
-#endif
