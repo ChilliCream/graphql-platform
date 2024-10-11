@@ -390,7 +390,7 @@ public class Query
 
 When you have large objects with many fields, you might want to project only a subset of the fields with a DataLoader. This can be achieved with stateful DataLoader. Source generated DataLoader are stateful by default. For class DataLoader you have to inherit from `StatefulBatchDataLoader<TKey, TValue>`, `StatefulGroupedDataLoader<TKey, TValue>` or `StatefulCacheDataLoader<TKey, TValue>`.
 
-With a stateful DateLoader you can pass on a selection to the DataLoader which is translated into a expression (`LambdaExpression<Func<TValue, TProjection>>`). Within your DataLoader inject the `ISelectorBuilder` and apply
+With a stateful DateLoader you can pass on a selection to the DataLoader which is translated into an expression (`LambdaExpression<Func<TValue, TProjection>>`). Within your DataLoader, inject the `ISelectorBuilder` and apply
 it to your `IQueryable<T>`.
 
 ```csharp
