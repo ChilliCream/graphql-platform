@@ -404,6 +404,16 @@ public static class FusionRequestExecutorBuilderExtensions
         return builder;
     }
 
+    public static FusionGatewayBuilder AddSemanticNonNull(this FusionGatewayBuilder builder)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        return builder;
+    }
+
     /// <summary>
     /// Uses the default fusion gateway pipeline.
     /// </summary>
