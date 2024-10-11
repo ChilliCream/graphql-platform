@@ -172,15 +172,24 @@ internal static class MergeExtensions
     {
         foreach (var directive in source.Directives)
         {
+            if (context.FusionTypes.IsFusionDirective(directive.Name) || BuiltIns.IsBuiltInDirective(directive.Name))
+            {
+                continue;
+            }
+
+            if (context.FusionGraph.DirectiveDefinitions.TryGetDirective(directive.Name, out var directiveDefinition)
+                && directiveDefinition.IsSpecDirective)
+            {
+                continue;
+            }
+
             if (!target.Directives.ContainsName(directive.Name))
             {
                 target.Directives.Add(directive);
             }
             else
             {
-                var directiveDefinition = context.FusionGraph.DirectiveDefinitions[directive.Name];
-
-                if (directiveDefinition.IsRepeatable)
+                if (directiveDefinition is not null && directiveDefinition.IsRepeatable)
                 {
                     target.Directives.Add(directive);
                 }

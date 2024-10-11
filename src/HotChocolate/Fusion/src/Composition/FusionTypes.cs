@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using HotChocolate.Fusion.Composition.Properties;
 using HotChocolate.Language;
 using HotChocolate.Skimmed;

@@ -47,7 +47,7 @@ internal sealed class MergeTypeMiddleware : IMergeMiddleware
 
         foreach (var (directiveName, directiveDefinitions) in groupedDirectives)
         {
-            if (context.FusionTypes.IsFusionDirective(directiveName))
+            if (context.FusionTypes.IsFusionDirective(directiveName) || BuiltIns.IsBuiltInDirective(directiveName))
             {
                 continue;
             }
