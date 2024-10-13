@@ -684,6 +684,62 @@ public class SubgraphErrorTests(ITestOutputHelper output)
 
     [Fact]
     public async Task
+        Resolve_Parallel_SharedEntryField_Nullable_SubField_Nullable_Second_Service_Returns_TopLevel_Error_With_Data()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              name: String
+            }
+            """);
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            builder => builder
+                .AddDocumentFromString(
+                    """
+                    type Query {
+                      viewer: Viewer
+                    }
+
+                    type Viewer {
+                      userId: ID
+                    }
+                    """)
+                .AddResolverMocking()
+                .UseDefaultPipeline()
+                .UseRequest(next => async context =>
+                {
+                    await next(context);
+                    context.Result = OperationResultBuilder.FromResult(context.Result!.ExpectOperationResult())
+                        .AddError(ErrorBuilder.New().SetMessage("Top Level Error").Build())
+                        .Build();
+                }));
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        viewer {
+                          userId
+                          name
+                        }
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        MatchMarkdownSnapshot(request, result);
+    }
+
+    [Fact]
+    public async Task
         Resolve_Parallel_SharedEntryField_Nullable_SubField_Nullable_First_Service_Returns_TopLevel_Error_Without_Data()
     {
         // arrange
@@ -706,6 +762,62 @@ public class SubgraphErrorTests(ITestOutputHelper output)
                     context.Result =
                         OperationResultBuilder.CreateError(ErrorBuilder.New().SetMessage("Top Level Error").Build());
                     return default;
+                }));
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              userId: ID
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        viewer {
+                          userId
+                          name
+                        }
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        MatchMarkdownSnapshot(request, result);
+    }
+
+    [Fact]
+    public async Task
+        Resolve_Parallel_SharedEntryField_Nullable_SubField_Nullable_First_Service_Returns_TopLevel_Error_With_Data()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            builder => builder
+                .AddDocumentFromString(
+                    """
+                    type Query {
+                      viewer: Viewer
+                    }
+
+                    type Viewer {
+                      name: String
+                    }
+                    """)
+                .AddResolverMocking()
+                .UseDefaultPipeline()
+                .UseRequest(next => async context =>
+                {
+                    await next(context);
+                    context.Result = OperationResultBuilder.FromResult(context.Result!.ExpectOperationResult())
+                        .AddError(ErrorBuilder.New().SetMessage("Top Level Error").Build())
+                        .Build();
                 }));
 
         var subgraphB = await TestSubgraph.CreateAsync(
@@ -1229,6 +1341,63 @@ public class SubgraphErrorTests(ITestOutputHelper output)
                     return default;
                 })
         );
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        viewer {
+                          name
+                        }
+                        other {
+                          userId
+                        }
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        MatchMarkdownSnapshot(request, result);
+    }
+
+    [Fact]
+    public async Task Resolve_Parallel_EntryField_Nullable_One_Service_Returns_TopLevel_Error_With_Data()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              viewer: Viewer!
+            }
+
+            type Viewer {
+              name: String!
+            }
+            """);
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            builder => builder
+                .AddDocumentFromString(
+                    """
+                    type Query {
+                      other: Other
+                    }
+
+                    type Other {
+                      userId: ID!
+                    }
+                    """)
+                .AddResolverMocking()
+                .UseDefaultPipeline()
+                .UseRequest(next => async context =>
+                {
+                    await next(context);
+                    context.Result = OperationResultBuilder.FromResult(context.Result!.ExpectOperationResult())
+                        .AddError(ErrorBuilder.New().SetMessage("Top Level Error").Build())
+                        .Build();
+                }));
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
         var executor = await subgraphs.GetExecutorAsync();
@@ -2180,6 +2349,75 @@ public class SubgraphErrorTests(ITestOutputHelper output)
 
     [Fact]
     public async Task
+        Entity_Resolver_SubField_Nullable_EntryField_Nullable_Second_Service_Returns_TopLevel_Error_With_Data()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              productById(id: ID!): Product
+            }
+
+            type Product implements Node {
+              id: ID!
+              name: String
+              price: Float
+            }
+
+            interface Node {
+              id: ID!
+            }
+            """);
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            builder => builder
+                .AddDocumentFromString(
+                    """
+                    type Query {
+                      productById(id: ID!): Product
+                    }
+
+                    type Product implements Node {
+                      id: ID!
+                      score: Int
+                    }
+
+                    interface Node {
+                      id: ID!
+                    }
+                    """)
+                .AddResolverMocking()
+                .UseDefaultPipeline()
+                .UseRequest(next => async context =>
+                {
+                    await next(context);
+                    context.Result = OperationResultBuilder.FromResult(context.Result!.ExpectOperationResult())
+                        .AddError(ErrorBuilder.New().SetMessage("Top Level Error").Build())
+                        .Build();
+                }));
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        productById(id: "1") {
+                          id
+                          name
+                          price
+                          score
+                        }
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        MatchMarkdownSnapshot(request, result);
+    }
+
+    [Fact]
+    public async Task
         Entity_Resolver_SubField_NonNull_EntryField_Nullable_Second_Service_Returns_TopLevel_Error_Without_Data()
     {
         // arrange
@@ -2348,6 +2586,75 @@ public class SubgraphErrorTests(ITestOutputHelper output)
                     return default;
                 })
         );
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              productById(id: ID!): Product
+            }
+
+            type Product implements Node {
+              id: ID!
+              score: Int
+            }
+
+            interface Node {
+              id: ID!
+            }
+            """
+        );
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        productById(id: "1") {
+                          id
+                          name
+                          price
+                          score
+                        }
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        MatchMarkdownSnapshot(request, result);
+    }
+    [Fact]
+    public async Task
+        Entity_Resolver_SubField_Nullable_EntryField_Nullable_First_Service_Returns_TopLevel_Error_With_Data()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            builder => builder
+                .AddDocumentFromString(
+                    """
+                    type Query {
+                      productById(id: ID!): Product
+                    }
+
+                    type Product implements Node {
+                      id: ID!
+                      name: String
+                      price: Float
+                    }
+
+                    interface Node {
+                      id: ID!
+                    }
+                    """)
+                .AddResolverMocking()
+                .UseDefaultPipeline()
+                .UseRequest(next => async context =>
+                {
+                    await next(context);
+                    context.Result = OperationResultBuilder.FromResult(context.Result!.ExpectOperationResult())
+                        .AddError(ErrorBuilder.New().SetMessage("Top Level Error").Build())
+                        .Build();
+                }));
 
         var subgraphB = await TestSubgraph.CreateAsync(
             """
@@ -3029,6 +3336,71 @@ public class SubgraphErrorTests(ITestOutputHelper output)
 
     [Fact]
     public async Task
+        Resolve_Sequence_SubField_Nullable_Parent_Nullable_Second_Service_Returns_TopLevel_Error_With_Data()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              product: Product
+            }
+
+            type Product {
+              id: ID!
+              brand: Brand
+            }
+
+            type Brand {
+              id: ID!
+            }
+            """);
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            builder => builder
+                .AddDocumentFromString(
+                    """
+                    type Query {
+                      brandById(id: ID!): Brand
+                    }
+
+                    type Brand {
+                      id: ID!
+                      name: String
+                    }
+                    """)
+                .AddResolverMocking()
+                .UseDefaultPipeline()
+                .UseRequest(next => async context =>
+                {
+                    await next(context);
+                    context.Result = OperationResultBuilder.FromResult(context.Result!.ExpectOperationResult())
+                        .AddError(ErrorBuilder.New().SetMessage("Top Level Error").Build())
+                        .Build();
+                }));
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        product {
+                          id
+                          brand {
+                            id
+                            name
+                          }
+                        }
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        MatchMarkdownSnapshot(request, result);
+    }
+
+    [Fact]
+    public async Task
         Resolve_Sequence_SubField_NonNull_Parent_Nullable_Second_Service_Returns_TopLevel_Error_Without_Data()
     {
         // arrange
@@ -3482,6 +3854,65 @@ public class SubgraphErrorTests(ITestOutputHelper output)
                     return default;
                 })
         );
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        products {
+                          id
+                          name
+                          price
+                        }
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        MatchMarkdownSnapshot(request, result);
+    }
+
+    [Fact]
+    public async Task
+        ResolveByKey_SubField_Nullable_ListItem_Nullable_Second_Service_Returns_TopLevel_Error_With_Data()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              products: [Product]
+            }
+
+            type Product {
+              id: ID!
+              name: String!
+            }
+            """);
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            builder => builder
+                .AddDocumentFromString(
+                    """
+                    type Query {
+                      productsById(ids: [ID!]!): [Product]
+                    }
+
+                    type Product {
+                      id: ID!
+                      price: Int
+                    }
+                    """)
+                .AddResolverMocking()
+                .UseDefaultPipeline()
+                .UseRequest(next => async context =>
+                {
+                    await next(context);
+                    context.Result = OperationResultBuilder.FromResult(context.Result!.ExpectOperationResult())
+                        .AddError(ErrorBuilder.New().SetMessage("Top Level Error").Build())
+                        .Build();
+                }));
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
         var executor = await subgraphs.GetExecutorAsync();
