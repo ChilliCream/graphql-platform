@@ -182,7 +182,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
                 if (unwrappedSubgraphErrorTrie is not null
                     && unwrappedSubgraphErrorTrie.TryGetValue(listResult.Index, out var errorTrieAtIndex))
                 {
-                    errorTrie = ExtractErrors(SelectionSet, errorTrieAtIndex);
+                    errorTrie = ExtractErrorsForSelectionSet(SelectionSet, errorTrieAtIndex);
                 }
 
                 ExtractSelectionResults(SelectionSet, SubgraphName, data, batchState.SelectionSetData);

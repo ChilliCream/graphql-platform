@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 using HotChocolate.Fusion.Clients;
 using static HotChocolate.Fusion.Execution.ExecutionUtils;
 using static HotChocolate.Fusion.Execution.Nodes.ResolverNodeBase;
@@ -146,39 +147,28 @@ internal sealed class Resolve(int id, Config config) : ResolverNodeBase(id, conf
             var exportKeys = state.Requires;
             var variableValues = state.VariableValues;
 
-            var errors = ExtractErrors(response.Errors, subgraphName, context.ShowDebugInfo);
-
-            ErrorTrie? subgraphErrorTrie = null;
-            if (errors is not null)
-            {
-                subgraphErrorTrie = ErrorTrie.FromErrors(errors);
-            }
-
-            IError? transportError = null;
             if (response.TransportException is not null)
             {
-                transportError = CreateTransportError(
+                var transportError = CreateTransportError(
                     response.TransportException,
                     context.ErrorHandler,
                     subgraphName,
                     context.ShowDebugInfo);
-            }
 
-            ErrorTrie? errorTrie = null;
-            if (subgraphErrorTrie is not null)
-            {
-                var unwrappedErrorTrie = UnwrapErrors(subgraphErrorTrie);
-                errorTrie = ExtractErrors(SelectionSet, unwrappedErrorTrie)
-                    ?? ErrorTrie.FromSelections(subgraphErrorTrie, RootSelections, Path);
+                state.ErrorTrie = ErrorTrie.FromSelections(transportError, RootSelections);
             }
-            else if (transportError is not null)
+            else
             {
-                errorTrie = ErrorTrie.FromSelections(transportError, RootSelections);
-            }
+                var errors = ExtractErrors(response.Errors, subgraphName, context.ShowDebugInfo);
 
-            if (errorTrie is not null)
-            {
-                state.ErrorTrie = errorTrie;
+                if (errors is not null)
+                {
+                    var errorTrie = ErrorTrie.FromErrors(errors);
+                    var unwrappedErrorTrie = UnwrapErrors(errorTrie);
+
+                    state.ErrorTrie = ExtractErrorsForSelectionSet(SelectionSet, unwrappedErrorTrie)
+                        ?? ErrorTrie.FromSelections(errorTrie, RootSelections, Path);
+                }
             }
 
             // we extract the selection data from the request and add it to the

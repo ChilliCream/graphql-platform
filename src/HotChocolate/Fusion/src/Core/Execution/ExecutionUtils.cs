@@ -523,7 +523,7 @@ internal static class ExecutionUtils
         }
     }
 
-    public static ErrorTrie? ExtractErrors(
+    public static ErrorTrie? ExtractErrorsForSelectionSet(
         SelectionSet selectionSet,
         ErrorTrie? errorTrie)
     {
@@ -541,10 +541,7 @@ internal static class ExecutionUtils
         {
             if (errorTrie.TryGetValue(currentSelection.ResponseName, out var subErrorTrie))
             {
-                if (newErrorTrie is null)
-                {
-                    newErrorTrie = new();
-                }
+                newErrorTrie ??= new ErrorTrie();
 
                 newErrorTrie.Add(currentSelection.ResponseName, subErrorTrie);
             }
