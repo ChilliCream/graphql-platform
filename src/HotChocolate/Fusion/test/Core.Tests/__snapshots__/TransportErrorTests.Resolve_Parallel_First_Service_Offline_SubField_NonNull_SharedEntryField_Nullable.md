@@ -1,25 +1,10 @@
-# Resolve_Parallel_One_Service_Offline_SubField_NonNull_SharedEntryField_NonNull
+# Resolve_Parallel_First_Service_Offline_SubField_NonNull_SharedEntryField_Nullable
 
 ## Result
 
 ```json
 {
   "errors": [
-    {
-      "message": "Cannot return null for non-nullable field.",
-      "locations": [
-        {
-          "line": 2,
-          "column": 3
-        }
-      ],
-      "path": [
-        "viewer"
-      ],
-      "extensions": {
-        "code": "HC0018"
-      }
-    },
     {
       "message": "Unexpected Execution Error",
       "locations": [
@@ -34,7 +19,9 @@
       ]
     }
   ],
-  "data": null
+  "data": {
+    "viewer": null
+  }
 }
 ```
 

@@ -1,4 +1,4 @@
-# Resolve_Parallel_One_Service_Offline_SubField_Nullable_SharedEntryField_Nullable
+# Resolve_Parallel_Second_Service_Offline_SubField_NonNull_SharedEntryField_NonNull
 
 ## Result
 
@@ -6,25 +6,38 @@
 {
   "errors": [
     {
-      "message": "Unexpected Execution Error",
+      "message": "Cannot return null for non-nullable field.",
       "locations": [
         {
-          "line": 4,
+          "line": 2,
+          "column": 3
+        }
+      ],
+      "path": [
+        "viewer"
+      ],
+      "extensions": {
+        "code": "HC0018"
+      }
+    },
+    {
+      "message": "Cannot return null for non-nullable field.",
+      "locations": [
+        {
+          "line": 3,
           "column": 5
         }
       ],
       "path": [
         "viewer",
-        "name"
-      ]
+        "userId"
+      ],
+      "extensions": {
+        "code": "HC0018"
+      }
     }
   ],
-  "data": {
-    "viewer": {
-      "userId": "1",
-      "name": null
-    }
-  }
+  "data": null
 }
 ```
 

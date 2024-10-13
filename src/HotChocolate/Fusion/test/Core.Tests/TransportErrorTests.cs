@@ -53,7 +53,7 @@ public class TransportErrorTests(ITestOutputHelper output)
     #region Parallel, Shared Entry Field
 
     [Fact]
-    public async Task Resolve_Parallel_One_Service_Offline_SubField_Nullable_SharedEntryField_Nullable()
+    public async Task Resolve_Parallel_First_Service_Offline_SubField_Nullable_SharedEntryField_Nullable()
     {
         // arrange
         var subgraphA = await TestSubgraph.CreateAsync(
@@ -98,7 +98,7 @@ public class TransportErrorTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public async Task Resolve_Parallel_One_Service_Offline_SubField_NonNull_SharedEntryField_Nullable()
+    public async Task Resolve_Parallel_First_Service_Offline_SubField_NonNull_SharedEntryField_Nullable()
     {
         // arrange
         var subgraphA = await TestSubgraph.CreateAsync(
@@ -143,7 +143,7 @@ public class TransportErrorTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public async Task Resolve_Parallel_One_Service_Offline_SubField_NonNull_SharedEntryField_NonNull()
+    public async Task Resolve_Parallel_First_Service_Offline_SubField_NonNull_SharedEntryField_NonNull()
     {
         // arrange
         var subgraphA = await TestSubgraph.CreateAsync(
@@ -168,6 +168,141 @@ public class TransportErrorTests(ITestOutputHelper output)
               userId: ID!
             }
             """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        viewer {
+                          userId
+                          name
+                        }
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        MatchMarkdownSnapshot(request, result);
+    }
+
+    [Fact(Skip = "Missing errors")]
+    public async Task Resolve_Parallel_Second_Service_Offline_SubField_Nullable_SharedEntryField_Nullable()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              name: String
+            }
+            """);
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              userId: ID
+            }
+            """,
+            isOffline: true);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        viewer {
+                          userId
+                          name
+                        }
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        MatchMarkdownSnapshot(request, result);
+    }
+
+    [Fact(Skip = "Missing errors")]
+    public async Task Resolve_Parallel_Second_Service_Offline_SubField_NonNull_SharedEntryField_Nullable()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              name: String!
+            }
+            """);
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              userId: ID!
+            }
+            """,
+            isOffline: true);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        viewer {
+                          userId
+                          name
+                        }
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        MatchMarkdownSnapshot(request, result);
+    }
+
+    [Fact(Skip = "Missing errors")]
+    public async Task Resolve_Parallel_Second_Service_Offline_SubField_NonNull_SharedEntryField_NonNull()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              viewer: Viewer!
+            }
+
+            type Viewer {
+              name: String!
+            }
+            """);
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              viewer: Viewer!
+            }
+
+            type Viewer {
+              userId: ID!
+            }
+            """,
+            isOffline: true);
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
         var executor = await subgraphs.GetExecutorAsync();
