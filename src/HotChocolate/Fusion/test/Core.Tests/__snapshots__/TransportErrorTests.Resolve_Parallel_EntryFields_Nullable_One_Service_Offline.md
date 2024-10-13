@@ -1,4 +1,4 @@
-# Resolve_Parallel_SubField_NonNull_EntryField_Nullable_One_Service_Errors_SubField
+# Resolve_Parallel_EntryFields_Nullable_One_Service_Offline
 
 ## Result
 
@@ -9,20 +9,20 @@
       "message": "Unexpected Execution Error",
       "locations": [
         {
-          "line": 5,
+          "line": 2,
           "column": 3
         }
       ],
       "path": [
-        "other"
+        "viewer"
       ]
     }
   ],
   "data": {
-    "viewer": {
-      "name": "string"
-    },
-    "other": null
+    "viewer": null,
+    "other": {
+      "userId": "1"
+    }
   }
 }
 ```

@@ -1,4 +1,4 @@
-# Resolve_Parallel_SubField_Nullable_SharedEntryField_Nullable_One_Service_Returns_TopLevel_Error_Without_Data
+# Resolve_Parallel_SharedEntryField_Nullable_SubField_Nullable_First_Service_Returns_TopLevel_Error_Without_Data
 
 ## Result
 
@@ -6,23 +6,23 @@
 {
   "errors": [
     {
-      "message": "Unexpected Execution Error",
+      "message": "Top Level Error",
       "locations": [
         {
-          "line": 3,
+          "line": 4,
           "column": 5
         }
       ],
       "path": [
         "viewer",
-        "userId"
+        "name"
       ]
     }
   ],
   "data": {
     "viewer": {
-      "userId": null,
-      "name": "string"
+      "userId": "1",
+      "name": null
     }
   }
 }

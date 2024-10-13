@@ -100,7 +100,7 @@ public class SubgraphErrorTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public async Task Resolve_Parallel_SubField_Nullable_SharedEntryField_Nullable_One_Service_Errors_SharedEntryField()
+    public async Task Resolve_Parallel_SharedEntryField_Nullable_SubField_Nullable_First_Service_Errors_SharedEntryField()
     {
         // arrange
         var subgraphA = await TestSubgraph.CreateAsync(
@@ -144,7 +144,51 @@ public class SubgraphErrorTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public async Task Resolve_Parallel_SubField_NonNull_SharedEntryField_Nullable_One_Service_Errors_SharedEntryField()
+    public async Task Resolve_Parallel_SharedEntryField_Nullable_SubField_Nullable_Second_Service_Errors_SharedEntryField()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              name: String
+            }
+            """);
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              viewer: Viewer @error
+            }
+
+            type Viewer {
+              userId: ID
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        viewer {
+                          userId
+                          name
+                        }
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        MatchMarkdownSnapshot(request, result);
+    }
+
+    [Fact]
+    public async Task Resolve_Parallel_SharedEntryField_Nullable_SubField_NonNull_First_Service_Errors_SharedEntryField()
     {
         // arrange
         var subgraphA = await TestSubgraph.CreateAsync(
@@ -188,7 +232,51 @@ public class SubgraphErrorTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public async Task Resolve_Parallel_SubField_NonNull_SharedEntryField_NonNull_One_Service_Errors_SharedEntryField()
+    public async Task Resolve_Parallel_SharedEntryField_Nullable_SubField_NonNull_Second_Service_Errors_SharedEntryField()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              name: String!
+            }
+            """);
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              viewer: Viewer @error
+            }
+
+            type Viewer {
+              userId: ID!
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        viewer {
+                          userId
+                          name
+                        }
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        MatchMarkdownSnapshot(request, result);
+    }
+
+    [Fact]
+    public async Task Resolve_Parallel_SharedEntryField_NonNull_SubField_NonNull_First_Service_Errors_SharedEntryField()
     {
         // arrange
         var subgraphA = await TestSubgraph.CreateAsync(
@@ -232,7 +320,51 @@ public class SubgraphErrorTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public async Task Resolve_Parallel_SubField_Nullable_SharedEntryField_Nullable_One_Service_Errors_SubField()
+    public async Task Resolve_Parallel_SharedEntryField_NonNull_SubField_NonNull_Second_Service_Errors_SharedEntryField()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              viewer: Viewer!
+            }
+
+            type Viewer {
+              name: String!
+            }
+            """);
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              viewer: Viewer! @error
+            }
+
+            type Viewer {
+              userId: ID!
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        viewer {
+                          userId
+                          name
+                        }
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        MatchMarkdownSnapshot(request, result);
+    }
+
+    [Fact]
+    public async Task Resolve_Parallel_SharedEntryField_Nullable_SubField_Nullable_First_Service_Errors_SubField()
     {
         // arrange
         var subgraphA = await TestSubgraph.CreateAsync(
@@ -276,7 +408,51 @@ public class SubgraphErrorTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public async Task Resolve_Parallel_SubField_NonNull_SharedEntryField_Nullable_One_Service_Errors_SubField()
+    public async Task Resolve_Parallel_SharedEntryField_Nullable_SubField_Nullable_Second_Service_Errors_SubField()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              name: String
+            }
+            """);
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              userId: ID @error
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        viewer {
+                          userId
+                          name
+                        }
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        MatchMarkdownSnapshot(request, result);
+    }
+
+    [Fact]
+    public async Task Resolve_Parallel_SharedEntryField_Nullable_SubField_NonNull_First_Service_Errors_SubField()
     {
         // arrange
         var subgraphA = await TestSubgraph.CreateAsync(
@@ -320,7 +496,51 @@ public class SubgraphErrorTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public async Task Resolve_Parallel_SubField_NonNull_SharedEntryField_NonNull_One_Service_Errors_SubField()
+    public async Task Resolve_Parallel_SharedEntryField_Nullable_SubField_NonNull_Second_Service_Errors_SubField()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              name: String!
+            }
+            """);
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              userId: ID! @error
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        viewer {
+                          userId
+                          name
+                        }
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        MatchMarkdownSnapshot(request, result);
+    }
+
+    [Fact]
+    public async Task Resolve_Parallel_SharedEntryField_NonNull_SubField_NonNull_First_Service_Errors_SubField()
     {
         // arrange
         var subgraphA = await TestSubgraph.CreateAsync(
@@ -342,6 +562,50 @@ public class SubgraphErrorTests(ITestOutputHelper output)
 
             type Viewer {
               userId: ID!
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        viewer {
+                          userId
+                          name
+                        }
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        MatchMarkdownSnapshot(request, result);
+    }
+
+    [Fact]
+    public async Task Resolve_Parallel_SharedEntryField_NonNull_SubField_NonNull_Second_Service_Errors_SubField()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              viewer: Viewer!
+            }
+
+            type Viewer {
+              name: String!
+            }
+            """);
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              viewer: Viewer!
+            }
+
+            type Viewer {
+              userId: ID! @error
             }
             """);
 
@@ -365,7 +629,7 @@ public class SubgraphErrorTests(ITestOutputHelper output)
 
     [Fact]
     public async Task
-        Resolve_Parallel_SubField_Nullable_SharedEntryField_Nullable_One_Service_Returns_TopLevel_Error_Without_Data()
+        Resolve_Parallel_SharedEntryField_Nullable_SubField_Nullable_Second_Service_Returns_TopLevel_Error_Without_Data()
     {
         // arrange
         var subgraphA = await TestSubgraph.CreateAsync(
@@ -398,8 +662,7 @@ public class SubgraphErrorTests(ITestOutputHelper output)
                     context.Result =
                         OperationResultBuilder.CreateError(ErrorBuilder.New().SetMessage("Top Level Error").Build());
                     return default;
-                })
-        );
+                }));
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
         var executor = await subgraphs.GetExecutorAsync();
@@ -421,7 +684,62 @@ public class SubgraphErrorTests(ITestOutputHelper output)
 
     [Fact]
     public async Task
-        Resolve_Parallel_SubField_NonNull_SharedEntryField_Nullable_One_Service_Returns_TopLevel_Error_Without_Data()
+        Resolve_Parallel_SharedEntryField_Nullable_SubField_Nullable_First_Service_Returns_TopLevel_Error_Without_Data()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            builder => builder
+                .AddDocumentFromString(
+                    """
+                    type Query {
+                      viewer: Viewer
+                    }
+
+                    type Viewer {
+                      name: String
+                    }
+                    """)
+                .AddResolverMocking()
+                .UseDefaultPipeline()
+                .UseRequest(_ => context =>
+                {
+                    context.Result =
+                        OperationResultBuilder.CreateError(ErrorBuilder.New().SetMessage("Top Level Error").Build());
+                    return default;
+                }));
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              userId: ID
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        viewer {
+                          userId
+                          name
+                        }
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        MatchMarkdownSnapshot(request, result);
+    }
+
+    [Fact]
+    public async Task
+        Resolve_Parallel_SharedEntryField_Nullable_SubField_NonNull_Second_Service_Returns_TopLevel_Error_Without_Data()
     {
         // arrange
         var subgraphA = await TestSubgraph.CreateAsync(
@@ -477,7 +795,62 @@ public class SubgraphErrorTests(ITestOutputHelper output)
 
     [Fact]
     public async Task
-        Resolve_Parallel_SubField_NonNull_SharedEntryField_NonNull_One_Service_Returns_TopLevel_Error_Without_Data()
+        Resolve_Parallel_SharedEntryField_Nullable_SubField_NonNull_First_Service_Returns_TopLevel_Error_Without_Data()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            builder => builder
+                .AddDocumentFromString(
+                    """
+                    type Query {
+                      viewer: Viewer
+                    }
+
+                    type Viewer {
+                      name: String!
+                    }
+                    """)
+                .AddResolverMocking()
+                .UseDefaultPipeline()
+                .UseRequest(_ => context =>
+                {
+                    context.Result =
+                        OperationResultBuilder.CreateError(ErrorBuilder.New().SetMessage("Top Level Error").Build());
+                    return default;
+                }));
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              userId: ID!
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        viewer {
+                          userId
+                          name
+                        }
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        MatchMarkdownSnapshot(request, result);
+    }
+
+    [Fact]
+    public async Task
+        Resolve_Parallel_SharedEntryField_NonNull_SubField_NonNull_Second_Service_Returns_TopLevel_Error_Without_Data()
     {
         // arrange
         var subgraphA = await TestSubgraph.CreateAsync(
@@ -531,12 +904,67 @@ public class SubgraphErrorTests(ITestOutputHelper output)
         MatchMarkdownSnapshot(request, result);
     }
 
+    [Fact]
+    public async Task
+        Resolve_Parallel_SharedEntryField_NonNull_SubField_NonNull_First_Service_Returns_TopLevel_Error_Without_Data()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            builder => builder
+                .AddDocumentFromString(
+                    """
+                    type Query {
+                      viewer: Viewer!
+                    }
+
+                    type Viewer {
+                      name: String!
+                    }
+                    """)
+                .AddResolverMocking()
+                .UseDefaultPipeline()
+                .UseRequest(_ => context =>
+                {
+                    context.Result =
+                        OperationResultBuilder.CreateError(ErrorBuilder.New().SetMessage("Top Level Error").Build());
+                    return default;
+                }));
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              viewer: Viewer!
+            }
+
+            type Viewer {
+              userId: ID!
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        viewer {
+                          userId
+                          name
+                        }
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        MatchMarkdownSnapshot(request, result);
+    }
+
     #endregion
 
     #region Parallel, No Shared Entry Field
 
     [Fact]
-    public async Task Resolve_Parallel_SubField_Nullable_EntryField_Nullable_One_Service_Errors_SubField()
+    public async Task Resolve_Parallel_EntryField_Nullable_SubField_Nullable_One_Service_Errors_SubField()
     {
         // arrange
         var subgraphA = await TestSubgraph.CreateAsync(
@@ -582,7 +1010,7 @@ public class SubgraphErrorTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public async Task Resolve_Parallel_SubField_NonNull_EntryField_Nullable_One_Service_Errors_SubField()
+    public async Task Resolve_Parallel_EntryField_Nullable_SubField_NonNull_One_Service_Errors_SubField()
     {
         // arrange
         var subgraphA = await TestSubgraph.CreateAsync(
@@ -628,7 +1056,7 @@ public class SubgraphErrorTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public async Task Resolve_Parallel_SubField_NonNull_EntryField_NonNull_One_Service_Errors_SubField()
+    public async Task Resolve_Parallel_EntryField_NonNull_SubField_NonNull_One_Service_Errors_SubField()
     {
         // arrange
         var subgraphA = await TestSubgraph.CreateAsync(

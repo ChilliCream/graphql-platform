@@ -1,4 +1,4 @@
-# Resolve_Parallel_One_Service_Offline_EntryFields_Nullable
+# Resolve_Parallel_SharedEntryField_NonNull_SubField_NonNull_Second_Service_Returns_TopLevel_Error_Without_Data
 
 ## Result
 
@@ -9,21 +9,17 @@
       "message": "Unexpected Execution Error",
       "locations": [
         {
-          "line": 2,
-          "column": 3
+          "line": 3,
+          "column": 5
         }
       ],
       "path": [
-        "viewer"
+        "viewer",
+        "userId"
       ]
     }
   ],
-  "data": {
-    "viewer": null,
-    "other": {
-      "userId": "1"
-    }
-  }
+  "data": null
 }
 ```
 
@@ -32,10 +28,8 @@
 ```graphql
 {
   viewer {
-    name
-  }
-  other {
     userId
+    name
   }
 }
 ```
@@ -43,14 +37,14 @@
 ## QueryPlan Hash
 
 ```text
-1E9F0B5070B0EB2A79CBF03CDCC94C574189F814
+0728EE40A767B43E14FF62896779067DFF1C53FF
 ```
 
 ## QueryPlan
 
 ```json
 {
-  "document": "{ viewer { name } other { userId } }",
+  "document": "{ viewer { userId name } }",
   "rootNode": {
     "type": "Sequence",
     "nodes": [
@@ -60,13 +54,13 @@
           {
             "type": "Resolve",
             "subgraph": "Subgraph_1",
-            "document": "query fetch_viewer_other_1 { viewer { name } }",
+            "document": "query fetch_viewer_1 { viewer { name } }",
             "selectionSetId": 0
           },
           {
             "type": "Resolve",
             "subgraph": "Subgraph_2",
-            "document": "query fetch_viewer_other_2 { other { userId } }",
+            "document": "query fetch_viewer_2 { viewer { userId } }",
             "selectionSetId": 0
           }
         ]

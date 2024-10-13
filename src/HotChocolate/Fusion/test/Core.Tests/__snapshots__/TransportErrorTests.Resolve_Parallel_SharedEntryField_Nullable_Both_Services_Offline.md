@@ -1,4 +1,4 @@
-# Resolve_Parallel_Both_Services_Offline_SharedEntryField_NonNull
+# Resolve_Parallel_SharedEntryField_Nullable_Both_Services_Offline
 
 ## Result
 
@@ -18,7 +18,9 @@
       ]
     }
   ],
-  "data": null
+  "data": {
+    "viewer": null
+  }
 }
 ```
 

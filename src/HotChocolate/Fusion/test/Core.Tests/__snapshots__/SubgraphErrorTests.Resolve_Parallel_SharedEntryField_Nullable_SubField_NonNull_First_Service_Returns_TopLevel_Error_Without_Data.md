@@ -1,4 +1,4 @@
-# Resolve_Parallel_SubField_NonNull_SharedEntryField_NonNull_One_Service_Errors_SubField
+# Resolve_Parallel_SharedEntryField_Nullable_SubField_NonNull_First_Service_Returns_TopLevel_Error_Without_Data
 
 ## Result
 
@@ -6,22 +6,7 @@
 {
   "errors": [
     {
-      "message": "Cannot return null for non-nullable field.",
-      "locations": [
-        {
-          "line": 2,
-          "column": 3
-        }
-      ],
-      "path": [
-        "viewer"
-      ],
-      "extensions": {
-        "code": "HC0018"
-      }
-    },
-    {
-      "message": "Unexpected Execution Error",
+      "message": "Top Level Error",
       "locations": [
         {
           "line": 4,
@@ -34,7 +19,9 @@
       ]
     }
   ],
-  "data": null
+  "data": {
+    "viewer": null
+  }
 }
 ```
 

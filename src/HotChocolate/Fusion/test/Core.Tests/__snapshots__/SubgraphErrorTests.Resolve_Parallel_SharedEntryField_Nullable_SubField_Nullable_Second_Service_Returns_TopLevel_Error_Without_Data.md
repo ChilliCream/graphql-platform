@@ -1,4 +1,4 @@
-# Resolve_Parallel_SubField_NonNull_SharedEntryField_Nullable_One_Service_Errors_SharedEntryField
+# Resolve_Parallel_SharedEntryField_Nullable_SubField_Nullable_Second_Service_Returns_TopLevel_Error_Without_Data
 
 ## Result
 
@@ -9,18 +9,21 @@
       "message": "Unexpected Execution Error",
       "locations": [
         {
-          "line": 4,
+          "line": 3,
           "column": 5
         }
       ],
       "path": [
         "viewer",
-        "name"
+        "userId"
       ]
     }
   ],
   "data": {
-    "viewer": null
+    "viewer": {
+      "userId": null,
+      "name": "string"
+    }
   }
 }
 ```

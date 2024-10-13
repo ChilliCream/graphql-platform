@@ -1,14 +1,26 @@
-# Resolve_Parallel_Second_Service_Offline_SubField_Nullable_SharedEntryField_Nullable
+# Resolve_Parallel_SharedEntryField_Nullable_SubField_NonNull_First_Service_Errors_SubField
 
 ## Result
 
 ```json
 {
-  "data": {
-    "viewer": {
-      "userId": null,
-      "name": "string"
+  "errors": [
+    {
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 4,
+          "column": 5
+        }
+      ],
+      "path": [
+        "viewer",
+        "name"
+      ]
     }
+  ],
+  "data": {
+    "viewer": null
   }
 }
 ```

@@ -1,4 +1,4 @@
-# Resolve_Parallel_SubField_Nullable_SharedEntryField_Nullable_One_Service_Errors_SharedEntryField
+# Resolve_Parallel_SharedEntryField_Nullable_SubField_NonNull_First_Service_Offline
 
 ## Result
 
@@ -20,10 +20,7 @@
     }
   ],
   "data": {
-    "viewer": {
-      "userId": "1",
-      "name": null
-    }
+    "viewer": null
   }
 }
 ```
