@@ -2,7 +2,7 @@
 title: "Schema Definition"
 ---
 
-![Nitro - Schema Definition](./images/definition-0.png)
+![Nitro - Schema Definition](./images/definition-0.webp)
 
 The Schema Definition feature in Nitro provides you with access to the raw Schema Definition Language (SDL) of your GraphQL server. This section explains how to view and download the SDL using Nitro.
 
