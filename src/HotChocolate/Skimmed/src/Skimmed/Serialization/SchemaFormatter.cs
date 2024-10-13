@@ -1,5 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
+using HotChocolate.Types;
 
 namespace HotChocolate.Skimmed.Serialization;
 
@@ -390,6 +391,8 @@ public static class SchemaFormatter
 
             directives = ApplyDeprecatedDirective(field, directives);
 
+            directives = ApplySemanticNonNullDirective(field, directives);
+
             context.Result = new FieldDefinitionNode(
                 null,
                 new NameNode(field.Name),
@@ -472,6 +475,55 @@ public static class SchemaFormatter
             context.Result = new ArgumentNode(argument.Name, argument.Value);
         }
 
+        private static List<DirectiveNode> ApplySemanticNonNullDirective(
+            OutputFieldDefinition field,
+            List<DirectiveNode> directives)
+        {
+            List<int> levels = [];
+            var level = 0;
+            var currentType = field.Type;
+
+            do
+            {
+                if (currentType is SemanticNonNullTypeDefinition semanticNonNullType)
+                {
+                    currentType = semanticNonNullType.NullableType;
+                    levels.Add(level);
+                }
+                else if (currentType is NonNullTypeDefinition nonNullType)
+                {
+                    currentType = nonNullType.NullableType;
+                }
+                else if (currentType is ListTypeDefinition listType)
+                {
+                    currentType = listType.ElementType;
+                    level++;
+                }
+                else
+                {
+                    break;
+                }
+            } while (true);
+
+            if (levels.Count > 0)
+            {
+                var semanticNonNullDirective = CreateSemanticNonNullDirective(levels);
+
+                if (directives.Count == 0)
+                {
+                    directives = [semanticNonNullDirective];
+                }
+                else
+                {
+                    var temp = directives.ToList();
+                    temp.Add(semanticNonNullDirective);
+                    directives = temp;
+                }
+            }
+
+            return directives;
+        }
+
         private static List<DirectiveNode> ApplyDeprecatedDirective(
             IDeprecationProvider canBeDeprecated,
             List<DirectiveNode> directives)
@@ -493,6 +545,21 @@ public static class SchemaFormatter
             }
 
             return directives;
+        }
+
+        private static DirectiveNode CreateSemanticNonNullDirective(List<int> levels)
+        {
+            if (levels is [0])
+            {
+                return new DirectiveNode(BuiltIns.SemanticNonNull.Name);
+            }
+
+            var levelsListInnerValueNodes = levels.ConvertAll(level => new IntValueNode(level));
+            var levelsListValueNode = new ListValueNode(levelsListInnerValueNodes);
+
+            return new DirectiveNode(
+                new NameNode(BuiltIns.SemanticNonNull.Name),
+                new[] { new ArgumentNode(BuiltIns.SemanticNonNull.Levels, levelsListValueNode) });
         }
 
         private static DirectiveNode CreateDeprecatedDirective(string? reason = null)

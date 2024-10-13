@@ -12,6 +12,52 @@ internal static class MergeExtensions
             return target;
         }
 
+        if (target.Kind is TypeKind.SemanticNonNull && source.Kind is not TypeKind.SemanticNonNull)
+        {
+            var nullableTarget = target.InnerType();
+
+            if (source.Kind is TypeKind.NonNull)
+            {
+                return MergeOutputType(source, new NonNullTypeDefinition(nullableTarget));
+            }
+
+            return MergeOutputType(source, nullableTarget);
+        }
+
+        if (source.Kind is TypeKind.SemanticNonNull && target.Kind is not TypeKind.SemanticNonNull)
+        {
+            var nullableSource = source.InnerType();
+
+            if (target.Kind is TypeKind.NonNull)
+            {
+                return MergeOutputType(new NonNullTypeDefinition(nullableSource), target);
+            }
+
+            return MergeOutputType(nullableSource, target);
+        }
+
+        if (target.Kind is TypeKind.NonNull && source.Kind is not TypeKind.NonNull)
+        {
+            var nullableTarget = target.InnerType();
+
+            if (source.Equals(nullableTarget, TypeComparison.Structural))
+            {
+                return nullableTarget;
+            }
+
+            if (source.Kind == nullableTarget.Kind && nullableTarget.Kind == TypeKind.List)
+            {
+                var rewrittenType = MergeOutputType(source.InnerType(), nullableTarget.InnerType());
+
+                if (rewrittenType is not null)
+                {
+                    return new ListTypeDefinition(rewrittenType);
+                }
+            }
+
+            return null;
+        }
+
         if (target.Kind is TypeKind.NonNull && source.Kind is not TypeKind.NonNull)
         {
             var nullableTarget = target.InnerType();
@@ -58,7 +104,16 @@ internal static class MergeExtensions
 
         if (source.Kind == target.Kind && target.IsListType() && source.IsListType())
         {
-            if (source.Kind is TypeKind.NonNull)
+            if (source.Kind is TypeKind.SemanticNonNull)
+            {
+                var rewrittenType = MergeOutputType(source.InnerType().InnerType(), target.InnerType().InnerType());
+
+                if (rewrittenType is not null)
+                {
+                    return new SemanticNonNullTypeDefinition(new ListTypeDefinition(rewrittenType));
+                }
+            }
+            else if (source.Kind is TypeKind.NonNull)
             {
                 var rewrittenType = MergeOutputType(source.InnerType().InnerType(), target.InnerType().InnerType());
 

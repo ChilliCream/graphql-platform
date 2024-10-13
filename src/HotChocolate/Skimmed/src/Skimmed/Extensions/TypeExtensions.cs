@@ -12,6 +12,7 @@ public static class TypeExtensions
         {
             TypeKind.List => true,
             TypeKind.NonNull when ((NonNullTypeDefinition)type).NullableType.Kind == TypeKind.List => true,
+            TypeKind.SemanticNonNull when ((SemanticNonNullTypeDefinition)type).NullableType.Kind == TypeKind.List => true,
             _ => false,
         };
 
@@ -22,6 +23,7 @@ public static class TypeExtensions
             TypeKind.InputObject or TypeKind.Enum or TypeKind.Scalar => true,
             TypeKind.List => IsInputType(((ListTypeDefinition)type).ElementType),
             TypeKind.NonNull => IsInputType(((NonNullTypeDefinition)type).NullableType),
+            TypeKind.SemanticNonNull => false,
             _ => throw new NotSupportedException(),
         };
 
@@ -32,6 +34,7 @@ public static class TypeExtensions
             TypeKind.InputObject or TypeKind.Enum or TypeKind.Scalar => false,
             TypeKind.List => IsOutputType(((ListTypeDefinition)type).ElementType),
             TypeKind.NonNull => IsOutputType(((NonNullTypeDefinition)type).NullableType),
+            TypeKind.SemanticNonNull => IsOutputType(((SemanticNonNullTypeDefinition)type).NullableType),
             _ => throw new NotSupportedException(),
         };
 
@@ -45,6 +48,7 @@ public static class TypeExtensions
         {
             ListTypeDefinition listType => listType.ElementType,
             NonNullTypeDefinition nonNullType => nonNullType.NullableType,
+            SemanticNonNullTypeDefinition nonNullType => nonNullType.NullableType,
             _ => type,
         };
 
@@ -65,6 +69,10 @@ public static class TypeExtensions
                     type = nonNullType.NullableType;
                     continue;
 
+                case SemanticNonNullTypeDefinition nonNullType:
+                    type = nonNullType.NullableType;
+                    continue;
+
                 default:
                     throw new NotSupportedException();
             }
@@ -77,6 +85,7 @@ public static class TypeExtensions
             INamedTypeDefinition namedType => new NamedTypeNode(namedType.Name),
             ListTypeDefinition listType => new ListTypeNode(ToTypeNode(listType.ElementType)),
             NonNullTypeDefinition nonNullType => new NonNullTypeNode((INullableTypeNode)ToTypeNode(nonNullType.NullableType)),
+            SemanticNonNullTypeDefinition semanticNonNullType => new SemanticNonNullTypeNode((INullableTypeNode)ToTypeNode(semanticNonNullType.NullableType)),
             _ => throw new NotSupportedException(),
         };
 
@@ -86,6 +95,7 @@ public static class TypeExtensions
             INamedTypeDefinition namedType => newNamedType(namedType.Name),
             ListTypeDefinition listType => new ListTypeDefinition(ReplaceNameType(listType.ElementType, newNamedType)),
             NonNullTypeDefinition nonNullType => new NonNullTypeDefinition(ReplaceNameType(nonNullType.NullableType, newNamedType)),
+            SemanticNonNullTypeDefinition semanticNonNullType => new SemanticNonNullTypeDefinition(ReplaceNameType(semanticNonNullType.NullableType, newNamedType)),
             _ => throw new NotSupportedException(),
         };
 }

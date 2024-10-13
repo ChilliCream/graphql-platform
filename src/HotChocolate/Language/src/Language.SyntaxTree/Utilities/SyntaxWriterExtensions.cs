@@ -294,6 +294,10 @@ public static class SyntaxWriterExtensions
                 writer.WriteNonNullType((NonNullTypeNode)node);
                 break;
 
+            case SyntaxKind.SemanticNonNullType:
+                writer.WriteSemanticNonNullType((SemanticNonNullTypeNode)node);
+                break;
+
             case SyntaxKind.ListType:
                 writer.WriteListType((ListTypeNode)node);
                 break;
@@ -311,6 +315,11 @@ public static class SyntaxWriterExtensions
     {
         writer.WriteType(node.Type);
         writer.Write('!');
+    }
+
+    public static void WriteSemanticNonNullType(this ISyntaxWriter writer, SemanticNonNullTypeNode node)
+    {
+        writer.WriteType(node.Type);
     }
 
     public static void WriteListType(this ISyntaxWriter writer, ListTypeNode node)

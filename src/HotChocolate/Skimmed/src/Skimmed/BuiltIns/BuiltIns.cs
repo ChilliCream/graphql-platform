@@ -105,6 +105,12 @@ public static class BuiltIns
         }
     }
 
+    public static class SemanticNonNull
+    {
+        public const string Name = "semanticNonNull";
+        public const string Levels = "levels";
+    }
+
     public static bool IsBuiltInScalar(string name)
         => name switch
         {
@@ -123,6 +129,7 @@ public static class BuiltIns
             Skip.Name => true,
             Deprecated.Name => true,
             SpecifiedBy.Name => true,
+            SemanticNonNull.Name => true,
             _ => false
         };
 }
