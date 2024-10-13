@@ -132,6 +132,11 @@ internal static class SchemaDebugFormatter
                     (INullableTypeNode)RewriteTypeRef(
                         ((NonNullTypeDefinition)type).NullableType));
 
+            case TypeKind.SemanticNonNull:
+                return new SemanticNonNullTypeNode(
+                    (INullableTypeNode)RewriteTypeRef(
+                        ((SemanticNonNullTypeDefinition)type).NullableType));
+
             default:
                 return new NamedTypeNode(((INamedTypeDefinition)type).Name);
         }

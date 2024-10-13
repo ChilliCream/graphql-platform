@@ -374,6 +374,8 @@ public static class SchemaParser
             field.Description = fieldNode.Description?.Value;
             field.Type = schema.Types.ResolveType(fieldNode.Type);
 
+            ApplySemanticNonNullDirectiveToType(field, fieldNode.Directives);
+
             BuildDirectiveCollection(schema, field.Directives, fieldNode.Directives);
 
             if (IsDeprecated(field.Directives, out var reason))
@@ -623,6 +625,114 @@ public static class SchemaParser
         }
     }
 
+    private static void ApplySemanticNonNullDirectiveToType(
+        OutputFieldDefinition field,
+        IReadOnlyList<DirectiveNode> nodes)
+    {
+        var semanticNonNulLDirective = nodes.FirstOrDefault(t => t.Name.Value == BuiltIns.SemanticNonNull.Name);
+
+        if (semanticNonNulLDirective is null)
+        {
+            return;
+        }
+
+        if (semanticNonNulLDirective.Arguments.Count < 1)
+        {
+            field.Type = new SemanticNonNullTypeDefinition(field.Type);
+            return;
+        }
+
+        HashSet<int> levels = [0];
+        foreach(var argument in semanticNonNulLDirective.Arguments)
+        {
+            if (argument.Name.Value == BuiltIns.SemanticNonNull.Levels)
+            {
+                levels = [];
+
+                if (argument.Value is IntValueNode intValue)
+                {
+                    levels.Add(intValue.ToInt32());
+                }
+                else if(argument.Value is ListValueNode listValue)
+                {
+                    foreach(var item in listValue.Items)
+                    {
+                        if (item is IntValueNode intItem)
+                        {
+                            levels.Add(intItem.ToInt32());
+                        }
+                    }
+                }
+
+                break;
+            }
+        }
+
+        var newFieldTypeStack = new Stack<Type>();
+        var currentType = field.Type;
+        var level = 0;
+
+        do
+        {
+            if (levels.Contains(level))
+            {
+
+            }
+
+            if (currentType is ListTypeDefinition listType)
+            {
+                currentType = listType.ElementType;
+                level++;
+            }
+            else if (currentType is NonNullTypeDefinition nonNullType)
+            {
+                currentType = nonNullType.NullableType;
+            }
+            else
+            {
+                break;
+            }
+        } while (true);
+
+        field.Type = BuildSemanticNonNullTypeFromLevels(field.Type, levels, 0);
+    }
+
+    private static ITypeDefinition BuildSemanticNonNullTypeFromLevels(
+        ITypeDefinition type,
+        HashSet<int> levels,
+        int level)
+    {
+        switch (type)
+        {
+            case NonNullTypeDefinition nonNullTypeRef:
+                return new NonNullTypeDefinition(BuildSemanticNonNullTypeFromLevels(nonNullTypeRef.NullableType, levels, level));
+
+            case ListTypeDefinition listTypeRef:
+                var listType = new ListTypeDefinition(BuildSemanticNonNullTypeFromLevels(listTypeRef.ElementType, levels, level + 1));
+
+                if (levels.Contains(level))
+                {
+                    return new SemanticNonNullTypeDefinition(listType);
+                }
+
+                return listType;
+
+            case INamedTypeDefinition namedTypeRef:
+                var namedType = namedTypeRef;
+
+                if (levels.Contains(level))
+                {
+                    return new SemanticNonNullTypeDefinition(namedType);
+                }
+
+                return namedType;
+
+            default:
+                // TODO : parsing error
+                throw new ArgumentOutOfRangeException(nameof(type));
+        }
+    }
+
     private static void BuildDirectiveCollection(
         SchemaDefinition schema,
         IDirectiveCollection directives,
@@ -630,6 +740,14 @@ public static class SchemaParser
     {
         foreach (var directiveNode in nodes)
         {
+            // The @semanticNonNull directive is translated into
+            // a SemanticNonNullTypeDefinition in an earlier step
+            // and doesn't need to be treated like a regular directive.
+            if (directiveNode.Name.Value == BuiltIns.SemanticNonNull.Name)
+            {
+                continue;
+            }
+
             if (!schema.DirectiveDefinitions.TryGetDirective(
                 directiveNode.Name.Value,
                 out var directiveType))
@@ -682,6 +800,9 @@ file static class SchemaParserExtensions
         {
             case NonNullTypeNode nonNullTypeRef:
                 return new NonNullTypeDefinition(ResolveType(typesDefinition, nonNullTypeRef.Type));
+
+            case SemanticNonNullTypeNode semanticNonNullTypeRef:
+                return new SemanticNonNullTypeDefinition(ResolveType(typesDefinition, semanticNonNullTypeRef.Type));
 
             case ListTypeNode listTypeRef:
                 return new ListTypeDefinition(ResolveType(typesDefinition, listTypeRef.Type));

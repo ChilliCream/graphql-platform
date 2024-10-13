@@ -1,9 +1,12 @@
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Language;
+using HotChocolate.Types;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 
 namespace HotChocolate.Fusion.Shared;
 
@@ -16,18 +19,21 @@ public record TestSubgraph(
 {
     public static Task<TestSubgraph> CreateAsync(
         string schemaText,
-        bool isOffline = false)
+        bool isOffline = false,
+        bool hasSemanticNonNull = false)
         => CreateAsync(
             configureBuilder: builder => builder
                 .AddDocumentFromString(schemaText)
                 .AddResolverMocking()
                 .AddTestDirectives(),
-            isOffline: isOffline);
+            isOffline: isOffline,
+            hasSemanticNonNull: hasSemanticNonNull);
 
     public static async Task<TestSubgraph> CreateAsync(
         Action<IRequestExecutorBuilder> configureBuilder,
         string extensions = "",
-        bool isOffline = false)
+        bool isOffline = false,
+        bool hasSemanticNonNull = false)
     {
         var testServerFactory = new TestServerFactory();
         var testContext = new SubgraphTestContext();
@@ -40,6 +46,11 @@ public record TestSubgraph(
                     .AddGraphQLServer(disableDefaultSecurity: true);
 
                 configureBuilder(builder);
+
+                if (hasSemanticNonNull)
+                {
+                    builder.AddDirectiveType<SemanticNonNullType>();
+                }
             },
             app =>
             {
@@ -63,4 +74,16 @@ public record TestSubgraph(
 public class SubgraphTestContext
 {
     public bool HasReceivedRequest { get; set; }
+}
+
+// TODO: Move
+public class SemanticNonNullType : DirectiveType
+{
+    // directive @semanticNonNull(levels: [Int] = [0]) on FIELD_DEFINITION
+    protected override void Configure(IDirectiveTypeDescriptor descriptor)
+    {
+        descriptor.Name("semanticNonNull");
+        descriptor.Argument("levels").Type<ListType<IntType>>().DefaultValue(new ListValueNode(new IntValueNode(0)));
+        descriptor.Location(DirectiveLocation.FieldDefinition);
+    }
 }

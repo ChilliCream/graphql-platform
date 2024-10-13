@@ -46,4 +46,5 @@ public enum SyntaxKind
     DirectiveDefinition,
     FloatValue,
     SchemaCoordinate,
+    SemanticNonNullType
 }
