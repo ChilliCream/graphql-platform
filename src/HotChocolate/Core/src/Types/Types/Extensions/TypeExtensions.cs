@@ -60,8 +60,7 @@ public static class TypeExtensions
             throw new ArgumentNullException(nameof(type));
         }
 
-        // TODO: Properly implement
-        return type.Kind != TypeKind.NonNull;
+        return type.Kind == TypeKind.SemanticNonNull;
     }
 
     /// <summary>
