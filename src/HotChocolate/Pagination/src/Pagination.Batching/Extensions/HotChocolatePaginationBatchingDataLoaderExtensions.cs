@@ -3,10 +3,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using GreenDonut.Predicates;
-using GreenDonut.Projections;
 using HotChocolate.Pagination;
 
-namespace GreenDonut.Projections;
+namespace GreenDonut.Selectors;
 
 /// <summary>
 /// Provides extension methods to pass a pagination context to a DataLoader.
@@ -85,7 +84,7 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
     /// <exception cref="ArgumentNullException">
     /// Throws if the <paramref name="dataLoader"/> is <c>null</c>.
     /// </exception>
-    [Experimental(Experiments.Projections)]
+    [Experimental(Experiments.Selectors)]
     public static IPagingDataLoader<TKey, Page<TValue>> Select<TElement, TKey, TValue>(
         this IPagingDataLoader<TKey, Page<TValue>> dataLoader,
         Expression<Func<TElement, TElement>>? selector)
@@ -145,7 +144,7 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
     /// <exception cref="ArgumentNullException">
     /// Throws if the <paramref name="dataLoader"/> is <c>null</c>.
     /// </exception>
-    [Experimental(Experiments.Predicates)]
+    [Experimental(Experiments.Filters)]
     public static IPagingDataLoader<TKey, Page<TValue>> Where<TKey, TValue>(
         this IPagingDataLoader<TKey, Page<TValue>> dataLoader,
         Expression<Func<TValue, bool>>? predicate)
@@ -298,7 +297,7 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
         }
 
         // if the number is negative we need one more digit for the sign
-        var length = (value < 0) ? 1 : 0;
+        var length = value < 0 ? 1 : 0;
 
         // we add the number of digits the number has to the length of the number.
         length += (int)Math.Floor(Math.Log10(Math.Abs(value.Value)) + 1);

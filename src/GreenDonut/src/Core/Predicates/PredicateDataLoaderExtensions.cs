@@ -1,15 +1,12 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
-using static GreenDonut.ExpressionHelpers;
 
 namespace GreenDonut.Predicates;
 
 /// <summary>
 /// Data loader extensions for predicates.
 /// </summary>
-#if NET8_0_OR_GREATER
-[Experimental(Experiments.Predicates)]
-#endif
+[Experimental(Experiments.Filters)]
 public static class PredicateDataLoaderExtensions
 {
     /// <summary>

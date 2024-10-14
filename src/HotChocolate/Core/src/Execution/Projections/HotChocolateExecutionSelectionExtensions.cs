@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Text;
 using System.Runtime.CompilerServices;
-using GreenDonut.Projections;
+using GreenDonut.Selectors;
 using HotChocolate.Execution.Projections;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;

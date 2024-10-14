@@ -1,14 +1,14 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
-namespace GreenDonut.Projections;
+namespace GreenDonut.Selectors;
 
 /// <summary>
 /// The selector builder allows to build up a selector expression
 /// by adding expressions that will be merged into a
 /// single selector expression.
 /// </summary>
-[Experimental(Experiments.Projections)]
+[Experimental(Experiments.Selectors)]
 public interface ISelectorBuilder
 {
     /// <summary>

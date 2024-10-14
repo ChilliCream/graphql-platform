@@ -1,4 +1,4 @@
-namespace GreenDonut.Projections;
+namespace GreenDonut.Selectors;
 
 /// <summary>
 /// This class is a helper that is used to project a key value pair.

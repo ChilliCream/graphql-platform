@@ -1,11 +1,8 @@
-#nullable enable
-
 using System.Diagnostics.CodeAnalysis;
-using GreenDonut.Predicates;
-using GreenDonut.Projections;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using HotChocolate.Pagination;
+using GreenDonut.Selectors;
 
 // ReSharper disable once CheckNamespace
 namespace GreenDonut.Predicates;
@@ -13,9 +10,7 @@ namespace GreenDonut.Predicates;
 /// <summary>
 /// Provides extension methods for projection on DataLoader.
 /// </summary>
-#if NET8_0_OR_GREATER
 [Experimental(Experiments.Predicates)]
-#endif
 public static class HotChocolateExecutionPredicateDataLoaderExtensions
 {
     /// <summary>
@@ -42,11 +37,8 @@ public static class HotChocolateExecutionPredicateDataLoaderExtensions
         where TKey : notnull
     {
         var expression = context.AsPredicate<TValue>();
-
         return dataLoader.Where(expression);
     }
-
-
 
     /// <summary>
     /// Applies a filter context to the data loader.
@@ -72,7 +64,6 @@ public static class HotChocolateExecutionPredicateDataLoaderExtensions
         where TKey : notnull
     {
         var expression = context.AsPredicate<TValue>();
-
         return dataLoader.Where(expression);
     }
 }

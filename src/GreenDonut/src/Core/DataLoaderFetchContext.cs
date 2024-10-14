@@ -1,7 +1,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using GreenDonut.Projections;
 using GreenDonut.Predicates;
+using GreenDonut.Selectors;
 
 namespace GreenDonut;
 
@@ -142,7 +142,7 @@ public readonly struct DataLoaderFetchContext<TValue>(
     /// <returns>
     /// Returns the selector builder if it exists.
     /// </returns>
-    [Experimental(Experiments.Projections)]
+    [Experimental(Experiments.Selectors)]
     public ISelectorBuilder GetSelector()
     {
         if (ContextData.TryGetValue(typeof(ISelectorBuilder).FullName!, out var value)
@@ -163,7 +163,7 @@ public readonly struct DataLoaderFetchContext<TValue>(
     /// <returns>
     /// Returns the predicate builder if it exists.
     /// </returns>
-    [Experimental(Experiments.Predicates)]
+    [Experimental(Experiments.Filters)]
     public IPredicateBuilder GetPredicate()
     {
         if (ContextData.TryGetValue(typeof(IPredicateBuilder).FullName!, out var value)

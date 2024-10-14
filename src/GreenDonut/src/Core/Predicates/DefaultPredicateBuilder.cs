@@ -3,9 +3,7 @@ using System.Linq.Expressions;
 
 namespace GreenDonut.Predicates;
 
-#if NET8_0_OR_GREATER
-[Experimental(Experiments.Predicates)]
-#endif
+[Experimental(Experiments.Filters)]
 internal sealed class DefaultPredicateBuilder : IPredicateBuilder
 {
     private List<LambdaExpression>? _predicates;
