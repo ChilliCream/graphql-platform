@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 #endif
 #if NET6_0_OR_GREATER
 using GreenDonut.Selectors;
+using GreenDonut.Predicates;
 #endif
 
 namespace GreenDonut;

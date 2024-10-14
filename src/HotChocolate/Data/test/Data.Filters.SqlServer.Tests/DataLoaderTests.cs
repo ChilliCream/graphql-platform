@@ -1,3 +1,4 @@
+#if NET6_0_OR_GREATER
 using System.Linq.Expressions;
 using CookieCrumble;
 using GreenDonut;
@@ -38,7 +39,13 @@ public sealed class DataLoaderTests
                 }
                 """);
 
+#if NET8_0_OR_GREATER
         Snapshot.Create()
+#elif NET7_0
+        Snapshot.Create("NET7_0")
+#else
+        Snapshot.Create("NET6_0")
+#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -70,7 +77,13 @@ public sealed class DataLoaderTests
                 }
                 """);
 
+#if NET8_0_OR_GREATER
         Snapshot.Create()
+#elif NET7_0
+        Snapshot.Create("NET7_0")
+#else
+        Snapshot.Create("NET6_0")
+#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -102,7 +115,11 @@ public sealed class DataLoaderTests
                 }
                 """);
 
+#if NET8_0_OR_GREATER
         Snapshot.Create()
+#else
+        Snapshot.Create("NET6_0")
+#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -134,7 +151,11 @@ public sealed class DataLoaderTests
                 }
                 """);
 
+#if NET8_0_OR_GREATER
         Snapshot.Create()
+#else
+        Snapshot.Create("NET6_0")
+#endif
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -277,3 +298,4 @@ file static class Extensions
         return snapshot;
     }
 }
+#endif

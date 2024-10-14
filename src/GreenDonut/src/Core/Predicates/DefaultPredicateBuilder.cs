@@ -1,9 +1,12 @@
+#if NET6_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
 namespace GreenDonut.Predicates;
 
+#if NET8_0_OR_GREATER
 [Experimental(Experiments.Predicates)]
+#endif
 internal sealed class DefaultPredicateBuilder : IPredicateBuilder
 {
     private List<LambdaExpression>? _predicates;
@@ -49,3 +52,4 @@ internal sealed class DefaultPredicateBuilder : IPredicateBuilder
         return expression;
     }
 }
+#endif

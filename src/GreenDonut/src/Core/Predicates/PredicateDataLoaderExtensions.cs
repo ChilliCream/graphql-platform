@@ -1,3 +1,4 @@
+#if NET6_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
@@ -6,7 +7,9 @@ namespace GreenDonut.Predicates;
 /// <summary>
 /// Data loader extensions for predicates.
 /// </summary>
+#if NET8_0_OR_GREATER
 [Experimental(Experiments.Predicates)]
+#endif
 public static class PredicateDataLoaderExtensions
 {
     /// <summary>
@@ -113,3 +116,4 @@ public static class PredicateDataLoaderExtensions
         return query;
     }
 }
+#endif

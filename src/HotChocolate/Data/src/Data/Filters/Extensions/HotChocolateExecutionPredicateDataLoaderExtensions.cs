@@ -9,7 +9,9 @@ namespace GreenDonut.Predicates;
 /// <summary>
 /// Provides extension methods for projection on DataLoader.
 /// </summary>
+#if NET8_0_OR_GREATER
 [Experimental(Experiments.Predicates)]
+#endif
 public static class HotChocolateExecutionPredicateDataLoaderExtensions
 {
     /// <summary>

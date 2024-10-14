@@ -1,6 +1,6 @@
 using System.Collections.Immutable;
 #if NET8_0_OR_GREATER
-using GreenDonut.Projections;
+using GreenDonut.Selectors;
 #endif
 
 namespace GreenDonut;
