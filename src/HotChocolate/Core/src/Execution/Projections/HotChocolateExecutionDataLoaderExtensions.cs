@@ -7,13 +7,13 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Pagination;
 
 // ReSharper disable once CheckNamespace
-namespace GreenDonut.Projections;
+namespace GreenDonut.Selectors;
 
 /// <summary>
 /// Provides extension methods for projection on DataLoader.
 /// </summary>
 #if NET8_0_OR_GREATER
-[Experimental(Experiments.Projections)]
+[Experimental(Experiments.Selectors)]
 #endif
 public static class HotChocolateExecutionDataLoaderExtensions
 {

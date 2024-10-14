@@ -1,20 +1,19 @@
-#if NET6_0_OR_GREATER
-namespace GreenDonut.Projections;
+namespace GreenDonut.Predicates;
 
-internal sealed class SelectionDataLoader<TKey, TValue>
+internal sealed class PredicateDataLoader<TKey, TValue>
     : DataLoaderBase<TKey, TValue>
-    , ISelectionDataLoader<TKey, TValue>
+    , IPredicateDataLoader<TKey, TValue>
     where TKey : notnull
 {
     private readonly DataLoaderBase<TKey, TValue> _root;
 
-    public SelectionDataLoader(
+    public PredicateDataLoader(
         DataLoaderBase<TKey, TValue> root,
-        string selectionKey)
+        string predicateKey)
         : base(root.BatchScheduler, root.Options)
     {
         _root = root;
-        CacheKeyType = $"{root.CacheKeyType}:{selectionKey}";
+        CacheKeyType = $"{root.CacheKeyType}:{predicateKey}";
         ContextData = root.ContextData;
     }
 
@@ -24,7 +23,7 @@ internal sealed class SelectionDataLoader<TKey, TValue>
 
     protected override bool AllowCachePropagation => false;
 
-    protected override bool AllowBranching => true;
+    protected override bool AllowBranching => false;
 
     protected internal override ValueTask FetchAsync(
         IReadOnlyList<TKey> keys,
@@ -33,4 +32,3 @@ internal sealed class SelectionDataLoader<TKey, TValue>
         CancellationToken cancellationToken)
         => _root.FetchAsync(keys, results, context, cancellationToken);
 }
-#endif

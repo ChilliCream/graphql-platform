@@ -3,7 +3,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 #endif
 #if NET6_0_OR_GREATER
-using GreenDonut.Projections;
+using GreenDonut.Selectors;
 #endif
 
 namespace GreenDonut;
@@ -147,7 +147,7 @@ public readonly struct DataLoaderFetchContext<TValue>(
     /// Returns the selector builder if it exists.
     /// </returns>
 #if NET8_0_OR_GREATER
-    [Experimental(Experiments.Projections)]
+    [Experimental(Experiments.Selectors)]
 #endif
     public ISelectorBuilder GetSelector()
     {
@@ -160,6 +160,29 @@ public readonly struct DataLoaderFetchContext<TValue>(
         // if no selector was found we will just return
         // a new default selector builder.
         return new DefaultSelectorBuilder();
+    }
+
+    /// <summary>
+    /// Gets the predicate builder from the DataLoader state snapshot.
+    /// The state builder can be used to create a predicate expression.
+    /// </summary>
+    /// <returns>
+    /// Returns the predicate builder if it exists.
+    /// </returns>
+#if NET8_0_OR_GREATER
+    [Experimental(Experiments.Predicates)]
+#endif
+    public IPredicateBuilder GetPredicate()
+    {
+        if (ContextData.TryGetValue(typeof(IPredicateBuilder).FullName!, out var value)
+            && value is DefaultPredicateBuilder casted)
+        {
+            return casted;
+        }
+
+        // if no predicate was found we will just return
+        // a new default predicate builder.
+        return new DefaultPredicateBuilder();
     }
 #endif
 }

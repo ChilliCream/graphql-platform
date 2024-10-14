@@ -1,6 +1,5 @@
 #if NET6_0_OR_GREATER
-
-namespace GreenDonut.Projections;
+namespace GreenDonut.Selectors;
 
 /// <summary>
 /// A selection DataLoader is a version of a DataLoader that

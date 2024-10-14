@@ -2,13 +2,13 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
-namespace GreenDonut.Projections;
+namespace GreenDonut.Selectors;
 
 /// <summary>
 /// A default implementation of the <see cref="ISelectorBuilder"/>.
 /// </summary>
 #if NET8_0_OR_GREATER
-[Experimental(Experiments.Projections)]
+[Experimental(Experiments.Selectors)]
 #endif
 public sealed class DefaultSelectorBuilder : ISelectorBuilder
 {

@@ -2,7 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
-namespace GreenDonut.Projections;
+namespace GreenDonut.Selectors;
 
 /// <summary>
 /// The selector builder allows to build up a selector expression
@@ -10,7 +10,7 @@ namespace GreenDonut.Projections;
 /// single selector expression.
 /// </summary>
 #if NET8_0_OR_GREATER
-[Experimental(Experiments.Projections)]
+[Experimental(Experiments.Selectors)]
 #endif
 public interface ISelectorBuilder
 {

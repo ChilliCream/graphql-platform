@@ -2,7 +2,7 @@
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace GreenDonut.Projections;
+namespace GreenDonut;
 
 internal static class ExpressionHelpers
 {
@@ -15,6 +15,17 @@ internal static class ExpressionHelpers
         var secondBody = ReplaceParameter(second.Body, second.Parameters[0], parameter);
         var combinedBody = CombineExpressions(firstBody, secondBody);
         return Expression.Lambda<Func<T, T>>(combinedBody, parameter);
+    }
+
+    public static Expression<Func<T, bool>> And<T>(
+        Expression<Func<T, bool>> first,
+        Expression<Func<T, bool>> second)
+    {
+        var parameter = Expression.Parameter(typeof(T), "entity");
+        var firstBody = ReplaceParameter(first.Body, first.Parameters[0], parameter);
+        var secondBody = ReplaceParameter(second.Body, second.Parameters[0], parameter);
+        var combinedBody = Expression.AndAlso(firstBody, secondBody);
+        return Expression.Lambda<Func<T, bool>>(combinedBody, parameter);
     }
 
     private static Expression ReplaceParameter(

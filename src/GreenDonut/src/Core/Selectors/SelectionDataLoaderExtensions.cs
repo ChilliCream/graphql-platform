@@ -2,15 +2,15 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
-using static GreenDonut.Projections.ExpressionHelpers;
+using static GreenDonut.ExpressionHelpers;
 
-namespace GreenDonut.Projections;
+namespace GreenDonut.Selectors;
 
 /// <summary>
 /// Data loader extensions for projections.
 /// </summary>
 #if NET8_0_OR_GREATER
-[Experimental(Experiments.Projections)]
+[Experimental(Experiments.Selectors)]
 #endif
 public static class SelectionDataLoaderExtensions
 {
