@@ -50,7 +50,7 @@ Though not considered one of the responsibilities of a GraphQL server, for conve
 
 # Instrumentation
 
-Hot Chocolate allows you to gather instrumentation data about your GraphQL server, by hooking into various events in the execution process of a GraphQL request. You will also learn how to setup our OpenTelemetry integration and how to utilize _Apollo Tracing_.
+Hot Chocolate allows you to gather instrumentation data about your GraphQL server, by hooking into various events in the execution process of a GraphQL request. You will also learn how to set up our OpenTelemetry integration.
 
 [Learn more about instrumentation](/docs/hotchocolate/v14/server/instrumentation)
 
