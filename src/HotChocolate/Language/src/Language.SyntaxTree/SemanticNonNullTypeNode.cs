@@ -2,24 +2,18 @@ using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
 
-public sealed class SemanticNonNullTypeNode : ITypeNode
+public sealed class SemanticNonNullTypeNode(Location? location, INullableTypeNode type) : ITypeNode
 {
     public SemanticNonNullTypeNode(INullableTypeNode type)
         : this(null, type)
     {
     }
 
-    public SemanticNonNullTypeNode(Location? location, INullableTypeNode type)
-    {
-        Location = location;
-        Type = type ?? throw new ArgumentNullException(nameof(type));
-    }
-
     public SyntaxKind Kind => SyntaxKind.SemanticNonNullType;
 
-    public Location? Location { get; }
+    public Location? Location { get; } = location;
 
-    public INullableTypeNode Type { get; }
+    public INullableTypeNode Type { get; } = type ?? throw new ArgumentNullException(nameof(type));
 
     public IEnumerable<ISyntaxNode> GetNodes()
     {
@@ -46,8 +40,4 @@ public sealed class SemanticNonNullTypeNode : ITypeNode
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
     /// </returns>
     public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
-
-    public NonNullTypeNode WithLocation(Location? location) => new(location, Type);
-
-    public NonNullTypeNode WithType(INullableTypeNode type) => new(Location, type);
 }

@@ -63,6 +63,11 @@ public static class SyntaxNodeExtensions
             return ((NonNullTypeNode)type).Type;
         }
 
+        if (type.Kind is SyntaxKind.SemanticNonNullType)
+        {
+            return ((SemanticNonNullTypeNode)type).Type;
+        }
+
         if (type.Kind is SyntaxKind.ListType)
         {
             return ((ListTypeNode)type).Type;

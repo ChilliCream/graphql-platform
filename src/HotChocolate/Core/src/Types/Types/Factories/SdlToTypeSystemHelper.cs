@@ -17,6 +17,11 @@ internal static class SdlToTypeSystemHelper
     {
         foreach (var directive in ownerSyntax.Directives)
         {
+            if (directive.Name.Value == WellKnownDirectives.SemanticNonNull)
+            {
+                continue;
+            }
+
             if (context.TryGetSchemaDirective(directive, out var schemaDirective))
             {
                 schemaDirective.ApplyConfiguration(context, directive, owner, path);
