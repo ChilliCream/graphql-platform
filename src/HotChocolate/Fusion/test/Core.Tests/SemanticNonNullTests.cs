@@ -17,8 +17,8 @@ public class SemanticNonNullTests(ITestOutputHelper output)
             type Query {
               field: String @null
             }
-            """
-        );
+            """,
+            hasSemanticNonNull: true);
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
         var executor = await subgraphs.GetExecutorAsync(configureBuilder: builder => builder.AddSemanticNonNull());
@@ -50,10 +50,8 @@ public class SemanticNonNullTests(ITestOutputHelper output)
             type Query {
               field: String @semanticNonNull @null
             }
-
-            directive @semanticNonNull on FIELD_DEFINITION
-            """
-        );
+            """,
+            hasSemanticNonNull: true);;
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
         var executor = await subgraphs.GetExecutorAsync(configureBuilder: builder => builder.AddSemanticNonNull());
@@ -102,10 +100,8 @@ public class SemanticNonNullTests(ITestOutputHelper output)
             type Query {
               field: String @semanticNonNull @error
             }
-
-            directive @semanticNonNull on FIELD_DEFINITION
-            """
-        );
+            """,
+            hasSemanticNonNull: true);
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
         var executor = await subgraphs.GetExecutorAsync(configureBuilder: builder => builder.AddSemanticNonNull());

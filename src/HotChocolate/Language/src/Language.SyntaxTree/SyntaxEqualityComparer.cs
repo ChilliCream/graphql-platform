@@ -524,6 +524,9 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
             case SyntaxKind.NonNullType:
                 return GetHashCode((NonNullTypeNode)obj);
 
+            case SyntaxKind.SemanticNonNullType:
+                return GetHashCode((SemanticNonNullTypeNode)obj);
+
             case SyntaxKind.SchemaDefinition:
                 return GetHashCode((SchemaDefinitionNode)obj);
 
@@ -992,6 +995,9 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
         => node is null ? 0 : HashCode.Combine(node.Kind, node.Value);
 
     private int GetHashCode(NonNullTypeNode node)
+        => HashCode.Combine(node.Kind, GetHashCode(node.Type));
+
+    private int GetHashCode(SemanticNonNullTypeNode node)
         => HashCode.Combine(node.Kind, GetHashCode(node.Type));
 
     private int GetHashCode(NullValueNode node)

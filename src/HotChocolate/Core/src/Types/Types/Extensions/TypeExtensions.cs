@@ -426,6 +426,11 @@ public static class TypeExtensions
             return ((NonNullType)type).Type;
         }
 
+        if (type.Kind == TypeKind.SemanticNonNull)
+        {
+            return ((SemanticNonNullType)type).Type;
+        }
+
         if (type.Kind == TypeKind.List)
         {
             return ((ListType)type).ElementType;
@@ -441,9 +446,17 @@ public static class TypeExtensions
             throw new ArgumentNullException(nameof(type));
         }
 
-        return type.Kind != TypeKind.NonNull
-            ? type
-            : ((NonNullType)type).Type;
+        if (type.Kind == TypeKind.NonNull)
+        {
+            return ((NonNullType)type).Type;
+        }
+
+        if (type.Kind == TypeKind.SemanticNonNull)
+        {
+            return ((SemanticNonNullType)type).Type;
+        }
+
+        return type;
     }
 
     public static string TypeName(this IType type)
@@ -568,6 +581,11 @@ public static class TypeExtensions
             return ToRuntimeType(type.InnerType());
         }
 
+        if (type.IsSemanticNonNullType())
+        {
+            return ToRuntimeType(type.InnerType());
+        }
+
         if (type is IHasRuntimeType { RuntimeType: { }, } t)
         {
             return t.RuntimeType;
@@ -603,9 +621,15 @@ public static class TypeExtensions
             throw new ArgumentNullException(nameof(type));
         }
 
-        if (type is NonNullType nonNullType && ToTypeNode(nonNullType.Type) is INullableTypeNode nullableTypeNode)
+        if (type is NonNullType nonNullType && ToTypeNode(nonNullType.Type) is INullableTypeNode nonNullInnerTypeNode)
         {
-            return new NonNullTypeNode(null, nullableTypeNode);
+            return new NonNullTypeNode(null, nonNullInnerTypeNode);
+        }
+
+        if (type is SemanticNonNullType semanticNonNullType
+            && ToTypeNode(semanticNonNullType.Type) is INullableTypeNode semanticNonNullInnerTypeNode)
+        {
+            return new SemanticNonNullTypeNode(null, semanticNonNullInnerTypeNode);
         }
 
         if (type is ListType listType)
@@ -627,9 +651,15 @@ public static class TypeExtensions
         INamedType namedType)
     {
         if (original is NonNullType nonNullType
-            && ToTypeNode(nonNullType.Type, namedType) is INullableTypeNode nullableTypeNode)
+            && ToTypeNode(nonNullType.Type, namedType) is INullableTypeNode nonNullInnerTypeNode)
         {
-            return new NonNullTypeNode(null, nullableTypeNode);
+            return new NonNullTypeNode(null, nonNullInnerTypeNode);
+        }
+
+        if (original is SemanticNonNullType semanticNonNullType
+            && ToTypeNode(semanticNonNullType.Type, namedType) is INullableTypeNode semanticNonNullInnerTypeNode)
+        {
+            return new SemanticNonNullTypeNode(null, semanticNonNullInnerTypeNode);
         }
 
         if (original is ListType listType)

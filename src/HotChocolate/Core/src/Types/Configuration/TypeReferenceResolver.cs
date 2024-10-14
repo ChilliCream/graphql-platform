@@ -139,6 +139,11 @@ internal sealed class TypeReferenceResolver
             return new NonNullType(CreateType(namedType, nonNullType.Type));
         }
 
+        if (typeNode is SemanticNonNullTypeNode semanticnonNullType)
+        {
+            return new SemanticNonNullType(CreateType(namedType, semanticnonNullType.Type));
+        }
+
         if (typeNode is ListTypeNode listType)
         {
             return new ListType(CreateType(namedType, listType.Type));
@@ -189,6 +194,7 @@ internal sealed class TypeReferenceResolver
         return flags;
     }
 
+    // TODO: What is this?
     private static int CreateFlags(ITypeNode type)
     {
         var flags = 1;

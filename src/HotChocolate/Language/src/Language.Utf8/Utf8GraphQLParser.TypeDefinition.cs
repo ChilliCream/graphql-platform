@@ -219,6 +219,20 @@ public ref partial struct Utf8GraphQLParser
         var type = ParseTypeReference();
         var directives = ParseDirectives(true);
 
+        // TODO: Define name elsewhere
+        var semanticNonNullDirective = directives.FirstOrDefault(d => d.Name.Value == "semanticNonNull");
+
+        if (semanticNonNullDirective is not null)
+        {
+            // TODO: Handle levels
+            if (type is INullableTypeNode nullableTypeNode)
+            {
+                type = new SemanticNonNullTypeNode(nullableTypeNode);
+            }
+
+            directives.Remove(semanticNonNullDirective);
+        }
+
         var location = CreateLocation(in start);
 
         return new FieldDefinitionNode
