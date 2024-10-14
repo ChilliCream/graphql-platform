@@ -158,7 +158,7 @@ public readonly struct DataLoaderFetchContext<TValue>(
 
     /// <summary>
     /// Gets the predicate builder from the DataLoader state snapshot.
-    /// The state builder can be user to create a predicate expression.
+    /// The state builder can be used to create a predicate expression.
     /// </summary>
     /// <returns>
     /// Returns the predicate builder if it exists.
