@@ -61,6 +61,12 @@ internal static class DeferAndStreamTestSchema
             await Task.Delay(m, ct);
             return true;
         }
+
+        public async Task<Stateful> EnsureState()
+        {
+            await Task.Delay(150);
+            return new Stateful();
+        }
     }
 
     public class Person
@@ -79,6 +85,15 @@ internal static class DeferAndStreamTestSchema
         {
             await Task.Delay(Id * 200, cancellationToken);
             return _name;
+        }
+    }
+
+    public class Stateful
+    {
+        public async Task<string> GetState([GlobalState] string requestState)
+        {
+            await Task.Delay(250);
+            return requestState;
         }
     }
 }

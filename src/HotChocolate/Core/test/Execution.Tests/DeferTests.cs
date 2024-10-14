@@ -12,13 +12,15 @@ public class DeferTests
 
         // act
         var result = await executor.ExecuteAsync(
-            @"{
+            """
+            {
                 ... @defer {
-                    person(id: ""UGVyc29uOjE="") {
+                    person(id: "UGVyc29uOjE=") {
                         id
                     }
                 }
-            }");
+            }
+            """);
 
         Assert.IsType<ResponseStream>(result).MatchSnapshot();
     }
@@ -31,16 +33,18 @@ public class DeferTests
 
         // act
         var result = await executor.ExecuteAsync(
-            @"{
+            """
+            {
                 ... @defer {
-                    person(id: ""UGVyc29uOjE="") {
+                    person(id: "UGVyc29uOjE=") {
                         id
                         ... @defer {
                             name
                         }
                     }
                 }
-            }");
+            }
+            """);
 
         Assert.IsType<ResponseStream>(result).MatchSnapshot();
     }
@@ -72,13 +76,15 @@ public class DeferTests
 
         // act
         var result = await executor.ExecuteAsync(
-            @"{
+            """
+            {
                 ... @defer(if: false) {
-                    person(id: ""UGVyc29uOjE="") {
+                    person(id: "UGVyc29uOjE=") {
                         id
                     }
                 }
-            }");
+            }
+            """);
 
         Assert.IsType<OperationResult>(result).MatchSnapshot();
     }
@@ -94,14 +100,16 @@ public class DeferTests
             OperationRequestBuilder
                 .New()
                 .SetDocument(
-                    @"query($defer: Boolean!) {
+                    """
+                    query($defer: Boolean!) {
                         ... @defer(if: $defer) {
-                            person(id: ""UGVyc29uOjE="") {
+                            person(id: "UGVyc29uOjE=") {
                                 id
                             }
                         }
-                    }")
-                .SetVariableValues(new Dictionary<string, object?> { {"defer", false }, })
+                    }
+                    """)
+                .SetVariableValues(new Dictionary<string, object?> { { "defer", false }, })
                 .Build());
 
         Assert.IsType<OperationResult>(result).MatchSnapshot();
@@ -115,15 +123,17 @@ public class DeferTests
 
         // act
         var result = await executor.ExecuteAsync(
-            @"{
+            """
+            {
                 ... Foo @defer
             }
 
             fragment Foo on Query {
-                person(id: ""UGVyc29uOjE="") {
+                person(id: "UGVyc29uOjE=") {
                     id
                 }
-            }");
+            }
+            """);
 
         Assert.IsType<ResponseStream>(result).MatchSnapshot();
     }
@@ -162,15 +172,17 @@ public class DeferTests
 
         // act
         var result = await executor.ExecuteAsync(
-            @"{
-                ... Foo @defer(label: ""abc"")
+            """
+            {
+                ... Foo @defer(label: "abc")
             }
 
             fragment Foo on Query {
-                person(id: ""UGVyc29uOjE="") {
+                person(id: "UGVyc29uOjE=") {
                     id
                 }
-            }");
+            }
+            """);
 
         Assert.IsType<ResponseStream>(result).MatchSnapshot();
     }
@@ -183,15 +195,17 @@ public class DeferTests
 
         // act
         var result = await executor.ExecuteAsync(
-            @"{
+            """
+            {
                 ... Foo @defer(if: false)
             }
 
             fragment Foo on Query {
-                person(id: ""UGVyc29uOjE="") {
+                person(id: "UGVyc29uOjE=") {
                     id
                 }
-            }");
+            }
+            """);
 
         Assert.IsType<OperationResult>(result).MatchSnapshot();
     }
@@ -207,18 +221,74 @@ public class DeferTests
             OperationRequestBuilder
                 .New()
                 .SetDocument(
-                    @"query ($defer: Boolean!) {
+                    """
+                    query ($defer: Boolean!) {
                         ... Foo @defer(if: $defer)
                     }
 
                     fragment Foo on Query {
-                        person(id: ""UGVyc29uOjE="") {
+                        person(id: "UGVyc29uOjE=") {
                             id
                         }
-                    }")
-                .SetVariableValues(new Dictionary<string, object?> { {"defer", false }, })
+                    }
+                    """)
+                .SetVariableValues(new Dictionary<string, object?> { { "defer", false }, })
                 .Build());
 
         Assert.IsType<OperationResult>(result).MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Ensure_GlobalState_Is_Passed_To_DeferContext_Stacked_Defer()
+    {
+        // arrange
+        var executor = await DeferAndStreamTestSchema.CreateAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            OperationRequestBuilder
+                .New()
+                .SetDocument(
+                    """
+                    {
+                        ... @defer {
+                            ensureState {
+                                ... @defer {
+                                    state
+                                }
+                            }
+                        }
+                    }
+                    """)
+                .SetGlobalState("requestState", "state 123")
+                .Build());
+
+        Assert.IsType<ResponseStream>(result).MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Ensure_GlobalState_Is_Passed_To_DeferContext_Single_Defer()
+    {
+        // arrange
+        var executor = await DeferAndStreamTestSchema.CreateAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            OperationRequestBuilder
+                .New()
+                .SetDocument(
+                    """
+                    {
+                        ensureState {
+                            ... @defer {
+                                state
+                            }
+                        }
+                    }
+                    """)
+                .SetGlobalState("requestState", "state 123")
+                .Build());
+
+        Assert.IsType<ResponseStream>(result).MatchSnapshot();
     }
 }
