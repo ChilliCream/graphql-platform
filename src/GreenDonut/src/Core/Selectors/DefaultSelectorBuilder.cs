@@ -1,12 +1,12 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
-namespace GreenDonut.Projections;
+namespace GreenDonut.Selectors;
 
 /// <summary>
 /// A default implementation of the <see cref="ISelectorBuilder"/>.
 /// </summary>
-[Experimental(Experiments.Projections)]
+[Experimental(Experiments.Selectors)]
 public sealed class DefaultSelectorBuilder : ISelectorBuilder
 {
     private List<LambdaExpression>? _selectors;

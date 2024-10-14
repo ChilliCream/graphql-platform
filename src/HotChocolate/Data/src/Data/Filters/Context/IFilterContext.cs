@@ -1,3 +1,5 @@
+using System.Linq.Expressions;
+
 namespace HotChocolate.Data.Filters;
 
 /// <summary>
@@ -22,4 +24,9 @@ public interface IFilterContext : IFilterInfo
     /// Serializes the input object to a dictionary
     /// </summary>
     IDictionary<string, object?>? ToDictionary();
+
+    /// <summary>
+    /// Creates a predicate expression for the filter context.
+    /// </summary>
+    Expression<Func<T, bool>>? AsPredicate<T>();
 }

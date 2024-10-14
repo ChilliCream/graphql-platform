@@ -1,7 +1,6 @@
 using GreenDonut;
-using GreenDonut.Projections;
+using GreenDonut.Selectors;
 using HotChocolate.Pagination;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types;
 
