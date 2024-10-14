@@ -101,6 +101,10 @@ internal sealed class NoopExecutionDiagnosticEvents
     {
     }
 
+    public void DocumentNotFoundInStorage(IRequestContext context, OperationDocumentId documentId)
+    {
+    }
+
     public void AddedOperationToCache(IRequestContext context)
     {
     }
