@@ -34,7 +34,7 @@
   <Target
     Name="_GenerateGraphQLCode"
     Inputs="@(GenerateGraphQLCodeItems)"
-    Outputs="$(MSBuildProjectDirectory)\$(IntermediateOutputPath)berry\.build.info"
+    Outputs="$(GraphQLCodeGenerationRoot)\.build.info"
     DependsOnTargets="_GraphQLCodeGenerationRoot"
     Condition="'@(GraphQL)' != ''">
 
@@ -70,8 +70,8 @@
     <Message Text="$(GenCommand)" Importance="High" Condition="'$(GraphQLDebug)' == 'enable'" />
     <Exec Command="$(GenCommand)" WorkingDirectory="$(MSBuildThisFileDirectory)" ConsoleToMsBuild="true" />
 
-    <MakeDir Directories="$(MSBuildProjectDirectory)\$(IntermediateOutputPath)berry" Condition="!EXISTS('$(MSBuildProjectDirectory)\$(IntermediateOutputPath)berry\.build.info')" />
-    <Touch Files="$(MSBuildProjectDirectory)\$(IntermediateOutputPath)berry\.build.info" AlwaysCreate="true" />
+    <MakeDir Directories="$(GraphQLCodeGenerationRoot)" Condition="!EXISTS('$(GraphQLCodeGenerationRoot)\.build.info')" />
+    <Touch Files="$(GraphQLCodeGenerationRoot)\.build.info" AlwaysCreate="true" />
   </Target>
 
 </Project>
