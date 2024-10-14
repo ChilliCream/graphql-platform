@@ -2,7 +2,6 @@ using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using HotChocolate.Pagination;
-using GreenDonut.Selectors;
 
 // ReSharper disable once CheckNamespace
 namespace GreenDonut.Predicates;
@@ -58,7 +57,7 @@ public static class HotChocolateExecutionPredicateDataLoaderExtensions
     /// <returns>
     /// Returns a new data loader that applies the selection.
     /// </returns>
-    public static IPagingDataLoader<TKey, Page<TValue>> Select<TKey, TValue>(
+    public static IPagingDataLoader<TKey, Page<TValue>> Where<TKey, TValue>(
         this IPagingDataLoader<TKey, Page<TValue>> dataLoader,
         IFilterContext context)
         where TKey : notnull
