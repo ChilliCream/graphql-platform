@@ -353,6 +353,19 @@ public interface IExecutionDiagnosticEvents
     void RetrievedDocumentFromStorage(IRequestContext context);
 
     /// <summary>
+    /// Called when the document for a persisted operation could not be found in the
+    /// operation document storage.
+    /// </summary>
+    /// <param name="context">
+    /// The request context encapsulates all GraphQL-specific information
+    /// about an individual GraphQL request.
+    /// </param>
+    /// <param name="documentId">
+    /// The document id that was not found in the storage.
+    /// </param>
+    void DocumentNotFoundInStorage(IRequestContext context, OperationDocumentId documentId);
+
+    /// <summary>
     /// A compiled operation was added to the operation cache.
     /// </summary>
     /// <param name="context">
