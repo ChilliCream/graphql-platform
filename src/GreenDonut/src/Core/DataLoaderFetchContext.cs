@@ -163,7 +163,7 @@ public readonly struct DataLoaderFetchContext<TValue>(
     /// <returns>
     /// Returns the predicate builder if it exists.
     /// </returns>
-    [Experimental(Experiments.Filters)]
+    [Experimental(Experiments.Predicates)]
     public IPredicateBuilder GetPredicate()
     {
         if (ContextData.TryGetValue(typeof(IPredicateBuilder).FullName!, out var value)

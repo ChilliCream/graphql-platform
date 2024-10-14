@@ -6,7 +6,7 @@ namespace GreenDonut.Predicates;
 /// <summary>
 /// Data loader extensions for predicates.
 /// </summary>
-[Experimental(Experiments.Filters)]
+[Experimental(Experiments.Predicates)]
 public static class PredicateDataLoaderExtensions
 {
     /// <summary>

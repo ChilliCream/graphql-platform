@@ -32,7 +32,7 @@ public static class HotChocolateExecutionSelectionExtensions
     /// <returns>
     /// Returns a selector expression that can be used for data projections.
     /// </returns>
-    [Experimental(Experiments.Projections)]
+    [Experimental(Experiments.Selectors)]
     public static Expression<Func<TValue, TValue>> AsSelector<TValue>(
         this ISelection selection)
     {
@@ -90,7 +90,7 @@ public static class HotChocolateExecutionSelectionExtensions
             static (_, ctx) => ctx._builder.BuildExpression<TValue>(ctx.selection),
             (_builder, selection));
 
-    [Experimental(Experiments.Projections)]
+    [Experimental(Experiments.Selectors)]
     private static Expression<Func<TValue, TValue>> GetOrCreateExpression<TValue>(
         ISelection selection,
         ISelectorBuilder builder)

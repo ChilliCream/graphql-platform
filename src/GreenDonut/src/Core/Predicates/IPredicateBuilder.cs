@@ -7,7 +7,7 @@ namespace GreenDonut.Predicates;
 /// The predicate builder helps you create a combined predicate expression
 /// by adding multiple expressions together.
 /// </summary>
-[Experimental(Experiments.Filters)]
+[Experimental(Experiments.Predicates)]
 public interface IPredicateBuilder
 {
     /// <summary>

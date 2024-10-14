@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 
 namespace GreenDonut.Predicates;
 
-[Experimental(Experiments.Filters)]
+[Experimental(Experiments.Predicates)]
 internal sealed class DefaultPredicateBuilder : IPredicateBuilder
 {
     private List<LambdaExpression>? _predicates;
