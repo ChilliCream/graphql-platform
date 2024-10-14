@@ -103,7 +103,7 @@ internal sealed class RequestExecutor : IRequestExecutor
             services.InitializeDataLoaderScope();
         }
 
-        var context = _contextPool.Get();
+        RequestContext? context = _contextPool.Get();
 
         try
         {
@@ -128,15 +128,23 @@ internal sealed class RequestExecutor : IRequestExecutor
 
             if (context.Result.IsStreamResult())
             {
+                var localContext = context;
                 context.Result.RegisterForCleanup(scope);
+                context.Result.RegisterForCleanup(() => _contextPool.Return(localContext));
                 scope = null;
+                context = null;
+                return localContext.Result;
             }
 
             return context.Result;
         }
         finally
         {
-            _contextPool.Return(context);
+            if (context is not null)
+            {
+                _contextPool.Return(context);
+            }
+
             scope?.Dispose();
         }
     }
@@ -297,7 +305,7 @@ internal sealed class RequestExecutor : IRequestExecutor
 
     private void EnrichContext(IRequestContext context)
     {
-        if (_enricher.Length <= 0)
+        if (_enricher.Length == 0)
         {
             return;
         }
