@@ -27,15 +27,16 @@ internal sealed class PersistedOperationNotFoundMiddleware
             return _next(context);
         }
 
-        var requestedKey =
-            context.Request.DocumentId ??
-            context.DocumentId ??
-            context.DocumentHash ??
-            context.Request.DocumentHash;
-
         // we know that the key is not null since otherwise the request would have
         // failed already since no operation is specified.
-        var error = ErrorHelper.PersistedOperationNotFound(requestedKey!.Value);
+        var requestedKey =
+            (context.Request.DocumentId ??
+            context.DocumentId ??
+            context.DocumentHash ??
+            context.Request.DocumentHash)!.Value;
+
+        _diagnosticEvents.DocumentNotFoundInStorage(context, requestedKey);
+        var error = ErrorHelper.PersistedOperationNotFound(requestedKey);
         _diagnosticEvents.RequestError(context, new GraphQLException(error));
         context.Result = OperationResultBuilder.CreateError(error, _statusCode);
 
