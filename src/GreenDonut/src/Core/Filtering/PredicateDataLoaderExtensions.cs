@@ -50,7 +50,7 @@ public static class PredicateDataLoaderExtensions
 
         if (dataLoader.ContextData.TryGetValue(typeof(IPredicateBuilder).FullName!, out var value))
         {
-            var context = (DefaultPredicateBuilder<TValue>)value!;
+            var context = (DefaultPredicateBuilder)value!;
             context.Add(predicate);
             return dataLoader;
         }
@@ -66,7 +66,7 @@ public static class PredicateDataLoaderExtensions
             var branch = new PredicateDataLoader<TKey, TValue>(
                 (DataLoaderBase<TKey, TValue>)dataLoader,
                 key);
-            var context = new DefaultPredicateBuilder<TValue>();
+            var context = new DefaultPredicateBuilder();
             branch.ContextData =
                 branch.ContextData.SetItem(typeof(IPredicateBuilder).FullName!, context);
             context.Add(predicate);

@@ -163,22 +163,17 @@ public readonly struct DataLoaderFetchContext<TValue>(
     /// <returns>
     /// Returns the predicate builder if it exists.
     /// </returns>
-#if NET8_0_OR_GREATER
     [Experimental(Experiments.Predicates)]
-#endif
     public IPredicateBuilder GetPredicate()
     {
-        DefaultPredicateBuilder<TValue> context;
         if (ContextData.TryGetValue(typeof(IPredicateBuilder).FullName!, out var value)
-            && value is DefaultPredicateBuilder<TValue> casted)
+            && value is DefaultPredicateBuilder casted)
         {
-            context = casted;
-        }
-        else
-        {
-            context = new DefaultPredicateBuilder<TValue>();
+            return casted;
         }
 
-        return context;
+        // if no predicate was found we will just return
+        // a new default predicate builder.
+        return new DefaultPredicateBuilder();
     }
 }

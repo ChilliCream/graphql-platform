@@ -6,7 +6,7 @@ namespace GreenDonut.Predicates;
 #if NET8_0_OR_GREATER
 [Experimental(Experiments.Predicates)]
 #endif
-internal sealed class DefaultPredicateBuilder<TValue> : IPredicateBuilder
+internal sealed class DefaultPredicateBuilder : IPredicateBuilder
 {
     private List<LambdaExpression>? _predicates;
 

@@ -163,7 +163,7 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
 
         if (dataLoader.ContextData.TryGetValue(typeof(IPredicateBuilder).FullName!, out var value))
         {
-            var context = (DefaultPredicateBuilder<TValue>)value!;
+            var context = (DefaultPredicateBuilder)value!;
             context.Add(predicate);
             return dataLoader;
         }
@@ -178,7 +178,7 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
             Expression<Func<TValue, bool>> predicate)
         {
             var branch = new PagingDataLoader<TKey, Page<TValue>>(dataLoader, key);
-            var context = new DefaultPredicateBuilder<TValue>();
+            var context = new DefaultPredicateBuilder();
             branch.ContextData = branch.ContextData.SetItem(typeof(IPredicateBuilder).FullName!, context);
             context.Add(predicate);
             return branch;
