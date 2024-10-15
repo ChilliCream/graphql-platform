@@ -21,11 +21,18 @@ public class TestSubgraphCollection(ITestOutputHelper outputHelper, TestSubgraph
 
     public async Task<IRequestExecutor> GetExecutorAsync(
         FusionFeatureCollection? features = null,
-        Action<FusionGatewayBuilder>? configureBuilder = null)
+        Action<FusionGatewayBuilder>? configure = null,
+        bool enableSemanticNonNull = false)
     {
         var fusionGraph = await GetFusionGraphAsync(features);
 
-        return await GetExecutorAsync(fusionGraph, configureBuilder);
+        return await GetExecutorAsync(
+            fusionGraph,
+            configure: builder =>
+            {
+                builder.ModifyFusionOptions(o => o.EnableSemanticNonNull = enableSemanticNonNull);
+                configure?.Invoke(builder);
+            });
     }
 
     public async Task<Skimmed.SchemaDefinition> GetFusionGraphAsync(FusionFeatureCollection? features = null)
@@ -60,7 +67,7 @@ public class TestSubgraphCollection(ITestOutputHelper outputHelper, TestSubgraph
 
     private async Task<IRequestExecutor> GetExecutorAsync(
         Skimmed.SchemaDefinition fusionGraph,
-        Action<FusionGatewayBuilder>? configureBuilder = null)
+        Action<FusionGatewayBuilder>? configure = null)
     {
         var httpClientFactory = GetHttpClientFactory();
 
@@ -69,7 +76,7 @@ public class TestSubgraphCollection(ITestOutputHelper outputHelper, TestSubgraph
             .AddFusionGatewayServer()
             .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph));
 
-        configureBuilder?.Invoke(builder);
+        configure?.Invoke(builder);
 
         return await builder.BuildRequestExecutorAsync();
     }

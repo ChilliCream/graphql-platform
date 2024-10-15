@@ -26,7 +26,7 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
               field: String @semanticNonNull
             }
             """,
-            hasSemanticNonNull: true
+            enableSemanticNonNull: true
         );
 
         var subgraphB = await TestSubgraph.CreateAsync(
@@ -91,7 +91,7 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
               field: String @semanticNonNull
             }
             """,
-            hasSemanticNonNull: true
+            enableSemanticNonNull: true
         );
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
@@ -132,7 +132,7 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
               field: [String] @semanticNonNull
             }
             """,
-            hasSemanticNonNull: true
+            enableSemanticNonNull: true
         );
 
         var subgraphB = await TestSubgraph.CreateAsync(
@@ -197,7 +197,7 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
               field: [String] @semanticNonNull
             }
             """,
-            hasSemanticNonNull: true
+            enableSemanticNonNull: true
         );
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
@@ -238,7 +238,7 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
               field: [String] @semanticNonNull(levels: [1])
             }
             """,
-            hasSemanticNonNull: true
+            enableSemanticNonNull: true
         );
 
         var subgraphB = await TestSubgraph.CreateAsync(
@@ -303,7 +303,7 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
               field: [String] @semanticNonNull(levels: [1])
             }
             """,
-            hasSemanticNonNull: true
+            enableSemanticNonNull: true
         );
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
@@ -344,7 +344,7 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
               field: [String] @semanticNonNull(levels: [0,1])
             }
             """,
-            hasSemanticNonNull: true
+            enableSemanticNonNull: true
         );
 
         var subgraphB = await TestSubgraph.CreateAsync(
@@ -409,7 +409,7 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
               field: [String] @semanticNonNull(levels: [0,1])
             }
             """,
-            hasSemanticNonNull: true
+            enableSemanticNonNull: true
         );
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
@@ -450,7 +450,7 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
               field: [String] @semanticNonNull(levels: [1])
             }
             """,
-            hasSemanticNonNull: true
+            enableSemanticNonNull: true
         );
 
         var subgraphB = await TestSubgraph.CreateAsync(
@@ -463,7 +463,7 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
               field: [String] @semanticNonNull(levels: [1])
             }
             """,
-            hasSemanticNonNull: true
+            enableSemanticNonNull: true
         );
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
@@ -508,7 +508,7 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
               field: String @semanticNonNull
             }
             """,
-            hasSemanticNonNull: true
+            enableSemanticNonNull: true
         );
 
         var subgraphB = await TestSubgraph.CreateAsync(
@@ -521,7 +521,7 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
               field: String @semanticNonNull
             }
             """,
-            hasSemanticNonNull: true
+            enableSemanticNonNull: true
         );
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
@@ -562,7 +562,7 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
               field: [String] @semanticNonNull
             }
             """,
-            hasSemanticNonNull: true
+            enableSemanticNonNull: true
         );
 
         var subgraphB = await TestSubgraph.CreateAsync(
@@ -575,7 +575,7 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
               field: [String] @semanticNonNull
             }
             """,
-            hasSemanticNonNull: true
+            enableSemanticNonNull: true
         );
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
@@ -616,7 +616,7 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
               field: [String] @semanticNonNull(levels: [1])
             }
             """,
-            hasSemanticNonNull: true
+            enableSemanticNonNull: true
         );
 
         var subgraphB = await TestSubgraph.CreateAsync(
@@ -629,7 +629,7 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
               field: [String] @semanticNonNull(levels: [1])
             }
             """,
-            hasSemanticNonNull: true
+            enableSemanticNonNull: true
         );
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
@@ -670,7 +670,7 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
               field: [String] @semanticNonNull(levels: [0,1])
             }
             """,
-            hasSemanticNonNull: true
+            enableSemanticNonNull: true
         );
 
         var subgraphB = await TestSubgraph.CreateAsync(
@@ -683,7 +683,7 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
               field: [String] @semanticNonNull(levels: [0,1])
             }
             """,
-            hasSemanticNonNull: true
+            enableSemanticNonNull: true
         );
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
@@ -724,7 +724,7 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
               field: [String] @semanticNonNull
             }
             """,
-            hasSemanticNonNull: true
+            enableSemanticNonNull: true
         );
 
         var subgraphB = await TestSubgraph.CreateAsync(
@@ -737,7 +737,7 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
               field: [String!] @semanticNonNull
             }
             """,
-            hasSemanticNonNull: true
+            enableSemanticNonNull: true
         );
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
@@ -778,7 +778,7 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
               field: [String!] @semanticNonNull
             }
             """,
-            hasSemanticNonNull: true
+            enableSemanticNonNull: true
         );
 
         var subgraphB = await TestSubgraph.CreateAsync(
@@ -791,7 +791,7 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
               field: [String] @semanticNonNull
             }
             """,
-            hasSemanticNonNull: true
+            enableSemanticNonNull: true
         );
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
@@ -836,7 +836,7 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
               field: String @semanticNonNull
             }
             """,
-            hasSemanticNonNull: true
+            enableSemanticNonNull: true
         );
 
         var subgraphB = await TestSubgraph.CreateAsync(
@@ -901,7 +901,7 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
               field: String @semanticNonNull
             }
             """,
-            hasSemanticNonNull: true
+            enableSemanticNonNull: true
         );
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
@@ -942,7 +942,7 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
               field: [String] @semanticNonNull
             }
             """,
-            hasSemanticNonNull: true
+            enableSemanticNonNull: true
         );
 
         var subgraphB = await TestSubgraph.CreateAsync(
@@ -1007,7 +1007,7 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
               field: [String] @semanticNonNull
             }
             """,
-            hasSemanticNonNull: true
+            enableSemanticNonNull: true
         );
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
@@ -1048,7 +1048,7 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
               field: [String] @semanticNonNull(levels: [1])
             }
             """,
-            hasSemanticNonNull: true
+            enableSemanticNonNull: true
         );
 
         var subgraphB = await TestSubgraph.CreateAsync(
@@ -1113,7 +1113,7 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
               field: [String] @semanticNonNull(levels: [1])
             }
             """,
-            hasSemanticNonNull: true
+            enableSemanticNonNull: true
         );
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
@@ -1154,7 +1154,7 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
               field: [String] @semanticNonNull(levels: [0,1])
             }
             """,
-            hasSemanticNonNull: true
+            enableSemanticNonNull: true
         );
 
         var subgraphB = await TestSubgraph.CreateAsync(
@@ -1219,7 +1219,7 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
               field: [String] @semanticNonNull(levels: [0,1])
             }
             """,
-            hasSemanticNonNull: true
+            enableSemanticNonNull: true
         );
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
@@ -1260,7 +1260,7 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
               field: [String]! @semanticNonNull(levels: [1])
             }
             """,
-            hasSemanticNonNull: true
+            enableSemanticNonNull: true
         );
 
         var subgraphB = await TestSubgraph.CreateAsync(
@@ -1273,7 +1273,7 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
               field: [String]! @semanticNonNull(levels: [1])
             }
             """,
-            hasSemanticNonNull: true
+            enableSemanticNonNull: true
         );
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
