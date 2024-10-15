@@ -57,7 +57,7 @@ internal sealed class ServiceParameterExpressionBuilder
         {
             if (Key is not null)
             {
-                return context.Service<T>(Key)!;
+                return context.Service<T>(Key);
             }
 
             return context.Service<T>();
