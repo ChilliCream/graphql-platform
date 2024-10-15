@@ -165,6 +165,8 @@ public interface IReadOnlySchemaOptions
     /// </summary>
     bool EnableStream { get; }
 
+    bool EnableSemanticNonNull { get; }
+
     /// <summary>
     /// Specifies the maximum allowed nodes that can be fetched at once through the nodes field.
     /// </summary>
