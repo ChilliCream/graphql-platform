@@ -420,11 +420,6 @@ public static class SchemaPrinter
             directives.Add(new DirectiveNode("pureResolver"));
         }
 
-        if (field.Type.IsSemanticNonNullType())
-        {
-            PrintSemanticNonNullDirective(directives, field.Type);
-        }
-
         return new FieldDefinitionNode
         (
             null,
@@ -451,11 +446,6 @@ public static class SchemaPrinter
             directives,
             field.IsDeprecated,
             field.DeprecationReason);
-
-        if (field.Type.IsSemanticNonNullType())
-        {
-            PrintSemanticNonNullDirective(directives, field.Type);
-        }
 
         return new FieldDefinitionNode
         (
@@ -486,12 +476,6 @@ public static class SchemaPrinter
                     new ArgumentNode("reason", deprecationReason)));
             }
         }
-    }
-
-    // TODO: Handle levels
-    private static void PrintSemanticNonNullDirective(ICollection<DirectiveNode> directives, IType type)
-    {
-        directives.Add(new DirectiveNode(SemanticNonNull));
     }
 
     private static InputValueDefinitionNode PrintInputField(

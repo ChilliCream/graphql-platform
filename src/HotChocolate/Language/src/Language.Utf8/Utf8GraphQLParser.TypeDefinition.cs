@@ -224,11 +224,21 @@ public ref partial struct Utf8GraphQLParser
 
         if (semanticNonNullDirective is not null)
         {
-            // TODO: Handle levels
-            if (type is INullableTypeNode nullableTypeNode)
+            // TODO: Define name elsewhere
+            var levelsArgument =
+                semanticNonNullDirective.Arguments.FirstOrDefault(a => a.Name.Value == "levels");
+
+            var levels = levelsArgument?.Value switch
             {
-                type = new SemanticNonNullTypeNode(nullableTypeNode);
-            }
+                IntValueNode intValueNode => [intValueNode.ToInt32()],
+                ListValueNode listValueNode => listValueNode.Items
+                    .OfType<IntValueNode>()
+                    .Select(t => t.ToInt32())
+                    .ToHashSet(),
+                _ => [0]
+            };
+
+            type = BuildSemanticNonNullTypeFromLevels(type, levels, 0);
 
             directives.Remove(semanticNonNullDirective);
         }
@@ -244,6 +254,42 @@ public ref partial struct Utf8GraphQLParser
             type,
             directives
         );
+    }
+
+    private static ITypeNode BuildSemanticNonNullTypeFromLevels(
+        ITypeNode type,
+        HashSet<int> levels,
+        int level)
+    {
+        switch (type)
+        {
+            case NonNullTypeNode nonNullTypeRef:
+                return new NonNullTypeNode((INullableTypeNode)BuildSemanticNonNullTypeFromLevels(nonNullTypeRef.Type, levels, level));
+
+            case ListTypeNode listTypeRef:
+                var listType = new ListTypeNode(BuildSemanticNonNullTypeFromLevels(listTypeRef.Type, levels, level + 1));
+
+                if (levels.Contains(level))
+                {
+                    return new SemanticNonNullTypeNode(listType);
+                }
+
+                return listType;
+
+            case NamedTypeNode namedTypeRef:
+                var namedType = namedTypeRef;
+
+                if (levels.Contains(level))
+                {
+                    return new SemanticNonNullTypeNode(namedType);
+                }
+
+                return namedType;
+
+            default:
+                // TODO : parsing error
+                throw new ArgumentOutOfRangeException(nameof(type));
+        }
     }
 
     /// <summary>
