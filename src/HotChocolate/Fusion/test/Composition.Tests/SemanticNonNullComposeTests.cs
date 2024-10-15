@@ -1304,10 +1304,13 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
 
     private static DocumentNode GetSchemaWithoutFusion(SchemaDefinition fusionGraph)
     {
-        var fusionGraphDoc = Utf8GraphQLParser.Parse(SchemaFormatter.FormatAsString(fusionGraph));
+        var sourceText = SchemaFormatter.FormatAsString(fusionGraph);
+        var fusionGraphDoc = Utf8GraphQLParser.Parse(sourceText);
         var typeNames = FusionTypeNames.From(fusionGraphDoc);
         var rewriter = new FusionGraphConfigurationToSchemaRewriter();
 
-        return (DocumentNode)rewriter.Rewrite(fusionGraphDoc, new(typeNames))!;
+        var rewrittenDocumentNode = (DocumentNode)rewriter.Rewrite(fusionGraphDoc, new(typeNames))!;
+
+        return rewrittenDocumentNode;
     }
 }

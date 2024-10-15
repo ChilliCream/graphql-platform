@@ -326,7 +326,68 @@ public sealed partial class SyntaxSerializer
 
         writer.WriteType(node.Type);
 
-        WriteDirectives(node.Directives, writer);
+        var updatedDirectives = AddSemanticNonNullDirective(node.Directives, node.Type);
+
+        WriteDirectives(updatedDirectives, writer);
+    }
+
+    private IReadOnlyList<DirectiveNode> AddSemanticNonNullDirective(
+        IReadOnlyList<DirectiveNode> directives,
+        ITypeNode type)
+    {
+        List<int> levels = [];
+        var level = 0;
+        var currentType = type;
+
+        do
+        {
+            if (currentType is SemanticNonNullTypeNode semanticNonNullType)
+            {
+                currentType = semanticNonNullType.Type;
+                levels.Add(level);
+            }
+            else if (currentType is NonNullTypeNode nonNullType)
+            {
+                currentType = nonNullType.Type;
+            }
+            else if (currentType is ListTypeNode listType)
+            {
+                currentType = listType.Type;
+                level++;
+            }
+            else
+            {
+                break;
+            }
+        } while (true);
+
+        if (levels.Count > 0)
+        {
+            var semanticNonNullDirective = CreateSemanticNonNullDirective(levels);
+
+            var updatedDirectives = new List<DirectiveNode>(directives) { semanticNonNullDirective };
+
+            return updatedDirectives;
+        }
+
+        return directives;
+    }
+
+    private static DirectiveNode CreateSemanticNonNullDirective(List<int> levels)
+    {
+        if (levels.Count == 1 && levels[0] == 0)
+        {
+            // TODO
+            return new DirectiveNode("semanticNonNull");
+        }
+
+        var levelsListInnerValueNodes = levels.ConvertAll(level => new IntValueNode(level));
+        var levelsListValueNode = new ListValueNode(levelsListInnerValueNodes);
+
+        return new DirectiveNode(
+            // TODO
+            new NameNode("semanticNonNull"),
+            [new ArgumentNode("levels", levelsListValueNode)]);
     }
 
     private void VisitInputValueDefinition(

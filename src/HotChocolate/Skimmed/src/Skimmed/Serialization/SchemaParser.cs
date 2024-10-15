@@ -639,70 +639,31 @@ public static class SchemaParser
         OutputFieldDefinition field,
         IReadOnlyList<DirectiveNode> nodes)
     {
-        var semanticNonNulLDirective = nodes.FirstOrDefault(t => t.Name.Value == BuiltIns.SemanticNonNull.Name);
+        var semanticNonNullDirective = nodes.FirstOrDefault(t => t.Name.Value == BuiltIns.SemanticNonNull.Name);
 
-        if (semanticNonNulLDirective is null)
+        if (semanticNonNullDirective is null)
         {
             return;
         }
 
-        if (semanticNonNulLDirective.Arguments.Count < 1)
+        var levelsArgument =
+            semanticNonNullDirective.Arguments.FirstOrDefault(a => a.Name.Value == BuiltIns.SemanticNonNull.Levels);
+
+        if (levelsArgument is null)
         {
             field.Type = new SemanticNonNullTypeDefinition(field.Type);
             return;
         }
 
-        HashSet<int> levels = [0];
-        foreach(var argument in semanticNonNulLDirective.Arguments)
+        var levels = levelsArgument.Value switch
         {
-            if (argument.Name.Value == BuiltIns.SemanticNonNull.Levels)
-            {
-                levels = [];
-
-                if (argument.Value is IntValueNode intValue)
-                {
-                    levels.Add(intValue.ToInt32());
-                }
-                else if(argument.Value is ListValueNode listValue)
-                {
-                    foreach(var item in listValue.Items)
-                    {
-                        if (item is IntValueNode intItem)
-                        {
-                            levels.Add(intItem.ToInt32());
-                        }
-                    }
-                }
-
-                break;
-            }
-        }
-
-        var newFieldTypeStack = new Stack<Type>();
-        var currentType = field.Type;
-        var level = 0;
-
-        do
-        {
-            if (levels.Contains(level))
-            {
-
-            }
-
-            if (currentType is ListTypeDefinition listType)
-            {
-                currentType = listType.ElementType;
-                level++;
-            }
-            else if (currentType is NonNullTypeDefinition nonNullType)
-            {
-                currentType = nonNullType.NullableType;
-            }
-            else
-            {
-                break;
-            }
-        } while (true);
+            IntValueNode intValueNode => [intValueNode.ToInt32()],
+            ListValueNode listValueNode => listValueNode.Items
+                .OfType<IntValueNode>()
+                .Select(t => t.ToInt32())
+                .ToHashSet(),
+            _ => [0]
+        };
 
         field.Type = BuildSemanticNonNullTypeFromLevels(field.Type, levels, 0);
     }

@@ -43,14 +43,10 @@ public record TestSubgraph(
             {
                 var builder = services
                     .AddRouting()
-                    .AddGraphQLServer(disableDefaultSecurity: true);
+                    .AddGraphQLServer(disableDefaultSecurity: true)
+                    .ModifyOptions(o => o.EnableSemanticNonNull = hasSemanticNonNull);
 
                 configureBuilder(builder);
-
-                if (hasSemanticNonNull)
-                {
-                    builder.AddDirectiveType<SemanticNonNullType>();
-                }
             },
             app =>
             {
@@ -65,6 +61,8 @@ public record TestSubgraph(
 
         var schema = await testServer.Services.GetSchemaAsync();
 
+        var schemaStr = schema.ToString();
+
         return new TestSubgraph(testServer, schema, testContext, extensions, isOffline);
     }
 
@@ -74,16 +72,4 @@ public record TestSubgraph(
 public class SubgraphTestContext
 {
     public bool HasReceivedRequest { get; set; }
-}
-
-// TODO: Move
-public class SemanticNonNullType : DirectiveType
-{
-    // directive @semanticNonNull(levels: [Int] = [0]) on FIELD_DEFINITION
-    protected override void Configure(IDirectiveTypeDescriptor descriptor)
-    {
-        descriptor.Name("semanticNonNull");
-        descriptor.Argument("levels").Type<ListType<IntType>>().DefaultValue(new ListValueNode(new IntValueNode(0)));
-        descriptor.Location(DirectiveLocation.FieldDefinition);
-    }
 }
