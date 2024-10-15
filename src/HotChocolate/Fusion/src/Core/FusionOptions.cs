@@ -19,4 +19,6 @@ public sealed class FusionOptions
     /// The default value is <see cref="Debugger.IsAttached"/>.
     /// </summary>
     public bool IncludeDebugInfo { get; set; } = Debugger.IsAttached;
+
+    public bool EnableSemanticNonNull { get; set; }
 }

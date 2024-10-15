@@ -20,20 +20,20 @@ public record TestSubgraph(
     public static Task<TestSubgraph> CreateAsync(
         string schemaText,
         bool isOffline = false,
-        bool hasSemanticNonNull = false)
+        bool enableSemanticNonNull = false)
         => CreateAsync(
-            configureBuilder: builder => builder
+            configure: builder => builder
                 .AddDocumentFromString(schemaText)
                 .AddResolverMocking()
                 .AddTestDirectives(),
             isOffline: isOffline,
-            hasSemanticNonNull: hasSemanticNonNull);
+            enableSemanticNonNull: enableSemanticNonNull);
 
     public static async Task<TestSubgraph> CreateAsync(
-        Action<IRequestExecutorBuilder> configureBuilder,
+        Action<IRequestExecutorBuilder> configure,
         string extensions = "",
         bool isOffline = false,
-        bool hasSemanticNonNull = false)
+        bool enableSemanticNonNull = false)
     {
         var testServerFactory = new TestServerFactory();
         var testContext = new SubgraphTestContext();
@@ -44,9 +44,9 @@ public record TestSubgraph(
                 var builder = services
                     .AddRouting()
                     .AddGraphQLServer(disableDefaultSecurity: true)
-                    .ModifyOptions(o => o.EnableSemanticNonNull = hasSemanticNonNull);
+                    .ModifyOptions(o => o.EnableSemanticNonNull = enableSemanticNonNull);
 
-                configureBuilder(builder);
+                configure(builder);
             },
             app =>
             {

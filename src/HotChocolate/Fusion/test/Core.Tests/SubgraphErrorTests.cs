@@ -3094,7 +3094,7 @@ public class SubgraphErrorTests(ITestOutputHelper output)
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
         var executor = await subgraphs.GetExecutorAsync(
-            configureBuilder: builder =>
+            configure: builder =>
                 builder.AddErrorFilter(error => error.WithMessage("REPLACED MESSAGE").WithCode("CUSTOM_CODE")));
         var request = """
                       query {
