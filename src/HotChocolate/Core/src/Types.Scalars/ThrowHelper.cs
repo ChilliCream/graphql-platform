@@ -2,6 +2,28 @@ namespace HotChocolate.Types;
 
 internal static class ThrowHelper
 {
+    public static SerializationException CharType_ParseLiteral_IsInvalid(IType type)
+    {
+        return new SerializationException(
+            ErrorBuilder.New()
+                .SetMessage(ScalarResources.CharType_IsInvalid_ParseLiteral)
+                .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                .SetExtension("actualType", WellKnownScalarTypes.Char)
+                .Build(),
+            type);
+    }
+
+    public static SerializationException CharType_ParseValue_IsInvalid(IType type)
+    {
+        return new SerializationException(
+            ErrorBuilder.New()
+                .SetMessage(ScalarResources.CharType_IsInvalid_ParseValue)
+                .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                .SetExtension("actualType", WellKnownScalarTypes.Char)
+                .Build(),
+            type);
+    }
+
     public static SerializationException EmailAddressType_ParseLiteral_IsInvalid(IType type)
     {
         return new SerializationException(
