@@ -267,6 +267,48 @@ public class DeferTests
     }
 
     [Fact]
+    public async Task Ensure_GlobalState_Is_Passed_To_DeferContext_Stacked_Defer_2()
+    {
+        // arrange
+        var executor = await DeferAndStreamTestSchema.CreateAsync();
+
+        // act
+        await using var response = await executor.ExecuteAsync(
+            OperationRequestBuilder
+                .New()
+                .SetDocument(
+                    """
+                    {
+                        ... @defer {
+                            e: ensureState {
+                                ... @defer {
+                                    state
+                                }
+                                ... @defer {
+                                    more {
+                                        ... @defer {
+                                            stuff
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    """)
+                .SetGlobalState("requestState", "state 123")
+                .Build());
+
+        var snapshot = new Snapshot();
+
+        await foreach (var result in Assert.IsType<ResponseStream>(response).ReadResultsAsync())
+        {
+            snapshot.Add(result.ToJson());
+        }
+
+        snapshot.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
     public async Task Ensure_GlobalState_Is_Passed_To_DeferContext_Single_Defer()
     {
         // arrange

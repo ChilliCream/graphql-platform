@@ -7,14 +7,26 @@ internal static class PathHelper
 {
     private const int _initialPathLength = 64;
 
-    public static Path CreatePathFromContext(ObjectResult parent)
-        => parent.Parent is null ? Path.Root : CreatePath(parent);
+    public static Path CreatePathFromContext(ObjectResult parent, bool localPath = false)
+    {
+        if (parent.Parent is null)
+        {
+            if (localPath || parent.PatchPath is null)
+            {
+                return Path.Root;
+            }
+
+            return parent.PatchPath;
+        }
+
+        return CreatePath(parent, localPath);
+    }
 
     public static Path CreatePathFromContext(ISelection selection, ResultData parent, int index)
         => parent switch
         {
-            ObjectResult => CreatePath(parent, selection.ResponseName),
-            ListResult => CreatePath(parent, index),
+            ObjectResult => CreatePath(parent, selection.ResponseName, true),
+            ListResult => CreatePath(parent, index, true),
             _ => throw new NotSupportedException($"{parent.GetType().FullName} is not a supported parent type."),
         };
 
@@ -33,21 +45,25 @@ internal static class PathHelper
         return path;
     }
 
-    private static Path CreatePath(ResultData parent, object segmentValue)
+    private static Path CreatePath(ResultData parent, object segmentValue, bool localPath)
     {
         var segments = ArrayPool<object>.Shared.Rent(_initialPathLength);
         segments[0] = segmentValue;
-        var length = Build(segments, parent);
-        var path = CreatePath(parent.PatchPath, segments, length);
+        var current = parent;
+        var length = Build(segments, ref current);
+        var parentPath = localPath ? Path.Root : current.PatchPath;
+        var path = CreatePath(parentPath, segments, length);
         ArrayPool<object>.Shared.Return(segments);
         return path;
     }
 
-    private static Path CreatePath(ResultData parent)
+    private static Path CreatePath(ResultData parent, bool localPath)
     {
         var segments = ArrayPool<object>.Shared.Rent(_initialPathLength);
-        var length = Build(segments, parent, 0);
-        var path = CreatePath(parent.PatchPath, segments, length);
+        var current = parent;
+        var length = Build(segments, ref current, 0);
+        var parentPath = localPath ? Path.Root : current.PatchPath;
+        var path = CreatePath(parentPath, segments, length);
         ArrayPool<object>.Shared.Return(segments);
         return path;
     }
@@ -73,7 +89,7 @@ internal static class PathHelper
         return path;
     }
 
-    private static int Build(object[] segments, ResultData parent, int start = 1)
+    private static int Build(object[] segments, ref ResultData parent, int start = 1)
     {
         var segment = start;
         var current = parent;
@@ -117,6 +133,7 @@ internal static class PathHelper
             }
         }
 
+        parent = current;
         return segment;
     }
 }
