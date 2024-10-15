@@ -20,6 +20,9 @@ public static class HotChocolateFunctionsHostBuilderExtensions
     /// <param name="maxAllowedRequestSize">
     /// The max allowed GraphQL request size.
     /// </param>
+    /// <param name="disableDefaultSecurity">
+    /// Defines if the default security policy should be disabled.
+    /// </param>
     /// <param name="apiRoute">
     /// The API route that was used in the GraphQL Azure Function.
     /// </param>
@@ -32,6 +35,7 @@ public static class HotChocolateFunctionsHostBuilderExtensions
     public static IRequestExecutorBuilder AddGraphQLFunction(
         this IFunctionsHostBuilder hostBuilder,
         int maxAllowedRequestSize = GraphQLAzureFunctionsConstants.DefaultMaxRequests,
+        bool disableDefaultSecurity = false,
         string apiRoute = GraphQLAzureFunctionsConstants.DefaultGraphQLRoute)
     {
         if (hostBuilder is null)
@@ -39,7 +43,7 @@ public static class HotChocolateFunctionsHostBuilderExtensions
             throw new ArgumentNullException(nameof(hostBuilder));
         }
 
-        return hostBuilder.Services.AddGraphQLFunction(maxAllowedRequestSize, apiRoute);
+        return hostBuilder.Services.AddGraphQLFunction(maxAllowedRequestSize, disableDefaultSecurity, apiRoute);
     }
 
     /// <summary>
@@ -57,6 +61,9 @@ public static class HotChocolateFunctionsHostBuilderExtensions
     /// <param name="maxAllowedRequestSize">
     /// The max allowed GraphQL request size.
     /// </param>
+    /// <param name="disableDefaultSecurity">
+    /// Defines if the default security policy should be disabled.
+    /// </param>
     /// <param name="apiRoute">
     /// The API route that was used in the GraphQL Azure Function.
     /// </param>
@@ -70,6 +77,7 @@ public static class HotChocolateFunctionsHostBuilderExtensions
         this IFunctionsHostBuilder hostBuilder,
         Action<IRequestExecutorBuilder> configure,
         int maxAllowedRequestSize = GraphQLAzureFunctionsConstants.DefaultMaxRequests,
+        bool disableDefaultSecurity = false,
         string apiRoute = GraphQLAzureFunctionsConstants.DefaultGraphQLRoute)
     {
         if (hostBuilder is null)
@@ -82,7 +90,7 @@ public static class HotChocolateFunctionsHostBuilderExtensions
             throw new ArgumentNullException(nameof(configure));
         }
 
-        var executorBuilder = hostBuilder.AddGraphQLFunction(maxAllowedRequestSize, apiRoute);
+        var executorBuilder = hostBuilder.AddGraphQLFunction(maxAllowedRequestSize, disableDefaultSecurity, apiRoute);
         configure.Invoke(executorBuilder);
 
         return hostBuilder;

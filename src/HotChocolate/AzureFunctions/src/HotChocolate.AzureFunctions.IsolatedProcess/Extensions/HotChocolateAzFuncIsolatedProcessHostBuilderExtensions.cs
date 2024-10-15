@@ -25,6 +25,9 @@ public static class HotChocolateAzFuncIsolatedProcessHostBuilderExtensions
     /// <param name="maxAllowedRequestSize">
     /// The max allowed GraphQL request size.
     /// </param>
+    /// <param name="disableDefaultSecurity">
+    /// Defines if the default security policy should be disabled.
+    /// </param>
     /// <param name="apiRoute">
     /// The API route that was used in the GraphQL Azure Function.
     /// </param>
@@ -38,6 +41,7 @@ public static class HotChocolateAzFuncIsolatedProcessHostBuilderExtensions
         this IHostBuilder hostBuilder,
         Action<IRequestExecutorBuilder> configure,
         int maxAllowedRequestSize = GraphQLAzureFunctionsConstants.DefaultMaxRequests,
+        bool disableDefaultSecurity = false,
         string apiRoute = GraphQLAzureFunctionsConstants.DefaultGraphQLRoute)
     {
         if (hostBuilder is null)
@@ -51,7 +55,7 @@ public static class HotChocolateAzFuncIsolatedProcessHostBuilderExtensions
         }
 
         hostBuilder.ConfigureServices(
-            s => configure(s.AddGraphQLFunction(maxAllowedRequestSize, apiRoute)));
+            s => configure(s.AddGraphQLFunction(maxAllowedRequestSize, disableDefaultSecurity, apiRoute)));
 
         return hostBuilder;
     }

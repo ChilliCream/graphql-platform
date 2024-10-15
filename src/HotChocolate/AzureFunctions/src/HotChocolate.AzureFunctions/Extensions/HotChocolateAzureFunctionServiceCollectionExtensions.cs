@@ -24,6 +24,9 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
     /// <param name="maxAllowedRequestSize">
     /// The max allowed GraphQL request size.
     /// </param>
+    /// <param name="disableDefaultSecurity">
+    /// Defines if the default security policy should be disabled.
+    /// </param>
     /// <param name="apiRoute">
     /// The API route that was used in the GraphQL Azure Function.
     /// </param>
@@ -39,6 +42,7 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
     public static IRequestExecutorBuilder AddGraphQLFunction(
         this IServiceCollection services,
         int maxAllowedRequestSize = GraphQLAzureFunctionsConstants.DefaultMaxRequests,
+        bool disableDefaultSecurity = false,
         string apiRoute = GraphQLAzureFunctionsConstants.DefaultGraphQLRoute,
         string? schemaName = default)
     {
@@ -48,7 +52,7 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
         }
 
         var executorBuilder =
-            services.AddGraphQLServer(maxAllowedRequestSize: maxAllowedRequestSize);
+            services.AddGraphQLServer(maxAllowedRequestSize: maxAllowedRequestSize, disableDefaultSecurity: disableDefaultSecurity);
 
         // Register AzFunc Custom Binding Extensions for In-Process Functions.
         // NOTE: This does not work for Isolated Process due to (but is not harmful at all of
