@@ -40,7 +40,7 @@ A query against the above schema could look like the following:
 
 The above request fetches two persons in one go without the need to call the backend twice. The problem with the GraphQL backend is that field resolvers are atomic and do not have any knowledge about the query as a whole. So, a field resolver does not know that it will be called multiple times in parallel to fetch similar or equal data from the same data source.
 
-The idea of a data loader is to batch these two requests into one call to the database.
+The idea of a DataLoader is to batch these two requests into one call to the database.
 
 Let's look at some code to understand what data loaders are doing. First, let's have a look at how we would write our field resolver without data loaders:
 
