@@ -1,9 +1,5 @@
-using System.Text.Json;
 using CookieCrumble;
 using HotChocolate.AspNetCore;
-using HotChocolate.AspNetCore.Tests.Utilities;
-using HotChocolate.Transport.Http;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
