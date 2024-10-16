@@ -191,6 +191,12 @@ Renamed interface methods:
 | TryReadQueryAsync | TryReadAsync |
 | WriteQueryAsync   | SaveAsync    |
 
+## Required keyed services
+
+Accessing a keyed service that has not been registered will now throw, instead of returning `null`. The return type is now non-nullable.
+
+This change aligns the API with the regular (non-keyed) service access API.
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.
