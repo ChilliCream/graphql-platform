@@ -113,9 +113,4 @@ public interface IRequestContext : IHasContextData
     /// Gets or sets an unexpected execution exception.
     /// </summary>
     Exception? Exception { get; set; }
-
-    /// <summary>
-    /// Clones the request context.
-    /// </summary>
-    IRequestContext Clone();
 }

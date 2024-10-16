@@ -21,6 +21,22 @@ internal static class DeferAndStreamTestSchema
             .BuildRequestExecutorAsync();
     }
 
+    public static IServiceProvider CreateServiceProvider()
+    {
+        return new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddGlobalObjectIdentification()
+            .ModifyOptions(
+                o =>
+                {
+                    o.EnableDefer = true;
+                    o.EnableStream = true;
+                })
+            .Services
+            .BuildServiceProvider();
+    }
+
     public class Query
     {
         private readonly List<Person> _persons =
