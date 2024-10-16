@@ -315,6 +315,38 @@ public class ResolverServiceTests
         result.MatchMarkdownSnapshot();
     }
 
+    [Fact]
+    public async Task Resolver_Optional_KeyedService_Does_Not_Exist()
+    {
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryOptional>()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .BuildRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync("{ foo }");
+
+        result.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Resolver_Optional_KeyedService_Exists()
+    {
+        var executor =
+            await new ServiceCollection()
+                .AddKeyedSingleton("abc", (_, _) => new KeyedService("abc"))
+                .AddKeyedSingleton("def", (_, _) => new KeyedService("def"))
+                .AddGraphQL()
+                .AddQueryType<QueryOptional>()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .BuildRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync("{ foo }");
+
+        result.MatchMarkdownSnapshot();
+    }
+
     public sealed class SayHelloService
     {
         public string Scope = "Resolver";
@@ -370,6 +402,12 @@ public class ResolverServiceTests
     {
         public string Foo([AbcService] KeyedService service)
             => service.Key;
+    }
+
+    public class QueryOptional
+    {
+        public string Foo([AbcService] KeyedService? service)
+            => service?.Key ?? "No Service";
     }
 
     public class KeyedService(string key)
