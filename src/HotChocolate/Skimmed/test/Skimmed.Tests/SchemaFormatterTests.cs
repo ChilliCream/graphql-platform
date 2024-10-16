@@ -270,8 +270,6 @@ public class SchemaFormatterTests
                        @semanticNonNull
                    }
                    """;
-
-        // assert
         var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(text));
 
         // act
@@ -291,8 +289,6 @@ public class SchemaFormatterTests
                        @semanticNonNull
                    }
                    """;
-
-        // assert
         var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(text));
 
         // act
@@ -312,8 +308,6 @@ public class SchemaFormatterTests
                        @semanticNonNull(levels: [ 1 ])
                    }
                    """;
-
-        // assert
         var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(text));
 
         // act
@@ -333,8 +327,6 @@ public class SchemaFormatterTests
                        @semanticNonNull(levels: [ 0, 1 ])
                    }
                    """;
-
-        // assert
         var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(text));
 
         // act
@@ -354,8 +346,6 @@ public class SchemaFormatterTests
                        @semanticNonNull(levels: [ 0, 2 ])
                    }
                    """;
-
-        // assert
         var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(text));
 
         // act
