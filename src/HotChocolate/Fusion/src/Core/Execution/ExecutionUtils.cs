@@ -94,6 +94,17 @@ internal static class ExecutionUtils
                 {
                     var value = data.Single.Element;
 
+                    // if (value.ValueKind is JsonValueKind.Array)
+                    // {
+                    //     var listResult = ComposeList(
+                    //         context,
+                    //         selectionSetResult,
+                    //         responseIndex,
+                    //         selection,
+                    //         data,
+                    //         selectionType);
+                    // }
+
                     if (value.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
                     {
                         if (isSemanticNonNull)
@@ -119,8 +130,9 @@ internal static class ExecutionUtils
                 }
                 else if (namedType.IsType(TypeKind.Enum))
                 {
-                    // we might need to map the enum value!
                     var value = data.Single.Element;
+
+                    // TODO: Handle null items in lists.
 
                     if (value.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
                     {
@@ -141,7 +153,7 @@ internal static class ExecutionUtils
                 {
                     if (!result.IsInitialized)
                     {
-                        // we add a placeholder here so if the ComposeObject propagates an error
+                        // we add a placeholder here so if ComposeObject propagates an error
                         // there is a value here.
                         result.Set(responseName, null, nullable);
 
@@ -172,6 +184,10 @@ internal static class ExecutionUtils
                 {
                     if (!result.IsInitialized)
                     {
+                        // we add a placeholder here so if ComposeList propagates an error
+                        // there is a value here.
+                        result.Set(responseName, null, nullable);
+
                         var value = ComposeList(
                             context,
                             selectionSetResult,
@@ -247,7 +263,7 @@ internal static class ExecutionUtils
 
         foreach (var item in json.EnumerateArray())
         {
-            // we add a placeholder here so if the ComposeElement propagates an error
+            // we add a placeholder here so if ComposeElement propagates an error
             // there is a value here.
             result.AddUnsafe(null);
 
@@ -329,7 +345,7 @@ internal static class ExecutionUtils
             return value;
         }
 
-        return TypeExtensions.IsCompositeType(valueType)
+        return namedType.IsCompositeType()
             ? ComposeObject(context, parent, parentIndex, selection, selectionData)
             : ComposeList(context, parent, parentIndex, selection, selectionData, valueType);
     }
