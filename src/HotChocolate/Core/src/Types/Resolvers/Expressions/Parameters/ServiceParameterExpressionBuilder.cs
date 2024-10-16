@@ -45,9 +45,15 @@ internal sealed class ServiceParameterExpressionBuilder
         {
             var attribute = parameter.GetCustomAttribute<ServiceAttribute>();
             Key = attribute?.Key;
+
+            var context = new NullabilityInfoContext();
+            var nullabilityInfo = context.Create(parameter);
+            IsRequired = nullabilityInfo.ReadState == NullabilityState.NotNull;
         }
 
         public string? Key { get; }
+
+        public bool IsRequired { get; }
 
         public ArgumentKind Kind => ArgumentKind.Service;
 
@@ -57,10 +63,14 @@ internal sealed class ServiceParameterExpressionBuilder
         {
             if (Key is not null)
             {
-                return context.Service<T>(Key);
+                return IsRequired
+                    ? context.Services.GetRequiredKeyedService<T>(Key)
+                    : context.Services.GetKeyedService<T>(Key)!;
             }
 
-            return context.Service<T>();
+            return IsRequired
+                ? context.Services.GetRequiredService<T>()
+                : context.Services.GetService<T>()!;
         }
     }
 }
