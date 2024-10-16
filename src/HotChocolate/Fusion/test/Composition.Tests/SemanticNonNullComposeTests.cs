@@ -437,17 +437,18 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public async Task Merge_Nullable_List_With_SemanticNonNull_ListItem()
+    public async Task
+        Merge_SemanticNonNull_List_Nullable_List_SemanticNonNull_ListItem_With_Nullable_List_Nullable_List_Nullable_ListItem()
     {
         // arrange
         var subgraphA = await TestSubgraph.CreateAsync(
             """
             type Query {
-              field: [SubType] @semanticNonNull(levels: [1])
+              field: [[SubType]] @semanticNonNull(levels: [0, 2])
             }
 
             type SubType {
-              field: [String] @semanticNonNull(levels: [1])
+              field: [[String]] @semanticNonNull(levels: [0, 2])
             }
             """,
             enableSemanticNonNull: true
@@ -456,11 +457,64 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
         var subgraphB = await TestSubgraph.CreateAsync(
             """
             type Query {
-              field: [SubType] @semanticNonNull(levels: [1])
+              field: [[SubType]]
             }
 
             type SubType {
-              field: [String] @semanticNonNull(levels: [1])
+              field: [[String]]
+            }
+            """
+        );
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+
+        // act
+        var fusionGraph = await subgraphs.GetFusionGraphAsync();
+
+        // assert
+        GetSchemaWithoutFusion(fusionGraph).MatchInlineSnapshot(
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              field: [[SubType]]
+            }
+
+            type SubType {
+              field: [[String]]
+            }
+
+            directive @semanticNonNull(levels: [Int] = [ 0 ]) on FIELD_DEFINITION
+            """);
+    }
+
+    [Fact]
+    public async Task
+        Merge_Nullable_List_Nullable_List_Nullable_ListItem_With_SemanticNonNull_List_Nullable_List_SemanticNonNull_ListItem()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              field: [[SubType]]
+            }
+
+            type SubType {
+              field: [[String]]
+            }
+            """
+        );
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              field: [[SubType]] @semanticNonNull(levels: [0, 2])
+            }
+
+            type SubType {
+              field: [[String]] @semanticNonNull(levels: [0, 2])
             }
             """,
             enableSemanticNonNull: true
@@ -479,11 +533,11 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
             }
 
             type Query {
-              field: [SubType] @semanticNonNull(levels: [ 1 ])
+              field: [[SubType]]
             }
 
             type SubType {
-              field: [String] @semanticNonNull(levels: [ 1 ])
+              field: [[String]]
             }
 
             directive @semanticNonNull(levels: [Int] = [ 0 ]) on FIELD_DEFINITION
@@ -650,6 +704,61 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
 
             type SubType {
               field: [String] @semanticNonNull(levels: [ 1 ])
+            }
+
+            directive @semanticNonNull(levels: [Int] = [ 0 ]) on FIELD_DEFINITION
+            """);
+    }
+
+    [Fact]
+    public async Task
+        Merge_SemanticNonNull_List_Nullable_List_SemanticNonNull_ListItem_With_SemanticNonNull_List_Nullable_List_SemanticNonNull_ListItem()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              field: [[SubType]] @semanticNonNull(levels: [0, 2])
+            }
+
+            type SubType {
+              field: [[String]] @semanticNonNull(levels: [0, 2])
+            }
+            """,
+            enableSemanticNonNull: true
+        );
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              field: [[SubType]] @semanticNonNull(levels: [0, 2])
+            }
+
+            type SubType {
+              field: [[String]] @semanticNonNull(levels: [0, 2])
+            }
+            """,
+            enableSemanticNonNull: true
+        );
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+
+        // act
+        var fusionGraph = await subgraphs.GetFusionGraphAsync();
+
+        // assert
+        GetSchemaWithoutFusion(fusionGraph).MatchInlineSnapshot(
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              field: [[SubType]] @semanticNonNull(levels: [ 0, 2 ])
+            }
+
+            type SubType {
+              field: [[String]] @semanticNonNull(levels: [ 0, 2 ])
             }
 
             directive @semanticNonNull(levels: [Int] = [ 0 ]) on FIELD_DEFINITION
@@ -864,11 +973,11 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
             }
 
             type Query {
-              field: SubType!
+              field: SubType @semanticNonNull
             }
 
             type SubType {
-              field: String!
+              field: String @semanticNonNull
             }
 
             directive @semanticNonNull(levels: [Int] = [ 0 ]) on FIELD_DEFINITION
@@ -917,11 +1026,11 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
             }
 
             type Query {
-              field: SubType!
+              field: SubType @semanticNonNull
             }
 
             type SubType {
-              field: String!
+              field: String @semanticNonNull
             }
 
             directive @semanticNonNull(levels: [Int] = [ 0 ]) on FIELD_DEFINITION
@@ -970,11 +1079,11 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
             }
 
             type Query {
-              field: [SubType]!
+              field: [SubType] @semanticNonNull
             }
 
             type SubType {
-              field: [String]!
+              field: [String] @semanticNonNull
             }
 
             directive @semanticNonNull(levels: [Int] = [ 0 ]) on FIELD_DEFINITION
@@ -1023,11 +1132,11 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
             }
 
             type Query {
-              field: [SubType]!
+              field: [SubType] @semanticNonNull
             }
 
             type SubType {
-              field: [String]!
+              field: [String] @semanticNonNull
             }
 
             directive @semanticNonNull(levels: [Int] = [ 0 ]) on FIELD_DEFINITION
@@ -1076,11 +1185,11 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
             }
 
             type Query {
-              field: [SubType!]
+              field: [SubType] @semanticNonNull(levels: [ 1 ])
             }
 
             type SubType {
-              field: [String!]
+              field: [String] @semanticNonNull(levels: [ 1 ])
             }
 
             directive @semanticNonNull(levels: [Int] = [ 0 ]) on FIELD_DEFINITION
@@ -1129,11 +1238,11 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
             }
 
             type Query {
-              field: [SubType!]
+              field: [SubType] @semanticNonNull(levels: [ 1 ])
             }
 
             type SubType {
-              field: [String!]
+              field: [String] @semanticNonNull(levels: [ 1 ])
             }
 
             directive @semanticNonNull(levels: [Int] = [ 0 ]) on FIELD_DEFINITION
@@ -1182,11 +1291,11 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
             }
 
             type Query {
-              field: [SubType!]!
+              field: [SubType] @semanticNonNull(levels: [ 0, 1 ])
             }
 
             type SubType {
-              field: [String!]!
+              field: [String] @semanticNonNull(levels: [ 0, 1 ])
             }
 
             directive @semanticNonNull(levels: [Int] = [ 0 ]) on FIELD_DEFINITION
@@ -1235,11 +1344,11 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
             }
 
             type Query {
-              field: [SubType!]!
+              field: [SubType] @semanticNonNull(levels: [ 0, 1 ])
             }
 
             type SubType {
-              field: [String!]!
+              field: [String] @semanticNonNull(levels: [ 0, 1 ])
             }
 
             directive @semanticNonNull(levels: [Int] = [ 0 ]) on FIELD_DEFINITION
@@ -1247,30 +1356,30 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public async Task Merge_NonNull_List_With_SemanticNonNull_ListItem()
+    public async Task
+        Merge_NonNull_List_Nullable_List_NonNull_ListItem_With_SemanticNonNull_List_Nullable_List_SemanticNonNull_ListItem()
     {
         // arrange
         var subgraphA = await TestSubgraph.CreateAsync(
             """
             type Query {
-              field: [SubType]! @semanticNonNull(levels: [1])
+              field: [[SubType!]]!
             }
 
             type SubType {
-              field: [String]! @semanticNonNull(levels: [1])
+              field: [[String!]]!
             }
-            """,
-            enableSemanticNonNull: true
+            """
         );
 
         var subgraphB = await TestSubgraph.CreateAsync(
             """
             type Query {
-              field: [SubType]! @semanticNonNull(levels: [1])
+              field: [[SubType]] @semanticNonNull(levels: [0, 2])
             }
 
             type SubType {
-              field: [String]! @semanticNonNull(levels: [1])
+              field: [[String]] @semanticNonNull(levels: [0, 2])
             }
             """,
             enableSemanticNonNull: true
@@ -1289,11 +1398,11 @@ public class SemanticNonNullComposeTests(ITestOutputHelper output)
             }
 
             type Query {
-              field: [SubType]! @semanticNonNull(levels: [ 1 ])
+              field: [[SubType]] @semanticNonNull(levels: [ 0, 2 ])
             }
 
             type SubType {
-              field: [String]! @semanticNonNull(levels: [ 1 ])
+              field: [[String]] @semanticNonNull(levels: [ 0, 2 ])
             }
 
             directive @semanticNonNull(levels: [Int] = [ 0 ]) on FIELD_DEFINITION

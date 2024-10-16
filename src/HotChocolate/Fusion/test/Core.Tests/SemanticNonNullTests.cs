@@ -23,7 +23,7 @@ public class SemanticNonNullTests(ITestOutputHelper output)
             enableSemanticNonNull: true);
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
-        var executor = await subgraphs.GetExecutorAsync(enableSemanticNonNull: true);
+        var executor = await subgraphs.GetExecutorAsync();
         var request = """
                       query {
                         field
@@ -68,7 +68,7 @@ public class SemanticNonNullTests(ITestOutputHelper output)
         ;
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
-        var executor = await subgraphs.GetExecutorAsync(enableSemanticNonNull: true);
+        var executor = await subgraphs.GetExecutorAsync();
         var request = """
                       query {
                         field
@@ -118,7 +118,7 @@ public class SemanticNonNullTests(ITestOutputHelper output)
             enableSemanticNonNull: true);
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
-        var executor = await subgraphs.GetExecutorAsync(enableSemanticNonNull: true);
+        var executor = await subgraphs.GetExecutorAsync();
         var request = """
                       query {
                         field
@@ -173,7 +173,7 @@ public class SemanticNonNullTests(ITestOutputHelper output)
             enableSemanticNonNull: true);
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
-        var executor = await subgraphs.GetExecutorAsync(enableSemanticNonNull: true);
+        var executor = await subgraphs.GetExecutorAsync();
         var request = """
                       query {
                         field
@@ -222,7 +222,7 @@ public class SemanticNonNullTests(ITestOutputHelper output)
         ;
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
-        var executor = await subgraphs.GetExecutorAsync(enableSemanticNonNull: true);
+        var executor = await subgraphs.GetExecutorAsync();
         var request = """
                       query {
                         field
@@ -276,7 +276,7 @@ public class SemanticNonNullTests(ITestOutputHelper output)
             enableSemanticNonNull: true);
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
-        var executor = await subgraphs.GetExecutorAsync(enableSemanticNonNull: true);
+        var executor = await subgraphs.GetExecutorAsync();
         var request = """
                       query {
                         field
@@ -331,7 +331,7 @@ public class SemanticNonNullTests(ITestOutputHelper output)
             enableSemanticNonNull: true);
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
-        var executor = await subgraphs.GetExecutorAsync(enableSemanticNonNull: true);
+        var executor = await subgraphs.GetExecutorAsync();
         var request = """
                       query {
                         field {
@@ -382,7 +382,7 @@ public class SemanticNonNullTests(ITestOutputHelper output)
         ;
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
-        var executor = await subgraphs.GetExecutorAsync(enableSemanticNonNull: true);
+        var executor = await subgraphs.GetExecutorAsync();
         var request = """
                       query {
                         field {
@@ -438,7 +438,7 @@ public class SemanticNonNullTests(ITestOutputHelper output)
             enableSemanticNonNull: true);
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
-        var executor = await subgraphs.GetExecutorAsync(enableSemanticNonNull: true);
+        var executor = await subgraphs.GetExecutorAsync();
         var request = """
                       query {
                         field {
@@ -499,7 +499,7 @@ public class SemanticNonNullTests(ITestOutputHelper output)
             enableSemanticNonNull: true);
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
-        var executor = await subgraphs.GetExecutorAsync(enableSemanticNonNull: true);
+        var executor = await subgraphs.GetExecutorAsync();
         var request = """
                       query {
                         field {
@@ -554,7 +554,7 @@ public class SemanticNonNullTests(ITestOutputHelper output)
         ;
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
-        var executor = await subgraphs.GetExecutorAsync(enableSemanticNonNull: true);
+        var executor = await subgraphs.GetExecutorAsync();
         var request = """
                       query {
                         field {
@@ -614,7 +614,7 @@ public class SemanticNonNullTests(ITestOutputHelper output)
             enableSemanticNonNull: true);
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
-        var executor = await subgraphs.GetExecutorAsync(enableSemanticNonNull: true);
+        var executor = await subgraphs.GetExecutorAsync();
         var request = """
                       query {
                         field {
@@ -673,7 +673,7 @@ public class SemanticNonNullTests(ITestOutputHelper output)
             enableSemanticNonNull: true);
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
-        var executor = await subgraphs.GetExecutorAsync(enableSemanticNonNull: true);
+        var executor = await subgraphs.GetExecutorAsync();
         var request = """
                       query {
                         field {
@@ -729,7 +729,7 @@ public class SemanticNonNullTests(ITestOutputHelper output)
         ;
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
-        var executor = await subgraphs.GetExecutorAsync(enableSemanticNonNull: true);
+        var executor = await subgraphs.GetExecutorAsync();
         var request = """
                       query {
                         field {
@@ -790,7 +790,7 @@ public class SemanticNonNullTests(ITestOutputHelper output)
             enableSemanticNonNull: true);
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
-        var executor = await subgraphs.GetExecutorAsync(enableSemanticNonNull: true);
+        var executor = await subgraphs.GetExecutorAsync();
         var request = """
                       query {
                         field {
@@ -850,7 +850,7 @@ public class SemanticNonNullTests(ITestOutputHelper output)
             enableSemanticNonNull: true);
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
-        var executor = await subgraphs.GetExecutorAsync(enableSemanticNonNull: true);
+        var executor = await subgraphs.GetExecutorAsync();
         var request = """
                       query {
                         field {
@@ -909,7 +909,7 @@ public class SemanticNonNullTests(ITestOutputHelper output)
         ;
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
-        var executor = await subgraphs.GetExecutorAsync(enableSemanticNonNull: true);
+        var executor = await subgraphs.GetExecutorAsync();
         var request = """
                       query {
                         field {
@@ -969,7 +969,7 @@ public class SemanticNonNullTests(ITestOutputHelper output)
             enableSemanticNonNull: true);
 
         using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
-        var executor = await subgraphs.GetExecutorAsync(enableSemanticNonNull: true);
+        var executor = await subgraphs.GetExecutorAsync();
         var request = """
                       query {
                         field {
