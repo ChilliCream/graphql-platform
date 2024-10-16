@@ -491,6 +491,16 @@ public static class TypeExtensions
             }
         }
 
+        if (type.Kind == TypeKind.SemanticNonNull)
+        {
+            var innerType = ((SemanticNonNullType)type).Type;
+
+            if (innerType.Kind == TypeKind.List)
+            {
+                return (ListType)innerType;
+            }
+        }
+
         throw new ArgumentException(TypeResources.TypeExtensions_InvalidStructure);
     }
 
