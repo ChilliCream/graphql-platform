@@ -1,4 +1,11 @@
+using System.Text.Json;
 using CookieCrumble;
+using HotChocolate.AspNetCore;
+using HotChocolate.AspNetCore.Tests.Utilities;
+using HotChocolate.Transport.Http;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution;
 
@@ -109,7 +116,11 @@ public class DeferTests
                         }
                     }
                     """)
-                .SetVariableValues(new Dictionary<string, object?> { { "defer", false }, })
+                .SetVariableValues(
+                    new Dictionary<string, object?>
+                    {
+                        { "defer", false },
+                    })
                 .Build());
 
         Assert.IsType<OperationResult>(result).MatchMarkdownSnapshot();
@@ -232,7 +243,11 @@ public class DeferTests
                         }
                     }
                     """)
-                .SetVariableValues(new Dictionary<string, object?> { { "defer", false }, })
+                .SetVariableValues(
+                    new Dictionary<string, object?>
+                    {
+                        { "defer", false },
+                    })
                 .Build());
 
         Assert.IsType<OperationResult>(result).MatchMarkdownSnapshot();
@@ -301,6 +316,9 @@ public class DeferTests
     [Fact]
     public async Task Ensure_GlobalState_Is_Passed_To_DeferContext_Single_Defer()
     {
+        // this test ensures that the request context is not recycled until the
+        // a stream is fully processed when no outer DI scope exists.
+
         // arrange
         var executor = await DeferAndStreamTestSchema.CreateAsync();
 
@@ -322,5 +340,50 @@ public class DeferTests
                 .Build());
 
         Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Ensure_GlobalState_Is_Passed_To_DeferContext_Single_Defer_2()
+    {
+        // this test ensures that the request context is not recycled until the
+        // a stream is fully processed when an outer DI scope exists.
+
+        // arrange
+        var services = DeferAndStreamTestSchema.CreateServiceProvider();
+        var executor = await services.GetRequestExecutorAsync();
+        await using var scope = services.CreateAsyncScope();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            OperationRequestBuilder
+                .New()
+                .SetDocument(
+                    """
+                    {
+                        ... @defer {
+                            ensureState {
+                                state
+                            }
+                        }
+                    }
+                    """)
+                .SetGlobalState("requestState", "state 123")
+                .SetServices(scope.ServiceProvider)
+                .Build());
+
+        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
+    }
+
+    private class StateRequestInterceptor : DefaultHttpRequestInterceptor
+    {
+        public override ValueTask OnCreateAsync(
+            HttpContext context,
+            IRequestExecutor requestExecutor,
+            OperationRequestBuilder requestBuilder,
+            CancellationToken cancellationToken)
+        {
+            requestBuilder.AddGlobalState("requestState", "bar");
+            return base.OnCreateAsync(context, requestExecutor, requestBuilder, cancellationToken);
+        }
     }
 }
