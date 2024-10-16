@@ -282,9 +282,6 @@ public class DeferTests
                         ... @defer {
                             e: ensureState {
                                 ... @defer {
-                                    state
-                                }
-                                ... @defer {
                                     more {
                                         ... @defer {
                                             stuff

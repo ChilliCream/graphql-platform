@@ -6,8 +6,7 @@
     "e": {
       "more": {
         "stuff": "state 123"
-      },
-      "state": "state 123"
+      }
     }
   }
 }
