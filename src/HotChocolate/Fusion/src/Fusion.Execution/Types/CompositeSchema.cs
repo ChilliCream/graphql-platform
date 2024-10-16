@@ -64,7 +64,6 @@ public sealed class CompositeSchema
     /// <summary>
     /// Gets a type by its name and kind.
     /// </summary>
-    /// <typeparam name="T">The expected type kind.</typeparam>
     /// <param name="typeName">The name of the type.</param>
     /// <returns>The type.</returns>
     /// <exception cref="ArgumentException">
