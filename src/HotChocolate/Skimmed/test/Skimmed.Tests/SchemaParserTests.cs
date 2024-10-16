@@ -118,4 +118,135 @@ public class SchemaParserTests
                     });
             });
     }
+
+    #region SemanticNonNull
+
+    [Fact]
+    public void Parse_SemanticNonNull_Field()
+    {
+        // arrange
+        var text = """
+                   type MyObject {
+                     field: String @semanticNonNull
+                   }
+                   """;
+
+        // assert
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(text));
+
+        // assert
+        var fieldDefinition = schema.Types
+            .OfType<ObjectTypeDefinition>()
+            .FirstOrDefault(t => t.Name == "MyObject")?
+            .Fields.FirstOrDefault(f => f.Name == "field");
+        Assert.NotNull(fieldDefinition);
+        Assert.Empty(fieldDefinition.Directives);
+        var fieldReturnType = Assert.IsType<SemanticNonNullTypeDefinition>(fieldDefinition.Type);
+        Assert.IsType<ScalarTypeDefinition>(fieldReturnType.NullableType);
+    }
+
+    [Fact]
+    public void Parse_SemanticNonNull_List_And_Nullable_ListItem()
+    {
+        // arrange
+        var text = """
+                   type MyObject {
+                     field: [String] @semanticNonNull
+                   }
+                   """;
+
+        // assert
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(text));
+
+        // assert
+        var fieldDefinition = schema.Types
+            .OfType<ObjectTypeDefinition>()
+            .FirstOrDefault(t => t.Name == "MyObject")?
+            .Fields.FirstOrDefault(f => f.Name == "field");
+        Assert.NotNull(fieldDefinition);
+        Assert.Empty(fieldDefinition.Directives);
+        var fieldReturnType = Assert.IsType<SemanticNonNullTypeDefinition>(fieldDefinition.Type);
+        var innerListType = Assert.IsType<ListTypeDefinition>(fieldReturnType.NullableType);
+        Assert.IsType<ScalarTypeDefinition>(innerListType.ElementType);
+    }
+
+    [Fact]
+    public void Parse_Nullable_List_And_SemanticNonNull_List_Item()
+    {
+        // arrange
+        var text = """
+                   type MyObject {
+                     field: [String] @semanticNonNull(levels: [ 1 ])
+                   }
+                   """;
+
+        // assert
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(text));
+
+        // assert
+        var fieldDefinition = schema.Types
+            .OfType<ObjectTypeDefinition>()
+            .FirstOrDefault(t => t.Name == "MyObject")?
+            .Fields.FirstOrDefault(f => f.Name == "field");
+        Assert.NotNull(fieldDefinition);
+        Assert.Empty(fieldDefinition.Directives);
+        var fieldReturnType = Assert.IsType<ListTypeDefinition>(fieldDefinition.Type);
+        var innerListType = Assert.IsType<SemanticNonNullTypeDefinition>(fieldReturnType.ElementType);
+        Assert.IsType<ScalarTypeDefinition>(innerListType.NullableType);
+    }
+
+    [Fact]
+    public void Parse_SemanticNonNull_List_And_SemanticNonNull_ListItem()
+    {
+        // arrange
+        var text = """
+                   type MyObject {
+                     field: [String] @semanticNonNull(levels: [ 0, 1 ])
+                   }
+                   """;
+
+        // assert
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(text));
+
+        // assert
+        var fieldDefinition = schema.Types
+            .OfType<ObjectTypeDefinition>()
+            .FirstOrDefault(t => t.Name == "MyObject")?
+            .Fields.FirstOrDefault(f => f.Name == "field");
+        Assert.NotNull(fieldDefinition);
+        Assert.Empty(fieldDefinition.Directives);
+        var fieldReturnType = Assert.IsType<SemanticNonNullTypeDefinition>(fieldDefinition.Type);
+        var listType = Assert.IsType<ListTypeDefinition>(fieldReturnType.NullableType);
+        var innerListType = Assert.IsType<SemanticNonNullTypeDefinition>(listType.ElementType);
+        Assert.IsType<ScalarTypeDefinition>(innerListType.NullableType);
+    }
+
+    [Fact]
+    public void Parse_SemanticNonNull_List_And_Nested_Nullable_List_And_SemanticNonNull_ListItem()
+    {
+        // arrange
+        var text = """
+                   type MyObject {
+                     field: [[String]] @semanticNonNull(levels: [ 0, 2 ])
+                   }
+                   """;
+
+        // assert
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(text));
+
+        // assert
+        var fieldDefinition = schema.Types
+            .OfType<ObjectTypeDefinition>()
+            .FirstOrDefault(t => t.Name == "MyObject")?
+            .Fields.FirstOrDefault(f => f.Name == "field");
+        Assert.NotNull(fieldDefinition);
+        Assert.Empty(fieldDefinition.Directives);
+        var fieldReturnType = Assert.IsType<SemanticNonNullTypeDefinition>(fieldDefinition.Type);
+        var listType = Assert.IsType<ListTypeDefinition>(fieldReturnType.NullableType);
+        var innerListType = Assert.IsType<ListTypeDefinition>(listType.ElementType);
+        var innermostListType = Assert.IsType<SemanticNonNullTypeDefinition>(innerListType.ElementType);
+        Assert.IsType<ScalarTypeDefinition>(innermostListType.NullableType);
+    }
+
+    #endregion
 }
