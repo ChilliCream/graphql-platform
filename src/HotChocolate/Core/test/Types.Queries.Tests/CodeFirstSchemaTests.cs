@@ -354,6 +354,78 @@ public class CodeFirstSchemaTests
         exception.Errors[0].Message.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task Throw_SchemaError_When_FieldResult_Has_No_Errors()
+    {
+        async Task Error()
+            => await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryConventions()
+                .AddQueryType<InvalidQuery>()
+                .BuildSchemaAsync();
+
+        var exception = await Assert.ThrowsAsync<SchemaException>(Error);
+        Assert.Single(exception.Errors);
+        exception.Errors[0].Message.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Throw_SchemaError_When_FieldResult_Has_No_Errors_1()
+    {
+        async Task Error()
+            => await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<InvalidQuery>()
+                .BuildSchemaAsync();
+
+        var exception = await Assert.ThrowsAsync<SchemaException>(Error);
+        Assert.Single(exception.Errors);
+        exception.Errors[0].Message.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Throw_SchemaError_When_FieldResult_Has_No_Errors_2()
+    {
+        async Task Error()
+            => await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryConventions()
+                .AddQueryType<InvalidQueryTask>()
+                .BuildSchemaAsync();
+
+        var exception = await Assert.ThrowsAsync<SchemaException>(Error);
+        Assert.Single(exception.Errors);
+        exception.Errors[0].Message.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Throw_SchemaError_When_FieldResult_Has_No_Errors_3()
+    {
+        async Task Error()
+            => await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryConventions()
+                .AddQueryType<InvalidQueryValueTask>()
+                .BuildSchemaAsync();
+
+        var exception = await Assert.ThrowsAsync<SchemaException>(Error);
+        Assert.Single(exception.Errors);
+        exception.Errors[0].Message.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task FieldResult_With_Errors_Are_Valid()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryConventions()
+                .AddQueryType<ValidQueryValueTask>()
+                .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
     public class QueryWithFieldResultType : ObjectType
     {
         protected override void Configure(IObjectTypeDescriptor descriptor)
@@ -507,4 +579,30 @@ public class CodeFirstSchemaTests
     public sealed class UserNotFoundException : Exception;
 
     public sealed class InvalidUserIdException : Exception;
+
+    public class InvalidQuery
+    {
+        public FieldResult<Foo> Foo() => default!;
+    }
+
+    public class InvalidQueryTask
+    {
+        public Task<FieldResult<Foo>> Foo() => default!;
+    }
+
+    public class InvalidQueryValueTask
+    {
+        public Task<FieldResult<Foo>> Foo() => default!;
+    }
+
+    public class ValidQueryValueTask
+    {
+        [Error<ArgumentException>]
+        public Task<FieldResult<Foo>> Foo() => default!;
+    }
+
+    public class Foo
+    {
+        public string Bar => default!;
+    }
 }

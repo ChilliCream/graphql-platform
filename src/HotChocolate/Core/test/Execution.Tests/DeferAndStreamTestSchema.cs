@@ -21,6 +21,22 @@ internal static class DeferAndStreamTestSchema
             .BuildRequestExecutorAsync();
     }
 
+    public static IServiceProvider CreateServiceProvider()
+    {
+        return new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddGlobalObjectIdentification()
+            .ModifyOptions(
+                o =>
+                {
+                    o.EnableDefer = true;
+                    o.EnableStream = true;
+                })
+            .Services
+            .BuildServiceProvider();
+    }
+
     public class Query
     {
         private readonly List<Person> _persons =
@@ -64,7 +80,8 @@ internal static class DeferAndStreamTestSchema
 
         public async Task<Stateful> EnsureState()
         {
-            await Task.Delay(150);
+            var random = new Random();
+            await Task.Delay(random.Next(500, 1000));
             return new Stateful();
         }
     }
@@ -92,7 +109,25 @@ internal static class DeferAndStreamTestSchema
     {
         public async Task<string> GetState([GlobalState] string requestState)
         {
-            await Task.Delay(250);
+            var random = new Random();
+            await Task.Delay(random.Next(1000, 5000));
+            return requestState;
+        }
+
+        public async Task<MoreState> GetMore()
+        {
+            var random = new Random();
+            await Task.Delay(random.Next(1000, 5000));
+            return new MoreState();
+        }
+    }
+
+    public class MoreState
+    {
+        public async Task<string> GetStuff([GlobalState] string requestState)
+        {
+            var random = new Random();
+            await Task.Delay(random.Next(1000, 5000));
             return requestState;
         }
     }

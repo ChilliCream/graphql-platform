@@ -89,12 +89,8 @@ internal sealed class OperationExecutionMiddleware
     {
         if (operation.Definition.Operation is OperationType.Subscription)
         {
-            // since the request context is pooled we need to clone the context for
-            // long-running executions.
-            var cloned = context.Clone();
-
             context.Result = await _subscriptionExecutor
-                .ExecuteAsync(cloned, () => GetQueryRootValue(cloned))
+                .ExecuteAsync(context, () => GetQueryRootValue(context))
                 .ConfigureAwait(false);
         }
         else
