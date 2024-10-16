@@ -12,6 +12,7 @@ internal static class SchemaValidator
         new DirectiveValidationRule(),
         new InterfaceHasAtLeastOneImplementationRule(),
         new IsSelectedPatternValidation(),
+        new EnsureFieldResultsDeclareErrorsRule()
     ];
 
     public static IReadOnlyList<ISchemaError> Validate(
