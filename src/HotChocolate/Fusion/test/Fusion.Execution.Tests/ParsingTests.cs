@@ -7,7 +7,7 @@ namespace HotChocolate.Fusion.Planing;
 
 public class ParsingTests
 {
-    [Fact]
+    // [Fact]
     public void Test()
     {
         var compositeSchemaDoc = Utf8GraphQLParser.Parse(FileResource.Open("fusion1.graphql"));

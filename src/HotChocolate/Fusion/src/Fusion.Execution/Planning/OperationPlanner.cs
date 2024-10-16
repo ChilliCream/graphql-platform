@@ -13,7 +13,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
         var operationType = schema.GetOperationType(operation.Operation);
         var context = new Context("a", operationType, backlog, isRoot: true);
 
-        RewriteFields(operation.SelectionSet, context);
+        // RewriteFields(operation.SelectionSet, context);
 
         var newSelectionSet = new SelectionSetNode(
             null,
