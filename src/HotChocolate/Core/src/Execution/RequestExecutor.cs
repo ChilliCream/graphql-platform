@@ -103,7 +103,7 @@ internal sealed class RequestExecutor : IRequestExecutor
             services.InitializeDataLoaderScope();
         }
 
-        RequestContext? context = _contextPool.Get();
+        var context = _contextPool.Get();
 
         try
         {
@@ -123,7 +123,15 @@ internal sealed class RequestExecutor : IRequestExecutor
 
             if (scope is null)
             {
-                return context.Result;
+                var localContext = context;
+
+                if (context.Result.IsStreamResult())
+                {
+                    context.Result.RegisterForCleanup(() => _contextPool.Return(localContext));
+                    context = null;
+                }
+
+                return localContext.Result;
             }
 
             if (context.Result.IsStreamResult())
