@@ -16,7 +16,7 @@ public class SemanticNonNullParserTests
                    """;
         var parser = new Utf8GraphQLParser(Encoding.UTF8.GetBytes(text));
 
-        // assert
+        // act
         var document = parser.Parse();
 
         // assert
@@ -41,7 +41,7 @@ public class SemanticNonNullParserTests
                    """;
         var parser = new Utf8GraphQLParser(Encoding.UTF8.GetBytes(text));
 
-        // assert
+        // act
         var document = parser.Parse();
 
         // assert
@@ -67,7 +67,7 @@ public class SemanticNonNullParserTests
                    """;
         var parser = new Utf8GraphQLParser(Encoding.UTF8.GetBytes(text));
 
-        // assert
+        // act
         var document = parser.Parse();
 
         // assert
@@ -96,7 +96,7 @@ public class SemanticNonNullParserTests
         // assert
         var document = parser.Parse();
 
-        // assert
+        // act
         var fieldDefinition = document.Definitions
             .OfType<ObjectTypeDefinitionNode>()
             .FirstOrDefault()?
@@ -120,7 +120,7 @@ public class SemanticNonNullParserTests
                    """;
         var parser = new Utf8GraphQLParser(Encoding.UTF8.GetBytes(text));
 
-        // assert
+        // act
         var document = parser.Parse();
 
         // assert

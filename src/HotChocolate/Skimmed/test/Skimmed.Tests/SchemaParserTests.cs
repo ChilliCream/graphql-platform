@@ -131,7 +131,7 @@ public class SchemaParserTests
                    }
                    """;
 
-        // assert
+        // act
         var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(text));
 
         // assert
@@ -155,7 +155,7 @@ public class SchemaParserTests
                    }
                    """;
 
-        // assert
+        // act
         var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(text));
 
         // assert
@@ -180,7 +180,7 @@ public class SchemaParserTests
                    }
                    """;
 
-        // assert
+        // act
         var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(text));
 
         // assert
@@ -205,7 +205,7 @@ public class SchemaParserTests
                    }
                    """;
 
-        // assert
+        // act
         var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(text));
 
         // assert
@@ -231,7 +231,7 @@ public class SchemaParserTests
                    }
                    """;
 
-        // assert
+        // act
         var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(text));
 
         // assert
