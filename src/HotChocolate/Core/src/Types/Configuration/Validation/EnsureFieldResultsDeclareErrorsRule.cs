@@ -13,15 +13,23 @@ internal sealed class EnsureFieldResultsDeclareErrorsRule : ISchemaValidationRul
         ISchema schema,
         ICollection<ISchemaError> errors)
     {
+        var mutationType = schema.MutationType;
+
         foreach (var objectType in schema.Types.OfType<ObjectType>())
         {
+            if (ReferenceEquals(objectType, mutationType))
+            {
+                continue;
+            }
+
             foreach (var field in objectType.Fields.AsSpan())
             {
                 var member = field.ResolverMember ?? field.Member;
                 if (member is not null)
                 {
                     var returnType = member.GetReturnType();
-                    if (returnType.IsGenericType
+                    if (returnType is not null
+                        && returnType.IsGenericType
                         && returnType.GenericTypeArguments.Length == 1)
                     {
                         var typeDefinition = returnType.GetGenericTypeDefinition();
