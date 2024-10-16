@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 using HotChocolate.Fusion.Clients;
 using static HotChocolate.Fusion.Execution.ExecutionUtils;
 using static HotChocolate.Fusion.Execution.Nodes.ResolverNodeBase;
@@ -137,38 +138,38 @@ internal sealed class Resolve(int id, Config config) : ResolverNodeBase(id, conf
         ref var request = ref MemoryMarshal.GetArrayDataReference(requests);
         ref var response = ref MemoryMarshal.GetArrayDataReference(responses);
         ref var end = ref Unsafe.Add(ref state, executionStates.Count);
-        var pathLength = Path.Length;
 
         while (Unsafe.IsAddressLessThan(ref state, ref end))
         {
             var data = UnwrapResult(response);
             var selectionSet = state.SelectionSet;
             var selectionSetData = state.SelectionSetData;
-            var selectionSetResult = state.SelectionSetResult;
             var exportKeys = state.Requires;
             var variableValues = state.VariableValues;
 
             if (response.TransportException is not null)
             {
-                CreateTransportErrors(
+                var transportError = CreateTransportError(
                     response.TransportException,
-                    context.Result,
                     context.ErrorHandler,
-                    selectionSetResult,
-                    RootSelections,
                     subgraphName,
                     context.ShowDebugInfo);
-            }
 
-            ExtractErrors(
-                context.Operation.Document,
-                context.Operation.Definition,
-                context.Result,
-                context.ErrorHandler,
-                response.Errors,
-                selectionSetResult,
-                pathLength,
-                context.ShowDebugInfo);
+                state.ErrorTrie = ErrorTrie.FromSelections(transportError, RootSelections);
+            }
+            else
+            {
+                var errors = ExtractErrors(response.Errors, subgraphName, context.ShowDebugInfo);
+
+                if (errors is not null)
+                {
+                    var errorTrie = ErrorTrie.FromErrors(errors);
+                    var unwrappedErrorTrie = UnwrapErrors(errorTrie);
+
+                    state.ErrorTrie = ExtractErrorsForSelectionSet(SelectionSet, unwrappedErrorTrie)
+                        ?? ErrorTrie.FromSelections(errorTrie, RootSelections, Path);
+                }
+            }
 
             // we extract the selection data from the request and add it to the
             // workItem results.

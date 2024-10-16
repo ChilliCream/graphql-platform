@@ -6,7 +6,7 @@
 {
   "errors": [
     {
-      "message": "Cannot return null for non-nullable field.",
+      "message": "Top Level Error",
       "locations": [
         {
           "line": 6,
@@ -16,13 +16,7 @@
       "path": [
         "productById",
         "score"
-      ],
-      "extensions": {
-        "code": "HC0018"
-      }
-    },
-    {
-      "message": "Top Level Error"
+      ]
     }
   ],
   "data": null
