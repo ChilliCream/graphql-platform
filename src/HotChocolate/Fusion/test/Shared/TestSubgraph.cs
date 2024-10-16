@@ -61,8 +61,6 @@ public record TestSubgraph(
 
         var schema = await testServer.Services.GetSchemaAsync();
 
-        var schemaStr = schema.ToString();
-
         return new TestSubgraph(testServer, schema, testContext, extensions, isOffline);
     }
 
