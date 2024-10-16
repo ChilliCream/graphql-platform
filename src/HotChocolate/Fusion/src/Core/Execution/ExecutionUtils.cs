@@ -70,8 +70,8 @@ internal static class ExecutionUtils
             if (!field.IsIntrospectionField)
             {
                 var isSemanticNonNull = selectionType.IsSemanticNonNullType();
-                var nullable = selectionType.IsNullableType() || isSemanticNonNull;
-                var namedType = selectionType.NamedType();
+                var nullable = selectionType.IsNullableType();
+                var nullableType = selectionType.NullableType();
 
                 if (!data.HasValue)
                 {
@@ -90,20 +90,9 @@ internal static class ExecutionUtils
                         result.Set(responseName, null, nullable);
                     }
                 }
-                else if (namedType.IsType(TypeKind.Scalar))
+                else if (nullableType.IsType(TypeKind.Scalar))
                 {
                     var value = data.Single.Element;
-
-                    // if (value.ValueKind is JsonValueKind.Array)
-                    // {
-                    //     var listResult = ComposeList(
-                    //         context,
-                    //         selectionSetResult,
-                    //         responseIndex,
-                    //         selection,
-                    //         data,
-                    //         selectionType);
-                    // }
 
                     if (value.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
                     {
@@ -128,11 +117,9 @@ internal static class ExecutionUtils
                         result.Set(responseName, reformattedId, nullable);
                     }
                 }
-                else if (namedType.IsType(TypeKind.Enum))
+                else if (nullableType.IsType(TypeKind.Enum))
                 {
                     var value = data.Single.Element;
-
-                    // TODO: Handle null items in lists.
 
                     if (value.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
                     {
@@ -412,6 +399,11 @@ internal static class ExecutionUtils
             return true;
         }
 
+        if (type.Kind == TypeKind.SemanticNonNull && ((SemanticNonNullType)type).Type.Kind == kind)
+        {
+            return true;
+        }
+
         return false;
     }
 
@@ -426,6 +418,12 @@ internal static class ExecutionUtils
         if (type.Kind == TypeKind.NonNull)
         {
             var innerKind = ((NonNullType)type).Type.Kind;
+            return innerKind is TypeKind.Object or TypeKind.Interface or TypeKind.Union;
+        }
+
+        if (type.Kind == TypeKind.SemanticNonNull)
+        {
+            var innerKind = ((SemanticNonNullType)type).Type.Kind;
             return innerKind is TypeKind.Object or TypeKind.Interface or TypeKind.Union;
         }
 
