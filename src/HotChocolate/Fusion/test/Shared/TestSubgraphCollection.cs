@@ -21,18 +21,11 @@ public class TestSubgraphCollection(ITestOutputHelper outputHelper, TestSubgraph
 
     public async Task<IRequestExecutor> GetExecutorAsync(
         FusionFeatureCollection? features = null,
-        Action<FusionGatewayBuilder>? configure = null,
-        bool enableSemanticNonNull = false)
+        Action<FusionGatewayBuilder>? configure = null)
     {
         var fusionGraph = await GetFusionGraphAsync(features);
 
-        return await GetExecutorAsync(
-            fusionGraph,
-            configure: builder =>
-            {
-                builder.ModifyFusionOptions(o => o.EnableSemanticNonNull = enableSemanticNonNull);
-                configure?.Invoke(builder);
-            });
+        return await GetExecutorAsync(fusionGraph, configure);
     }
 
     public async Task<Skimmed.SchemaDefinition> GetFusionGraphAsync(FusionFeatureCollection? features = null)

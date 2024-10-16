@@ -14,24 +14,28 @@ internal static class MergeExtensions
 
         if (target.Kind is TypeKind.SemanticNonNull && source.Kind is not TypeKind.SemanticNonNull)
         {
-            var nullableTarget = target.InnerType();
+            var nullableSource = source.InnerType();
 
             if (source.Kind is TypeKind.NonNull)
             {
-                return MergeOutputType(source, new NonNullTypeDefinition(nullableTarget));
+                return MergeOutputType(new SemanticNonNullTypeDefinition(nullableSource), target);
             }
+
+            var nullableTarget = target.InnerType();
 
             return MergeOutputType(source, nullableTarget);
         }
 
         if (source.Kind is TypeKind.SemanticNonNull && target.Kind is not TypeKind.SemanticNonNull)
         {
-            var nullableSource = source.InnerType();
+            var nullableTarget = target.InnerType();
 
             if (target.Kind is TypeKind.NonNull)
             {
-                return MergeOutputType(new NonNullTypeDefinition(nullableSource), target);
+                return MergeOutputType(source, new SemanticNonNullTypeDefinition(nullableTarget));
             }
+
+            var nullableSource = source.InnerType();
 
             return MergeOutputType(nullableSource, target);
         }
