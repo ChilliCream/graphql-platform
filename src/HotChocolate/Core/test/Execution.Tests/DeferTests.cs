@@ -22,7 +22,7 @@ public class DeferTests
             }
             """);
 
-        Assert.IsType<ResponseStream>(result).MatchSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
     }
 
     [Fact]
@@ -46,7 +46,7 @@ public class DeferTests
             }
             """);
 
-        Assert.IsType<ResponseStream>(result).MatchSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
     }
 
     [Fact]
@@ -65,7 +65,7 @@ public class DeferTests
                 }
             }");
 
-        Assert.IsType<ResponseStream>(result).MatchSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
     }
 
     [Fact]
@@ -86,7 +86,7 @@ public class DeferTests
             }
             """);
 
-        Assert.IsType<OperationResult>(result).MatchSnapshot();
+        Assert.IsType<OperationResult>(result).MatchMarkdownSnapshot();
     }
 
     [Fact]
@@ -112,7 +112,7 @@ public class DeferTests
                 .SetVariableValues(new Dictionary<string, object?> { { "defer", false }, })
                 .Build());
 
-        Assert.IsType<OperationResult>(result).MatchSnapshot();
+        Assert.IsType<OperationResult>(result).MatchMarkdownSnapshot();
     }
 
     [Fact]
@@ -135,7 +135,7 @@ public class DeferTests
             }
             """);
 
-        Assert.IsType<ResponseStream>(result).MatchSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
     }
 
     [Fact]
@@ -161,7 +161,7 @@ public class DeferTests
             }
             """);
 
-        Assert.IsType<ResponseStream>(result).MatchSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
     }
 
     [Fact]
@@ -184,7 +184,7 @@ public class DeferTests
             }
             """);
 
-        Assert.IsType<ResponseStream>(result).MatchSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
     }
 
     [Fact]
@@ -207,7 +207,7 @@ public class DeferTests
             }
             """);
 
-        Assert.IsType<OperationResult>(result).MatchSnapshot();
+        Assert.IsType<OperationResult>(result).MatchMarkdownSnapshot();
     }
 
     [Fact]
@@ -235,7 +235,7 @@ public class DeferTests
                 .SetVariableValues(new Dictionary<string, object?> { { "defer", false }, })
                 .Build());
 
-        Assert.IsType<OperationResult>(result).MatchSnapshot();
+        Assert.IsType<OperationResult>(result).MatchMarkdownSnapshot();
     }
 
     [Fact]
@@ -263,7 +263,7 @@ public class DeferTests
                 .SetGlobalState("requestState", "state 123")
                 .Build());
 
-        Assert.IsType<ResponseStream>(result).MatchSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
     }
 
     [Fact]
@@ -298,14 +298,7 @@ public class DeferTests
                 .SetGlobalState("requestState", "state 123")
                 .Build());
 
-        var snapshot = new Snapshot();
-
-        await foreach (var result in Assert.IsType<ResponseStream>(response).ReadResultsAsync())
-        {
-            snapshot.Add(result.ToJson());
-        }
-
-        snapshot.MatchMarkdownSnapshot();
+        Assert.IsType<ResponseStream>(response).MatchMarkdownSnapshot();
     }
 
     [Fact]
@@ -331,6 +324,6 @@ public class DeferTests
                 .SetGlobalState("requestState", "state 123")
                 .Build());
 
-        Assert.IsType<ResponseStream>(result).MatchSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
     }
 }
