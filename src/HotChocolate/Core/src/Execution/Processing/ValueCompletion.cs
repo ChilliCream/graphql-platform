@@ -30,6 +30,12 @@ internal static partial class ValueCompletion
             typeKind = type.Kind;
         }
 
+        if (typeKind is TypeKind.SemanticNonNull)
+        {
+            type = type.InnerType();
+            typeKind = type.Kind;
+        }
+
         if (result is null)
         {
             return null;
