@@ -95,6 +95,9 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
             case SyntaxKind.NonNullType:
                 return Equals((NonNullTypeNode)x, (NonNullTypeNode)y);
 
+            case SyntaxKind.SemanticNonNullType:
+                return Equals((SemanticNonNullTypeNode)x, (SemanticNonNullTypeNode)y);
+
             case SyntaxKind.SchemaDefinition:
                 return Equals((SchemaDefinitionNode)x, (SchemaDefinitionNode)y);
 
@@ -337,6 +340,9 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
         => x.Value.Equals(y.Value, StringComparison.Ordinal);
 
     private bool Equals(NonNullTypeNode x, NonNullTypeNode y)
+        => Equals(x.Type, y.Type);
+
+    private bool Equals(SemanticNonNullTypeNode x, SemanticNonNullTypeNode y)
         => Equals(x.Type, y.Type);
 
     private bool Equals(ObjectFieldNode x, ObjectFieldNode y)

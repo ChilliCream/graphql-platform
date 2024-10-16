@@ -772,4 +772,91 @@ public class SchemaSyntaxPrinterTests
         // assert
         Assert.Equal(schema, result);
     }
+
+    #region SemanticNonNull
+
+    [Fact]
+    public void Parse_SemanticNonNull_Field()
+    {
+        // arrange
+        var schema = """
+                   type MyObject { field: String @semanticNonNull }
+                   """;
+        var document = Utf8GraphQLParser.Parse(schema);
+
+        // act
+        var result = document.ToString(false);
+
+        // assert
+        Assert.Equal(schema, result);
+    }
+
+    [Fact]
+    public void Parse_SemanticNonNull_List_And_Nullable_ListItem()
+    {
+        // arrange
+        var schema = """
+                   type MyObject { field: [String] @semanticNonNull }
+                   """;
+        var document = Utf8GraphQLParser.Parse(schema);
+
+        // act
+        var result = document.ToString(false);
+
+        // assert
+        Assert.Equal(schema, result);
+    }
+
+    [Fact]
+    public void Parse_Nullable_List_And_SemanticNonNull_List_Item()
+    {
+        // arrange
+        var schema = """
+                   type MyObject { field: [String] @semanticNonNull(levels: [ 1 ]) }
+                   """;
+
+        var document = Utf8GraphQLParser.Parse(schema);
+
+        // act
+        var result = document.ToString(false);
+
+        // assert
+        Assert.Equal(schema, result);
+    }
+
+    [Fact]
+    public void Parse_SemanticNonNull_List_And_SemanticNonNull_ListItem()
+    {
+        // arrange
+        var schema = """
+                   type MyObject { field: [String] @semanticNonNull(levels: [ 0, 1 ]) }
+                   """;
+
+        var document = Utf8GraphQLParser.Parse(schema);
+
+        // act
+        var result = document.ToString(false);
+
+        // assert
+        Assert.Equal(schema, result);
+    }
+
+    [Fact]
+    public void Parse_SemanticNonNull_List_And_Nested_Nullable_List_And_SemanticNonNull_ListItem()
+    {
+        // arrange
+        var schema = """
+                   type MyObject { field: [[String]] @semanticNonNull(levels: [ 0, 2 ]) }
+                   """;
+
+        var document = Utf8GraphQLParser.Parse(schema);
+
+        // act
+        var result = document.ToString(false);
+
+        // assert
+        Assert.Equal(schema, result);
+    }
+
+    #endregion
 }
