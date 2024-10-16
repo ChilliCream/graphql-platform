@@ -257,4 +257,113 @@ public class SchemaFormatterTests
             directive @foo(a: String! b: [Foo] c: [Int!]) on FIELD_DEFINITION
             """);
     }
+
+    #region SemanticNonNull
+
+    [Fact]
+    public void Format_SemanticNonNull_Field()
+    {
+        // arrange
+        var text = """
+                   type MyObject {
+                     field: String
+                       @semanticNonNull
+                   }
+                   """;
+
+        // assert
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(text));
+
+        // act
+        var formattedSdl = SchemaFormatter.FormatAsString(schema);
+
+        // assert
+        formattedSdl.MatchInlineSnapshot(text);
+    }
+
+    [Fact]
+    public void Format_SemanticNonNull_List_And_Nullable_ListItem()
+    {
+        // arrange
+        var text = """
+                   type MyObject {
+                     field: [String]
+                       @semanticNonNull
+                   }
+                   """;
+
+        // assert
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(text));
+
+        // act
+        var formattedSdl = SchemaFormatter.FormatAsString(schema);
+
+        // assert
+        formattedSdl.MatchInlineSnapshot(text);
+    }
+
+    [Fact]
+    public void Format_Nullable_List_And_SemanticNonNull_List_Item()
+    {
+        // arrange
+        var text = """
+                   type MyObject {
+                     field: [String]
+                       @semanticNonNull(levels: [ 1 ])
+                   }
+                   """;
+
+        // assert
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(text));
+
+        // act
+        var formattedSdl = SchemaFormatter.FormatAsString(schema);
+
+        // assert
+        formattedSdl.MatchInlineSnapshot(text);
+    }
+
+    [Fact]
+    public void Format_SemanticNonNull_List_And_SemanticNonNull_ListItem()
+    {
+        // arrange
+        var text = """
+                   type MyObject {
+                     field: [String]
+                       @semanticNonNull(levels: [ 0, 1 ])
+                   }
+                   """;
+
+        // assert
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(text));
+
+        // act
+        var formattedSdl = SchemaFormatter.FormatAsString(schema);
+
+        // assert
+        formattedSdl.MatchInlineSnapshot(text);
+    }
+
+    [Fact]
+    public void Format_SemanticNonNull_List_And_Nested_Nullable_List_And_SemanticNonNull_ListItem()
+    {
+        // arrange
+        var text = """
+                   type MyObject {
+                     field: [[String]]
+                       @semanticNonNull(levels: [ 0, 2 ])
+                   }
+                   """;
+
+        // assert
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(text));
+
+        // act
+        var formattedSdl = SchemaFormatter.FormatAsString(schema);
+
+        // assert
+        formattedSdl.MatchInlineSnapshot(text);
+    }
+
+    #endregion
 }
