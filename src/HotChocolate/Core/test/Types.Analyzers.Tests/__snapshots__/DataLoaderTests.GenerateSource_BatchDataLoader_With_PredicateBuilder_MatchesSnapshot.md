@@ -100,26 +100,3 @@ namespace Microsoft.Extensions.DependencyInjection
 
 ```
 
-## Compilation Diagnostics
-
-```json
-[
-  {
-    "Id": "GD0002",
-    "Title": "Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.",
-    "Severity": "Error",
-    "WarningLevel": 0,
-    "Location": ": (13,8)-(13,47)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS9204)",
-    "MessageFormat": "'{0}' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.",
-    "Message": "'GreenDonut.Predicates.IPredicateBuilder' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.",
-    "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "CustomObsolete"
-    ]
-  }
-]
-```
-

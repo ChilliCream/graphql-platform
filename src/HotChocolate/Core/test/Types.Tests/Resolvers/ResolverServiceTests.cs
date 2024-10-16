@@ -317,7 +317,6 @@ public class ResolverServiceTests
 
         result.MatchMarkdownSnapshot();
     }
-#endif
 
     [Fact]
     public async Task Resolver_Optional_KeyedService_Does_Not_Exist()
@@ -350,6 +349,7 @@ public class ResolverServiceTests
 
         result.MatchMarkdownSnapshot();
     }
+#endif
 
     public sealed class SayHelloService
     {

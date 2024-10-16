@@ -450,6 +450,7 @@ public class DataLoaderTests
             """).MatchMarkdownAsync();
     }
 
+#if NET8_0_OR_GREATER
     [Fact]
     public async Task GenerateSource_BatchDataLoader_With_SelectorBuilder_MatchesSnapshot()
     {
@@ -499,4 +500,5 @@ public class DataLoaderTests
             }
             """).MatchMarkdownAsync();
     }
+#endif
 }

@@ -171,7 +171,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
     public T Service<T>() where T : notnull => Services.GetRequiredService<T>();
 
 #if NET8_0_OR_GREATER
-    public T Service<T>(object key) where T : notnull => parentContext.Service<T>(key);
+    public T Service<T>(object key) where T : notnull => Services.GetRequiredKeyedService<T>(key);
 #endif
 
     public object Service(Type service)

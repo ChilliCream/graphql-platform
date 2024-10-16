@@ -11,7 +11,9 @@ namespace HotChocolate.Resolvers.Expressions.Parameters;
 internal static class ServiceExpressionHelper
 {
     private const string _serviceResolver = nameof(GetService);
+#if NET8_0_OR_GREATER
     private const string _keyedServiceResolver = nameof(GetKeyedService);
+#endif
     private static readonly Expression _true = Expression.Constant(true);
     private static readonly Expression _false = Expression.Constant(false);
 
@@ -46,12 +48,18 @@ internal static class ServiceExpressionHelper
 
     private static Expression BuildDefaultService(ParameterInfo parameter, Expression context)
     {
+#if NET7_0_OR_GREATER
         var parameterType = parameter.ParameterType;
         var argumentMethod = _getServiceMethod.MakeGenericMethod(parameterType);
         var nullabilityContext = new NullabilityInfoContext();
         var nullabilityInfo = nullabilityContext.Create(parameter);
         var isRequired = nullabilityInfo.ReadState == NullabilityState.NotNull;
         return Expression.Call(argumentMethod, context, isRequired ? _true : _false);
+#else
+        var parameterType = parameter.ParameterType;
+        var argumentMethod = _getServiceMethod.MakeGenericMethod(parameterType);
+        return Expression.Call(argumentMethod, context, _true);
+#endif
     }
 
 #if NET8_0_OR_GREATER
@@ -65,6 +73,7 @@ internal static class ServiceExpressionHelper
         var isRequired = nullabilityInfo.ReadState == NullabilityState.NotNull;
         return Expression.Call(argumentMethod, context, keyExpression, isRequired ? _true : _false);
     }
+#endif
 
     public static TService? GetService<TService>(
         IResolverContext context,
@@ -76,6 +85,7 @@ internal static class ServiceExpressionHelper
             : context.Services.GetService<TService>();
     }
 
+#if NET8_0_OR_GREATER
     public static TService? GetKeyedService<TService>(
         IResolverContext context,
         object? key,
