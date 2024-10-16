@@ -60,7 +60,7 @@ public class QueryType : ObjectType
 <Schema>
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddDocumentFromString(@"
         type Query {

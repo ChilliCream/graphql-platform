@@ -47,9 +47,10 @@ Filtering is part of the `HotChocolate.Data` package.
 To use filtering you need to register it on the schema:
 
 ```csharp
-services.AddGraphQLServer()
-  // Your schema configuration
-  .AddFiltering();
+builder.Services
+    .AddGraphQLServer()
+    // Your schema configuration
+    .AddFiltering();
 ```
 
 Hot Chocolate will infer the filters directly from your .Net Model and then use a Middleware to apply filters to `IQueryable<T>` or `IEnumerable<T>` on execution.
@@ -61,7 +62,7 @@ Hot Chocolate will infer the filters directly from your .Net Model and then use 
 public class Query
 {
     [UseFiltering]
-    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+    public IQueryable<User> GetUsers(IUserRepository repository)
         => repository.GetUsers();
 }
 ```
@@ -72,7 +73,7 @@ public class Query
 ```csharp
 public class Query
 {
-    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+    public IQueryable<User> GetUsers(IUserRepository repository)
         => repository.GetUsers();
 }
 
@@ -167,7 +168,7 @@ To apply this filter type we just have to provide it to the `UseFiltering` exten
 public class Query
 {
     [UseFiltering(typeof(UserFilterType))]
-    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+    public IQueryable<User> GetUsers(IUserRepository repository)
         => repository.GetUsers();
 }
 ```
@@ -272,7 +273,7 @@ public class User
 public class Query
 {
     [UseFiltering]
-    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+    public IQueryable<User> GetUsers(IUserRepository repository)
         => repository.GetUsers();
 }
 
@@ -308,7 +309,7 @@ public class User
 public class Query
 {
     [UseFiltering]
-    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+    public IQueryable<User> GetUsers(IUserRepository repository)
         => repository.GetUsers();
 }
 
@@ -354,7 +355,7 @@ public class User
 public class Query
 {
     [UseFiltering]
-    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+    public IQueryable<User> GetUsers(IUserRepository repository)
         => repository.GetUsers();
 }
 
@@ -406,7 +407,7 @@ public class User
 public class Query
 {
     [UseFiltering]
-    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+    public IQueryable<User> GetUsers(IUserRepository repository)
         => repository.GetUsers();
 }
 
@@ -452,7 +453,7 @@ public class Address
 public class Query
 {
     [UseFiltering]
-    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+    public IQueryable<User> GetUsers(IUserRepository repository)
         => repository.GetUsers();
 }
 
@@ -519,7 +520,7 @@ public class Address
 public class Query
 {
     [UseFiltering]
-    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+    public IQueryable<User> GetUsers(IUserRepository repository)
         => repository.GetUsers();
 }
 
@@ -598,10 +599,12 @@ public class CustomConvention : FilterConvention
     }
 }
 
-services.AddGraphQLServer()
+builder.Services
+    .AddGraphQLServer()
     .AddConvention<IFilterConvention, CustomConvention>();
 // or
-services.AddGraphQLServer()
+builder.Services
+    .AddGraphQLServer()
     .AddConvention<IFilterConvention>(new FilterConvention(x =>
         x.AddDefaults()))
 ```
@@ -617,10 +620,12 @@ public class CustomConventionExtension : FilterConventionExtension
     }
 }
 
-services.AddGraphQLServer()
+builder.Services
+    .AddGraphQLServer()
     .AddConvention<IFilterConvention, CustomConventionExtension>();
 // or
-services.AddGraphQLServer()
+builder.Services
+    .AddGraphQLServer()
     .AddConvention<IFilterConvention>(new FilterConventionExtension(x =>
     {
         // config
@@ -663,7 +668,7 @@ public class UserFilterInput : FilterInputType<User>
 ```
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddFiltering()
     .AddType<UserFilterInput>()
@@ -749,7 +754,7 @@ public class UnsignedIntOperationFilterInputType
 These types have to be registered on the filter convention:
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddFiltering(x => x.AddDefaults().BindRuntimeType<uint, UnsignedIntOperationFilterInputType>())
     ...;

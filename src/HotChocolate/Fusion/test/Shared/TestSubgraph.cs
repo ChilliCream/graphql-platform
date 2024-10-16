@@ -37,7 +37,7 @@ public record TestSubgraph(
             {
                 var builder = services
                     .AddRouting()
-                    .AddGraphQLServer();
+                    .AddGraphQLServer(disableDefaultSecurity: true);
 
                 configureBuilder(builder);
             },

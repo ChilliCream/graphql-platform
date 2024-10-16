@@ -10,10 +10,10 @@ module.exports = {
     siteUrl: SITE_URL,
     repositoryUrl: `https://github.com/ChilliCream/graphql-platform`,
     tools: {
-      bcp: `https://eat.bananacakepop.com`,
       blog: `/blog`,
       github: `https://github.com/ChilliCream/graphql-platform`,
       linkedIn: `https://www.linkedin.com/company/chillicream`,
+      nitro: `https://nitro.chillicream.com`,
       shop: `https://store.chillicream.com`,
       slack: `https://slack.chillicream.com/`,
       youtube: `https://www.youtube.com/c/ChilliCream`,

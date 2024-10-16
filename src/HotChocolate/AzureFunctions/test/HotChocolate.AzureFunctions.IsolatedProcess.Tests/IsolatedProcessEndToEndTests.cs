@@ -96,7 +96,7 @@ public class IsolatedProcessEndToEndTests
     }
 
     [Fact]
-    public async Task AzFuncIsolatedProcess_BananaCakePopTestAsync()
+    public async Task AzFuncIsolatedProcess_NitroTestAsync()
     {
         var host = new MockIsolatedProcessHostBuilder()
             .AddGraphQLFunction(
@@ -108,7 +108,7 @@ public class IsolatedProcessEndToEndTests
         var requestExecutor = host.Services.GetRequiredService<IGraphQLRequestExecutor>();
 
         // Build an HttpRequestData that is valid for the Isolated Process to execute with...
-        var httpRequestData = TestHttpRequestDataHelper.NewBcpHttpRequestData(host.Services, "index.html");
+        var httpRequestData = TestHttpRequestDataHelper.NewNitroHttpRequestData(host.Services, "index.html");
 
         // Execute Query Test for end-to-end validation...
         // NOTE: This uses the new Az Func Isolated Process extension to execute

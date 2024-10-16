@@ -1,14 +1,14 @@
 [
   {
-    "path": "bananacakepop",
-    "title": "Banana Cake Pop",
-    "description": "GraphQL IDE / API Management",
-    "metaDescription": "Banana Cake Pop is a performant, feature-rich GraphQL IDE that helps developers and data scientists to explore, share, and test any GraphQL API.",
-    "latestStableVersion": "v2",
+    "path": "nitro",
+    "title": "Nitro (fka Banana Cake Pop)",
+    "description": "GraphQL API Management",
+    "metaDescription": "Nitro is a performant, feature-rich GraphQL IDE that helps developers and data scientists to explore, share, and test any GraphQL API.",
+    "latestStableVersion": "",
     "versions": [
       {
-        "path": "v2",
-        "title": "v2",
+        "path": "",
+        "title": "latest",
         "items": [
           {
             "path": "index",
@@ -86,8 +86,42 @@
             "title": "Organizations"
           },
           {
-            "path": "bcp-services",
+            "path": "nitro-services",
             "title": "Connect your API"
+          },
+          {
+            "path": "cli",
+            "title": "CLI",
+            "items": [
+              {
+                "path": "index",
+                "title": "Introduction"
+              },
+              {
+                "path": "authentication",
+                "title": "Authentication"
+              }
+            ]
+          },
+          {
+            "path": "cli-commands",
+            "title": "CLI Commands",
+            "items": [
+              { "path": "api-key", "title": "api-key" },
+              { "path": "api", "title": "api" },
+              { "path": "client", "title": "client" },
+              { "path": "environment", "title": "environment" },
+              { "path": "launch", "title": "launch" },
+              { "path": "login", "title": "login" },
+              { "path": "logout", "title": "logout" },
+              { "path": "schema", "title": "schema" },
+              { "path": "stage", "title": "stage" },
+              {
+                "path": "fusion-configuration",
+                "title": "fusion-configuration"
+              },
+              { "path": "workspace", "title": "workspace" }
+            ]
           },
           {
             "path": "subscriptions",
@@ -1895,49 +1929,6 @@
           {
             "path": "scalars",
             "title": "Scalars"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "path": "barista",
-    "title": "Barista",
-    "description": "GraphQL CLI",
-    "metaDescription": "Barista is a powerful .NET command-line tool used for managing your GraphQL API's schema and client registries. It provides a suite of commands that facilitate the handling of schemas, clients, stages, workspaces, environments, and API keys.",
-    "latestStableVersion": "v1",
-    "versions": [
-      {
-        "path": "v1",
-        "title": "v1",
-        "items": [
-          {
-            "path": "index",
-            "title": "Introduction"
-          },
-          {
-            "path": "authentication",
-            "title": "Authentication"
-          },
-          {
-            "path": "commands",
-            "title": "Commands",
-            "items": [
-              { "path": "api-key", "title": "api-key" },
-              { "path": "api", "title": "api" },
-              { "path": "client", "title": "client" },
-              { "path": "environment", "title": "environment" },
-              { "path": "launch", "title": "launch" },
-              { "path": "login", "title": "login" },
-              { "path": "logout", "title": "logout" },
-              { "path": "schema", "title": "schema" },
-              { "path": "stage", "title": "stage" },
-              {
-                "path": "fusion-configuration",
-                "title": "fusion-configuration"
-              },
-              { "path": "workspace", "title": "workspace" }
-            ]
           }
         ]
       }

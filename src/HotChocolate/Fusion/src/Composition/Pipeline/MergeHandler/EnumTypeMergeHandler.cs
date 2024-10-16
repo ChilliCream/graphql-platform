@@ -47,6 +47,8 @@ internal sealed class EnumTypeMergeHandler : ITypeMergeHandler
         // description
         target.MergeDescriptionWith(source);
 
+        target.MergeDirectivesWith(source, context);
+
         // Merge each value of the enum type
         foreach (var sourceValue in source.Values)
         {
@@ -63,6 +65,8 @@ internal sealed class EnumTypeMergeHandler : ITypeMergeHandler
             // If the source value is deprecated and the target value isn't, use the source
             // value's deprecation reason
             targetValue.MergeDeprecationWith(sourceValue);
+
+            targetValue.MergeDirectivesWith(sourceValue, context);
 
             // Apply the source value to the target value
             context.ApplySource(sourceValue, sourceSchema, targetValue);

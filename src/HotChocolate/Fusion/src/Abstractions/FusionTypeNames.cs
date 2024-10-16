@@ -22,6 +22,11 @@ public sealed class FusionTypeNames
         string reEncodeIdDirective,
         string transportDirective,
         string fusionDirective,
+        string internalDirective,
+        string renameDirective,
+        string removeDirective,
+        string lookupDirective,
+        string requireDirective,
         string selectionScalar,
         string selectionSetScalar,
         string typeNameScalar,
@@ -39,6 +44,11 @@ public sealed class FusionTypeNames
         ReEncodeIdDirective = reEncodeIdDirective;
         TransportDirective = transportDirective;
         FusionDirective = fusionDirective;
+        InternalDirective = internalDirective;
+        RenameDirective = renameDirective;
+        RemoveDirective = removeDirective;
+        LookupDirective = lookupDirective;
+        RequireDirective = requireDirective;
         SelectionScalar = selectionScalar;
         SelectionSetScalar = selectionSetScalar;
         TypeNameScalar = typeNameScalar;
@@ -55,6 +65,12 @@ public sealed class FusionTypeNames
         _fusionDirectives.Add(reEncodeIdDirective);
         _fusionDirectives.Add(transportDirective);
         _fusionDirectives.Add(fusionDirective);
+
+        _fusionDirectives.Add(internalDirective);
+        _fusionDirectives.Add(renameDirective);
+        _fusionDirectives.Add(removeDirective);
+        _fusionDirectives.Add(lookupDirective);
+        _fusionDirectives.Add(requireDirective);
 
         _fusionTypes.Add(selectionScalar);
         _fusionTypes.Add(selectionSetScalar);
@@ -109,6 +125,16 @@ public sealed class FusionTypeNames
     /// Gets the name of the fusion directive.
     /// </summary>
     public string FusionDirective { get; }
+
+    public string InternalDirective { get; }
+
+    public string RenameDirective { get; }
+
+    public string RemoveDirective { get; }
+
+    public string LookupDirective { get; }
+
+    public string RequireDirective { get; }
 
     /// <summary>
     /// Gets the name of the GraphQL selection scalar.
@@ -199,6 +225,11 @@ public sealed class FusionTypeNames
                 prefixSelf
                     ? $"{prefix}_{FusionTypeBaseNames.FusionDirective}"
                     : FusionTypeBaseNames.FusionDirective,
+                FusionTypeBaseNames.InternalDirective,
+                FusionTypeBaseNames.RenameDirective,
+                FusionTypeBaseNames.RemoveDirective,
+                FusionTypeBaseNames.LookupDirective,
+                FusionTypeBaseNames.RequireDirective,
                 $"{prefix}_{FusionTypeBaseNames.Selection}",
                 $"{prefix}_{FusionTypeBaseNames.SelectionSet}",
                 $"{prefix}_{FusionTypeBaseNames.TypeName}",
@@ -218,6 +249,11 @@ public sealed class FusionTypeNames
             FusionTypeBaseNames.ReEncodeIdDirective,
             FusionTypeBaseNames.TransportDirective,
             FusionTypeBaseNames.FusionDirective,
+            FusionTypeBaseNames.InternalDirective,
+            FusionTypeBaseNames.RenameDirective,
+            FusionTypeBaseNames.RemoveDirective,
+            FusionTypeBaseNames.LookupDirective,
+            FusionTypeBaseNames.RequireDirective,
             $"_{FusionTypeBaseNames.Selection}",
             $"_{FusionTypeBaseNames.SelectionSet}",
             $"_{FusionTypeBaseNames.TypeName}",

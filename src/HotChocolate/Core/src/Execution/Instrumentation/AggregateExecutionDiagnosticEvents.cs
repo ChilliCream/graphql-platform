@@ -308,6 +308,16 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         }
     }
 
+    public void DocumentNotFoundInStorage(
+        IRequestContext context,
+        OperationDocumentId documentId)
+    {
+        for (var i = 0; i < _listeners.Length; i++)
+        {
+            _listeners[i].DocumentNotFoundInStorage(context, documentId);
+        }
+    }
+
     public void AddedOperationToCache(IRequestContext context)
     {
         for (var i = 0; i < _listeners.Length; i++)

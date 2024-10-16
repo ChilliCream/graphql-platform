@@ -108,7 +108,7 @@ public class Query
 You can also specify a [ServiceKind](#servicekind) as argument to the `RegisterService<T>` method.
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .RegisterService<FooService>(ServiceKind.Synchronized);
 ```
@@ -264,7 +264,7 @@ public class SocketSessionInterceptor : DefaultSocketSessionInterceptor
 You also need to register these interceptors for them to take effect.
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddHttpRequestInterceptor<HttpRequestInterceptor>()
     .AddSocketSessionInterceptor<SocketSessionInterceptor>();

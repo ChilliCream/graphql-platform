@@ -10,7 +10,7 @@ body:
       options:
         - Hot Chocolate
         - Strawberry Shake
-        - Banana Cake Pop
+        - Nitro
         - Green Donut
     validations:
       required: true
