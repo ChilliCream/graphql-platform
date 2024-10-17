@@ -195,6 +195,8 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// </summary>
     public bool EnableStream { get; set; }
 
+    public bool EnableSemanticNonNull { get; set; }
+
     /// <summary>
     /// Specifies the maximum allowed nodes that can be fetched at once through the nodes field.
     /// </summary>
@@ -263,6 +265,7 @@ public class SchemaOptions : IReadOnlySchemaOptions
             EnableFlagEnums = options.EnableFlagEnums,
             EnableDefer = options.EnableDefer,
             EnableStream = options.EnableStream,
+            EnableSemanticNonNull = options.EnableSemanticNonNull,
             DefaultFieldBindingFlags = options.DefaultFieldBindingFlags,
             MaxAllowedNodeBatchSize = options.MaxAllowedNodeBatchSize,
             StripLeadingIFromInterface = options.StripLeadingIFromInterface,

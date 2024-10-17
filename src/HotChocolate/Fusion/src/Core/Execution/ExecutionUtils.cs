@@ -69,14 +69,19 @@ internal static class ExecutionUtils
 
             if (!field.IsIntrospectionField)
             {
-                var nullable = selection.TypeKind is not TypeKind.NonNull;
-                var namedType = selectionType.NamedType();
+                var isSemanticNonNull = selectionType.IsSemanticNonNullType();
+                var nullable = selectionType.IsNullableType();
+                var nullableType = selectionType.NullableType();
 
                 if (!data.HasValue)
                 {
                     if (!partialResult)
                     {
-                        if (!nullable)
+                        if (isSemanticNonNull)
+                        {
+                            AddSemanticNonNullViolation(context.Result, selection, selectionSetResult, responseIndex);
+                        }
+                        else if (!nullable)
                         {
                             PropagateNullValues(context.Result, selection, selectionSetResult, responseIndex);
                             break;
@@ -85,14 +90,21 @@ internal static class ExecutionUtils
                         result.Set(responseName, null, nullable);
                     }
                 }
-                else if (namedType.IsType(TypeKind.Scalar))
+                else if (nullableType.IsType(TypeKind.Scalar))
                 {
                     var value = data.Single.Element;
 
-                    if (value.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined && !nullable)
+                    if (value.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
                     {
-                        PropagateNullValues(context.Result, selection, selectionSetResult, responseIndex);
-                        break;
+                        if (isSemanticNonNull)
+                        {
+                            AddSemanticNonNullViolation(context.Result, selection, selectionSetResult, responseIndex);
+                        }
+                        else if (!nullable)
+                        {
+                            PropagateNullValues(context.Result, selection, selectionSetResult, responseIndex);
+                            break;
+                        }
                     }
 
                     result.Set(responseName, value, nullable);
@@ -105,15 +117,21 @@ internal static class ExecutionUtils
                         result.Set(responseName, reformattedId, nullable);
                     }
                 }
-                else if (namedType.IsType(TypeKind.Enum))
+                else if (nullableType.IsType(TypeKind.Enum))
                 {
-                    // we might need to map the enum value!
                     var value = data.Single.Element;
 
-                    if (value.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined && !nullable)
+                    if (value.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
                     {
-                        PropagateNullValues(context.Result, selection, selectionSetResult, responseIndex);
-                        break;
+                        if (isSemanticNonNull)
+                        {
+                            AddSemanticNonNullViolation(context.Result, selection, selectionSetResult, responseIndex);
+                        }
+                        else if (!nullable)
+                        {
+                            PropagateNullValues(context.Result, selection, selectionSetResult, responseIndex);
+                            break;
+                        }
                     }
 
                     result.Set(responseName, value, nullable);
@@ -122,7 +140,7 @@ internal static class ExecutionUtils
                 {
                     if (!result.IsInitialized)
                     {
-                        // we add a placeholder here so if the ComposeObject propagates an error
+                        // we add a placeholder here so if ComposeObject propagates an error
                         // there is a value here.
                         result.Set(responseName, null, nullable);
 
@@ -133,10 +151,17 @@ internal static class ExecutionUtils
                             selection,
                             data);
 
-                        if (value is null && !nullable)
+                        if (value is null)
                         {
-                            PropagateNullValues(context.Result, selection, selectionSetResult, responseIndex);
-                            break;
+                            if (isSemanticNonNull)
+                            {
+                                AddSemanticNonNullViolation(context.Result, selection, selectionSetResult, responseIndex);
+                            }
+                            else if (!nullable)
+                            {
+                                PropagateNullValues(context.Result, selection, selectionSetResult, responseIndex);
+                                break;
+                            }
                         }
 
                         result.Set(responseName, value, nullable);
@@ -146,6 +171,10 @@ internal static class ExecutionUtils
                 {
                     if (!result.IsInitialized)
                     {
+                        // we add a placeholder here so if ComposeList propagates an error
+                        // there is a value here.
+                        result.Set(responseName, null, nullable);
+
                         var value = ComposeList(
                             context,
                             selectionSetResult,
@@ -154,10 +183,17 @@ internal static class ExecutionUtils
                             data,
                             selectionType);
 
-                        if (value is null && !nullable)
+                        if (value is null)
                         {
-                            PropagateNullValues(context.Result, selection, selectionSetResult, responseIndex);
-                            break;
+                            if (isSemanticNonNull)
+                            {
+                                AddSemanticNonNullViolation(context.Result, selection, selectionSetResult, responseIndex);
+                            }
+                            else if (!nullable)
+                            {
+                                PropagateNullValues(context.Result, selection, selectionSetResult, responseIndex);
+                                break;
+                            }
                         }
 
                         result.Set(responseName, value, nullable);
@@ -206,6 +242,7 @@ internal static class ExecutionUtils
         var index = 0;
         var elementType = type.ElementType();
         var nullable = elementType.IsNullableType();
+        var isSemanticNonNull = elementType.IsSemanticNonNullType();
         var result = context.Result.RentList(json.GetArrayLength());
 
         result.IsNullable = nullable;
@@ -213,7 +250,7 @@ internal static class ExecutionUtils
 
         foreach (var item in json.EnumerateArray())
         {
-            // we add a placeholder here so if the ComposeElement propagates an error
+            // we add a placeholder here so if ComposeElement propagates an error
             // there is a value here.
             result.AddUnsafe(null);
 
@@ -225,10 +262,17 @@ internal static class ExecutionUtils
                 new SelectionData(new JsonResult(schemaName, item)),
                 elementType);
 
-            if (!nullable && element is null)
+            if (element is null)
             {
-                PropagateNullValues(context.Result, selection, result, index);
-                return null;
+                if (isSemanticNonNull)
+                {
+                    AddSemanticNonNullViolation(context.Result, selection, result, index);
+                }
+                else if (!nullable)
+                {
+                    PropagateNullValues(context.Result, selection, result, index);
+                    break;
+                }
             }
 
             result.SetUnsafe(index++, element);
@@ -288,7 +332,7 @@ internal static class ExecutionUtils
             return value;
         }
 
-        return TypeExtensions.IsCompositeType(valueType)
+        return namedType.IsCompositeType()
             ? ComposeObject(context, parent, parentIndex, selection, selectionData)
             : ComposeList(context, parent, parentIndex, selection, selectionData, valueType);
     }
@@ -355,6 +399,11 @@ internal static class ExecutionUtils
             return true;
         }
 
+        if (type.Kind == TypeKind.SemanticNonNull && ((SemanticNonNullType)type).Type.Kind == kind)
+        {
+            return true;
+        }
+
         return false;
     }
 
@@ -369,6 +418,12 @@ internal static class ExecutionUtils
         if (type.Kind == TypeKind.NonNull)
         {
             var innerKind = ((NonNullType)type).Type.Kind;
+            return innerKind is TypeKind.Object or TypeKind.Interface or TypeKind.Union;
+        }
+
+        if (type.Kind == TypeKind.SemanticNonNull)
+        {
+            var innerKind = ((SemanticNonNullType)type).Type.Kind;
             return innerKind is TypeKind.Object or TypeKind.Interface or TypeKind.Union;
         }
 
@@ -693,6 +748,17 @@ internal static class ExecutionUtils
                 }
             }
         }
+    }
+
+    private static void AddSemanticNonNullViolation(
+        ResultBuilder resultBuilder,
+        Selection selection,
+        ResultData selectionSetResult,
+        int responseIndex)
+    {
+        var path = PathHelper.CreatePathFromContext(selection, selectionSetResult, responseIndex);
+        // TODO: Use another error for semantic non-null violations.
+        resultBuilder.AddNonNullViolation(selection, path);
     }
 
     private static void PropagateNullValues(

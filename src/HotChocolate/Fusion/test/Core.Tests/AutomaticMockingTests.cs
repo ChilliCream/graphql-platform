@@ -36,6 +36,50 @@ public class AutomaticMockingTests
     }
 
     [Fact]
+    public async Task Scalar()
+    {
+        var request = """
+                      query {
+                        str
+                      }
+                      """;
+
+        var result = await ExecuteRequestAgainstSchemaAsync(
+            """
+            type Query {
+              str: String
+            }
+            """,
+            request);
+
+        MatchMarkdownSnapshot(request, result);
+    }
+
+    [Fact]
+    public async Task Enum()
+    {
+        var request = """
+                      query {
+                        enm
+                      }
+                      """;
+
+        var result = await ExecuteRequestAgainstSchemaAsync(
+            """
+            type Query {
+              enm: MyEnum
+            }
+
+            enum MyEnum {
+              VALUE
+            }
+            """,
+            request);
+
+        MatchMarkdownSnapshot(request, result);
+    }
+
+    [Fact]
     public async Task Singular_ById()
     {
         var request = """
@@ -264,6 +308,118 @@ public class AutomaticMockingTests
     }
 
     [Fact]
+    public async Task ListOfScalars_Null_At_Index()
+    {
+        var request = """
+                      query {
+                        scalars
+                      }
+                      """;
+
+        var result = await ExecuteRequestAgainstSchemaAsync(
+            """
+            type Query {
+              scalars: [String] @null(atIndex: 1)
+            }
+            """,
+            request);
+
+        MatchMarkdownSnapshot(request, result);
+    }
+
+    [Fact]
+    public async Task ListOfScalars_Error_At_Index()
+    {
+        var request = """
+                      query {
+                        scalars
+                      }
+                      """;
+
+        var result = await ExecuteRequestAgainstSchemaAsync(
+            """
+            type Query {
+              scalars: [String] @error(atIndex: 1)
+            }
+            """,
+            request);
+
+        MatchMarkdownSnapshot(request, result);
+    }
+
+    [Fact]
+    public async Task ListOfEnums()
+    {
+        var request = """
+                      query {
+                        enums
+                      }
+                      """;
+
+        var result = await ExecuteRequestAgainstSchemaAsync(
+            """
+            type Query {
+              enums: [MyEnum]
+            }
+
+            enum MyEnum {
+              VALUE
+            }
+            """,
+            request);
+
+        MatchMarkdownSnapshot(request, result);
+    }
+
+    [Fact]
+    public async Task ListOfEnums_Null_At_Index()
+    {
+        var request = """
+                      query {
+                        enums
+                      }
+                      """;
+
+        var result = await ExecuteRequestAgainstSchemaAsync(
+            """
+            type Query {
+              enums: [MyEnum] @null(atIndex: 1)
+            }
+
+            enum MyEnum {
+              VALUE
+            }
+            """,
+            request);
+
+        MatchMarkdownSnapshot(request, result);
+    }
+
+    [Fact]
+    public async Task ListOfEnums_Error_At_Index()
+    {
+        var request = """
+                      query {
+                        enums
+                      }
+                      """;
+
+        var result = await ExecuteRequestAgainstSchemaAsync(
+            """
+            type Query {
+              enums: [MyEnum] @error(atIndex: 1)
+            }
+
+            enum MyEnum {
+              VALUE
+            }
+            """,
+            request);
+
+        MatchMarkdownSnapshot(request, result);
+    }
+
+    [Fact]
     public async Task ListOfObjects()
     {
         var request = """
@@ -284,6 +440,58 @@ public class AutomaticMockingTests
             type Object {
               id: ID!
               str: String!
+            }
+            """,
+            request);
+
+        MatchMarkdownSnapshot(request, result);
+    }
+
+    [Fact]
+    public async Task ListOfObjects_Null_At_Index()
+    {
+        var request = """
+                      query {
+                        objs {
+                          id
+                        }
+                      }
+                      """;
+
+        var result = await ExecuteRequestAgainstSchemaAsync(
+            """
+            type Query {
+                objs: [Object] @null(atIndex: 1)
+            }
+
+            type Object {
+              id: ID!
+            }
+            """,
+            request);
+
+        MatchMarkdownSnapshot(request, result);
+    }
+
+    [Fact]
+    public async Task ListOfObjects_Error_At_Index()
+    {
+        var request = """
+                      query {
+                        objs {
+                          id
+                        }
+                      }
+                      """;
+
+        var result = await ExecuteRequestAgainstSchemaAsync(
+            """
+            type Query {
+                objs: [Object] @error(atIndex: 1)
+            }
+
+            type Object {
+              id: ID!
             }
             """,
             request);
