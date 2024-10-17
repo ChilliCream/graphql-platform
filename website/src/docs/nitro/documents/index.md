@@ -4,11 +4,11 @@ title: Documents
 
 The Document View is a feature that allows users to work with documents and API documents within the application. It provides functionality for executing queries, mutations, and subscriptions. This section describes the various components and functionalities available in the Document View.
 
-![Image](images/document-0.png)
+![Image](images/document-0.webp)
 
-# 1. Operations
+# 1. Operation
 
-The Operations section is where you can write and execute your queries, mutations, and subscriptions. It provides a convenient interface for interacting with the GraphQL API.
+The Operation section is where you can write and execute your queries, mutations, and subscriptions. It provides a convenient interface for interacting with the GraphQL API.
 
 # 2. Schema Reference
 

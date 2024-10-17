@@ -4,11 +4,11 @@ title: Connection Settings
 
 The Connection Settings in Nitro allow you to configure various options related to connecting and communicating with your GraphQL server. This section describes the different settings available and their functionalities.
 
-![Connection-Settings](./images/connection-settings-0.png)
+![Connection-Settings](./images/connection-settings-0.webp)
 
-# Schema Endpoint
+# HTTP Endpoint
 
-The Schema Endpoint refers to the URL of your GraphQL server. It is the endpoint used to send queries and mutations. Configure this setting with the appropriate URL to establish a connection with your GraphQL server.
+The HTTP Endpoint refers to the URL of your GraphQL server. It is the endpoint used to send queries and mutations. Configure this setting with the appropriate URL to establish a connection with your GraphQL server.
 
 # Subscription Endpoint
 
