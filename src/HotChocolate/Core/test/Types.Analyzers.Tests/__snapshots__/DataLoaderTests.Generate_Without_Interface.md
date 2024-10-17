@@ -1,4 +1,4 @@
-# GenerateSource_BatchDataLoader_With_Group_Only_On_Class_MatchesSnapshot
+# Generate_Without_Interface
 
 ## GreenDonutDataLoader.735550c.g.cs
 
@@ -15,14 +15,8 @@ using GreenDonut;
 
 namespace TestNamespace
 {
-    public interface IEntityByIdDataLoader
-        : global::GreenDonut.IDataLoader<int, global::TestNamespace.Entity>
-    {
-    }
-
     public sealed partial class EntityByIdDataLoader
-        : global::GreenDonut.DataLoaderBase<int, global::TestNamespace.Entity>
-        , IEntityByIdDataLoader
+        : global::GreenDonut.DataLoaderBase<int, string>
     {
         private readonly global::System.IServiceProvider _services;
 
@@ -38,58 +32,32 @@ namespace TestNamespace
 
         protected override async global::System.Threading.Tasks.ValueTask FetchAsync(
             global::System.Collections.Generic.IReadOnlyList<int> keys,
-            global::System.Memory<GreenDonut.Result<global::TestNamespace.Entity?>> results,
-            global::GreenDonut.DataLoaderFetchContext<global::TestNamespace.Entity> context,
+            global::System.Memory<GreenDonut.Result<string?>> results,
+            global::GreenDonut.DataLoaderFetchContext<string> context,
             global::System.Threading.CancellationToken ct)
         {
-            var temp = await TestNamespace.TestClass.GetEntityByIdAsync(keys, ct).ConfigureAwait(false);
+            var p1 = context.GetState<global::GreenDonut.Predicates.IPredicateBuilder>("GreenDonut.Predicates.IPredicateBuilder")
+                ?? new global::GreenDonut.Predicates.DefaultPredicateBuilder();
+            var temp = await TestNamespace.TestClass.GetEntityByIdAsync(keys, p1, ct).ConfigureAwait(false);
             CopyResults(keys, results.Span, temp);
         }
 
         private void CopyResults(
             global::System.Collections.Generic.IReadOnlyList<int> keys,
-            global::System.Span<GreenDonut.Result<global::TestNamespace.Entity?>> results,
-            global::System.Collections.Generic.IReadOnlyDictionary<int, TestNamespace.Entity> resultMap)
+            global::System.Span<GreenDonut.Result<string?>> results,
+            global::System.Collections.Generic.IDictionary<int, string> resultMap)
         {
             for (var i = 0; i < keys.Count; i++)
             {
                 var key = keys[i];
                 if (resultMap.TryGetValue(key, out var value))
                 {
-                    results[i] = global::GreenDonut.Result<global::TestNamespace.Entity?>.Resolve(value);
+                    results[i] = global::GreenDonut.Result<string?>.Resolve(value);
                 }
                 else
                 {
-                    results[i] = global::GreenDonut.Result<global::TestNamespace.Entity?>.Resolve(default(global::TestNamespace.Entity));
+                    results[i] = global::GreenDonut.Result<string?>.Resolve(default(string));
                 }
-            }
-        }
-    }
-    public interface IGroup1
-    {
-        IEntityByIdDataLoader EntityById { get; }
-    }
-
-    public sealed partial class Group1 : IGroup1
-    {
-        private readonly IServiceProvider _services;
-        private IEntityByIdDataLoader? _entityById;
-
-        public Group1(IServiceProvider services)
-        {
-            _services = services
-                ?? throw new ArgumentNullException(nameof(services));
-        }
-        public IEntityByIdDataLoader EntityById
-        {
-            get
-            {
-                if (_entityById is null)
-                {
-                    _entityById = _services.GetRequiredService<IEntityByIdDataLoader>();
-                }
-
-                return _entityById!;
             }
         }
     }
@@ -118,12 +86,34 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static IRequestExecutorBuilder AddTestsTypes(this IRequestExecutorBuilder builder)
         {
-            builder.AddDataLoader<global::TestNamespace.IEntityByIdDataLoader, global::TestNamespace.EntityByIdDataLoader>();
-            builder.Services.AddScoped<global::TestNamespace.IGroup1, global::TestNamespace.Group1>();
+            builder.AddDataLoader<global::TestNamespace.EntityByIdDataLoader>();
             return builder;
         }
     }
 }
 
+```
+
+## Compilation Diagnostics
+
+```json
+[
+  {
+    "Id": "GD0002",
+    "Title": "Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.",
+    "Severity": "Error",
+    "WarningLevel": 0,
+    "Location": ": (15,8)-(15,47)",
+    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS9204)",
+    "MessageFormat": "'{0}' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.",
+    "Message": "'GreenDonut.Predicates.IPredicateBuilder' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.",
+    "Category": "Compiler",
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "CustomObsolete"
+    ]
+  }
+]
 ```
 

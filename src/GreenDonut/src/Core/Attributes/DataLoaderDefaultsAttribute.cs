@@ -20,4 +20,9 @@ public sealed class DataLoaderDefaultsAttribute : Attribute
     /// Specifies if module registration code for DataLoaders shall be generated.
     /// </summary>
     public bool GenerateRegistrationCode { get; set; } = true;
+
+    /// <summary>
+    /// Specifies if interfaces for DataLoaders shall be generated.
+    /// </summary>
+    public bool GenerateInterfaces { get; set; } = true;
 }
