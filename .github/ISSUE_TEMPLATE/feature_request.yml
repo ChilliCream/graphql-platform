@@ -1,6 +1,6 @@
 name: Feature Request
 description: Suggest an idea for one of our products.
-labels: [🎉 enhancement]
+type: Feature
 body:
   - type: dropdown
     id: product
