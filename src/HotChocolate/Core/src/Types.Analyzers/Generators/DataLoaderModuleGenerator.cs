@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Types.Analyzers.FileBuilders;
+using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 
@@ -13,6 +14,7 @@ public sealed class DataLoaderModuleGenerator : ISyntaxGenerator
         ImmutableArray<SyntaxInfo> syntaxInfos)
     {
         var module = GetDataLoaderModuleInfo(syntaxInfos);
+        var dataLoaderDefaults = syntaxInfos.GetDataLoaderDefaults();
 
         if (module is null || !syntaxInfos.Any(t => t is DataLoaderInfo or RegisterDataLoaderInfo))
         {
@@ -43,7 +45,7 @@ public sealed class DataLoaderModuleGenerator : ISyntaxGenerator
                 case DataLoaderInfo dataLoader:
                     var typeName = $"{dataLoader.Namespace}.{dataLoader.Name}";
                     var interfaceTypeName = $"{dataLoader.Namespace}.{dataLoader.InterfaceName}";
-                    generator.WriteAddDataLoader(typeName, interfaceTypeName);
+                    generator.WriteAddDataLoader(typeName, interfaceTypeName, dataLoaderDefaults.GenerateInterfaces);
 
                     if(dataLoader.Groups.Count > 0)
                     {

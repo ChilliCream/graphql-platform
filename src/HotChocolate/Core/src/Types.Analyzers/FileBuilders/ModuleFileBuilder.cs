@@ -133,9 +133,9 @@ public sealed class ModuleFileBuilder : IDisposable
                         using (_writer.IncreaseIndent())
                         {
                             _writer.WriteIndentedLine(
-                                "var hooks = (global::System.Collections.Generic.List<" +
-                                "Action<IObjectTypeDescriptor<T>>>)" +
-                                "descriptor.Extend().Context.ContextData[hooksKey]!;");
+                                "var hooks = (global::System.Collections.Generic.List<"
+                                + "Action<IObjectTypeDescriptor<T>>>)"
+                                + "descriptor.Extend().Context.ContextData[hooksKey]!;");
                             _writer.WriteIndentedLine("foreach (var configure in hooks)");
                             _writer.WriteIndentedLine("{");
 
@@ -169,8 +169,8 @@ public sealed class ModuleFileBuilder : IDisposable
                 _writer.WriteIndentedLine("}");
                 _writer.WriteLine();
                 _writer.WriteIndentedLine(
-                    "((System.Collections.Generic.List<Action<IObjectTypeDescriptor<T>>>)value!)" +
-                    ".Add(initialize);");
+                    "((System.Collections.Generic.List<Action<IObjectTypeDescriptor<T>>>)value!)"
+                    + ".Add(initialize);");
             }
 
             _writer.WriteIndentedLine("});");
@@ -217,9 +217,9 @@ public sealed class ModuleFileBuilder : IDisposable
                         using (_writer.IncreaseIndent())
                         {
                             _writer.WriteIndentedLine(
-                                "var hooks = (global::System.Collections.Generic.List<" +
-                                "Action<IInterfaceTypeDescriptor<T>>>)" +
-                                "descriptor.Extend().Context.ContextData[hooksKey]!;");
+                                "var hooks = (global::System.Collections.Generic.List<"
+                                + "Action<IInterfaceTypeDescriptor<T>>>)"
+                                + "descriptor.Extend().Context.ContextData[hooksKey]!;");
                             _writer.WriteIndentedLine("foreach (var configure in hooks)");
                             _writer.WriteIndentedLine("{");
 
@@ -253,8 +253,8 @@ public sealed class ModuleFileBuilder : IDisposable
                 _writer.WriteIndentedLine("}");
                 _writer.WriteLine();
                 _writer.WriteIndentedLine(
-                    "((System.Collections.Generic.List<Action<IInterfaceTypeDescriptor<T>>>)value!)" +
-                    ".Add(initialize);");
+                    "((System.Collections.Generic.List<Action<IInterfaceTypeDescriptor<T>>>)value!)"
+                    + ".Add(initialize);");
             }
 
             _writer.WriteIndentedLine("});");
@@ -266,8 +266,25 @@ public sealed class ModuleFileBuilder : IDisposable
     public void WriteRegisterDataLoader(string typeName)
         => _writer.WriteIndentedLine("builder.AddDataLoader<global::{0}>();", typeName);
 
-    public void WriteRegisterDataLoader(string typeName, string interfaceTypeName)
-        => _writer.WriteIndentedLine("builder.AddDataLoader<global::{0}, global::{1}>();", interfaceTypeName, typeName);
+    public void WriteRegisterDataLoader(
+        string typeName,
+        string interfaceTypeName,
+        bool withInterface)
+    {
+        if (withInterface)
+        {
+            _writer.WriteIndentedLine(
+                "builder.AddDataLoader<global::{0}, global::{1}>();",
+                interfaceTypeName,
+                typeName);
+        }
+        else
+        {
+            _writer.WriteIndentedLine(
+                "builder.AddDataLoader<global::{0}>();",
+                typeName);
+        }
+    }
 
     public void WriteRegisterDataLoaderGroup(string typeName, string interfaceTypeName)
         => _writer.WriteIndentedLine(
