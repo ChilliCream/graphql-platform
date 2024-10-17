@@ -105,7 +105,7 @@ public class MyDirectiveType : DirectiveType
 We also have to register the directive explicitly.
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddDirectiveType<MyDirectiveType>();
 ```

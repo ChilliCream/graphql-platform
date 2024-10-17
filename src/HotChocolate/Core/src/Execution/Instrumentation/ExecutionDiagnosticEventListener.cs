@@ -165,6 +165,13 @@ public class ExecutionDiagnosticEventListener : IExecutionDiagnosticEventListene
     }
 
     /// <inheritdoc />
+    public virtual void DocumentNotFoundInStorage(
+        IRequestContext context,
+        OperationDocumentId documentId)
+    {
+    }
+
+    /// <inheritdoc />
     public virtual void AddedOperationToCache(IRequestContext context)
     {
     }

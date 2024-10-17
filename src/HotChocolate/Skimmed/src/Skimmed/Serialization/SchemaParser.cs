@@ -44,6 +44,7 @@ public static class SchemaParser
                     throw new Exception("duplicate");
                 }
 
+                // TODO: This is problematic
                 schema.DirectiveDefinitions.Add(new DirectiveDefinition(def.Name.Value));
             }
         }
@@ -634,6 +635,7 @@ public static class SchemaParser
                 out var directiveType))
             {
                 directiveType = new DirectiveDefinition(directiveNode.Name.Value);
+                // TODO: This is problematic
                 directiveType.IsRepeatable = true;
                 schema.DirectiveDefinitions.Add(directiveType);
             }

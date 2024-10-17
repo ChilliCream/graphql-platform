@@ -5,7 +5,7 @@ public sealed class DeprecatedDirectiveDefinition : DirectiveDefinition
     internal DeprecatedDirectiveDefinition(StringTypeDefinition stringType)
         : base(BuiltIns.Deprecated.Name)
     {
-        IsSpecScalar = true;
+        IsSpecDirective = true;
         Arguments.Add(new InputFieldDefinition(BuiltIns.Deprecated.Reason, stringType));
     }
 

@@ -18,6 +18,10 @@ Things that have been removed or had a change in behavior that may cause your co
 | --------------------------------------------- | ------------------------------------- | ---------------------------------------- |
 | AddBananaCakePopExporter                      | AddNitroExporter                      |                                          |
 | AddBananaCakePopServices                      | AddNitro                              |                                          |
+| BananaCakePop.Middleware                      | ChilliCream.Nitro.App                 |                                          |
+| BananaCakePop.Services                        | ChilliCream.Nitro                     |                                          |
+| BananaCakePop.Services.Azure                  | ChilliCream.Nitro.Azure               |                                          |
+| BananaCakePop.Services.Fusion                 | ChilliCream.Nitro.Fusion              |                                          |
 | barista                                       | nitro                                 | CLI executable                           |
 | Barista                                       | ChilliCream.Nitro.CLI                 | CLI NuGet package                        |
 | BARISTA_API_ID                                | NITRO_API_ID                          |                                          |
@@ -51,10 +55,10 @@ This change is breaking if your consumers depend on the format of the GIDs, by f
 If you don't want to switch to the new format yet, you can register the legacy serializer, which only supports parsing and emitting the old ID format:
 
 ```csharp
-services
-  .AddGraphQLServer()
-  .AddLegacyNodeIdSerializer()
-  .AddGlobalObjectIdentification();
+builder.Services
+    .AddGraphQLServer()
+    .AddLegacyNodeIdSerializer()
+    .AddGlobalObjectIdentification();
 ```
 
 > Note: `AddLegacyNodeIdSerializer()` needs to be called before `AddGlobalObjectIdentification()`.
@@ -68,10 +72,10 @@ Therefore, you'll first want to make sure that all of your services support pars
 This can be done, by configuring the new default serializer to not yet emit the new format:
 
 ```csharp
-services
-  .AddGraphQLServer()
-  .AddDefaultNodeIdSerializer(outputNewIdFormat: false)
-  .AddGlobalObjectIdentification();
+builder.Services
+    .AddGraphQLServer()
+    .AddDefaultNodeIdSerializer(outputNewIdFormat: false)
+    .AddGlobalObjectIdentification();
 ```
 
 > Note: `AddDefaultNodeIdSerializer()` needs to be called before `AddGlobalObjectIdentification()`.
@@ -79,9 +83,9 @@ services
 Once all of your services have been updated to this, you can start emitting the new format service-by-service, by removing the `AddDefaultNodeIdSerializer()` call and switching to the new default behavior:
 
 ```csharp
-services
-  .AddGraphQLServer()
-  .AddGlobalObjectIdentification();
+builder.Services
+    .AddGraphQLServer()
+    .AddGlobalObjectIdentification();
 ```
 
 ## Node Resolver validation
@@ -91,9 +95,9 @@ We now enforce that each object type implementing the `Node` interface also defi
 You can opt out of this new behavior by setting the `EnsureAllNodesCanBeResolved` option to `false`.
 
 ```csharp
-services
-  .AddGraphQLServer()
-  .ModifyOptions(o => o.EnsureAllNodesCanBeResolved = false)
+builder.Services
+    .AddGraphQLServer()
+    .ModifyOptions(o => o.EnsureAllNodesCanBeResolved = false)
 ```
 
 ## Builder APIs
@@ -176,6 +180,23 @@ Please ensure that your clients are sending date/time strings in the correct for
 | MutationResult&lt;TResult&gt; | FieldResult&lt;TResult&gt; |
 | IMutationResult               | IFieldResult               |
 
+## IReadStoredQueries and IWriteStoredQueries now IOperationDocumentStorage
+
+`IReadStoredQueries` and `IWriteStoredQueries` have been merged into a single interface named `IOperationDocumentStorage`.
+
+Renamed interface methods:
+
+| Old name          | New name     |
+| ----------------- | ------------ |
+| TryReadQueryAsync | TryReadAsync |
+| WriteQueryAsync   | SaveAsync    |
+
+## Required keyed services
+
+Accessing a keyed service that has not been registered will now throw, instead of returning `null`. The return type is now non-nullable.
+
+This change aligns the API with the regular (non-keyed) service access API.
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.
@@ -187,23 +208,23 @@ In an effort to align our configuration APIs, we're now also offering a delegate
 **Before**
 
 ```csharp
-services
-  .AddGraphQLServer()
-  .SetPagingOptions(new PagingOptions
-  {
-      MaxPageSize = 100,
-      DefaultPageSize = 25
-  });
+builder.Services
+    .AddGraphQLServer()
+    .SetPagingOptions(new PagingOptions
+    {
+        MaxPageSize = 100,
+        DefaultPageSize = 25
+    });
 ```
 
 **After**
 
 ```csharp
-services
-  .AddGraphQLServer()
-  .ModifyPagingOptions(opt =>
-  {
-      opt.MaxPageSize = 100;
-      opt.DefaultPageSize = 25;
-  });
+builder.Services
+    .AddGraphQLServer()
+    .ModifyPagingOptions(opt =>
+    {
+        opt.MaxPageSize = 100;
+        opt.DefaultPageSize = 25;
+    });
 ```

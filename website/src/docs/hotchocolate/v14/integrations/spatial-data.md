@@ -27,7 +27,7 @@ You first need to add the `HotChocolate.Spatial` package reference to your proje
 To make the schema recognize the spatial types you need to register them on the schema builder.
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddSpatialTypes();
 ```
@@ -39,7 +39,7 @@ If you are using our data extensions to project data from a database you also ne
 In order to use the data extensions in your resolvers you need to register them with the GraphQL configuration builder.
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddSpatialTypes()
     .AddFiltering()

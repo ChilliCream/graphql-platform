@@ -212,7 +212,7 @@ internal partial class MiddlewareContext
 
         public T Service<T>() where T : notnull => parentContext.Service<T>();
 
-        public T? Service<T>(object key) where T : notnull => parentContext.Service<T>(key);
+        public T Service<T>(object key) where T : notnull => parentContext.Service<T>(key);
 
         public T Resolver<T>() => parentContext.Resolver<T>();
 

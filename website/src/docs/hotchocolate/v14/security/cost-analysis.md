@@ -480,11 +480,12 @@ builder.Services
     });
 ```
 
-# Disabling cost analysis
+# Disabling cost limit enforcement
 
-While we generally don't recommended disabling cost analysis, you may wish to do so if you're using other methods to restrict operation complexity. If that's the case, simply set the `disableCostAnalyzer` option to `true`:
+While we generally don't recommended disabling the enforcement of cost limits, you may wish to do so if you're using other methods to restrict operation complexity. If that's the case, simply set the `EnforceCostLimits` option to `false`:
 
 ```csharp
 builder.Services
-    .AddGraphQLServer(disableCostAnalyzer: true)
+    .AddGraphQLServer()
+    .ModifyCostOptions(o => o.EnforceCostLimits = false)
 ```

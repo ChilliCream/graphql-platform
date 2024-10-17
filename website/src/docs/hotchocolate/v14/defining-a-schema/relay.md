@@ -298,16 +298,10 @@ type Query {
 In Hot Chocolate we can enable Global Object Identification, by calling `AddGlobalObjectIdentification()` on the `IRequestExecutorBuilder`.
 
 ```csharp
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddGlobalObjectIdentification()
-            .AddQueryType<Query>();
-    }
-}
+builder.Services
+    .AddGraphQLServer()
+    .AddGlobalObjectIdentification()
+    .AddQueryType<Query>();
 ```
 
 This registers the `Node` interface type and adds the `node(id: ID!): Node` and the `nodes(ids: [ID!]!): [Node]!` field to our query type. At least one type in our schema needs to implement the `Node` interface or an exception is raised.
@@ -586,15 +580,9 @@ mutation {
 Hot Chocolate allows us to automatically add this `query` field to all of our mutation payload types:
 
 ```csharp
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddQueryFieldToMutationPayloads();
-    }
-}
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryFieldToMutationPayloads();
 ```
 
 By default, this will add a field of type `Query` called `query` to each top-level mutation field type, whose name ends in `Payload`.
@@ -602,7 +590,7 @@ By default, this will add a field of type `Query` called `query` to each top-lev
 Of course these defaults can be tweaked:
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddQueryFieldToMutationPayloads(options =>
     {

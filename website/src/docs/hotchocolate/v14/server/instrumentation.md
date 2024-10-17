@@ -17,15 +17,9 @@ We will learn more about creating diagnostic event listeners for these event typ
 After creating a diagnostic event listener for any event type, we can register it by calling `AddDiagnosticEventListener` on the `IRequestExecutorBuilder`, specifying the newly developed diagnostic event listener as the generic type parameter.
 
 ```csharp
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddDiagnosticEventListener<MyExecutionEventListener>();
-    }
-}
+builder.Services
+    .AddGraphQLServer()
+    .AddDiagnosticEventListener<MyExecutionEventListener>();
 ```
 
 If we need to access services within our event handlers, we can inject them using the constructor. Please note that injected services are effectively singleton since the diagnostic event listener is instantiated once.
@@ -380,108 +374,3 @@ builder.Services.AddSingleton<ActivityEnricher, CustomActivityEnricher>();
 ```
 
 ![Jaeger](../../../shared/jaeger4.png)
-
-# Apollo Tracing
-
-_Apollo Tracing_ is a [performance tracing specification](https://github.com/apollographql/apollo-tracing) for GraphQL servers. It works by returning tracing information about the current request alongside the computed data. While it is not part of the GraphQL specification itself, there is a common agreement in the GraphQL community that all GraphQL servers should support it.
-
-**Example**
-
-```graphql
-{
-  book(id: 1) {
-    name
-    author
-  }
-}
-```
-
-The above request would result in the below response if _Apollo Tracing_ is enabled.
-
-```json
-{
-  "data": {
-    "book": {
-      "name": "C# in Depth",
-      "author": "Jon Skeet"
-    }
-  },
-  "extensions": {
-    "tracing": {
-      "version": 1,
-      "startTime": "2021-09-25T15:31:41.6515774Z",
-      "endTime": "2021-09-25T15:31:43.1602255Z",
-      "duration": 1508648100,
-      "parsing": { "startOffset": 13335, "duration": 781 },
-      "validation": { "startOffset": 17012, "duration": 323681 },
-      "execution": {
-        "resolvers": [
-          {
-            "path": ["book"],
-            "parentType": "Query",
-            "fieldName": "book",
-            "returnType": "Book",
-            "startOffset": 587048,
-            "duration": 1004748344
-          },
-          {
-            "path": ["book", "author"],
-            "parentType": "Book",
-            "fieldName": "author",
-            "returnType": "String",
-            "startOffset": 1005854823,
-            "duration": 500265020
-          }
-        ]
-      }
-    }
-  }
-}
-```
-
-## Enabling Apollo Tracing
-
-_Apollo Tracing_ needs to be explicitly enabled by calling `AddApolloTracing` on the `IRequestExecutorBuilder`.
-
-```csharp
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddApolloTracing();
-    }
-}
-```
-
-Further, we can specify a `TracingPreference`. Per default, it is `TracingPreference.OnDemand`.
-
-```csharp
-services
-    .AddGraphQLServer()
-    .AddApolloTracing(TracingPreference.Always);
-```
-
-There are three possible options for the `TracingPreference`.
-
-| Option     | Description                                                                                  |
-| ---------- | -------------------------------------------------------------------------------------------- |
-| `Never`    | _Apollo Tracing_ is disabled. Useful if we want to conditionally disable _Apollo Tracing_.   |
-| `OnDemand` | _Apollo Tracing_ only traces requests if a specific header is passed with the query request. |
-| `Always`   | _Apollo Tracing_ is always enabled, and all query requests are traced automatically.         |
-
-## On Demand
-
-When _Apollo Tracing_ is added using the `TracingPreference.OnDemand`, we are required to pass one of the following HTTP headers with our query request in order to enable tracing for this specific request.
-
-- `GraphQL-Tracing=1`
-- `X-Apollo-Tracing=1`
-
-When using `curl` this could look like the following.
-
-```bash
-curl -X POST -H 'GraphQL-Tracing: 1' -H 'Content-Type: application/json' \
-    -d '{"query":"{\n  book(id: 1) {\n    name\n    author\n  }\n}\n"}' \
-    'http://localhost:5000/graphql'
-```

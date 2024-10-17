@@ -3,6 +3,7 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Data.Filters.SqlServer.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Data.Filters</RootNamespace>
+    <NoWarn>$(NoWarn);GD0002</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

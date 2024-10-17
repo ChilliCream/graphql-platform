@@ -4,6 +4,6 @@
     <PackageIcon>hotchocolate-signet.png</PackageIcon>
   </PropertyGroup>
   <PropertyGroup>
-    <NitroVersion>17.0.1-insider.4</NitroVersion>
+    <NitroVersion>20.0.2</NitroVersion>
   </PropertyGroup>
 </Project>

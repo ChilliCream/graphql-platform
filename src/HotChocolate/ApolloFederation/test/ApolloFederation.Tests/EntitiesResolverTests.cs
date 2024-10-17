@@ -4,6 +4,7 @@ using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using static HotChocolate.ApolloFederation.TestHelper;
 
 namespace HotChocolate.ApolloFederation;
@@ -108,12 +109,13 @@ public class EntitiesResolverTests
         var batchScheduler = new ManualBatchScheduler();
         var dataLoader = new FederatedTypeDataLoader(batchScheduler, new DataLoaderOptions());
 
-        var context = CreateResolverContext(schema,
+        var serviceProviderMock = new Mock<IServiceProvider>();
+        serviceProviderMock.Setup(c => c.GetService(typeof(FederatedTypeDataLoader))).Returns(dataLoader);
+
+        var context = CreateResolverContext(
+            schema,
             null,
-            mock =>
-            {
-                mock.Setup(c => c.Service<FederatedTypeDataLoader>()).Returns(dataLoader);
-            });
+            mock => mock.Setup(c => c.Services).Returns(serviceProviderMock.Object));
 
         var representations = RepresentationsOf(
             nameof(FederatedType),

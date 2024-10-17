@@ -47,9 +47,10 @@ Filtering is part of the `HotChocolate.Data` package.
 To use filtering you need to register it on the schema:
 
 ```csharp
-services.AddGraphQLServer()
-  // Your schema configuration
-  .AddFiltering();
+builder.Services
+    .AddGraphQLServer()
+    // Your schema configuration
+    .AddFiltering();
 ```
 
 Hot Chocolate will infer the filters directly from your .Net Model and then use a Middleware to apply filters to `IQueryable<T>` or `IEnumerable<T>` on execution.
@@ -598,10 +599,12 @@ public class CustomConvention : FilterConvention
     }
 }
 
-services.AddGraphQLServer()
+builder.Services
+    .AddGraphQLServer()
     .AddConvention<IFilterConvention, CustomConvention>();
 // or
-services.AddGraphQLServer()
+builder.Services
+    .AddGraphQLServer()
     .AddConvention<IFilterConvention>(new FilterConvention(x =>
         x.AddDefaults()))
 ```
@@ -617,10 +620,12 @@ public class CustomConventionExtension : FilterConventionExtension
     }
 }
 
-services.AddGraphQLServer()
+builder.Services
+    .AddGraphQLServer()
     .AddConvention<IFilterConvention, CustomConventionExtension>();
 // or
-services.AddGraphQLServer()
+builder.Services
+    .AddGraphQLServer()
     .AddConvention<IFilterConvention>(new FilterConventionExtension(x =>
     {
         // config
@@ -663,7 +668,7 @@ public class UserFilterInput : FilterInputType<User>
 ```
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddFiltering()
     .AddType<UserFilterInput>()
@@ -749,7 +754,7 @@ public class UnsignedIntOperationFilterInputType
 These types have to be registered on the filter convention:
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddFiltering(x => x.AddDefaults().BindRuntimeType<uint, UnsignedIntOperationFilterInputType>())
     ...;
