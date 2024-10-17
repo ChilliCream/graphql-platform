@@ -78,12 +78,12 @@
             "title": "Environments"
           },
           {
-            "path": "workspaces",
-            "title": "Workspaces"
-          },
-          {
             "path": "organizations",
             "title": "Organizations"
+          },
+          {
+            "path": "workspaces",
+            "title": "Workspaces"
           },
           {
             "path": "nitro-services",
