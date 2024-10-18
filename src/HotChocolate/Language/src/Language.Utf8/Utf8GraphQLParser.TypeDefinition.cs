@@ -219,14 +219,13 @@ public ref partial struct Utf8GraphQLParser
         var type = ParseTypeReference();
         var directives = ParseDirectives(true);
 
-        // TODO: Define name elsewhere
-        var semanticNonNullDirective = directives.FirstOrDefault(d => d.Name.Value == "semanticNonNull");
+        var semanticNonNullDirective = directives
+            .FirstOrDefault(d => d.Name.Value == WellKnownDirectives.SemanticNonNull);
 
         if (semanticNonNullDirective is not null)
         {
-            // TODO: Define name elsewhere
-            var levelsArgument =
-                semanticNonNullDirective.Arguments.FirstOrDefault(a => a.Name.Value == "levels");
+            var levelsArgument = semanticNonNullDirective.Arguments
+                .FirstOrDefault(a => a.Name.Value == WellKnownDirectives.Levels);
 
             var levels = levelsArgument?.Value switch
             {

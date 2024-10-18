@@ -9,9 +9,8 @@ public class SemanticNonNullType : NonNamedType
     {
         if (type.Kind == TypeKind.SemanticNonNull)
         {
-            // TODO
             throw new ArgumentException(
-                TypeResources.NonNullType_TypeIsNunNullType,
+                TypeResources.SemanticNonNullType_TypeIsSemanticNonNullType,
                 nameof(type));
         }
     }

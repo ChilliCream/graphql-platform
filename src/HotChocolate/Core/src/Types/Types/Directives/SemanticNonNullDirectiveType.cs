@@ -1,4 +1,6 @@
 #nullable enable
+using static HotChocolate.Properties.TypeResources;
+
 namespace HotChocolate.Types;
 
 public class SemanticNonNullDirectiveType : DirectiveType
@@ -6,20 +8,14 @@ public class SemanticNonNullDirectiveType : DirectiveType
     protected override void Configure(IDirectiveTypeDescriptor descriptor)
     {
         descriptor
-            .Name(Names.SemanticNonNull)
-            .Description("")
+            .Name(WellKnownDirectives.SemanticNonNull)
+            .Description(SemanticNonNullDirectiveType_Description)
             .Location(DirectiveLocation.FieldDefinition);
 
         descriptor
-            .Argument(Names.Levels)
-            .Description("")
+            .Argument(WellKnownDirectives.Levels)
+            .Description(SemanticNonNullDirectiveType_Levels_Description)
             .Type<ListType<IntType>>()
             .DefaultValueSyntax("[0]");
-    }
-
-    public static class Names
-    {
-        public const string SemanticNonNull = "semanticNonNull";
-        public const string Levels = "levels";
     }
 }

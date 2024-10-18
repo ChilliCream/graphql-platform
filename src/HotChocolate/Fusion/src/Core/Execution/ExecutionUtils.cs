@@ -757,7 +757,6 @@ internal static class ExecutionUtils
         int responseIndex)
     {
         var path = PathHelper.CreatePathFromContext(selection, selectionSetResult, responseIndex);
-        // TODO: Use another error for semantic non-null violations.
         resultBuilder.AddNonNullViolation(selection, path);
     }
 

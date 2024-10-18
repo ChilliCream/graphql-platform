@@ -165,6 +165,10 @@ public interface IReadOnlySchemaOptions
     /// </summary>
     bool EnableStream { get; }
 
+    /// <summary>
+    /// Enables the @semanticNonNull directive.
+    /// This feature is experimental and might be changed or removed in the future.
+    /// </summary>
     bool EnableSemanticNonNull { get; }
 
     /// <summary>
