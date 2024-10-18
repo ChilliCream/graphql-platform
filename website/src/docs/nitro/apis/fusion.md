@@ -2,44 +2,43 @@
 title: "Fusion"
 ---
 
-![Image](images/fusion-0.png)
+![Image](images/fusion-0.webp)
 
-Nitro can be used as your orchestrator for your Fusion Gateway. It deeply integrates with your development workflow and allows you to publish, validate, consume and monitor your Fusion Gateway.
+Nitro can be used as your orchestrator for your Fusion gateway. It deeply integrates with your development workflow and allows you to publish, validate, consume and monitor your Fusion gateway.
 
-![Image](images/fusion-2.png)
-On the fusion dashboard you can now see the tracing information of your gateway and your subgraphs.
+On the Fusion dashboard you can now see the tracing information of your gateway and your subgraphs.
 
 # Dashboard
 
-The fusion dashboard gives you a quick overview of your gateway and subgraphs. It shows you the status of your gateway and the status of your subgraphs. You can also see the latest telemetry data insights of your gateway and subgraphs.
+The Fusion dashboard gives you a quick overview of your gateway and subgraphs. It shows you the status of your gateway and the status of your subgraphs. You can also see the latest telemetry data insights of your gateway and subgraphs.
 
 ## Topology
 
-![Image](images/fusion-3.png)
+![Image](images/fusion-1.webp)
 
 The topology view shows you the connections between your gateway and your subgraphs. You can also see which clients are connected to your gateway and how many operations they are executing.
 
 ## Status
 
-![Image](images/fusion-4.png)
+![Image](images/fusion-2.webp)
 The status view shows you a quick overview of the status of your gateway. With the indicators for latency, throughput and errors you see how your gateway statistics developed between the previous and the current time range.
 
 You also see the essential information about your gateway, such as the version, the stage, how many subgraphs are connected and how many clients are connected.
 
-## Insights
+## Subgraphs
 
-![Image](images/fusion-5.png)
-The subgraph insights show you a quick overview over your connected subgraphs. You can see the latency, throughput and error rate of each subgraph.
+![Image](images/fusion-3.webp)
+The subgraphs view shows you a quick overview over your connected subgraphs. You can see the latency, throughput and error rate of each subgraph.
 
 # Gateway Management
 
-With fusion you compose your gateway configuration locally when you deploy a subgraph. This means that you somehow need to inform your gateway that there is a new configuration available.
+With Fusion you compose your gateway configuration locally when you deploy a subgraph. This means that you somehow need to inform your gateway that there is a new configuration available.
 
 With Nitro you can automate this process. You can configure your gateway to automatically pull the latest configuration from Nitro. This way you can be sure that your gateway always has the latest configuration. You can also validate your configuration against the schema and client registry to make sure that your change does not break any clients.
 
 ## Configure your gateway
 
-To configure your fusion gateway to pull the configuration from Nitro, you need to install the ChilliCream.Nitro package. You can do this by running the following command in your project's root directory:
+To configure your Fusion gateway to pull the configuration from Nitro, you need to install the `ChilliCream.Nitro` package. You can do this by running the following command in your project's root directory:
 
 ```bash
 dotnet add package ChilliCream.Nitro
@@ -49,13 +48,13 @@ After installing the package, you need to configure the services in your startup
 
 ```csharp
 builder.Services
-  .AddFusionGatewayServer()
-  .ConfigureFromCloud(x =>
-  {
-      x.ApiKey = "<<your-fusion-api-key>>";
-      x.ApiId = "QXBpCmc5NGYwZTIzNDZhZjQ0NjBmYTljNDNhZDA2ZmRkZDA2Ng==";
-      x.Stage = "dev";
-  })
+    .AddFusionGatewayServer()
+    .ConfigureFromCloud(x =>
+    {
+        x.ApiKey = "<<your-fusion-api-key>>";
+        x.ApiId = "QXBpCmc5NGYwZTIzNDZhZjQ0NjBmYTljNDNhZDA2ZmRkZDA2Ng==";
+        x.Stage = "dev";
+    })
 ```
 
 > **Tip: Using Environment Variables**
@@ -68,8 +67,8 @@ builder.Services
 >
 > ```csharp
 > builder.Services
->   .AddFusionGatewayServer()
->   .ConfigureFromCloud();
+>     .AddFusionGatewayServer()
+>     .ConfigureFromCloud();
 > ```
 >
 > In this setup, the API key, ID, and stage are set through environment variables.
@@ -111,7 +110,7 @@ services
         x.AddHttpClientInstrumentation();
         x.AddAspNetCoreInstrumentation();
         x.AddNitroExporter();
-       // Register more instrumentation providers such as Entity Framework Core, HttpClient, etc.
+        // Register more instrumentation providers such as Entity Framework Core, HttpClient, etc.
     });
 ```
 
@@ -259,7 +258,7 @@ dotnet nitro fusion-configuration publish commit --configuration ./gateway.fgp -
 
 # Distributed Telemetry
 
-![Image](images/fusion-1.png)
+![Image](images/fusion-4.webp)
 Nitro provides a distributed telemetry solution for your Fusion Gateway. It allows you to monitor your gateway and all your subgraphs in one place. You can inspect the traces of your operations on the gateway and see how they are executed on the subgraphs.
 
 To enable telemetry for your gateway and subgraphs, all of them need to be configured to send telemetry data to Nitro. Your subgraphs can be configured to send telemetry data by using the [ChilliCream.Nitro](https://www.nuget.org/packages/ChilliCream.Nitro/) package. You can find more information about how to configure your subgraphs in the [Open Telemetry](/docs/nitro/open-telemetry/operation-monitoring) guide.
@@ -313,17 +312,17 @@ For GraphQL services:
 
 ```csharp
 services
-  .AddGraphQLServer()
-  .AddAssetCache<TCache>()
+    .AddGraphQLServer()
+    .AddAssetCache<TCache>()
 ```
 
 For fusion services:
 
 ```csharp
 services
-  .AddFusionGatewayServer()
-  .ConfigureFromCloud()
-  .AddAssetCache<TCache>()
+    .AddFusionGatewayServer()
+    .ConfigureFromCloud()
+    .AddAssetCache<TCache>()
 ```
 
 ## `FileSystemCache`
@@ -332,11 +331,11 @@ This default cache stores data in the `assets` folder of your project. You can c
 
 ```csharp
 services
-  .AddGraphQLServer()
-  .AddFileSystemAssetCache(x =>
-  {
-      x.CacheDirectory = "cache"; // Your cache folder
-  })
+    .AddGraphQLServer()
+    .AddFileSystemAssetCache(x =>
+    {
+        x.CacheDirectory = "cache"; // Your cache folder
+    })
 ```
 
 ## `BlobStorageCache`
@@ -353,14 +352,14 @@ Set it up with:
 
 ```csharp
 services
-  .AddGraphQLServer()
-  .AddBlobStorageAssetCache(x =>
-  {
-      x.ContainerName = "your-container-name";
-      x.Client = new BlobServiceClient(
-          new Uri("https://yourblobstorage.blob.core.windows.net/"),
-          new DefaultAzureCredential());
-  })
+    .AddGraphQLServer()
+    .AddBlobStorageAssetCache(x =>
+    {
+        x.ContainerName = "your-container-name";
+        x.Client = new BlobServiceClient(
+            new Uri("https://yourblobstorage.blob.core.windows.net/"),
+            new DefaultAzureCredential());
+    })
 ```
 
 ## Custom `IAssetCache`

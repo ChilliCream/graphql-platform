@@ -6,7 +6,7 @@ The Schema Reference feature allows you to inspect and explore the schema of you
 
 # Explorer View
 
-![Explorer View](./images/reference-0.png)
+![Explorer View](./images/reference-0.webp)
 
 ## 1. View Switcher
 
@@ -20,12 +20,12 @@ This section displays detailed information about the currently selected type, in
 
 The Summary Information provides quick statistics about the number of types and directives present in the schema. It offers a high-level overview of the schema's composition.
 
-## 4. Search Bar
+## 4. Filter Bar
 
-The Search Bar allows you to search for specific types and fields within the schema. You can enter keywords or names to quickly locate relevant components.
+The Filter Bar allows you to search for specific types and fields within the schema. You can enter keywords or names to quickly locate relevant components.
 
-# Tree View
+# Column View
 
-![Tree View](./images/reference-1.png)
+![Column View](./images/reference-1.webp)
 
-In the Tree View, you start with the root types of the schema, such as Query, Mutation, and Subscription. Clicking on a root type expands it to reveal the available fields associated with that type. By clicking on any field, you can further explore the schema and its nested components. The right side of the interface provides detailed information about the selected field.
+In the Column View, you start with the root types of the schema, such as Query, Mutation, and Subscription. Clicking on a root type expands it to reveal the available fields associated with that type. By clicking on any field, you can further explore the schema and its nested components. The right side of the interface provides detailed information about the selected field.

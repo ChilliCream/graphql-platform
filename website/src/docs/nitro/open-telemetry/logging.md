@@ -2,24 +2,24 @@
 title: "Logging"
 ---
 
-Nitro includes open telemetry logging, allowing seamless log collection and analysis directly within the app.
+Nitro includes Open Telemetry logging, allowing seamless log collection and analysis directly within the app.
 This documentation provides guidance on setting up and utilizing logging features in Nitro for enhanced monitoring, debugging, and performance analysis of your APIs.
 
 ## API Logs
 
-![Api Logs](images/logs-1.png)
+![Api Logs](images/logs-0.webp)
 Each API in Nitro features a **Logs** tab, providing a centralized interface for viewing and managing logs associated with your API.
 This unified log view offers insights into your system’s activities, enabling you to monitor and troubleshoot in real-time.
 
 ### Detailed Log Inspection
 
-![API Logs - Expanded](images/logs-2.png)
+![API Logs - Expanded](images/logs-1.webp)
 
 Within the Logs tab, individual log entries can be expanded to reveal additional details such as timestamps, log levels, and message content.
 
 ## Trace Logs
 
-![Trace Logs](images/logs-3.png)
+![Trace Logs](images/logs-2.webp)
 
 Logs can also be inspected within individual traces, providing detailed insights into the correlation between specific traces and their corresponding logs.
 
@@ -84,20 +84,20 @@ public void ConfigureServices(IServiceCollection services)
 > ```csharp
 > public void ConfigureServices(IServiceCollection services)
 > {
->    services
->        .AddGraphQLServer()
->        .AddQueryType<Query>()
->        .AddNitro()
->        .AddInstrumentation(); // Enable the graphql telemetry
+>     services
+>         .AddGraphQLServer()
+>         .AddQueryType<Query>()
+>         .AddNitro()
+>         .AddInstrumentation(); // Enable the graphql telemetry
 >
->    services
->        .AddLogging(x => x
->             .AddNitroExporter()
->             .AddOpenTelemetry(options =>
->             {
->                 options.IncludeFormattedMessage = true;
->                 options.IncludeScopes = true;
->             }));
+>     services
+>         .AddLogging(x => x
+>              .AddNitroExporter()
+>              .AddOpenTelemetry(options =>
+>              {
+>                  options.IncludeFormattedMessage = true;
+>                  options.IncludeScopes = true;
+>              }));
 > }
 > ```
 >

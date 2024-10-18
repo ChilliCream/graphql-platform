@@ -2,7 +2,7 @@
 title: "Deployment"
 ---
 
-![Deployment](./images/deployments-0.png)
+![Deployment](./images/deployments-0.webp)
 
 Deploying a service typically involves publishing a client, schema, or fusion configuration to a stage. This process is an integral part of your service's deployment, where artifacts from your CI/CD pipeline are pushed to the platform and then published to a designated stage prior to the actual deployment of your service.
 
@@ -14,4 +14,4 @@ In development environments, it's not uncommon for GraphQL changes to introduce 
 
 Deployments flagged with `--wait-for-approval` are held in a pending state, awaiting approval. They remain in this state until explicitly approved or automatically timed out after 10 minutes. This mechanism allows for a controlled deployment process, where potentially breaking changes can be reviewed and either approved or rejected directly from the "Deployments" tab.
 
-![Deployment](./images/deployments-1.png)
+![Deployment](./images/deployments-1.webp)
