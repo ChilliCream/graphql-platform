@@ -25,5 +25,4 @@ partial class Build
     AbsolutePath Gateway13Proj => RootDirectory / "templates" / "gateway" / "HotChocolate.Template.Gateway.csproj";
     AbsolutePath GatewayAspire13Proj => RootDirectory / "templates" / "gateway-aspire" / "HotChocolate.Template.Gateway.Aspire.csproj";
     AbsolutePath GatewayManaged13Proj => RootDirectory / "templates" / "gateway-managed" / "HotChocolate.Template.Gateway.Managed.csproj";
-    AbsolutePath FSharpTypes => SourceDirectory/"HotChocolate" /"Core" / "src" / "Types.FSharp" / "HotChocolate.Types.FSharp.fsproj";
 }
