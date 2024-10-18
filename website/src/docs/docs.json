@@ -382,16 +382,6 @@
             ]
           },
           {
-            "path": "fusion",
-            "title": "Fusion",
-            "items": [
-              {
-                "path": "index",
-                "title": "Overview"
-              }
-            ]
-          },
-          {
             "path": "performance",
             "title": "Performance",
             "items": [
