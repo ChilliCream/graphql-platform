@@ -377,17 +377,15 @@ public sealed partial class SyntaxSerializer
     {
         if (levels.Count == 1 && levels[0] == 0)
         {
-            // TODO
-            return new DirectiveNode("semanticNonNull");
+            return new DirectiveNode(WellKnownDirectives.SemanticNonNull);
         }
 
         var levelsListInnerValueNodes = levels.ConvertAll(level => new IntValueNode(level));
         var levelsListValueNode = new ListValueNode(levelsListInnerValueNodes);
 
         return new DirectiveNode(
-            // TODO
-            new NameNode("semanticNonNull"),
-            [new ArgumentNode("levels", levelsListValueNode)]);
+            new NameNode(WellKnownDirectives.SemanticNonNull),
+            [new ArgumentNode(WellKnownDirectives.Levels, levelsListValueNode)]);
     }
 
     private void VisitInputValueDefinition(

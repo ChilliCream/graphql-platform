@@ -194,7 +194,6 @@ internal sealed class TypeReferenceResolver
         return flags;
     }
 
-    // TODO: What is this?
     private static int CreateFlags(ITypeNode type)
     {
         var flags = 1;
