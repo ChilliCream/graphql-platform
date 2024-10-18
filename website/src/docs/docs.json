@@ -42,7 +42,7 @@
           },
           {
             "path": "apis",
-            "title": "Apis",
+            "title": "APIs",
             "items": [
               { "path": "overview", "title": "Overview" },
               { "path": "stages", "title": "Stages" },
