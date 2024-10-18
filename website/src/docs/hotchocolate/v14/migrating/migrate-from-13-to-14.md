@@ -135,6 +135,11 @@ The `DateTime` scalar will now enforce a specific format. The time and offset ar
 
 Please ensure that your clients are sending date/time strings in the correct format to avoid errors.
 
+# FromServices no longer supported
+
+Previously, you might have injected services into your resolvers via the `[FromServices]` attribute on an argument.
+Support for this has been removed and you can either remove the attribute and let Hot Chocolate infer that it's a service, based on whether it's registered in the service collection, or annotate the argument with the `[Service]` attribute.
+
 ## Persisted Queries renamed to Persisted Operations
 
 ### Packages renamed
