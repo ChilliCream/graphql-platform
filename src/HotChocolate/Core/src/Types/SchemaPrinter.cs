@@ -506,6 +506,11 @@ public static class SchemaPrinter
             return new NonNullTypeNode(null, (INullableTypeNode)PrintType(nt.Type));
         }
 
+        if (type is SemanticNonNullType snt)
+        {
+            return new SemanticNonNullTypeNode(null, (INullableTypeNode)PrintType(snt.Type));
+        }
+
         if (type is ListType lt)
         {
             return new ListTypeNode(null, PrintType(lt.ElementType));
