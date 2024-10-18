@@ -88,6 +88,20 @@ builder.Services
     .AddGlobalObjectIdentification();
 ```
 
+## IIdSerializer replaced by INodeIdSerializer
+
+Previously, you could grab the `IIdSerializer` from your dependency injection container to manually parse and serialize globally unique identifiers (GID).
+As part of the changes to the GID format mentioned above, the `IIdSerializer` interface has been renamed to `INodeIdSerializer`.
+
+The methods used for parsing and serialization have also been renamed:
+
+| Before                             | After                                                                                    |
+| ---------------------------------- | ---------------------------------------------------------------------------------------- |
+| `.Deserialize("<gid-value>")`      | `.Parse("<gid-value>", typeof(string))` where `string` is the underlying type of the GID |
+| `.Serialize("MyType", "<raw-id>")` | `.Format("MyType", "<raw-id>")`                                                          |
+
+The `Parse()` (previously `Deserialize()`) method has also changed its return type from `IdValue` to `NodeId`. The parsed Id value can now be accessed through the `NodeId.InternalId` instead of the `IdValue.Value` property.
+
 ## Node Resolver validation
 
 We now enforce that each object type implementing the `Node` interface also defines a resolver, so that the object can be refetched through the `node(id: ID!)` field.
@@ -100,6 +114,19 @@ builder.Services
     .ModifyOptions(o => o.EnsureAllNodesCanBeResolved = false)
 ```
 
+## IDataLoader<TKey, TValue> arguments now need to be marked as service
+
+Previously, you could inject `IDataLoader<TKey, TValue>` without any attribute. Now you need to mark it as a service.
+
+```csharp
+public string GetMyType([Service] IDataLoader<int, MyType?> dataLoader)
+```
+
+## DataLoader.LoadAsync always returns nullable type
+
+Previously, the `LoadAsync` method on a DataLoader was typed as non-nullable, even though `null` could be returned.
+This release changes the return type of `LoadAsync` to always be nullable.
+
 ## Builder APIs
 
 We have aligned all builder APIs to be more consistent and easier to use. Builders can now be created by using the static method `Builder.New()` and the `Build()` method to create the final object.
@@ -108,9 +135,14 @@ We have aligned all builder APIs to be more consistent and easier to use. Builde
 
 The interface `IQueryRequestBuilder` and its implementations were replaced with `OperationRequestBuilder` which now supports building standard GraphQL operation requests as well as variable batch requests.
 
-The `Build()` method returns now a `IOperationRequest` which is implemented by `OperationRequest` and `VariableBatchRequest`.
+The `Build()` method now returns a `IOperationRequest` which is implemented by `OperationRequest` and `VariableBatchRequest`.
 
-We have also simplified what the builder does and removed a lot of the convenience methods that allowed to add single variables to it. This has todo with the support of variable batching. Now, you have to provide the variable map directly.
+We've also renamed and consolidated some methods on the `OperationRequestBuilder`:
+
+| Before                              | After                                                                       |
+| ----------------------------------- | --------------------------------------------------------------------------- |
+| `SetQuery("{ __typename }")`        | `SetDocument("{ __typename }")`                                             |
+| `AddVariableValue("name", "value")` | `AddVariableValues(new Dictionary<string, object?> { ["name"] = "value" })` |
 
 ### IQueryResultBuilder replaced by OperationResultBuilder
 
@@ -118,7 +150,12 @@ The interface `IQueryResultBuilder` and its implementations were replaced with `
 
 ### IQueryResult replaced by OperationResult
 
-The interface `IQueryResultBuilder` and its implementations were replaced with `OperationResultBuilder` which produces an `OperationResult` on `Build()`.
+The interface `IQueryResult` has been replaced by `OperationResult`.
+
+### IExecutionResult.ExpectQueryResult replaced by .ExpectOperationResult
+
+In your unit tests you might have been using `result.ExpectQueryResult()` to assert that a result is not a streamed response and rather a completed result.
+This assertion method has been renamed to `ExpectOperationResult()`.
 
 ## Operation complexity analyzer replaced
 
@@ -196,6 +233,38 @@ Renamed interface methods:
 Accessing a keyed service that has not been registered will now throw, instead of returning `null`. The return type is now non-nullable.
 
 This change aligns the API with the regular (non-keyed) service access API.
+
+## Connection getTotalCount constructor argument replaced with totalCount
+
+Previously, you could supply an async method to the `getTotalCount` constructor argument when instantiating a `Connection<T>`. This method would only be evaluated to calculate the total count, if the `totalCount` field was selected on that Connection in a query.
+
+```csharp
+return new Connection<MyType>(
+    edges: [/* ... */],
+    info: new ConnectionPageInfo(/* ... */),
+    getTotalCount: async cancellationToken => 123)
+```
+
+In this release the constructor argument was renamed to `totalCount` and now only accepts an `int` for the total count, no longer a method to compute the total count.
+If you want to re-create the old behavior, you can use the new `[IsSelected]` attribute to conditionally compute the total count.
+
+```csharp
+public Connection<MyType> GetMyTypes(
+  [IsSelected("totalCount")] bool hasSelectedTotalCount,
+  CancellationToken cancellationToken)
+{
+    var totalCount = 0;
+    if (hasSelectedTotalCount)
+    {
+        totalCount = /* ... */;
+    }
+
+    return new Connection<MyType>(
+        edges: [/* ... */],
+        info: new ConnectionPageInfo(/* ... */),
+        totalCount: totalCount)
+}
+```
 
 # Deprecations
 
