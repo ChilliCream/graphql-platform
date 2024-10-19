@@ -689,7 +689,6 @@ public static class SchemaParser
                 return namedType;
 
             default:
-                // TODO : parsing error
                 throw new ArgumentOutOfRangeException(nameof(type));
         }
     }

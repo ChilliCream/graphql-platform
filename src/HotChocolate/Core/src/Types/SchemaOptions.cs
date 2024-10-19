@@ -72,7 +72,7 @@ public class SchemaOptions : IReadOnlySchemaOptions
         }
     }
 
-    /// <inheritdoc cref="IReadOnlySchemaOptions.UserDefinedFields"/>
+    /// <inheritdoc cref="IReadOnlySchemaOptions.FieldMiddleware"/>
     public FieldMiddlewareApplication FieldMiddleware { get; set; } =
         FieldMiddlewareApplication.UserDefinedFields;
 

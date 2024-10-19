@@ -220,20 +220,22 @@ public ref partial struct Utf8GraphQLParser
         var directives = ParseDirectives(true);
 
         var semanticNonNullDirective = directives
-            .FirstOrDefault(d => d.Name.Value == WellKnownDirectives.SemanticNonNull);
+            .FirstOrDefault(d => d.Name.Value == WellKnownLanguageDirectives.SemanticNonNull);
 
         if (semanticNonNullDirective is not null)
         {
             var levelsArgument = semanticNonNullDirective.Arguments
-                .FirstOrDefault(a => a.Name.Value == WellKnownDirectives.Levels);
+                .FirstOrDefault(a => a.Name.Value == WellKnownLanguageDirectives.Levels);
 
-            var levels = levelsArgument?.Value switch
+            HashSet<int> levels = levelsArgument?.Value switch
             {
                 IntValueNode intValueNode => [intValueNode.ToInt32()],
-                ListValueNode listValueNode => listValueNode.Items
+                ListValueNode listValueNode =>
+                [
+                    ..listValueNode.Items
                     .OfType<IntValueNode>()
                     .Select(t => t.ToInt32())
-                    .ToHashSet(),
+                ],
                 _ => [0]
             };
 
@@ -286,7 +288,6 @@ public ref partial struct Utf8GraphQLParser
                 return namedType;
 
             default:
-                // TODO : parsing error
                 throw new ArgumentOutOfRangeException(nameof(type));
         }
     }
