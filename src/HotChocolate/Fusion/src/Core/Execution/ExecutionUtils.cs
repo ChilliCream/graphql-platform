@@ -294,14 +294,14 @@ internal static class ExecutionUtils
         SelectionData selectionData,
         IType valueType)
     {
-        var namedType = valueType.NamedType();
+        var nullableType = valueType.NullableType();
 
         if (!selectionData.HasValue)
         {
             return null;
         }
 
-        if (namedType.IsType(TypeKind.Scalar))
+        if (nullableType.IsType(TypeKind.Scalar))
         {
             var value = selectionData.Single.Element;
 
@@ -320,7 +320,7 @@ internal static class ExecutionUtils
             return value;
         }
 
-        if (namedType.IsType(TypeKind.Enum))
+        if (nullableType.IsType(TypeKind.Enum))
         {
             var value = selectionData.Single.Element;
 
@@ -332,7 +332,7 @@ internal static class ExecutionUtils
             return value;
         }
 
-        return namedType.IsCompositeType()
+        return nullableType.IsCompositeType()
             ? ComposeObject(context, parent, parentIndex, selection, selectionData)
             : ComposeList(context, parent, parentIndex, selection, selectionData, valueType);
     }

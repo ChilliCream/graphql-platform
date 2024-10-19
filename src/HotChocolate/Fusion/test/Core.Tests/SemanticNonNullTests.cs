@@ -6,7 +6,6 @@ using Xunit.Abstractions;
 
 namespace HotChocolate.Fusion;
 
-// TODO: Finish List of List tests
 public class SemanticNonNullTests(ITestOutputHelper output)
 {
     # region Scalar
@@ -313,10 +312,10 @@ public class SemanticNonNullTests(ITestOutputHelper output)
 
     #endregion
 
-    #region Object
+    #region Composite
 
     [Fact]
-    public async Task Object_Field_Nullable_Subgraph_Returns_Null_Gateway_Nulls_Field()
+    public async Task Composite_Field_Nullable_Subgraph_Returns_Null_Gateway_Nulls_Field()
     {
         // arrange
         var subgraph = await TestSubgraph.CreateAsync(
@@ -355,7 +354,7 @@ public class SemanticNonNullTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public async Task Object_Field_SemanticNonNull_Subgraph_Returns_Null_Gateway_Nulls_And_Errors_Field()
+    public async Task Composite_Field_SemanticNonNull_Subgraph_Returns_Null_Gateway_Nulls_And_Errors_Field()
     {
         // arrange
         var subgraph = await TestSubgraph.CreateAsync(
@@ -423,7 +422,7 @@ public class SemanticNonNullTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public async Task Object_Field_SemanticNonNull_Subgraph_Returns_Error_For_Field_Gateway_Only_Nulls_Field()
+    public async Task Composite_Field_SemanticNonNull_Subgraph_Returns_Error_For_Field_Gateway_Only_Nulls_Field()
     {
         // arrange
         var subgraph = await TestSubgraph.CreateAsync(
@@ -477,365 +476,10 @@ public class SemanticNonNullTests(ITestOutputHelper output)
 
     #endregion
 
-    #region Interface
+    #region Composite Subfield
 
     [Fact]
-    public async Task Interface_Field_Nullable_Subgraph_Returns_Null_Gateway_Nulls_Field()
-    {
-        // arrange
-        var subgraph = await TestSubgraph.CreateAsync(
-            """
-            type Query {
-              field: MyInterface @null
-            }
-
-            interface MyInterface {
-              anotherField: String
-            }
-
-            type MyObject implements MyInterface {
-              anotherField: String
-            }
-            """,
-            enableSemanticNonNull: true);
-
-        using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
-        var executor = await subgraphs.GetExecutorAsync();
-        var request = """
-                      query {
-                        field {
-                          anotherField
-                        }
-                      }
-                      """;
-
-        // act
-        var result = await executor.ExecuteAsync(request);
-
-        // assert
-        result.MatchInlineSnapshot("""
-                                   {
-                                     "data": {
-                                       "field": null
-                                     }
-                                   }
-                                   """);
-    }
-
-    [Fact]
-    public async Task Interface_Field_SemanticNonNull_Subgraph_Returns_Null_Gateway_Nulls_And_Errors_Field()
-    {
-        // arrange
-        var subgraph = await TestSubgraph.CreateAsync(
-            configure: builder => builder
-                .AddDocumentFromString("""
-                                       type Query {
-                                         field: MyInterface @semanticNonNull
-                                       }
-
-                                       interface MyInterface {
-                                         anotherField: String
-                                       }
-
-                                       type MyObject implements MyInterface {
-                                         anotherField: String
-                                       }
-                                       """)
-                .AddResolverMocking()
-                .UseDefaultPipeline()
-                .UseRequest(_ => context =>
-                {
-                    context.Result = OperationResultBuilder.New()
-                        .SetData(new Dictionary<string, object?> { ["field"] = null })
-                        .Build();
-                    return default;
-                })
-            ,
-            enableSemanticNonNull: true);
-        ;
-
-        using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
-        var executor = await subgraphs.GetExecutorAsync();
-        var request = """
-                      query {
-                        field {
-                          anotherField
-                        }
-                      }
-                      """;
-
-        // act
-        var result = await executor.ExecuteAsync(request);
-
-        // assert
-        result.MatchInlineSnapshot("""
-                                   {
-                                     "errors": [
-                                       {
-                                         "message": "Cannot return null for non-nullable field.",
-                                         "locations": [
-                                           {
-                                             "line": 2,
-                                             "column": 3
-                                           }
-                                         ],
-                                         "path": [
-                                           "field"
-                                         ],
-                                         "extensions": {
-                                           "code": "HC0018"
-                                         }
-                                       }
-                                     ],
-                                     "data": {
-                                       "field": null
-                                     }
-                                   }
-                                   """);
-    }
-
-    [Fact]
-    public async Task Interface_Field_SemanticNonNull_Subgraph_Returns_Error_For_Field_Gateway_Only_Nulls_Field()
-    {
-        // arrange
-        var subgraph = await TestSubgraph.CreateAsync(
-            """
-            type Query {
-              field: MyInterface @semanticNonNull @error
-            }
-
-            interface MyInterface {
-              anotherField: String
-            }
-
-            type MyObject implements MyInterface {
-              anotherField: String
-            }
-            """,
-            enableSemanticNonNull: true);
-
-        using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
-        var executor = await subgraphs.GetExecutorAsync();
-        var request = """
-                      query {
-                        field {
-                          anotherField
-                        }
-                      }
-                      """;
-
-        // act
-        var result = await executor.ExecuteAsync(request);
-
-        // assert
-        result.MatchInlineSnapshot("""
-                                   {
-                                     "errors": [
-                                       {
-                                         "message": "Unexpected Execution Error",
-                                         "locations": [
-                                           {
-                                             "line": 2,
-                                             "column": 3
-                                           }
-                                         ],
-                                         "path": [
-                                           "field"
-                                         ]
-                                       }
-                                     ],
-                                     "data": {
-                                       "field": null
-                                     }
-                                   }
-                                   """);
-    }
-
-    #endregion
-
-    #region Union
-
-    [Fact]
-    public async Task Union_Field_Nullable_Subgraph_Returns_Null_Gateway_Nulls_Field()
-    {
-        // arrange
-        var subgraph = await TestSubgraph.CreateAsync(
-            """
-            type Query {
-              field: MyUnion @null
-            }
-
-            union MyUnion = MyObject
-
-            type MyObject {
-              anotherField: String
-            }
-            """,
-            enableSemanticNonNull: true);
-
-        using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
-        var executor = await subgraphs.GetExecutorAsync();
-        var request = """
-                      query {
-                        field {
-                          __typename
-                          ... on MyObject {
-                            anotherField
-                          }
-                      }
-                      }
-                      """;
-
-        // act
-        var result = await executor.ExecuteAsync(request);
-
-        // assert
-        result.MatchInlineSnapshot("""
-                                   {
-                                     "data": {
-                                       "field": null
-                                     }
-                                   }
-                                   """);
-    }
-
-    [Fact]
-    public async Task Union_Field_SemanticNonNull_Subgraph_Returns_Null_Gateway_Nulls_And_Errors_Field()
-    {
-        // arrange
-        var subgraph = await TestSubgraph.CreateAsync(
-            configure: builder => builder
-                .AddDocumentFromString("""
-                                       type Query {
-                                         field: MyUnion @semanticNonNull
-                                       }
-
-                                       union MyUnion = MyObject
-
-                                       type MyObject {
-                                         anotherField: String
-                                       }
-                                       """)
-                .AddResolverMocking()
-                .UseDefaultPipeline()
-                .UseRequest(_ => context =>
-                {
-                    context.Result = OperationResultBuilder.New()
-                        .SetData(new Dictionary<string, object?> { ["field"] = null })
-                        .Build();
-                    return default;
-                })
-            ,
-            enableSemanticNonNull: true);
-        ;
-
-        using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
-        var executor = await subgraphs.GetExecutorAsync();
-        var request = """
-                      query {
-                        field {
-                          __typename
-                          ... on MyObject {
-                            anotherField
-                          }
-                        }
-                      }
-                      """;
-
-        // act
-        var result = await executor.ExecuteAsync(request);
-
-        // assert
-        result.MatchInlineSnapshot("""
-                                   {
-                                     "errors": [
-                                       {
-                                         "message": "Cannot return null for non-nullable field.",
-                                         "locations": [
-                                           {
-                                             "line": 2,
-                                             "column": 3
-                                           }
-                                         ],
-                                         "path": [
-                                           "field"
-                                         ],
-                                         "extensions": {
-                                           "code": "HC0018"
-                                         }
-                                       }
-                                     ],
-                                     "data": {
-                                       "field": null
-                                     }
-                                   }
-                                   """);
-    }
-
-    [Fact]
-    public async Task Union_Field_SemanticNonNull_Subgraph_Returns_Error_For_Field_Gateway_Only_Nulls_Field()
-    {
-        // arrange
-        var subgraph = await TestSubgraph.CreateAsync(
-            """
-            type Query {
-              field: MyUnion @semanticNonNull @error
-            }
-
-            union MyUnion = MyObject
-
-            type MyObject {
-              anotherField: String
-            }
-            """,
-            enableSemanticNonNull: true);
-
-        using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
-        var executor = await subgraphs.GetExecutorAsync();
-        var request = """
-                      query {
-                        field {
-                          __typename
-                          ... on MyObject {
-                            anotherField
-                          }
-                        }
-                      }
-                      """;
-
-        // act
-        var result = await executor.ExecuteAsync(request);
-
-        // assert
-        result.MatchInlineSnapshot("""
-                                   {
-                                     "errors": [
-                                       {
-                                         "message": "Unexpected Execution Error",
-                                         "locations": [
-                                           {
-                                             "line": 2,
-                                             "column": 3
-                                           }
-                                         ],
-                                         "path": [
-                                           "field"
-                                         ]
-                                       }
-                                     ],
-                                     "data": {
-                                       "field": null
-                                     }
-                                   }
-                                   """);
-    }
-
-    #endregion
-
-    #region Field on Composite Type
-
-    [Fact]
-    public async Task Scalar_Field_On_Composite_Nullable_Subgraph_Returns_Null_Gateway_Nulls_Field()
+    public async Task Composite_Field_SubField_Nullable_Subgraph_Returns_Null_Gateway_Nulls_Field()
     {
         // arrange
         var subgraph = await TestSubgraph.CreateAsync(
@@ -876,7 +520,7 @@ public class SemanticNonNullTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public async Task Scalar_Field_On_Composite_SemanticNonNull_Subgraph_Returns_Null_Gateway_Nulls_And_Errors_Field()
+    public async Task Composite_Field_SubField_SemanticNonNull_Subgraph_Returns_Null_Gateway_Nulls_And_Errors_Field()
     {
         // arrange
         var subgraph = await TestSubgraph.CreateAsync(
@@ -951,7 +595,7 @@ public class SemanticNonNullTests(ITestOutputHelper output)
 
     [Fact]
     public async Task
-        Scalar_Field_On_Composite_SemanticNonNull_Subgraph_Returns_Error_For_Field_Gateway_Only_Nulls_Field()
+        Composite_Field_SubField_SemanticNonNull_Subgraph_Returns_Error_For_Field_Gateway_Only_Nulls_Field()
     {
         // arrange
         var subgraph = await TestSubgraph.CreateAsync(
@@ -1720,10 +1364,10 @@ public class SemanticNonNullTests(ITestOutputHelper output)
 
     #endregion
 
-    #region Field on Composite List Item
+    #region Composite List Item Subfield
 
     [Fact]
-    public async Task Field_On_Composite_ListItem_Nullable_Subgraph_Returns_Null_For_ListItem_Gateway_Nulls_Field()
+    public async Task Composite_ListItem_SubField_Nullable_Subgraph_Returns_Null_For_ListItem_Gateway_Nulls_Field()
     {
         // arrange
         var subgraph = await TestSubgraph.CreateAsync(
@@ -1773,7 +1417,7 @@ public class SemanticNonNullTests(ITestOutputHelper output)
 
     [Fact]
     public async Task
-        Field_On_Composite_ListItem_SemanticNonNull_Subgraph_Returns_Null_For_Field_Gateway_Nulls_And_Errors_Field()
+        Composite_ListItem_SubField_SemanticNonNull_Subgraph_Returns_Null_For_Field_Gateway_Nulls_And_Errors_Field()
     {
         // arrange
         var subgraph = await TestSubgraph.CreateAsync(
@@ -1860,7 +1504,7 @@ public class SemanticNonNullTests(ITestOutputHelper output)
 
     [Fact]
     public async Task
-        Field_On_Composite_ListItem_SemanticNonNull_Subgraph_Returns_Error_For_Field_Gateway_Only_Nulls_Field()
+        Composite_ListItem_SubField_emanticNonNull_Subgraph_Returns_Error_For_Field_Gateway_Only_Nulls_Field()
     {
         // arrange
         var subgraph = await TestSubgraph.CreateAsync(
@@ -2349,6 +1993,980 @@ public class SemanticNonNullTests(ITestOutputHelper output)
                                          ],
                                          [
                                            "b"
+                                         ]
+                                       ]
+                                     }
+                                   }
+                                   """);
+    }
+
+    [Fact]
+    public async Task List_Of_List_Scalar_ListItem_Nullable_Subgraph_Returns_Null_For_ListItem_Gateway_Nulls_And_Errors_ListItem()
+    {
+        // arrange
+        var subgraph = await TestSubgraph.CreateAsync(
+            configure: builder => builder
+                .AddDocumentFromString("""
+                                       type Query {
+                                         fields: [[String]] @semanticNonNull(levels: [2])
+                                       }
+                                       """)
+                .AddResolverMocking()
+                .UseDefaultPipeline()
+                .UseRequest(_ => context =>
+                {
+                    context.Result = OperationResultBuilder.New()
+                        .SetData(new Dictionary<string, object?>
+                        {
+                            ["fields"] = new[] { new[] { "a" }, new string?[] { null }, new[] { "b" } }
+                        })
+                        .Build();
+                    return default;
+                })
+            ,
+            enableSemanticNonNull: true);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        fields
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        result.MatchInlineSnapshot("""
+                                   {
+                                     "errors": [
+                                       {
+                                         "message": "Cannot return null for non-nullable field.",
+                                         "locations": [
+                                           {
+                                             "line": 2,
+                                             "column": 3
+                                           }
+                                         ],
+                                         "path": [
+                                           "fields",
+                                           1,
+                                           0
+                                         ],
+                                         "extensions": {
+                                           "code": "HC0018"
+                                         }
+                                       }
+                                     ],
+                                     "data": {
+                                       "fields": [
+                                         [
+                                           "a"
+                                         ],
+                                         [
+                                           null
+                                         ],
+                                         [
+                                           "b"
+                                         ]
+                                       ]
+                                     }
+                                   }
+                                   """);
+    }
+
+    [Fact]
+    public async Task List_Of_List_Scalar_ListItem_Nullable_Subgraph_Returns_Error_For_ListItem_Gateway_Only_Nulls_ListItem()
+    {
+        // arrange
+        var subgraph = await TestSubgraph.CreateAsync(
+            configure: builder => builder
+                .AddDocumentFromString("""
+                                       type Query {
+                                         fields: [[String]] @semanticNonNull(levels: [2])
+                                       }
+                                       """)
+                .AddResolverMocking()
+                .UseDefaultPipeline()
+                .UseRequest(_ => context =>
+                {
+                    context.Result = OperationResultBuilder.New()
+                        .AddError(ErrorBuilder.New().SetMessage("Some error").SetPath(["fields", 1, 0]).Build())
+                        .SetData(new Dictionary<string, object?>
+                        {
+                            ["fields"] = new[] { new[] { "a" }, new string?[] { null }, new[] { "b" } }
+                        })
+                        .Build();
+                    return default;
+                })
+            ,
+            enableSemanticNonNull: true);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        fields
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        result.MatchInlineSnapshot("""
+                                   {
+                                     "errors": [
+                                       {
+                                         "message": "Some error",
+                                         "locations": [
+                                           {
+                                             "line": 2,
+                                             "column": 3
+                                           }
+                                         ],
+                                         "path": [
+                                           "fields",
+                                           1,
+                                           0
+                                         ]
+                                       }
+                                     ],
+                                     "data": {
+                                       "fields": [
+                                         [
+                                           "a"
+                                         ],
+                                         [
+                                           null
+                                         ],
+                                         [
+                                           "b"
+                                         ]
+                                       ]
+                                     }
+                                   }
+                                   """);
+    }
+
+    #endregion
+
+    #region List of List Enum List Item
+
+    [Fact]
+    public async Task List_Of_List_Enum_ListItem_Nullable_Subgraph_Returns_Null_For_ListItem_Gateway_Nulls_ListItem()
+    {
+        // arrange
+        var subgraph = await TestSubgraph.CreateAsync(
+            configure: builder => builder
+                .AddDocumentFromString("""
+                                       type Query {
+                                         fields: [[MyEnum]]
+                                       }
+
+                                       enum MyEnum {
+                                         VALUE
+                                       }
+                                       """)
+                .AddResolverMocking()
+                .UseDefaultPipeline()
+                .UseRequest(_ => context =>
+                {
+                    context.Result = OperationResultBuilder.New()
+                        .SetData(new Dictionary<string, object?>
+                        {
+                            ["fields"] = new[] { new[] { "VALUE" }, new string?[] { null }, new[] { "VALUE" } }
+                        })
+                        .Build();
+                    return default;
+                })
+            ,
+            enableSemanticNonNull: true);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        fields
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        result.MatchInlineSnapshot("""
+                                   {
+                                     "data": {
+                                       "fields": [
+                                         [
+                                           "VALUE"
+                                         ],
+                                         [
+                                           null
+                                         ],
+                                         [
+                                           "VALUE"
+                                         ]
+                                       ]
+                                     }
+                                   }
+                                   """);
+    }
+
+    [Fact]
+    public async Task List_Of_List_Enum_ListItem_Nullable_Subgraph_Returns_Null_For_ListItem_Gateway_Nulls_And_Errors_ListItem()
+    {
+        // arrange
+        var subgraph = await TestSubgraph.CreateAsync(
+            configure: builder => builder
+                .AddDocumentFromString("""
+                                       type Query {
+                                         fields: [[MyEnum]] @semanticNonNull(levels: [2])
+                                       }
+
+                                       enum MyEnum {
+                                         VALUE
+                                       }
+                                       """)
+                .AddResolverMocking()
+                .UseDefaultPipeline()
+                .UseRequest(_ => context =>
+                {
+                    context.Result = OperationResultBuilder.New()
+                        .SetData(new Dictionary<string, object?>
+                        {
+                            ["fields"] = new[] { new[] { "VALUE" }, new string?[] { null }, new[] { "VALUE" } }
+                        })
+                        .Build();
+                    return default;
+                })
+            ,
+            enableSemanticNonNull: true);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        fields
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        result.MatchInlineSnapshot("""
+                                   {
+                                     "errors": [
+                                       {
+                                         "message": "Cannot return null for non-nullable field.",
+                                         "locations": [
+                                           {
+                                             "line": 2,
+                                             "column": 3
+                                           }
+                                         ],
+                                         "path": [
+                                           "fields",
+                                           1,
+                                           0
+                                         ],
+                                         "extensions": {
+                                           "code": "HC0018"
+                                         }
+                                       }
+                                     ],
+                                     "data": {
+                                       "fields": [
+                                         [
+                                           "VALUE"
+                                         ],
+                                         [
+                                           null
+                                         ],
+                                         [
+                                           "VALUE"
+                                         ]
+                                       ]
+                                     }
+                                   }
+                                   """);
+    }
+
+    [Fact]
+    public async Task List_Of_List_Enum_ListItem_Nullable_Subgraph_Returns_Error_For_ListItem_Gateway_Only_Nulls_ListItem()
+    {
+        // arrange
+        var subgraph = await TestSubgraph.CreateAsync(
+            configure: builder => builder
+                .AddDocumentFromString("""
+                                       type Query {
+                                         fields: [[MyEnum]] @semanticNonNull(levels: [2])
+                                       }
+
+                                       enum MyEnum {
+                                         VALUE
+                                       }
+                                       """)
+                .AddResolverMocking()
+                .UseDefaultPipeline()
+                .UseRequest(_ => context =>
+                {
+                    context.Result = OperationResultBuilder.New()
+                        .AddError(ErrorBuilder.New().SetMessage("Some error").SetPath(["fields", 1, 0]).Build())
+                        .SetData(new Dictionary<string, object?>
+                        {
+                            ["fields"] = new[] { new[] { "VALUE" }, new string?[] { null }, new[] { "VALUE" } }
+                        })
+                        .Build();
+                    return default;
+                })
+            ,
+            enableSemanticNonNull: true);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        fields
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        result.MatchInlineSnapshot("""
+                                   {
+                                     "errors": [
+                                       {
+                                         "message": "Some error",
+                                         "locations": [
+                                           {
+                                             "line": 2,
+                                             "column": 3
+                                           }
+                                         ],
+                                         "path": [
+                                           "fields",
+                                           1,
+                                           0
+                                         ]
+                                       }
+                                     ],
+                                     "data": {
+                                       "fields": [
+                                         [
+                                           "VALUE"
+                                         ],
+                                         [
+                                           null
+                                         ],
+                                         [
+                                           "VALUE"
+                                         ]
+                                       ]
+                                     }
+                                   }
+                                   """);
+    }
+
+    #endregion
+
+    #region List of List Composite List Item
+
+    [Fact]
+    public async Task List_Of_List_Composite_ListItem_Nullable_Subgraph_Returns_Null_For_ListItem_Gateway_Nulls_ListItem()
+    {
+        // arrange
+        var subgraph = await TestSubgraph.CreateAsync(
+            configure: builder => builder
+                .AddDocumentFromString("""
+                                       type Query {
+                                         fields: [[MyObject]]
+                                       }
+
+                                       type MyObject {
+                                         anotherField: String
+                                       }
+                                       """)
+                .AddResolverMocking()
+                .UseDefaultPipeline()
+                .UseRequest(_ => context =>
+                {
+                    context.Result = OperationResultBuilder.New()
+                        .SetData(new Dictionary<string, object?>
+                        {
+                            ["fields"] = new[]
+                            {
+                                new[] {
+                                    new Dictionary<string, object?>
+                                    {
+                                        ["anotherField"] = "a"
+                                    }
+                                },
+                                new Dictionary<string, object?>?[] {
+                                    null
+                                },
+                                new[] {
+                                    new Dictionary<string, object?>
+                                    {
+                                        ["anotherField"] = "b"
+                                    }
+                                },
+                            }
+                        })
+                        .Build();
+                    return default;
+                })
+            ,
+            enableSemanticNonNull: true);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        fields {
+                          anotherField
+                        }
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        result.MatchInlineSnapshot("""
+                                   {
+                                     "data": {
+                                       "fields": [
+                                         [
+                                           {
+                                             "anotherField": "a"
+                                           }
+                                         ],
+                                         [
+                                           null
+                                         ],
+                                         [
+                                           {
+                                             "anotherField": "b"
+                                           }
+                                         ]
+                                       ]
+                                     }
+                                   }
+                                   """);
+    }
+
+    [Fact]
+    public async Task List_Of_List_Composite_ListItem_Nullable_Subgraph_Returns_Null_For_ListItem_Gateway_Nulls_And_Errors_ListItem()
+    {
+        // arrange
+        var subgraph = await TestSubgraph.CreateAsync(
+            configure: builder => builder
+                .AddDocumentFromString("""
+                                       type Query {
+                                         fields: [[MyObject]] @semanticNonNull(levels: [2])
+                                       }
+
+                                       type MyObject {
+                                         anotherField: String
+                                       }
+                                       """)
+                .AddResolverMocking()
+                .UseDefaultPipeline()
+                .UseRequest(_ => context =>
+                {
+                    context.Result = OperationResultBuilder.New()
+                        .SetData(new Dictionary<string, object?>
+                        {
+                            ["fields"] = new[]
+                            {
+                                new[] {
+                                    new Dictionary<string, object?>
+                                    {
+                                        ["anotherField"] = "a"
+                                    }
+                                },
+                                new Dictionary<string, object?>?[] {
+                                    null
+                                },
+                                new[] {
+                                    new Dictionary<string, object?>
+                                    {
+                                        ["anotherField"] = "b"
+                                    }
+                                },
+                            }
+                        })
+                        .Build();
+                    return default;
+                })
+            ,
+            enableSemanticNonNull: true);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        fields {
+                          anotherField
+                        }
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        result.MatchInlineSnapshot("""
+                                   {
+                                     "errors": [
+                                       {
+                                         "message": "Cannot return null for non-nullable field.",
+                                         "locations": [
+                                           {
+                                             "line": 2,
+                                             "column": 3
+                                           }
+                                         ],
+                                         "path": [
+                                           "fields",
+                                           1,
+                                           0
+                                         ],
+                                         "extensions": {
+                                           "code": "HC0018"
+                                         }
+                                       }
+                                     ],
+                                     "data": {
+                                       "fields": [
+                                         [
+                                           {
+                                             "anotherField": "a"
+                                           }
+                                         ],
+                                         [
+                                           null
+                                         ],
+                                         [
+                                           {
+                                             "anotherField": "b"
+                                           }
+                                         ]
+                                       ]
+                                     }
+                                   }
+                                   """);
+    }
+
+    [Fact]
+    public async Task List_Of_List_Composite_ListItem_Nullable_Subgraph_Returns_Error_For_ListItem_Gateway_Only_Nulls_ListItem()
+    {
+        // arrange
+        var subgraph = await TestSubgraph.CreateAsync(
+            configure: builder => builder
+                .AddDocumentFromString("""
+                                       type Query {
+                                         fields: [[MyObject]] @semanticNonNull(levels: [2])
+                                       }
+
+                                       type MyObject {
+                                         anotherField: String
+                                       }
+                                       """)
+                .AddResolverMocking()
+                .UseDefaultPipeline()
+                .UseRequest(_ => context =>
+                {
+                    context.Result = OperationResultBuilder.New()
+                        .AddError(ErrorBuilder.New().SetMessage("Some error").SetPath(["fields", 1, 0]).Build())
+                        .SetData(new Dictionary<string, object?>
+                        {
+                            ["fields"] = new[]
+                            {
+                                new[] {
+                                    new Dictionary<string, object?>
+                                    {
+                                        ["anotherField"] = "a"
+                                    }
+                                },
+                                new Dictionary<string, object?>?[] {
+                                    null
+                                },
+                                new[] {
+                                    new Dictionary<string, object?>
+                                    {
+                                        ["anotherField"] = "b"
+                                    }
+                                },
+                            }
+                        })
+                        .Build();
+                    return default;
+                })
+            ,
+            enableSemanticNonNull: true);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        fields {
+                          anotherField
+                        }
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        result.MatchInlineSnapshot("""
+                                   {
+                                     "errors": [
+                                       {
+                                         "message": "Some error",
+                                         "locations": [
+                                           {
+                                             "line": 2,
+                                             "column": 3
+                                           }
+                                         ],
+                                         "path": [
+                                           "fields",
+                                           1,
+                                           0
+                                         ]
+                                       }
+                                     ],
+                                     "data": {
+                                       "fields": [
+                                         [
+                                           {
+                                             "anotherField": "a"
+                                           }
+                                         ],
+                                         [
+                                           null
+                                         ],
+                                         [
+                                           {
+                                             "anotherField": "b"
+                                           }
+                                         ]
+                                       ]
+                                     }
+                                   }
+                                   """);
+    }
+
+    #endregion
+
+    #region List of List Composite List Item Subfield
+
+    [Fact]
+    public async Task List_Of_List_Composite_ListItem_SubField_Nullable_Subgraph_Returns_Null_For_ListItem_Gateway_Nulls_ListItem()
+    {
+        // arrange
+        var subgraph = await TestSubgraph.CreateAsync(
+            configure: builder => builder
+                .AddDocumentFromString("""
+                                       type Query {
+                                         fields: [[MyObject]]
+                                       }
+
+                                       type MyObject {
+                                         anotherField: String
+                                       }
+                                       """)
+                .AddResolverMocking()
+                .UseDefaultPipeline()
+                .UseRequest(_ => context =>
+                {
+                    context.Result = OperationResultBuilder.New()
+                        .SetData(new Dictionary<string, object?>
+                        {
+                            ["fields"] = new[]
+                            {
+                                new[] {
+                                    new Dictionary<string, object?>
+                                    {
+                                        ["anotherField"] = "a"
+                                    }
+                                },
+                                new Dictionary<string, object?>?[] {
+                                    new Dictionary<string, object?>
+                                    {
+                                        ["anotherField"] = null
+                                    }
+                                },
+                                new[] {
+                                    new Dictionary<string, object?>
+                                    {
+                                        ["anotherField"] = "b"
+                                    }
+                                },
+                            }
+                        })
+                        .Build();
+                    return default;
+                })
+            ,
+            enableSemanticNonNull: true);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        fields {
+                          anotherField
+                        }
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        result.MatchInlineSnapshot("""
+                                   {
+                                     "data": {
+                                       "fields": [
+                                         [
+                                           {
+                                             "anotherField": "a"
+                                           }
+                                         ],
+                                         [
+                                           {
+                                             "anotherField": null
+                                           }
+                                         ],
+                                         [
+                                           {
+                                             "anotherField": "b"
+                                           }
+                                         ]
+                                       ]
+                                     }
+                                   }
+                                   """);
+    }
+
+    [Fact]
+    public async Task List_Of_List_Composite_ListItem_SubField_Nullable_Subgraph_Returns_Null_For_ListItem_Gateway_Nulls_And_Errors_ListItem()
+    {
+        // arrange
+        var subgraph = await TestSubgraph.CreateAsync(
+            configure: builder => builder
+                .AddDocumentFromString("""
+                                       type Query {
+                                         fields: [[MyObject]]
+                                       }
+
+                                       type MyObject {
+                                         anotherField: String @semanticNonNull
+                                       }
+                                       """)
+                .AddResolverMocking()
+                .UseDefaultPipeline()
+                .UseRequest(_ => context =>
+                {
+                    context.Result = OperationResultBuilder.New()
+                        .SetData(new Dictionary<string, object?>
+                        {
+                            ["fields"] = new[]
+                            {
+                                new[] {
+                                    new Dictionary<string, object?>
+                                    {
+                                        ["anotherField"] = "a"
+                                    }
+                                },
+                                new Dictionary<string, object?>?[] {
+                                    new Dictionary<string, object?>
+                                    {
+                                        ["anotherField"] = null
+                                    }
+                                },
+                                new[] {
+                                    new Dictionary<string, object?>
+                                    {
+                                        ["anotherField"] = "b"
+                                    }
+                                },
+                            }
+                        })
+                        .Build();
+                    return default;
+                })
+            ,
+            enableSemanticNonNull: true);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        fields {
+                          anotherField
+                        }
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        result.MatchInlineSnapshot("""
+                                   {
+                                     "errors": [
+                                       {
+                                         "message": "Cannot return null for non-nullable field.",
+                                         "locations": [
+                                           {
+                                             "line": 3,
+                                             "column": 5
+                                           }
+                                         ],
+                                         "path": [
+                                           "fields",
+                                           1,
+                                           0,
+                                           "anotherField"
+                                         ],
+                                         "extensions": {
+                                           "code": "HC0018"
+                                         }
+                                       }
+                                     ],
+                                     "data": {
+                                       "fields": [
+                                         [
+                                           {
+                                             "anotherField": "a"
+                                           }
+                                         ],
+                                         [
+                                           {
+                                             "anotherField": null
+                                           }
+                                         ],
+                                         [
+                                           {
+                                             "anotherField": "b"
+                                           }
+                                         ]
+                                       ]
+                                     }
+                                   }
+                                   """);
+    }
+
+    [Fact]
+    public async Task List_Of_List_Composite_ListItem_SubField_Nullable_Subgraph_Returns_Error_For_ListItem_Gateway_Only_Nulls_ListItem()
+    {
+        // arrange
+        var subgraph = await TestSubgraph.CreateAsync(
+            configure: builder => builder
+                .AddDocumentFromString("""
+                                       type Query {
+                                         fields: [[MyObject]]
+                                       }
+
+                                       type MyObject {
+                                         anotherField: String @semanticNonNull
+                                       }
+                                       """)
+                .AddResolverMocking()
+                .UseDefaultPipeline()
+                .UseRequest(_ => context =>
+                {
+                    context.Result = OperationResultBuilder.New()
+                        .AddError(ErrorBuilder.New().SetMessage("Some error").SetPath(["fields", 1, 0, "anotherField"]).Build())
+                        .SetData(new Dictionary<string, object?>
+                        {
+                            ["fields"] = new[]
+                            {
+                                new[] {
+                                    new Dictionary<string, object?>
+                                    {
+                                        ["anotherField"] = "a"
+                                    }
+                                },
+                                new Dictionary<string, object?>?[] {
+                                    new Dictionary<string, object?>
+                                    {
+                                        ["anotherField"] = null
+                                    }
+                                },
+                                new[] {
+                                    new Dictionary<string, object?>
+                                    {
+                                        ["anotherField"] = "b"
+                                    }
+                                },
+                            }
+                        })
+                        .Build();
+                    return default;
+                })
+            ,
+            enableSemanticNonNull: true);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        fields {
+                          anotherField
+                        }
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        result.MatchInlineSnapshot("""
+                                   {
+                                     "errors": [
+                                       {
+                                         "message": "Some error",
+                                         "locations": [
+                                           {
+                                             "line": 3,
+                                             "column": 5
+                                           }
+                                         ],
+                                         "path": [
+                                           "fields",
+                                           1,
+                                           0,
+                                           "anotherField"
+                                         ]
+                                       }
+                                     ],
+                                     "data": {
+                                       "fields": [
+                                         [
+                                           {
+                                             "anotherField": "a"
+                                           }
+                                         ],
+                                         [
+                                           {
+                                             "anotherField": null
+                                           }
+                                         ],
+                                         [
+                                           {
+                                             "anotherField": "b"
+                                           }
                                          ]
                                        ]
                                      }
