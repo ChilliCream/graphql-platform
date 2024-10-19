@@ -390,6 +390,16 @@ public static class TypeExtensions
             }
         }
 
+        if (type.Kind == TypeKind.SemanticNonNull)
+        {
+            var innerKind = ((SemanticNonNullType)type).Type.Kind;
+
+            if (innerKind == kind1 || innerKind == kind2)
+            {
+                return true;
+            }
+        }
+
         return false;
     }
 
@@ -404,6 +414,16 @@ public static class TypeExtensions
         if (type.Kind == TypeKind.NonNull)
         {
             var innerKind = ((NonNullType)type).Type.Kind;
+
+            if (innerKind == kind1 || innerKind == kind2 || innerKind == kind3)
+            {
+                return true;
+            }
+        }
+
+        if (type.Kind == TypeKind.SemanticNonNull)
+        {
+            var innerKind = ((SemanticNonNullType)type).Type.Kind;
 
             if (innerKind == kind1 || innerKind == kind2 || innerKind == kind3)
             {

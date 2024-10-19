@@ -241,11 +241,11 @@ internal static class ExecutionUtils
 
         var index = 0;
         var elementType = type.ElementType();
-        var nullable = elementType.IsNullableType();
+        var isElementNullable = elementType.IsNullableType();
         var isSemanticNonNull = elementType.IsSemanticNonNullType();
         var result = context.Result.RentList(json.GetArrayLength());
 
-        result.IsNullable = nullable;
+        result.AreElementsNullable = isElementNullable;
         result.SetParent(parent, parentIndex);
 
         foreach (var item in json.EnumerateArray())
@@ -268,7 +268,7 @@ internal static class ExecutionUtils
                 {
                     AddSemanticNonNullViolation(context.Result, selection, result, index);
                 }
-                else if (!nullable)
+                else if (!isElementNullable)
                 {
                     PropagateNullValues(context.Result, selection, result, index);
                     break;

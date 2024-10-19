@@ -29,7 +29,7 @@ public sealed class ListResult : ResultData, IReadOnlyList<object?>
     /// <summary>
     /// Defines if the elements of this list are nullable.
     /// </summary>
-    internal bool IsNullable { get; set; }
+    internal bool AreElementsNullable { get; set; }
 
     internal int AddUnsafe(object? item)
     {
@@ -62,7 +62,7 @@ public sealed class ListResult : ResultData, IReadOnlyList<object?>
         if (_count > index)
         {
             _buffer[index] = null;
-            return IsNullable;
+            return AreElementsNullable;
         }
 
         return false;

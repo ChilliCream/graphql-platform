@@ -16,6 +16,7 @@ internal sealed class MockFieldMiddleware
         var field = context.Selection.Field;
         var fieldName = field.Name;
         var fieldType = field.Type;
+        var nullableFieldType = fieldType.NullableType();
         var namedFieldType = fieldType.NamedType();
         int? nullIndex = null;
 
@@ -28,11 +29,11 @@ internal sealed class MockFieldMiddleware
             {
                 nullIndex = errorDirective.AtIndex;
 
-                if (fieldType.IsListType())
+                if (nullableFieldType.IsListType())
                 {
                     context.ReportError(CreateError(context, nullIndex));
                 }
-                else if (namedFieldType.IsScalarType() || namedFieldType.IsEnumType())
+                else if (nullableFieldType.IsScalarType() || nullableFieldType.IsEnumType())
                 {
                     var currentListIndex = context.Parent<ObjectTypeInst>()?.Index;
                     if (currentListIndex.HasValue && currentListIndex == nullIndex)
@@ -52,7 +53,7 @@ internal sealed class MockFieldMiddleware
             {
                 nullIndex = nullDirective.AtIndex;
 
-                if (namedFieldType.IsScalarType() || namedFieldType.IsEnumType())
+                if (nullableFieldType.IsScalarType() || nullableFieldType.IsEnumType())
                 {
                     var currentListIndex = context.Parent<ObjectTypeInst>()?.Index;
                     if (currentListIndex.HasValue && currentListIndex == nullIndex)
@@ -109,11 +110,11 @@ internal sealed class MockFieldMiddleware
             }
         }
 
-        if (fieldType.IsObjectType())
+        if (nullableFieldType.IsObjectType())
         {
             context.Result = CreateObject();
         }
-        else if (fieldType.IsListType())
+        else if (nullableFieldType.IsListType())
         {
             if (namedFieldType.IsObjectType())
             {
@@ -128,7 +129,7 @@ internal sealed class MockFieldMiddleware
                 context.Result = CreateListOfScalars(namedFieldType, nullIndex);
             }
         }
-        else if(namedFieldType is EnumType enumType)
+        else if(nullableFieldType is EnumType enumType)
         {
             context.Result = CreateEnumValue(enumType);
         }

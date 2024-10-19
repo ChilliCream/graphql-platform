@@ -29,7 +29,7 @@ internal static partial class ValueCompletion
         if (result is Array array)
         {
             var resultList = operationContext.Result.RentList(array.Length);
-            resultList.IsNullable = elementType.Kind is not TypeKind.NonNull;
+            resultList.AreElementsNullable = elementType.Kind is not TypeKind.NonNull;
             resultList.SetParent(parent, index);
 
             for (var i = 0; i < array.Length; i++)
@@ -49,7 +49,7 @@ internal static partial class ValueCompletion
         if (result is IList list)
         {
             var resultList = operationContext.Result.RentList(list.Count);
-            resultList.IsNullable = elementType.Kind is not TypeKind.NonNull;
+            resultList.AreElementsNullable = elementType.Kind is not TypeKind.NonNull;
             resultList.SetParent(parent, index);
 
             for (var i = 0; i < list.Count; i++)
@@ -67,7 +67,7 @@ internal static partial class ValueCompletion
         if (result is IEnumerable enumerable)
         {
             var resultList = operationContext.Result.RentList(4);
-            resultList.IsNullable = elementType.Kind is not TypeKind.NonNull;
+            resultList.AreElementsNullable = elementType.Kind is not TypeKind.NonNull;
             resultList.SetParent(parent, index);
 
             var i = 0;
@@ -92,7 +92,7 @@ internal static partial class ValueCompletion
         if (result is JsonElement { ValueKind: JsonValueKind.Array, } node)
         {
             var resultList = operationContext.Result.RentList(4);
-            resultList.IsNullable = elementType.Kind is not TypeKind.NonNull;
+            resultList.AreElementsNullable = elementType.Kind is not TypeKind.NonNull;
             resultList.SetParent(parent, index);
 
             var i = 0;
@@ -145,7 +145,7 @@ internal static partial class ValueCompletion
 
                 if (resultData.IsInvalidated)
                 {
-                    return list.IsNullable;
+                    return list.AreElementsNullable;
                 }
 
                 list.SetUnsafe(index, resultData);
@@ -153,7 +153,7 @@ internal static partial class ValueCompletion
             return true;
         }
 
-        return list.IsNullable;
+        return list.AreElementsNullable;
     }
 
     internal static void PropagateNullValues(ResultData result)

@@ -324,11 +324,19 @@ internal static class ResolverTaskFactory
             completedValue,
             !isNonNullType);
 
-        if (completedValue is null && isNonNullType)
+        if (completedValue is null)
         {
-            PropagateNullValues(parentResult);
-            var errorPath = CreatePathFromContext(selection, parentResult, responseIndex);
-            operationContext.Result.AddNonNullViolation(selection, errorPath);
+            if (isNonNullType)
+            {
+                PropagateNullValues(parentResult);
+                var errorPath = CreatePathFromContext(selection, parentResult, responseIndex);
+                operationContext.Result.AddNonNullViolation(selection, errorPath);
+            }
+            else if (selection.Type.Kind is TypeKind.SemanticNonNull)
+            {
+                var errorPath = CreatePathFromContext(selection, parentResult, responseIndex);
+                operationContext.Result.AddNonNullViolation(selection, errorPath);
+            }
         }
     }
 
