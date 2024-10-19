@@ -1,6 +1,6 @@
 namespace HotChocolate.Language;
 
-public static class WellKnownDirectives
+public static class WellKnownLanguageDirectives
 {
     public const string SemanticNonNull = "semanticNonNull";
 

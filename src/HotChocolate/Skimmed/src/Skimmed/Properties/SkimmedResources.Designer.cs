@@ -50,5 +50,11 @@ namespace HotChocolate.Skimmed.Properties {
                 return ResourceManager.GetString("NonNullType_InnerTypeCannotBeNonNull", resourceCulture);
             }
         }
+        
+        internal static string SemanticNonNullType_InnerTypeCannotBeSemanticNonNull {
+            get {
+                return ResourceManager.GetString("SemanticNonNullType_InnerTypeCannotBeSemanticNonNull", resourceCulture);
+            }
+        }
     }
 }

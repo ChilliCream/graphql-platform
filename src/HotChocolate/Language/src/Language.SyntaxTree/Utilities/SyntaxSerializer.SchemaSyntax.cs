@@ -377,15 +377,15 @@ public sealed partial class SyntaxSerializer
     {
         if (levels.Count == 1 && levels[0] == 0)
         {
-            return new DirectiveNode(WellKnownDirectives.SemanticNonNull);
+            return new DirectiveNode(WellKnownLanguageDirectives.SemanticNonNull);
         }
 
         var levelsListInnerValueNodes = levels.ConvertAll(level => new IntValueNode(level));
         var levelsListValueNode = new ListValueNode(levelsListInnerValueNodes);
 
         return new DirectiveNode(
-            new NameNode(WellKnownDirectives.SemanticNonNull),
-            [new ArgumentNode(WellKnownDirectives.Levels, levelsListValueNode)]);
+            new NameNode(WellKnownLanguageDirectives.SemanticNonNull),
+            [new ArgumentNode(WellKnownLanguageDirectives.Levels, levelsListValueNode)]);
     }
 
     private void VisitInputValueDefinition(

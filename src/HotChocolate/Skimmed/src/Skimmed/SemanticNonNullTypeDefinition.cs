@@ -10,11 +10,10 @@ public sealed class SemanticNonNullTypeDefinition : ITypeDefinition
     {
         ArgumentNullException.ThrowIfNull(nullableType);
 
-        if (nullableType.Kind is TypeKind.NonNull)
+        if (nullableType.Kind is TypeKind.SemanticNonNull)
         {
             throw new ArgumentException(
-                // TODO: Other message
-                SkimmedResources.NonNullType_InnerTypeCannotBeNonNull,
+                SkimmedResources.SemanticNonNullType_InnerTypeCannotBeSemanticNonNull,
                 nameof(nullableType));
         }
 
