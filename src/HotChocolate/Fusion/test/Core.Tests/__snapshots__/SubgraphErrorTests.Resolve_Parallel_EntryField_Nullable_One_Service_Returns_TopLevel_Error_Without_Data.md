@@ -6,7 +6,16 @@
 {
   "errors": [
     {
-      "message": "Top Level Error"
+      "message": "Top Level Error",
+      "locations": [
+        {
+          "line": 5,
+          "column": 3
+        }
+      ],
+      "path": [
+        "other"
+      ]
     }
   ],
   "data": {
