@@ -1,9 +1,12 @@
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Language;
+using HotChocolate.Types;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 
 namespace HotChocolate.Fusion.Shared;
 
@@ -16,18 +19,21 @@ public record TestSubgraph(
 {
     public static Task<TestSubgraph> CreateAsync(
         string schemaText,
-        bool isOffline = false)
+        bool isOffline = false,
+        bool enableSemanticNonNull = false)
         => CreateAsync(
-            configureBuilder: builder => builder
+            configure: builder => builder
                 .AddDocumentFromString(schemaText)
                 .AddResolverMocking()
                 .AddTestDirectives(),
-            isOffline: isOffline);
+            isOffline: isOffline,
+            enableSemanticNonNull: enableSemanticNonNull);
 
     public static async Task<TestSubgraph> CreateAsync(
-        Action<IRequestExecutorBuilder> configureBuilder,
+        Action<IRequestExecutorBuilder> configure,
         string extensions = "",
-        bool isOffline = false)
+        bool isOffline = false,
+        bool enableSemanticNonNull = false)
     {
         var testServerFactory = new TestServerFactory();
         var testContext = new SubgraphTestContext();
@@ -37,9 +43,10 @@ public record TestSubgraph(
             {
                 var builder = services
                     .AddRouting()
-                    .AddGraphQLServer(disableDefaultSecurity: true);
+                    .AddGraphQLServer(disableDefaultSecurity: true)
+                    .ModifyOptions(o => o.EnableSemanticNonNull = enableSemanticNonNull);
 
-                configureBuilder(builder);
+                configure(builder);
             },
             app =>
             {

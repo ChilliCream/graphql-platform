@@ -49,11 +49,21 @@ internal sealed partial class ResolverTask
         var isNonNullType = _selection.Type.Kind is TypeKind.NonNull;
         _context.ParentResult.SetValueUnsafe(responseIndex, responseName, completedResult, !isNonNullType);
 
-        if (completedResult is null && isNonNullType)
+        if (completedResult is null)
+        {
+            if (isNonNullType)
         {
             PropagateNullValues(parentResult);
             _completionStatus = ExecutionTaskStatus.Faulted;
             _operationContext.Result.AddNonNullViolation(_selection, _context.Path);
+            }
+            else if (_selection.Type.Kind is TypeKind.SemanticNonNull)
+            {
+                // TODO: Is this correct?
+                _completionStatus = ExecutionTaskStatus.Completed;
+                _operationContext.Result.AddNonNullViolation(_selection, _context.Path);
+            }
+
             _taskBuffer.Clear();
         }
     }
