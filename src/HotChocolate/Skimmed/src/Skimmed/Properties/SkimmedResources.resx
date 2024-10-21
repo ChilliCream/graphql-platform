@@ -21,4 +21,7 @@
     <data name="NonNullType_InnerTypeCannotBeNonNull" xml:space="preserve">
         <value>The inner type cannot be a non-null type.</value>
     </data>
+  <data name="SemanticNonNullType_InnerTypeCannotBeSemanticNonNull" xml:space="preserve">
+    <value>The inner type cannot be a semantic-non-null type.</value>
+  </data>
 </root>

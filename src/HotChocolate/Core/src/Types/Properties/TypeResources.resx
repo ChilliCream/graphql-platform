@@ -1003,4 +1003,13 @@ Type: `{0}`</value>
   <data name="ObjectToDictionaryConverter_CycleInObjectGraph" xml:space="preserve">
     <value>Cycle in object graph detected.</value>
   </data>
+  <data name="SemanticNonNullDirectiveType_Description" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="SemanticNonNullDirectiveType_Levels_Description" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="SemanticNonNullType_TypeIsSemanticNonNullType" xml:space="preserve">
+    <value>The inner type of semantic non-null type must be a nullable type.</value>
+  </data>
 </root>

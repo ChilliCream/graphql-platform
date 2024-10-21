@@ -219,6 +219,31 @@ public ref partial struct Utf8GraphQLParser
         var type = ParseTypeReference();
         var directives = ParseDirectives(true);
 
+        var semanticNonNullDirective = directives
+            .FirstOrDefault(d => d.Name.Value == WellKnownLanguageDirectives.SemanticNonNull);
+
+        if (semanticNonNullDirective is not null)
+        {
+            var levelsArgument = semanticNonNullDirective.Arguments
+                .FirstOrDefault(a => a.Name.Value == WellKnownLanguageDirectives.Levels);
+
+            HashSet<int> levels = levelsArgument?.Value switch
+            {
+                IntValueNode intValueNode => [intValueNode.ToInt32()],
+                ListValueNode listValueNode =>
+                [
+                    ..listValueNode.Items
+                    .OfType<IntValueNode>()
+                    .Select(t => t.ToInt32())
+                ],
+                _ => [0]
+            };
+
+            type = BuildSemanticNonNullTypeFromLevels(type, levels, 0);
+
+            directives.Remove(semanticNonNullDirective);
+        }
+
         var location = CreateLocation(in start);
 
         return new FieldDefinitionNode
@@ -230,6 +255,41 @@ public ref partial struct Utf8GraphQLParser
             type,
             directives
         );
+    }
+
+    private static ITypeNode BuildSemanticNonNullTypeFromLevels(
+        ITypeNode type,
+        HashSet<int> levels,
+        int level)
+    {
+        switch (type)
+        {
+            case NonNullTypeNode nonNullTypeRef:
+                return new NonNullTypeNode((INullableTypeNode)BuildSemanticNonNullTypeFromLevels(nonNullTypeRef.Type, levels, level));
+
+            case ListTypeNode listTypeRef:
+                var listType = new ListTypeNode(BuildSemanticNonNullTypeFromLevels(listTypeRef.Type, levels, level + 1));
+
+                if (levels.Contains(level))
+                {
+                    return new SemanticNonNullTypeNode(listType);
+                }
+
+                return listType;
+
+            case NamedTypeNode namedTypeRef:
+                var namedType = namedTypeRef;
+
+                if (levels.Contains(level))
+                {
+                    return new SemanticNonNullTypeNode(namedType);
+                }
+
+                return namedType;
+
+            default:
+                throw new ArgumentOutOfRangeException(nameof(type));
+        }
     }
 
     /// <summary>

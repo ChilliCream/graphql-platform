@@ -49,6 +49,7 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
             NamedTypeNode n => RewriteNamedType(n, context),
             NameNode n => RewriteName(n, context),
             NonNullTypeNode n => RewriteNonNullType(n, context),
+            SemanticNonNullTypeNode n => RewriteSemanticNonNullType(n, context),
             NullValueNode n => RewriteNullValue(n, context),
             ObjectFieldNode n => RewriteObjectField(n, context),
             ObjectTypeDefinitionNode n => RewriteObjectTypeDefinition(n, context),
@@ -536,6 +537,20 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
         if (!ReferenceEquals(type, node.Type))
         {
             return new NonNullTypeNode(node.Location, type);
+        }
+
+        return node;
+    }
+
+    protected virtual SemanticNonNullTypeNode? RewriteSemanticNonNullType(
+        SemanticNonNullTypeNode node,
+        TContext context)
+    {
+        var type = RewriteNode(node.Type, context);
+
+        if (!ReferenceEquals(type, node.Type))
+        {
+            return new SemanticNonNullTypeNode(node.Location, type);
         }
 
         return node;
