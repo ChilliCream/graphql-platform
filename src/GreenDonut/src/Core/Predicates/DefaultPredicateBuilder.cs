@@ -4,10 +4,13 @@ using System.Linq.Expressions;
 
 namespace GreenDonut.Predicates;
 
+/// <summary>
+/// A default implementation of the <see cref="IPredicateBuilder"/>.
+/// </summary>
 #if NET8_0_OR_GREATER
 [Experimental(Experiments.Predicates)]
 #endif
-internal sealed class DefaultPredicateBuilder : IPredicateBuilder
+public sealed class DefaultPredicateBuilder : IPredicateBuilder
 {
     private List<LambdaExpression>? _predicates;
 
