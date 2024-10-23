@@ -1,22 +1,22 @@
 ---
-title: Operations Pane
+title: Operation Pane
 ---
 
-The Operations Pane provides a comprehensive interface for writing GraphQL queries, mutations, and subscriptions. It offers several features to enhance your development experience.
+The Operation Pane provides a comprehensive interface for writing GraphQL queries, mutations, and subscriptions. It offers several features to enhance your development experience.
 
-![Nitro - Operations Pane](./images/operations-0.png)
+![Nitro - Operation Pane](./images/operation-0.webp)
 
-# **1. Operations Editor**
+# **1. Request Editor**
 
-The Operations Editor is a text editor within the Operations Pane where you can write your GraphQL queries, mutations, and subscriptions. It provides syntax highlighting, intellisense, and validation to assist you in writing accurate queries.
+The Request Editor is a text editor within the Operation Pane where you can write your GraphQL queries, mutations, and subscriptions. It provides syntax highlighting, intellisense, and validation to assist you in writing accurate queries.
 
 # **2. Inline Run Button**
 
-The Inline Run Button allows you to execute your query directly from the Operations Editor. By clicking this button, your query will be sent to the GraphQL server, and the response will be displayed in the Response Pane.
+The Inline Run Button allows you to execute your query directly from the Request Editor. By clicking this button, your query will be sent to the GraphQL server, and the response will be displayed in the Response Pane.
 
 # **3. Format Button**
 
-The Format Button helps you maintain proper query formatting according to common formatting rules. When clicked, it automatically formats your query and updates the content in the Operations Editor.
+The Format Button helps you maintain proper query formatting according to common formatting rules. When clicked, it automatically formats your query and updates the content in the Request Editor.
 
 # **4. Run Button**
 

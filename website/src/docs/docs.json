@@ -42,7 +42,7 @@
           },
           {
             "path": "apis",
-            "title": "Apis",
+            "title": "APIs",
             "items": [
               { "path": "overview", "title": "Overview" },
               { "path": "stages", "title": "Stages" },
@@ -78,12 +78,12 @@
             "title": "Environments"
           },
           {
-            "path": "workspaces",
-            "title": "Workspaces"
-          },
-          {
             "path": "organizations",
             "title": "Organizations"
+          },
+          {
+            "path": "workspaces",
+            "title": "Workspaces"
           },
           {
             "path": "nitro-services",
