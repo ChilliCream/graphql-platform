@@ -17,8 +17,6 @@
     <PackageVersion Include="ChilliCream.Testing.Utilities" Version="0.2.0" />
     <PackageVersion Include="coverlet.collector" Version="6.0.2" />
     <PackageVersion Include="DiffPlex" Version="1.7.2" />
-    <PackageVersion Include="FsCheck.Xunit" Version="3.0.0-rc3" />
-    <PackageVersion Include="FSharp.Core" Version="8.0.100" />
     <PackageVersion Include="Glob" Version="1.1.9" />
     <PackageVersion Include="IdentityModel" Version="4.1.1" />
     <PackageVersion Include="JsonPointer.Net" Version="5.0.0" />
@@ -60,7 +58,6 @@
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
     <PackageVersion Include="System.ComponentModel.Annotations" Version="5.0.0" />
     <PackageVersion Include="System.Reactive" Version="6.0.0" />
-    <PackageVersion Include="Unquote" Version="6.1.0" />
     <PackageVersion Include="Xunit" Version="2.9.0" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
   </ItemGroup>

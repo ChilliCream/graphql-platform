@@ -878,7 +878,7 @@ Another change we made with Hot Chocolate 14 is around introspection. When we de
 ```csharp
 builder
     .AddGraphQLServer()
-    .ModifyRequestOptions(o => o.EnableIntrospection = true);
+    .DisableIntrospection(false);
 ```
 
 Also the schema file can be disabled like the following.
@@ -886,7 +886,7 @@ Also the schema file can be disabled like the following.
 ```csharp
 builder
     .AddGraphQLServer()
-    .ModifyRequestOptions(o => o.EnableSchemaFile = false);
+    .ModifyRequestOptions(o => o.EnableSchemaFileSupport = false);
 ```
 
 # Fusion
