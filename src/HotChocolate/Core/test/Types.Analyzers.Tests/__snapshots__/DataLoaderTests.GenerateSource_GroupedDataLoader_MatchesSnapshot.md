@@ -20,7 +20,7 @@ namespace TestNamespace
     {
     }
 
-    public sealed class EntitiesByIdDataLoader
+    public sealed partial class EntitiesByIdDataLoader
         : global::GreenDonut.DataLoaderBase<int, global::TestNamespace.Entity[]>
         , IEntitiesByIdDataLoader
     {

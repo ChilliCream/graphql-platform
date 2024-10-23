@@ -499,4 +499,31 @@ public class DataLoaderTests
             }
             """).MatchMarkdownAsync();
     }
+
+    [Fact]
+    public async Task Generate_Without_Interface()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using GreenDonut;
+
+            [assembly: GreenDonut.DataLoaderDefaults(GenerateInterfaces = false)]
+
+            namespace TestNamespace;
+
+            internal static class TestClass
+            {
+                [DataLoader]
+                public static Task<IDictionary<int, string>> GetEntityByIdAsync(
+                    IReadOnlyList<int> entityIds,
+                    GreenDonut.Predicates.IPredicateBuilder predicate,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+            """).MatchMarkdownAsync();
+    }
 }

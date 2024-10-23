@@ -14,24 +14,24 @@ Each Nitro user has a personal organization. This is a private space for individ
 
 Nitro allows for multiple organizations under one account. To add a new organization, navigate to the organization switcher in the status bar and click on the "Add Organization" button.
 
-![Screenshot showing the "Add Organization" button in the organization switcher](images/create-0.png)
+![Screenshot showing the "Add Organization" button in the organization switcher](images/create-0.webp)
 
 You will be redirected to the management portal. Here you can create a new organization by clicking the 'Create' button.
 
-![Picture showing the create button in the management portal](images/create-1.png)
+![Picture showing the create button in the management portal](images/create-1.webp)
 
 Each organization has a unique name and a display name which can be set during creation.
 The name must be lowercase and may only include dashes (-) and underscores (\_).
 
-![Screenshot of the create organization screen](images/create-2.png)
+![Screenshot of the create organization screen](images/create-2.webp)
 
 # Managing Organizations
 
 To manage your organizations, you have to open the management portal.
 
-![Screenshot showing the manage button in the organization switcher](images/manage-0.png)
+![Screenshot showing the manage button in the organization switcher](images/manage-0.webp)
 
-In the client app, you can do this by clicking Manage Organizations' and then 'Manage' on the organization that you like to manage.
+In the client app, you can do this by clicking 'Manage Organizations' and then 'Manage' on the organization that you'd like to manage.
 
 You can also navigate to [here](https://identity.chillicream.com/Organizations) to open the management portal and press 'Manage' on the organization that you like to manage.
 
@@ -39,17 +39,17 @@ You can also navigate to [here](https://identity.chillicream.com/Organizations) 
 
 In Nitro, you can be signed into multiple organizations at the same time and switch between them in the status bar. The organization switcher also allows you to create new organizations.
 
-![Screenshot showing the organization switcher in the status bar](images/switch-0.png)
+![Screenshot showing the organization switcher in the status bar](images/switch-0.webp)
 
 # Managing Members
 
-![Screenshot showing the invite user button and the process](images/members-0.png)
+![Screenshot showing the invite user button and the process](images/members-0.webp)
 
 1. The count of members and the number of seats available in your subscription are displayed in the management overview section. (members/total seats)
 
 2. This list show all the members of the organization and their role.
 
-3. Members can be invited to join an organization via email. In the management overview section, the 'Invite User' button allows you to send an invitation email containing a join link.
+3. Members can be invited to join an organization via email. In the management overview section, the 'Invite User' section allows you to send an invitation email containing a join link.
 
 4. Open invitations are displayed below. You can revoke an invitation by clicking on the 'Cancel' button. Once an invitation is expired, you can resend it by clicking on the 'Resend' button.
 
@@ -82,7 +82,7 @@ There are three distinct roles within an organization: Owner, Admin, and Collabo
 
 ## Managing Permissions
 
-![Screenshot showing the invite user button and the process](images/members-1.png)
+![Screenshot showing the invite user button and the process](images/members-1.webp)
 
 You can manage the permissions of each member in the member list.
 
@@ -97,8 +97,8 @@ You can manage the permissions of each member in the member list.
 # Transferring Ownership
 
 Ownership of the organization can be transferred to any existing member from the management portal.
-In the danger zone section, click on the 'Transfer Ownership' button to open the transfer dialog.
-![Screenshot showing the transfer ownership button and the process](images/danger-zone-0.png)
+In the danger zone section, click on the 'Transfer' button to transfer ownership.
+![Screenshot showing the transfer ownership button and the process](images/danger-zone-0.webp)
 
 # Redirect URLs
 
@@ -112,11 +112,11 @@ You can add the redirect URL in two ways:
 
 1. By signing in from the new origin. This will trigger a prompt to add the URL to the organization.
 
-![Screenshot showing the redirect URL prompt](images/redirect-0.png)
+![Screenshot showing the redirect URL prompt](images/redirect-0.webp)
 
 2. By adding the URL directly from the management portal.
 
-![Screenshot showing the redirect URL prompt](images/redirect-1.png)
+![Screenshot showing the redirect URL prompt](images/redirect-1.webp)
 
 In the portal you have more options to configure the allowed destinations. You can for example allow all localhost origins. Or disable the access to the web UI in the [cloud](https://nitro.chillicream.com)
 
