@@ -93,6 +93,12 @@ public static class BuiltIns
         }
     }
 
+    public static class SpecifiedBy
+    {
+        public const string Name = "specifiedBy";
+        public const string Url = "url";
+    }
+
     public static bool IsBuiltInScalar(string name)
         => name switch
         {
@@ -110,6 +116,7 @@ public static class BuiltIns
             Include.Name => true,
             Skip.Name => true,
             Deprecated.Name => true,
+            SpecifiedBy.Name => true,
             _ => false
         };
 }
