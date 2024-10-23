@@ -1,5 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
+using HotChocolate.Types;
 
 namespace HotChocolate.Skimmed.Serialization;
 
@@ -490,6 +491,21 @@ public static class SchemaFormatter
             return directives;
         }
 
+        private static DirectiveNode CreateSemanticNonNullDirective(List<int> levels)
+        {
+            if (levels is [0])
+            {
+                return new DirectiveNode(BuiltIns.SemanticNonNull.Name);
+            }
+
+            var levelsListInnerValueNodes = levels.ConvertAll(level => new IntValueNode(level));
+            var levelsListValueNode = new ListValueNode(levelsListInnerValueNodes);
+
+            return new DirectiveNode(
+                new NameNode(BuiltIns.SemanticNonNull.Name),
+                [new ArgumentNode(BuiltIns.SemanticNonNull.Levels, levelsListValueNode)]);
+        }
+
         private static DirectiveNode CreateDeprecatedDirective(string? reason = null)
         {
             const string defaultReason = "No longer supported.";
@@ -501,7 +517,7 @@ public static class SchemaFormatter
 
             return new DirectiveNode(
                 new NameNode(BuiltIns.Deprecated.Name),
-                new[] { new ArgumentNode(BuiltIns.Deprecated.Reason, reason) });
+                [new ArgumentNode(BuiltIns.Deprecated.Reason, reason)]);
         }
 
         private static StringValueNode? CreateDescription(string? description)
