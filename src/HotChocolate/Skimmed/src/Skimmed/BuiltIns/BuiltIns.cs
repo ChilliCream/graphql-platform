@@ -6,40 +6,35 @@ public static class BuiltIns
     {
         public const string Name = nameof(String);
 
-        public static StringTypeDefinition Create()
-            => new();
+        public static ScalarTypeDefinition Create() => new(Name) { IsSpecScalar = true };
     }
 
     public static class Boolean
     {
         public const string Name = nameof(Boolean);
 
-        public static BooleanTypeDefinition Create()
-            => new();
+        public static ScalarTypeDefinition Create() => new(Name) { IsSpecScalar = true };
     }
 
     public static class Float
     {
         public const string Name = nameof(Float);
 
-        public static FloatTypeDefinition Create()
-            => new();
+        public static ScalarTypeDefinition Create() => new(Name) { IsSpecScalar = true };
     }
 
     public static class ID
     {
         public const string Name = nameof(ID);
 
-        public static IDTypeDefinition Create()
-            => new();
+        public static ScalarTypeDefinition Create() => new(Name) { IsSpecScalar = true };
     }
 
     public static class Int
     {
         public const string Name = nameof(Int);
 
-        public static IntTypeDefinition Create()
-            => new();
+        public static ScalarTypeDefinition Create() => new(Name) { IsSpecScalar = true };
     }
 
     public static class Include
@@ -49,13 +44,13 @@ public static class BuiltIns
 
         public static IncludeDirectiveDefinition Create(SchemaDefinition schema)
         {
-            if (!schema.Types.TryGetType<BooleanTypeDefinition>(Boolean.Name, out var typeDef))
+            if (!schema.Types.TryGetType<ScalarTypeDefinition>(Boolean.Name, out var booleanTypeDef))
             {
-                typeDef = new BooleanTypeDefinition();
-                schema.Types.Add(typeDef);
+                booleanTypeDef = Boolean.Create();
+                schema.Types.Add(booleanTypeDef);
             }
 
-            return new IncludeDirectiveDefinition(typeDef);
+            return new IncludeDirectiveDefinition(booleanTypeDef);
         }
     }
 
@@ -66,13 +61,13 @@ public static class BuiltIns
 
         public static SkipDirectiveDefinition Create(SchemaDefinition schema)
         {
-            if (!schema.Types.TryGetType<BooleanTypeDefinition>(Boolean.Name, out var typeDef))
+            if (!schema.Types.TryGetType<ScalarTypeDefinition>(Boolean.Name, out var booleanTypeDef))
             {
-                typeDef = new BooleanTypeDefinition();
-                schema.Types.Add(typeDef);
+                booleanTypeDef = Boolean.Create();
+                schema.Types.Add(booleanTypeDef);
             }
 
-            return new SkipDirectiveDefinition(typeDef);
+            return new SkipDirectiveDefinition(booleanTypeDef);
         }
     }
 
@@ -83,13 +78,30 @@ public static class BuiltIns
 
         public static DeprecatedDirectiveDefinition Create(SchemaDefinition schema)
         {
-            if (!schema.Types.TryGetType<StringTypeDefinition>(String.Name, out var typeDef))
+            if (!schema.Types.TryGetType<ScalarTypeDefinition>(String.Name, out var stringTypeDef))
             {
-                typeDef = new StringTypeDefinition();
-                schema.Types.Add(typeDef);
+                stringTypeDef = String.Create();
+                schema.Types.Add(stringTypeDef);
             }
 
-            return new DeprecatedDirectiveDefinition(typeDef);
+            return new DeprecatedDirectiveDefinition(stringTypeDef);
+        }
+    }
+
+    public static class SpecifiedBy
+    {
+        public const string Name = "specifiedBy";
+        public const string Url = "url";
+
+        public static SpecifiedByDirectiveDefinition Create(SchemaDefinition schema)
+        {
+            if (!schema.Types.TryGetType<ScalarTypeDefinition>(String.Name, out var stringTypeDef))
+            {
+                stringTypeDef = String.Create();
+                schema.Types.Add(stringTypeDef);
+            }
+
+            return new SpecifiedByDirectiveDefinition(stringTypeDef);
         }
     }
 
@@ -110,6 +122,7 @@ public static class BuiltIns
             Include.Name => true,
             Skip.Name => true,
             Deprecated.Name => true,
+            SpecifiedBy.Name => true,
             _ => false
         };
 }

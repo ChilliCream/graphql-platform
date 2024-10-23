@@ -175,6 +175,11 @@ public static class SchemaFormatter
 
             foreach (var type in directiveTypes.OrderBy(t => t.Name))
             {
+                if (BuiltIns.IsBuiltInDirective(type.Name))
+                {
+                    continue;
+                }
+
                 VisitDirectiveType(type, context);
                 definitionNodes.Add((IDefinitionNode)context.Result!);
             }

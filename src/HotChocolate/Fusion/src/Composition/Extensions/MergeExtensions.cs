@@ -173,18 +173,15 @@ internal static class MergeExtensions
         foreach (var directive in source.Directives)
         {
             if (context.FusionTypes.IsFusionDirective(directive.Name)
-                || BuiltIns.IsBuiltInDirective(directive.Name)
+                // @deprecated is handled separately
+                || directive.Name == BuiltIns.Deprecated.Name
                 // @tag is handled separately
                 || directive.Name == "tag")
             {
                 continue;
             }
 
-            if (context.FusionGraph.DirectiveDefinitions.TryGetDirective(directive.Name, out var directiveDefinition)
-                && directiveDefinition.IsSpecDirective)
-            {
-                continue;
-            }
+            context.FusionGraph.DirectiveDefinitions.TryGetDirective(directive.Name, out var directiveDefinition);
 
             if (!target.Directives.ContainsName(directive.Name))
             {
