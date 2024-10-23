@@ -32,6 +32,7 @@ internal sealed class DirectiveTypeInterceptor : TypeInterceptor
             if (directiveType is { IsTypeSystemDirective: true, IsExecutableDirective: false } &&
                 !directiveType.Name.EqualsOrdinal(WellKnownDirectives.Deprecated) &&
                 !directiveType.Name.EqualsOrdinal(SpecifiedByDirectiveType.Names.SpecifiedBy) &&
+                !directiveType.Name.Equals(WellKnownDirectives.SemanticNonNull) &&
                 !_usedDirectives.Contains(directiveType))
             {
                 (discarded ??= []).Add(directiveType);

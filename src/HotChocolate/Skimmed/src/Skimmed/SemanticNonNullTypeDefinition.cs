@@ -1,31 +1,31 @@
+using HotChocolate.Skimmed.Properties;
+using HotChocolate.Skimmed.Serialization;
 using HotChocolate.Types;
-using static HotChocolate.Skimmed.Properties.SkimmedResources;
-using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class StrictNonNullTypeDefinition : ITypeDefinition
+public sealed class SemanticNonNullTypeDefinition : ITypeDefinition
 {
-    public StrictNonNullTypeDefinition(ITypeDefinition nullableType)
+    public SemanticNonNullTypeDefinition(ITypeDefinition nullableType)
     {
         ArgumentNullException.ThrowIfNull(nullableType);
 
-        if (nullableType.Kind is TypeKind.NonNull)
+        if (nullableType.Kind is TypeKind.SemanticNonNull)
         {
             throw new ArgumentException(
-                NonNullType_InnerTypeCannotBeNonNull,
+                SkimmedResources.SemanticNonNullType_InnerTypeCannotBeSemanticNonNull,
                 nameof(nullableType));
         }
 
         NullableType = nullableType;
     }
 
-    public TypeKind Kind => TypeKind.NonNull;
+    public TypeKind Kind => TypeKind.SemanticNonNull;
 
     public ITypeDefinition NullableType { get; }
 
     public override string ToString()
-        => RewriteTypeRef(this).ToString(true);
+        => SchemaDebugFormatter.RewriteTypeRef(this).ToString(true);
 
     public bool Equals(ITypeDefinition? other)
         => Equals(other, TypeComparison.Reference);
@@ -37,7 +37,7 @@ public sealed class StrictNonNullTypeDefinition : ITypeDefinition
             return ReferenceEquals(this, other);
         }
 
-        return other is NonNullTypeDefinition otherNonNull &&
-            NullableType.Equals(otherNonNull.NullableType, comparison);
+        return other is SemanticNonNullTypeDefinition otherSemanticNonNull &&
+            NullableType.Equals(otherSemanticNonNull.NullableType, comparison);
     }
 }

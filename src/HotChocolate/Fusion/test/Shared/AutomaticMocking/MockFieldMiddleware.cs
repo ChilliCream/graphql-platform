@@ -16,6 +16,7 @@ internal sealed class MockFieldMiddleware
         var field = context.Selection.Field;
         var fieldName = field.Name;
         var fieldType = field.Type;
+        var nullableFieldType = fieldType.NullableType();
         var namedFieldType = fieldType.NamedType();
         int? nullIndex = null;
 
@@ -28,13 +29,13 @@ internal sealed class MockFieldMiddleware
             {
                 nullIndex = errorDirective.AtIndex;
 
-                if (fieldType.IsListType())
+                if (nullableFieldType.IsListType())
                 {
                     context.ReportError(CreateError(context, nullIndex));
                 }
-                else if (namedFieldType.IsScalarType())
+                else if (nullableFieldType.IsScalarType() || nullableFieldType.IsEnumType())
                 {
-                    var currentListIndex = context.Parent<ObjectTypeInst>().Index;
+                    var currentListIndex = context.Parent<ObjectTypeInst>()?.Index;
                     if (currentListIndex.HasValue && currentListIndex == nullIndex)
                     {
                         throw new GraphQLException(CreateError(context));
@@ -52,9 +53,9 @@ internal sealed class MockFieldMiddleware
             {
                 nullIndex = nullDirective.AtIndex;
 
-                if (namedFieldType.IsScalarType())
+                if (nullableFieldType.IsScalarType() || nullableFieldType.IsEnumType())
                 {
-                    var currentListIndex = context.Parent<ObjectTypeInst>().Index;
+                    var currentListIndex = context.Parent<ObjectTypeInst>()?.Index;
                     if (currentListIndex.HasValue && currentListIndex == nullIndex)
                     {
                         context.Result = null;
@@ -109,20 +110,28 @@ internal sealed class MockFieldMiddleware
             }
         }
 
-        if (fieldType.IsObjectType())
+        if (nullableFieldType.IsObjectType())
         {
             context.Result = CreateObject();
         }
-        else if (fieldType.IsListType())
+        else if (nullableFieldType.IsListType())
         {
             if (namedFieldType.IsObjectType())
             {
                 context.Result = CreateListOfObjects(null, nullIndex);
             }
+            else if(namedFieldType is EnumType enumType)
+            {
+                context.Result = CreateListOfEnums(enumType, nullIndex);
+            }
             else
             {
                 context.Result = CreateListOfScalars(namedFieldType, nullIndex);
             }
+        }
+        else if(nullableFieldType is EnumType enumType)
+        {
+            context.Result = CreateEnumValue(enumType);
         }
         else
         {
@@ -145,6 +154,11 @@ internal sealed class MockFieldMiddleware
         };
     }
 
+    private object? CreateEnumValue(EnumType enumType)
+    {
+        return enumType.Values.FirstOrDefault()?.Value;
+    }
+
     private object CreateObject(object? id = null, int? index = null)
     {
         var finalId = id ?? ++_idCounter;
@@ -159,6 +173,13 @@ internal sealed class MockFieldMiddleware
             .ToArray();
     }
 
+    private object?[] CreateListOfEnums(EnumType enumType, int? nullIndex)
+    {
+        return Enumerable.Range(0, DefaultListSize)
+            .Select(index => nullIndex == index ? null : CreateEnumValue(enumType))
+            .ToArray();
+    }
+
     private object?[] CreateListOfObjects(object[]? ids, int? nullIndex)
     {
         if (ids is not null)
@@ -169,7 +190,7 @@ internal sealed class MockFieldMiddleware
         }
 
         return Enumerable.Range(0, DefaultListSize)
-            .Select(index => CreateObject(null, index))
+            .Select(index => nullIndex == index ? null : CreateObject(null, index))
             .ToArray();
     }
 

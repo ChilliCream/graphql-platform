@@ -57,6 +57,7 @@ public sealed partial class SyntaxSerializer
             case SyntaxKind.NamedType:
             case SyntaxKind.ListType:
             case SyntaxKind.NonNullType:
+            case SyntaxKind.SemanticNonNullType:
                 writer.WriteType((ITypeNode)node);
                 break;
             case SyntaxKind.ListValue:

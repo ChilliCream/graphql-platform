@@ -69,4 +69,14 @@ public static class WellKnownDirectives
     /// The name of the @tag argument name.
     /// </summary>
     public const string Name = "name";
+
+    /// <summary>
+    /// The name of the @semanticNonNull directive.
+    /// </summary>
+    public const string SemanticNonNull = "semanticNonNull";
+
+    /// <summary>
+    /// The name of the @semanticNonNull argument levels.
+    /// </summary>
+    public const string Levels = "levels";
 }

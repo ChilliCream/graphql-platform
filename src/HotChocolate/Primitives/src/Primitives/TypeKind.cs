@@ -170,4 +170,6 @@ public enum TypeKind
     /// <para>https://spec.graphql.org/draft/#sec-Type-System.Directives</para>
     /// </summary>
     Directive = 128,
+
+    SemanticNonNull = 256
 }
