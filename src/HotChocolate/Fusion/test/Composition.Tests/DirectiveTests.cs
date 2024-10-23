@@ -1,4 +1,5 @@
 using CookieCrumble;
+using HotChocolate.Fusion.Composition.Features;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Shared;
 using HotChocolate.Language;
@@ -355,6 +356,119 @@ public class DirectiveTests(ITestOutputHelper output)
             }
 
             directive @test(arg: String) repeatable on FIELD_DEFINITION
+            """);
+    }
+
+    [Fact]
+    public async Task Properly_Compose_TypeSystem_Spec_Directives()
+    {
+        // arrange
+        var subgraphSchemaA = """
+                              type Query {
+                                field: CustomScalar @deprecated(reason: "Deprecated")
+                              }
+
+                              scalar CustomScalar @specifiedBy(url: "https://foo.bar")
+                              """;
+
+        var subgraphSchemaB = """
+                              type Query {
+                                field: CustomScalar @deprecated(reason: "Deprecated")
+                              }
+
+                              scalar CustomScalar @specifiedBy(url: "https://foo.bar")
+                              """;
+
+        var features = new FusionFeatureCollection(FusionFeatures.NodeField);
+
+        var configurations = new [] { subgraphSchemaA, subgraphSchemaB }
+            .Select((schema, index) =>
+            {
+                return new SubgraphConfiguration(
+                    index.ToString(),
+                    schema,
+                    string.Empty,
+                    new IClientConfiguration[]
+                    {
+                        new HttpClientConfiguration(new Uri("http://localhost:5000/graphql")),
+                    },
+                    null);
+            });
+
+        // act
+        var fusionGraph =  await new FusionGraphComposer(logFactory:_logFactory)
+            .ComposeAsync(configurations, features);
+
+        // assert
+        GetSchemaWithoutFusion(fusionGraph).MatchInlineSnapshot(
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              field: CustomScalar @deprecated(reason: "Deprecated")
+            }
+
+            scalar CustomScalar @specifiedBy(url: "https:\/\/foo.bar")
+            """);
+    }
+
+    [Fact]
+    public async Task Properly_Compose_TypeSystem_Spec_Directives_When_They_Are_Part_Of_Subgraph_Schema()
+    {
+        // arrange
+        var subgraphSchemaA = """
+                              type Query {
+                                field: CustomScalar @deprecated(reason: "Deprecated")
+                              }
+
+                              scalar CustomScalar @specifiedBy(url: "https://foo.bar")
+                              """;
+
+        var subgraphSchemaB = """
+                              type Query {
+                                field: CustomScalar @deprecated(reason: "Deprecated")
+                              }
+
+                              "The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions."
+                              directive @specifiedBy("The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types." url: String!) on SCALAR
+
+                              scalar CustomScalar @specifiedBy(url: "https://foo.bar")
+                              """;
+
+        var features = new FusionFeatureCollection(FusionFeatures.NodeField);
+
+        var configurations = new [] { subgraphSchemaA, subgraphSchemaB }
+            .Select((schema, index) =>
+            {
+                return new SubgraphConfiguration(
+                    index.ToString(),
+                    schema,
+                    string.Empty,
+                    new IClientConfiguration[]
+                    {
+                        new HttpClientConfiguration(new Uri("http://localhost:5000/graphql")),
+                    },
+                    null);
+            });
+
+        // act
+        var fusionGraph =  await new FusionGraphComposer(logFactory:_logFactory)
+            .ComposeAsync(configurations, features);
+
+        // assert
+        GetSchemaWithoutFusion(fusionGraph).MatchInlineSnapshot(
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              field: CustomScalar @deprecated(reason: "Deprecated")
+            }
+
+            scalar CustomScalar @specifiedBy(url: "https:\/\/foo.bar")
             """);
     }
 
