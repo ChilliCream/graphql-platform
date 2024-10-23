@@ -20,7 +20,7 @@ namespace TestNamespace
     {
     }
 
-    public sealed class EntityByIdDataLoader
+    public sealed partial class EntityByIdDataLoader
         : global::GreenDonut.DataLoaderBase<int, global::TestNamespace.Entity>
         , IEntityByIdDataLoader
     {
@@ -70,7 +70,7 @@ namespace TestNamespace
         IEntityByIdDataLoader EntityById { get; }
     }
 
-    public sealed class Group1 : IGroup1
+    public sealed partial class Group1 : IGroup1
     {
         private readonly IServiceProvider _services;
         private IEntityByIdDataLoader? _entityById;
@@ -98,7 +98,7 @@ namespace TestNamespace
         IEntityByIdDataLoader EntityById { get; }
     }
 
-    public sealed class Group2 : IGroup2
+    public sealed partial class Group2 : IGroup2
     {
         private readonly IServiceProvider _services;
         private IEntityByIdDataLoader? _entityById;
