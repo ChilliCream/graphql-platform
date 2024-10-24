@@ -119,7 +119,7 @@ If you load an entity with a data loader in your request more than once, it is g
 
 Data loaders do not fetch an entity if there is already an entity with the requested key in the cache.
 
-# Types of Data Loaders
+# Types of DataLoader
 
 In Hot Chocolate you can declare data loaders in two different ways.
 You can separate the data loading concern into separate classes or you can use a delegate in the resolver to define data loaders on the fly.
