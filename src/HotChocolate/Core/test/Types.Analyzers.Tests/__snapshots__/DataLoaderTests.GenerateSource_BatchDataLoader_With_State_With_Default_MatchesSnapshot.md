@@ -43,7 +43,7 @@ namespace TestNamespace
             global::System.Threading.CancellationToken ct)
         {
             var p1 = context.GetStateOrDefault<string>("key", "default");
-            var temp = await TestNamespace.TestClass.GetEntityByIdAsync(keys, p1, ct).ConfigureAwait(false);
+            var temp = await global::TestNamespace.TestClass.GetEntityByIdAsync(keys, p1, ct).ConfigureAwait(false);
             CopyResults(keys, results.Span, temp);
         }
 
