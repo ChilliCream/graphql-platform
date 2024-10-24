@@ -205,7 +205,7 @@ public static class FilterExpressionBuilder
             nameof(parameter.p));
     }
 
-    private static Expression CreateParameter(object? value, Type type)
+    public static Expression CreateParameter(object? value, Type type)
     {
         if (value is null)
         {
