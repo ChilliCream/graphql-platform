@@ -46,7 +46,7 @@ namespace TestNamespace
             global::GreenDonut.DataLoaderFetchContext<string> context,
             global::System.Threading.CancellationToken ct)
         {
-            var temp = await TestNamespace.TestClass.GetEntityByIdAsync(keys, ct).ConfigureAwait(false);
+            var temp = await global::TestNamespace.TestClass.GetEntityByIdAsync(keys, ct).ConfigureAwait(false);
             CopyResults(keys, results.Span, temp);
         }
 

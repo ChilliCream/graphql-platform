@@ -484,7 +484,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
         DataLoaderKind kind,
         ImmutableArray<DataLoaderParameterInfo> parameters)
     {
-        _writer.Write("await {0}.{1}(", containingType, fetchMethod.Name);
+        _writer.Write("await global::{0}.{1}(", containingType, fetchMethod.Name);
 
         for (var i = 0; i < parameters.Length; i++)
         {

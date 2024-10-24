@@ -44,7 +44,7 @@ namespace TestNamespace
         {
             var p1 = context.GetState<global::GreenDonut.Selectors.ISelectorBuilder>("GreenDonut.Selectors.ISelectorBuilder")
                 ?? new global::GreenDonut.Selectors.DefaultSelectorBuilder();
-            var temp = await TestNamespace.TestClass.GetEntityByIdAsync(keys, p1, ct).ConfigureAwait(false);
+            var temp = await global::TestNamespace.TestClass.GetEntityByIdAsync(keys, p1, ct).ConfigureAwait(false);
             CopyResults(keys, results.Span, temp);
         }
 
