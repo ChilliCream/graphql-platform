@@ -113,7 +113,7 @@ It executes resolvers until the queue is empty and then triggers the data loader
 
 # Data Consistency
 
-Data loaders do not only batch calls to the database, they also cache the database response.
+DataLoader do not only batch calls to the database, they also cache the database response.
 A data loader guarantees data consistency in a single request.
 If you load an entity with a data loader in your request more than once, it is given that these two entities are equivalent.
 
