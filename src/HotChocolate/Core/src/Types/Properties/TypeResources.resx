@@ -1003,4 +1003,31 @@ Type: `{0}`</value>
   <data name="ObjectToDictionaryConverter_CycleInObjectGraph" xml:space="preserve">
     <value>Cycle in object graph detected.</value>
   </data>
+  <data name="RequiresOptInDirectiveType_TypeDescription" xml:space="preserve">
+    <value>Indicates that the given field, argument, input field, or enum value requires giving explicit consent before being used.</value>
+  </data>
+  <data name="RequiresOptInDirectiveType_FeatureDescription" xml:space="preserve">
+    <value>The name of the feature that requires opt in.</value>
+  </data>
+  <data name="RequiresOptInDirective_Descriptor_NotSupported" xml:space="preserve">
+    <value>RequiresOptIn is not supported on the specified descriptor.</value>
+  </data>
+  <data name="OptInFeatureStabilityDirectiveType_TypeDescription" xml:space="preserve">
+    <value>Sets the stability level of an opt-in feature.</value>
+  </data>
+  <data name="OptInFeatureStabilityDirectiveType_FeatureDescription" xml:space="preserve">
+    <value>The name of the feature for which to set the stability.</value>
+  </data>
+  <data name="OptInFeatureStabilityDirectiveType_StabilityDescription" xml:space="preserve">
+    <value>The stability level of the feature.</value>
+  </data>
+  <data name="OptInFeatureStability_Description" xml:space="preserve">
+    <value>An OptInFeatureStability object describes the stability level of an opt-in feature.</value>
+  </data>
+  <data name="ErrorHelper_RequiresOptInOnRequiredInputField" xml:space="preserve">
+    <value>The @requiresOptIn directive must not appear on required (non-null without a default) input object field definitions.</value>
+  </data>
+  <data name="ErrorHelper_RequiresOptInOnRequiredArgument" xml:space="preserve">
+    <value>The @requiresOptIn directive must not appear on required (non-null without a default) arguments.</value>
+  </data>
 </root>

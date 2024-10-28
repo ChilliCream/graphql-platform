@@ -216,6 +216,11 @@ public class SchemaOptions : IReadOnlySchemaOptions
     public bool EnableTag { get; set; } = true;
 
     /// <summary>
+    /// Specifies that the opt-in features functionality will be enabled.
+    /// </summary>
+    public bool EnableOptInFeatures { get; set; }
+
+    /// <summary>
     /// Defines the default dependency injection scope for query fields.
     /// </summary>
     public DependencyInjectionScope DefaultQueryDependencyInjectionScope { get; set; } =

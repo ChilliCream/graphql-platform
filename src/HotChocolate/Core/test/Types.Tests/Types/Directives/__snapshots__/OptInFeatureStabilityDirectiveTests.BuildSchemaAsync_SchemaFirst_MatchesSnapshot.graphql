@@ -1,0 +1,10 @@
+schema @optInFeatureStability(feature: "feature1", stability: "stability1") @optInFeatureStability(feature: "feature2", stability: "stability2") {
+  query: Query
+}
+
+type Query {
+  field: Int
+}
+
+"Sets the stability level of an opt-in feature."
+directive @optInFeatureStability("The name of the feature for which to set the stability." feature: String! "The stability level of the feature." stability: String!) repeatable on SCHEMA

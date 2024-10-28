@@ -25,6 +25,9 @@ internal sealed class __Type : ObjectType
         var enumValueListType = Parse($"[{nameof(__EnumValue)}!]");
         var inputValueListType = Parse($"[{nameof(__InputValue)}!]");
         var directiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
+        var nonNullStringListType = Parse($"[{ScalarNames.String}!]");
+
+        var optInFeaturesEnabled = context.DescriptorContext.Options.EnableOptInFeatures;
 
         var def = new ObjectTypeDefinition(
             Names.__Type,
@@ -36,7 +39,12 @@ internal sealed class __Type : ObjectType
                 new(Names.Kind, type: kindType, pureResolver: Resolvers.Kind),
                 new(Names.Name, type: stringType, pureResolver: Resolvers.Name),
                 new(Names.Description, type: stringType, pureResolver: Resolvers.Description),
-                new(Names.Fields, type: fieldListType, pureResolver: Resolvers.Fields)
+                new(
+                    Names.Fields,
+                    type: fieldListType,
+                    pureResolver: optInFeaturesEnabled
+                        ? Resolvers.FieldsWithOptIn
+                        : Resolvers.Fields)
                 {
                     Arguments =
                     {
@@ -49,7 +57,12 @@ internal sealed class __Type : ObjectType
                 },
                 new(Names.Interfaces, type: typeListType, pureResolver: Resolvers.Interfaces),
                 new(Names.PossibleTypes, type: typeListType, pureResolver: Resolvers.PossibleTypes),
-                new(Names.EnumValues, type: enumValueListType, pureResolver: Resolvers.EnumValues)
+                new(
+                    Names.EnumValues,
+                    type: enumValueListType,
+                    pureResolver: optInFeaturesEnabled
+                        ? Resolvers.EnumValuesWithOptIn
+                        : Resolvers.EnumValues)
                 {
                     Arguments =
                     {
@@ -62,9 +75,12 @@ internal sealed class __Type : ObjectType
                         },
                     },
                 },
-                new(Names.InputFields,
+                new(
+                    Names.InputFields,
                     type: inputValueListType,
-                    pureResolver: Resolvers.InputFields)
+                    pureResolver: optInFeaturesEnabled
+                        ? Resolvers.InputFieldsWithOptIn
+                        : Resolvers.InputFields)
                 {
                     Arguments =
                     {
@@ -99,6 +115,21 @@ internal sealed class __Type : ObjectType
                 pureResolver: Resolvers.AppliedDirectives));
         }
 
+        if (optInFeaturesEnabled)
+        {
+            def.Fields.Single(f => f.Name == Names.EnumValues)
+                .Arguments
+                .Add(new(Names.IncludeOptIn, type: nonNullStringListType));
+
+            def.Fields.Single(f => f.Name == Names.Fields)
+                .Arguments
+                .Add(new(Names.IncludeOptIn, type: nonNullStringListType));
+
+            def.Fields.Single(f => f.Name == Names.InputFields)
+                .Arguments
+                .Add(new(Names.IncludeOptIn, type: nonNullStringListType));
+        }
+
         return def;
     }
 
@@ -113,7 +144,35 @@ internal sealed class __Type : ObjectType
         public static object? Description(IResolverContext context)
             => context.Parent<IType>() is INamedType n ? n.Description : null;
 
-        public static object? Fields(IResolverContext context)
+        public static object? FieldsWithOptIn(IResolverContext context)
+        {
+            var type = context.Parent<IType>();
+
+            if (type is IComplexOutputType)
+            {
+                var fields = Fields(context);
+
+                if (fields is null)
+                {
+                    return default;
+                }
+
+                var includeOptIn = context.ArgumentValue<string[]?>(Names.IncludeOptIn) ?? [];
+
+                // If a field requires opting into features "f1" and "f2", then `includeOptIn`
+                // must list at least one of the features in order for the field to be included.
+                return fields.Where(
+                    f => f
+                        .Directives
+                        .Where(d => d.Type is RequiresOptInDirectiveType)
+                        .Select(d => d.AsValue<RequiresOptInDirective>().Feature)
+                        .Any(feature => includeOptIn.Contains(feature)));
+            }
+
+            return default;
+        }
+
+        public static IEnumerable<IOutputField>? Fields(IResolverContext context)
         {
             var type = context.Parent<IType>();
             var includeDeprecated = context.ArgumentValue<bool>(Names.IncludeDeprecated);
@@ -140,14 +199,71 @@ internal sealed class __Type : ObjectType
                     : null
                 : null;
 
-        public static object? EnumValues(IResolverContext context)
+        public static object? EnumValuesWithOptIn(IResolverContext context)
+        {
+            var type = context.Parent<IType>();
+
+            if (type is EnumType)
+            {
+                var enumValues = EnumValues(context);
+
+                if (enumValues is null)
+                {
+                    return default;
+                }
+
+                var includeOptIn = context.ArgumentValue<string[]?>(Names.IncludeOptIn) ?? [];
+
+                // If an enum value requires opting into features "f1" and "f2", then `includeOptIn`
+                // must list at least one of the features in order for the value to be included.
+                return enumValues.Where(
+                    v => v
+                        .Directives
+                        .Where(d => d.Type is RequiresOptInDirectiveType)
+                        .Select(d => d.AsValue<RequiresOptInDirective>().Feature)
+                        .Any(feature => includeOptIn.Contains(feature)));
+            }
+
+            return default;
+        }
+
+        public static IEnumerable<IEnumValue>? EnumValues(IResolverContext context)
             => context.Parent<IType>() is EnumType et
                 ? context.ArgumentValue<bool>(Names.IncludeDeprecated)
                     ? et.Values
                     : et.Values.Where(t => !t.IsDeprecated)
                 : null;
 
-        public static object? InputFields(IResolverContext context)
+        public static object? InputFieldsWithOptIn(IResolverContext context)
+        {
+            var type = context.Parent<IType>();
+
+            if (type is IInputObjectType)
+            {
+                var inputFields = InputFields(context);
+
+                if (inputFields is null)
+                {
+                    return default;
+                }
+
+                var includeOptIn = context.ArgumentValue<string[]?>(Names.IncludeOptIn) ?? [];
+
+                // If an input field requires opting into features "f1" and "f2", then
+                // `includeOptIn` must list at least one of the features in order for the field to
+                // be included.
+                return inputFields.Where(
+                    f => f
+                        .Directives
+                        .Where(d => d.Type is RequiresOptInDirectiveType)
+                        .Select(d => d.AsValue<RequiresOptInDirective>().Feature)
+                        .Any(feature => includeOptIn.Contains(feature)));
+            }
+
+            return default;
+        }
+
+        public static IEnumerable<IInputField>? InputFields(IResolverContext context)
             => context.Parent<IType>() is IInputObjectType iot
                 ? context.ArgumentValue<bool>(Names.IncludeDeprecated)
                     ? iot.Fields
@@ -195,6 +311,7 @@ internal sealed class __Type : ObjectType
         public const string SpecifiedByUrl = "specifiedByURL";
         public const string IncludeDeprecated = "includeDeprecated";
         public const string AppliedDirectives = "appliedDirectives";
+        public const string IncludeOptIn = "includeOptIn";
     }
 }
 #pragma warning restore IDE1006 // Naming Styles

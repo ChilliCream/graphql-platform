@@ -1025,6 +1025,24 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The @requiresOptIn directive must not appear on required (non-null without a default) arguments..
+        /// </summary>
+        internal static string ErrorHelper_RequiresOptInOnRequiredArgument {
+            get {
+                return ResourceManager.GetString("ErrorHelper_RequiresOptInOnRequiredArgument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @requiresOptIn directive must not appear on required (non-null without a default) input object field definitions..
+        /// </summary>
+        internal static string ErrorHelper_RequiresOptInOnRequiredInputField {
+            get {
+                return ResourceManager.GetString("ErrorHelper_RequiresOptInOnRequiredInputField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Field names starting with `__` are reserved for the GraphQL specification..
         /// </summary>
         internal static string ErrorHelper_TwoUnderscoresNotAllowedField {
@@ -1515,6 +1533,42 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An OptInFeatureStability object describes the stability level of an opt-in feature..
+        /// </summary>
+        internal static string OptInFeatureStability_Description {
+            get {
+                return ResourceManager.GetString("OptInFeatureStability_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name of the feature for which to set the stability..
+        /// </summary>
+        internal static string OptInFeatureStabilityDirectiveType_FeatureDescription {
+            get {
+                return ResourceManager.GetString("OptInFeatureStabilityDirectiveType_FeatureDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The stability level of the feature..
+        /// </summary>
+        internal static string OptInFeatureStabilityDirectiveType_StabilityDescription {
+            get {
+                return ResourceManager.GetString("OptInFeatureStabilityDirectiveType_StabilityDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sets the stability level of an opt-in feature..
+        /// </summary>
+        internal static string OptInFeatureStabilityDirectiveType_TypeDescription {
+            get {
+                return ResourceManager.GetString("OptInFeatureStabilityDirectiveType_TypeDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The member expression must specify a property or method that is public and that belongs to the type {0}.
         /// </summary>
         internal static string Reflection_MemberMust_BeMethodOrProperty {
@@ -1592,6 +1646,33 @@ namespace HotChocolate.Properties {
         internal static string Relay_NodesField_Ids_Description {
             get {
                 return ResourceManager.GetString("Relay_NodesField_Ids_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to RequiresOptIn is not supported on the specified descriptor..
+        /// </summary>
+        internal static string RequiresOptInDirective_Descriptor_NotSupported {
+            get {
+                return ResourceManager.GetString("RequiresOptInDirective_Descriptor_NotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name of the feature that requires opt in..
+        /// </summary>
+        internal static string RequiresOptInDirectiveType_FeatureDescription {
+            get {
+                return ResourceManager.GetString("RequiresOptInDirectiveType_FeatureDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indicates that the given field, argument, input field, or enum value requires giving explicit consent before being used..
+        /// </summary>
+        internal static string RequiresOptInDirectiveType_TypeDescription {
+            get {
+                return ResourceManager.GetString("RequiresOptInDirectiveType_TypeDescription", resourceCulture);
             }
         }
         

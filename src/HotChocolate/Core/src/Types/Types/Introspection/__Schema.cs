@@ -1,7 +1,9 @@
 #pragma warning disable IDE1006 // Naming Styles
 using HotChocolate.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Interceptors;
 using static HotChocolate.Properties.TypeResources;
 using static HotChocolate.Types.Descriptors.TypeReference;
 
@@ -21,6 +23,8 @@ internal sealed class __Schema : ObjectType
         var nonNullTypeType = Parse($"{nameof(__Type)}!");
         var directiveListType = Parse($"[{nameof(__Directive)}!]!");
         var appDirectiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
+        var nonNullStringListType = Parse($"[{ScalarNames.String}!]");
+        var optInFeatureStabilityListType = Parse($"[{nameof(__OptInFeatureStability)}!]!");
 
         var def = new ObjectTypeDefinition(Names.__Schema, Schema_Description, typeof(ISchema))
         {
@@ -55,6 +59,19 @@ internal sealed class __Schema : ObjectType
                 pureResolver: Resolvers.AppliedDirectives));
         }
 
+        if (context.DescriptorContext.Options.EnableOptInFeatures)
+        {
+            def.Fields.Add(new(
+                Names.OptInFeatures,
+                type: nonNullStringListType,
+                pureResolver: Resolvers.OptInFeatures));
+
+            def.Fields.Add(new(
+                Names.OptInFeatureStability,
+                type: optInFeatureStabilityListType,
+                pureResolver: Resolvers.OptInFeatureStability));
+        }
+
         return def;
     }
 
@@ -82,6 +99,14 @@ internal sealed class __Schema : ObjectType
             => context.Parent<ISchema>().Directives
                 .Where(t => t.Type.IsPublic)
                 .Select(d => d.AsSyntaxNode());
+
+        public static object OptInFeatures(IResolverContext context)
+            => context.Parent<ISchema>().Features.GetRequired<OptInFeatures>();
+
+        public static object OptInFeatureStability(IResolverContext context)
+            => context.Parent<ISchema>().Directives
+                .Where(t => t.Type is OptInFeatureStabilityDirectiveType)
+                .Select(d => d.AsSyntaxNode());
     }
 
     public static class Names
@@ -95,6 +120,8 @@ internal sealed class __Schema : ObjectType
         public const string SubscriptionType = "subscriptionType";
         public const string Directives = "directives";
         public const string AppliedDirectives = "appliedDirectives";
+        public const string OptInFeatures = "optInFeatures";
+        public const string OptInFeatureStability = "optInFeatureStability";
     }
 }
 #pragma warning restore IDE1006 // Naming Styles

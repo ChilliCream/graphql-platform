@@ -42,6 +42,11 @@ public static class IntrospectionTypes
             types.Add(context.TypeInspector.GetTypeRef(typeof(__DirectiveArgument)));
         }
 
+        if (context.Options.EnableOptInFeatures)
+        {
+            types.Add(context.TypeInspector.GetTypeRef(typeof(__OptInFeatureStability)));
+        }
+
         return types;
     }
 

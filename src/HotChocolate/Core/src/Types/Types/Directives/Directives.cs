@@ -43,6 +43,15 @@ public static class Directives
             directiveTypes.Add(typeInspector.GetTypeRef(typeof(Tag)));
         }
 
+        if (descriptorContext.Options.EnableOptInFeatures)
+        {
+            directiveTypes.Add(
+                typeInspector.GetTypeRef(typeof(OptInFeatureStabilityDirectiveType)));
+
+            directiveTypes.Add(
+                typeInspector.GetTypeRef(typeof(RequiresOptInDirectiveType)));
+        }
+
         directiveTypes.Add(typeInspector.GetTypeRef(typeof(SkipDirectiveType)));
         directiveTypes.Add(typeInspector.GetTypeRef(typeof(IncludeDirectiveType)));
         directiveTypes.Add(typeInspector.GetTypeRef(typeof(DeprecatedDirectiveType)));

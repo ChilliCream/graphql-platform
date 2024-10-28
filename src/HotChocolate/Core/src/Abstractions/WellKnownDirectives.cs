@@ -69,4 +69,29 @@ public static class WellKnownDirectives
     /// The name of the @tag argument name.
     /// </summary>
     public const string Name = "name";
+
+    /// <summary>
+    /// The name of the @requiresOptIn directive.
+    /// </summary>
+    public const string RequiresOptIn = "requiresOptIn";
+
+    /// <summary>
+    /// The name of the @requiresOptIn feature argument.
+    /// </summary>
+    public const string RequiresOptInFeatureArgument = "feature";
+
+    /// <summary>
+    /// The name of the @optInFeatureStability directive.
+    /// </summary>
+    public const string OptInFeatureStability = "optInFeatureStability";
+
+    /// <summary>
+    /// The name of the @optInFeatureStability feature argument.
+    /// </summary>
+    public const string OptInFeatureStabilityFeatureArgument = "feature";
+
+    /// <summary>
+    /// The name of the @optInFeatureStability stability argument.
+    /// </summary>
+    public const string OptInFeatureStabilityStabilityArgument = "stability";
 }
