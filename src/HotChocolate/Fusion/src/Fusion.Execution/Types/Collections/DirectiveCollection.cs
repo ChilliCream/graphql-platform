@@ -1,4 +1,5 @@
 using System.Collections;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Types.Collections;
 
@@ -68,6 +69,18 @@ public sealed class DirectiveCollection(CompositeDirective[] directives) : IEnum
 
     IEnumerator IEnumerable.GetEnumerator()
         => GetEnumerator();
+
+    public IReadOnlyList<DirectiveNode> ToSyntaxNodes()
+    {
+        var nodes = new List<DirectiveNode>();
+
+        foreach (var directive in directives)
+        {
+            nodes.Add(directive.ToSyntaxNode());
+        }
+
+        return nodes;
+    }
 
     public static DirectiveCollection Empty { get; } = new([]);
 }

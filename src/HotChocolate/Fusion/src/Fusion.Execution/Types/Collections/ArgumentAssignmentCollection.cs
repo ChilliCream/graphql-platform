@@ -154,4 +154,16 @@ public sealed class ArgumentAssignmentCollection(IReadOnlyList<ArgumentAssignmen
                 t => t,
                 StringComparer.Ordinal),
         };
+
+    public IReadOnlyList<ArgumentNode> ToSyntaxNodes()
+    {
+        var nodes = new List<ArgumentNode>();
+
+        foreach (var argument in arguments)
+        {
+            nodes.Add(new ArgumentNode(argument.Name, argument.Value));
+        }
+
+        return nodes;
+    }
 }
