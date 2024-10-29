@@ -84,10 +84,11 @@ public sealed class DataLoaderFileBuilder : IDisposable
         bool isPublic,
         DataLoaderKind kind,
         ITypeSymbol key,
-        ITypeSymbol value)
+        ITypeSymbol value,
+        bool withInterface)
     {
         _writer.WriteIndentedLine(
-            "{0} sealed class {1}",
+            "{0} sealed partial class {1}",
             isPublic
                 ? "public"
                 : "internal",
@@ -99,7 +100,10 @@ public sealed class DataLoaderFileBuilder : IDisposable
                 : ": global::GreenDonut.DataLoaderBase<{0}, {1}>",
             key.ToFullyQualified(),
             value.ToFullyQualified());
-        _writer.WriteIndentedLine(", {0}", interfaceName);
+        if (withInterface)
+        {
+            _writer.WriteIndentedLine(", {0}", interfaceName);
+        }
         _writer.DecreaseIndent();
         _writer.WriteIndentedLine("{");
         _writer.IncreaseIndent();
@@ -264,7 +268,19 @@ public sealed class DataLoaderFileBuilder : IDisposable
                         parameter.StateKey);
                     _writer.IncreaseIndent();
                     _writer.WriteIndentedLine(
-                        "?? new global::GreenDonut.Projections.DefaultSelectorBuilder();");
+                        "?? new global::GreenDonut.Selectors.DefaultSelectorBuilder();");
+                    _writer.DecreaseIndent();
+                }
+                else if (parameter.Kind is DataLoaderParameterKind.PredicateBuilder)
+                {
+                    _writer.WriteIndentedLine(
+                        "var {0} = context.GetState<{1}>(\"{2}\")",
+                        parameter.VariableName,
+                        parameter.Type.ToFullyQualified(),
+                        parameter.StateKey);
+                    _writer.IncreaseIndent();
+                    _writer.WriteIndentedLine(
+                        "?? new global::GreenDonut.Predicates.DefaultPredicateBuilder();");
                     _writer.DecreaseIndent();
                 }
                 else if (parameter.Kind is DataLoaderParameterKind.PagingArguments)
@@ -468,7 +484,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
         DataLoaderKind kind,
         ImmutableArray<DataLoaderParameterInfo> parameters)
     {
-        _writer.Write("await {0}.{1}(", containingType, fetchMethod.Name);
+        _writer.Write("await global::{0}.{1}(", containingType, fetchMethod.Name);
 
         for (var i = 0; i < parameters.Length; i++)
         {
@@ -497,22 +513,34 @@ public sealed class DataLoaderFileBuilder : IDisposable
 
     public void WriteDataLoaderGroupClass(
         string groupClassName,
-        IReadOnlyList<GroupedDataLoaderInfo> dataLoaders)
+        IReadOnlyList<GroupedDataLoaderInfo> dataLoaders,
+        bool withInterface)
     {
-        _writer.WriteIndentedLine("public interface I{0}", groupClassName);
-        _writer.WriteIndentedLine("{");
-        _writer.IncreaseIndent();
-
-        foreach (var dataLoader in dataLoaders)
+        if (withInterface)
         {
-            _writer.WriteIndentedLine("{0} {1} {{ get; }}", dataLoader.InterfaceName, dataLoader.Name);
+            _writer.WriteIndentedLine("public interface I{0}", groupClassName);
+            _writer.WriteIndentedLine("{");
+            _writer.IncreaseIndent();
+
+            foreach (var dataLoader in dataLoaders)
+            {
+                _writer.WriteIndentedLine("{0} {1} {{ get; }}", dataLoader.InterfaceName, dataLoader.Name);
+            }
+
+            _writer.DecreaseIndent();
+            _writer.WriteIndentedLine("}");
+            _writer.WriteLine();
         }
 
-        _writer.DecreaseIndent();
-        _writer.WriteIndentedLine("}");
-        _writer.WriteLine();
+        if (withInterface)
+        {
+            _writer.WriteIndentedLine("public sealed partial class {0} : I{0}", groupClassName);
+        }
+        else
+        {
+            _writer.WriteIndentedLine("public sealed partial class {0}", groupClassName);
+        }
 
-        _writer.WriteIndentedLine("public sealed class {0} : I{0}", groupClassName);
         _writer.WriteIndentedLine("{");
         _writer.IncreaseIndent();
 

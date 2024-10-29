@@ -323,7 +323,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
         public T Service<T>() where T : notnull => _context.Service<T>();
 
-        public T? Service<T>(object key) where T : notnull => _context.Service<T>(key);
+        public T Service<T>(object key) where T : notnull => _context.Service<T>(key);
 
         public T Resolver<T>() => _context.Resolver<T>();
 

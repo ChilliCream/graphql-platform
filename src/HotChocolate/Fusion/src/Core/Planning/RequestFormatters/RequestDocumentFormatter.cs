@@ -586,7 +586,7 @@ internal abstract class RequestDocumentFormatter(FusionGraphConfiguration config
                     .First(t => t.Variable.Equals(variable, SyntaxComparison.Syntax));
 
                 var typeNode = originalVarDef.Type;
-                var originalTypeName = typeNode.Name();
+                var originalTypeName = typeNode.NamedType().Name.Value;
                 var subgraphTypeName = _config.GetSubgraphTypeName(subgraphName, originalTypeName);
 
                 if (!subgraphTypeName.EqualsOrdinal(originalTypeName))

@@ -2,7 +2,7 @@
 title: "Client Registry"
 ---
 
-![Image](images/client-registry-1.png)
+![Image](images/client-registry-0.webp)
 
 The client registries is an important tool for managing your GraphQL Clients. It provides a centralized location for clients and queries.
 
@@ -18,7 +18,7 @@ A persisted operation is a GraphQL operation that has been sent to the server, s
 
 Persisted operations also add an extra layer of security as the server can be configured to only execute operations that have been previously stored, which prevents malicious queries. This is the cheapest and most effective way to secure your GraphQL API from potential attacks.
 
-![Image](images/client-registry-2.png)
+![Image](images/client-registry-1.webp)
 
 Persisted operations can be inspected in the `Operations` tab.
 
@@ -113,11 +113,11 @@ public void ConfigureServices(IServiceCollection services)
 > ```csharp
 > public void ConfigureServices(IServiceCollection services)
 > {
->    services
->        .AddGraphQLServer()
->        .AddQueryType<Query>()
->        .AddNitro() // Connect to the client registry
->        .UsePersistedOperationPipeline(); // Enable the persisted operation pipeline
+>     services
+>         .AddGraphQLServer()
+>         .AddQueryType<Query>()
+>         .AddNitro() // Connect to the client registry
+>         .UsePersistedOperationPipeline(); // Enable the persisted operation pipeline
 > }
 > ```
 >

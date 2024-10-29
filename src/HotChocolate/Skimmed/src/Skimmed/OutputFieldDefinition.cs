@@ -54,7 +54,7 @@ public sealed class OutputFieldDefinition(string name, ITypeDefinition? type = n
         }
     }
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IFieldDefinition.IsDeprecated" />
     public bool IsDeprecated
     {
         get => _isDeprecated;
@@ -75,7 +75,7 @@ public sealed class OutputFieldDefinition(string name, ITypeDefinition? type = n
         }
     }
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IFieldDefinition.DeprecationReason" />
     public string? DeprecationReason
     {
         get => _deprecationReason;

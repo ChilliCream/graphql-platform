@@ -66,7 +66,7 @@ public static class WellKnownTypes
     public const string PromiseCacheObserver = "GreenDonut.PromiseCacheObserver";
     public const string KeyValuePair = "System.Collections.Generic.KeyValuePair";
     public const string EnumerableExtensions = "System.Linq.Enumerable";
-    public const string SelectorBuilder = "GreenDonut.Projections.ISelectorBuilder";
+    public const string SelectorBuilder = "GreenDonut.Selectors.ISelectorBuilder";
     public const string PredicateBuilder = "GreenDonut.Predicates.IPredicateBuilder";
     public const string PagingArguments = "HotChocolate.Pagination.PagingArguments";
 

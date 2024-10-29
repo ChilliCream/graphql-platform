@@ -4,7 +4,7 @@ title: "Explorer"
 
 The Explorer is a versatile component utilized in various parts of the application. It serves as a navigation tool for traversing the workspace tree, enabling you to efficiently browse and manage their project's structure. Additionally, the Explorer uses icons to visually represent the type of each item within the workspace.
 
-![Explorer](./images/explorer-0.png)
+![Explorer](./images/explorer-0.webp)
 
 ### 1. Quick Actions
 

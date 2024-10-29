@@ -20,7 +20,7 @@ namespace TestNamespace
     {
     }
 
-    public sealed class EntityByIdDataLoader
+    public sealed partial class EntityByIdDataLoader
         : global::GreenDonut.DataLoaderBase<int, global::TestNamespace.Entity>
         , IEntityByIdDataLoader
     {
@@ -46,7 +46,7 @@ namespace TestNamespace
                 try
                 {
                     var key = keys[i];
-                    var value = await TestNamespace.TestClass.GetEntityByIdAsync(key, ct).ConfigureAwait(false);
+                    var value = await global::TestNamespace.TestClass.GetEntityByIdAsync(key, ct).ConfigureAwait(false);
                     results.Span[i] = Result<global::TestNamespace.Entity?>.Resolve(value);
                 }
                 catch (global::System.Exception ex)
