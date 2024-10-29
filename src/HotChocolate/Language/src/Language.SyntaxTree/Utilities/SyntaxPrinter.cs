@@ -60,11 +60,14 @@ public static class SyntaxPrinter
 #if NETSTANDARD2_0
         using var streamWriter = new StreamWriter(
             stream,
-            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true));
+            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true),
+            -1,
+            leaveOpen: true);
 #else
         await using var streamWriter = new StreamWriter(
             stream,
-            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true));
+            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true),
+            leaveOpen: true);
 #endif
 
         var syntaxWriter = StringSyntaxWriter.Rent();
