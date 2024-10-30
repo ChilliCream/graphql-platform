@@ -1542,6 +1542,24 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The feature name must follow the GraphQL type name rules..
+        /// </summary>
+        internal static string OptInFeatureStabilityDirective_FeatureName_NotValid {
+            get {
+                return ResourceManager.GetString("OptInFeatureStabilityDirective_FeatureName_NotValid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The stability must follow the GraphQL type name rules..
+        /// </summary>
+        internal static string OptInFeatureStabilityDirective_Stability_NotValid {
+            get {
+                return ResourceManager.GetString("OptInFeatureStabilityDirective_Stability_NotValid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The name of the feature for which to set the stability..
         /// </summary>
         internal static string OptInFeatureStabilityDirectiveType_FeatureDescription {
@@ -1655,6 +1673,15 @@ namespace HotChocolate.Properties {
         internal static string RequiresOptInDirective_Descriptor_NotSupported {
             get {
                 return ResourceManager.GetString("RequiresOptInDirective_Descriptor_NotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The feature name must follow the GraphQL type name rules..
+        /// </summary>
+        internal static string RequiresOptInDirective_FeatureName_NotValid {
+            get {
+                return ResourceManager.GetString("RequiresOptInDirective_FeatureName_NotValid", resourceCulture);
             }
         }
         

@@ -1,3 +1,5 @@
+#nullable enable
+
 using CookieCrumble;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
@@ -6,6 +8,22 @@ namespace HotChocolate.Types.Directives;
 
 public sealed class RequiresOptInDirectiveTests
 {
+    [Theory]
+    [InlineData(null)]
+    [InlineData("123")]
+    [InlineData("123abc")]
+    [InlineData("!abc")]
+    [InlineData("abc!")]
+    [InlineData("a b c")]
+    public void RequiresOptInDirective_InvalidFeatureName_ThrowsArgumentException(string? feature)
+    {
+        // arrange & act
+        void Action() => _ = new RequiresOptInDirective(feature!);
+
+        // assert
+        Assert.Throws<ArgumentException>(Action);
+    }
+
     [Fact]
     public async Task BuildSchemaAsync_CodeFirst_MatchesSnapshot()
     {

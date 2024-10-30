@@ -1030,4 +1030,13 @@ Type: `{0}`</value>
   <data name="ErrorHelper_RequiresOptInOnRequiredArgument" xml:space="preserve">
     <value>The @requiresOptIn directive must not appear on required (non-null without a default) arguments.</value>
   </data>
+  <data name="RequiresOptInDirective_FeatureName_NotValid" xml:space="preserve">
+    <value>The feature name must follow the GraphQL type name rules.</value>
+  </data>
+  <data name="OptInFeatureStabilityDirective_FeatureName_NotValid" xml:space="preserve">
+    <value>The feature name must follow the GraphQL type name rules.</value>
+  </data>
+  <data name="OptInFeatureStabilityDirective_Stability_NotValid" xml:space="preserve">
+    <value>The stability must follow the GraphQL type name rules.</value>
+  </data>
 </root>

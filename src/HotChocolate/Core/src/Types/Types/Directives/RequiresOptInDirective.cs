@@ -1,5 +1,8 @@
 #nullable enable
 
+using HotChocolate.Properties;
+using HotChocolate.Utilities;
+
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -44,12 +47,19 @@ public sealed class RequiresOptInDirective
     /// <param name="feature">
     /// The name of the feature that requires opt in.
     /// </param>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="feature"/> is <c>null</c>.
+    /// <exception cref="ArgumentException">
+    /// <paramref name="feature"/> is not a valid name.
     /// </exception>
     public RequiresOptInDirective(string feature)
     {
-        Feature = feature ?? throw new ArgumentNullException(nameof(feature));
+        if (!feature.IsValidGraphQLName())
+        {
+            throw new ArgumentException(
+                TypeResources.RequiresOptInDirective_FeatureName_NotValid,
+                nameof(feature));
+        }
+
+        Feature = feature;
     }
 
     /// <summary>

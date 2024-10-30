@@ -1,3 +1,6 @@
+using HotChocolate.Properties;
+using HotChocolate.Utilities;
+
 namespace HotChocolate.Types;
 
 public sealed class OptInFeatureStabilityDirective
@@ -11,16 +14,30 @@ public sealed class OptInFeatureStabilityDirective
     /// <param name="stability">
     /// The stability level of the feature.
     /// </param>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="feature"/> is <c>null</c>.
+    /// <exception cref="ArgumentException">
+    /// <paramref name="feature"/> is not a valid name.
     /// </exception>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="stability"/> is <c>null</c>.
+    /// <exception cref="ArgumentException">
+    /// <paramref name="stability"/> is not a valid name.
     /// </exception>
     public OptInFeatureStabilityDirective(string feature, string stability)
     {
-        Feature = feature ?? throw new ArgumentNullException(nameof(feature));
-        Stability = stability ?? throw new ArgumentNullException(nameof(stability));
+        if (!feature.IsValidGraphQLName())
+        {
+            throw new ArgumentException(
+                TypeResources.OptInFeatureStabilityDirective_FeatureName_NotValid,
+                nameof(feature));
+        }
+
+        if (!stability.IsValidGraphQLName())
+        {
+            throw new ArgumentException(
+                TypeResources.OptInFeatureStabilityDirective_Stability_NotValid,
+                nameof(stability));
+        }
+
+        Feature = feature;
+        Stability = stability;
     }
 
     /// <summary>
