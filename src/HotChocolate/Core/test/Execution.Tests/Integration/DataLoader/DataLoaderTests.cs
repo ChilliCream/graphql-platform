@@ -59,6 +59,43 @@ public class DataLoaderTests
         await snapshot.MatchMarkdownAsync();
     }
 
+    [Fact]
+    public async Task FetchMultipleNodesDataLoader()
+    {
+        var batchFetchCount = 0;
+
+        await ExpectValid(
+            """
+            {
+                a: node(id: "RW50aXR5OjE==") { ... on Entity { id } }
+                b: node(id: "RW50aXR5OjI==") { ... on Entity { id } }
+            }
+            """,
+            configure: b => b
+                .AddGraphQL()
+                .AddGlobalObjectIdentification()
+                .AddObjectType<Entity>(descriptor =>
+                {
+                    descriptor
+                        .ImplementsNode()
+                        .IdField(e => e.Id)
+                        .ResolveNode(
+                            async (ctx, id) => await ctx.BatchDataLoader<int, Entity>(
+                                (keys, _) =>
+                                {
+                                    batchFetchCount++;
+
+                                    return Task.FromResult<IReadOnlyDictionary<int, Entity>>(
+                                        keys.ToDictionary(t => t, _ => new Entity { Id = id }));
+                                })
+                                .LoadAsync(id))
+                        .Resolve(ctx => ctx.Parent<Entity>().Id);
+                })
+                .AddQueryType());
+
+        Assert.Equal(1, batchFetchCount);
+    }
+
     [LocalFact]
     public async Task FetchDataLoader()
     {
@@ -666,5 +703,10 @@ public class DataLoaderTests
 
         protected override Task<string> LoadSingleAsync(string key, CancellationToken cancellationToken)
             => Task.FromResult(key + Counter);
+    }
+
+    public class Entity
+    {
+        public int Id { get; set; }
     }
 }
