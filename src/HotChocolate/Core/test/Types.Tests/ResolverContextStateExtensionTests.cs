@@ -1,15 +1,12 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Security.Claims;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Snapshooter.Xunit;
 
 #nullable enable
 
@@ -20,8 +17,6 @@ public class ResolverContextStateExtensionTests
     [Fact]
     public async Task GetUserClaims()
     {
-        Snapshot.FullName();
-
         var user = new ClaimsPrincipal(
             new ClaimsIdentity(new[]
             {
@@ -36,7 +31,7 @@ public class ResolverContextStateExtensionTests
                 d.Field("foo").Resolve(ctx => ctx.GetUser()?.Identity?.Name);
             })
             .ExecuteRequestAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument("{ foo }")
                     .SetUser(user)
                     .Build())

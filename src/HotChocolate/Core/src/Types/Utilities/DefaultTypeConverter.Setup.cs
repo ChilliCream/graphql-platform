@@ -1,8 +1,7 @@
 #nullable enable
 
-using System;
 using System.Buffers;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Text.Json;
 using HotChocolate.Language;
 using static System.DateTimeOffset;
@@ -55,7 +54,7 @@ public partial class DefaultTypeConverter
                 {
                     from = DateTime.SpecifyKind(from, DateTimeKind.Utc);
                 }
-                
+
                 return new DateTimeOffset(from);
             });
 
@@ -78,7 +77,6 @@ public partial class DefaultTypeConverter
                     : _localFormat, InvariantCulture);
             });
 
-#if NET6_0_OR_GREATER
         registry.Register<DateOnly, DateTimeOffset>(from => from.ToDateTime(default));
         registry.Register<DateTimeOffset, DateOnly>(from => DateOnly.FromDateTime(from.Date));
         registry.Register<DateOnly, DateTime>(from => from.ToDateTime(default));
@@ -94,7 +92,6 @@ public partial class DefaultTypeConverter
         registry.Register<TimeSpan, TimeOnly>(from => TimeOnly.FromTimeSpan(from));
         registry.Register<TimeOnly, string>(from => from.ToShortTimeString());
         registry.Register<string, TimeOnly>(from => TimeOnly.Parse(from, InvariantCulture));
-#endif
     }
 
     private static void RegisterGuidConversions(
@@ -366,5 +363,8 @@ public partial class DefaultTypeConverter
 
         registry.Register<List<string>, string>(
             from => string.Join(",", from));
+
+        registry.Register<List<string>, ImmutableArray<string>>(
+            from => from.ToImmutableArray());
     }
 }

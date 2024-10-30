@@ -1,11 +1,9 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Configuration.Validation;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types;
 
@@ -16,8 +14,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     [Fact]
     public async Task A_is_set_and_B_is_set_Error()
     {
-        Snapshot.FullName();
-
         // Error: Exactly one key must be specified
         await new ServiceCollection()
             .AddGraphQL()
@@ -30,8 +26,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     [Fact]
     public async Task A_is_null_and_B_is_set_Error()
     {
-        Snapshot.FullName();
-
         // Error: Exactly one key must be specified
         await new ServiceCollection()
             .AddGraphQL()
@@ -44,8 +38,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     [Fact]
     public async Task B_is_set_Valid()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
@@ -57,15 +49,13 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     [Fact]
     public async Task A_is_variable_and_B_is_set_Error()
     {
-        Snapshot.FullName();
-
         // Error: Exactly one key must be specified
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
             .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument("query($var: String!) { example(input: { a: $var, b: 123 }) }")
                     .SetVariableValues(new Dictionary<string, object?> { { "var", null }, })
                     .Build())
@@ -75,14 +65,12 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     [Fact]
     public async Task B_is_variable_and_var_is_123_Valid()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
             .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument("query($var: Int!) { example(input: { b: $var }) }")
                     .SetVariableValues(new Dictionary<string, object?> { { "var", 123 }, })
                     .Build())
@@ -92,14 +80,12 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     [Fact]
     public async Task Var_is_object_with_field_b_set_to_123_Valid()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
             .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument("query($var: ExampleInput!) { example(input: $var) }")
                     .SetVariableValues(
                         new Dictionary<string, object?>
@@ -111,8 +97,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     [Fact]
     public async Task Input_is_set_to_string_abc123_Error()
     {
-        Snapshot.FullName();
-
         // Error: Incorrect value
 
         await new ServiceCollection()
@@ -120,7 +104,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .AddQueryType<Query>()
             .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument("{ example(input: \"abc123\") }")
                     .Build())
             .MatchSnapshotAsync();
@@ -129,8 +113,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     [Fact]
     public async Task Var_is_string_abc123_and_passed_to_input_Error()
     {
-        Snapshot.FullName();
-
         // Error: Incorrect value
 
         await new ServiceCollection()
@@ -138,7 +120,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .AddQueryType<Query>()
             .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument("query($var: String!) { example(input: $var) }")
                     .SetVariableValues(new Dictionary<string, object?> { { "var", "abc123" }, })
                     .Build())
@@ -148,8 +130,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     [Fact]
     public async Task A_is_set_and_B_is_set_to_string_Error()
     {
-        Snapshot.FullName();
-
         // Error: Exactly one key must be specified
         await new ServiceCollection()
             .AddGraphQL()
@@ -162,8 +142,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     [Fact]
     public async Task B_is_set_to_string_Error()
     {
-        Snapshot.FullName();
-
         // Error: Incorrect value for member field {b}
         await new ServiceCollection()
             .AddGraphQL()
@@ -176,8 +154,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     [Fact]
     public async Task A_is_set_to_string_Error()
     {
-        Snapshot.FullName();
-
         // Error: Incorrect value for member field {b}
         await new ServiceCollection()
             .AddGraphQL()
@@ -190,15 +166,13 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     [Fact]
     public async Task B_is_variable_and_var_not_set_Error()
     {
-        Snapshot.FullName();
-
         // Error: Value for member field {b} must be specified
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
             .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument("query($var: Int!) { example(input: { b: $var }) }")
                     .Build())
             .MatchSnapshotAsync();
@@ -207,14 +181,12 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     [Fact]
     public async Task Var_is_object_with_field_a_set_to_abc_Valid()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
             .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument("query($var: ExampleInput!) { example(input: $var) }")
                     .SetVariableValues(
                         new Dictionary<string, object?>
@@ -226,8 +198,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     [Fact]
     public async Task A_is_set_and_B_is_null_Error()
     {
-        Snapshot.FullName();
-
         // Error: Exactly one key must be specified
         await new ServiceCollection()
             .AddGraphQL()
@@ -240,14 +210,12 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     [Fact]
     public async Task B_is_variable_and_var_is_null_Valid()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
             .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument("query($var: Int) { example(input: { b: $var }) }")
                     .SetVariableValues(new Dictionary<string, object?> { { "var", null }, })
                     .Build())
@@ -257,8 +225,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     [Fact]
     public async Task B_is_set_and_C_is_invalid_prop_Error()
     {
-        Snapshot.FullName();
-
         // Error: Exactly one key must be specified
         await new ServiceCollection()
             .AddGraphQL()
@@ -337,12 +303,9 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .Print()
             .MatchSnapshot();
 
-
     [Fact]
     public async Task Oneof_introspection()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()

@@ -5,9 +5,12 @@ using System.Text.Json;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Metadata;
+using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 using static HotChocolate.Execution.Processing.Selection;
 using IType = HotChocolate.Types.IType;
 using ObjectType = HotChocolate.Types.ObjectType;
@@ -21,6 +24,8 @@ internal static class ExecutionUtils
 
     private const CustomOptionsFlags _typeNameFlag =
         (CustomOptionsFlags)ObjectFieldFlags.TypeName;
+
+    private static readonly ErrorPathVisitor _errorPathVisitor = new();
 
     public static void ComposeResult(
         FusionExecutionContext context,
@@ -92,8 +97,8 @@ internal static class ExecutionUtils
 
                     result.Set(responseName, value, nullable);
 
-                    if (value.ValueKind is JsonValueKind.String &&
-                        (selection.CustomOptions & _reEncodeIdFlag) == _reEncodeIdFlag)
+                    if (value.ValueKind is JsonValueKind.String
+                        && (selection.CustomOptions & _reEncodeIdFlag) == _reEncodeIdFlag)
                     {
                         var subgraphName = data.Single.SubgraphName;
                         var reformattedId = context.ReformatId(value.GetString()!, subgraphName);
@@ -105,8 +110,7 @@ internal static class ExecutionUtils
                     // we might need to map the enum value!
                     var value = data.Single.Element;
 
-                    if (value.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined &&
-                        !nullable)
+                    if (value.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined && !nullable)
                     {
                         PropagateNullValues(context.Result, selection, selectionSetResult, responseIndex);
                         break;
@@ -118,6 +122,10 @@ internal static class ExecutionUtils
                 {
                     if (!result.IsInitialized)
                     {
+                        // we add a placeholder here so if the ComposeObject propagates an error
+                        // there is a value here.
+                        result.Set(responseName, null, nullable);
+
                         var value = ComposeObject(
                             context,
                             selectionSetResult,
@@ -167,12 +175,10 @@ internal static class ExecutionUtils
                 return;
             }
 
-            // REMEMBER: this counter needs to be only raised if the selection is included.
-            // ALSO: data ref needs to change once we do this.
-            responseIndex++;
-
             // move our pointers
             NEXT_SELECTION:
+            responseIndex++;
+
             selection = ref Unsafe.Add(ref selection, 1)!;
             result = ref Unsafe.Add(ref result, 1)!;
             data = ref Unsafe.Add(ref data, 1);
@@ -260,8 +266,8 @@ internal static class ExecutionUtils
                 return null;
             }
 
-            if (value.ValueKind is JsonValueKind.String &&
-                (selection.CustomOptions & _reEncodeIdFlag) == _reEncodeIdFlag)
+            if (value.ValueKind is JsonValueKind.String
+                && (selection.CustomOptions & _reEncodeIdFlag) == _reEncodeIdFlag)
             {
                 var subgraphName = selectionData.Single.SubgraphName;
                 return context.ReformatId(value.GetString()!, subgraphName);
@@ -387,7 +393,8 @@ internal static class ExecutionUtils
 
             while (Unsafe.IsAddressLessThan(ref selection, ref endSelection))
             {
-                if (data.TryGetProperty(selection.ResponseName, out var value))
+                if (data.ValueKind is not JsonValueKind.Null
+                    && data.TryGetProperty(selection.ResponseName, out var value))
                 {
                     selectionData = selectionData.AddResult(new JsonResult(schemaName, value));
                 }
@@ -409,7 +416,8 @@ internal static class ExecutionUtils
 
                 while (Unsafe.IsAddressLessThan(ref selection, ref endSelection))
                 {
-                    if (element.TryGetProperty(selection.ResponseName, out var value))
+                    if (element.ValueKind is not JsonValueKind.Null
+                        && element.TryGetProperty(selection.ResponseName, out var value))
                     {
                         selectionData = selectionData.AddResult(new JsonResult(schemaName, value));
                     }
@@ -485,8 +493,38 @@ internal static class ExecutionUtils
         executionState.IsInitialized = true;
     }
 
-    public static void ExtractErrors(
+    public static void CreateTransportErrors(
+        Exception transportException,
         ResultBuilder resultBuilder,
+        IErrorHandler errorHandler,
+        ObjectResult selectionSetResult,
+        List<RootSelection> rootSelections,
+        string subgraphName,
+        bool addDebugInfo)
+    {
+        foreach (var rootSelection in rootSelections)
+        {
+            var errorBuilder = errorHandler.CreateUnexpectedError(transportException);
+
+            errorBuilder.AddLocation(rootSelection.Selection.SyntaxNode);
+            errorBuilder.SetPath(PathHelper.CreatePathFromContext(rootSelection.Selection, selectionSetResult, 0));
+
+            if (addDebugInfo)
+            {
+                errorBuilder.SetExtension("subgraphName", subgraphName);
+            }
+
+            var error = errorHandler.Handle(errorBuilder.Build());
+
+            resultBuilder.AddError(error);
+        }
+    }
+
+    public static void ExtractErrors(
+        DocumentNode document,
+        OperationDefinitionNode operation,
+        ResultBuilder resultBuilder,
+        IErrorHandler errorHandler,
         JsonElement errors,
         ObjectResult selectionSetResult,
         int pathDepth,
@@ -497,39 +535,42 @@ internal static class ExecutionUtils
             return;
         }
 
-        var path = PathHelper.CreatePathFromContext(selectionSetResult);
+        var parentPath = PathHelper.CreatePathFromContext(selectionSetResult);
+
         foreach (var error in errors.EnumerateArray())
         {
-            ExtractError(resultBuilder, error, path, pathDepth, addDebugInfo);
+            ExtractError(document, operation, resultBuilder, errorHandler, error, parentPath, pathDepth, addDebugInfo);
         }
     }
 
     private static void ExtractError(
+        DocumentNode document,
+        OperationDefinitionNode operation,
         ResultBuilder resultBuilder,
+        IErrorHandler errorHandler,
         JsonElement error,
         Path parentPath,
         int pathDepth,
         bool addDebugInfo)
     {
+        FieldNode? field = null;
+
         if (error.ValueKind is not JsonValueKind.Object)
         {
             return;
         }
 
-        if (error.TryGetProperty("message", out var message) &&
-            message.ValueKind is JsonValueKind.String)
+        if (error.TryGetProperty("message", out var message) && message.ValueKind is JsonValueKind.String)
         {
             var errorBuilder = new ErrorBuilder();
             errorBuilder.SetMessage(message.GetString()!);
 
-            if (error.TryGetProperty("code", out var code) &&
-                code.ValueKind is JsonValueKind.String)
+            if (error.TryGetProperty("code", out var code) && code.ValueKind is JsonValueKind.String)
             {
-                errorBuilder.SetCode(code.GetString()!);
+                errorBuilder.SetCode(code.GetString());
             }
 
-            if (error.TryGetProperty("extensions", out var extensions) &&
-                extensions.ValueKind is JsonValueKind.Object)
+            if (error.TryGetProperty("extensions", out var extensions) && extensions.ValueKind is JsonValueKind.Object)
             {
                 foreach (var property in extensions.EnumerateObject())
                 {
@@ -537,11 +578,12 @@ internal static class ExecutionUtils
                 }
             }
 
-            if (error.TryGetProperty("path", out var remotePath) &&
-                remotePath.ValueKind is JsonValueKind.Array)
+            if (error.TryGetProperty("path", out var remotePath) && remotePath.ValueKind is JsonValueKind.Array)
             {
                 var path = PathHelper.CombinePath(parentPath, remotePath, pathDepth);
                 errorBuilder.SetPath(path);
+
+                field = _errorPathVisitor.GetFieldForPath(document, operation, path);
 
                 if (addDebugInfo)
                 {
@@ -549,22 +591,30 @@ internal static class ExecutionUtils
                 }
             }
 
-            if (error.TryGetProperty("locations", out var locations) &&
-                locations.ValueKind is JsonValueKind.Array)
+            if (field is null
+                && error.TryGetProperty("locations", out var locations)
+                && locations.ValueKind is JsonValueKind.Array)
             {
                 foreach (var location in locations.EnumerateArray())
                 {
-                    if (location.TryGetProperty("line", out var lineValue) &&
-                        location.TryGetProperty("column", out var columnValue) &&
-                        lineValue.TryGetInt32(out var line) &&
-                        columnValue.TryGetInt32(out var column))
+                    if (location.TryGetProperty("line", out var lineValue)
+                        && location.TryGetProperty("column", out var columnValue)
+                        && lineValue.TryGetInt32(out var line)
+                        && columnValue.TryGetInt32(out var column))
                     {
                         errorBuilder.AddLocation(line, column);
                     }
                 }
             }
 
-            resultBuilder.AddError(errorBuilder.Build());
+            if (field is not null)
+            {
+                errorBuilder.AddLocation(field);
+            }
+
+            var handledError = errorHandler.Handle(errorBuilder.Build());
+
+            resultBuilder.AddError(handledError);
         }
     }
 
@@ -613,15 +663,13 @@ internal static class ExecutionUtils
             return;
         }
 
-        if (exportKeys.Count > 0 &&
-            parent.ValueKind is not JsonValueKind.Null and not JsonValueKind.Undefined)
+        if (exportKeys.Count > 0 && parent.ValueKind is not JsonValueKind.Null and not JsonValueKind.Undefined)
         {
             for (var i = 0; i < exportKeys.Count; i++)
             {
                 var key = exportKeys[i];
 
-                if (!variableValues.ContainsKey(key) &&
-                    parent.TryGetProperty(key, out var property))
+                if (!variableValues.ContainsKey(key) && parent.TryGetProperty(key, out var property))
                 {
                     var path = queryPlan.GetExportPath(selectionSet, key);
 
@@ -656,5 +704,126 @@ internal static class ExecutionUtils
         var path = PathHelper.CreatePathFromContext(selection, selectionSetResult, responseIndex);
         resultBuilder.AddNonNullViolation(selection, path);
         ValueCompletion.PropagateNullValues(selectionSetResult);
+    }
+
+    private sealed class ErrorPathContext
+    {
+        public string Current { get; set; } = string.Empty;
+
+        public Stack<string> Path { get; } = new();
+
+        public Dictionary<string, FragmentDefinitionNode> Fragments { get; } = new();
+
+        public FieldNode? Field { get; set; }
+
+        public void Reset()
+        {
+            Path.Clear();
+            Fragments.Clear();
+            Current = string.Empty;
+            Field = null;
+        }
+    }
+
+    private sealed class ErrorPathVisitor : SyntaxWalker<ErrorPathContext>
+    {
+        private static ErrorPathContext? _errorPathContext = null;
+
+        public FieldNode? GetFieldForPath(
+            DocumentNode document,
+            OperationDefinitionNode operation,
+            Path path)
+        {
+            if (path.IsRoot)
+            {
+                return null;
+            }
+
+            var context = Interlocked.Exchange(ref _errorPathContext, null) ?? new ErrorPathContext();
+
+            InitializePath(path, context.Path);
+            InitializeFragments(document, context.Fragments);
+
+            if (context.Path.Count > 0)
+            {
+                context.Current = context.Path.Pop();
+            }
+
+            Visit(operation, context);
+
+            var field = context.Field;
+
+            context.Reset();
+            Interlocked.Exchange(ref _errorPathContext, context);
+
+            return field;
+        }
+
+        private static void InitializeFragments(
+            DocumentNode document,
+            Dictionary<string, FragmentDefinitionNode> fragments)
+        {
+            foreach (var definition in document.Definitions)
+            {
+                if (definition is FragmentDefinitionNode fragment)
+                {
+                    fragments.TryAdd(fragment.Name.Value, fragment);
+                }
+            }
+        }
+
+        private static void InitializePath(
+            Path path,
+            Stack<string> pathStack)
+        {
+            while (!path.IsRoot)
+            {
+                if (path is NamePathSegment namePath)
+                {
+                    pathStack.Push(namePath.Name);
+                }
+
+                path = path.Parent;
+            }
+        }
+
+        protected override ISyntaxVisitorAction Enter(
+            FieldNode node,
+            ErrorPathContext context)
+        {
+            if (context.Current.EqualsOrdinal(node.Name.Value))
+            {
+                if (context.Path.Count == 0)
+                {
+                    context.Field = node;
+                    return Break;
+                }
+
+                context.Current = context.Path.Pop();
+                return base.Enter(node, context);
+            }
+
+            return Skip;
+        }
+
+        protected override ISyntaxVisitorAction Enter(
+            FragmentSpreadNode node,
+            ErrorPathContext context)
+        {
+            if (base.VisitChildren(node, context).IsBreak())
+            {
+                return Break;
+            }
+
+            if (context.Fragments.TryGetValue(node.Name.Value, out var fragment))
+            {
+                if (Visit(fragment, node, context).IsBreak())
+                {
+                    return Break;
+                }
+            }
+
+            return DefaultAction;
+        }
     }
 }

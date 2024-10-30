@@ -11,7 +11,7 @@ public sealed class TagDirectiveFeature(
     /// <summary>
     /// Gets the tags that shall be excluded from the public schema.
     /// </summary>
-    public IReadOnlySet<string> Excluded { get; } = new HashSet<string>(exclude ?? Enumerable.Empty<string>());
+    public IReadOnlySet<string> Excluded { get; } = new HashSet<string>(exclude ?? []);
 
     /// <summary>
     /// Defines if the tag directives should be exported to the public schema.

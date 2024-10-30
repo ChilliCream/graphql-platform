@@ -1,0 +1,67 @@
+testatest Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barString": "testatest"
+        }
+      }
+    ]
+  }
+}
+---------------
+
+testatest SQL:
+---------------
+from 'Bars' where Foo.BarString = $p0
+---------------
+
+testbtest Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barString": "testbtest"
+        }
+      }
+    ]
+  }
+}
+---------------
+
+testbtest SQL:
+---------------
+from 'Bars' where Foo.BarString = $p0
+---------------
+
+null
+---------------
+{
+  "errors": [
+    {
+      "message": "The provided value for filter `eq` of type StringOperationFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 41
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "String!",
+        "filterType": "StringOperationFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": null
+  }
+}
+---------------

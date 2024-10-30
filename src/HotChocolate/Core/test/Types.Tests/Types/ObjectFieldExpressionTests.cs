@@ -1,8 +1,5 @@
-
-using System.Collections.Generic;
-using System.Linq;
+using CookieCrumble;
 using HotChocolate.Execution;
-using Snapshooter.Xunit;
 
 #nullable enable
 

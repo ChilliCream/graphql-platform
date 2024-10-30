@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
@@ -22,7 +19,7 @@ public interface IRequestContext : IHasContextData
     /// Gets the request executor version.
     /// </summary>
     ulong ExecutorVersion { get; }
-    
+
     /// <summary>
     /// Gets the index of the request that corresponds to this context.
     /// </summary>
@@ -116,9 +113,4 @@ public interface IRequestContext : IHasContextData
     /// Gets or sets an unexpected execution exception.
     /// </summary>
     Exception? Exception { get; set; }
-
-    /// <summary>
-    /// Clones the request context.
-    /// </summary>
-    IRequestContext Clone();
 }

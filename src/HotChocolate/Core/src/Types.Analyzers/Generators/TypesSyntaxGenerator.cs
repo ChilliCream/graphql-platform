@@ -2,7 +2,6 @@ using System.Collections.Immutable;
 using System.Text;
 using HotChocolate.Types.Analyzers.FileBuilders;
 using HotChocolate.Types.Analyzers.Helpers;
-using HotChocolate.Types.Analyzers.Inspectors;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 
@@ -13,38 +12,41 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
     public void Generate(
         SourceProductionContext context,
         Compilation compilation,
-        ImmutableArray<ISyntaxInfo> syntaxInfos)
-        => Execute(context, compilation, syntaxInfos);
-
-    private static void Execute(
-        SourceProductionContext context,
-        Compilation compilation,
-        ImmutableArray<ISyntaxInfo> syntaxInfos)
+        ImmutableArray<SyntaxInfo> syntaxInfos)
     {
         if (syntaxInfos.IsEmpty)
         {
             return;
         }
 
-        var sb = StringBuilderPool.Get();
+        var module = syntaxInfos.GetModuleInfo(compilation.AssemblyName, out _);
+
+        // the generator is disabled.
+        if(module.Options == ModuleOptions.Disabled)
+        {
+            return;
+        }
+
+        var sb = PooledObjects.GetStringBuilder();
 
         WriteTypes(context, syntaxInfos, sb);
 
         sb.Clear();
 
-        WriteResolvers(context, compilation, syntaxInfos, sb);
+        WriteResolvers(context, syntaxInfos, sb);
 
-        StringBuilderPool.Return(sb);
+        PooledObjects.Return(sb);
     }
 
     private static void WriteTypes(
         SourceProductionContext context,
-        ImmutableArray<ISyntaxInfo> syntaxInfos,
+        ImmutableArray<SyntaxInfo> syntaxInfos,
         StringBuilder sb)
     {
+        var hasTypes = false;
         var firstNamespace = true;
         foreach (var group in syntaxInfos
-            .OfType<ObjectTypeExtensionInfo>()
+            .OfType<IOutputTypeInfo>()
             .GroupBy(t => t.Type.ContainingNamespace.ToDisplayString()))
         {
             var generator = new ObjectTypeExtensionFileBuilder(sb, group.Key);
@@ -58,105 +60,109 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
             generator.WriteBeginNamespace();
 
             var firstClass = true;
-            foreach (var objectTypeExtension in group)
+            foreach (var typeInfo in group)
             {
-                if (objectTypeExtension.Diagnostics.Length > 0)
+                if (typeInfo.Diagnostics.Length > 0)
                 {
-                    foreach (var diagnostic in objectTypeExtension.Diagnostics)
-                    {
-                        context.ReportDiagnostic(diagnostic);
-                    }
-
                     continue;
                 }
+
+                var classGenerator = typeInfo is ObjectTypeExtensionInfo
+                    ? (IOutputTypeFileBuilder)new ObjectTypeExtensionFileBuilder(sb, group.Key)
+                    : new InterfaceTypeExtensionFileBuilder(sb, group.Key);
 
                 if (!firstClass)
                 {
                     sb.AppendLine();
                 }
+
                 firstClass = false;
 
-                generator.WriteBeginClass(objectTypeExtension.Type.Name);
-                generator.WriteInitializeMethod(objectTypeExtension);
+                classGenerator.WriteBeginClass(typeInfo.Type.Name);
+                classGenerator.WriteInitializeMethod(typeInfo);
                 sb.AppendLine();
-                generator.WriteConfigureMethod(objectTypeExtension);
-                generator.WriteEndClass();
+                classGenerator.WriteConfigureMethod(typeInfo);
+                classGenerator.WriteEndClass();
+                hasTypes = true;
+
             }
 
             generator.WriteEndNamespace();
         }
 
-        context.AddSource(WellKnownFileNames.TypesFile, sb.ToString());
+        if (hasTypes)
+        {
+            context.AddSource(WellKnownFileNames.TypesFile, sb.ToString());
+        }
     }
 
     private static void WriteResolvers(
         SourceProductionContext context,
-        Compilation compilation,
-        ImmutableArray<ISyntaxInfo> syntaxInfos,
+        ImmutableArray<SyntaxInfo> syntaxInfos,
         StringBuilder sb)
     {
-        var localTypeLookup = new DefaultLocalTypeLookup(syntaxInfos);
+        var hasResolvers = false;
+        var typeLookup = new DefaultLocalTypeLookup(syntaxInfos);
 
         var generator = new ResolverFileBuilder(sb);
         generator.WriteHeader();
 
         var firstNamespace = true;
         foreach (var group in syntaxInfos
-            .OfType<ObjectTypeExtensionInfo>()
+            .OfType<IOutputTypeInfo>()
             .GroupBy(t => t.Type.ContainingNamespace.ToDisplayString()))
         {
-            if(!firstNamespace)
+            if (!firstNamespace)
             {
                 sb.AppendLine();
             }
+
             firstNamespace = false;
 
             generator.WriteBeginNamespace(group.Key);
 
             var firstClass = true;
-            foreach (var objectTypeExtension in group)
+            foreach (var typeInfo in group)
             {
-                if(!firstClass)
+                if (!firstClass)
                 {
                     sb.AppendLine();
                 }
+
                 firstClass = false;
 
-                var resolverInfos = objectTypeExtension.Members
-                    .Select(m => CreateResolverInfo(objectTypeExtension, m))
-                    .ToList();
+                var resolvers = typeInfo.Resolvers;
 
-                generator.WriteBeginClass(objectTypeExtension.Type.Name + "Resolvers");
+                if (typeInfo is ObjectTypeExtensionInfo { NodeResolver: { } nodeResolver })
+                {
+                    resolvers = resolvers.Add(nodeResolver);
+                }
 
-                if (generator.AddResolverDeclarations(resolverInfos))
+                generator.WriteBeginClass(typeInfo.Type.Name + "Resolvers");
+
+                if (generator.AddResolverDeclarations(resolvers))
                 {
                     sb.AppendLine();
                 }
 
-                generator.AddParameterInitializer(resolverInfos, localTypeLookup);
+                generator.AddParameterInitializer(resolvers, typeLookup);
 
-                foreach (var member in objectTypeExtension.Members)
+                foreach (var resolver in resolvers)
                 {
                     sb.AppendLine();
-                    generator.AddResolver(
-                        new ResolverName(objectTypeExtension.Type.Name, member.Name),
-                        member,
-                        compilation);
+                    generator.AddResolver(resolver, typeLookup);
                 }
 
                 generator.WriteEndClass();
+                hasResolvers = true;
             }
 
             generator.WriteEndNamespace();
         }
 
-        context.AddSource(WellKnownFileNames.ResolversFile, sb.ToString());
+        if (hasResolvers)
+        {
+            context.AddSource(WellKnownFileNames.ResolversFile, sb.ToString());
+        }
     }
-
-    private static ResolverInfo CreateResolverInfo(
-        ObjectTypeExtensionInfo objectTypeExtension,
-        ISymbol member)
-        => new ResolverInfo(
-            new ResolverName(objectTypeExtension.Type.Name, member.Name),
-            member as IMethodSymbol);
 }

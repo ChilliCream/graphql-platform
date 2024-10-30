@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
@@ -138,7 +137,6 @@ public sealed class ExtendObjectTypeAttribute
     }
 }
 
-#if NET6_0_OR_GREATER
 /// <summary>
 /// Annotate classes which represent extensions to other object types.
 /// </summary>
@@ -205,6 +203,9 @@ public sealed class ExtendObjectTypeAttribute<T>
             descriptor.ExtendsType(ExtendsType);
         }
 
+        var definition = descriptor.Extend().Definition;
+        definition.Fields.BindingBehavior = BindingBehavior.Implicit;
+
         if (IncludeStaticMembers)
         {
             descriptor.Extend().Definition.FieldBindingFlags = Instance | Static;
@@ -237,4 +238,3 @@ public sealed class ExtendObjectTypeAttribute<T>
         }
     }
 }
-#endif

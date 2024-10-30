@@ -26,7 +26,7 @@ public class ObjectIdTypeTests
     {
         // arrange
         var executor = await CreateSchema();
-        const string query = 
+        const string query =
             """
             {
               foo {
@@ -59,7 +59,7 @@ public class ObjectIdTypeTests
         result.MatchSnapshot();
     }
 
-    private static ValueTask<IRequestExecutor> CreateSchema() 
+    private static ValueTask<IRequestExecutor> CreateSchema()
         => new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()

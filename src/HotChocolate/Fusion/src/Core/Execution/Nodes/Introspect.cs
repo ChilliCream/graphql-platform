@@ -51,7 +51,7 @@ internal sealed class Introspect(int id, SelectionSet selectionSet) : QueryPlanN
             var value = values[0];
             List<Task>? asyncTasks = null;
             ExecutePureFieldsAndEnqueueResolvers(context, value, cancellationToken, ref asyncTasks);
-            
+
             if(asyncTasks is { Count: > 0, })
             {
                 await Task.WhenAll(asyncTasks).ConfigureAwait(false);

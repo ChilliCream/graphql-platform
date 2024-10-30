@@ -21,7 +21,7 @@ public sealed class RequestMiddlewareFileBuilder : IDisposable
         _ns = ns;
 
         _id = Guid.NewGuid().ToString("N");
-        _sb = StringBuilderPool.Get();
+        _sb = PooledObjects.GetStringBuilder();
         _writer = new(_sb);
     }
 
@@ -290,7 +290,7 @@ public sealed class RequestMiddlewareFileBuilder : IDisposable
             return;
         }
 
-        StringBuilderPool.Return(_sb);
+        PooledObjects.Return(_sb);
         _sb = default!;
         _writer = default!;
         _disposed = true;

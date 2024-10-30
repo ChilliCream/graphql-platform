@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
 
@@ -67,7 +64,7 @@ internal static class ExpressionHelper
         => value => contextData[key] = value;
 
     public static TContextData GetScopedState<TContextData>(
-        IPureResolverContext context,
+        IResolverContext context,
         IReadOnlyDictionary<string, object> contextData,
         string key,
         bool defaultIfNotExists = false)
@@ -75,7 +72,7 @@ internal static class ExpressionHelper
             context, contextData, key, defaultIfNotExists, default);
 
     public static TContextData GetScopedStateWithDefault<TContextData>(
-        IPureResolverContext context,
+        IResolverContext context,
         IReadOnlyDictionary<string, object> contextData,
         string key,
         bool hasDefaultValue,

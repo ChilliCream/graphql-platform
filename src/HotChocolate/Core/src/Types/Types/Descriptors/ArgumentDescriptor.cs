@@ -1,6 +1,5 @@
 // ReSharper disable VirtualMemberCallInConstructor
 
-using System;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -92,7 +91,7 @@ public class ArgumentDescriptor
         }
 
         base.OnCreateDefinition(definition);
-        
+
         Context.Descriptors.Pop();
     }
 

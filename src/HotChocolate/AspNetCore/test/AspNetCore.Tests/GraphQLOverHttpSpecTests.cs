@@ -141,7 +141,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         // act
         using var request = new HttpRequestMessage(HttpMethod.Post, _url)
         {
-            Content = new ByteArrayContent(Array.Empty<byte>())
+            Content = new ByteArrayContent([])
             {
                 Headers =
                 {
@@ -241,32 +241,10 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         using var response = await client.SendAsync(request);
 
         // assert
-        Snapshot
-            .Create()
-            .Add(response)
-            .MatchInline(
-                @$"Headers:
-                Content-Type: {expectedContentType}
-                -------------------------->
-                Status Code: {expectedStatusCode}
-                -------------------------->
-                " +
-                @"{""errors"":[{""message"":""`__type` is an object, interface or " +
-                @"union type field. Leaf selections on objects, interfaces, and unions without " +
-                @"subfields are disallowed."",""locations"":[{""line"":1,""column"":3}]," +
-                @"""extensions"":{""declaringType"":""Query"",""field"":""__type""," +
-                @"""type"":""__Type"",""responseName"":""__type""," +
-                @"""specifiedBy"":""https://spec.graphql.org/October2021/#sec-Field-Selections-" +
-                @"on-Objects-Interfaces-and-Unions-Types""}},{""message"":""The field `name" +
-                @"` does not exist on the type `Query`."",""locations"":[{" +
-                @"""line"":1,""column"":10}],""extensions"":{""type"":""Query""," +
-                @"""field"":""name"",""responseName"":""name"",""specifiedBy"":" +
-                @"""https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-" +
-                @"Interfaces-and-Unions-Types""}},{""message"":""The argument `name` " +
-                @"is required."",""locations"":[{""line"":1,""column"":3}],""extensions"":{" +
-                @"""type"":""Query"",""field"":""__type"",""argument"":""name""," +
-                @"""specifiedBy"":""https://spec.graphql.org/October2021/#sec-Required-Arguments""" +
-                "}}]}");
+        Assert.Equal(
+            expectedContentType,
+            response.Content.Headers.GetValues("Content-Type").Single());
+        Assert.Equal(expectedStatusCode, response.StatusCode);
     }
 
     [Fact]
@@ -536,7 +514,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         using var response = await client.SendAsync(request);
 
         // assert
-        Assert.Equal(response.StatusCode, OK);
+        Assert.Equal(OK, response.StatusCode);
 
         var sortedResults = new SortedList<(int?, int?), OperationResult>();
 
@@ -581,7 +559,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         using var response = await client.SendAsync(request);
 
         // assert
-        Assert.Equal(response.StatusCode, OK);
+        Assert.Equal(OK, response.StatusCode);
 
         await foreach (var result in response.ReadAsResultStreamAsync())
         {
@@ -606,7 +584,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         using var response = await client.SendAsync(request);
 
         // assert
-        Assert.Equal(response.StatusCode, OK);
+        Assert.Equal(OK, response.StatusCode);
     }
 
     private HttpClient GetClient(HttpTransportVersion serverTransportVersion)

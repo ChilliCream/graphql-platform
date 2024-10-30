@@ -84,6 +84,7 @@ internal static class MiddlewareHelper
 
     public static ParseRequestResult ParseVariablesAndExtensionsFromParams(
         string operationId,
+        string? operationName,
         HttpContext context,
         IHttpRequestParser requestParser,
         IErrorHandler errorHandler,
@@ -96,6 +97,7 @@ internal static class MiddlewareHelper
                 return new ParseRequestResult(
                     requestParser.ParsePersistedOperationRequestFromParams(
                         operationId,
+                        operationName,
                         context.Request.Query));
             }
             catch (GraphQLRequestException ex)
@@ -118,6 +120,7 @@ internal static class MiddlewareHelper
 
     public static async Task<ParseRequestResult> ParseSingleRequestFromBodyAsync(
         string operationId,
+        string? operationName,
         HttpContext context,
         IHttpRequestParser requestParser,
         IErrorHandler errorHandler,
@@ -131,9 +134,9 @@ internal static class MiddlewareHelper
                 request =
                     await requestParser.ParsePersistedOperationRequestAsync(
                         operationId,
+                        operationName,
                         context.Request.Body,
                         context.RequestAborted);
-
             }
             catch (GraphQLRequestException ex)
             {
@@ -315,7 +318,7 @@ internal static class MiddlewareHelper
             Error = errorResult;
             StatusCode = statusCode;
             RequestFlags = GraphQLRequestFlags.None;
-            AcceptMediaTypes = Array.Empty<AcceptMediaType>();
+            AcceptMediaTypes = [];
         }
 
         public ValidateAcceptContentTypeResult(

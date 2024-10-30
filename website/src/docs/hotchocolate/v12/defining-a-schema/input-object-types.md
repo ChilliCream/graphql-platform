@@ -18,7 +18,7 @@ input BookInput {
 Input object types can be defined like the following.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class BookInput
@@ -78,7 +78,7 @@ type Mutation {
 
 > Note: While it is possible, it is not encouraged, as it complicates future extensions of either type.
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -258,7 +258,7 @@ builder.Services
 Once activate you can create `Oneof` Input Objects like the following:
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 [OneOf]
@@ -326,7 +326,7 @@ type Mutation {
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp

@@ -1,7 +1,6 @@
-﻿using HotChocolate.Resolvers;
+using HotChocolate.Resolvers;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 using static HotChocolate.Tests.TestHelper;
 
 namespace HotChocolate.Execution.Integration.HelloWorldSchemaFirst;
@@ -11,7 +10,6 @@ public class HelloWorldSchemaFirstTests
     [Fact]
     public async Task SimpleHelloWorldWithoutTypeBinding()
     {
-        Snapshot.FullName();
         await ExpectValid(
                 "{ hello }",
                 c => c
@@ -27,7 +25,6 @@ public class HelloWorldSchemaFirstTests
     [Fact]
     public async Task SimpleHelloWorldWithArgumentWithoutTypeBinding()
     {
-        Snapshot.FullName();
         await ExpectValid(
                 "{ hello(a: \"foo\") }",
                 c => c
@@ -43,7 +40,6 @@ public class HelloWorldSchemaFirstTests
     [Fact]
     public async Task SimpleHelloWorldWithResolverType()
     {
-        Snapshot.FullName();
         await ExpectValid(
                 "{ hello world }",
                 c => c
@@ -61,7 +57,6 @@ public class HelloWorldSchemaFirstTests
     [Fact]
     public async Task SimpleHelloWorldWithResolverTypeAndArgument()
     {
-        Snapshot.FullName();
         await ExpectValid(
                 "{ hello(a: \"foo_\") }",
                 c => c

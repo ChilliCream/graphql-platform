@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace GreenDonut;
 
 /// <summary>
@@ -24,6 +19,6 @@ namespace GreenDonut;
 /// </returns>
 public delegate ValueTask FetchDataDelegate<in TKey, TValue>(
     IReadOnlyList<TKey> keys,
-    Memory<Result<TValue>> results,
+    Memory<Result<TValue?>> results,
     CancellationToken cancellationToken)
     where TKey : notnull;

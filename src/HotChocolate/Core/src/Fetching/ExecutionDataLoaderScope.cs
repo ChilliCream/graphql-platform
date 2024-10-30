@@ -1,10 +1,5 @@
-using System;
 using System.Collections.Concurrent;
-#if NET8_0_OR_GREATER
 using System.Collections.Frozen;
-#else
-using System.Collections.Generic;
-#endif
 using GreenDonut;
 using GreenDonut.DependencyInjection;
 using HotChocolate.Fetching.Properties;
@@ -15,11 +10,7 @@ namespace HotChocolate.Fetching;
 internal sealed class ExecutionDataLoaderScope(
     IServiceProvider serviceProvider,
     IBatchScheduler batchScheduler,
-#if NET8_0_OR_GREATER
-    FrozenDictionary<Type, DataLoaderRegistration> registrations)
-#else
-    Dictionary<Type, DataLoaderRegistration> registrations)
-#endif
+    IReadOnlyDictionary<Type, DataLoaderRegistration> registrations)
     : IDataLoaderScope
 {
     private readonly ConcurrentDictionary<string, IDataLoader> _dataLoaders = new();
@@ -66,7 +57,7 @@ internal sealed class ExecutionDataLoaderScope(
         private readonly IBatchScheduler _batchScheduler;
 
         public DataLoaderServiceProvider(IServiceProvider innerServiceProvider, IBatchScheduler batchScheduler)
-        {   
+        {
             _innerServiceProvider = innerServiceProvider;
             _batchScheduler = batchScheduler;
             var serviceInspector = innerServiceProvider.GetService<IServiceProviderIsService>();
@@ -86,7 +77,7 @@ internal sealed class ExecutionDataLoaderScope(
             {
                 return _serviceInspector;
             }
-            
+
             if(serviceType == typeof(IBatchScheduler))
             {
                 return _batchScheduler;
@@ -100,7 +91,7 @@ internal sealed class ExecutionDataLoaderScope(
             : IServiceProviderIsService
         {
             public bool IsService(Type serviceType)
-                => typeof(IBatchDispatcher) == serviceType || 
+                => typeof(IBatchDispatcher) == serviceType ||
                     innerIsServiceInspector.IsService(serviceType);
         }
     }

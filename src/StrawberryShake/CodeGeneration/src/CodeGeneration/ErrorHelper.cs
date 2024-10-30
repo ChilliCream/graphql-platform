@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using HotChocolate;
 using HotChocolate.Language;
 using static StrawberryShake.CodeGeneration.CodeGenerationErrorCodes;

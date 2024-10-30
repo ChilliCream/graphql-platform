@@ -155,15 +155,6 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
             case SyntaxKind.FloatValue:
                 return Equals((FloatValueNode)x, (FloatValueNode)y);
 
-            case SyntaxKind.ListNullability:
-                return Equals((ListNullabilityNode)x, (ListNullabilityNode)y);
-
-            case SyntaxKind.RequiredModifier:
-                return Equals((RequiredModifierNode)x, (RequiredModifierNode)y);
-
-            case SyntaxKind.OptionalModifier:
-                return Equals((OptionalModifierNode)x, (OptionalModifierNode)y);
-
             case SyntaxKind.SchemaCoordinate:
                 return Equals((SchemaCoordinateNode)x, (SchemaCoordinateNode)y);
 
@@ -221,7 +212,6 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
             SyntaxComparer.BySyntax.Equals(x.Alias, y.Alias) &&
             Equals(x.Arguments, y.Arguments) &&
             Equals(x.Directives, y.Directives) &&
-            Equals(x.Required, y.Required) &&
             SyntaxComparer.BySyntax.Equals(x.SelectionSet, y.SelectionSet);
 
     private bool Equals(FloatValueNode x, FloatValueNode y)
@@ -319,9 +309,6 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
         return ourMem.Span.SequenceEqual(otherMem.Span);
     }
 
-    private bool Equals(ListNullabilityNode x, ListNullabilityNode y)
-        => Equals(x.Element, y.Element);
-
     private bool Equals(ListTypeNode x, ListTypeNode y)
         => Equals(x.Type, y.Type);
 
@@ -382,12 +369,6 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
     private bool Equals(OperationTypeDefinitionNode x, OperationTypeDefinitionNode y)
         => Equals(x.Operation, y.Operation) &&
             Equals(x.Type, y.Type);
-
-    private bool Equals(OptionalModifierNode x, OptionalModifierNode y)
-        => SyntaxComparer.BySyntax.Equals(x.Element, y.Element);
-
-    private bool Equals(RequiredModifierNode x, RequiredModifierNode y)
-        => SyntaxComparer.BySyntax.Equals(x.Element, y.Element);
 
     private bool Equals(ScalarTypeDefinitionNode x, ScalarTypeDefinitionNode y)
         => Equals(x.Name, y.Name) &&
@@ -603,15 +584,6 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
             case SyntaxKind.FloatValue:
                 return GetHashCode((FloatValueNode)obj);
 
-            case SyntaxKind.ListNullability:
-                return GetHashCode((ListNullabilityNode)obj);
-
-            case SyntaxKind.RequiredModifier:
-                return GetHashCode((RequiredModifierNode)obj);
-
-            case SyntaxKind.OptionalModifier:
-                return GetHashCode((OptionalModifierNode)obj);
-
             case SyntaxKind.SchemaCoordinate:
                 return GetHashCode((SchemaCoordinateNode)obj);
 
@@ -770,7 +742,6 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
             hashCode.Add(GetHashCode(directive));
         }
 
-        hashCode.Add(GetHashCode(node.Required));
         hashCode.Add(GetHashCode(node.SelectionSet));
 
         return hashCode.ToHashCode();
@@ -778,15 +749,15 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
     private int GetHashCode(FloatValueNode node)
     {
-#if NET6_0_OR_GREATER
+#if NETSTANDARD2_0
         var hashCode = new HashCode();
         hashCode.Add(node.Kind);
-        hashCode.AddBytes(node.AsSpan());
+        HashCodeExtensions.AddBytes(ref hashCode, node.AsSpan());
         return hashCode.ToHashCode();
 #else
         var hashCode = new HashCode();
         hashCode.Add(node.Kind);
-        HashCodeExtensions.AddBytes(ref hashCode, node.AsSpan());
+        hashCode.AddBytes(node.AsSpan());
         return hashCode.ToHashCode();
 #endif
     }
@@ -967,28 +938,12 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
     {
         var hashCode = new HashCode();
         hashCode.Add(node.Kind);
-#if NET6_0_OR_GREATER
-        hashCode.AddBytes(node.AsSpan());
-#else
+#if NETSTANDARD2_0
         HashCodeExtensions.AddBytes(ref hashCode, node.AsSpan());
+#else
+        hashCode.AddBytes(node.AsSpan());
 #endif
         return hashCode.ToHashCode();
-    }
-
-    private int GetHashCode(INullabilityNode? node)
-    {
-        if (node is null)
-        {
-            return 0;
-        }
-
-        return node.Kind switch
-        {
-            SyntaxKind.ListNullability => GetHashCode((ListNullabilityNode)node),
-            SyntaxKind.RequiredModifier => GetHashCode((RequiredModifierNode)node),
-            SyntaxKind.OptionalModifier => GetHashCode((OptionalModifierNode)node),
-            _ => throw new ArgumentOutOfRangeException(),
-        };
     }
 
     private int GetHashCode(IValueNode? node)
@@ -1012,9 +967,6 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
             _ => throw new ArgumentOutOfRangeException(),
         };
     }
-
-    private int GetHashCode(ListNullabilityNode? node)
-        => node is null ? 0 : HashCode.Combine(node.Kind, GetHashCode(node.Element));
 
     private int GetHashCode(ListTypeNode node)
         => HashCode.Combine(node.Kind, GetHashCode(node.Type));
@@ -1144,12 +1096,6 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
     private int GetHashCode(OperationTypeDefinitionNode node)
         => HashCode.Combine(node.Kind, node.Operation, GetHashCode(node.Type));
 
-    private int GetHashCode(OptionalModifierNode? node)
-        => node is null ? 0 : HashCode.Combine(node.Kind, GetHashCode(node.Element));
-
-    private int GetHashCode(RequiredModifierNode? node)
-        => node is null ? 0 : HashCode.Combine(node.Kind, GetHashCode(node.Element));
-
     private int GetHashCode(ScalarTypeDefinitionNode node)
     {
         var hashCode = new HashCode();
@@ -1242,8 +1188,7 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
         for (var i = 0; i < node.Selections.Count; i++)
         {
-            var selection = node.Selections[i];
-            hashCode.Add(GetHashCode(selection));
+            hashCode.Add(GetHashCode(node.Selections[i]));
         }
 
         return hashCode.ToHashCode();
@@ -1258,10 +1203,10 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
         var hashCode = new HashCode();
         hashCode.Add(node.Kind);
-#if NET6_0_OR_GREATER
-        hashCode.AddBytes(node.AsSpan());
-#else
+#if NETSTANDARD2_0
         HashCodeExtensions.AddBytes(ref hashCode, node.AsSpan());
+#else
+        hashCode.AddBytes(node.AsSpan());
 #endif
         return hashCode.ToHashCode();
     }

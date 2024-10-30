@@ -56,7 +56,7 @@ services
     ...
 ```
 
-If you were using the `OperationRequestBuilder` to configure request options or change the request pipeline, you need to add those things to the configuration chain of the ```IRequestExecutorBuilder`.
+If you were using the `QueryRequestBuilder` to configure request options or change the request pipeline, you need to add those things to the configuration chain of the ```IRequestExecutorBuilder`.
 
 ```csharp
 services
@@ -99,7 +99,7 @@ public interface IHttpRequestInterceptor
     ValueTask OnCreateAsync(
         HttpContext context,
         IRequestExecutor requestExecutor,
-        OperationRequestBuilder requestBuilder,
+        IQueryRequestBuilder requestBuilder,
         CancellationToken cancellationToken);
 }
 ```
@@ -174,7 +174,6 @@ public class FooDataLoader : DataLoaderBase<Guid, Foo>
         _fooRepository = fooRepository;
     }
 
-
     protected override async Task<IReadOnlyList<Result<Foo>>> FetchAsync(
         IReadOnlyList<Guid> keys,
         CancellationToken cancellationToken)
@@ -199,7 +198,6 @@ public class FooDataLoader : DataLoaderBase<Guid, Foo>
     {
         _fooRepository = fooRepository;
     }
-
 
     //                          ▼
     protected override async ValueTask<IReadOnlyList<Result<Foo>>> FetchAsync(

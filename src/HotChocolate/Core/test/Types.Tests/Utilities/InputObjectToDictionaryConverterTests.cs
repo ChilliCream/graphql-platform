@@ -1,6 +1,5 @@
-﻿using System.Collections.Generic;
+using CookieCrumble;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Utilities;
 

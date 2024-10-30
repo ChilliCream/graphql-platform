@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
 
@@ -85,42 +83,32 @@ public interface IExecutionDiagnosticEvents
     void ValidationErrors(IRequestContext context, IReadOnlyList<IError> errors);
 
     /// <summary>
-    /// Called when starting to analyze the operation complexity.
+    /// Called when starting to analyze the operation cost.
     /// </summary>
     /// <param name="context">
     /// The request context encapsulates all GraphQL-specific information about an
     /// individual GraphQL request.
     /// </param>
     /// <returns>
-    /// A scope that will be disposed when the execution has finished.
+    /// A scope that will be disposed when the analyzer has finished.
     /// </returns>
-    IDisposable AnalyzeOperationComplexity(IRequestContext context);
+    IDisposable AnalyzeOperationCost(IRequestContext context);
 
     /// <summary>
-    /// Called within <seealso cref="AnalyzeOperationComplexity"/> scope and
-    /// reports that an analyzer was compiled.
-    /// </summary>
-    /// <param name="context">
-    /// The request context encapsulates all GraphQL-specific information about an
-    /// individual GraphQL request.
-    /// </param>
-    void OperationComplexityAnalyzerCompiled(IRequestContext context);
-
-    /// <summary>
-    /// Called within <seealso cref="AnalyzeOperationComplexity"/> scope and
+    /// Called within <seealso cref="AnalyzeOperationCost"/> scope and
     /// reports the outcome of the analyzer.
     /// </summary>
     /// <param name="context">
     /// The request context encapsulates all GraphQL-specific information about an
     /// individual GraphQL request.
     /// </param>
-    /// <param name="complexity">
-    /// The current operation complexity.
+    /// <param name="fieldCost">
+    /// The execution cost of the operation.
     /// </param>
-    /// <param name="allowedComplexity">
-    /// The maximum allowed operation complexity.
+    /// <param name="typeCost">
+    /// The data cost of the operation.
     /// </param>
-    void OperationComplexityResult(IRequestContext context, int complexity, int allowedComplexity);
+    void OperationCost(IRequestContext context, double fieldCost, double typeCost);
 
     /// <summary>
     /// Called when starting to coerce variables for a request.
@@ -359,10 +347,23 @@ public interface IExecutionDiagnosticEvents
     void RetrievedDocumentFromCache(IRequestContext context);
 
     /// <summary>
-    /// Called when the document for a persisted query has been read from storage.
+    /// Called when the document for a persisted operation has been read from storage.
     /// </summary>
     /// <param name="context"></param>
     void RetrievedDocumentFromStorage(IRequestContext context);
+
+    /// <summary>
+    /// Called when the document for a persisted operation could not be found in the
+    /// operation document storage.
+    /// </summary>
+    /// <param name="context">
+    /// The request context encapsulates all GraphQL-specific information
+    /// about an individual GraphQL request.
+    /// </param>
+    /// <param name="documentId">
+    /// The document id that was not found in the storage.
+    /// </param>
+    void DocumentNotFoundInStorage(IRequestContext context, OperationDocumentId documentId);
 
     /// <summary>
     /// A compiled operation was added to the operation cache.
@@ -383,9 +384,9 @@ public interface IExecutionDiagnosticEvents
     void RetrievedOperationFromCache(IRequestContext context);
 
     /// <summary>
-    /// During execution we allow components like the DataLoader or schema stitching to
-    /// defer execution of data resolvers to be executed in batches. If the execution engine
-    /// has nothing to execute anymore these batches will be dispatched for execution.
+    /// During execution we allow components like the DataLoader to defer execution of data
+    /// resolvers to be executed in batches. If the execution engine has nothing to execute anymore
+    /// these batches will be dispatched for execution.
     /// </summary>
     /// <param name="context">
     /// The request context encapsulates all GraphQL-specific information about an

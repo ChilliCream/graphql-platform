@@ -1,4 +1,3 @@
-#nullable enable
 using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -54,7 +53,7 @@ public class TrueNullabilityTests
 
         response.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Error_Query_With_TrueNullability_And_NullBubbling_Disabled()
     {
@@ -64,7 +63,7 @@ public class TrueNullabilityTests
                 .AddQueryType<Query>()
                 .ModifyOptions(o => o.EnableTrueNullability = true)
                 .ExecuteRequestAsync(
-                    OperationRequestBuilder.Create()
+                    OperationRequestBuilder.New()
                         .SetDocument(
                             """
                             query {

@@ -1,7 +1,6 @@
 using System.Drawing;
-using System.Linq;
 using System.Text.RegularExpressions;
-using Snapshooter.Xunit;
+using CookieCrumble;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -317,7 +316,7 @@ public class XmlDocumentationProviderTests
             typeof(ClassWithSummary));
 
         // assert
-        Assert.Equal("I am a test class.", description);
+        Assert.Equal("I am a test class. This should not be escaped: >", description);
     }
 
     [Fact]

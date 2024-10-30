@@ -1,9 +1,6 @@
-using System;
-using System.IO;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Execution;
 
@@ -14,7 +11,7 @@ public class OperationDocumentSourceTextTests
     {
         // arrange
         // act
-        void Action() => new OperationDocumentSourceText(null);
+        void Action() => new OperationDocumentSourceText(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);

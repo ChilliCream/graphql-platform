@@ -98,12 +98,10 @@ namespace Foo.Bar
         }
 
         public global::System.Int32 TotalCount { get; }
-
         /// <summary>
         /// Information to aid in pagination.
         /// </summary>
         public global::Foo.Bar.IPeopleSearch_People_PageInfo PageInfo { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IPeopleSearch_People_Items>? Items { get; }
 
         public virtual global::System.Boolean Equals(PeopleSearch_People_PersonCollectionSegment? other)
@@ -183,7 +181,6 @@ namespace Foo.Bar
         /// Indicates whether more items exist following the set defined by the clients arguments.
         /// </summary>
         public global::System.Boolean HasNextPage { get; }
-
         /// <summary>
         /// Indicates whether more items exist prior the set defined by the clients arguments.
         /// </summary>
@@ -258,37 +255,30 @@ namespace Foo.Bar
         }
 
         public global::System.String Id { get; }
-
         /// <summary>
         /// The database primary key for the person.
         /// </summary>
         public global::System.Int64 Key { get; }
-
         /// <summary>
         /// The full of the person.
         /// </summary>
         public global::System.String? DisplayName { get; }
-
         /// <summary>
         /// Indicates if the person is active.
         /// </summary>
         public global::System.Boolean IsActive { get; }
-
         /// <summary>
         /// The department the person belongs to.
         /// </summary>
         public global::Foo.Bar.IPeopleSearch_People_Items_Department? Department { get; }
-
         /// <summary>
         /// Url to image, you can specify a size in pixels by appending '?size=300' to get a square image.
         /// </summary>
         public global::System.Uri? Image { get; }
-
         /// <summary>
         /// The job title of the person.
         /// </summary>
         public global::System.String Title { get; }
-
         /// <summary>
         /// The person managing the person.
         /// </summary>
@@ -379,7 +369,6 @@ namespace Foo.Bar
         }
 
         public global::System.String Id { get; }
-
         /// <summary>
         /// The name of the department.
         /// </summary>
@@ -449,12 +438,10 @@ namespace Foo.Bar
         }
 
         public global::System.String Id { get; }
-
         /// <summary>
         /// The database primary key for the person.
         /// </summary>
         public global::System.Int64 Key { get; }
-
         /// <summary>
         /// The full of the person.
         /// </summary>
@@ -532,12 +519,10 @@ namespace Foo.Bar
     public partial interface IPeopleSearch_People
     {
         public global::System.Int32 TotalCount { get; }
-
         /// <summary>
         /// Information to aid in pagination.
         /// </summary>
         public global::Foo.Bar.IPeopleSearch_People_PageInfo PageInfo { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IPeopleSearch_People_Items>? Items { get; }
     }
 
@@ -558,7 +543,6 @@ namespace Foo.Bar
         /// Indicates whether more items exist following the set defined by the clients arguments.
         /// </summary>
         public global::System.Boolean HasNextPage { get; }
-
         /// <summary>
         /// Indicates whether more items exist prior the set defined by the clients arguments.
         /// </summary>
@@ -579,37 +563,30 @@ namespace Foo.Bar
     public partial interface IPeopleSearchResult
     {
         public global::System.String Id { get; }
-
         /// <summary>
         /// The database primary key for the person.
         /// </summary>
         public global::System.Int64 Key { get; }
-
         /// <summary>
         /// The full of the person.
         /// </summary>
         public global::System.String? DisplayName { get; }
-
         /// <summary>
         /// Indicates if the person is active.
         /// </summary>
         public global::System.Boolean IsActive { get; }
-
         /// <summary>
         /// The department the person belongs to.
         /// </summary>
         public global::Foo.Bar.IPeopleSearch_People_Items_Department? Department { get; }
-
         /// <summary>
         /// Url to image, you can specify a size in pixels by appending '?size=300' to get a square image.
         /// </summary>
         public global::System.Uri? Image { get; }
-
         /// <summary>
         /// The job title of the person.
         /// </summary>
         public global::System.String Title { get; }
-
         /// <summary>
         /// The person managing the person.
         /// </summary>
@@ -633,7 +610,6 @@ namespace Foo.Bar
     public partial interface IPeopleSearch_People_Items_Department
     {
         public global::System.String Id { get; }
-
         /// <summary>
         /// The name of the department.
         /// </summary>
@@ -651,12 +627,10 @@ namespace Foo.Bar
     public partial interface IPeopleSearch_People_Items_Manager
     {
         public global::System.String Id { get; }
-
         /// <summary>
         /// The database primary key for the person.
         /// </summary>
         public global::System.Int64 Key { get; }
-
         /// <summary>
         /// The full of the person.
         /// </summary>
@@ -728,8 +702,528 @@ namespace Foo.Bar
 
         public static PeopleSearchQueryDocument Instance { get; } = new PeopleSearchQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x50, 0x65, 0x6f, 0x70, 0x6c, 0x65, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x28, 0x24, 0x74, 0x65, 0x72, 0x6d, 0x3a, 0x20, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x21, 0x2c, 0x20, 0x24, 0x73, 0x6b, 0x69, 0x70, 0x3a, 0x20, 0x49, 0x6e, 0x74, 0x2c, 0x20, 0x24, 0x74, 0x61, 0x6b, 0x65, 0x3a, 0x20, 0x49, 0x6e, 0x74, 0x2c, 0x20, 0x24, 0x69, 0x6e, 0x61, 0x63, 0x74, 0x69, 0x76, 0x65, 0x3a, 0x20, 0x42, 0x6f, 0x6f, 0x6c, 0x65, 0x61, 0x6e, 0x29, 0x20, 0x7b, 0x20, 0x70, 0x65, 0x6f, 0x70, 0x6c, 0x65, 0x3a, 0x20, 0x70, 0x65, 0x6f, 0x70, 0x6c, 0x65, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x28, 0x74, 0x65, 0x72, 0x6d, 0x3a, 0x20, 0x24, 0x74, 0x65, 0x72, 0x6d, 0x2c, 0x20, 0x69, 0x6e, 0x63, 0x6c, 0x75, 0x64, 0x65, 0x49, 0x6e, 0x61, 0x63, 0x74, 0x69, 0x76, 0x65, 0x3a, 0x20, 0x24, 0x69, 0x6e, 0x61, 0x63, 0x74, 0x69, 0x76, 0x65, 0x2c, 0x20, 0x73, 0x6b, 0x69, 0x70, 0x3a, 0x20, 0x24, 0x73, 0x6b, 0x69, 0x70, 0x2c, 0x20, 0x74, 0x61, 0x6b, 0x65, 0x3a, 0x20, 0x24, 0x74, 0x61, 0x6b, 0x65, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x20, 0x70, 0x61, 0x67, 0x65, 0x49, 0x6e, 0x66, 0x6f, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x68, 0x61, 0x73, 0x4e, 0x65, 0x78, 0x74, 0x50, 0x61, 0x67, 0x65, 0x20, 0x68, 0x61, 0x73, 0x50, 0x72, 0x65, 0x76, 0x69, 0x6f, 0x75, 0x73, 0x50, 0x61, 0x67, 0x65, 0x20, 0x7d, 0x20, 0x69, 0x74, 0x65, 0x6d, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x50, 0x65, 0x6f, 0x70, 0x6c, 0x65, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x52, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x50, 0x65, 0x6f, 0x70, 0x6c, 0x65, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x52, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x6b, 0x65, 0x79, 0x20, 0x64, 0x69, 0x73, 0x70, 0x6c, 0x61, 0x79, 0x4e, 0x61, 0x6d, 0x65, 0x20, 0x69, 0x73, 0x41, 0x63, 0x74, 0x69, 0x76, 0x65, 0x20, 0x64, 0x65, 0x70, 0x61, 0x72, 0x74, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x69, 0x64, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x44, 0x65, 0x70, 0x61, 0x72, 0x74, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x69, 0x6d, 0x61, 0x67, 0x65, 0x20, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x20, 0x6d, 0x61, 0x6e, 0x61, 0x67, 0x65, 0x72, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x69, 0x64, 0x20, 0x6b, 0x65, 0x79, 0x20, 0x64, 0x69, 0x73, 0x70, 0x6c, 0x61, 0x79, 0x4e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d};
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
+        {
+            0x71,
+            0x75,
+            0x65,
+            0x72,
+            0x79,
+            0x20,
+            0x50,
+            0x65,
+            0x6f,
+            0x70,
+            0x6c,
+            0x65,
+            0x53,
+            0x65,
+            0x61,
+            0x72,
+            0x63,
+            0x68,
+            0x28,
+            0x24,
+            0x74,
+            0x65,
+            0x72,
+            0x6d,
+            0x3a,
+            0x20,
+            0x53,
+            0x74,
+            0x72,
+            0x69,
+            0x6e,
+            0x67,
+            0x21,
+            0x2c,
+            0x20,
+            0x24,
+            0x73,
+            0x6b,
+            0x69,
+            0x70,
+            0x3a,
+            0x20,
+            0x49,
+            0x6e,
+            0x74,
+            0x2c,
+            0x20,
+            0x24,
+            0x74,
+            0x61,
+            0x6b,
+            0x65,
+            0x3a,
+            0x20,
+            0x49,
+            0x6e,
+            0x74,
+            0x2c,
+            0x20,
+            0x24,
+            0x69,
+            0x6e,
+            0x61,
+            0x63,
+            0x74,
+            0x69,
+            0x76,
+            0x65,
+            0x3a,
+            0x20,
+            0x42,
+            0x6f,
+            0x6f,
+            0x6c,
+            0x65,
+            0x61,
+            0x6e,
+            0x29,
+            0x20,
+            0x7b,
+            0x20,
+            0x70,
+            0x65,
+            0x6f,
+            0x70,
+            0x6c,
+            0x65,
+            0x3a,
+            0x20,
+            0x70,
+            0x65,
+            0x6f,
+            0x70,
+            0x6c,
+            0x65,
+            0x53,
+            0x65,
+            0x61,
+            0x72,
+            0x63,
+            0x68,
+            0x28,
+            0x74,
+            0x65,
+            0x72,
+            0x6d,
+            0x3a,
+            0x20,
+            0x24,
+            0x74,
+            0x65,
+            0x72,
+            0x6d,
+            0x2c,
+            0x20,
+            0x69,
+            0x6e,
+            0x63,
+            0x6c,
+            0x75,
+            0x64,
+            0x65,
+            0x49,
+            0x6e,
+            0x61,
+            0x63,
+            0x74,
+            0x69,
+            0x76,
+            0x65,
+            0x3a,
+            0x20,
+            0x24,
+            0x69,
+            0x6e,
+            0x61,
+            0x63,
+            0x74,
+            0x69,
+            0x76,
+            0x65,
+            0x2c,
+            0x20,
+            0x73,
+            0x6b,
+            0x69,
+            0x70,
+            0x3a,
+            0x20,
+            0x24,
+            0x73,
+            0x6b,
+            0x69,
+            0x70,
+            0x2c,
+            0x20,
+            0x74,
+            0x61,
+            0x6b,
+            0x65,
+            0x3a,
+            0x20,
+            0x24,
+            0x74,
+            0x61,
+            0x6b,
+            0x65,
+            0x29,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x74,
+            0x6f,
+            0x74,
+            0x61,
+            0x6c,
+            0x43,
+            0x6f,
+            0x75,
+            0x6e,
+            0x74,
+            0x20,
+            0x70,
+            0x61,
+            0x67,
+            0x65,
+            0x49,
+            0x6e,
+            0x66,
+            0x6f,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x68,
+            0x61,
+            0x73,
+            0x4e,
+            0x65,
+            0x78,
+            0x74,
+            0x50,
+            0x61,
+            0x67,
+            0x65,
+            0x20,
+            0x68,
+            0x61,
+            0x73,
+            0x50,
+            0x72,
+            0x65,
+            0x76,
+            0x69,
+            0x6f,
+            0x75,
+            0x73,
+            0x50,
+            0x61,
+            0x67,
+            0x65,
+            0x20,
+            0x7d,
+            0x20,
+            0x69,
+            0x74,
+            0x65,
+            0x6d,
+            0x73,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x50,
+            0x65,
+            0x6f,
+            0x70,
+            0x6c,
+            0x65,
+            0x53,
+            0x65,
+            0x61,
+            0x72,
+            0x63,
+            0x68,
+            0x52,
+            0x65,
+            0x73,
+            0x75,
+            0x6c,
+            0x74,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x50,
+            0x65,
+            0x72,
+            0x73,
+            0x6f,
+            0x6e,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x66,
+            0x72,
+            0x61,
+            0x67,
+            0x6d,
+            0x65,
+            0x6e,
+            0x74,
+            0x20,
+            0x50,
+            0x65,
+            0x6f,
+            0x70,
+            0x6c,
+            0x65,
+            0x53,
+            0x65,
+            0x61,
+            0x72,
+            0x63,
+            0x68,
+            0x52,
+            0x65,
+            0x73,
+            0x75,
+            0x6c,
+            0x74,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x50,
+            0x65,
+            0x72,
+            0x73,
+            0x6f,
+            0x6e,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x6b,
+            0x65,
+            0x79,
+            0x20,
+            0x64,
+            0x69,
+            0x73,
+            0x70,
+            0x6c,
+            0x61,
+            0x79,
+            0x4e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x69,
+            0x73,
+            0x41,
+            0x63,
+            0x74,
+            0x69,
+            0x76,
+            0x65,
+            0x20,
+            0x64,
+            0x65,
+            0x70,
+            0x61,
+            0x72,
+            0x74,
+            0x6d,
+            0x65,
+            0x6e,
+            0x74,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x44,
+            0x65,
+            0x70,
+            0x61,
+            0x72,
+            0x74,
+            0x6d,
+            0x65,
+            0x6e,
+            0x74,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x69,
+            0x6d,
+            0x61,
+            0x67,
+            0x65,
+            0x20,
+            0x74,
+            0x69,
+            0x74,
+            0x6c,
+            0x65,
+            0x20,
+            0x6d,
+            0x61,
+            0x6e,
+            0x61,
+            0x67,
+            0x65,
+            0x72,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x6b,
+            0x65,
+            0x79,
+            0x20,
+            0x64,
+            0x69,
+            0x73,
+            0x70,
+            0x6c,
+            0x61,
+            0x79,
+            0x4e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x50,
+            0x65,
+            0x72,
+            0x73,
+            0x6f,
+            0x6e,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d
+        };
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "0aa0e07a3648d30f705916cfe5d398a1c5c4beac");
+
         public override global::System.String ToString()
         {
 #if NETCOREAPP3_1_OR_GREATER
@@ -806,6 +1300,7 @@ namespace Foo.Bar
         }
 
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IPeopleSearchQueryResult);
+
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IPeopleSearchQueryResult>> ExecuteAsync(global::System.String term, global::System.Int32? skip, global::System.Int32? take, global::System.Boolean? inactive, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(term, skip, take, inactive);
@@ -989,25 +1484,18 @@ namespace Foo.Bar.State
         }
 
         public global::System.String Id { get; }
-
         ///<summary>The database primary key for the person.</summary>
         public global::System.Int64 Key { get; }
-
         ///<summary>The full of the person.</summary>
         public global::System.String? DisplayName { get; }
-
         ///<summary>Indicates if the person is active.</summary>
         public global::System.Boolean IsActive { get; }
-
         ///<summary>The department the person belongs to.</summary>
         public global::StrawberryShake.EntityId? Department { get; }
-
         ///<summary>Url to image, you can specify a size in pixels by appending '?size=300' to get a square image.</summary>
         public global::System.Uri? Image { get; }
-
         ///<summary>The job title of the person.</summary>
         public global::System.String Title { get; }
-
         ///<summary>The person managing the person.</summary>
         public global::StrawberryShake.EntityId? Manager { get; }
     }
@@ -1023,7 +1511,6 @@ namespace Foo.Bar.State
         }
 
         public global::System.String Id { get; }
-
         ///<summary>The name of the department.</summary>
         public global::System.String Name { get; }
     }
@@ -1045,6 +1532,7 @@ namespace Foo.Bar.State
         }
 
         global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::Foo.Bar.IPeopleSearchQueryResult);
+
         public PeopleSearchResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             if (snapshot is null)
@@ -1174,9 +1662,9 @@ namespace Foo.Bar.State
         /// Searches for people based on their id, name, and identites.
         /// </summary>
         public global::Foo.Bar.State.PersonCollectionSegmentData? People { get; }
-
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
         public global::System.UInt64 Version => _version;
+
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new PeopleSearchResultInfo(People, _entityIds, version);
@@ -1483,12 +1971,9 @@ namespace Foo.Bar.State
         }
 
         public global::System.String __typename { get; }
-
         public global::System.Int32? TotalCount { get; }
-
         ///<summary>Information to aid in pagination.</summary>
         public global::Foo.Bar.State.CollectionSegmentInfoData? PageInfo { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId>? Items { get; }
     }
 
@@ -1505,10 +1990,8 @@ namespace Foo.Bar.State
         }
 
         public global::System.String __typename { get; }
-
         ///<summary>Indicates whether more items exist following the set defined by the clients arguments.</summary>
         public global::System.Boolean? HasNextPage { get; }
-
         ///<summary>Indicates whether more items exist prior the set defined by the clients arguments.</summary>
         public global::System.Boolean? HasPreviousPage { get; }
     }
@@ -1615,7 +2098,9 @@ namespace Foo.Bar.State
     public partial class FooClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
         private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
-        {Indented = false};
+        {
+            Indented = false
+        };
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
             global::System.String __typename = obj.GetProperty("__typename").GetString()!;

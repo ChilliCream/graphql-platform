@@ -35,7 +35,7 @@ public ref partial struct Utf8GraphQLParser
     }
 
     /// <summary>
-    /// Parses a short-hand form operation definition.
+    /// Parses a shorthand form operation definition.
     /// <see cref="OperationDefinitionNode" />:
     /// SelectionSet
     /// </summary>
@@ -180,7 +180,8 @@ public ref partial struct Utf8GraphQLParser
         // skip opening token
         MoveNext();
 
-        while (_reader.Kind != TokenKind.RightBrace)
+        while (_reader.Kind != TokenKind.RightBrace
+            && _reader.Kind != TokenKind.EndOfFile)
         {
             selections.Add(ParseSelection());
         }
@@ -239,7 +240,6 @@ public ref partial struct Utf8GraphQLParser
         }
 
         var arguments = ParseArguments(false);
-        var required = ParseRequiredStatus();
         var directives = ParseDirectives(false);
         var selectionSet = _reader.Kind == TokenKind.LeftBrace
             ? ParseSelectionSet()
@@ -251,53 +251,9 @@ public ref partial struct Utf8GraphQLParser
             location,
             name,
             alias,
-            required,
             directives,
             arguments,
             selectionSet);
-    }
-
-    private INullabilityNode? ParseRequiredStatus()
-    {
-        var list = ParseListNullability();
-        var modifier = ParseModifier(list);
-        return modifier ?? list;
-    }
-
-    private ListNullabilityNode? ParseListNullability()
-    {
-        if (_reader.Kind == TokenKind.LeftBracket)
-        {
-            var start = Start();
-            _reader.Skip(TokenKind.LeftBracket);
-            var element = ParseRequiredStatus();
-            _reader.Expect(TokenKind.RightBracket);
-            var location = CreateLocation(in start);
-            return new ListNullabilityNode(location, element);
-        }
-
-        return null;
-    }
-
-    private INullabilityNode? ParseModifier(ListNullabilityNode? listNullabilityNode)
-    {
-        if (_reader.Kind == TokenKind.QuestionMark)
-        {
-            var start = Start();
-            _reader.Skip(TokenKind.QuestionMark);
-            var location = CreateLocation(in start);
-            return new OptionalModifierNode(location, listNullabilityNode);
-        }
-
-        if (_reader.Kind == TokenKind.Bang)
-        {
-            var start = Start();
-            _reader.Skip(TokenKind.Bang);
-            var location = CreateLocation(in start);
-            return new RequiredModifierNode(location, listNullabilityNode);
-        }
-
-        return listNullabilityNode;
     }
 
     /// <summary>
@@ -326,7 +282,6 @@ public ref partial struct Utf8GraphQLParser
         }
         return _emptyArguments;
     }
-
 
     /// <summary>
     /// Parses an argument.

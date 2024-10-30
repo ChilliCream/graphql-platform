@@ -1,4 +1,4 @@
-using Snapshooter.Xunit;
+using CookieCrumble;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -20,11 +20,10 @@ public class ResultBuilderTests
         result.ToJson().MatchSnapshot();
     }
 
-
     private ResultPool CreatePool()
     {
         return new ResultPool(
-            new ObjectResultPool(16, 16),
-            new ListResultPool(16, 16));
+            new ObjectResultPool(16, 16, 16),
+            new ListResultPool(16, 16, 16));
     }
 }

@@ -1,5 +1,3 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution.Configuration;
@@ -55,9 +53,8 @@ public class InMemoryIntegrationTests : SubscriptionIntegrationTestBase
         var sender = services.GetRequiredService<ITopicEventSender>();
 
         var result = await services.ExecuteRequestAsync(
-                "subscription { onMessage2(arg1: \"a\", arg2: \"b\") }",
-                cancellationToken: cts.Token)
-            .ConfigureAwait(false);
+            "subscription { onMessage2(arg1: \"a\", arg2: \"b\") }",
+            cancellationToken: cts.Token);
 
         // we need to execute the read for the subscription to start receiving.
         await using var responseStream = result.ExpectResponseStream();

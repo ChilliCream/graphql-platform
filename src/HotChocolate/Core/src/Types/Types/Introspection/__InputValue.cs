@@ -1,5 +1,4 @@
 #pragma warning disable IDE1006 // Naming Styles
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
@@ -60,28 +59,28 @@ internal sealed class __InputValue : ObjectType
 
     private static class Resolvers
     {
-        public static object Name(IPureResolverContext context)
+        public static object Name(IResolverContext context)
             => context.Parent<IInputField>().Name;
 
-        public static object? Description(IPureResolverContext context)
+        public static object? Description(IResolverContext context)
             => context.Parent<IInputField>().Description;
 
-        public static object Type(IPureResolverContext context)
+        public static object Type(IResolverContext context)
             => context.Parent<IInputField>().Type;
 
-        public static object IsDeprecated(IPureResolverContext context)
+        public static object IsDeprecated(IResolverContext context)
             => context.Parent<IInputField>().IsDeprecated;
 
-        public static object? DeprecationReason(IPureResolverContext context)
+        public static object? DeprecationReason(IResolverContext context)
             => context.Parent<IInputField>().DeprecationReason;
 
-        public static object? DefaultValue(IPureResolverContext context)
+        public static object? DefaultValue(IResolverContext context)
         {
             var field = context.Parent<IInputField>();
             return field.DefaultValue.IsNull() ? null : field.DefaultValue!.Print();
         }
 
-        public static object AppliedDirectives(IPureResolverContext context)
+        public static object AppliedDirectives(IResolverContext context)
             => context.Parent<IInputField>()
                 .Directives
                 .Where(t => t.Type.IsPublic)

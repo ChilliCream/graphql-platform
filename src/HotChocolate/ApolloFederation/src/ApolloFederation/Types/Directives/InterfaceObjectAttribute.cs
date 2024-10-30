@@ -22,8 +22,8 @@ namespace HotChocolate.ApolloFederation.Types;
 public sealed class InterfaceObjectAttribute : ObjectTypeDescriptorAttribute
 {
     protected override void OnConfigure(
-        IDescriptorContext context, 
-        IObjectTypeDescriptor descriptor, 
+        IDescriptorContext context,
+        IObjectTypeDescriptor descriptor,
         Type type)
         => descriptor.InterfaceObject();
 }

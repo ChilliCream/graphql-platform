@@ -1,12 +1,10 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Types;
 using static HotChocolate.Execution.Properties.Resources;
 using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Processing;
 
-internal sealed class SelectionVariants : ISelectionVariants
+internal sealed class SelectionVariants(int id) : ISelectionVariants
 {
     private IObjectType? _firstType;
     private SelectionSet? _firstSelectionSet;
@@ -15,12 +13,11 @@ internal sealed class SelectionVariants : ISelectionVariants
     private Dictionary<IObjectType, SelectionSet>? _map;
     private bool _readOnly;
 
-    public SelectionVariants(int id)
-    {
-        Id = id;
-    }
+    /// <inheritdoc />
+    public int Id { get; } = id;
 
-    public int Id { get; }
+    /// <inheritdoc />
+    public IOperation DeclaringOperation { get; private set; } = default!;
 
     public IEnumerable<IObjectType> GetPossibleTypes()
         => _map?.Keys ?? GetPossibleTypesLazy();
@@ -59,9 +56,14 @@ internal sealed class SelectionVariants : ISelectionVariants
     {
         if (_map is not null)
         {
-            return _map.TryGetValue(typeContext, out var selections)
-                ? selections
-                : throw SelectionSet_TypeContextInvalid(typeContext);
+            if (_map.TryGetValue(typeContext, out var selections))
+            {
+                return selections;
+            }
+            else
+            {
+                throw SelectionSet_TypeContextInvalid(typeContext);
+            }
         }
 
         if (ReferenceEquals(_firstType, typeContext))
@@ -152,35 +154,37 @@ internal sealed class SelectionVariants : ISelectionVariants
     /// <summary>
     /// Completes the selection variant without sealing it.
     /// </summary>
-    internal void Complete()
+    internal void Complete(IOperation declaringOperation)
     {
         if (!_readOnly)
         {
-            _firstSelectionSet?.Complete();
-            _secondSelectionSet?.Complete();
+            DeclaringOperation = declaringOperation;
+            _firstSelectionSet?.Complete(declaringOperation);
+            _secondSelectionSet?.Complete(declaringOperation);
 
             if (_map is not null)
             {
                 foreach (var selectionSet in _map.Values)
                 {
-                    selectionSet.Complete();
+                    selectionSet.Complete(declaringOperation);
                 }
             }
         }
     }
 
-    internal void Seal()
+    internal void Seal(IOperation declaringOperation)
     {
         if (!_readOnly)
         {
-            _firstSelectionSet?.Seal();
-            _secondSelectionSet?.Seal();
+            DeclaringOperation = declaringOperation;
+            _firstSelectionSet?.Seal(declaringOperation);
+            _secondSelectionSet?.Seal(declaringOperation);
 
             if (_map is not null)
             {
                 foreach (var selectionSet in _map.Values)
                 {
-                    selectionSet.Seal();
+                    selectionSet.Seal(declaringOperation);
                 }
             }
 

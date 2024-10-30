@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -155,6 +154,11 @@ public interface IDocumentValidatorContext
     bool UnexpectedErrorsDetected { get; set; }
 
     /// <summary>
+    /// Defines that a fatal error was detected and that the analyzer will be aborted.
+    /// </summary>
+    bool FatalErrorDetected { get; set; }
+
+    /// <summary>
     /// A map to store arbitrary visitor data.
     /// </summary>
     IDictionary<string, object?> ContextData { get; }
@@ -162,17 +166,22 @@ public interface IDocumentValidatorContext
     /// <summary>
     /// When processing field merging this list holds the field pairs that are processed.
     /// </summary>
-    List<FieldInfoPair> CurrentFieldPairs  { get; }
+    List<FieldInfoPair> CurrentFieldPairs { get; }
 
     /// <summary>
     /// When processing field merging this list holds the field pairs that are processed next.
     /// </summary>
-    List<FieldInfoPair> NextFieldPairs  { get; }
+    List<FieldInfoPair> NextFieldPairs { get; }
 
     /// <summary>
     /// When processing field merging this set represents the already processed field pairs.
     /// </summary>
-    HashSet<FieldInfoPair> ProcessedFieldPairs  { get; }
+    HashSet<FieldInfoPair> ProcessedFieldPairs { get; }
+
+    /// <summary>
+    /// Gets the field depth cycle tracker.
+    /// </summary>
+    FieldDepthCycleTracker FieldDepth { get; }
 
     /// <summary>
     /// Rents a list of field infos.

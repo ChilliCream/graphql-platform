@@ -1,7 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+#if NET8_0
 using HotChocolate.Execution;
+#endif
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
@@ -53,6 +52,7 @@ public class ErrorBuilder : IErrorBuilder
                 AbstractionResources.Error_Message_Must_Not_Be_Null,
                 nameof(message));
         }
+
         _message = message;
         return this;
     }
@@ -110,7 +110,17 @@ public class ErrorBuilder : IErrorBuilder
     public IErrorBuilder AddLocation(int line, int column) =>
         AddLocation(new Location(line, column));
 
-    public IErrorBuilder AddLocation<T>(IReadOnlyList<T>? syntaxNodes) where T : ISyntaxNode
+    public IErrorBuilder AddLocation(ISyntaxNode syntaxNode)
+    {
+        if (syntaxNode.Location is { } location)
+        {
+            AddLocation(location.Line, location.Column);
+        }
+
+        return this;
+    }
+
+    public IErrorBuilder SetLocations<T>(IReadOnlyList<T>? syntaxNodes) where T : ISyntaxNode
     {
         if (syntaxNodes is null)
         {

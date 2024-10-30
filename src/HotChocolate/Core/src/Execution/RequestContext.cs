@@ -1,7 +1,4 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Threading;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
@@ -69,38 +66,6 @@ internal sealed class RequestContext(
 
     public Exception? Exception { get; set; }
 
-    public IRequestContext Clone()
-    {
-        var cloned = new RequestContext(
-            Schema,
-            ExecutorVersion,
-            ErrorHandler,
-            DiagnosticEvents)
-        {
-            Request = Request,
-            Services = Services,
-            RequestAborted = RequestAborted,
-            DocumentId = DocumentId,
-            DocumentHash = DocumentHash,
-            IsCachedDocument = IsCachedDocument,
-            Document = Document,
-            ValidationResult = ValidationResult,
-            OperationId = OperationId,
-            Operation = Operation,
-            Variables = Variables,
-            Result = Result,
-            Exception = Exception,
-            RequestIndex = RequestIndex,
-        };
-
-        foreach (var item in _contextData)
-        {
-            cloned._contextData.TryAdd(item.Key, item.Value);
-        }
-
-        return cloned;
-    }
-
     public void Initialize(IOperationRequest request, IServiceProvider services)
     {
         Request = request;
@@ -130,6 +95,7 @@ internal sealed class RequestContext(
         DocumentId = default;
         DocumentHash = default;
         IsCachedDocument = false;
+        IsPersistedDocument = false;
         Document = default;
         ValidationResult = default;
         IsValidDocument = false;

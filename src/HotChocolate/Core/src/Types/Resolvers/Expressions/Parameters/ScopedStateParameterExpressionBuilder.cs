@@ -1,4 +1,3 @@
-using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
@@ -131,8 +130,5 @@ internal class ScopedStateParameterExpressionBuilder
         => this;
 
     public T Execute<T>(IResolverContext context)
-        => throw new NotSupportedException();
-
-    public T Execute<T>(IPureResolverContext context)
         => throw new NotSupportedException();
 }

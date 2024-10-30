@@ -1,4 +1,4 @@
-true
+true Result:
 ---------------
 {
   "data": {
@@ -11,7 +11,12 @@ true
 }
 ---------------
 
-false
+true SQL:
+---------------
+from 'Foos' where Bar = $p0
+---------------
+
+false Result:
 ---------------
 {
   "data": {
@@ -22,4 +27,9 @@ false
     ]
   }
 }
+---------------
+
+false SQL:
+---------------
+from 'Foos' where Bar = $p0
 ---------------

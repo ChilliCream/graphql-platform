@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Pagination.Mappings</PackageId>
+    <AssemblyName>HotChocolate.Pagination.Mappings</AssemblyName>
+    <RootNamespace>HotChocolate.Pagination</RootNamespace>
+    <Description>Provides mapping configurations to HotChocolate that maps between the relay cursor pagination primitives and the keyset pagination primitives.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Types.CursorPagination\HotChocolate.Types.CursorPagination.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
+    <ProjectReference Include="..\Pagination.Core\HotChocolate.Pagination.Core.csproj" />
+    <ProjectReference Include="..\Pagination.Primitives\HotChocolate.Pagination.Primitives.csproj" />
+  </ItemGroup>
+
+</Project>

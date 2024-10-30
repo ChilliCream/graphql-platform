@@ -174,15 +174,6 @@
   <data name="SingleValueExtensionData_KeyIsEmpty" xml:space="preserve">
     <value>Value cannot be null or empty.</value>
   </data>
-  <data name="FieldCoordinate_Parse_InvalidComponentCount" xml:space="preserve">
-    <value>A field coordinate must consist of the type and a field separated by a `.`.</value>
-  </data>
-  <data name="FieldCoordinate_Parse_InvalidFieldComponentCount" xml:space="preserve">
-    <value>A field coordinate must consist of the type, field and a maximum of one argument.</value>
-  </data>
-  <data name="FieldCoordinate_Parse_InvalidFormat" xml:space="preserve">
-    <value>The string has an invalid format.</value>
-  </data>
   <data name="AggregateError_Message" xml:space="preserve">
     <value>For error details look at the `Errors` property.</value>
   </data>
@@ -205,10 +196,13 @@
     <value>The result kind must be a BatchResult, DeferredResult or SubscriptionResult.</value>
   </data>
   <data name="ExecutionResultExtensions_ExpectResponseStream_NotResponseStream" xml:space="preserve">
-    <value>The specified result is expected to be a IResponseStream.</value>
+    <value>The specified result is expected to be a ResponseStream.</value>
   </data>
-  <data name="ExecutionResultExtensions_ExpectQueryResult_NotQueryResult" xml:space="preserve">
-    <value>The specified result is expected to be a IQueryResult.</value>
+  <data name="ExecutionResultExtensions_ExpectOperationResult_NotOperationResult" xml:space="preserve">
+    <value>The specified result is expected to be an OperationResult.</value>
+  </data>
+  <data name="ExecutionResultExtensions_ExpectOperationResultBatch_NotOperationResultBatch" xml:space="preserve">
+    <value>The specified result is expected to be an OperationResultBatch.</value>
   </data>
   <data name="NameUtils_InvalidGraphQLName" xml:space="preserve">
     <value>The specified name is not a valid GraphQL name.</value>

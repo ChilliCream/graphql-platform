@@ -47,7 +47,7 @@ public class TypeMismatchTests(ITestOutputHelper output) : CompositionTestBase(o
               someData1: Int!
             }
             """);
-    
+
     [Fact]
     public async Task Output_Fail_On_Structure_1_Mismatch()
         => await Fail(
@@ -61,7 +61,7 @@ public class TypeMismatchTests(ITestOutputHelper output) : CompositionTestBase(o
               someData1: [String]!
             }
             """);
-    
+
     [Fact]
     public async Task Output_Fail_On_Structure_2_Mismatch()
         => await Fail(
@@ -75,7 +75,7 @@ public class TypeMismatchTests(ITestOutputHelper output) : CompositionTestBase(o
               someData1: [[String]]!
             }
             """);
-    
+
     [Fact]
     public async Task Input_Rewrite_Nullability_For_Argument_Types()
         => await Succeed(
@@ -95,7 +95,7 @@ public class TypeMismatchTests(ITestOutputHelper output) : CompositionTestBase(o
               someData4(a: [Int]!): String!
             }
             """);
-    
+
     [Fact]
     public async Task Input_Rewrite_Nullability_For_Input_Types()
         => await Succeed(
@@ -123,7 +123,7 @@ public class TypeMismatchTests(ITestOutputHelper output) : CompositionTestBase(o
               d: [Int]!
             }
             """);
-    
+
     [Fact]
     public async Task Input_Fail_On_Named_Type_Mismatch()
         => await Fail(

@@ -42,20 +42,21 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
 
     public ValueTask<IReadOnlyList<GraphQLRequest>> ParseRequestAsync(
         Stream requestBody,
-        CancellationToken cancellationToken) 
+        CancellationToken cancellationToken)
         => ReadAsync(requestBody, cancellationToken);
 
     public async ValueTask<GraphQLRequest> ParsePersistedOperationRequestAsync(
         string operationId,
+        string? operationName,
         Stream requestBody,
         CancellationToken cancellationToken)
     {
         EnsureValidQueryId(operationId);
-        
+
         try
         {
             GraphQLRequest Parse(byte[] buffer, int length)
-                => ParsePersistedOperationRequest(buffer, length, operationId);
+                => ParsePersistedOperationRequest(buffer, length, operationId, operationName);
 
             return await BufferHelper.ReadAsync(
                 requestBody,
@@ -165,12 +166,15 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             throw DefaultHttpRequestParser_UnexpectedError(ex);
         }
     }
-    
-    public GraphQLRequest ParsePersistedOperationRequestFromParams(string operationId, IQueryCollection parameters)
+
+    public GraphQLRequest ParsePersistedOperationRequestFromParams(
+        string operationId,
+        string? operationName,
+        IQueryCollection parameters)
     {
-        string? operationName = parameters[_operationNameKey];
+        operationName ??= parameters[_operationNameKey];
         EnsureValidQueryId(operationId);
-        
+
         try
         {
             IReadOnlyList<IReadOnlyDictionary<string, object?>>? variableSet = null;
@@ -178,7 +182,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             {
                 variableSet = ParseVariables(sv);
             }
-            
+
             IReadOnlyDictionary<string, object?>? extensions = null;
             if (extensions is null &&
                 (string?)parameters[ExtensionsKey] is { Length: > 0, } se)
@@ -280,14 +284,15 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             _parserOptions,
             _documentCache,
             _documentHashProvider);
-        
+
         return EnsureValidQueryId(requestParser.Parse());
     }
-    
+
     private GraphQLRequest ParsePersistedOperationRequest(
         byte[] buffer,
         int bytesBuffered,
-        string operationId)
+        string operationId,
+        string? operationName)
     {
         var graphQLData = new ReadOnlySpan<byte>(buffer);
         graphQLData = graphQLData[..bytesBuffered];
@@ -298,7 +303,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             _documentCache,
             _documentHashProvider);
 
-        return requestParser.ParsePersistedOperation(operationId);
+        return requestParser.ParsePersistedOperation(operationId, operationName);
     }
 
     internal static IReadOnlyList<GraphQLRequest> EnsureValidQueryId(IReadOnlyList<GraphQLRequest> requests)

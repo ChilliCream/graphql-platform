@@ -200,6 +200,7 @@ namespace Foo.Bar
         private global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _uuidFormatter = default !;
         public global::System.String TypeName => "people_insert_input";
+
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _cars_Arr_Rel_Insert_InputFormatter = serializerResolver.GetInputValueFormatter("cars_arr_rel_insert_input");
@@ -387,6 +388,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IPeople_insert_inputInfo.IsCarsSet => _set_cars;
+
         public global::System.String? FirstName
         {
             get => _value_firstName;
@@ -398,6 +400,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IPeople_insert_inputInfo.IsFirstNameSet => _set_firstName;
+
         public global::System.String? Id
         {
             get => _value_id;
@@ -409,6 +412,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IPeople_insert_inputInfo.IsIdSet => _set_id;
+
         public global::System.String? LastName
         {
             get => _value_lastName;
@@ -429,6 +433,7 @@ namespace Foo.Bar
         private global::StrawberryShake.Serialization.IInputValueFormatter _cars_Insert_InputFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _cars_On_ConflictFormatter = default !;
         public global::System.String TypeName => "cars_arr_rel_insert_input";
+
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _cars_Insert_InputFormatter = serializerResolver.GetInputValueFormatter("cars_insert_input");
@@ -576,6 +581,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.ICars_arr_rel_insert_inputInfo.IsDataSet => _set_data;
+
         ///<summary>on conflict condition</summary>
         public global::Foo.Bar.cars_on_conflict? On_conflict
         {
@@ -598,6 +604,7 @@ namespace Foo.Bar
         private global::StrawberryShake.Serialization.IInputValueFormatter _uuidFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _people_Obj_Rel_Insert_InputFormatter = default !;
         public global::System.String TypeName => "cars_insert_input";
+
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _stringFormatter = serializerResolver.GetInputValueFormatter("String");
@@ -785,6 +792,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.ICars_insert_inputInfo.IsCarNameSet => _set_carName;
+
         public global::System.String? Id
         {
             get => _value_id;
@@ -796,6 +804,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.ICars_insert_inputInfo.IsIdSet => _set_id;
+
         public global::System.String? OwnerId
         {
             get => _value_ownerId;
@@ -807,6 +816,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.ICars_insert_inputInfo.IsOwnerIdSet => _set_ownerId;
+
         public global::Foo.Bar.people_obj_rel_insert_input? Person
         {
             get => _value_person;
@@ -827,6 +837,7 @@ namespace Foo.Bar
         private global::StrawberryShake.Serialization.IInputValueFormatter _people_Insert_InputFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _people_On_ConflictFormatter = default !;
         public global::System.String TypeName => "people_obj_rel_insert_input";
+
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _people_Insert_InputFormatter = serializerResolver.GetInputValueFormatter("people_insert_input");
@@ -959,6 +970,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IPeople_obj_rel_insert_inputInfo.IsDataSet => _set_data;
+
         ///<summary>on conflict condition</summary>
         public global::Foo.Bar.people_on_conflict? On_conflict
         {
@@ -981,6 +993,7 @@ namespace Foo.Bar
         private global::StrawberryShake.Serialization.IInputValueFormatter _people_Update_ColumnFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _people_Bool_ExpFormatter = default !;
         public global::System.String TypeName => "people_on_conflict";
+
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _people_ConstraintFormatter = serializerResolver.GetInputValueFormatter("People_constraint");
@@ -1142,6 +1155,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IPeople_on_conflictInfo.IsConstraintSet => _set_constraint;
+
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.People_update_column>? Update_columns
         {
             get => _value_update_Columns;
@@ -1153,6 +1167,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IPeople_on_conflictInfo.IsUpdate_columnsSet => _set_update_Columns;
+
         public global::Foo.Bar.people_bool_exp? Where
         {
             get => _value_where;
@@ -1175,6 +1190,7 @@ namespace Foo.Bar
         private global::StrawberryShake.Serialization.IInputValueFormatter _string_Comparison_ExpFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _uuid_Comparison_ExpFormatter = default !;
         public global::System.String TypeName => "people_bool_exp";
+
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _people_Bool_ExpFormatter = serializerResolver.GetInputValueFormatter("people_bool_exp");
@@ -1463,6 +1479,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IPeople_bool_expInfo.Is_andSet => _set__and;
+
         public global::Foo.Bar.people_bool_exp? _not
         {
             get => _value__not;
@@ -1474,6 +1491,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IPeople_bool_expInfo.Is_notSet => _set__not;
+
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.people_bool_exp>? _or
         {
             get => _value__or;
@@ -1485,6 +1503,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IPeople_bool_expInfo.Is_orSet => _set__or;
+
         public global::Foo.Bar.cars_bool_exp? Cars
         {
             get => _value_cars;
@@ -1496,6 +1515,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IPeople_bool_expInfo.IsCarsSet => _set_cars;
+
         public global::Foo.Bar.String_comparison_exp? FirstName
         {
             get => _value_firstName;
@@ -1507,6 +1527,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IPeople_bool_expInfo.IsFirstNameSet => _set_firstName;
+
         public global::Foo.Bar.uuid_comparison_exp? Id
         {
             get => _value_id;
@@ -1518,6 +1539,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IPeople_bool_expInfo.IsIdSet => _set_id;
+
         public global::Foo.Bar.String_comparison_exp? LastName
         {
             get => _value_lastName;
@@ -1540,6 +1562,7 @@ namespace Foo.Bar
         private global::StrawberryShake.Serialization.IInputValueFormatter _uuid_Comparison_ExpFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _people_Bool_ExpFormatter = default !;
         public global::System.String TypeName => "cars_bool_exp";
+
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _cars_Bool_ExpFormatter = serializerResolver.GetInputValueFormatter("cars_bool_exp");
@@ -1828,6 +1851,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.ICars_bool_expInfo.Is_andSet => _set__and;
+
         public global::Foo.Bar.cars_bool_exp? _not
         {
             get => _value__not;
@@ -1839,6 +1863,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.ICars_bool_expInfo.Is_notSet => _set__not;
+
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.cars_bool_exp>? _or
         {
             get => _value__or;
@@ -1850,6 +1875,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.ICars_bool_expInfo.Is_orSet => _set__or;
+
         public global::Foo.Bar.String_comparison_exp? CarName
         {
             get => _value_carName;
@@ -1861,6 +1887,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.ICars_bool_expInfo.IsCarNameSet => _set_carName;
+
         public global::Foo.Bar.uuid_comparison_exp? Id
         {
             get => _value_id;
@@ -1872,6 +1899,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.ICars_bool_expInfo.IsIdSet => _set_id;
+
         public global::Foo.Bar.uuid_comparison_exp? OwnerId
         {
             get => _value_ownerId;
@@ -1883,6 +1911,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.ICars_bool_expInfo.IsOwnerIdSet => _set_ownerId;
+
         public global::Foo.Bar.people_bool_exp? Person
         {
             get => _value_person;
@@ -1903,6 +1932,7 @@ namespace Foo.Bar
         private global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _booleanFormatter = default !;
         public global::System.String TypeName => "String_comparison_exp";
+
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _stringFormatter = serializerResolver.GetInputValueFormatter("String");
@@ -2477,6 +2507,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IString_comparison_expInfo.Is_eqSet => _set__eq;
+
         public global::System.String? _gt
         {
             get => _value__gt;
@@ -2488,6 +2519,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IString_comparison_expInfo.Is_gtSet => _set__gt;
+
         public global::System.String? _gte
         {
             get => _value__gte;
@@ -2499,6 +2531,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IString_comparison_expInfo.Is_gteSet => _set__gte;
+
         ///<summary>does the column match the given case-insensitive pattern</summary>
         public global::System.String? _ilike
         {
@@ -2511,6 +2544,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IString_comparison_expInfo.Is_ilikeSet => _set__ilike;
+
         public global::System.Collections.Generic.IReadOnlyList<global::System.String>? _in
         {
             get => _value__in;
@@ -2522,6 +2556,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IString_comparison_expInfo.Is_inSet => _set__in;
+
         ///<summary>does the column match the given POSIX regular expression, case insensitive</summary>
         public global::System.String? _iregex
         {
@@ -2534,6 +2569,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IString_comparison_expInfo.Is_iregexSet => _set__iregex;
+
         public global::System.Boolean? _is_null
         {
             get => _value__is_null;
@@ -2545,6 +2581,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IString_comparison_expInfo.Is_is_nullSet => _set__is_null;
+
         ///<summary>does the column match the given pattern</summary>
         public global::System.String? _like
         {
@@ -2557,6 +2594,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IString_comparison_expInfo.Is_likeSet => _set__like;
+
         public global::System.String? _lt
         {
             get => _value__lt;
@@ -2568,6 +2606,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IString_comparison_expInfo.Is_ltSet => _set__lt;
+
         public global::System.String? _lte
         {
             get => _value__lte;
@@ -2579,6 +2618,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IString_comparison_expInfo.Is_lteSet => _set__lte;
+
         public global::System.String? _neq
         {
             get => _value__neq;
@@ -2590,6 +2630,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IString_comparison_expInfo.Is_neqSet => _set__neq;
+
         ///<summary>does the column NOT match the given case-insensitive pattern</summary>
         public global::System.String? _nilike
         {
@@ -2602,6 +2643,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IString_comparison_expInfo.Is_nilikeSet => _set__nilike;
+
         public global::System.Collections.Generic.IReadOnlyList<global::System.String>? _nin
         {
             get => _value__nin;
@@ -2613,6 +2655,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IString_comparison_expInfo.Is_ninSet => _set__nin;
+
         ///<summary>does the column NOT match the given POSIX regular expression, case insensitive</summary>
         public global::System.String? _niregex
         {
@@ -2625,6 +2668,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IString_comparison_expInfo.Is_niregexSet => _set__niregex;
+
         ///<summary>does the column NOT match the given pattern</summary>
         public global::System.String? _nlike
         {
@@ -2637,6 +2681,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IString_comparison_expInfo.Is_nlikeSet => _set__nlike;
+
         ///<summary>does the column NOT match the given POSIX regular expression, case sensitive</summary>
         public global::System.String? _nregex
         {
@@ -2649,6 +2694,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IString_comparison_expInfo.Is_nregexSet => _set__nregex;
+
         ///<summary>does the column NOT match the given SQL regular expression</summary>
         public global::System.String? _nsimilar
         {
@@ -2661,6 +2707,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IString_comparison_expInfo.Is_nsimilarSet => _set__nsimilar;
+
         ///<summary>does the column match the given POSIX regular expression, case sensitive</summary>
         public global::System.String? _regex
         {
@@ -2673,6 +2720,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IString_comparison_expInfo.Is_regexSet => _set__regex;
+
         ///<summary>does the column match the given SQL regular expression</summary>
         public global::System.String? _similar
         {
@@ -2694,6 +2742,7 @@ namespace Foo.Bar
         private global::StrawberryShake.Serialization.IInputValueFormatter _uuidFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _booleanFormatter = default !;
         public global::System.String TypeName => "uuid_comparison_exp";
+
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _uuidFormatter = serializerResolver.GetInputValueFormatter("uuid");
@@ -3028,6 +3077,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IUuid_comparison_expInfo.Is_eqSet => _set__eq;
+
         public global::System.String? _gt
         {
             get => _value__gt;
@@ -3039,6 +3089,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IUuid_comparison_expInfo.Is_gtSet => _set__gt;
+
         public global::System.String? _gte
         {
             get => _value__gte;
@@ -3050,6 +3101,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IUuid_comparison_expInfo.Is_gteSet => _set__gte;
+
         public global::System.Collections.Generic.IReadOnlyList<global::System.String>? _in
         {
             get => _value__in;
@@ -3061,6 +3113,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IUuid_comparison_expInfo.Is_inSet => _set__in;
+
         public global::System.Boolean? _is_null
         {
             get => _value__is_null;
@@ -3072,6 +3125,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IUuid_comparison_expInfo.Is_is_nullSet => _set__is_null;
+
         public global::System.String? _lt
         {
             get => _value__lt;
@@ -3083,6 +3137,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IUuid_comparison_expInfo.Is_ltSet => _set__lt;
+
         public global::System.String? _lte
         {
             get => _value__lte;
@@ -3094,6 +3149,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IUuid_comparison_expInfo.Is_lteSet => _set__lte;
+
         public global::System.String? _neq
         {
             get => _value__neq;
@@ -3105,6 +3161,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IUuid_comparison_expInfo.Is_neqSet => _set__neq;
+
         public global::System.Collections.Generic.IReadOnlyList<global::System.String>? _nin
         {
             get => _value__nin;
@@ -3126,6 +3183,7 @@ namespace Foo.Bar
         private global::StrawberryShake.Serialization.IInputValueFormatter _cars_Update_ColumnFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _cars_Bool_ExpFormatter = default !;
         public global::System.String TypeName => "cars_on_conflict";
+
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _cars_ConstraintFormatter = serializerResolver.GetInputValueFormatter("Cars_constraint");
@@ -3287,6 +3345,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.ICars_on_conflictInfo.IsConstraintSet => _set_constraint;
+
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Cars_update_column>? Update_columns
         {
             get => _value_update_Columns;
@@ -3298,6 +3357,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.ICars_on_conflictInfo.IsUpdate_columnsSet => _set_update_Columns;
+
         public global::Foo.Bar.cars_bool_exp? Where
         {
             get => _value_where;
@@ -3329,6 +3389,7 @@ namespace Foo.Bar
     public partial class People_constraintSerializer : global::StrawberryShake.Serialization.IInputValueFormatter, global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, People_constraint>
     {
         public global::System.String TypeName => "People_constraint";
+
         public People_constraint Parse(global::System.String serializedValue)
         {
             return serializedValue switch
@@ -3372,6 +3433,7 @@ namespace Foo.Bar
     public partial class People_update_columnSerializer : global::StrawberryShake.Serialization.IInputValueFormatter, global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, People_update_column>
     {
         public global::System.String TypeName => "People_update_column";
+
         public People_update_column Parse(global::System.String serializedValue)
         {
             return serializedValue switch
@@ -3411,6 +3473,7 @@ namespace Foo.Bar
     public partial class Cars_constraintSerializer : global::StrawberryShake.Serialization.IInputValueFormatter, global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, Cars_constraint>
     {
         public global::System.String TypeName => "Cars_constraint";
+
         public Cars_constraint Parse(global::System.String serializedValue)
         {
             return serializedValue switch
@@ -3454,6 +3517,7 @@ namespace Foo.Bar
     public partial class Cars_update_columnSerializer : global::StrawberryShake.Serialization.IInputValueFormatter, global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, Cars_update_column>
     {
         public global::System.String TypeName => "Cars_update_column";
+
         public Cars_update_column Parse(global::System.String serializedValue)
         {
             return serializedValue switch
@@ -3496,8 +3560,131 @@ namespace Foo.Bar
 
         public static InsertPeopleMutationDocument Instance { get; } = new InsertPeopleMutationDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Mutation;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x6d, 0x75, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x49, 0x6e, 0x73, 0x65, 0x72, 0x74, 0x50, 0x65, 0x6f, 0x70, 0x6c, 0x65, 0x28, 0x24, 0x70, 0x65, 0x6f, 0x70, 0x6c, 0x65, 0x3a, 0x20, 0x5b, 0x70, 0x65, 0x6f, 0x70, 0x6c, 0x65, 0x5f, 0x69, 0x6e, 0x73, 0x65, 0x72, 0x74, 0x5f, 0x69, 0x6e, 0x70, 0x75, 0x74, 0x21, 0x5d, 0x21, 0x29, 0x20, 0x7b, 0x20, 0x69, 0x6e, 0x73, 0x65, 0x72, 0x74, 0x5f, 0x70, 0x65, 0x6f, 0x70, 0x6c, 0x65, 0x28, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x73, 0x3a, 0x20, 0x24, 0x70, 0x65, 0x6f, 0x70, 0x6c, 0x65, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x61, 0x66, 0x66, 0x65, 0x63, 0x74, 0x65, 0x64, 0x5f, 0x72, 0x6f, 0x77, 0x73, 0x20, 0x7d, 0x20, 0x7d};
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
+        {
+            0x6d,
+            0x75,
+            0x74,
+            0x61,
+            0x74,
+            0x69,
+            0x6f,
+            0x6e,
+            0x20,
+            0x49,
+            0x6e,
+            0x73,
+            0x65,
+            0x72,
+            0x74,
+            0x50,
+            0x65,
+            0x6f,
+            0x70,
+            0x6c,
+            0x65,
+            0x28,
+            0x24,
+            0x70,
+            0x65,
+            0x6f,
+            0x70,
+            0x6c,
+            0x65,
+            0x3a,
+            0x20,
+            0x5b,
+            0x70,
+            0x65,
+            0x6f,
+            0x70,
+            0x6c,
+            0x65,
+            0x5f,
+            0x69,
+            0x6e,
+            0x73,
+            0x65,
+            0x72,
+            0x74,
+            0x5f,
+            0x69,
+            0x6e,
+            0x70,
+            0x75,
+            0x74,
+            0x21,
+            0x5d,
+            0x21,
+            0x29,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x6e,
+            0x73,
+            0x65,
+            0x72,
+            0x74,
+            0x5f,
+            0x70,
+            0x65,
+            0x6f,
+            0x70,
+            0x6c,
+            0x65,
+            0x28,
+            0x6f,
+            0x62,
+            0x6a,
+            0x65,
+            0x63,
+            0x74,
+            0x73,
+            0x3a,
+            0x20,
+            0x24,
+            0x70,
+            0x65,
+            0x6f,
+            0x70,
+            0x6c,
+            0x65,
+            0x29,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x61,
+            0x66,
+            0x66,
+            0x65,
+            0x63,
+            0x74,
+            0x65,
+            0x64,
+            0x5f,
+            0x72,
+            0x6f,
+            0x77,
+            0x73,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d
+        };
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "c8b55152dcc4370cf6b30d4d748739527f578d0a");
+
         public override global::System.String ToString()
         {
 #if NETCOREAPP3_1_OR_GREATER
@@ -3532,6 +3719,7 @@ namespace Foo.Bar
         }
 
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IInsertPeopleResult);
+
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IInsertPeopleResult>> ExecuteAsync(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.people_insert_input> people, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(people);
@@ -3643,6 +3831,7 @@ namespace Foo.Bar.State
         }
 
         global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::Foo.Bar.IInsertPeopleResult);
+
         public InsertPeopleResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             if (snapshot is null)
@@ -3701,9 +3890,9 @@ namespace Foo.Bar.State
         /// insert data into the table: "people"
         /// </summary>
         public global::Foo.Bar.State.people_mutation_responseData? Insert_people { get; }
-
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
         public global::System.UInt64 Version => _version;
+
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new InsertPeopleResultInfo(Insert_people, _entityIds, version);
@@ -3971,7 +4160,6 @@ namespace Foo.Bar.State
         }
 
         public global::System.String __typename { get; }
-
         ///<summary>number of rows affected by the mutation</summary>
         public global::System.Int32? Affected_rows { get; }
     }
@@ -3981,7 +4169,9 @@ namespace Foo.Bar.State
     public partial class FooClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
         private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
-        {Indented = false};
+        {
+            Indented = false
+        };
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
             global::System.String __typename = obj.GetProperty("__typename").GetString()!;

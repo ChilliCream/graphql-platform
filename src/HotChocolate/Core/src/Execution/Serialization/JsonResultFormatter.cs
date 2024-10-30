@@ -1,13 +1,8 @@
-using System;
 using System.Buffers;
 using System.Collections;
-using System.Collections.Generic;
-using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Utilities;
 using static HotChocolate.Execution.Serialization.JsonNullIgnoreCondition;
@@ -234,15 +229,9 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
         using var buffer = new ArrayWriter();
         FormatInternal(result, buffer);
 
-#if NETSTANDARD2_0
-        await outputStream
-            .WriteAsync(buffer.GetInternalBuffer(), 0, buffer.Length, cancellationToken)
-            .ConfigureAwait(false);
-#else
         await outputStream
             .WriteAsync(buffer.GetWrittenMemory(), cancellationToken)
             .ConfigureAwait(false);
-#endif
 
         await outputStream.FlushAsync(cancellationToken).ConfigureAwait(false);
     }
@@ -282,15 +271,9 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
             }
         }
 
-#if NETSTANDARD2_0
-        await outputStream
-            .WriteAsync(buffer.GetInternalBuffer(), 0, buffer.Length, cancellationToken)
-            .ConfigureAwait(false);
-#else
         await outputStream
             .WriteAsync(buffer.GetWrittenMemory(), cancellationToken)
             .ConfigureAwait(false);
-#endif
 
         await outputStream.FlushAsync(cancellationToken).ConfigureAwait(false);
     }
@@ -316,15 +299,9 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
             }
         }
 
-#if NETSTANDARD2_0
-        await outputStream
-            .WriteAsync(buffer.GetInternalBuffer(), 0, buffer.Length, cancellationToken)
-            .ConfigureAwait(false);
-#else
         await outputStream
             .WriteAsync(buffer.GetWrittenMemory(), cancellationToken)
             .ConfigureAwait(false);
-#endif
 
         await outputStream.FlushAsync(cancellationToken).ConfigureAwait(false);
     }
@@ -337,7 +314,7 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
         {
             writer.WriteNumber(RequestIndex, result.RequestIndex.Value);
         }
-        
+
         if (result.VariableIndex.HasValue)
         {
             writer.WriteNumber(VariableIndex, result.VariableIndex.Value);
@@ -665,7 +642,6 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
         writer.WriteEndArray();
     }
 
-#if NET5_0_OR_GREATER
     private void WriteJsonElement(
         Utf8JsonWriter writer,
         JsonElement element)
@@ -744,7 +720,6 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
         writer.WriteEndArray();
     }
 
-#endif
     private void WriteFieldValue(
         Utf8JsonWriter writer,
         object? value)
@@ -765,7 +740,6 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
                 WriteListResult(writer, resultMapList);
                 break;
 
-#if NET6_0_OR_GREATER
             case JsonDocument doc:
                 WriteJsonElement(writer, doc.RootElement);
                 break;
@@ -777,7 +751,7 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
             case RawJsonValue rawJsonValue:
                 writer.WriteRawValue(rawJsonValue.Value.Span, true);
                 break;
-#endif
+
             case NeedsFormatting unformatted:
                 unformatted.FormatValue(writer, _serializerOptions);
                 break;

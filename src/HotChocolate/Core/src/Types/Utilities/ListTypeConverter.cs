@@ -1,6 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -50,7 +48,10 @@ internal sealed class ListTypeConverter : IChangeTypeProvider
                 return true;
             }
 
-            if (target.IsGenericType && target.GetGenericTypeDefinition() == typeof(Dictionary<,>))
+            if (target.IsGenericType
+                && (target.GetGenericTypeDefinition() == typeof(Dictionary<,>)
+                    || target.GetGenericTypeDefinition() == typeof(IDictionary<,>)
+                    || target.GetGenericTypeDefinition() == typeof(IReadOnlyDictionary<,>)))
             {
                 var converterMethod =
                     _dictionaryConvert.MakeGenericMethod(targetElement.GetGenericArguments());
@@ -197,11 +198,7 @@ internal sealed class ListTypeConverter : IChangeTypeProvider
     private static bool IsGenericCollection(Type type)
     {
         var interfaces = type.GetInterfaces();
-#if NET6_0_OR_GREATER
         ref var start = ref MemoryMarshal.GetArrayDataReference(interfaces);
-#else
-        ref var start = ref MemoryMarshal.GetReference(interfaces.AsSpan());
-#endif
 
         for (var i = 0; i < interfaces.Length; i++)
         {

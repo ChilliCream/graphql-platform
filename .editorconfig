@@ -9,6 +9,14 @@ insert_final_newline = true
 trim_trailing_whitespace = true
 rulers = 120
 
+# ReSharper properties
+resharper_align_multiline_statement_conditions = false
+resharper_braces_for_ifelse = not_required
+resharper_wrap_object_and_collection_initializer_style = chop_always
+
+# Microsoft .NET properties
+csharp_new_line_before_members_in_object_initializers = true
+
 [*.md]
 trim_trailing_whitespace = false
 

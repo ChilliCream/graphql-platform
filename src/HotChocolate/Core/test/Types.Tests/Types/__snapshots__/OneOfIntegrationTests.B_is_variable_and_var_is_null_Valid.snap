@@ -1,7 +1,7 @@
 ﻿{
   "errors": [
     {
-      "message": "The variable \u0060$var\u0060 assigned to the field \u0060b\u0060 of the Oneof Input Object \u0060ExampleInput\u0060 must be non-null.",
+      "message": "The variable `$var` assigned to the field `b` of the Oneof Input Object `ExampleInput` must be non-null.",
       "locations": [
         {
           "line": 1,
@@ -12,8 +12,8 @@
         "example"
       ],
       "extensions": {
-        "field": "ExampleInput.b",
-        "specifiedBy": "https://spec.graphql.org/draft/#sec-Oneof\u2013Input-Objects-Have-Exactly-One-Field",
+        "fieldCoordinate": "ExampleInput.b",
+        "specifiedBy": "https://spec.graphql.org/draft/#sec-Oneof–Input-Objects-Have-Exactly-One-Field",
         "rfc": "https://github.com/graphql/graphql-spec/pull/825"
       }
     }

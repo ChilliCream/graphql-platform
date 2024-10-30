@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Globalization;
 using HotChocolate.Properties;
 
@@ -37,6 +35,10 @@ public static class DirectiveLocationExtensions
            {
                DirectiveLocation.InlineFragment,
                Language.DirectiveLocation.InlineFragment
+           },
+           {
+               DirectiveLocation.VariableDefinition,
+               Language.DirectiveLocation.VariableDefinition
            },
            {
                DirectiveLocation.Schema,

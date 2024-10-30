@@ -1,11 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-#if NET6_0_OR_GREATER
 using System.Runtime.InteropServices;
-#endif
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution.Internal;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,10 +13,10 @@ internal sealed partial class ResolverTask
         {
             using (DiagnosticEvents.ResolveFieldValue(_context))
             {
-                // we initialize the field so we are able to propagate non-null violations
+                // we initialize the field, so we are able to propagate non-null violations
                 // through the result tree.
                 _context.ParentResult.InitValueUnsafe(_context.ResponseIndex, _context.Selection);
-                
+
                 var success = await TryExecuteAsync(cancellationToken).ConfigureAwait(false);
                 CompleteValue(success, cancellationToken);
 
@@ -37,12 +30,8 @@ internal sealed partial class ResolverTask
                         break;
 
                     default:
-#if NET6_0_OR_GREATER
                         _operationContext.Scheduler.Register(
                             CollectionsMarshal.AsSpan(_taskBuffer));
-#else
-                        _operationContext.Scheduler.Register(_taskBuffer);
-#endif
                         break;
                 }
             }
@@ -57,7 +46,7 @@ internal sealed partial class ResolverTask
             // In this case we will mark the task as faulted and set the result to null.
 
             // However, we will not report or rethrow the exception since the context was already
-            // destroyed and we would cause further exceptions.
+            // destroyed, and we would cause further exceptions.
 
             // The exception on this level is most likely caused by a cancellation of the request.
             Status = ExecutionTaskStatus.Faulted;
@@ -78,17 +67,17 @@ internal sealed partial class ResolverTask
 
     private async ValueTask<bool> TryExecuteAsync(CancellationToken cancellationToken)
     {
+        // We will pre-check if the request was already canceled and mark the task as faulted if
+        // this is the case. This essentially gives us a cheap and easy way out without any
+        // exceptions.
+        if (cancellationToken.IsCancellationRequested)
+        {
+            _completionStatus = ExecutionTaskStatus.Faulted;
+            return false;
+        }
+
         try
         {
-            // We will pre-check if the request was already canceled and mark the task as faulted if
-            // this is the case. This essentially gives us a cheap and easy way out without any
-            // exceptions.
-            if (cancellationToken.IsCancellationRequested)
-            {
-                _completionStatus = ExecutionTaskStatus.Faulted;
-                return false;
-            }
-
             // If the arguments are already parsed and processed we can just process.
             // Arguments need no pre-processing if they have no variables.
             if (Selection.Arguments.IsFullyCoercedNoErrors)
@@ -109,6 +98,7 @@ internal sealed partial class ResolverTask
                         _context.ReportError(argument.Error!);
                     }
                 }
+
                 return false;
             }
 
@@ -126,7 +116,7 @@ internal sealed partial class ResolverTask
             {
                 // If cancellation has not been requested for the request we assume this to
                 // be a GraphQL resolver error and report it as such.
-                // This will let the error handler produce a GraphQL error and
+                // This will let the error handler produce a GraphQL error, and
                 // we set the result to null.
                 Context.ReportError(ex);
                 Context.Result = null;
@@ -138,14 +128,14 @@ internal sealed partial class ResolverTask
 
     private async ValueTask ExecuteResolverPipelineAsync(CancellationToken cancellationToken)
     {
-        if(_context.Field.DependencyInjectionScope == DependencyInjectionScope.Resolver)
+        if (_context.Field.DependencyInjectionScope == DependencyInjectionScope.Resolver)
         {
             var serviceScope = _operationContext.Services.CreateAsyncScope();
             _context.Services = serviceScope.ServiceProvider;
             _context.RegisterForCleanup(serviceScope.DisposeAsync);
             _operationContext.ServiceScopeInitializer.Initialize(_context.RequestServices, _context.Services);
         }
-        
+
         await _context.ResolverPipeline!(_context).ConfigureAwait(false);
 
         var result = _context.Result;
@@ -162,58 +152,23 @@ internal sealed partial class ResolverTask
             return;
         }
 
-        // if we are not a list we do not need any further result processing.
-        if (!_selection.IsList)
+        if (_selection.Field.ResultPostProcessor is not { } postProcessor)
         {
             return;
         }
 
-        if (_selection.HasStreamDirective(_operationContext.IncludeFlags))
+        if (_selection.IsList && _selection.HasStreamDirective(_operationContext.IncludeFlags))
         {
-            _context.Result = await CreateStreamResultAsync(result).ConfigureAwait(false);
+            var stream = postProcessor.ToStreamResultAsync(result, cancellationToken);
+            _context.Result = await CreateStreamResultAsync(stream).ConfigureAwait(false);
             return;
         }
 
-        if (_selection.HasStreamResult)
-        {
-            _context.Result = await CreateListFromStreamAsync(result).ConfigureAwait(false);
-            return;
-        }
-
-        switch (_context.Result)
-        {
-            case IExecutable executable:
-                _context.Result = await executable
-                    .ToListAsync(cancellationToken)
-                    .ConfigureAwait(false);
-                break;
-
-            case IQueryable queryable:
-                _context.Result = await Task.Run(
-                    () =>
-                    {
-                        var items = new List<object?>();
-
-                        foreach (var o in queryable)
-                        {
-                            items.Add(o);
-
-                            if (cancellationToken.IsCancellationRequested)
-                            {
-                                break;
-                            }
-                        }
-
-                        return items;
-                    },
-                    cancellationToken);
-                break;
-        }
+        _context.Result = await postProcessor.ToCompletionResultAsync(result, cancellationToken).ConfigureAwait(false);
     }
 
-    private async ValueTask<List<object?>> CreateStreamResultAsync(object result)
+    private async ValueTask<List<object?>> CreateStreamResultAsync(IAsyncEnumerable<object?> stream)
     {
-        var stream = StreamHelper.CreateStream(result);
         var streamDirective = _selection.GetStreamDirective(_context.Variables)!;
         var enumerator = stream.GetAsyncEnumerator(_context.RequestAborted);
         var next = true;
@@ -263,25 +218,10 @@ internal sealed partial class ResolverTask
             {
                 // if there is no deferred work we will just dispose the enumerator.
                 // in the case we have deferred work, the deferred stream handler is
-                // responsible of handling the dispose.
+                // responsible for disposing.
                 await enumerator.DisposeAsync().ConfigureAwait(false);
             }
         }
-    }
-
-    private async ValueTask<List<object?>> CreateListFromStreamAsync(object result)
-    {
-        var enumerable = StreamHelper.CreateStream(result);
-        var list = new List<object?>();
-
-        await foreach (var item in enumerable
-            .WithCancellation(_context.RequestAborted)
-            .ConfigureAwait(false))
-        {
-            list.Add(item);
-        }
-
-        return list;
     }
 
     /// <summary>

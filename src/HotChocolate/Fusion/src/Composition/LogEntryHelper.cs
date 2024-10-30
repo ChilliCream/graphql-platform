@@ -1,5 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Skimmed;
+using HotChocolate.Types;
 using static HotChocolate.Fusion.Composition.Properties.CompositionResources;
 
 namespace HotChocolate.Fusion.Composition;
@@ -8,7 +9,7 @@ internal static class LogEntryHelper
 {
     public static LogEntry RemoveMemberNotFound(
         SchemaCoordinate coordinate,
-        Schema schema)
+        SchemaDefinition schema)
         => new LogEntry(
             string.Format(LogEntryHelper_RemoveMemberNotFound, coordinate),
             LogEntryCodes.RemoveMemberNotFound,
@@ -18,7 +19,7 @@ internal static class LogEntryHelper
 
     public static LogEntry RenameMemberNotFound(
         SchemaCoordinate coordinate,
-        Schema schema)
+        SchemaDefinition schema)
         => new LogEntry(
             string.Format(LogEntryHelper_RenameMemberNotFound, coordinate),
             LogEntryCodes.RemoveMemberNotFound,
@@ -29,7 +30,7 @@ internal static class LogEntryHelper
     public static LogEntry DirectiveArgumentMissing(
         string argumentName,
         Directive directive,
-        Schema schema)
+        SchemaDefinition schema)
         => new LogEntry(
             string.Format(
                 LogEntryHelper_DirectiveArgumentMissing,
@@ -43,7 +44,7 @@ internal static class LogEntryHelper
     public static LogEntry DirectiveArgumentValueInvalid(
         string argumentName,
         Directive directive,
-        Schema schema)
+        SchemaDefinition schema)
         => new LogEntry(
             string.Format(
                 LogEntryHelper_DirectiveArgumentValueInvalid,
@@ -63,7 +64,7 @@ internal static class LogEntryHelper
             extension: typeGroup);
 
     public static LogEntry MergeTypeKindDoesNotMatch(
-        INamedType type,
+        INamedTypeDefinition type,
         TypeKind sourceKind,
         TypeKind targetKind)
         => new LogEntry(
@@ -77,7 +78,7 @@ internal static class LogEntryHelper
 
     public static LogEntry OutputFieldArgumentMismatch(
         SchemaCoordinate coordinate,
-        OutputField field)
+        OutputFieldDefinition field)
         => new LogEntry(
             LogEntryHelper_OutputFieldArgumentMismatch,
             code: LogEntryCodes.OutputFieldArgumentMismatch,
@@ -85,9 +86,19 @@ internal static class LogEntryHelper
             coordinate: coordinate,
             member: field);
 
+    public static LogEntry DirectiveDefinitionArgumentMismatch(
+        SchemaCoordinate coordinate,
+        DirectiveDefinition directiveDefinition)
+        => new LogEntry(
+            LogEntryHelper_DirectiveDefinitionArgumentMismatch,
+            code: LogEntryCodes.DirectiveDefinitionArgumentMismatch,
+            severity: LogSeverity.Error,
+            coordinate: coordinate,
+            member: directiveDefinition);
+
     public static LogEntry OutputFieldArgumentSetMismatch(
         SchemaCoordinate coordinate,
-        OutputField field,
+        OutputFieldDefinition field,
         IReadOnlyList<string> targetArgs,
         IReadOnlyList<string> sourceArgs)
         => new LogEntry(
@@ -104,7 +115,7 @@ internal static class LogEntryHelper
     public static LogEntry FieldDependencyCannotBeResolved(
         SchemaCoordinate coordinate,
         FieldNode dependency,
-        Schema schema)
+        SchemaDefinition schema)
         => new LogEntry(
             string.Format(
                 LogEntryHelper_FieldDependencyCannotBeResolved,
@@ -114,7 +125,7 @@ internal static class LogEntryHelper
             coordinate: coordinate,
             schema: schema);
 
-    public static LogEntry TypeNotDeclared(MissingType type, Schema schema)
+    public static LogEntry TypeNotDeclared(MissingTypeDefinition type, SchemaDefinition schema)
         => new(
             string.Format(LogEntryHelper_TypeNotDeclared, type.Name, schema.Name),
             LogEntryCodes.TypeNotDeclared,
@@ -124,10 +135,10 @@ internal static class LogEntryHelper
             schema: schema);
 
     public static LogEntry OutputFieldTypeMismatch(
-        SchemaCoordinate schemaCoordinate, 
-        OutputField source, 
-        IType targetType, 
-        IType sourceType)
+        SchemaCoordinate schemaCoordinate,
+        OutputFieldDefinition source,
+        ITypeDefinition targetType,
+        ITypeDefinition sourceType)
         => new(
             string.Format(
                 LogEntryHelper_OutputFieldTypeMismatch,
@@ -139,12 +150,12 @@ internal static class LogEntryHelper
             coordinate: schemaCoordinate,
             member: source,
             extension: new[] { targetType, sourceType, });
-    
+
     public static LogEntry InputFieldTypeMismatch(
-        SchemaCoordinate schemaCoordinate, 
-        InputField source, 
-        IType targetType, 
-        IType sourceType)
+        SchemaCoordinate schemaCoordinate,
+        InputFieldDefinition source,
+        ITypeDefinition targetType,
+        ITypeDefinition sourceType)
         => new(
             string.Format(
                 LogEntryHelper_OutputFieldTypeMismatch,
@@ -156,7 +167,7 @@ internal static class LogEntryHelper
             coordinate: schemaCoordinate,
             member: source,
             extension: new[] { targetType, sourceType, });
-    
+
     public static LogEntry RootTypeNameMismatch(
         OperationType operationType,
         string fusionRootTypeName,
@@ -190,7 +201,10 @@ static file class LogEntryCodes
     public const string CoordinateNotAllowedForRequirements = "HF0007";
 
     public const string FieldDependencyCannotBeResolved = "HF0008";
-    
+
     public const string TypeNotDeclared = "HF0009";
+
     public const string RootNameMismatch = "HF0010";
+
+    public const string DirectiveDefinitionArgumentMismatch = "HF0011";
 }

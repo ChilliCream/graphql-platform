@@ -47,17 +47,17 @@
             },
             {
               "Key": "graphql.operation.id",
-              "Value": "_Default-1-a570a6bff748b5916eadf153261d9c6d"
+              "Value": "_Default-1-0-a570a6bff748b5916eadf153261d9c6d"
             }
           ],
           "event": [
             {
               "Name": "AddedOperationToCache",
-              "Tags": {}
+              "Tags": []
             },
             {
               "Name": "AddedDocumentToCache",
-              "Tags": {}
+              "Tags": []
             }
           ],
           "activities": [
@@ -73,6 +73,18 @@
                 {
                   "Key": "otel.status_code",
                   "Value": "OK"
+                }
+              ],
+              "event": []
+            },
+            {
+              "OperationName": "AnalyzeOperationCost",
+              "DisplayName": "Analyze Operation Complexity",
+              "Status": "Unset",
+              "tags": [
+                {
+                  "Key": "graphql.operation.id",
+                  "Value": "a570a6bff748b5916eadf153261d9c6d"
                 }
               ],
               "event": []

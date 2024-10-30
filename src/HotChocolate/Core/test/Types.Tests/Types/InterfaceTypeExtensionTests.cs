@@ -1,7 +1,6 @@
 #nullable enable
 
-using System.Linq;
-using Snapshooter.Xunit;
+using CookieCrumble;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types;

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Transport.Http;
@@ -35,17 +32,13 @@ public sealed class HttpConnection : IHttpConnection
 
         HotChocolate.Transport.OperationRequest operation;
 
-        if (strategy == RequestStrategy.PersistedQuery)
+        if (strategy == RequestStrategy.PersistedOperation)
         {
             operation = new HotChocolate.Transport.OperationRequest(null, id, name, variables, extensions);
         }
         else
         {
-#if NETSTANDARD2_0
-            var body = Encoding.UTF8.GetString(document.Body.ToArray());
-#else
             var body = Encoding.UTF8.GetString(document.Body);
-#endif
 
             operation = new HotChocolate.Transport.OperationRequest(body, null, name, variables, extensions);
         }
@@ -77,9 +70,9 @@ public sealed class HttpConnection : IHttpConnection
             // to just have lists here, but in case we have a dictionary this should also just work.
             if (value is IEnumerable<KeyValuePair<string, object?>> items)
             {
-                copy ??= CreateDictionary(variables);
+                copy ??= new Dictionary<string, object?>(variables);
 
-                value = MapVariables(CreateDictionary(items));
+                value = MapVariables(new Dictionary<string, object?>(items));
             }
             else if (value is List<object?> list)
             {
@@ -108,7 +101,7 @@ public sealed class HttpConnection : IHttpConnection
             switch (variables[index])
             {
                 case IEnumerable<KeyValuePair<string, object?>> items:
-                    variables[index] = MapVariables(CreateDictionary(items));
+                    variables[index] = MapVariables(new Dictionary<string, object?>(items));
                     break;
 
                 case List<object?> list:
@@ -116,23 +109,6 @@ public sealed class HttpConnection : IHttpConnection
                     break;
             }
         }
-    }
-
-    private static Dictionary<string, object?> CreateDictionary(
-        IEnumerable<KeyValuePair<string, object?>> values)
-    {
-#if NETSTANDARD2_0
-        var dictionary = new Dictionary<string, object?>();
-
-        foreach (var value in values)
-        {
-            dictionary[value.Key] = value.Value;
-        }
-
-        return dictionary;
-#else
-        return new Dictionary<string, object?>(values);
-#endif
     }
 
     private static IReadOnlyDictionary<string, object?> MapFilesToVariables(

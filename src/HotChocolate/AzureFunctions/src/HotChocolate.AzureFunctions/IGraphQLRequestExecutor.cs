@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HotChocolate.AzureFunctions;
@@ -30,4 +30,3 @@ public interface IGraphQLRequestExecutor
     /// </returns>
     Task<IActionResult> ExecuteAsync(HttpContext context);
 }
-

@@ -1,5 +1,5 @@
+using CookieCrumble;
 using HotChocolate.Language;
-using Snapshooter.Xunit;
 
 #nullable enable
 
@@ -62,22 +62,22 @@ public class ScalarBindingTests
 
         public override bool IsInstanceOfType(IValueNode literal)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public override object? ParseLiteral(IValueNode valueSyntax)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public override IValueNode ParseValue(object? value)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public override IValueNode ParseResult(object? resultValue)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
     }
 
@@ -90,22 +90,22 @@ public class ScalarBindingTests
 
         public override bool IsInstanceOfType(IValueNode literal)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public override object? ParseLiteral(IValueNode valueSyntax)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public override IValueNode ParseValue(object? value)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public override IValueNode ParseResult(object? resultValue)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
     }
 }

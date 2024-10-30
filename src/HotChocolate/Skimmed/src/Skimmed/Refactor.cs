@@ -1,12 +1,12 @@
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
-using HotChocolate.Utilities;
+using HotChocolate.Types;
 
 namespace HotChocolate.Skimmed;
 
 public static class Refactor
 {
-    public static bool RenameMember(this Schema schema, SchemaCoordinate coordinate, string newName)
+    public static bool RenameMember(this SchemaDefinition schema, SchemaCoordinate coordinate, string newName)
     {
         if (schema is null)
         {
@@ -20,33 +20,37 @@ public static class Refactor
                 nameof(newName));
         }
 
-        if (schema.TryGetMember<IHasName>(coordinate, out var member))
+        if (schema.TryGetMember<INameProvider>(coordinate, out var member))
         {
-            if (member is INamedType nt)
+            if (member is INamedTypeDefinition nt)
             {
                 schema.Types.Remove(nt);
-                member.Name = newName;
+                nt.Name = newName;
                 schema.Types.Add(nt);
-            }
-            else if (member is DirectiveType dt)
-            {
-                schema.DirectiveTypes.Remove(dt);
-                member.Name = newName;
-                schema.DirectiveTypes.Add(dt);
-            }
-            else
-            {
-                member.Name = newName;
+                return true;
             }
 
-            return true;
+            if (member is DirectiveDefinition dt)
+            {
+                schema.DirectiveDefinitions.Remove(dt);
+                dt.Name = newName;
+                schema.DirectiveDefinitions.Add(dt);
+                return true;
+            }
+
+            if (member is IFieldDefinition field)
+            {
+                // TODO: we need to update the field collection
+                field.Name = newName;
+                return true;
+            }
         }
 
         return false;
     }
 
     public static bool RemoveMember(
-        this Schema schema,
+        this SchemaDefinition schema,
         SchemaCoordinate coordinate,
         bool onRequiredRemoveParent = false)
     {
@@ -57,11 +61,11 @@ public static class Refactor
 
         if (coordinate.OfDirective)
         {
-            if (schema.DirectiveTypes.TryGetDirective(coordinate.Name, out var directive))
+            if (schema.DirectiveDefinitions.TryGetDirective(coordinate.Name, out var directive))
             {
                 if (coordinate.ArgumentName is null)
                 {
-                    schema.DirectiveTypes.Remove(directive);
+                    schema.DirectiveDefinitions.Remove(directive);
 
                     var rewriter = new RemoveDirectiveRewriter();
                     rewriter.VisitSchema(schema, directive);
@@ -72,7 +76,7 @@ public static class Refactor
                 {
                     if (arg.Type.Kind is TypeKind.NonNull && arg.DefaultValue is null && onRequiredRemoveParent)
                     {
-                        schema.DirectiveTypes.Remove(directive);
+                        schema.DirectiveDefinitions.Remove(directive);
 
                         var rewriter = new RemoveDirectiveRewriter();
                         rewriter.VisitSchema(schema, directive);
@@ -104,7 +108,7 @@ public static class Refactor
             {
                 if (type.Kind is TypeKind.Enum)
                 {
-                    var enumType = (EnumType) type;
+                    var enumType = (EnumTypeDefinition) type;
 
                     if (enumType.Values.TryGetValue(coordinate.MemberName, out var enumValue))
                     {
@@ -117,7 +121,7 @@ public static class Refactor
 
                 if (type.Kind is TypeKind.InputObject)
                 {
-                    var inputType = (InputObjectType) type;
+                    var inputType = (InputObjectTypeDefinition) type;
 
                     if (inputType.Fields.TryGetField(coordinate.MemberName, out var input))
                     {
@@ -146,7 +150,7 @@ public static class Refactor
                 return false;
             }
 
-            var complexType = (ComplexType) type;
+            var complexType = (ComplexTypeDefinition) type;
 
             if (complexType.Fields.TryGetField(coordinate.MemberName, out var field))
             {
@@ -178,7 +182,7 @@ public static class Refactor
     }
 
     public static bool AddDirective(
-        this Schema schema,
+        this SchemaDefinition schema,
         SchemaCoordinate coordinate,
         Directive directive)
     {
@@ -192,7 +196,7 @@ public static class Refactor
             throw new ArgumentNullException(nameof(directive));
         }
 
-        if (schema.TryGetMember<IHasDirectives>(coordinate, out var member))
+        if (schema.TryGetMember<IDirectivesProvider>(coordinate, out var member))
         {
             member.Directives.Add(directive);
             return true;
@@ -201,11 +205,11 @@ public static class Refactor
         return false;
     }
 
-    private sealed class RemoveDirectiveRewriter : SchemaVisitor<DirectiveType>
+    private sealed class RemoveDirectiveRewriter : SchemaVisitor<DirectiveDefinition>
     {
         private readonly List<Directive> _remove = [];
 
-        public override void VisitDirectives(DirectiveCollection directives, DirectiveType directiveType)
+        public override void VisitDirectives(IDirectiveCollection directives, DirectiveDefinition directiveType)
         {
             foreach (var directive in directives)
             {
@@ -225,23 +229,23 @@ public static class Refactor
     }
 
     private sealed class RemoveDirectiveArgRewriter
-        : SchemaVisitor<(DirectiveType Type, string Arg)>
+        : SchemaVisitor<(DirectiveDefinition Type, string Arg)>
     {
         private readonly List<(Directive, Directive)> _replace = [];
 
         public override void VisitDirectives(
-            DirectiveCollection directives,
-            (DirectiveType Type, string Arg) context)
+            IDirectiveCollection directives,
+            (DirectiveDefinition Type, string Arg) context)
         {
             foreach (var directive in directives)
             {
                 if (ReferenceEquals(context.Type, directive.Type))
                 {
-                    var arguments = new List<Argument>();
+                    var arguments = new List<ArgumentAssignment>();
 
                     foreach (var argument in directive.Arguments)
                     {
-                        if (!argument.Name.EqualsOrdinal(context.Arg))
+                        if (!argument.Name.Equals(context.Arg, StringComparison.Ordinal))
                         {
                             arguments.Add(argument);
                         }
@@ -260,14 +264,16 @@ public static class Refactor
         }
     }
 
-    private sealed class RemoveTypeRewriter : SchemaVisitor<INamedType>
+    private sealed class RemoveTypeRewriter : SchemaVisitor<INamedTypeDefinition>
     {
         // note: by removing fields this could clash with directive arguments
         // we should make this more robust and also remove these.
-        private readonly List<OutputField> _removeOutputFields = [];
-        private readonly List<InputField> _removeInputFields = [];
+        private readonly List<OutputFieldDefinition> _removeOutputFields = [];
+        private readonly List<InputFieldDefinition> _removeInputFields = [];
 
-        public override void VisitOutputFields(FieldCollection<OutputField> fields, INamedType context)
+        public override void VisitOutputFields(
+            IFieldDefinitionCollection<OutputFieldDefinition> fields,
+            INamedTypeDefinition context)
         {
             foreach (var field in fields)
             {
@@ -288,7 +294,9 @@ public static class Refactor
             }
         }
 
-        public override void VisitInputFields(FieldCollection<InputField> fields, INamedType context)
+        public override void VisitInputFields(
+            IFieldDefinitionCollection<InputFieldDefinition> fields,
+            INamedTypeDefinition context)
         {
             foreach (var field in fields)
             {
@@ -309,7 +317,7 @@ public static class Refactor
             }
         }
 
-        public override void VisitObjectType(ObjectType type, INamedType context)
+        public override void VisitObjectType(ObjectTypeDefinition type, INamedTypeDefinition context)
         {
             var current = type.Implements.Count - 1;
 
@@ -328,7 +336,7 @@ public static class Refactor
             base.VisitObjectType(type, context);
         }
 
-        public override void VisitUnionType(UnionType type, INamedType context)
+        public override void VisitUnionType(UnionTypeDefinition type, INamedTypeDefinition context)
         {
             var current = type.Types.Count - 1;
 
@@ -348,9 +356,9 @@ public static class Refactor
         }
     }
 
-    private sealed class RemoveEnumValueRewriter : SchemaVisitor<(EnumType Type, EnumValue Value)>
+    private sealed class RemoveEnumValueRewriter : SchemaVisitor<(EnumTypeDefinition Type, EnumValue Value)>
     {
-        public override void VisitInputField(InputField field, (EnumType Type, EnumValue Value) context)
+        public override void VisitInputField(InputFieldDefinition field, (EnumTypeDefinition Type, EnumValue Value) context)
         {
             if (field.DefaultValue is not null &&
                 ReferenceEquals(field.Type.NamedType(), context.Type))
@@ -365,14 +373,13 @@ public static class Refactor
             base.VisitInputField(field, context);
         }
 
-
         private sealed class ValueRewriter : SyntaxRewriter<RewriterContext>
         {
             protected override EnumValueNode? RewriteEnumValue(
                 EnumValueNode node,
                 RewriterContext context)
             {
-                if (node.Value.EqualsOrdinal(context.Value))
+                if (node.Value.Equals(context.Value, StringComparison.Ordinal))
                 {
                     return null;
                 }
@@ -408,9 +415,9 @@ public static class Refactor
         }
     }
 
-    private sealed class RemoveInputFieldRewriter : SchemaVisitor<(InputObjectType Type, InputField Field)>
+    private sealed class RemoveInputFieldRewriter : SchemaVisitor<(InputObjectTypeDefinition Type, InputFieldDefinition Field)>
     {
-        public override void VisitInputField(InputField field, (InputObjectType Type, InputField Field) context)
+        public override void VisitInputField(InputFieldDefinition field, (InputObjectTypeDefinition Type, InputFieldDefinition Field) context)
         {
             if (field.DefaultValue is not null &&
                 ReferenceEquals(field.Type.NamedType(), context.Type))
@@ -425,7 +432,6 @@ public static class Refactor
             base.VisitInputField(field, context);
         }
 
-
         private sealed class ValueRewriter : SyntaxRewriter<RewriterContext>
         {
             protected override ObjectValueNode? RewriteObjectValue(ObjectValueNode node, RewriterContext context)
@@ -434,7 +440,7 @@ public static class Refactor
 
                 foreach (var item in node.Fields)
                 {
-                    if (!item.Name.Value.EqualsOrdinal(context.Name))
+                    if (!item.Name.Value.Equals(context.Name, StringComparison.Ordinal))
                     {
                         var rewritten = RewriteNodeOrDefault(item, context);
 

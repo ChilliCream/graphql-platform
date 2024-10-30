@@ -27,10 +27,10 @@ public sealed class FieldNode : NamedSyntaxNode, ISelectionNode
     /// The field name.
     /// </param>
     public FieldNode(string name)
-        : this(null, new NameNode(name), null, null, Array.Empty<DirectiveNode>(), Array.Empty<ArgumentNode>(), null)
+        : this(null, new NameNode(name), null, Array.Empty<DirectiveNode>(), Array.Empty<ArgumentNode>(), null)
     {
     }
-    
+
     /// <summary>
     /// Initializes a new instance of <see cref="FieldNode"/>.
     /// </summary>
@@ -39,9 +39,6 @@ public sealed class FieldNode : NamedSyntaxNode, ISelectionNode
     /// </param>
     /// <param name="alias">
     /// The fields alias name used instead if the actual name.
-    /// </param>
-    /// <param name="required">
-    /// Specifies the type nullability of this field.
     /// </param>
     /// <param name="directives">
     /// The field directives.
@@ -55,14 +52,13 @@ public sealed class FieldNode : NamedSyntaxNode, ISelectionNode
     public FieldNode(
         NameNode name,
         NameNode? alias,
-        INullabilityNode? required,
         IReadOnlyList<DirectiveNode> directives,
         IReadOnlyList<ArgumentNode> arguments,
         SelectionSetNode? selectionSet)
-        : this(null, name, alias, required, directives, arguments, selectionSet)
+        : this(null, name, alias, directives, arguments, selectionSet)
     {
     }
-    
+
     /// <summary>
     /// Initializes a new instance of <see cref="FieldNode"/>.
     /// </summary>
@@ -74,9 +70,6 @@ public sealed class FieldNode : NamedSyntaxNode, ISelectionNode
     /// </param>
     /// <param name="alias">
     /// The fields alias name used instead if the actual name.
-    /// </param>
-    /// <param name="required">
-    /// Specifies the type nullability of this field.
     /// </param>
     /// <param name="directives">
     /// The field directives.
@@ -91,7 +84,6 @@ public sealed class FieldNode : NamedSyntaxNode, ISelectionNode
         Location? location,
         NameNode name,
         NameNode? alias,
-        INullabilityNode? required,
         IReadOnlyList<DirectiveNode> directives,
         IReadOnlyList<ArgumentNode> arguments,
         SelectionSetNode? selectionSet)
@@ -99,7 +91,6 @@ public sealed class FieldNode : NamedSyntaxNode, ISelectionNode
     {
         Alias = alias;
         Arguments = arguments ?? throw new ArgumentNullException(nameof(arguments));
-        Required = required;
         SelectionSet = selectionSet;
     }
 
@@ -107,7 +98,7 @@ public sealed class FieldNode : NamedSyntaxNode, ISelectionNode
     public override SyntaxKind Kind => SyntaxKind.Field;
 
     /// <summary>
-    /// By default a field’s response key in the response object will use that field’s name.
+    /// By default, a field’s response key in the response object will use that field’s name.
     /// However, you can define a different response key by specifying an alias.
     /// </summary>
     public NameNode? Alias { get; }
@@ -116,11 +107,6 @@ public sealed class FieldNode : NamedSyntaxNode, ISelectionNode
     /// Gets the assigned field argument values.
     /// </summary>
     public IReadOnlyList<ArgumentNode> Arguments { get; }
-
-    /// <summary>
-    /// Gets the client-side nullability definition.
-    /// </summary>
-    public INullabilityNode? Required { get; }
 
     /// <summary>
     /// Gets the fields selection set.
@@ -140,11 +126,6 @@ public sealed class FieldNode : NamedSyntaxNode, ISelectionNode
         foreach (var argument in Arguments)
         {
             yield return argument;
-        }
-
-        if (Required is not null)
-        {
-            yield return Required;
         }
 
         foreach (var directive in Directives)
@@ -190,7 +171,7 @@ public sealed class FieldNode : NamedSyntaxNode, ISelectionNode
     /// Returns the new node with the new <paramref name="location" />.
     /// </returns>
     public FieldNode WithLocation(Location? location)
-        => new(location, Name, Alias, Required, Directives, Arguments, SelectionSet);
+        => new(location, Name, Alias, Directives, Arguments, SelectionSet);
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
@@ -203,7 +184,7 @@ public sealed class FieldNode : NamedSyntaxNode, ISelectionNode
     /// Returns the new node with the new <paramref name="name" />.
     /// </returns>
     public FieldNode WithName(NameNode name)
-        => new(Location, name, Alias, Required, Directives, Arguments, SelectionSet);
+        => new(Location, name, Alias, Directives, Arguments, SelectionSet);
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
@@ -216,7 +197,7 @@ public sealed class FieldNode : NamedSyntaxNode, ISelectionNode
     /// Returns the new node with the new <paramref name="alias" />.
     /// </returns>
     public FieldNode WithAlias(NameNode? alias)
-        => new(Location, Name, alias, Required, Directives, Arguments, SelectionSet);
+        => new(Location, Name, alias, Directives, Arguments, SelectionSet);
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
@@ -230,7 +211,7 @@ public sealed class FieldNode : NamedSyntaxNode, ISelectionNode
     /// Returns the new node with the new <paramref name="directives" />.
     /// </returns>
     public FieldNode WithDirectives(IReadOnlyList<DirectiveNode> directives)
-        => new(Location, Name, Alias, Required, directives, Arguments, SelectionSet);
+        => new(Location, Name, Alias, directives, Arguments, SelectionSet);
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
@@ -243,7 +224,7 @@ public sealed class FieldNode : NamedSyntaxNode, ISelectionNode
     /// Returns the new node with the new <paramref name="arguments" />.
     /// </returns>
     public FieldNode WithArguments(IReadOnlyList<ArgumentNode> arguments)
-        => new(Location, Name, Alias, Required, Directives, arguments, SelectionSet);
+        => new(Location, Name, Alias, Directives, arguments, SelectionSet);
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
@@ -256,18 +237,5 @@ public sealed class FieldNode : NamedSyntaxNode, ISelectionNode
     /// Returns the new node with the new <paramref name="selectionSet" />.
     /// </returns>
     public FieldNode WithSelectionSet(SelectionSetNode? selectionSet)
-        => new(Location, Name, Alias, Required, Directives, Arguments, selectionSet);
-
-    /// <summary>
-    /// Creates a new node from the current instance and replaces the
-    /// <see cref="Required" /> with <paramref name="required" />.
-    /// </summary>
-    /// <param name="required">
-    /// The required that shall be used to replace the current <see cref="Required" />.
-    /// </param>
-    /// <returns>
-    /// Returns the new node with the new <paramref name="required" />.
-    /// </returns>
-    public FieldNode WithRequired(INullabilityNode? required)
-        => new(Location, Name, Alias, required, Directives, Arguments, SelectionSet);
+        => new(Location, Name, Alias, Directives, Arguments, selectionSet);
 }

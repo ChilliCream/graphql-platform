@@ -1,6 +1,3 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate;
 using HotChocolate.Execution;
@@ -116,7 +113,7 @@ public class CodeFirstSchemaTests
 
         result.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Schema_Query_With_FieldResult_And_Exceptions()
     {
@@ -129,7 +126,7 @@ public class CodeFirstSchemaTests
 
         schema.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Execute_Query_With_FieldResult_And_Exceptions_Success()
     {
@@ -149,7 +146,7 @@ public class CodeFirstSchemaTests
 
         result.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Execute_Query_With_FieldResult_And_Exceptions_Error_1()
     {
@@ -169,7 +166,7 @@ public class CodeFirstSchemaTests
 
         result.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Execute_Query_With_FieldResult_And_Exceptions_Error_2()
     {
@@ -189,7 +186,7 @@ public class CodeFirstSchemaTests
 
         result.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Execute_Query_With_FieldResult_And_Exceptions_Unexpected_Error()
     {
@@ -210,7 +207,6 @@ public class CodeFirstSchemaTests
         result.MatchSnapshot();
     }
 
-
     [Fact]
     public async Task Schema_Query_With_FieldResult_And_Paging()
     {
@@ -225,7 +221,7 @@ public class CodeFirstSchemaTests
 
         schema.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Execute_Query_With_FieldResult_And_Paging()
     {
@@ -254,7 +250,7 @@ public class CodeFirstSchemaTests
 
         result.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Execute_Query_With_FieldResult_And_Paging_Error()
     {
@@ -284,7 +280,7 @@ public class CodeFirstSchemaTests
 
         result.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Execute_Query_With_FieldResult_And_Paging_Filtering_Sorting()
     {
@@ -313,7 +309,7 @@ public class CodeFirstSchemaTests
 
         result.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Execute_Query_With_FieldResult_And_Paging_Filtering_Sorting_Error()
     {
@@ -354,8 +350,80 @@ public class CodeFirstSchemaTests
                 .BuildSchemaAsync();
 
         var exception = await Assert.ThrowsAsync<SchemaException>(Error);
-        Assert.Equal(1, exception.Errors.Count);
+        Assert.Single(exception.Errors);
         exception.Errors[0].Message.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Throw_SchemaError_When_FieldResult_Has_No_Errors()
+    {
+        async Task Error()
+            => await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryConventions()
+                .AddQueryType<InvalidQuery>()
+                .BuildSchemaAsync();
+
+        var exception = await Assert.ThrowsAsync<SchemaException>(Error);
+        Assert.Single(exception.Errors);
+        exception.Errors[0].Message.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Throw_SchemaError_When_FieldResult_Has_No_Errors_1()
+    {
+        async Task Error()
+            => await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<InvalidQuery>()
+                .BuildSchemaAsync();
+
+        var exception = await Assert.ThrowsAsync<SchemaException>(Error);
+        Assert.Single(exception.Errors);
+        exception.Errors[0].Message.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Throw_SchemaError_When_FieldResult_Has_No_Errors_2()
+    {
+        async Task Error()
+            => await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryConventions()
+                .AddQueryType<InvalidQueryTask>()
+                .BuildSchemaAsync();
+
+        var exception = await Assert.ThrowsAsync<SchemaException>(Error);
+        Assert.Single(exception.Errors);
+        exception.Errors[0].Message.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Throw_SchemaError_When_FieldResult_Has_No_Errors_3()
+    {
+        async Task Error()
+            => await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryConventions()
+                .AddQueryType<InvalidQueryValueTask>()
+                .BuildSchemaAsync();
+
+        var exception = await Assert.ThrowsAsync<SchemaException>(Error);
+        Assert.Single(exception.Errors);
+        exception.Errors[0].Message.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task FieldResult_With_Errors_Are_Valid()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryConventions()
+                .AddQueryType<ValidQueryValueTask>()
+                .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
     }
 
     public class QueryWithFieldResultType : ObjectType
@@ -369,7 +437,7 @@ public class CodeFirstSchemaTests
                     ctx =>
                     {
                         var id = ctx.ArgumentValue<string>("id");
-                        
+
                         if (id == "1")
                         {
                             return new User("1", "Foo", "foo@bar.de", new AddressNotFound("1", "Failed"));
@@ -379,7 +447,7 @@ public class CodeFirstSchemaTests
                     });
         }
     }
-    
+
     public class QueryWithExceptionType : ObjectType
     {
         protected override void Configure(IObjectTypeDescriptor descriptor)
@@ -392,7 +460,7 @@ public class CodeFirstSchemaTests
                     ctx =>
                     {
                         var id = ctx.ArgumentValue<string>("id");
-                        
+
                         if (id == "1")
                         {
                             return new User("1", "Foo", "foo@bar.de", new AddressNotFound("1", "Failed"));
@@ -402,7 +470,7 @@ public class CodeFirstSchemaTests
                     });
         }
     }
-    
+
     public class QueryWithFieldResultAndExceptionType : ObjectType
     {
         protected override void Configure(IObjectTypeDescriptor descriptor)
@@ -417,7 +485,7 @@ public class CodeFirstSchemaTests
                     ctx =>
                     {
                         var id = ctx.ArgumentValue<string>("id");
-                        
+
                         if (id == "1")
                         {
                             return new User("1", "Foo", "foo@bar.de", new AddressNotFound("1", "Failed"));
@@ -450,19 +518,19 @@ public class CodeFirstSchemaTests
                     ctx =>
                     {
                         var error = ctx.ArgumentValue<bool>("error");
-                        
+
                         if (error)
                         {
                             return new UserNotFound("id", "Failed");
                         }
 
-                        return new FieldResult<IQueryable<User>, UserNotFound>( 
+                        return new FieldResult<IQueryable<User>, UserNotFound>(
                             new[]
                             {
                                 new User("1", "Foo", "foo@bar.de", new AddressNotFound("1", "Failed")),
                             }.AsQueryable());
                     });
-            
+
             descriptor
                 .Field("usersWithFilter")
                 .Argument("error", a => a.Type<NonNullType<BooleanType>>().DefaultValue(false))
@@ -473,13 +541,13 @@ public class CodeFirstSchemaTests
                     ctx =>
                     {
                         var error = ctx.ArgumentValue<bool>("error");
-                        
+
                         if (error)
                         {
                             return new UserNotFound("id", "Failed");
                         }
 
-                        return new FieldResult<IQueryable<User>, UserNotFound>( 
+                        return new FieldResult<IQueryable<User>, UserNotFound>(
                             new[]
                             {
                                 new User("1", "Foo", "foo@bar.de", new AddressNotFound("1", "Failed")),
@@ -487,8 +555,7 @@ public class CodeFirstSchemaTests
                     });
         }
     }
-    
-    
+
     public class UnionOnScalarFailsType : ObjectType
     {
         protected override void Configure(IObjectTypeDescriptor descriptor)
@@ -500,7 +567,7 @@ public class CodeFirstSchemaTests
                 .Resolve("some string");
         }
     }
-    
+
     public record User(string Id, string Name, string Email, FieldResult<Address, AddressNotFound> Address);
 
     public record Address(string Id, string Street, string City);
@@ -512,4 +579,30 @@ public class CodeFirstSchemaTests
     public sealed class UserNotFoundException : Exception;
 
     public sealed class InvalidUserIdException : Exception;
+
+    public class InvalidQuery
+    {
+        public FieldResult<Foo> Foo() => default!;
+    }
+
+    public class InvalidQueryTask
+    {
+        public Task<FieldResult<Foo>> Foo() => default!;
+    }
+
+    public class InvalidQueryValueTask
+    {
+        public Task<FieldResult<Foo>> Foo() => default!;
+    }
+
+    public class ValidQueryValueTask
+    {
+        [Error<ArgumentException>]
+        public Task<FieldResult<Foo>> Foo() => default!;
+    }
+
+    public class Foo
+    {
+        public string Bar => default!;
+    }
 }

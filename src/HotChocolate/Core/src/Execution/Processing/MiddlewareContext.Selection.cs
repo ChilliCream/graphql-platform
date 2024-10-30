@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using HotChocolate.Resolvers;
@@ -31,7 +29,7 @@ internal partial class MiddlewareContext
         ObjectType parentType,
         ObjectResult parentResult,
         object? parent,
-        [NotNullWhen(true)] out IPureResolverContext? context)
+        [NotNullWhen(true)] out IResolverContext? context)
     {
         if (_childContext.Initialize(selection, parentType, parentResult, parent))
         {

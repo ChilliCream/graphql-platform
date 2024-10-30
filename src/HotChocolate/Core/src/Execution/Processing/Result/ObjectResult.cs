@@ -1,6 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using HotChocolate.Types;
@@ -222,7 +220,7 @@ public sealed class ObjectResult
         }
 
         value = null;
-        return true;
+        return false;
     }
 
     public IEnumerator<ObjectFieldResult> GetEnumerator()

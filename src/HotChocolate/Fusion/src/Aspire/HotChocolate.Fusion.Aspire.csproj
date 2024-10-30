@@ -1,13 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <TargetFrameworks>net8.0</TargetFrameworks>
-
     <AssemblyName>HotChocolate.Fusion.Aspire</AssemblyName>
     <RootNamespace>HotChocolate.Fusion</RootNamespace>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
 
     <IsPackable>true</IsPackable>
   </PropertyGroup>
@@ -17,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Hosting" Version="8.0.0-preview.5.24201.12" />
+    <PackageReference Include="Aspire.Hosting" />
   </ItemGroup>
 
   <ItemGroup>

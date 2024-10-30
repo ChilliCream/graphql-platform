@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Utilities;
 
 #nullable enable

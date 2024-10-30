@@ -1,7 +1,6 @@
 #nullable enable
 
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
@@ -41,8 +40,5 @@ internal sealed class InferredServiceParameterExpressionBuilder(IServiceProvider
         => this;
 
     public T Execute<T>(IResolverContext context) where T : notnull
-        => context.Service<T>();
-
-    public T Execute<T>(IPureResolverContext context) where T : notnull
         => context.Service<T>();
 }

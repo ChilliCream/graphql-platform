@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics;
 using static HotChocolate.Types.Properties.CursorResources;
 
@@ -10,7 +9,7 @@ namespace HotChocolate.Types.Pagination;
 /// <typeparam name="T"></typeparam>
 public class Edge<T> : IEdge
 {
-    private readonly Func<T, string>? _resolveCursor;
+    private readonly Func<Edge<T>, string>? _resolveCursor;
     private string? _cursor;
 
     /// <summary>
@@ -43,16 +42,43 @@ public class Edge<T> : IEdge
     /// The node that the edge will wrap.
     /// </param>
     /// <param name="resolveCursor">
-    /// A delegate that resolves the cursor which identifies the <paramref name="node" /> in the
+    /// A delegate that resolves the cursor which identifies the <paramref name="node" /> in the data set.
     /// </param>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="resolveCursor" /> is <see langword="null" />.
     /// </exception>
     public Edge(T node, Func<T, string> resolveCursor)
     {
-        Node = node;
-        _resolveCursor = resolveCursor ??
+        if (resolveCursor is null)
+        {
             throw new ArgumentNullException(nameof(resolveCursor));
+        }
+
+        Node = node;
+        _resolveCursor = edge => resolveCursor(edge.Node);
+    }
+
+        /// <summary>
+    /// Initializes a new instance of <see cref="Edge{T}" />.
+    /// </summary>
+    /// <param name="node">
+    /// The node that the edge will wrap.
+    /// </param>
+    /// <param name="resolveCursor">
+    /// A delegate that resolves the cursor which identifies the <paramref name="node" /> in the data set.
+    /// </param>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="resolveCursor" /> is <see langword="null" />.
+    /// </exception>
+    public Edge(T node, Func<Edge<T>, string> resolveCursor)
+    {
+        if (resolveCursor is null)
+        {
+            throw new ArgumentNullException(nameof(resolveCursor));
+        }
+
+        Node = node;
+        _resolveCursor = resolveCursor;
     }
 
     /// <summary>
@@ -79,7 +105,7 @@ public class Edge<T> : IEdge
                     throw new InvalidOperationException(Edge_Cursor_CursorAndResolverNull);
                 }
 
-                _cursor = _resolveCursor(Node);
+                _cursor = _resolveCursor(this);
                 Debug.Assert(_cursor is not null, "The edge's cursor resolver returned null.");
             }
 

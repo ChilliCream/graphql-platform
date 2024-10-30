@@ -1,6 +1,6 @@
-﻿using GreenDonut;
+using CookieCrumble;
+using GreenDonut;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Execution.Integration.DataLoader;
 
@@ -257,7 +257,7 @@ public class UseDataLoaderTests
     {
         public TestGroupedLoader(
             IBatchScheduler batchScheduler,
-            DataLoaderOptions options = null)
+            DataLoaderOptions? options = null)
             : base(batchScheduler, options)
         {
         }
@@ -274,7 +274,7 @@ public class UseDataLoaderTests
     {
         public TestBatchLoader(
             IBatchScheduler batchScheduler,
-            DataLoaderOptions options = null)
+            DataLoaderOptions options)
             : base(batchScheduler, options)
         {
         }

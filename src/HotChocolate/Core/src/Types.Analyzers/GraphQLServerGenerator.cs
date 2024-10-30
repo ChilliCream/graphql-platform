@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
 using HotChocolate.Types.Analyzers.Filters;
 using HotChocolate.Types.Analyzers.Generators;
 using HotChocolate.Types.Analyzers.Inspectors;
@@ -17,10 +17,11 @@ public class GraphQLServerGenerator : IIncrementalGenerator
         new ModuleInspector(),
         new DataLoaderInspector(),
         new DataLoaderDefaultsInspector(),
+        new DataLoaderModuleInspector(),
         new OperationInspector(),
         new ObjectTypeExtensionInfoInspector(),
-        new ObjectTypeExtensionInfoInspector(),
-        new RequestMiddlewareInspector(),
+        new InterfaceTypeInfoInspector(),
+        new RequestMiddlewareInspector()
     ];
 
     private static readonly ISyntaxGenerator[] _generators =
@@ -28,6 +29,8 @@ public class GraphQLServerGenerator : IIncrementalGenerator
         new TypeModuleSyntaxGenerator(),
         new TypesSyntaxGenerator(),
         new MiddlewareGenerator(),
+        new DataLoaderModuleGenerator(),
+        new DataLoaderGenerator()
     ];
 
     private static readonly Func<SyntaxNode, bool> _predicate;
@@ -65,7 +68,7 @@ public class GraphQLServerGenerator : IIncrementalGenerator
     private static bool Predicate(SyntaxNode node)
         => _predicate(node);
 
-    private static ISyntaxInfo? Transform(GeneratorSyntaxContext context)
+    private static SyntaxInfo? Transform(GeneratorSyntaxContext context)
     {
         for (var i = 0; i < _inspectors.Length; i++)
         {
@@ -81,18 +84,29 @@ public class GraphQLServerGenerator : IIncrementalGenerator
     private static void Execute(
         SourceProductionContext context,
         Compilation compilation,
-        ImmutableArray<ISyntaxInfo> syntaxInfos)
+        ImmutableArray<SyntaxInfo> syntaxInfos)
     {
-        for (var i = 0; i < _generators.Length; i++)
+        foreach (var syntaxInfo in syntaxInfos.AsSpan())
         {
-            _generators[i].Generate(context, compilation, syntaxInfos);
+            if (syntaxInfo.Diagnostics.Length > 0)
+            {
+                foreach (var diagnostic in syntaxInfo.Diagnostics.AsSpan())
+                {
+                    context.ReportDiagnostic(diagnostic);
+                }
+            }
+        }
+
+        foreach (var generator in _generators.AsSpan())
+        {
+            generator.Generate(context, compilation, syntaxInfos);
         }
     }
 }
 
 file static class Extensions
 {
-    public static IncrementalValuesProvider<ISyntaxInfo> WhereNotNull(
-        this IncrementalValuesProvider<ISyntaxInfo?> source)
+    public static IncrementalValuesProvider<SyntaxInfo> WhereNotNull(
+        this IncrementalValuesProvider<SyntaxInfo?> source)
         => source.Where(static t => t is not null)!;
 }

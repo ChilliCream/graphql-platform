@@ -159,24 +159,6 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string FieldCoordinate_Parse_InvalidComponentCount {
-            get {
-                return ResourceManager.GetString("FieldCoordinate_Parse_InvalidComponentCount", resourceCulture);
-            }
-        }
-        
-        internal static string FieldCoordinate_Parse_InvalidFieldComponentCount {
-            get {
-                return ResourceManager.GetString("FieldCoordinate_Parse_InvalidFieldComponentCount", resourceCulture);
-            }
-        }
-        
-        internal static string FieldCoordinate_Parse_InvalidFormat {
-            get {
-                return ResourceManager.GetString("FieldCoordinate_Parse_InvalidFormat", resourceCulture);
-            }
-        }
-        
         internal static string AggregateError_Message {
             get {
                 return ResourceManager.GetString("AggregateError_Message", resourceCulture);
@@ -225,9 +207,15 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string ExecutionResultExtensions_ExpectQueryResult_NotQueryResult {
+        internal static string ExecutionResultExtensions_ExpectOperationResult_NotOperationResult {
             get {
-                return ResourceManager.GetString("ExecutionResultExtensions_ExpectQueryResult_NotQueryResult", resourceCulture);
+                return ResourceManager.GetString("ExecutionResultExtensions_ExpectOperationResult_NotOperationResult", resourceCulture);
+            }
+        }
+        
+        internal static string ExecutionResultExtensions_ExpectOperationResultBatch_NotOperationResultBatch {
+            get {
+                return ResourceManager.GetString("ExecutionResultExtensions_ExpectOperationResultBatch_NotOperationResultBatch", resourceCulture);
             }
         }
         

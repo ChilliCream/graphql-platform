@@ -1,4 +1,3 @@
-using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
@@ -28,8 +27,5 @@ internal sealed class ResolverContextParameterExpressionBuilder
         => this;
 
     public T Execute<T>(IResolverContext context)
-        => (T)(object)context;
-
-    public T Execute<T>(IPureResolverContext context)
-        => throw new NotSupportedException();
+        => (T)context;
 }

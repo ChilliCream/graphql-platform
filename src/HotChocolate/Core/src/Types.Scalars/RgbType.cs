@@ -1,4 +1,3 @@
-using System;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 
@@ -10,25 +9,13 @@ namespace HotChocolate.Types;
 /// MDN CSS Color
 /// </a>
 /// </summary>
-#if NET7_0_OR_GREATER
 public partial class RgbType : RegexType
-#else
-public class RgbType : RegexType
-#endif
 {
     private const string _validationPattern =
         "((?:rgba?)\\((?:\\d+%?(?:,|\\s)+){2,3}[\\s\\/]*[\\d\\.]+%?\\))";
 
-#if NET7_0_OR_GREATER
     [GeneratedRegex(_validationPattern, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegex();
-#else
-    private static Regex CreateRegex()
-        => new Regex(
-            _validationPattern,
-            RegexOptions.Compiled | RegexOptions.IgnoreCase,
-            TimeSpan.FromMilliseconds(DefaultRegexTimeoutInMs));
-#endif
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RgbType"/> class.

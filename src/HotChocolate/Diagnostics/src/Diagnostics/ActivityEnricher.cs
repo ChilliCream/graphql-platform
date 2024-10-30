@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
@@ -15,6 +12,8 @@ using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using OpenTelemetry.Trace;
+using static HotChocolate.Diagnostics.SemanticConventions;
 using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Diagnostics;
@@ -41,7 +40,6 @@ public class ActivityEnricher
         StringBuilderPool = stringBuilderPoolPool;
         _options = options;
     }
-
 
     /// <summary>
     /// Gets the <see cref="StringBuilder"/> pool used by this enricher.
@@ -128,7 +126,8 @@ public class ActivityEnricher
         if (request.Variables is not null &&
             (_options.RequestDetails & RequestDetails.Variables) == RequestDetails.Variables)
         {
-            EnrichRequestVariables(context, request, CreateVariablesNode(request.Variables), activity);
+            var node = CreateVariablesNode(request.Variables);
+            EnrichRequestVariables(context, request, node, activity);
         }
 
         if (request.Extensions is not null &&
@@ -150,7 +149,7 @@ public class ActivityEnricher
             var request = batch[i];
 
             if (request.QueryId is not null &&
-            (_options.RequestDetails & RequestDetails.Id) == RequestDetails.Id)
+                (_options.RequestDetails & RequestDetails.Id) == RequestDetails.Id)
             {
                 activity.SetTag($"graphql.http.request[{i}].query.id", request.QueryId);
             }
@@ -176,7 +175,8 @@ public class ActivityEnricher
             if (request.Variables is not null &&
                 (_options.RequestDetails & RequestDetails.Variables) == RequestDetails.Variables)
             {
-                EnrichBatchVariables(context, request, CreateVariablesNode(request.Variables), i, activity);
+                var node = CreateVariablesNode(request.Variables);
+                EnrichBatchVariables(context, request, node, i, activity);
             }
 
             if (request.Extensions is not null &&
@@ -222,7 +222,8 @@ public class ActivityEnricher
         if (request.Variables is not null &&
             (_options.RequestDetails & RequestDetails.Variables) == RequestDetails.Variables)
         {
-            EnrichRequestVariables(context, request, CreateVariablesNode(request.Variables), activity);
+            var node = CreateVariablesNode(request.Variables);
+            EnrichRequestVariables(context, request, node, activity);
         }
 
         if (request.Extensions is not null &&
@@ -299,7 +300,6 @@ public class ActivityEnricher
         Exception exception,
         Activity activity)
     {
-
     }
 
     public virtual void EnrichParseHttpRequest(HttpContext context, Activity activity)
@@ -506,9 +506,9 @@ public class ActivityEnricher
         activity.SetTag("graphql.selection.type", selection.Field.Type.Print());
         activity.SetTag("graphql.selection.path", path);
         activity.SetTag("graphql.selection.hierarchy", hierarchy);
-        activity.SetTag("graphql.selection.field.name", coordinate.FieldName);
+        activity.SetTag("graphql.selection.field.name", coordinate.MemberName);
         activity.SetTag("graphql.selection.field.coordinate", coordinate.ToString());
-        activity.SetTag("graphql.selection.field.declaringType", coordinate.TypeName);
+        activity.SetTag("graphql.selection.field.declaringType", coordinate.Name);
         activity.SetTag("graphql.selection.field.isDeprecated", selection.Field.IsDeprecated);
 
         void BuildPath()
@@ -587,39 +587,39 @@ public class ActivityEnricher
 
     protected virtual void EnrichError(IError error, Activity activity)
     {
-        var tags = new List<KeyValuePair<string, object?>>
+        if (error.Exception is { } exception)
         {
-            new("graphql.error.message", error.Message),
-            new("graphql.error.code", error.Code),
-        };
-
-        if (error.Locations is { Count: > 0, })
-        {
-            if (error.Locations.Count == 1)
-            {
-                tags.Add(new("graphql.error.location.column", error.Locations[0].Column));
-                tags.Add(new("graphql.error.location.line", error.Locations[0].Line));
-            }
-            else
-            {
-                for (var i = 0; i < error.Locations.Count; i++)
-                {
-                    tags.Add(new($"graphql.error.location[{i}].column", error.Locations[i].Column));
-                    tags.Add(new($"graphql.error.location[{i}].line", error.Locations[i].Line));
-                }
-            }
+            activity.RecordException(exception);
         }
 
-        activity.AddEvent(new("Error", tags: new(tags)));
+        var tags = new ActivityTagsCollection
+        {
+            new(AttributeExceptionMessage, error.Message),
+            new(AttributeExceptionType, error.Code ?? "GRAPHQL_ERROR"),
+        };
+
+        if (error.Path is not null)
+        {
+            tags["graphql.error.path"] = error.Path.ToString();
+        }
+
+        if (error.Locations is { Count: > 0 })
+        {
+            tags["graphql.error.location.column"] = error.Locations[0].Column;
+            tags["graphql.error.location.line"] = error.Locations[0].Line;
+        }
+
+        activity.AddEvent(new ActivityEvent(AttributeExceptionEventName, default, tags));
     }
 
-    private static ISyntaxNode CreateVariablesNode(IReadOnlyList<IReadOnlyDictionary<string, object?>>? variableSet)
+    private static ISyntaxNode CreateVariablesNode(
+        IReadOnlyList<IReadOnlyDictionary<string, object?>>? variableSet)
     {
         if (variableSet is null or { Count: 0, })
         {
             return NullValueNode.Default;
         }
-        
+
         if (variableSet.Count == 1)
         {
             var variables = variableSet[0];
@@ -633,7 +633,7 @@ public class ActivityEnricher
                 var valueNode = value is null ? NullValueNode.Default : (IValueNode)value;
                 fields[index++] = new ObjectFieldNode(name, valueNode);
             }
-            
+
             return new ObjectValueNode(fields);
         }
 
@@ -641,8 +641,8 @@ public class ActivityEnricher
         {
             var variableSetCount = variableSet.Count;
             var items = new IValueNode[variableSetCount];
-            
-            for(var i = 0; i < variableSetCount; i++)
+
+            for (var i = 0; i < variableSetCount; i++)
             {
                 var variables = variableSet[i];
                 var variablesCount = variables.Count;
@@ -662,4 +662,11 @@ public class ActivityEnricher
 
         throw new InvalidOperationException();
     }
+}
+
+file static class SemanticConventions
+{
+    public const string AttributeExceptionEventName = "exception";
+    public const string AttributeExceptionType = "exception.type";
+    public const string AttributeExceptionMessage = "exception.message";
 }

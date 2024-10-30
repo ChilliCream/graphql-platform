@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -28,22 +25,12 @@ internal sealed class WorkQueue
 
     public bool TryTake([MaybeNullWhen(false)] out IExecutionTask executionTask)
     {
-#if NETSTANDARD2_0
-        if (_stack.Count > 0)
-        {
-            executionTask = _stack.Pop();
-            Interlocked.Increment(ref _running);
-            return true;
-        }
-
-        executionTask = default;
-#else
         if (_stack.TryPop(out executionTask))
         {
             Interlocked.Increment(ref _running);
             return true;
         }
-#endif
+
         return false;
     }
 

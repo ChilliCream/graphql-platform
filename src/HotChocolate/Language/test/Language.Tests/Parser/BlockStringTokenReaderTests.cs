@@ -1,6 +1,5 @@
-using System;
 using System.Text;
-using Snapshooter.Xunit;
+using CookieCrumble;
 using Xunit;
 
 namespace HotChocolate.Language;

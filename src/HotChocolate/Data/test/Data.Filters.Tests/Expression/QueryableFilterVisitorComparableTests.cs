@@ -2,7 +2,6 @@ using CookieCrumble;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-
 namespace HotChocolate.Data.Filters.Expressions;
 
 public class QueryableFilterVisitorComparableTests
@@ -43,7 +42,6 @@ public class QueryableFilterVisitorComparableTests
         var b = new Foo { BarShort = 12, };
         Assert.False(func(b));
     }
-
 
     [Fact]
     public void Create_ShortGreaterThan_Expression()
@@ -89,7 +87,6 @@ public class QueryableFilterVisitorComparableTests
         Assert.False(func(c));
     }
 
-
     [Fact]
     public void Create_ShortGreaterThanOrEquals_Expression()
     {
@@ -134,8 +131,6 @@ public class QueryableFilterVisitorComparableTests
         Assert.False(func(c));
     }
 
-
-
     [Fact]
     public void Create_ShortLowerThan_Expression()
     {
@@ -179,7 +174,6 @@ public class QueryableFilterVisitorComparableTests
         var c = new Foo { BarShort = 13, };
         Assert.True(func(c));
     }
-
 
     [Fact]
     public void Create_ShortLowerThanOrEquals_Expression()
@@ -301,7 +295,6 @@ public class QueryableFilterVisitorComparableTests
         Assert.True(func(c));
     }
 
-
     [Fact]
     public void Create_NullableShortGreaterThan_Expression()
     {
@@ -402,8 +395,6 @@ public class QueryableFilterVisitorComparableTests
         Assert.True(func(d));
     }
 
-
-
     [Fact]
     public void Create_NullableShortLowerThan_Expression()
     {
@@ -453,7 +444,6 @@ public class QueryableFilterVisitorComparableTests
         var d = new FooNullable { BarShort = null, };
         Assert.True(func(d));
     }
-
 
     [Fact]
     public void Create_NullableShortLowerThanOrEquals_Expression()
@@ -595,5 +585,4 @@ public class QueryableFilterVisitorComparableTests
     {
         public short? BarShort { get; set; }
     }
-
 }

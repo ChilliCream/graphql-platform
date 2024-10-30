@@ -60,11 +60,14 @@ public static class SyntaxPrinter
 #if NETSTANDARD2_0
         using var streamWriter = new StreamWriter(
             stream,
-            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true));
+            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true),
+            -1,
+            leaveOpen: true);
 #else
         await using var streamWriter = new StreamWriter(
             stream,
-            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true));
+            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true),
+            leaveOpen: true);
 #endif
 
         var syntaxWriter = StringSyntaxWriter.Rent();
@@ -80,10 +83,10 @@ public static class SyntaxPrinter
                 _serializerNoIndent.Serialize(node, syntaxWriter);
             }
 
-#if NETSTANDARD2_0 || NETSTANDARD2_1
-                await streamWriter
-                    .WriteAsync(syntaxWriter.ToString())
-                    .ConfigureAwait(false);
+#if NETSTANDARD2_0
+            await streamWriter
+                .WriteAsync(syntaxWriter.ToString())
+                .ConfigureAwait(false);
 #else
             await streamWriter
                 .WriteAsync(syntaxWriter.StringBuilder, cancellationToken)

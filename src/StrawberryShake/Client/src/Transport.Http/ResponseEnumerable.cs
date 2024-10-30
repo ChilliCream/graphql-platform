@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Transport.Http;
 using StrawberryShake.Internal;
 using static StrawberryShake.Properties.Resources;
@@ -129,7 +124,6 @@ internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocumen
 
     private static Exception CreateError(GraphQLHttpResponse response)
     {
-#if NET5_0_OR_GREATER
         return new HttpRequestException(
             string.Format(
                 ResponseEnumerator_HttpNoSuccessStatusCode,
@@ -137,14 +131,6 @@ internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocumen
                 response.ReasonPhrase),
             null,
             response.StatusCode);
-#else
-        return new HttpRequestException(
-            string.Format(
-                ResponseEnumerator_HttpNoSuccessStatusCode,
-                (int)response.StatusCode,
-                response.ReasonPhrase),
-            null);
-#endif
     }
 
     internal static JsonDocument CreateBodyFromException(Exception exception)

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Utilities.Introspection.Properties;
 
@@ -127,7 +124,6 @@ internal static class IntrospectionFormatter
 
         foreach (var value in enumValues)
         {
-
             values.Add(new EnumValueDefinitionNode
             (
                 null,

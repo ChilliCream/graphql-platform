@@ -28,10 +28,7 @@ public class ConventionTests
     {
         public static TypeWithList[] Data =
         [
-            new()
-            {
-                List = new List<ListItem>() { new() { Foo = "Foo", }, new() { Foo = "Bar", }, },
-            },
+            new() { List = new List<ListItem>() { new() { Foo = "Foo", }, new() { Foo = "Bar", }, }, },
         ];
 
         public string? Id { get; set; }

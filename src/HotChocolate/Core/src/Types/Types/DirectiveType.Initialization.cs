@@ -1,8 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -73,7 +71,6 @@ public partial class DirectiveType
         base.OnCompleteType(context, definition);
 
         _inputParser = context.DescriptorContext.InputParser;
-        _inputFormatter = context.DescriptorContext.InputFormatter;
 
         Locations =  definition.Locations;
         Arguments = OnCompleteFields(context, definition);
@@ -82,6 +79,8 @@ public partial class DirectiveType
 
         _createInstance = OnCompleteCreateInstance(context, definition);
         _getFieldValues = OnCompleteGetFieldValues(context, definition);
+        _parse = OnCompleteParse(context, definition);
+        _format = OnCompleteFormat(context, definition);
 
         if (definition.Locations == 0)
         {
@@ -105,46 +104,60 @@ public partial class DirectiveType
         ITypeCompletionContext context,
         DirectiveTypeDefinition definition)
     {
-        Func<object?[], object>? createInstance = null;
-
         if (definition.CreateInstance is not null)
         {
-            createInstance = definition.CreateInstance;
+            return definition.CreateInstance;
         }
 
         if (RuntimeType == typeof(object) || Arguments.Any(t => t.Property is null))
         {
-            createInstance ??= CreateDictionaryInstance;
-        }
-        else
-        {
-            createInstance ??= CompileFactory(this);
+            return CreateDictionaryInstance;
         }
 
-        return createInstance;
+        return  CompileFactory(this);
     }
 
     protected virtual Action<object, object?[]> OnCompleteGetFieldValues(
         ITypeCompletionContext context,
         DirectiveTypeDefinition definition)
     {
-        Action<object, object?[]>? getFieldValues = null;
-
         if (definition.GetFieldData is not null)
         {
-            getFieldValues = definition.GetFieldData;
+            return definition.GetFieldData;
         }
 
         if (RuntimeType == typeof(object) || Arguments.Any(t => t.Property is null))
         {
-            getFieldValues ??= CreateDictionaryGetValues;
-        }
-        else
-        {
-            getFieldValues ??= CompileGetFieldValues(this);
+            return CreateDictionaryGetValues;
         }
 
-        return getFieldValues;
+        return CompileGetFieldValues(this);
+    }
+
+    protected virtual Func<DirectiveNode, object> OnCompleteParse(
+        ITypeCompletionContext context,
+        DirectiveTypeDefinition definition)
+    {
+        if (definition.Parse is not null)
+        {
+            return definition.Parse;
+        }
+
+        var inputParser = context.DescriptorContext.InputParser;
+        return node => inputParser.ParseDirective(node, this);
+    }
+
+    protected virtual Func<object, DirectiveNode> OnCompleteFormat(
+        ITypeCompletionContext context,
+        DirectiveTypeDefinition definition)
+    {
+        if (definition.Format is not null)
+        {
+            return definition.Format;
+        }
+
+        var inputFormatter = context.DescriptorContext.InputFormatter;
+        return directive => inputFormatter.FormatDirective(directive, this);
     }
 
     protected virtual DirectiveMiddleware? OnCompleteMiddleware(

@@ -14,9 +14,15 @@ public static class BsonDocumentExtensions
 
     public static BsonDocument DefaultRender(
         this FilterDefinition<BsonDocument> bsonQuery)
-        => bsonQuery.Render(_documentSerializer, _serializerRegistry);
+        => bsonQuery.Render(
+            new RenderArgs<BsonDocument>(
+                _documentSerializer,
+                _serializerRegistry));
 
     public static BsonDocument DefaultRender(
         this SortDefinition<BsonDocument> bsonQuery)
-        => bsonQuery.Render(_documentSerializer, _serializerRegistry);
+        => bsonQuery.Render(
+            new RenderArgs<BsonDocument>(
+                _documentSerializer,
+                _serializerRegistry));
 }

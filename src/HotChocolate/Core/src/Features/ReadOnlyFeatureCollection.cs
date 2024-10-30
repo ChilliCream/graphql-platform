@@ -1,7 +1,5 @@
 using System.Collections;
-#if NET8_0_OR_GREATER
 using System.Collections.Frozen;
-#endif
 
 namespace HotChocolate.Features;
 
@@ -10,11 +8,7 @@ namespace HotChocolate.Features;
 /// </summary>
 public sealed class ReadOnlyFeatureCollection : IFeatureCollection
 {
-#if NET8_0_OR_GREATER
     private readonly FrozenDictionary<Type, object> _features;
-#else
-    private readonly Dictionary<Type, object> _features;
-#endif
     private volatile int _containerRevision;
 
     /// <summary>
@@ -25,11 +19,16 @@ public sealed class ReadOnlyFeatureCollection : IFeatureCollection
     /// </param>
     public ReadOnlyFeatureCollection(IFeatureCollection features)
     {
-#if NET8_0_OR_GREATER
         _features = features.ToFrozenDictionary();
-#else
-        _features = features.ToDictionary(t => t.Key, t => t.Value);
-#endif
+
+        foreach (var feature in _features.Values)
+        {
+            if (feature is ISealable sealable)
+            {
+                sealable.Seal();
+            }
+        }
+
         _containerRevision = features.Revision;
     }
 
@@ -42,7 +41,7 @@ public sealed class ReadOnlyFeatureCollection : IFeatureCollection
     /// <inheritdoc />
     public object? this[Type key]
     {
-        get => _features[key];
+        get => _features.TryGetValue(key, out var value) ? value : null;
         set => throw new NotSupportedException("The feature collection is read-only.");
     }
 
@@ -66,8 +65,8 @@ public sealed class ReadOnlyFeatureCollection : IFeatureCollection
     }
 
     /// <inheritdoc />
-    public void Set<TFeature>(TFeature? instance) =>
-        throw new NotSupportedException("The feature collection is read-only.");
+    public void Set<TFeature>(TFeature? instance)
+        => throw new NotSupportedException("The feature collection is read-only.");
 
     /// <inheritdoc />
     public IEnumerator<KeyValuePair<Type, object>> GetEnumerator() => _features.GetEnumerator();

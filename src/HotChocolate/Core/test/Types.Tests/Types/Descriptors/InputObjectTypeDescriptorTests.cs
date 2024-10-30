@@ -23,7 +23,6 @@ public class InputObjectTypeDescriptorTests
             t => Assert.Equal("name", t.Name));
     }
 
-
     [Fact]
     public void Field_Unignore_PropertyIsExcluded()
     {

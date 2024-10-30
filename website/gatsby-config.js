@@ -10,13 +10,14 @@ module.exports = {
     siteUrl: SITE_URL,
     repositoryUrl: `https://github.com/ChilliCream/graphql-platform`,
     tools: {
-      bcp: `https://eat.bananacakepop.com`,
+      blog: `/blog`,
       github: `https://github.com/ChilliCream/graphql-platform`,
       linkedIn: `https://www.linkedin.com/company/chillicream`,
+      nitro: `https://nitro.chillicream.com`,
       shop: `https://store.chillicream.com`,
       slack: `https://slack.chillicream.com/`,
-      twitter: `https://twitter.com/Chilli_Cream`,
       youtube: `https://www.youtube.com/c/ChilliCream`,
+      x: `https://x.com/Chilli_Cream`,
     },
   },
   plugins: [
@@ -109,7 +110,7 @@ module.exports = {
       options: {
         rule: {
           include: /images/,
-          exclude: /images\/(artwork|brands|companies|logo)\/.*\.svg$/,
+          exclude: /images\/(artwork|companies|icons|logo)\/.*\.svg$/,
         },
       },
     },
@@ -117,7 +118,7 @@ module.exports = {
       resolve: require.resolve(`./plugins/gatsby-plugin-svg-sprite`),
       options: {
         rule: {
-          test: /images\/(artwork|brands|companies|logo)\/.*\.svg$/,
+          test: /images\/(artwork|companies|icons|logo)\/.*\.svg$/,
         },
       },
     },
@@ -140,7 +141,7 @@ module.exports = {
       resolve: "gatsby-plugin-web-font-loader",
       options: {
         google: {
-          families: ["Roboto"],
+          families: ["Radio Canada:400,500,600,700"],
         },
       },
     },
@@ -150,8 +151,8 @@ module.exports = {
         name: `ChilliCream GraphQL`,
         short_name: `ChilliCream`,
         start_url: `/`,
-        background_color: `#3b4f74`,
-        theme_color: `#3b4f74`,
+        background_color: `#0a0721`,
+        theme_color: `#0a0721`,
         display: `standalone`,
         icon: `src/images/chillicream-favicon.png`,
       },

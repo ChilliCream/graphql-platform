@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -74,8 +73,8 @@ public abstract class NamedTypeBase<TDefinition>
     public Type? TypeIdentity { get; private set; }
 
     /// <inheritdoc />
-    public virtual bool IsAssignableFrom(INamedType type) =>
-        ReferenceEquals(type, this);
+    public virtual bool IsAssignableFrom(INamedType type)
+        => ReferenceEquals(type, this);
 
     /// <inheritdoc />
     protected override void OnRegisterDependencies(

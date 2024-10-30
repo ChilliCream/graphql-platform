@@ -1,5 +1,4 @@
-using System.Linq;
-using Snapshooter.Xunit;
+using CookieCrumble;
 
 namespace HotChocolate.Types;
 

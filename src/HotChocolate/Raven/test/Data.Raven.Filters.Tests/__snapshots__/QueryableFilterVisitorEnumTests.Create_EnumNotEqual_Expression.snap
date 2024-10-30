@@ -1,0 +1,75 @@
+BAR Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barEnum": "BAZ"
+      },
+      {
+        "barEnum": "FOO"
+      },
+      {
+        "barEnum": "QUX"
+      }
+    ]
+  }
+}
+---------------
+
+BAR SQL:
+---------------
+from 'Foos' where BarEnum != $p0
+---------------
+
+FOO Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barEnum": "BAR"
+      },
+      {
+        "barEnum": "BAZ"
+      },
+      {
+        "barEnum": "QUX"
+      }
+    ]
+  }
+}
+---------------
+
+FOO SQL:
+---------------
+from 'Foos' where BarEnum != $p0
+---------------
+
+null
+---------------
+{
+  "errors": [
+    {
+      "message": "The provided value for filter `neq` of type FooEnumOperationFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 33
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "FooEnum!",
+        "filterType": "FooEnumOperationFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": null
+  }
+}
+---------------

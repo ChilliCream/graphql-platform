@@ -1,4 +1,3 @@
-using System;
 using GreenDonut;
 using GreenDonut.DependencyInjection;
 using HotChocolate.Execution;
@@ -6,6 +5,7 @@ using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Internal;
+using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Fetching;
@@ -40,13 +40,35 @@ internal static class InternalServiceCollectionExtensions
     }
 
     internal static IServiceCollection TryAddResultPool(
-        this IServiceCollection services,
-        int maximumRetained = ResultPoolDefaults.MaximumRetained,
-        int maximumArrayCapacity = ResultPoolDefaults.MaximumAllowedCapacity)
+        this IServiceCollection services)
     {
-        services.TryAddSingleton(_ => new ObjectResultPool(maximumRetained, maximumArrayCapacity));
-        services.TryAddSingleton(_ => new ListResultPool(maximumRetained, maximumArrayCapacity));
+        services.TryAddSingleton<ResultBufferOptions>(sp =>
+        {
+            var options = new ResultBufferOptions();
+            var modifiers = sp.GetServices<Action<ResultBufferOptions>>();
+
+            foreach (var modifier in modifiers)
+            {
+                modifier.Invoke(options);
+            }
+
+            return options;
+        });
+
+        services.TryAddSingleton(sp =>
+        {
+            var options = sp.GetRequiredService<ResultBufferOptions>();
+            return new ObjectResultPool(options.MaximumRetained, options.MaximumAllowedCapacity, options.BucketSize);
+        });
+
+        services.TryAddSingleton(sp =>
+        {
+            var options = sp.GetRequiredService<ResultBufferOptions>();
+            return new ListResultPool(options.MaximumRetained, options.MaximumAllowedCapacity, options.BucketSize);
+        });
+
         services.TryAddSingleton<ResultPool>();
+
         return services;
     }
 

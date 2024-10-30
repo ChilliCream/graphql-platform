@@ -63,7 +63,7 @@ public class FilterInputTypeDescriptor
     protected override void OnCreateDefinition(FilterInputTypeDefinition definition)
     {
         Context.Descriptors.Push(this);
-        
+
         if (Definition is { AttributesAreApplied: false, EntityType: not null, })
         {
             Context.TypeInspector.ApplyAttributes(Context, this, Definition.EntityType);

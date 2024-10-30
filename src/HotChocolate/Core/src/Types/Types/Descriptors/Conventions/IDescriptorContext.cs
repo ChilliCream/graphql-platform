@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
@@ -72,6 +70,11 @@ public interface IDescriptorContext : IHasContextData, IDisposable
     /// Gets an accessor to get access to the current node id serializer.
     /// </summary>
     INodeIdSerializerAccessor NodeIdSerializerAccessor { get; }
+
+    /// <summary>
+    /// Gets the parameter binding resolver.
+    /// </summary>
+    IParameterBindingResolver ParameterBindingResolver { get; }
 
     /// <summary>
     /// Gets the registered type discovery handlers.

@@ -1,9 +1,7 @@
 using System.Text.Json;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types;
 
@@ -12,8 +10,6 @@ public class FromJsonDirectiveTests
     [Fact]
     public async Task MapField()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddDocumentFromString(@"
@@ -34,8 +30,6 @@ public class FromJsonDirectiveTests
     [Fact]
     public async Task MapField_With_Name()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddDocumentFromString(@"
@@ -56,8 +50,6 @@ public class FromJsonDirectiveTests
     [Fact]
     public async Task MapField_AutomaticScalars()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddDocumentFromString(@"
@@ -121,7 +113,6 @@ public class FromJsonDirectiveTests
                 }")
             .MatchSnapshotAsync();
     }
-
 
     public class Query
     {

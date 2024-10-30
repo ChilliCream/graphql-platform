@@ -82,7 +82,8 @@ public class MongoDbSortProvider : SortProvider<MongoDbSortVisitorContext>
                 return;
             }
 
-            var sortDef = context.GetLocalState<MongoDbSortDefinition>(SortDefinitionKey);
+            var sortDef = context.GetLocalStateOrDefault<MongoDbSortDefinition>(SortDefinitionKey);
+
             if (sortDef is null)
             {
                 return;

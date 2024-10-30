@@ -2,7 +2,6 @@ using HotChocolate.Language;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Execution.Integration.Components;
 
@@ -11,8 +10,6 @@ public class VariableCoercionIntegrationTests
     [Fact]
     public async Task Nullables_And_NonNullables_Are_Set()
     {
-        Snapshot.FullName();
-
         var executor = await CreateSchemaAsync();
 
         var user = new ObjectValueNode(
@@ -21,9 +18,9 @@ public class VariableCoercionIntegrationTests
 
         var request =
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValues(new Dictionary<string, object> { {"user", user }, })
+                .SetVariableValues(new Dictionary<string, object?> { {"user", user }, })
                 .Build();
 
         await executor.ExecuteAsync(request).MatchSnapshotAsync();
@@ -32,8 +29,6 @@ public class VariableCoercionIntegrationTests
     [Fact]
     public async Task Nullables_Are_Not_Set_NonNullables_Are_Set()
     {
-        Snapshot.FullName();
-
         var executor = await CreateSchemaAsync();
 
         var user = new ObjectValueNode(
@@ -41,9 +36,9 @@ public class VariableCoercionIntegrationTests
 
         var request =
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValues(new Dictionary<string, object> { {"user", user }, })
+                .SetVariableValues(new Dictionary<string, object?> { {"user", user }, })
                 .Build();
 
         await executor.ExecuteAsync(request).MatchSnapshotAsync();
@@ -52,8 +47,6 @@ public class VariableCoercionIntegrationTests
     [Fact]
     public async Task Nullables_Are_Set_And_NonNullables_Are_Set_To_Null()
     {
-        Snapshot.FullName();
-
         var executor = await CreateSchemaAsync();
 
         var user = new ObjectValueNode(
@@ -62,9 +55,9 @@ public class VariableCoercionIntegrationTests
 
         var request =
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValues(new Dictionary<string, object> { {"user", user }, })
+                .SetVariableValues(new Dictionary<string, object?> { {"user", user }, })
                 .Build();
 
         await executor.ExecuteAsync(request).MatchSnapshotAsync();
@@ -73,8 +66,6 @@ public class VariableCoercionIntegrationTests
     [Fact]
     public async Task Nullables_Are_Set_And_NonNullables_Not_Are_Set()
     {
-        Snapshot.FullName();
-
         var executor = await CreateSchemaAsync();
 
         var user = new ObjectValueNode(
@@ -82,9 +73,9 @@ public class VariableCoercionIntegrationTests
 
         var request =
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValues(new Dictionary<string, object> { {"user", user }, })
+                .SetVariableValues(new Dictionary<string, object?> { {"user", user }, })
                 .Build();
 
         await executor.ExecuteAsync(request).MatchSnapshotAsync();
@@ -93,17 +84,15 @@ public class VariableCoercionIntegrationTests
     [Fact]
     public async Task Empty_Object()
     {
-        Snapshot.FullName();
-
         var executor = await CreateSchemaAsync();
 
         var user = new ObjectValueNode();
 
         var request =
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValues(new Dictionary<string, object> { {"user", user }, })
+                .SetVariableValues(new Dictionary<string, object?> { {"user", user }, })
                 .Build();
 
         await executor.ExecuteAsync(request).MatchSnapshotAsync();
@@ -112,15 +101,13 @@ public class VariableCoercionIntegrationTests
     [Fact]
     public async Task Variable_Null()
     {
-        Snapshot.FullName();
-
         var executor = await CreateSchemaAsync();
 
         var request =
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValues(new Dictionary<string, object> { {"user", null }, })
+                .SetVariableValues(new Dictionary<string, object?> { {"user", null }, })
                 .Build();
 
         await executor.ExecuteAsync(request).MatchSnapshotAsync();
@@ -129,13 +116,11 @@ public class VariableCoercionIntegrationTests
     [Fact]
     public async Task Variable_Not_Provided()
     {
-        Snapshot.FullName();
-
         var executor = await CreateSchemaAsync();
 
         var request =
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
                 .Build();
 
@@ -145,8 +130,6 @@ public class VariableCoercionIntegrationTests
     [Fact]
     public async Task Invalid_Field_Provided()
     {
-        Snapshot.FullName();
-
         var executor = await CreateSchemaAsync();
 
         var user = new ObjectValueNode(
@@ -156,9 +139,9 @@ public class VariableCoercionIntegrationTests
 
         var request =
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValues(new Dictionary<string, object> { {"user", user }, })
+                .SetVariableValues(new Dictionary<string, object?> { {"user", user }, })
                 .Build();
 
         await executor.ExecuteAsync(request).MatchSnapshotAsync();
@@ -186,18 +169,18 @@ public class VariableCoercionIntegrationTests
         protected override void Configure(IObjectTypeDescriptor<UserMutation> descriptor)
         {
             descriptor
-                .Field(um => um.AddUser(default))
+                .Field(um => um.AddUser(new User("Oliver")))
                 .Description("Add user to db")
                 .Argument("user", d => d.Type<NonNullType<UserInputType>>()
                     .Description("User input type, required"));
         }
     }
 
-    public class User
+    public class User(string name)
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = name;
 
-        public string Surname { get; set; }
+        public string? Surname { get; set; }
     }
 
     public class UserInputType : InputObjectType<User>

@@ -1,6 +1,4 @@
-using System;
-using System.Collections.Generic;
-using Snapshooter.Xunit;
+using CookieCrumble;
 using Xunit;
 
 namespace HotChocolate.Language.SyntaxTree;
@@ -66,7 +64,7 @@ public class DirectiveDefinitionNodeTests
         var name = new NameNode("foo");
         var description = new StringValueNode("bar");
         var arguments = new List<InputValueDefinitionNode>();
-        var locations = new List<NameNode>();
+        var locations = new List<NameNode> { new(DirectiveLocation.Field.ToString()), };
 
         var directiveDefinition = new DirectiveDefinitionNode(
             null, name, description, true,
@@ -87,7 +85,7 @@ public class DirectiveDefinitionNodeTests
         var name = new NameNode("foo");
         var description = new StringValueNode("bar");
         var arguments = new List<InputValueDefinitionNode>();
-        var locations = new List<NameNode>();
+        var locations = new List<NameNode> { new(DirectiveLocation.Field.ToString()), };
 
         var directiveDefinition = new DirectiveDefinitionNode(
             null, name, description, true,
@@ -108,7 +106,7 @@ public class DirectiveDefinitionNodeTests
         var name = new NameNode("foo");
         var description = new StringValueNode("bar");
         var arguments = new List<InputValueDefinitionNode>();
-        var locations = new List<NameNode>();
+        var locations = new List<NameNode> { new(DirectiveLocation.Field.ToString()), };
 
         var directiveDefinition = new DirectiveDefinitionNode(
             null, name, description, true,
@@ -161,7 +159,7 @@ public class DirectiveDefinitionNodeTests
         var name = new NameNode("foo");
         var description = new StringValueNode("bar");
         var arguments = new List<InputValueDefinitionNode>();
-        var locations = new List<NameNode>();
+        var locations = new List<NameNode> { new(DirectiveLocation.Field.ToString()), };
 
         var directiveDefinition = new DirectiveDefinitionNode(
             null, name, description, true,
@@ -182,7 +180,7 @@ public class DirectiveDefinitionNodeTests
         var name = new NameNode("foo");
         var description = new StringValueNode("bar");
         var arguments = new List<InputValueDefinitionNode>();
-        var locations = new List<NameNode>();
+        var locations = new List<NameNode> { new(DirectiveLocation.Field.ToString()), };
 
         var directiveDefinition = new DirectiveDefinitionNode(
             null, name, description, true,
@@ -202,7 +200,7 @@ public class DirectiveDefinitionNodeTests
         var name = new NameNode("foo");
         var description = new StringValueNode("bar");
         var arguments = new List<InputValueDefinitionNode>();
-        var locations = new List<NameNode>();
+        var locations = new List<NameNode> { new(DirectiveLocation.Field.ToString()), };
 
         var directiveDefinition = new DirectiveDefinitionNode(
             null, name, description, false,

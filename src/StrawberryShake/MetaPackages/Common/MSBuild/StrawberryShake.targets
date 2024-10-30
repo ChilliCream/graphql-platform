@@ -34,37 +34,35 @@
   <Target
     Name="_GenerateGraphQLCode"
     Inputs="@(GenerateGraphQLCodeItems)"
-    Outputs="$(MSBuildProjectDirectory)\$(IntermediateOutputPath)berry\.build.info"
+    Outputs="$(GraphQLCodeGenerationRoot)\.build.info"
     DependsOnTargets="_GraphQLCodeGenerationRoot"
     Condition="'@(GraphQL)' != ''">
 
     <PropertyGroup>
-      <DotNetMajor Condition="$([MSBuild]::VersionGreaterThanOrEquals($(NETCoreSdkVersion), 6))">6</DotNetMajor>
-      <DotNetMajor Condition="$([MSBuild]::VersionGreaterThanOrEquals($(NETCoreSdkVersion), 7))">7</DotNetMajor>
       <DotNetMajor Condition="$([MSBuild]::VersionGreaterThanOrEquals($(NETCoreSdkVersion), 8))">8</DotNetMajor>
+      <DotNetMajor Condition="$([MSBuild]::VersionGreaterThanOrEquals($(NETCoreSdkVersion), 9))">9</DotNetMajor>
     </PropertyGroup>
 
     <Error
-      Text="The Strawberry Shake code generation requires .NET SDK 6, .NET SDK 7 or .NET SDK 8 to work."
-      Condition="'$(DotNetMajor)' != '6' AND '$(DotNetMajor)' != '7' AND '$(DotNetMajor)' != '8'" />
+      Text="The Strawberry Shake code generation requires .NET SDK 8 or .NET SDK 9 to work."
+      Condition="'$(DotNetMajor)' != '8' AND '$(DotNetMajor)' != '9'" />
 
     <PropertyGroup>
-      <GraphQLQueryGenerationRoot>$(MSBuildProjectDirectory)\$(GraphQLPersistedQueryOutput.TrimEnd('/').TrimEnd('\'))</GraphQLQueryGenerationRoot>
-      <GenTool Condition="'$(DotNetMajor)' == '6'">$([System.IO.Path]::Combine($(MSBuildThisFileDirectory), "..", "tools", "net6", "dotnet-graphql.dll"))</GenTool>
-      <GenTool Condition="'$(DotNetMajor)' == '7'">$([System.IO.Path]::Combine($(MSBuildThisFileDirectory), "..", "tools", "net7", "dotnet-graphql.dll"))</GenTool>
+      <GraphQLOperationGenerationRoot>$(MSBuildProjectDirectory)\$(GraphQLPersistedOperationOutput.TrimEnd('/').TrimEnd('\'))</GraphQLOperationGenerationRoot>
       <GenTool Condition="'$(DotNetMajor)' == '8'">$([System.IO.Path]::Combine($(MSBuildThisFileDirectory), "..", "tools", "net8", "dotnet-graphql.dll"))</GenTool>
+      <GenTool Condition="'$(DotNetMajor)' == '9'">$([System.IO.Path]::Combine($(MSBuildThisFileDirectory), "..", "tools", "net9", "dotnet-graphql.dll"))</GenTool>
     </PropertyGroup>
 
     <PropertyGroup>
       <GenCommand>dotnet &quot;$(GenTool)&quot; generate &quot;$(MSBuildProjectDirectory)&quot;</GenCommand>
       <GenCommand>$(GenCommand) -o &quot;$(GraphQLCodeGenerationRoot)&quot;</GenCommand>
       <GenCommand Condition="'$(RootNamespace)' != ''">$(GenCommand) -n $(RootNamespace)</GenCommand>
-      <GenCommand Condition="'$(GraphQLPersistedQueryOutput)' != ''">$(GenCommand) -q &quot;$(GraphQLQueryGenerationRoot)&quot;</GenCommand>
+      <GenCommand Condition="'$(GraphQLPersistedOperationOutput)' != ''">$(GenCommand) -q &quot;$(GraphQLOperationGenerationRoot)&quot;</GenCommand>
       <GenCommand Condition="'$(GraphQLRequestHash)' != ''">$(GenCommand) -a $(GraphQLRequestHash)</GenCommand>
       <GenCommand Condition="'$(GraphQLStrictSchemaValidation)' != 'enable'">$(GenCommand) -s</GenCommand>
       <GenCommand Condition="'$(GraphQLClientStore)' != 'enable'">$(GenCommand) -t</GenCommand>
       <GenCommand Condition="'$(GraphQLRazorComponents)' == 'enable'">$(GenCommand) -r</GenCommand>
-      <GenCommand Condition="'$(GraphQLPersistedQueryFormat)' == 'relay'">$(GenCommand) --relayFormat</GenCommand>
+      <GenCommand Condition="'$(GraphQLPersistedOperationFormat)' == 'relay'">$(GenCommand) --relayFormat</GenCommand>
     </PropertyGroup>
 
     <Message Text="MSBuildProjectDirectory: $(MSBuildProjectDirectory)" Importance="High" Condition="'$(GraphQLDebug)' == 'enable'" />
@@ -72,8 +70,8 @@
     <Message Text="$(GenCommand)" Importance="High" Condition="'$(GraphQLDebug)' == 'enable'" />
     <Exec Command="$(GenCommand)" WorkingDirectory="$(MSBuildThisFileDirectory)" ConsoleToMsBuild="true" />
 
-    <MakeDir Directories="$(MSBuildProjectDirectory)\$(IntermediateOutputPath)berry" Condition="!EXISTS('$(MSBuildProjectDirectory)\$(IntermediateOutputPath)berry\.build.info')" />
-    <Touch Files="$(MSBuildProjectDirectory)\$(IntermediateOutputPath)berry\.build.info" AlwaysCreate="true" />
+    <MakeDir Directories="$(GraphQLCodeGenerationRoot)" Condition="!EXISTS('$(GraphQLCodeGenerationRoot)\.build.info')" />
+    <Touch Files="$(GraphQLCodeGenerationRoot)\.build.info" AlwaysCreate="true" />
   </Target>
 
 </Project>

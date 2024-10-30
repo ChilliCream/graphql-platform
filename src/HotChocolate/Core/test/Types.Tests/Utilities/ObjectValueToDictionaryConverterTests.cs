@@ -1,5 +1,5 @@
-﻿using HotChocolate.Language;
-using Snapshooter.Xunit;
+using CookieCrumble;
+using HotChocolate.Language;
 
 namespace HotChocolate.Utilities;
 

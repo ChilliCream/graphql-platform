@@ -1,7 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
@@ -86,7 +82,7 @@ public class InlineGroupDataLoaderTests
 
     public class Query
     {
-        public async Task<string[]> GetByKey(string key, IResolverContext context)
+        public async Task<string[]?> GetByKey(string key, IResolverContext context)
         {
             return await context
                 .GroupDataLoader<string, string>(
@@ -98,7 +94,7 @@ public class InlineGroupDataLoaderTests
 
     public class Query2
     {
-        public async Task<string[]> GetByKey(string key, IResolverContext context)
+        public async Task<string[]?> GetByKey(string key, IResolverContext context)
         {
             return await context.GroupAsync(FetchAsync, key);
 

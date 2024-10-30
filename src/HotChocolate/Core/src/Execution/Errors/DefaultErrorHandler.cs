@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Execution.Options;
 
 namespace HotChocolate.Execution.Errors;
@@ -33,7 +30,7 @@ internal sealed class DefaultErrorHandler : IErrorHandler
 
     private DefaultErrorHandler()
     {
-        _filters = Array.Empty<IErrorFilter>();
+        _filters = [];
         _includeExceptionDetails = false;
     }
 

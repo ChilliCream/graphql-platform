@@ -130,7 +130,7 @@ public class TestGeneration
                     }
                 }
             }");
-    
+
     [Fact]
     public void StarWarsGetHeroTraits() =>
         AssertStarWarsResult(

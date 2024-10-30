@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <IsPackable>false</IsPackable>
@@ -8,7 +8,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\HotChocolate.OpenApi\HotChocolate.OpenApi.csproj" />
     <ProjectReference Include="..\..\..\Skimmed\src\Skimmed\Skimmed.csproj" />
-    <ProjectReference Include="..\..\..\AspNetCore\test\AspNetCore.Tests.Utilities\HotChocolate.AspNetCore.Tests.Utilities.csproj" />
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
   </ItemGroup>
 

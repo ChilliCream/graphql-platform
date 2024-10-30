@@ -1,0 +1,36 @@
+Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barString": "testatest",
+          "objectArray": {
+            "foo": {
+              "barString": "a",
+              "barShort": 12
+            }
+          }
+        }
+      },
+      {
+        "foo": {
+          "barString": "testbtest",
+          "objectArray": {
+            "foo": {
+              "barString": "d",
+              "barShort": 14
+            }
+          }
+        }
+      }
+    ]
+  }
+}
+---------------
+
+SQL:
+---------------
+from 'Bars' as _s1 select { Foo : { BarString : _s1.Foo.BarString, ObjectArray : _s1.Foo.ObjectArray.slice(0, 1).map(p2=>({Foo:{BarString:p2.Foo.BarString,BarShort:p2.Foo.BarShort}})) } }
+---------------

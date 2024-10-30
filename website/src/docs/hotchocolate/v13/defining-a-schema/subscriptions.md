@@ -68,7 +68,7 @@ subscription {
 A subscription type can be defined like the following.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Subscription
@@ -90,7 +90,7 @@ public class Startup
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -113,7 +113,6 @@ public class SubscriptionType : ObjectType
             });
     }
 }
-
 
 public class Startup
 {

@@ -5,7 +5,6 @@ namespace HotChocolate.Data.Filters.Expressions;
 public class QueryableFilterVisitorTimeOnlyTests
     : FilterVisitorTestBase
 {
-#if NET6_0_OR_GREATER
     [Fact]
     public void Create_ShortEqual_Expression()
     {
@@ -35,7 +34,6 @@ public class QueryableFilterVisitorTimeOnlyTests
 
         // act
         var func = tester.Build<Foo>(value);
-
 
         // assert
         var a = new Foo { Value = new TimeOnly(1, 59, 59), };
@@ -83,5 +81,4 @@ public class QueryableFilterVisitorTimeOnlyTests
         : FilterInputType<FooNullable>
     {
     }
-#endif
 }

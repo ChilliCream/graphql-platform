@@ -1,6 +1,6 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Text.RegularExpressions;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
@@ -19,6 +19,10 @@ public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
     private const string _utcFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffZ";
     private const string _localFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffzzz";
     private const string _specifiedBy = "https://www.graphql-scalars.com/date-time";
+
+    private static readonly Regex DateTimeScalarRegex = new(
+        @"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,7})?(Z|[+-][0-9]{2}:[0-9]{2})$",
+        RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture | RegexOptions.Compiled);
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DateTimeType"/> class.
@@ -163,23 +167,31 @@ public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
         string? serialized,
         [NotNullWhen(true)] out DateTimeOffset? value)
     {
-        if (serialized is not null
-            && serialized.EndsWith("Z")
-            && DateTime.TryParse(
-                serialized,
-                CultureInfo.InvariantCulture,
-                DateTimeStyles.AssumeUniversal,
-                out var zuluTime))
+        if (serialized is null)
         {
-            value = new DateTimeOffset(
-                zuluTime.ToUniversalTime(),
-                TimeSpan.Zero);
-            return true;
+            value = null;
+            return false;
         }
 
-        if (serialized is not null
-            && DateTimeOffset.TryParse(
+        // Check format.
+        if (!DateTimeScalarRegex.IsMatch(serialized))
+        {
+            value = null;
+            return false;
+        }
+
+        // No "Unknown Local Offset Convention".
+        // https://www.graphql-scalars.com/date-time/#no-unknown-local-offset-convention
+        if (serialized.EndsWith("-00:00"))
+        {
+            value = null;
+            return false;
+        }
+
+        if (DateTimeOffset.TryParse(
                 serialized,
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.None,
                 out var dt))
         {
             value = dt;

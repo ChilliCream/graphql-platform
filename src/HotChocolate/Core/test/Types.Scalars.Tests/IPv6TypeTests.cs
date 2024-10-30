@@ -1,6 +1,5 @@
-using System;
+using CookieCrumble;
 using HotChocolate.Language;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types;
 
@@ -76,7 +75,7 @@ public class IPv6TypeTests : ScalarTypeTestBase
     [InlineData(typeof(NullValueNode), null, true)]
     public void IsInstanceOfType_GivenValueNode_MatchExpected(
         Type type,
-        object value,
+        object? value,
         bool expected)
     {
         // arrange
@@ -144,7 +143,7 @@ public class IPv6TypeTests : ScalarTypeTestBase
     [InlineData("6:5:4:3:2:1::", true)]
     [InlineData("7:6:5:4:3:2:1::", true)]
     [InlineData(null, true)]
-    public void IsInstanceOfType_GivenObject_MatchExpected(object value, bool expected)
+    public void IsInstanceOfType_GivenObject_MatchExpected(object? value, bool expected)
     {
         // arrange
         // act
@@ -215,8 +214,8 @@ public class IPv6TypeTests : ScalarTypeTestBase
     [InlineData(typeof(NullValueNode), null, null)]
     public void ParseLiteral_GivenValueNode_MatchExpected(
         Type type,
-        object value,
-        object expected)
+        object? value,
+        object? expected)
     {
         // arrange
         var valueNode = CreateValueNode(type, value);
@@ -308,8 +307,8 @@ public class IPv6TypeTests : ScalarTypeTestBase
     [InlineData("7:6:5:4:3:2:1::", "7:6:5:4:3:2:1::")]
     [InlineData(null, null)]
     public void Deserialize_GivenValue_MatchExpected(
-        object resultValue,
-        object runtimeValue)
+        object? resultValue,
+        object? runtimeValue)
     {
         // arrange
         // act
@@ -397,8 +396,8 @@ public class IPv6TypeTests : ScalarTypeTestBase
     [InlineData("7:6:5:4:3:2:1::", "7:6:5:4:3:2:1::")]
     [InlineData(null, null)]
     public void Serialize_GivenObject_MatchExpectedType(
-        object runtimeValue,
-        object resultValue)
+        object? runtimeValue,
+        object? resultValue)
     {
         // arrange
         // act
@@ -480,7 +479,7 @@ public class IPv6TypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "6:5:4:3:2:1::")]
     [InlineData(typeof(StringValueNode), "7:6:5:4:3:2:1::")]
     [InlineData(typeof(NullValueNode), null)]
-    public void ParseValue_GivenObject_MatchExpectedType(Type type, object value)
+    public void ParseValue_GivenObject_MatchExpectedType(Type type, object? value)
     {
         // arrange
         // act
@@ -562,7 +561,7 @@ public class IPv6TypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "6:5:4:3:2:1::")]
     [InlineData(typeof(StringValueNode), "7:6:5:4:3:2:1::")]
     [InlineData(typeof(NullValueNode), null)]
-    public void ParseResult_GivenObject_MatchExpectedType(Type type, object value)
+    public void ParseResult_GivenObject_MatchExpectedType(Type type, object? value)
     {
         // arrange
         // act

@@ -7,12 +7,6 @@
     <Description>Contains a Hot Chocolate GraphQL subscription provider for Postgres.</Description>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <TargetFrameworks>$(Library3TargetFrameworks)</TargetFrameworks>
-  </PropertyGroup>
-
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Subscriptions.Postgres.Tests" />
   </ItemGroup>
@@ -38,7 +32,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Npgsql" Version="8.0.3" />
+    <PackageReference Include="Npgsql" />
   </ItemGroup>
 
 </Project>

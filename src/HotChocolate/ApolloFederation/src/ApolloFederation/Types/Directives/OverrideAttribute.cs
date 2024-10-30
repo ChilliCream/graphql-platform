@@ -45,7 +45,6 @@ namespace HotChocolate.ApolloFederation.Types;
 /// </param>
 public sealed class OverrideAttribute(string from, string? label = null) : ObjectFieldDescriptorAttribute
 {
-
     /// <summary>
     /// Get name of the subgraph to be overridden.
     /// </summary>

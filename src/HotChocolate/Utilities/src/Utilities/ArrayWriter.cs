@@ -1,5 +1,5 @@
-using System;
 using System.Buffers;
+using System.Runtime.InteropServices;
 using static HotChocolate.Utilities.Properties.UtilityResources;
 
 namespace HotChocolate.Utilities;
@@ -58,7 +58,7 @@ internal sealed class ArrayWriter : IBufferWriter<byte>, IDisposable
     /// A <see cref="ReadOnlySpan{T}"/> of the written portion of the buffer.
     /// </returns>
     public ReadOnlySpan<byte> GetWrittenSpan()
-        => _buffer.AsSpan().Slice(0, _start);
+        => MemoryMarshal.CreateSpan(ref _buffer[0], _start);
 
     /// <summary>
     /// Advances the writer by the specified number of bytes.
@@ -150,11 +150,10 @@ internal sealed class ArrayWriter : IBufferWriter<byte>, IDisposable
             throw new ArgumentOutOfRangeException(nameof(sizeHint));
         }
 
-        var size = sizeHint < 1
-            ? _initialBufferSize
-            : sizeHint;
+        var size = sizeHint < 1 ? _initialBufferSize : sizeHint;
         EnsureBufferCapacity(size);
-        return _buffer.AsSpan().Slice(_start, size);
+
+        return MemoryMarshal.CreateSpan(ref _buffer[_start], size);
     }
 
     /// <summary>
@@ -216,7 +215,7 @@ internal sealed class ArrayWriter : IBufferWriter<byte>, IDisposable
         if (!_disposed)
         {
             ArrayPool<byte>.Shared.Return(_buffer);
-            _buffer = Array.Empty<byte>();
+            _buffer = [];
             _capacity = 0;
             _start = 0;
             _disposed = true;

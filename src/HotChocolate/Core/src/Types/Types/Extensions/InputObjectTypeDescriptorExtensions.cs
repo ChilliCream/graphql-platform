@@ -1,4 +1,3 @@
-using System;
 using System.Linq.Expressions;
 using HotChocolate.Language;
 using System.Diagnostics.CodeAnalysis;
@@ -154,10 +153,7 @@ public static class InputObjectTypeDescriptorExtensions
     /// </exception>
     public static IInputFieldDescriptor DefaultValueSyntax(
         this IInputFieldDescriptor descriptor,
-#if NET7_0_OR_GREATER
-        [StringSyntax("graphql")]
-#endif
-        string syntax)
+        [StringSyntax("graphql")] string syntax)
     {
         if (descriptor is null)
         {

@@ -1,16 +1,11 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
-using ChilliCream.Testing;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using Snapshooter.Xunit;
-using Snapshot = Snapshooter.Xunit.Snapshot;
 
 namespace HotChocolate;
 
@@ -20,7 +15,6 @@ public class SchemaFirstTests
     public async Task DescriptionsAreCorrectlyRead()
     {
         // arrange
-        Snapshot.FullName();
         var source = FileResource.Open("schema_with_multiline_descriptions.graphql");
         var query = FileResource.Open("IntrospectionQuery.graphql");
 
@@ -73,8 +67,6 @@ public class SchemaFirstTests
     [Fact]
     public async Task Execute_Against_Schema_With_Interface_Schema()
     {
-        Snapshot.FullName();
-
         var source = @"
                 type Query {
                     pet: Pet
@@ -106,8 +98,6 @@ public class SchemaFirstTests
     [Fact]
     public async Task Execute_Against_Schema_With_Interface_Execute()
     {
-        Snapshot.FullName();
-
         var source = @"
                 type Query {
                     pet: Pet
@@ -354,25 +344,6 @@ public class SchemaFirstTests
         schema.Print().MatchSnapshot();
     }
 
-    // we need to apply the changes we did to cursor paging to offset paging.
-    [Fact(Skip = "Offset paging for schema first is not supported in 12.")]
-    public async Task SchemaFirst_Cursor_OffSetPaging_With_Objects()
-    {
-        // arrange
-        var sdl = "type Query { items: [Person!] } type Person { name: String }";
-
-        // act
-        var schema =
-            await new ServiceCollection()
-                .AddGraphQL()
-                .AddDocumentFromString(sdl)
-                .BindRuntimeType<QueryWithOffsetPersons>("Query")
-                .BuildSchemaAsync();
-
-        // assert
-        schema.Print().MatchSnapshot();
-    }
-
     [Fact]
     public async Task SchemaFirst_Cursor_Paging_Execute()
     {
@@ -471,7 +442,6 @@ public class SchemaFirstTests
     [Fact]
     public async Task Ensure_Input_Only_Enums_Are_Correctly_Bound()
     {
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddDocumentFromString(@"
@@ -521,7 +491,6 @@ public class SchemaFirstTests
     [Fact]
     public async Task Ensure_Input_Only_Enums_Are_Correctly_Bound_When_Using_BindRuntimeType()
     {
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddDocumentFromString(@"

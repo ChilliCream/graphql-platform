@@ -1,14 +1,9 @@
 namespace HotChocolate.Fusion.Shared;
 
-public class MockHttpClientFactory : IHttpClientFactory
+public class MockHttpClientFactory(
+    Dictionary<string, Func<HttpClient>> clients)
+    : IHttpClientFactory
 {
-    private readonly Dictionary<string, Func<HttpClient>> _clients;
-
-    public MockHttpClientFactory(Dictionary<string, Func<HttpClient>> clients)
-    {
-        _clients = clients;
-    }
-
     public HttpClient CreateClient(string name)
-        => _clients[name].Invoke();
+        => clients[name].Invoke();
 }

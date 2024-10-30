@@ -1,7 +1,7 @@
+using CookieCrumble;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Execution;
 
@@ -79,7 +79,7 @@ public class RequestExecutorTests
 
         var executor = schema.MakeExecutable();
 
-        var request = OperationRequestBuilder.Create()
+        var request = OperationRequestBuilder.New()
             .SetDocument("{ foo }")
             .Build();
 
@@ -98,8 +98,6 @@ public class RequestExecutorTests
     [Fact]
     public async Task Ensure_Errors_Do_Not_Result_In_Timeouts()
     {
-        Snapshot.FullName();
-
         using var cts = new CancellationTokenSource(1000);
 
         await new ServiceCollection()
@@ -131,9 +129,9 @@ public class RequestExecutorTests
         }
     }
 
-    public class TestMutationPayload
+    public class TestMutationPayload(Test test)
     {
-        public Test Test { get; set; }
+        public Test Test { get; set; } = test;
     }
 
     public class Test

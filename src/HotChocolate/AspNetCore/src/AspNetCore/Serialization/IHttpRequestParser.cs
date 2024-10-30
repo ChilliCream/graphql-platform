@@ -30,6 +30,9 @@ public interface IHttpRequestParser
     /// <param name="operationId">
     /// The operation id.
     /// </param>
+    /// <param name="operationName">
+    /// The operation name.
+    /// </param>
     /// <param name="requestBody">
     /// A stream representing the HTTP request body.
     /// </param>
@@ -41,6 +44,7 @@ public interface IHttpRequestParser
     /// </returns>
     ValueTask<GraphQLRequest> ParsePersistedOperationRequestAsync(
         string operationId,
+        string? operationName,
         Stream requestBody,
         CancellationToken cancellationToken);
 
@@ -65,12 +69,15 @@ public interface IHttpRequestParser
     /// Returns the parsed GraphQL request.
     /// </returns>
     GraphQLRequest ParseRequestFromParams(IQueryCollection parameters);
-    
+
     /// <summary>
     /// Parses the variables and extensions from the HTTP query parameters.
     /// </summary>
     /// <param name="operationId">
     /// The operation id.
+    /// </param>
+    /// <param name="perationName">
+    /// The operation name.
     /// </param>
     /// <param name="parameters">
     /// The HTTP query parameter collection.
@@ -79,6 +86,7 @@ public interface IHttpRequestParser
     /// Returns the parsed variables and extensions.
     /// </returns>
     GraphQLRequest ParsePersistedOperationRequestFromParams(
-        string operationId, 
+        string operationId,
+        string? perationName,
         IQueryCollection parameters);
 }

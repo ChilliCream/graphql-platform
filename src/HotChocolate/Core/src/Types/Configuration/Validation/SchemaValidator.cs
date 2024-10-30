@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Configuration.Validation;
@@ -16,6 +12,7 @@ internal static class SchemaValidator
         new DirectiveValidationRule(),
         new InterfaceHasAtLeastOneImplementationRule(),
         new IsSelectedPatternValidation(),
+        new EnsureFieldResultsDeclareErrorsRule()
     ];
 
     public static IReadOnlyList<ISchemaError> Validate(

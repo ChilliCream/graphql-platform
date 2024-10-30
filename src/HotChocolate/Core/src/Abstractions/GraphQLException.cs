@@ -1,8 +1,3 @@
-#pragma warning disable RCS1194
-
-using System;
-using System.Collections.Generic;
-
 namespace HotChocolate;
 
 public class GraphQLException : Exception
@@ -22,7 +17,7 @@ public class GraphQLException : Exception
 
     public GraphQLException(params IError[] errors)
     {
-        Errors = errors ?? Array.Empty<IError>();
+        Errors = errors ?? [];
     }
 
     public GraphQLException(IEnumerable<IError> errors)

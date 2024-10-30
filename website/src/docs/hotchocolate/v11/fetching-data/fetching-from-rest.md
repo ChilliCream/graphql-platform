@@ -70,7 +70,7 @@ You will have to register the client in the dependency injection of your GraphQL
 To expose the API you can inject the generated client into your resolvers.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 // Query.cs
@@ -107,7 +107,7 @@ public class Startup
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -163,7 +163,6 @@ public class TodoType : ObjectType<Todo>
             .Type<BooleanType>();
     }
 }
-
 
 // Startup.cs
 public class Startup

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using static HotChocolate.Authorization.Properties.AuthCoreResources;
 using static HotChocolate.WellKnownContextData;
@@ -81,7 +78,7 @@ internal sealed class AuthorizeMiddleware(
                     .SetMessage(AuthorizeMiddleware_NoDefaultPolicy)
                     .SetCode(ErrorCodes.Authentication.NoDefaultPolicy)
                     .SetPath(context.Path)
-                    .AddLocation([context.Selection.SyntaxNode])
+                    .SetLocations([context.Selection.SyntaxNode])
                     .Build(),
             AuthorizeResult.PolicyNotFound
                 => ErrorBuilder.New()
@@ -90,7 +87,7 @@ internal sealed class AuthorizeMiddleware(
                         _directive.Policy!)
                     .SetCode(ErrorCodes.Authentication.PolicyNotFound)
                     .SetPath(context.Path)
-                    .AddLocation([context.Selection.SyntaxNode])
+                    .SetLocations([context.Selection.SyntaxNode])
                     .Build(),
             _
                 => ErrorBuilder.New()
@@ -100,7 +97,7 @@ internal sealed class AuthorizeMiddleware(
                             ? ErrorCodes.Authentication.NotAuthorized
                             : ErrorCodes.Authentication.NotAuthenticated)
                     .SetPath(context.Path)
-                    .AddLocation([context.Selection.SyntaxNode])
+                    .SetLocations([context.Selection.SyntaxNode])
                     .Build(),
         };
 }

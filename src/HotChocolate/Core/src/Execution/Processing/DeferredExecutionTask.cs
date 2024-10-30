@@ -1,6 +1,4 @@
 using System.Collections.Immutable;
-using System.Threading;
-using System.Threading.Tasks;
 using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Execution.Processing;
@@ -61,8 +59,9 @@ internal abstract class DeferredExecutionTask
             Task.Factory.StartNew(
                 () =>
                 {
-                    ExecutionContext.Run(capturedContext, (state) =>
-                        ExecuteAsync(operationContextOwner, resultId, parentResultId, patchId),
+                    ExecutionContext.Run(
+                        capturedContext,
+                        _ => ExecuteAsync(operationContextOwner, resultId, parentResultId, patchId),
                         null);
                 },
                 default,

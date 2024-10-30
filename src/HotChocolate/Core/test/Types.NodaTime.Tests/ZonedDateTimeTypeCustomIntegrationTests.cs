@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using HotChocolate.Execution;
 using NodaTime;
 using NodaTime.Text;
@@ -30,60 +29,60 @@ public class ZonedDateTimeTypeCustomIntegrationTests
         var result = _testExecutor.Execute("query { test: rome }");
         Assert.Equal(
             "2020-12-31T18:30:13 Asia/Kathmandu (+05:45)",
-            result.ExpectQueryResult().Data!["test"]);
+            result.ExpectOperationResult().Data!["test"]);
     }
 
     [Fact]
     public void QueryReturnsUtc()
     {
         var result = _testExecutor.Execute("query { test: utc }");
-        Assert.Equal("2020-12-31T18:30:13 UTC (+00)", result.ExpectQueryResult().Data!["test"]);
+        Assert.Equal("2020-12-31T18:30:13 UTC (+00)", result.ExpectOperationResult().Data!["test"]);
     }
 
     [Fact]
     public void ParsesVariable()
     {
         var result = _testExecutor
-            .Execute(OperationRequestBuilder.Create()
+            .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: ZonedDateTime!) { test(arg: $arg) }")
                 .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-12-31T19:30:13 Asia/Kathmandu (+05:45)" }, })
                 .Build());
 
         Assert.Equal(
             "2020-12-31T19:40:13 Asia/Kathmandu (+05:45)",
-            result.ExpectQueryResult().Data!["test"]);
+            result.ExpectOperationResult().Data!["test"]);
     }
 
     [Fact]
     public void ParsesVariableWithUTC()
     {
         var result = _testExecutor
-            .Execute(OperationRequestBuilder.Create()
+            .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: ZonedDateTime!) { test(arg: $arg) }")
                 .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-12-31T19:30:13 UTC (+00)" }, })
                 .Build());
 
-        Assert.Equal("2020-12-31T19:40:13 UTC (+00)", result.ExpectQueryResult().Data!["test"]);
+        Assert.Equal("2020-12-31T19:40:13 UTC (+00)", result.ExpectOperationResult().Data!["test"]);
     }
 
     [Fact]
     public void DoesntParseAnIncorrectVariable()
     {
         var result = _testExecutor
-            .Execute(OperationRequestBuilder.Create()
+            .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: ZonedDateTime!) { test(arg: $arg) }")
                 .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-12-31T19:30:13 (UTC)" }, })
                 .Build());
 
-        Assert.Null(result.ExpectQueryResult().Data);
-        Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
+        Assert.Null(result.ExpectOperationResult().Data);
+        Assert.Single(result.ExpectOperationResult().Errors!);
     }
 
     [Fact]
     public void ParsesLiteral()
     {
         var result = _testExecutor
-            .Execute(OperationRequestBuilder.Create()
+            .Execute(OperationRequestBuilder.New()
                 .SetDocument(
                     @"mutation
                     {
@@ -93,33 +92,33 @@ public class ZonedDateTimeTypeCustomIntegrationTests
 
         Assert.Equal(
             "2020-12-31T19:40:13 Asia/Kathmandu (+05:45)",
-            result.ExpectQueryResult().Data!["test"]);
+            result.ExpectOperationResult().Data!["test"]);
     }
 
     [Fact]
     public void ParsesLiteralWithUtc()
     {
         var result = _testExecutor
-            .Execute(OperationRequestBuilder.Create()
+            .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation { test(arg: \"2020-12-31T19:30:13 UTC (+00)\") }")
                 .Build());
 
-        Assert.Equal("2020-12-31T19:40:13 UTC (+00)", result.ExpectQueryResult().Data!["test"]);
+        Assert.Equal("2020-12-31T19:40:13 UTC (+00)", result.ExpectOperationResult().Data!["test"]);
     }
 
     [Fact]
     public void DoesntParseIncorrectLiteral()
     {
         var result = _testExecutor
-            .Execute(OperationRequestBuilder.Create()
+            .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation { test(arg: \"2020-12-31T19:30:13 (UTC)\") }")
                 .Build());
 
-        Assert.Null(result.ExpectQueryResult().Data);
-        Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
-        Assert.Null(result.ExpectQueryResult().Errors![0].Code);
+        Assert.Null(result.ExpectOperationResult().Data);
+        Assert.Single(result.ExpectOperationResult().Errors!);
+        Assert.Null(result.ExpectOperationResult().Errors![0].Code);
         Assert.Equal(
             "Unable to deserialize string to ZonedDateTime",
-            result.ExpectQueryResult().Errors![0].Message);
+            result.ExpectOperationResult().Errors![0].Message);
     }
 }

@@ -1,4 +1,3 @@
-using System;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
@@ -142,12 +141,12 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <summary>
     /// Defines if the OneOf spec RFC is enabled. This feature is experimental.
     /// </summary>
-    public bool EnableOneOf { get; set; }
+    public bool EnableOneOf { get; set; } = true;
 
     /// <summary>
     /// Defines if the schema building process shall validate that all nodes are resolvable through `node`.
     /// </summary>
-    public bool EnsureAllNodesCanBeResolved { get; set; }
+    public bool EnsureAllNodesCanBeResolved { get; set; } = true;
 
     /// <summary>
     /// Defines if flag enums should be inferred as object value nodes
@@ -227,6 +226,11 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// </summary>
     public DependencyInjectionScope DefaultMutationDependencyInjectionScope { get; set; } =
         DependencyInjectionScope.Request;
+
+    /// <summary>
+    /// Defines if the root field pages shall be published to the promise cache.
+    /// </summary>
+    public bool PublishRootFieldPagesToPromiseCache { get; set; } = true;
 
     /// <summary>
     /// Creates a mutable options object from a read-only options object.

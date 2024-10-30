@@ -1,0 +1,25 @@
+schema {
+  query: ShippingQuery
+}
+
+type DeliveryEstimate {
+  min: Int!
+  max: Int!
+}
+
+type Product {
+  deliveryEstimate(zip: String! weight: Int! @require(field: "dimension { weight }") size: Int! @require(field: "dimension { size }")): DeliveryEstimate!
+  id: ID!
+}
+
+type ShippingQuery {
+  productById(id: ID! @is(field: "id")): Product! @lookup @internal
+}
+
+directive @internal on FIELD_DEFINITION
+
+directive @is(field: String!) on ARGUMENT_DEFINITION
+
+directive @lookup on FIELD_DEFINITION
+
+directive @require(field: String!) on ARGUMENT_DEFINITION

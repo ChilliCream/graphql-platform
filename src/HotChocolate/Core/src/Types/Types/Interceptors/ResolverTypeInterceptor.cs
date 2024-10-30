@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
@@ -51,7 +48,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
         _resolverCompiler = context.ResolverCompiler;
         _typeReferenceResolver = typeReferenceResolver;
         _resolverTypes = _resolverTypeList.ToLookup(t => t.Item1, t => t.Item2);
-        _configs = _fieldResolvers.ToLookup(t => t.Field.TypeName);
+        _configs = _fieldResolvers.ToLookup(t => t.FieldCoordinate.Name);
     }
 
     public override void OnAfterInitialize(
@@ -133,7 +130,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
             {
                 foreach (var config in _configs[objectTypeDef.Name])
                 {
-                    context.Resolvers[config.Field.FieldName] = config;
+                    context.Resolvers[config.FieldCoordinate.MemberName!] = config;
                 }
 
                 foreach (var field in objectTypeDef.Fields)
@@ -270,7 +267,6 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
                         objectTypeDef.RuntimeType,
                         argumentNames: map,
                         parameterExpressionBuilders: field.GetParameterExpressionBuilders());
-
 
                     if (TrySetRuntimeTypeFromMember(context, field.Type, field.Member) is { } u)
                     {
@@ -421,14 +417,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
                         var unwrapped = Unwrap(parameter.ParameterType, type);
                         if (unwrapped is not null)
                         {
-#if NET5_0_OR_GREATER
                             _runtimeTypes.TryAdd(type.NamedType().Name, unwrapped);
-#else
-                            if (!_runtimeTypes.ContainsKey(type.NamedType().Name))
-                            {
-                                _runtimeTypes.Add(type.NamedType().Name, unwrapped);
-                            }
-#endif
                         }
                     }
                 }

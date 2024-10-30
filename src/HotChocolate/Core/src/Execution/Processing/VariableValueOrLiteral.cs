@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using static HotChocolate.Execution.Properties.Resources;

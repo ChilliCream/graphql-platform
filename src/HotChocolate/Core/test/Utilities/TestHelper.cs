@@ -1,8 +1,5 @@
-using System;
-using System.Linq;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
@@ -115,7 +112,7 @@ public static class TestHelper
             Assert.Collection(operationResult.Errors!, elementInspectors);
         }
 
-        await operationResult.MatchSnapshotAsync();
+        operationResult.MatchSnapshot();
     }
 
     public static async Task<T> CreateTypeAsync<T>()
@@ -195,7 +192,7 @@ public static class TestHelper
     {
         configuration ??= new TestConfiguration();
 
-        var builder = OperationRequestBuilder.Create().SetDocument(query);
+        var builder = OperationRequestBuilder.New().SetDocument(query);
 
         if (configuration.Services is { } services)
         {

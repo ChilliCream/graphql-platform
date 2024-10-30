@@ -1,8 +1,5 @@
-using System;
 using System.Buffers;
 using System.Net.WebSockets;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Transport.Sockets.Client.Protocols;
 using HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
 using HotChocolate.Utilities;
@@ -86,7 +83,6 @@ public sealed class SocketClient : ISocket
         CancellationToken cancellationToken = default)
         => _protocol.ExecuteAsync(_context, request, cancellationToken);
 
-#if NET5_0_OR_GREATER
     async Task<bool> ISocket.ReadMessageAsync(
         IBufferWriter<byte> writer,
         CancellationToken cancellationToken)
@@ -127,52 +123,6 @@ public sealed class SocketClient : ISocket
             return false;
         }
     }
-#else
-    async Task<bool> ISocket.ReadMessageAsync(
-        IBufferWriter<byte> writer,
-        CancellationToken cancellationToken)
-    {
-        if (_disposed || _socket.IsClosed())
-        {
-            return false;
-        }
-
-        var buffer = ArrayPool<byte>.Shared.Rent(BufferSize);
-        var arraySegment = new ArraySegment<byte>(buffer);
-
-        try
-        {
-            var read = 0;
-            WebSocketReceiveResult socketResult;
-
-            do
-            {
-                if (_socket.IsClosed())
-                {
-                    break;
-                }
-
-                // read message segment from socket.
-                socketResult = await _socket.ReceiveAsync(arraySegment, cancellationToken);
-
-                // copy message segment to writer.
-                var memory = writer.GetMemory(socketResult.Count);
-                buffer.AsSpan().Slice(0, socketResult.Count).CopyTo(memory.Span);
-                writer.Advance(socketResult.Count);
-                read += socketResult.Count;
-            } while (!socketResult.EndOfMessage);
-
-            ArrayPool<byte>.Shared.Return(buffer);
-
-            return read > 0;
-        }
-        catch
-        {
-            // swallow exception, there's nothing we can reasonably do.
-            return false;
-        }
-    }
-#endif
 
     public ValueTask DisposeAsync()
     {

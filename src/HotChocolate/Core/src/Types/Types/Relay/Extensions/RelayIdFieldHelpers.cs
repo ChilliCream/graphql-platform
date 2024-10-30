@@ -1,7 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
@@ -20,7 +17,7 @@ namespace HotChocolate.Types.Relay;
 internal static class RelayIdFieldHelpers
 {
     /// <summary>
-    /// Applies the <see cref="RelayIdFieldExtensions"><c>.ID()</c></see> to a argument
+    /// Applies the <see cref="RelayIdFieldExtensions"><c>.ID()</c></see> to an argument
     /// descriptor
     /// </summary>
     /// <remarks>
@@ -48,7 +45,7 @@ internal static class RelayIdFieldHelpers
     }
 
     /// <summary>
-    /// Applies the <see cref="RelayIdFieldExtensions"><c>.ID()</c></see> to a argument
+    /// Applies the <see cref="RelayIdFieldExtensions"><c>.ID()</c></see> to an argument
     /// descriptor
     /// </summary>
     /// <remarks>
@@ -79,7 +76,7 @@ internal static class RelayIdFieldHelpers
     }
 
     /// <summary>
-    /// Applies the <see cref="RelayIdFieldExtensions"><c>.ID()</c></see> to a argument
+    /// Applies the <see cref="RelayIdFieldExtensions"><c>.ID()</c></see> to an argument
     /// descriptor
     /// </summary>
     /// <remarks>
@@ -259,14 +256,13 @@ internal static class RelayIdFieldHelpers
         string? typeName,
         bool validateType)
     {
-        var resultTypeInfo =
-            completionContext.DescriptorContext.TypeInspector.CreateTypeInfo(resultType);
+        var resultTypeInfo = completionContext.DescriptorContext.TypeInspector.CreateTypeInfo(resultType);
 
         return new GlobalIdInputValueFormatter(
-            typeName ?? completionContext.Type.Name,
             completionContext.DescriptorContext.NodeIdSerializerAccessor,
-            resultType,
             resultTypeInfo.NamedType,
+            resultType.ElementType?.Type ?? resultTypeInfo.NamedType,
+            typeName ?? completionContext.Type.Name,
             validateType);
     }
 
@@ -295,13 +291,6 @@ internal static class RelayIdFieldHelpers
         }
 
         var mappings = (Dictionary<string, Type>)obj!;
-#if NET6_0_OR_GREATER
         mappings.TryAdd(typeName, runtimeTypeInfo.NamedType);
-#else
-        if (!mappings.ContainsKey(typeName))
-        {
-            mappings.Add(typeName, runtimeTypeInfo.NamedType);
-        }
-#endif
     }
 }

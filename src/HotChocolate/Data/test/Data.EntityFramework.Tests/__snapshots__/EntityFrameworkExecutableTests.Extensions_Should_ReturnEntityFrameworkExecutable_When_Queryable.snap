@@ -1,1 +1,2 @@
-HotChocolate.Data.EntityFrameworkExecutable`1[HotChocolate.Data.Author]
+SELECT "a"."Id", "a"."Name"
+FROM "Authors" AS "a"

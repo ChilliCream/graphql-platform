@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 
 <PropertyGroup>
   <PackageId>HotChocolate.Types.Shared</PackageId>
@@ -7,15 +7,9 @@
   <Description>Contains shared helper methods.</Description>
 </PropertyGroup>
 
-<PropertyGroup>
-  <Nullable>enable</Nullable>
-  <ImplicitUsings>enable</ImplicitUsings>
-  
-  <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
-  <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-
-  <EnableTrimAnalyzer Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">true</EnableTrimAnalyzer>
-  <IsTrimmable Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">true</IsTrimmable>
+<PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">
+  <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+  <IsTrimmable>true</IsTrimmable>
 </PropertyGroup>
 
 <ItemGroup>

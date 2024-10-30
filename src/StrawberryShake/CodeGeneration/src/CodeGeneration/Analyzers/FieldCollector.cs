@@ -1,13 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate;
+#if NET8_0
 using HotChocolate.Execution;
+#endif
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using IHasDirectives = HotChocolate.Language.IHasDirectives;
 using static StrawberryShake.CodeGeneration.Utilities.TypeHelpers;
+using Path = HotChocolate.Path;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;
 
@@ -362,7 +362,7 @@ internal sealed class FieldCollector
 
         ITypeSystemObject IField.DeclaringType => throw new NotImplementedException();
 
-        public FieldCoordinate Coordinate => throw new NotImplementedException();
+        public SchemaCoordinate Coordinate => throw new NotImplementedException();
 
         public int Index => 0;
 

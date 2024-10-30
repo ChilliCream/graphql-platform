@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Globalization;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -402,18 +400,18 @@ internal static class ErrorHelper
             .Build();
 
     public static ISchemaError MiddlewareOrderInvalid(
-        FieldCoordinate field,
+        SchemaCoordinate fieldCoordinate,
         ITypeSystemObject type,
         string currentOrder)
         => SchemaErrorBuilder.New()
-            .SetMessage(ErrorHelper_MiddlewareOrderInvalid, field, currentOrder)
+            .SetMessage(ErrorHelper_MiddlewareOrderInvalid, fieldCoordinate, currentOrder)
             .SetCode(ErrorCodes.Schema.MiddlewareOrderInvalid)
             .SetTypeSystemObject(type)
-            .SetExtension(nameof(field), field)
+            .SetExtension(nameof(fieldCoordinate), fieldCoordinate)
             .Build();
 
     public static ISchemaError DuplicateDataMiddlewareDetected(
-        FieldCoordinate field,
+        SchemaCoordinate field,
         ITypeSystemObject type,
         IEnumerable<string> duplicateMiddleware)
         => SchemaErrorBuilder.New()
@@ -442,7 +440,7 @@ internal static class ErrorHelper
         => ErrorBuilder.New()
             .SetMessage(ErrorHelper_Relay_NoNodeResolver, typeName)
             .SetPath(path)
-            .AddLocation(fieldNodes)
+            .SetLocations(fieldNodes)
             .Build();
 
     public static ISchemaError NodeResolver_MustHaveExactlyOneIdArg(
@@ -489,7 +487,7 @@ internal static class ErrorHelper
                 ErrorHelper_FetchedToManyNodesAtOnce,
                 maxAllowedNodes,
                 requestNodes)
-            .AddLocation(fieldNodes)
+            .SetLocations(fieldNodes)
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.FetchedToManyNodesAtOnce)
             .Build();

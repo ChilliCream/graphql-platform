@@ -1,15 +1,11 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <PackageId>HotChocolate.Types.Queries</PackageId>
   <AssemblyName>HotChocolate.Types.Queries</AssemblyName>
     <RootNamespace>HotChocolate.Types</RootNamespace>
     <Description>This package provides helpers for creating GraphQL queries.</Description>
+    <NoWarn>HC8001;$(NoWarn)</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

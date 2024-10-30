@@ -28,7 +28,8 @@ internal sealed class FusionExecutionContext : IDisposable
         INodeIdSerializer idSerializer,
         NodeIdParser nodeIdParser,
         FusionOptions options,
-        IFusionDiagnosticEvents diagnosticEvents)
+        IFusionDiagnosticEvents diagnosticEvents,
+        IErrorHandler errorHandler)
     {
         Configuration = configuration ??
             throw new ArgumentNullException(nameof(configuration));
@@ -36,6 +37,8 @@ internal sealed class FusionExecutionContext : IDisposable
             throw new ArgumentNullException(nameof(queryPlan));
         DiagnosticEvents = diagnosticEvents ??
             throw new ArgumentNullException(nameof(diagnosticEvents));
+        ErrorHandler = errorHandler ??
+            throw new ArgumentNullException(nameof(errorHandler));
         _operationContextOwner = operationContextOwner ??
             throw new ArgumentNullException(nameof(operationContextOwner));
         _clientFactory = clientFactory ??
@@ -47,6 +50,8 @@ internal sealed class FusionExecutionContext : IDisposable
         _options = options ??
             throw new ArgumentNullException(nameof(options));
     }
+
+    public IErrorHandler ErrorHandler { get; }
 
     /// <summary>
     /// Gets the schema that is being executed on.
@@ -112,7 +117,7 @@ internal sealed class FusionExecutionContext : IDisposable
 
     public string ReformatId(string formattedId, string subgraphName)
     {
-        var id = _idSerializer.Parse(formattedId);
+        var id = _idSerializer.Parse(formattedId, Schema);
         var typeName = Configuration.GetTypeName(subgraphName, id.TypeName);
         return _idSerializer.Format(typeName, id.InternalId);
     }
@@ -177,5 +182,6 @@ internal sealed class FusionExecutionContext : IDisposable
             context._idSerializer,
             context._nodeIdParser,
             context._options,
-            context.DiagnosticEvents);
+            context.DiagnosticEvents,
+            context.ErrorHandler);
 }

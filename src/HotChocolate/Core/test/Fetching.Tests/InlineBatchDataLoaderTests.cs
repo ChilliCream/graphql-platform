@@ -1,7 +1,4 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+using GreenDonut;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
@@ -94,13 +91,13 @@ public class InlineBatchDataLoaderTests
                         Task.FromResult<IReadOnlyDictionary<string, string>>(
                             keys.ToDictionary(t => t, _ => key)),
                     key)
-                .LoadAsync("abc", context.RequestAborted);
+                .LoadRequiredAsync("abc", context.RequestAborted);
         }
     }
 
     public class Query2
     {
-        public async Task<string> GetByKey(string key, IResolverContext context)
+        public async Task<string?> GetByKey(string key, IResolverContext context)
         {
             return await context.BatchAsync(FetchAsync, key);
 

@@ -96,7 +96,7 @@ public class ProjectToTests
         // act
         // assert
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     @"
                     {
@@ -110,7 +110,7 @@ public class ProjectToTests
                     }")
                 .Build());
 
-        var snapshot = new Snapshot();
+        var snapshot = new Snapshot(postFix: TestEnvironment.TargetFramework);
         snapshot.AddSqlFrom(res1);
         await snapshot.MatchAsync();
     }
@@ -124,7 +124,7 @@ public class ProjectToTests
         // act
         // assert
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     @"
                     query Test {
@@ -147,7 +147,7 @@ public class ProjectToTests
                     }")
                 .Build());
 
-        var snapshot = new Snapshot();
+        var snapshot = new Snapshot(postFix: TestEnvironment.TargetFramework);
         snapshot.AddSqlFrom(res1);
         await snapshot.MatchAsync();
     }
@@ -160,7 +160,7 @@ public class ProjectToTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     @"
                     {
@@ -188,7 +188,7 @@ public class ProjectToTests
         // act
         // assert
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     @"
                     query Test {
@@ -205,7 +205,7 @@ public class ProjectToTests
                     }")
                 .Build());
 
-        var snapshot = new Snapshot();
+        var snapshot = new Snapshot(postFix: TestEnvironment.TargetFramework);
         snapshot.AddSqlFrom(res1);
         await snapshot.MatchAsync();
     }
@@ -218,7 +218,7 @@ public class ProjectToTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     @"
                     query Test {
@@ -245,7 +245,7 @@ public class ProjectToTests
         // act
         // assert
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     @"
                     query Test {
@@ -329,7 +329,6 @@ public class ProjectToTests
             => dbContext.Memberships.ProjectTo<Membership, MembershipDto>(context);
     }
 
-
     public class BloggingContext : DbContext
     {
         public DbSet<Blog> Blogs { get; set; } = default!;
@@ -408,7 +407,6 @@ public class ProjectToTests
         public int ImageId { get; set; }
 
         public string? Url { get; set; }
-
 
         public Post? Post { get; set; }
     }

@@ -1,10 +1,7 @@
-using System;
-using System.Collections.Generic;
 using System.Text;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 using static HotChocolate.Types.Interceptors.FlagEnumInterceptorTests.FlagsEnum;
 
 namespace HotChocolate.Types.Interceptors;

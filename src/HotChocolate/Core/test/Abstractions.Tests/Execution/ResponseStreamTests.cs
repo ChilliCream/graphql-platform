@@ -1,6 +1,3 @@
-using System;
-using System.Threading.Tasks;
-
 namespace HotChocolate.Execution;
 
 public class ResponseStreamTests
@@ -73,7 +70,7 @@ public class ResponseStreamTests
         var result = new ResponseStream(() => default!);
 
         // act
-        void Fail() => result.RegisterForCleanup(default(Func<ValueTask>)!);
+        void Fail() => result.RegisterForCleanup(default!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Fail);
@@ -139,7 +136,7 @@ public class ResponseStreamTests
     }
 
     [Fact]
-    public void ExpectQueryResult()
+    public void ExpectOperationResult()
     {
         // arrange
         IExecutionResult result = new ResponseStream(() => default!);
@@ -158,7 +155,7 @@ public class ResponseStreamTests
         IExecutionResult result = new ResponseStream(() => default!);
 
         // act
-        void Fail() => result.ExpectQueryResult();
+        void Fail() => result.ExpectOperationResult();
 
         // assert
         Assert.Throws<ArgumentException>(Fail);

@@ -1,15 +1,13 @@
-using System;
 using System.Text;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Microsoft.Net.Http.Headers;
 using IO = System.IO;
-using System.IO;
 
 namespace HotChocolate.AzureFunctions.Tests.Helpers;
 
-public class TestHttpContextHelper
+public static class TestHttpContextHelper
 {
     public static Uri DefaultAzFuncGraphQLUri { get; } = new(
         new Uri("https://localhost/"),
@@ -25,7 +23,7 @@ public class TestHttpContextHelper
         request.Host = new HostString(DefaultAzFuncGraphQLUri.Host, DefaultAzFuncGraphQLUri.Port);
         request.Path = new PathString(DefaultAzFuncGraphQLUri.AbsolutePath);
         request.QueryString = new QueryString(DefaultAzFuncGraphQLUri.Query);
-        request.Body = new IO.MemoryStream(Encoding.UTF8.GetBytes(CreateRequestBody(query)));
+        request.Body = new MemoryStream(Encoding.UTF8.GetBytes(CreateRequestBody(query)));
         request.ContentType = TestConstants.DefaultJsonContentType;
 
         httpContext.Response.Body = new MemoryStream();
@@ -33,7 +31,7 @@ public class TestHttpContextHelper
         return httpContext;
     }
 
-    public static HttpContext NewBcpHttpContext()
+    public static HttpContext NewNitroHttpContext()
     {
         var uri = new Uri(IO.Path.Combine(DefaultAzFuncGraphQLUri.ToString(), "index.html"));
 
@@ -46,8 +44,8 @@ public class TestHttpContextHelper
         request.Path = new PathString(uri.AbsolutePath);
         request.QueryString = new QueryString(uri.Query);
 
-        // Ensure we accept Text/Html for BCP requests...
-        httpContext.Request.Headers[HeaderNames.Accept] = TestConstants.DefaultBcpContentType;
+        // Ensure we accept Text/Html for Nitro requests...
+        httpContext.Request.Headers[HeaderNames.Accept] = TestConstants.DefaultNitroContentType;
 
         httpContext.Response.Body = new MemoryStream();
 

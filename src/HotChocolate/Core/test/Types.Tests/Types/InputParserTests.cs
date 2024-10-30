@@ -1,12 +1,9 @@
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Tests;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 #nullable enable
 
@@ -380,7 +377,7 @@ public class InputParserTests
             .BuildRequestExecutorAsync();
 
         // act
-        var query = 
+        var query =
             OperationRequest.FromSourceText(
                 """
                 {

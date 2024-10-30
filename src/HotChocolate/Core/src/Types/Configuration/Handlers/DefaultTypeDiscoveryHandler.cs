@@ -1,6 +1,5 @@
 #nullable enable
 
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using HotChocolate.Internal;
@@ -11,7 +10,7 @@ namespace HotChocolate.Configuration;
 
 internal sealed class DefaultTypeDiscoveryHandler(ITypeInspector typeInspector) : TypeDiscoveryHandler
 {
-    private ITypeInspector TypeInspector { get; } = 
+    private ITypeInspector TypeInspector { get; } =
         typeInspector ?? throw new ArgumentNullException(nameof(typeInspector));
 
     public override bool TryInferType(

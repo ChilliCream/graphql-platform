@@ -14,15 +14,6 @@ internal static class HttpContextExtensions
     public static GraphQLSocketOptions? GetGraphQLSocketOptions(this HttpContext context)
         => GetGraphQLServerOptions(context)?.Sockets;
 
-    public static bool IsTracingEnabled(this HttpContext context)
-    {
-        var headers = context.Request.Headers;
-
-        return (headers.TryGetValue(HttpHeaderKeys.Tracing, out var values)
-                || headers.TryGetValue(HttpHeaderKeys.ApolloTracing, out values)) &&
-               values.Any(v => v == HttpHeaderValues.TracingEnabled);
-    }
-
     public static bool IncludeQueryPlan(this HttpContext context)
     {
         var headers = context.Request.Headers;
@@ -34,5 +25,31 @@ internal static class HttpContextExtensions
         }
 
         return false;
+    }
+
+    public static string? TryGetCostSwitch(this HttpContext context)
+    {
+        var headers = context.Request.Headers;
+        if (headers.TryGetValue(HttpHeaderKeys.Cost, out var values))
+        {
+            var value = values.FirstOrDefault();
+
+            if (value is null)
+            {
+                return null;
+            }
+
+            if(value.Equals(HttpHeaderValues.ReportCost, StringComparison.OrdinalIgnoreCase))
+            {
+                return WellKnownContextData.ReportCost;
+            }
+
+            if(value.Equals(HttpHeaderValues.ValidateCost, StringComparison.OrdinalIgnoreCase))
+            {
+                return WellKnownContextData.ValidateCost;
+            }
+        }
+
+        return null;
     }
 }

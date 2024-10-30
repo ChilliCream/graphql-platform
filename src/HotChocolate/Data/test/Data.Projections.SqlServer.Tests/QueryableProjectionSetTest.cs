@@ -58,7 +58,7 @@ public class QueryableProjectionISetTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     @"
                         {
@@ -77,7 +77,7 @@ public class QueryableProjectionISetTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddResult(res1)
             .MatchAsync();
     }
@@ -90,7 +90,7 @@ public class QueryableProjectionISetTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     @"
                         {
@@ -110,7 +110,7 @@ public class QueryableProjectionISetTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddResult(res1)
             .MatchAsync();
     }

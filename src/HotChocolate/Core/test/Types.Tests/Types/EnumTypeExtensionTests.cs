@@ -1,7 +1,5 @@
-using System;
-using System.Linq;
+using CookieCrumble;
 using HotChocolate.Language;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types;
 

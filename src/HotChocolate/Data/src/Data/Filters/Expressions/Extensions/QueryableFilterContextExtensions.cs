@@ -38,7 +38,6 @@ public static class QueryableFilterVisitorContextExtensions
         return false;
     }
 
-
     /// <summary>
     /// Tries to build the a typed expression based on the items that are stored on the scope
     /// </summary>

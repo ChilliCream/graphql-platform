@@ -15,17 +15,17 @@
         },
         {
           "Key": "graphql.operation.id",
-          "Value": "_Default-1-2e55fbe10a9e3ddf26935a8f8d15ec89"
+          "Value": "_Default-1-0-2e55fbe10a9e3ddf26935a8f8d15ec89"
         }
       ],
       "event": [
         {
           "Name": "AddedOperationToCache",
-          "Tags": {}
+          "Tags": []
         },
         {
           "Name": "AddedDocumentToCache",
-          "Tags": {}
+          "Tags": []
         }
       ],
       "activities": [

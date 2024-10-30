@@ -1,9 +1,7 @@
-using System.Linq;
-using System;
 using System.Collections;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Reflection;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Utilities;
 
@@ -16,7 +14,7 @@ internal class ObjectToDictionaryConverter
     {
         _converter = converter ?? throw new ArgumentNullException(nameof(converter));
     }
-    
+
     public object Convert(object obj)
     {
         if(obj is null)
@@ -26,7 +24,7 @@ internal class ObjectToDictionaryConverter
 
         object value = null;
         void SetValue(object v) => value = v;
-        VisitValue(obj, SetValue, []);
+        VisitValue(obj, SetValue, new HashSet<object>(ReferenceEqualityComparer.Instance));
         return value;
     }
 
@@ -143,6 +141,13 @@ internal class ObjectToDictionaryConverter
                     VisitValue(value, SetField, processed);
                 }
             }
+
+            processed.Remove(obj);
+        }
+        else
+        {
+            throw new GraphQLException(
+                TypeResources.ObjectToDictionaryConverter_CycleInObjectGraph);
         }
     }
 

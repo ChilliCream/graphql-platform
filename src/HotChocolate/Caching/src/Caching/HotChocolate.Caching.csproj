@@ -6,7 +6,6 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
@@ -14,12 +13,17 @@
     <PackageId>HotChocolate.Caching</PackageId>
     <AssemblyName>HotChocolate.Caching</AssemblyName>
     <RootNamespace>HotChocolate.Caching</RootNamespace>
+    <NoWarn>HC8001;$(NoWarn)</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Caching.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Caching.Http" />
     <InternalsVisibleTo Include="HotChocolate.Caching.Http.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Net.Http.Headers" />
   </ItemGroup>
 
   <ItemGroup>

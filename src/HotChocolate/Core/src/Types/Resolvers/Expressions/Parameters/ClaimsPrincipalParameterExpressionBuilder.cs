@@ -1,4 +1,3 @@
-using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Security.Claims;
@@ -30,14 +29,14 @@ internal sealed class ClaimsPrincipalParameterExpressionBuilder
         var parameter = context.Parameter;
         Expression nullableParameter = Constant(IsParameterNullable(parameter), typeof(bool));
 
-        Expression<Func<IPureResolverContext, bool, ClaimsPrincipal?>> lambda =
+        Expression<Func<IResolverContext, bool, ClaimsPrincipal?>> lambda =
             (ctx, nullable) => GetClaimsPrincipal(ctx, nullable);
 
         return Invoke(lambda, context.ResolverContext, nullableParameter);
     }
 
     private static ClaimsPrincipal? GetClaimsPrincipal(
-        IPureResolverContext context,
+        IResolverContext context,
         bool nullable)
     {
         if (context.ContextData.TryGetValue(nameof(ClaimsPrincipal), out var value) &&
@@ -60,8 +59,5 @@ internal sealed class ClaimsPrincipalParameterExpressionBuilder
         => this;
 
     public T Execute<T>(IResolverContext context)
-        => context.GetGlobalState<T>(nameof(ClaimsPrincipal))!;
-
-    public T Execute<T>(IPureResolverContext context)
         => context.GetGlobalState<T>(nameof(ClaimsPrincipal))!;
 }
