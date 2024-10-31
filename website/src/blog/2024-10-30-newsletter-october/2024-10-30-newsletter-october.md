@@ -98,7 +98,7 @@ We're on the lookout for testimonials and case studies to feature on our website
 👉 **[Click here to share your story with us!](https://tally.so/r/3j7R4E)**
 
 ---
- 
+
 # Thank You! ❤️
 
 A huge congratulations and thank you to our incredible team and community contributors who poured countless hours into making these releases possible. We're eager to continue pushing the boundaries of what's possible with GraphQL, and we couldn't do it without your support.
