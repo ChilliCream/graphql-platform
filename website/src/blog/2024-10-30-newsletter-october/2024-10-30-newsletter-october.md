@@ -81,7 +81,7 @@ While our telemetry integration was previously focused only on GraphQL operation
 
 # Get Hands-On with DDD and GraphQL in Our One-Day Workshop  
 
-Join us for a focused, one-day workshop on Domain-Driven Design (DDD) with GraphQL, where we’ll guide you through practical DDD concepts and their implementation in .NET 8, ASP.NET Core 8, and Hot Chocolate. Learn how CQRS and Domain Events work with GraphQL, and how to manage complex application domains with clean architecture practices. This session is ideal for developers who want to deepen their understanding of DDD principles and see them in action in a GraphQL environment.
+Join us for a focused, one-day workshop on Domain-Driven Design with GraphQL, where we’ll guide you through practical DDD concepts and their implementation in .NET 9, ASP.NET Core 9, Aspire, Hot Chocolate and Fusion. Learn how CQRS and Domain Events work with GraphQL, and how to manage complex application domains with clean architecture practices. This session is ideal for developers who want to deepen their understanding of DDD principles and see them in action in a GraphQL environment.
 
 Claim your **30% discount NOW**:
 
