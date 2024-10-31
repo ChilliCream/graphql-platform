@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using GreenDonut.Projections;
+using GreenDonut.Predicates;
+using GreenDonut.Selectors;
 
 namespace GreenDonut;
 
@@ -141,7 +142,7 @@ public readonly struct DataLoaderFetchContext<TValue>(
     /// <returns>
     /// Returns the selector builder if it exists.
     /// </returns>
-    [Experimental(Experiments.Projections)]
+    [Experimental(Experiments.Selectors)]
     public ISelectorBuilder GetSelector()
     {
         if (ContextData.TryGetValue(typeof(ISelectorBuilder).FullName!, out var value)
@@ -153,5 +154,26 @@ public readonly struct DataLoaderFetchContext<TValue>(
         // if no selector was found we will just return
         // a new default selector builder.
         return new DefaultSelectorBuilder();
+    }
+
+    /// <summary>
+    /// Gets the predicate builder from the DataLoader state snapshot.
+    /// The state builder can be used to create a predicate expression.
+    /// </summary>
+    /// <returns>
+    /// Returns the predicate builder if it exists.
+    /// </returns>
+    [Experimental(Experiments.Predicates)]
+    public IPredicateBuilder GetPredicate()
+    {
+        if (ContextData.TryGetValue(typeof(IPredicateBuilder).FullName!, out var value)
+            && value is DefaultPredicateBuilder casted)
+        {
+            return casted;
+        }
+
+        // if no predicate was found we will just return
+        // a new default predicate builder.
+        return new DefaultPredicateBuilder();
     }
 }

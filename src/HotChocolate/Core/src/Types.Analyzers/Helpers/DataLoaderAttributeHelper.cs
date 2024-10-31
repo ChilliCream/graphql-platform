@@ -328,6 +328,27 @@ public static class DataLoaderAttributeHelper
         return true;
     }
 
+    public static bool GenerateInterfaces(
+        this SeparatedSyntaxList<AttributeArgumentSyntax> arguments,
+        GeneratorSyntaxContext context)
+    {
+        var argumentSyntax = arguments.FirstOrDefault(
+            t => t.NameEquals?.Name.ToFullString().Trim() == "GenerateInterfaces");
+
+        if (argumentSyntax is not null)
+        {
+            var valueExpression = argumentSyntax.Expression;
+            var value = context.SemanticModel.GetConstantValue(valueExpression).Value;
+
+            if (value is not null)
+            {
+                return (bool)value;
+            }
+        }
+
+        return true;
+    }
+
     public static bool TryGetName(
         this AttributeData attribute,
         [NotNullWhen(true)] out string? name)

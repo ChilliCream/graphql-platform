@@ -18,6 +18,10 @@ Things that have been removed or had a change in behavior that may cause your co
 | --------------------------------------------- | ------------------------------------- | ---------------------------------------- |
 | AddBananaCakePopExporter                      | AddNitroExporter                      |                                          |
 | AddBananaCakePopServices                      | AddNitro                              |                                          |
+| BananaCakePop.Middleware                      | ChilliCream.Nitro.App                 |                                          |
+| BananaCakePop.Services                        | ChilliCream.Nitro                     |                                          |
+| BananaCakePop.Services.Azure                  | ChilliCream.Nitro.Azure               |                                          |
+| BananaCakePop.Services.Fusion                 | ChilliCream.Nitro.Fusion              |                                          |
 | barista                                       | nitro                                 | CLI executable                           |
 | Barista                                       | ChilliCream.Nitro.CLI                 | CLI NuGet package                        |
 | BARISTA_API_ID                                | NITRO_API_ID                          |                                          |
@@ -39,6 +43,42 @@ Things that have been removed or had a change in behavior that may cause your co
 | MapBananaCakePop                              | MapNitroApp                           |                                          |
 | @chillicream/bananacakepop-express-middleware | @chillicream/nitro-express-middleware |                                          |
 | @chillicream/bananacakepop-graphql-ide        | @chillicream/nitro-embedded           | `mode: "self"` is now `mode: "embedded"` |
+
+## Dependency injection changes
+
+- It is no longer necessary to use the `[Service]` attribute unless you're using keyed services, in which case the attribute is used to specify the key.
+  - Hot Chocolate will identify services automatically.
+- Support for the `[FromServices]` attribute has been removed.
+  - As with the `[Service]` attribute above, this attribute is no longer necessary.
+- Since the `RegisterService` method is no longer required, it has been removed, along with the `ServiceKind` enum.
+- Scoped services injected into query resolvers are now resolver-scoped by default (not request scoped). For mutation resolvers, services are request-scoped by default.
+- The default scope can be changed in two ways:
+
+  1. Globally, using `ModifyOptions`:
+
+     ```csharp
+     builder.Services
+         .AddGraphQLServer()
+         .ModifyOptions(o =>
+         {
+             o.DefaultQueryDependencyInjectionScope =
+                 DependencyInjectionScope.Resolver;
+             o.DefaultMutationDependencyInjectionScope =
+                 DependencyInjectionScope.Request;
+         });
+     ```
+
+  2. On a per-resolver basis, with the `[UseRequestScope]` or `[UseResolverScope]` attribute.
+     - Note: The `[UseServiceScope]` attribute has been removed.
+
+For more information, see the [Dependency Injection](/docs/hotchocolate/v14/server/dependency-injection) documentation.
+
+## Entity framework integration changes
+
+- The `RegisterDbContext` method is no longer required, and has therefore been removed, along with the `DbContextKind` enum.
+- Use `RegisterDbContextFactory` to register a DbContext factory.
+
+For more information, see the [Entity Framework integration](/docs/hotchocolate/v14/integrations/entity-framework) documentation.
 
 ## New GID format
 
@@ -186,6 +226,12 @@ Renamed interface methods:
 | ----------------- | ------------ |
 | TryReadQueryAsync | TryReadAsync |
 | WriteQueryAsync   | SaveAsync    |
+
+## Required keyed services
+
+Accessing a keyed service that has not been registered will now throw, instead of returning `null`. The return type is now non-nullable.
+
+This change aligns the API with the regular (non-keyed) service access API.
 
 # Deprecations
 
