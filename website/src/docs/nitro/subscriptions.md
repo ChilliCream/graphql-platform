@@ -2,15 +2,14 @@
 title: Subscription
 ---
 
-You can manage your subscriptions directly from the web portal, accessible through [here](https://identity.chillicream.com/Organization) or through manage organization on the client.
+You can manage your subscriptions directly from the web portal, accessible from [here](https://identity.chillicream.com/Organization), or through Manage Organizations on the client.
 
 # Creating a Subscription
 
-When you do not have a subscription yet, you can create on in the 'Subscriptions' section of the management portal. Open the organization in the context of an owner or admin to see this section.
-![Screenshot showing the subscription](./images/subscription-2.png)
+When you do not have a subscription yet, you can create one in the 'Subscription' section of the management portal. Open the organization in the context of an owner or admin to see this section.
+![Screenshot showing the subscription](./images/subscription-0.webp)
 
-Enter the number of seats you want to purchase and click on the 'Create' button. You will be redirected to the billing portal to complete the payment process.
-Enter your payment details and click on the 'Subscribe' button to complete the payment process.
+To create a Pro subscription, click the 'Select' button. You will be redirected to the billing portal to complete the payment process. Enter your payment details and click on the 'Subscribe' button to complete the payment process.
 
 You have the option to pay monthly or annually. Annual payments are discounted.
 
@@ -22,11 +21,11 @@ To change your subscription plan, follow these steps:
 
 1. **Access the Management Portal:** Open the management portal by clicking ['Manage Organizations' -> 'Manage'](/docs/nitro/organizations#managing-organizations) option in the context menu of Nitro or by navigating to [here](https://identity.chillicream.com/Organizations).
 
-2. **Navigate to Subscriptions:** Within the management portal, click on 'Manage' in the subscription section.
-   ![Screenshot showing the subscription](images/subscription-3.png)
+2. **Navigate to Subscription:** Within the management portal, click on 'Manage' in the subscription section.
+  ![Screenshot showing the subscription](images/subscription-2.webp)
 
-3. **Adjust Seats:** Here, you can adjust the number of seats that are available in your subscription. Changing this value will affect the number of users who can join your organization.
-   ![Screenshot showing the subscription](images/subscription-4.png)
+3. **Update plan:** Here, you can update your subscription plan. Changing this value will affect the number of users who can join your organization.
+  ![Screenshot showing the subscription](images/subscription-3.webp)
 
 # Expiry and Seats
 
@@ -39,7 +38,7 @@ If your organization reaches its maximum seat limit, no new users will be able t
 # Billing
 
 In the client app you can directly access the billing portal by clicking 'Billing' and managing your running subscriptions:
-![Description of visualization: Screenshot showing the subscription](images/subscription-1.png)
+![Description of visualization: Screenshot showing the subscription](images/subscription-1.webp)
 
 The billing of an organization is currently on a per-user basis. All billing-related aspects, including subscription management and payment processing, are handled securely through Stripe, which you can directly manage from the management portal.
 
