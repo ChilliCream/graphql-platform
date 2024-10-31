@@ -32,7 +32,7 @@ Hot Chocolate 14 brings a host of new features and improvements designed to make
 
 - **Source Generators for Resolvers:** We've expanded our use of source-generated code, allowing for the generation of resolvers and improving build-time feedback. This feature is opt-in and works with our new type extension API, combining the power of the implementation-first approach with the code-first fluent API. Checkout `[ObjectType<T>]`!
 
-- **Enhanced Relay Support:** Hot Chocolate 14 offers better integration with Relay, including support for custom data on edges, control over the shape of connection types, and updated node ID serializers for more efficient and compatible ID handling.
+- **Enhanced Relay Support:** Hot Chocolate 14 offers better integration with Relay, including support for custom data on edges, control over the shape of connection types, and updated node ID serializers for more efficient handling.
 
 - **Security Enhancements:** We've integrated the IBM cost specification directly into the core of Hot Chocolate. This means that even if you don't configure any security-related options, your GraphQL server is more secure by default. The cost analysis helps prevent expensive operations from overwhelming your server.
 
