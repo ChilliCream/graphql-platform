@@ -25,7 +25,11 @@ public class LocalDateTimeType : StringToStructBaseType<LocalDateTime>
 
         _allowedPatterns = allowedPatterns;
         _serializationPattern = allowedPatterns[0];
-        Description = NodaTimeResources.LocalDateTimeType_Description;
+
+        Description = CreateDescription(
+            _allowedPatterns,
+            NodaTimeResources.LocalDateTimeType_Description,
+            NodaTimeResources.LocalDateTimeType_Description_Extended);
     }
 
     /// <summary>
@@ -46,4 +50,22 @@ public class LocalDateTimeType : StringToStructBaseType<LocalDateTime>
         string resultValue,
         [NotNullWhen(true)] out LocalDateTime? runtimeValue)
         => _allowedPatterns.TryParse(resultValue, out runtimeValue);
+
+    protected override Dictionary<IPattern<LocalDateTime>, string> PatternMap => new()
+    {
+        { LocalDateTimePattern.GeneralIso, "YYYY-MM-DDThh:mm:ss" },
+        { LocalDateTimePattern.ExtendedIso, "YYYY-MM-DDThh:mm:ss.sssssssss" },
+        { LocalDateTimePattern.BclRoundtrip, "YYYY-MM-DDThh:mm:ss.sssssss" },
+        { LocalDateTimePattern.FullRoundtripWithoutCalendar, "YYYY-MM-DDThh:mm:ss.sssssssss" },
+        { LocalDateTimePattern.FullRoundtrip, "YYYY-MM-DDThh:mm:ss.sssssssss (calendar)" }
+    };
+
+    protected override Dictionary<IPattern<LocalDateTime>, string> ExampleMap => new()
+    {
+        { LocalDateTimePattern.GeneralIso, "2000-01-01T20:00:00" },
+        { LocalDateTimePattern.ExtendedIso, "2000-01-01T20:00:00.999" },
+        { LocalDateTimePattern.BclRoundtrip, "2000-01-01T20:00:00.9999999" },
+        { LocalDateTimePattern.FullRoundtripWithoutCalendar, "2000-01-01T20:00:00.999999999" },
+        { LocalDateTimePattern.FullRoundtrip, "2000-01-01T20:00:00.999999999 (ISO)" }
+    };
 }
