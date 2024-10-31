@@ -43,7 +43,7 @@ namespace TestNamespace
             global::System.Threading.CancellationToken ct)
         {
             var p1 = context.GetRequiredState<global::HotChocolate.Pagination.PagingArguments>("HotChocolate.Pagination.PagingArguments");
-            var temp = await TestNamespace.TestClass.GetEntityByIdAsync(keys, p1, ct).ConfigureAwait(false);
+            var temp = await global::TestNamespace.TestClass.GetEntityByIdAsync(keys, p1, ct).ConfigureAwait(false);
             CopyResults(keys, results.Span, temp);
         }
 
