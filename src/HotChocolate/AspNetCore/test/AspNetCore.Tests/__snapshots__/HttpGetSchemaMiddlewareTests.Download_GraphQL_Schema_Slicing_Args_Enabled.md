@@ -1,3 +1,16 @@
+# Download_GraphQL_Schema_Slicing_Args_Enabled
+
+```text
+Headers:
+ETag: "1-B2t9cwf/BRF8NYIpFDtJE4DLg8FfD5d5HdAF9KObaUc="
+Cache-Control: public, must-revalidate, max-age=3600
+Content-Type: application/graphql; charset=utf-8
+Content-Disposition: attachment; filename="schema.graphql"
+Last-Modified: Fri, 01 Jan 2021 00:00:00 GMT
+Content-Length: 7193
+-------------------------->
+Status Code: OK
+-------------------------->
 schema {
   query: Query
   mutation: Mutation
@@ -17,7 +30,7 @@ type Droid implements Character {
   id: ID!
   name: String!
   appearsIn: [Episode]
-  friends("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FriendsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false)
+  friends("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FriendsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], sizedFields: [ "edges", "nodes" ])
   height(unit: Unit): Float
   primaryFunction: String
   traits: JSON
@@ -45,7 +58,7 @@ type Human implements Character {
   id: ID!
   name: String!
   appearsIn: [Episode]
-  friends("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FriendsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false)
+  friends("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FriendsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], sizedFields: [ "edges", "nodes" ])
   otherHuman: Human
   height(unit: Unit): Float
   homePlanet: String
@@ -135,3 +148,4 @@ scalar JSON
 
 "The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
 scalar Long
+```
