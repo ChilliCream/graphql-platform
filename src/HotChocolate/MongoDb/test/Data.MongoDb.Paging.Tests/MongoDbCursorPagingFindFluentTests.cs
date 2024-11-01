@@ -239,9 +239,9 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
             }");
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), result)
+        await Snapshot
+            .Create()
+            .AddResult(result)
             .MatchAsync();
     }
 
@@ -305,6 +305,7 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
                     }
                 })
             .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)
+            .ModifyPagingOptions(o => o.RequirePagingBoundaries = true)
             .UseDefaultPipeline()
             .Services
             .BuildServiceProvider()
