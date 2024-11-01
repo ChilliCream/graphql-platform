@@ -32,7 +32,7 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
     public async Task Simple_StringList_Default_Items()
     {
         // arrange
-        var executor = await CreateSchemaAsync();
+        var executor = await CreateSchemaAsync(requiresPagingBoundaries: false);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -57,9 +57,9 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
             }");
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), result)
+        await Snapshot
+            .Create()
+            .AddResult(result)
             .MatchAsync();
     }
 
@@ -92,9 +92,9 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
             }");
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), result)
+        await Snapshot
+            .Create()
+            .AddResult(result)
             .MatchAsync();
     }
 
@@ -172,7 +172,7 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
     public async Task Simple_StringList_Global_DefaultItem_2()
     {
         // arrange
-        var executor = await CreateSchemaAsync();
+        var executor = await CreateSchemaAsync(requiresPagingBoundaries: false);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -197,9 +197,9 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
             }");
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), result)
+        await Snapshot
+            .Create()
+            .AddResult(result)
             .MatchAsync();
     }
 
@@ -207,7 +207,7 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
     public async Task JustTotalCount()
     {
         // arrange
-        var executor = await CreateSchemaAsync();
+        var executor = await CreateSchemaAsync(requiresPagingBoundaries: false);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -218,9 +218,9 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
             }");
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), result)
+        await Snapshot
+            .Create()
+            .AddResult(result)
             .MatchAsync();
     }
 
@@ -266,7 +266,7 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
         return ctx => collection.AsExecutable();
     }
 
-    private ValueTask<IRequestExecutor> CreateSchemaAsync()
+    private ValueTask<IRequestExecutor> CreateSchemaAsync(bool requiresPagingBoundaries = true)
     {
         return new ServiceCollection()
             .AddGraphQL()
@@ -305,7 +305,7 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
                     }
                 })
             .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)
-            .ModifyPagingOptions(o => o.RequirePagingBoundaries = true)
+            .ModifyPagingOptions(o => o.RequirePagingBoundaries = requiresPagingBoundaries)
             .UseDefaultPipeline()
             .Services
             .BuildServiceProvider()
