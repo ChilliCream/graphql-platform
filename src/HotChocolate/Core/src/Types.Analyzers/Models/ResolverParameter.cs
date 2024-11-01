@@ -116,13 +116,13 @@ public sealed class ResolverParameter
         {
             return parameter.IsSetState()
                 ? ResolverParameterKind.SetScopedState
-                : ResolverParameterKind.GetGlobalState;
+                : ResolverParameterKind.GetScopedState;
         }
 
         if (parameter.IsLocalState(out key))
         {
             return parameter.IsSetState()
-                ? ResolverParameterKind.SetGlobalState
+                ? ResolverParameterKind.SetLocalState
                 : ResolverParameterKind.GetLocalState;
         }
 
