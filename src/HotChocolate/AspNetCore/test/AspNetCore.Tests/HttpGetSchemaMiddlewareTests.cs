@@ -93,6 +93,33 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
     }
 
     [Theory]
+    [InlineData("/graphql?sdl")]
+    [InlineData("/graphql/schema/")]
+    [InlineData("/graphql/schema.graphql")]
+    [InlineData("/graphql/schema")]
+    public async Task Download_GraphQL_Schema_Slicing_Args_Enabled(string path)
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: sp =>
+                sp
+                    .RemoveAll<ITimeProvider>()
+                    .AddSingleton<ITimeProvider, StaticTimeProvider>()
+                    .AddGraphQL()
+                    .ModifyPagingOptions(o => o.RequirePagingBoundaries = true));
+        var url = TestServerExtensions.CreateUrl(path);
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+        // act
+        var response = await server.CreateClient().SendAsync(request);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        response.MatchMarkdownSnapshot();
+    }
+
+    [Theory]
     [InlineData("/graphql/?sdl")]
     [InlineData("/graphql/schema/")]
     [InlineData("/graphql/schema.graphql")]
