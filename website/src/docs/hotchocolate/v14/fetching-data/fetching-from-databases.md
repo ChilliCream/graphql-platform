@@ -20,15 +20,13 @@ If you return a scalar, value (e.g. `string`, `int` ...) the value is serialized
 If you return an object, this object is the parent of the resolver in the subtree.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 // Query.cs
 public class Query
 {
-    public Task<Book?> GetBookById(
-        [Service] IMongoCollection<Book> collection,
-        Guid id)
+    public Task<Book?> GetBookById(IMongoCollection<Book> collection, Guid id)
     {
         return collection.Find(x => x.Id == id).FirstOrDefaultAsync();
     }
@@ -42,30 +40,20 @@ public class Book
     public string Author { get; set; }
 }
 
-// Startup.cs
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddQueryType<Query>();
-    }
-
-    // Omitted code for brevity
-}
+// Program.cs
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>();
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
 // Query.cs
 public class Query
 {
-    public Task<Book?> GetBookById(
-        [Service] IMongoCollection<Book> collection,
-        Guid id)
+    public Task<Book?> GetBookById(IMongoCollection<Book> collection, Guid id)
     {
         return collection.Find(x => x.Id == id).FirstOrDefaultAsync();
     }
@@ -105,18 +93,10 @@ public class BookType : ObjectType<Book>
     }
 }
 
-// Startup.cs
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddQueryType<QueryType>();
-    }
-
-    // Omitted code for brevity
-}
+// Program.cs
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<QueryType>();
 ```
 
 </Code>
@@ -126,36 +106,26 @@ public class Startup
 // Query.cs
 public class Query
 {
-    public Task<Book?> GetBookById(
-        [Service] IMongoCollection<Book> collection,
-        Guid id)
+    public Task<Book?> GetBookById(IMongoCollection<Book> collection, Guid id)
     {
         return collection.Find(x => x.Id == id).FirstOrDefaultAsync();
     }
 }
 
-// Startup.cs
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddDocumentFromString(@"
-                type Query {
-                  bookById(id: Uuid): Book
-                }
+// Program.cs
+builder.Services
+    .AddGraphQLServer()
+    .AddDocumentFromString(@"
+        type Query {
+          bookById(id: Uuid): Book
+        }
 
-                type Book {
-                  title: String
-                  author: String
-                }
-            ")
-            .BindRuntimeType<Query>();
-    }
-
-    // Omitted code for brevity
-}
+        type Book {
+          title: String
+          author: String
+        }
+    ")
+    .BindRuntimeType<Query>();
 ```
 
 </Schema>

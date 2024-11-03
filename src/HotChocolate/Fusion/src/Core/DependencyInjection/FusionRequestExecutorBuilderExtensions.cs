@@ -53,7 +53,7 @@ public static class FusionRequestExecutorBuilderExtensions
                 sp.GetRequiredService<IWebSocketConnectionFactory>()));
 
         var builder = services
-            .AddGraphQLServer(graphName, disableCostAnalyzer: true)
+            .AddGraphQLServer(graphName, disableDefaultSecurity: true)
             .UseField(next => next)
             .AddOperationCompilerOptimizer<OperationQueryPlanCompiler>()
             .AddOperationCompilerOptimizer<FieldFlagsOptimizer>()
@@ -136,7 +136,7 @@ public static class FusionRequestExecutorBuilderExtensions
                 (_, sc) =>
                 {
                     sc.RemoveAll<NodeIdParser>();
-                    sc.AddSingleton<NodeIdParser, DefaultNodeIdParser>();
+                    sc.AddSingleton<NodeIdParser, T>();
                 }));
 
         return builder;

@@ -30,7 +30,7 @@ enum UserRole {
 We can define descriptions like the following.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 [GraphQLDescription("An object type")]
@@ -62,7 +62,7 @@ If the description provided to the `GraphQLDescriptionAttribute` is `null` or ma
 
 Learn more about XML documentation below.
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -117,7 +117,7 @@ The `Description()` methods take precedence over all other forms of documentatio
 <Schema>
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddDocumentFromString(@"
         type Query {
@@ -205,7 +205,7 @@ To make the XML documentation available to Hot Chocolate, we have to enable `Gen
 If we do not want to include XML documentation in our schema, we can set the `UseXmlDocumentation` property on the schema's `ISchemaOptions`.
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .ModifyOptions(opt => opt.UseXmlDocumentation = false);
 ```
@@ -226,14 +226,14 @@ public class CustomNamingConventions : DefaultNamingConventions
         : base(documentationProvider) { }
 }
 
-// Startup
+// Program
 // Before
 .AddConvention<INamingConventions>(sp => new CustomNamingConventions());
 
 // After
 IReadOnlySchemaOptions capturedSchemaOptions;
 
-services
+builder.Services
     .AddGraphQLServer()
     .ModifyOptions(opt => capturedSchemaOptions = opt)
     .AddConvention<INamingConventions>(sp => new CustomNamingConventions(

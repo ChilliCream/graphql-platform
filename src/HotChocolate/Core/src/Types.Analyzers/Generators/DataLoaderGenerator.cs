@@ -92,6 +92,26 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
                 hasDataLoaders = true;
             }
 
+            List<GroupedDataLoaderInfo>? buffer = null;
+            foreach (var dataLoaderGroup in group
+                .Where(d => d.Groups.Count > 0)
+                .SelectMany(d => d.Groups, (d, g) => new { DataLoader = d, Group = g })
+                .GroupBy(t => t.Group, t => t.DataLoader, StringComparer.Ordinal)
+                .OrderBy(t => t.Key, StringComparer.Ordinal))
+            {
+                var isPublic = defaults.IsInterfacePublic ?? true;
+                var dataLoaderGroups = dataLoaderGroup.Select(
+                    t => new GroupedDataLoaderInfo(
+                        t.NameWithoutSuffix,
+                        t.InterfaceName,
+                        t.IsInterfacePublic ?? isPublic));
+
+                buffer ??= new();
+                buffer.Clear();
+                buffer.AddRange(dataLoaderGroups);
+                generator.WriteDataLoaderGroupClass(dataLoaderGroup.Key, buffer, defaults.GenerateInterfaces);
+            }
+
             generator.WriteEndNamespace();
         }
 
@@ -113,7 +133,10 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
         var isPublic = dataLoader.IsPublic ?? defaults.IsPublic ?? true;
         var isInterfacePublic = dataLoader.IsInterfacePublic ?? defaults.IsInterfacePublic ?? true;
 
-        generator.WriteDataLoaderInterface(dataLoader.InterfaceName, isInterfacePublic, kind, keyType, valueType);
+        if (defaults.GenerateInterfaces)
+        {
+            generator.WriteDataLoaderInterface(dataLoader.InterfaceName, isInterfacePublic, kind, keyType, valueType);
+        }
 
         generator.WriteBeginDataLoaderClass(
             dataLoader.Name,
@@ -121,7 +144,8 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
             isPublic,
             kind,
             keyType,
-            valueType);
+            valueType,
+            defaults.GenerateInterfaces);
         generator.WriteDataLoaderConstructor(
             dataLoader.Name,
             kind,

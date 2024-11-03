@@ -74,21 +74,21 @@ You will have to register the client in the dependency injection of your GraphQL
 To expose the API you can inject the generated client into your resolvers.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 // Query.cs
 public class Query
 {
     public Task<ICollection<TodoItem>> GetTodosAsync(
-        [Service]TodoService service,
+        TodoService service,
         CancellationToken cancellationToken)
     {
         return service.GetAllAsync(cancellationToken);
     }
 
     public Task<TodoItem> GetTodoByIdAsync(
-        [Service]TodoService service,
+        TodoService service,
         long id,
         CancellationToken cancellationToken)
     {
@@ -96,22 +96,14 @@ public class Query
     }
 }
 
-// Startup.cs
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services.AddHttpClient<TodoService>();
-        services
-            .AddGraphQLServer()
-            .AddQueryType<Query>();
-    }
-
-    // Omitted code for brevity
-}
+// Program.cs
+builder.Services.AddHttpClient<TodoService>();
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>();
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -119,14 +111,14 @@ public class Startup
 public class Query
 {
     public Task<ICollection<TodoItem>> GetTodosAsync(
-        [Service]TodoService service,
+        TodoService service,
         CancellationToken cancellationToken)
     {
         return service.GetAllAsync(cancellationToken);
     }
 
     public Task<TodoItem> GetTodoByIdAsync(
-        [Service]TodoService service,
+        TodoService service,
         long id,
         CancellationToken cancellationToken)
     {
@@ -168,18 +160,10 @@ public class TodoType : ObjectType<Todo>
     }
 }
 
-// Startup.cs
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddQueryType<QueryType>();
-    }
-
-    // Omitted code for brevity
-}
+// Program.cs
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<QueryType>();
 ```
 
 </Code>
@@ -190,14 +174,14 @@ public class Startup
 public class Query
 {
     public Task<ICollection<TodoItem>> GetTodosAsync(
-        [Service]TodoService service,
+        TodoService service,
         CancellationToken cancellationToken)
     {
         return service.GetAllAsync(cancellationToken);
     }
 
     public Task<TodoItem> GetTodoByIdAsync(
-        [Service]TodoService service,
+        TodoService service,
         long id,
         CancellationToken cancellationToken)
     {
@@ -205,36 +189,28 @@ public class Query
     }
 }
 
-// Startup.cs
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddDocumentFromString(@"
-                type Query {
-                  todos: [TodoItem!]!
-                  todoById(id: Uuid): TodoItem
-                }
+// Program.cs
+builder.Services
+    .AddGraphQLServer()
+    .AddDocumentFromString(@"
+        type Query {
+          todos: [TodoItem!]!
+          todoById(id: Uuid): TodoItem
+        }
 
-                type TodoItem {
-                  id: Long
-                  name: String
-                  isCompleted: Boolean
-                }
-            ")
-            .BindRuntimeType<Query>();
-    }
-
-    // Omitted code for brevity
-}
+        type TodoItem {
+          id: Long
+          name: String
+          isCompleted: Boolean
+        }
+    ")
+    .BindRuntimeType<Query>();
 ```
 
 </Schema>
 </ExampleTabs>
 
-You can now head over to your Banana Cake Pop on your GraphQL Server (/graphql) and query `todos`:
+You can now head over to Nitro on your GraphQL Server (/graphql) and query `todos`:
 
 ```graphql
 {

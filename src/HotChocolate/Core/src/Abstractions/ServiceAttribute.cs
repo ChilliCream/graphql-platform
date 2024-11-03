@@ -13,7 +13,6 @@ public class ServiceAttribute : Attribute
     {
     }
 
-#if NET8_0_OR_GREATER
     /// <summary>
     /// Marks a resolver parameter as a service that shall be injected by the execution engine.
     /// </summary>
@@ -29,5 +28,4 @@ public class ServiceAttribute : Attribute
     /// Gets the key that shall be used to resolve the service.
     /// </summary>
     public string? Key { get; }
-#endif
 }

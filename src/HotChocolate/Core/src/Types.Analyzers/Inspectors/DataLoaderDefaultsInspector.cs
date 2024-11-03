@@ -39,7 +39,8 @@ public class DataLoaderDefaultsInspector : ISyntaxInspector
                         attribList.Arguments.IsScoped(context),
                         attribList.Arguments.IsPublic(context),
                         attribList.Arguments.IsInterfacePublic(context),
-                        attribList.Arguments.RegisterService(context));
+                        attribList.Arguments.RegisterService(context),
+                        attribList.Arguments.GenerateInterfaces(context));
                     return true;
                 }
             }

@@ -1,6 +1,5 @@
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 using static HotChocolate.Tests.TestHelper;
 
 namespace HotChocolate.Execution.Integration.Spec;
@@ -11,8 +10,6 @@ public class InputObjectsCanBeVariablesTest
     [Fact]
     public async Task EnsureInputObjectsCanBeVariablesTest()
     {
-        Snapshot.FullName();
-
         await ExpectValid(
                 """
                 query ($a: String! $b: String!) {
@@ -38,8 +35,6 @@ public class InputObjectsCanBeVariablesTest
     [Fact]
     public async Task EnsureInputObjectsCanBeVariablesAndLiteralsTest()
     {
-        Snapshot.FullName();
-
         await ExpectValid(
             """
             query ($a: String!) {
@@ -60,8 +55,6 @@ public class InputObjectsCanBeVariablesTest
     [Fact]
     public async Task EnsureInputObjectsCanBeLiteralsTest()
     {
-        Snapshot.FullName();
-
         await ExpectValid(
             @"
                     {

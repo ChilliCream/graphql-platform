@@ -52,7 +52,6 @@ public class GraphQLTypeAttribute : Attribute
     public ITypeNode? TypeSyntax { get; }
 }
 
-#if NET6_0_OR_GREATER
 /// <summary>
 /// Specifies the GraphQL type.
 /// </summary>
@@ -66,4 +65,3 @@ public sealed class GraphQLTypeAttribute<T> : GraphQLTypeAttribute where T : ITy
     {
     }
 }
-#endif

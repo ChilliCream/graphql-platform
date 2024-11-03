@@ -1,6 +1,6 @@
+using CookieCrumble;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Execution;
 

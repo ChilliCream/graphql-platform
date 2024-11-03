@@ -20,7 +20,7 @@ namespace TestNamespace
     {
     }
 
-    public sealed class EntityByIdDataLoader
+    public sealed partial class EntityByIdDataLoader
         : global::GreenDonut.DataLoaderBase<int, global::TestNamespace.Entity2>
         , IEntityByIdDataLoader
     {
@@ -46,7 +46,7 @@ namespace TestNamespace
             global::GreenDonut.DataLoaderFetchContext<global::TestNamespace.Entity2> context,
             global::System.Threading.CancellationToken ct)
         {
-            var temp = await TestNamespace.TestClass.GetEntityByIdAsync(keys, ct).ConfigureAwait(false);
+            var temp = await global::TestNamespace.TestClass.GetEntityByIdAsync(keys, ct).ConfigureAwait(false);
             CopyResults(keys, results.Span, temp);
         }
 

@@ -55,7 +55,6 @@ public class UseFilteringAttribute : ObjectFieldDescriptorAttribute
     }
 }
 
-#if NET6_0_OR_GREATER
 /// <summary>
 /// Registers the middleware and adds the arguments for filtering
 /// </summary>
@@ -66,4 +65,3 @@ public sealed class UseFilteringAttribute<T> : UseFilteringAttribute
     {
     }
 }
-#endif

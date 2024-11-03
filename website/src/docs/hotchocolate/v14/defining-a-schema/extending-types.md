@@ -32,7 +32,7 @@ public class Book
 We can easily add new fields to our existing `Book` type.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 [ExtendObjectType(typeof(Book))]
@@ -43,16 +43,12 @@ public class BookExtensions
         // Omitted code for brevity
     }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddTypeExtension<BookExtensions>();
-    }
-}
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddTypeExtension<BookExtensions>();
 ```
 
 One of the most common use-cases for this would be adding new resolvers to one of our root types.
@@ -66,19 +62,15 @@ public class QueryBookResolvers
         // Omitted code for brevity
     }
 }
-
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddTypeExtension<QueryBookResolvers>();
-    }
-}
 ```
 
-</Annotation>
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddTypeExtension<QueryBookResolvers>();
+```
+
+</Implementation>
 <Code>
 
 ```csharp
@@ -97,16 +89,12 @@ public class BookTypeExtensions : ObjectTypeExtension<Book>
             });
     }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddTypeExtension<BookTypeExtensions>();
-    }
-}
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddTypeExtension<BookTypeExtensions>();
 ```
 
 One of the most common use-cases for this would be adding new resolvers to one of our root types.
@@ -125,16 +113,12 @@ public class QueryTypeBookResolvers : ObjectTypeExtension<Query>
             });
     }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddTypeExtension<QueryTypeBookResolvers>();
-    }
-}
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddTypeExtension<QueryTypeBookResolvers>();
 ```
 
 </Code>
@@ -150,7 +134,7 @@ Simply add a new field to the existing type.
 We can also ignore fields of the type we are extending.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 [ExtendObjectType(typeof(Book),
@@ -158,19 +142,15 @@ We can also ignore fields of the type we are extending.
 public class BookExtensions
 {
 }
-
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddTypeExtension<BookExtensions>();
-    }
-}
 ```
 
-</Annotation>
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddTypeExtension<BookExtensions>();
+```
+
+</Implementation>
 <Code>
 
 ```csharp
@@ -181,16 +161,12 @@ public class BookTypeExtensions : ObjectTypeExtension<Book>
         descriptor.Ignore(f => f.AuthorId);
     }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddTypeExtension<BookTypeExtensions>();
-    }
-}
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddTypeExtension<BookTypeExtensions>();
 ```
 
 </Code>
@@ -208,7 +184,7 @@ We might have an `Id` field, which we want to replace with a field that resolves
 In this example we replace the `authorId` field with an `author` field.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 [ExtendObjectType(typeof(Book))]
@@ -220,19 +196,15 @@ public class BookExtensions
         // Omitted code for brevity
     }
 }
-
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddTypeExtension<BookExtensions>();
-    }
-}
 ```
 
-</Annotation>
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddTypeExtension<BookExtensions>();
+```
+
+</Implementation>
 <Code>
 
 **This is currently not working ([#3776](https://github.com/ChilliCream/graphql-platform/issues/3776))**
@@ -254,16 +226,12 @@ public class BookTypeExtensions : ObjectTypeExtension<Book>
             });
     }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddTypeExtension<BookTypeExtensions>();
-    }
-}
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddTypeExtension<BookTypeExtensions>();
 ```
 
 </Code>
@@ -279,7 +247,7 @@ Simply replace the field on the existing type.
 If we can not reference a type, we can still extend it by specifying its name.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 [ExtendObjectType("Foo")]
@@ -289,7 +257,7 @@ public class FooExtensions
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp

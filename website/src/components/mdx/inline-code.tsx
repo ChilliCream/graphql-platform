@@ -1,7 +1,7 @@
 import React, { FC } from "react";
 import styled from "styled-components";
 
-import { FONT_FAMILY_CODE } from "@/shared-style";
+import { FONT_FAMILY_CODE } from "@/style";
 
 export const InlineCode: FC = ({ children }) => {
   return <Container>{children}</Container>;

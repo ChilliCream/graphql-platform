@@ -143,7 +143,8 @@ internal static class ErrorHelper
         return ErrorBuilder.New()
             .SetMessage(
                 Resources.ErrorHelper_LeafFieldsCannotHaveSelections,
-                node.Name.Value, fieldType.IsScalarType() ? "a scalar" : "an enum")
+                node.Name.Value,
+                fieldType.Print())
             .SetLocations([node])
             .SetPath(context.CreateErrorPath())
             .SetExtension("declaringType", declaringType.Name)
@@ -216,7 +217,8 @@ internal static class ErrorHelper
         return ErrorBuilder.New()
             .SetMessage(
                 Resources.ErrorHelper_NoSelectionOnCompositeField,
-                node.Name.Value)
+                node.Name.Value,
+                fieldType.Print())
             .SetLocations([node])
             .SetPath(context.CreateErrorPath())
             .SetExtension("declaringType", declaringType.Name)
@@ -707,4 +709,33 @@ internal static class ErrorHelper
             .SpecifiedBy("sec-Stream-Directives-Are-Used-On-List-Fields")
             .SetPath(context.CreateErrorPath())
             .Build();
+
+    public static void ReportMaxIntrospectionDepthOverflow(
+        this IDocumentValidatorContext context,
+        ISyntaxNode selection)
+    {
+        context.FatalErrorDetected = true;
+        context.ReportError(
+            ErrorBuilder.New()
+                .SetMessage("Maximum allowed introspection depth exceeded.")
+                .SetCode(ErrorCodes.Validation.MaxIntrospectionDepthOverflow)
+                .SetLocations([selection])
+                .SetPath(context.CreateErrorPath())
+                .Build());
+    }
+
+    public static void ReportMaxCoordinateCycleDepthOverflow(
+        this IDocumentValidatorContext context,
+        ISyntaxNode selection)
+    {
+        context.FatalErrorDetected = true;
+
+        context.ReportError(
+            ErrorBuilder.New()
+                .SetMessage("Maximum allowed coordinate cycle depth was exceeded.")
+                .SetCode(ErrorCodes.Validation.MaxCoordinateCycleDepthOverflow)
+                .SetLocations([selection])
+                .SetPath(context.CreateErrorPath())
+                .Build());
+    }
 }

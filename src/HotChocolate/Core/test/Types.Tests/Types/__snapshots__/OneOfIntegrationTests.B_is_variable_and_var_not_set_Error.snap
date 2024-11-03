@@ -1,7 +1,7 @@
-﻿{
+{
   "errors": [
     {
-      "message": "Variable \u0060var\u0060 is required.",
+      "message": "Variable `var` is required.",
       "locations": [
         {
           "line": 1,

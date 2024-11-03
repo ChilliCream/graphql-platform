@@ -105,7 +105,7 @@ partial class Build : NukeBuild
         .Executes(() =>
         {
             foreach (var mismatchDir in Directory.GetDirectories(
-                RootDirectory, "__MISMATCH__", SearchOption.AllDirectories))
+                RootDirectory, "__mismatch__", SearchOption.AllDirectories))
             {
                 Log.Information("Analyzing {0} ...", mismatchDir);
 

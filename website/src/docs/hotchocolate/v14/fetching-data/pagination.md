@@ -45,18 +45,18 @@ You can learn more about this in the [GraphQL Cursor Connections Specification](
 Adding pagination capabilities to our fields is a breeze. All we have to do is add the `UsePaging` middleware.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Query
 {
     [UsePaging]
-    public IEnumerable<User> GetUsers([Service] IUserRepository repository)
+    public IEnumerable<User> GetUsers(IUserRepository repository)
         => repository.GetUsers();
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -80,7 +80,7 @@ public class QueryType : ObjectType
 </Code>
 <Schema>
 
-In the Schema-first approach we define the resolver in the same way we would in the Annotation-based approach.
+In the schema-first approach we define the resolver in the same way we would in the implementation-first approach.
 
 To make our life easier, we do not have to write out the _Connection_ types in our schema, we can simply return a list of our type, e.g. `[User]`. If the resolver for this field is annotated to use pagination, Hot Chocolate will automatically rewrite the field to return a proper _Connection_ type.
 
@@ -88,24 +88,20 @@ To make our life easier, we do not have to write out the _Connection_ types in o
 public class Query
 {
     [UsePaging]
-    public IEnumerable<User> GetUsers([Service] IUserRepository repository)
+    public IEnumerable<User> GetUsers(IUserRepository repository)
         => repository.GetUsers();
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddDocumentFromString(@"
-                type Query {
-                    users : [User!]!
-                }
-            ")
-            .AddResolver<Query>();
-    }
-}
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddDocumentFromString(@"
+        type Query {
+            users : [User!]!
+        }
+    ")
+    .AddResolver<Query>();
 ```
 
 </Schema>
@@ -124,20 +120,20 @@ The name of the _Connection_ and Edge type is automatically inferred from the fi
 We can also specify a custom name for our _Connection_ like the following.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Query
 {
     [UsePaging(ConnectionName = "CustomUsers")]
-    public IEnumerable<User> GetUsers([Service] IUserRepository repository)
+    public IEnumerable<User> GetUsers(IUserRepository repository)
     {
         // Omitted code for brevity
     }
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -159,7 +155,7 @@ public class QueryType : ObjectType
 </Code>
 <Schema>
 
-Take a look at the Annotation-based or Code-first example.
+Take a look at the implementation-first or code-first example.
 
 </Schema>
 </ExampleTabs>
@@ -171,18 +167,18 @@ The strings `Connection` and `Edge` are automatically appended to this user spec
 We can define a number of options on a per-field basis.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
-In the Annotation-based approach we can define these options using properties on the `[UsePaging]` attribute.
+In the implementation-first approach we can define these options using properties on the `[UsePaging]` attribute.
 
 ```csharp
 [UsePaging(MaxPageSize = 100)]
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
-In the Code-first approach we can pass an instance of `PagingOptions` to the `UsePaging` middleware.
+In the code-first approach we can pass an instance of `PagingOptions` to the `UsePaging` middleware.
 
 ```csharp
 descriptor.Field("users").UsePaging(options: new PagingOptions
@@ -194,7 +190,7 @@ descriptor.Field("users").UsePaging(options: new PagingOptions
 </Code>
 <Schema>
 
-Take a look at the Annotation-based or Code-first example.
+Take a look at the implementation-first or code-first example.
 
 </Schema>
 </ExampleTabs>
@@ -208,7 +204,7 @@ Lets say we are returning a collection of `string` from our pagination resolver,
 For this we can specifically tell the `UsePaging` middleware, which type to use in the schema for representation of the returned CLR type.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Query
@@ -221,7 +217,7 @@ public class Query
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -243,7 +239,7 @@ public class QueryType : ObjectType
 </Code>
 <Schema>
 
-Take a look at the Annotation-based or Code-first example..
+Take a look at the implementation-first or code-first example..
 
 </Schema>
 </ExampleTabs>
@@ -255,7 +251,7 @@ The same applies of course, if we are returning a collection of `User` from our 
 If we need more control over the pagination process we can do so, by returning a `Connection<T>`.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Query
@@ -278,7 +274,7 @@ public class Query
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -315,7 +311,7 @@ public class QueryType : ObjectType
 </Code>
 <Schema>
 
-Take a look at the Annotation-based or Code-first example.
+Take a look at the implementation-first or code-first example.
 
 </Schema>
 </ExampleTabs>
@@ -387,13 +383,13 @@ Sometimes we might want to return the total number of pageable entries.
 For this to work we need to enable the `IncludeTotalCount` flag on the `UsePaging` middleware.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 [UsePaging(IncludeTotalCount = true)]
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -406,7 +402,7 @@ descriptor.UsePaging(options: new PagingOptions
 </Code>
 <Schema>
 
-Take a look at the Annotation-based or Code-first example.
+Take a look at the implementation-first or code-first example.
 
 </Schema>
 </ExampleTabs>
@@ -460,18 +456,18 @@ type CollectionSegmentInfo {
 To add _offset-based_ pagination capabilities to our fields we have to add the `UseOffsetPaging` middleware.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Query
 {
     [UseOffsetPaging]
-    public IEnumerable<User> GetUsers([Service] IUserRepository repository)
+    public IEnumerable<User> GetUsers(IUserRepository repository)
         => repository.GetUsers();
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -495,7 +491,7 @@ public class QueryType : ObjectType
 </Code>
 <Schema>
 
-Take a look at the Annotation-based or Code-first example.
+Take a look at the implementation-first or code-first example.
 
 </Schema>
 </ExampleTabs>
@@ -515,18 +511,18 @@ The name of the CollectionSegment type is inferred from the item type name. If o
 We can define a number of options on a per-field basis.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
-In the Annotation-based approach we can define these options using properties on the `[UseOffsetPaging]` attribute.
+In the implementation-first approach we can define these options using properties on the `[UseOffsetPaging]` attribute.
 
 ```csharp
 [UseOffsetPaging(MaxPageSize = 100)]
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
-In the Code-first approach we can pass an instance of `PagingOptions` to the `UseOffsetPaging` middleware.
+In the code-first approach we can pass an instance of `PagingOptions` to the `UseOffsetPaging` middleware.
 
 ```csharp
 descriptor.Field("users").UseOffsetPaging(options: new PagingOptions
@@ -538,7 +534,7 @@ descriptor.Field("users").UseOffsetPaging(options: new PagingOptions
 </Code>
 <Schema>
 
-Take a look at the Annotation-based or Code-first example.
+Take a look at the implementation-first or code-first example.
 
 </Schema>
 </ExampleTabs>
@@ -552,7 +548,7 @@ Lets say we are returning a collection of `string` from our pagination resolver,
 For this we can specifically tell the `UseOffsetPaging` middleware, which type to use in the schema for representation of the returned CLR type.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Query
@@ -565,7 +561,7 @@ public class Query
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -587,7 +583,7 @@ public class QueryType : ObjectType
 </Code>
 <Schema>
 
-Take a look at the Annotation-based or Code-first example..
+Take a look at the implementation-first or code-first example..
 
 </Schema>
 </ExampleTabs>
@@ -599,7 +595,7 @@ The same applies of course, if we are returning a collection of `User` from our 
 If we need more control over the pagination process we can do so, by returning a `CollectionSegment<T>`.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Query
@@ -622,7 +618,7 @@ public class Query
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -659,7 +655,7 @@ public class QueryType : ObjectType
 </Code>
 <Schema>
 
-Take a look at the Annotation-based or Code-first example..
+Take a look at the implementation-first or code-first example..
 
 </Schema>
 </ExampleTabs>
@@ -709,13 +705,13 @@ Sometimes we might want to return the total number of pageable entries.
 For this to work we need to enable the `IncludeTotalCount` flag on the `UseOffsetPaging` middleware.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 [UseOffsetPaging(IncludeTotalCount = true)]
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -728,7 +724,7 @@ descriptor.UseOffsetPaging(options: new PagingOptions
 </Code>
 <Schema>
 
-Take a look at the Annotation-based or Code-first example.
+Take a look at the implementation-first or code-first example.
 
 </Schema>
 </ExampleTabs>
@@ -761,7 +757,7 @@ The `UsePaging` and `UseOffsetPaging` middleware provide a unified way of applyi
 Paging providers can be registered using various methods on the `IRequestExecutorBuilder`. For example the MongoDB paging provider can be registered like the following.
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddMongoDbPagingProviders();
 ```
@@ -771,7 +767,7 @@ services
 When registering paging providers we can name them to be able to explicitly reference them.
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddMongoDbPagingProviders(providerName: "MongoDB");
 ```
@@ -779,14 +775,14 @@ services
 They can then be referenced like the following.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 [UsePaging(ProviderName = "MongoDB")]
 public IEnumerable<User> GetUsers()
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -801,7 +797,7 @@ descriptor
 </Code>
 <Schema>
 
-Take a look at the Annotation-based or Code-first example.
+Take a look at the implementation-first or code-first example.
 
 </Schema>
 </ExampleTabs>
@@ -809,7 +805,7 @@ Take a look at the Annotation-based or Code-first example.
 If no `ProviderName` is specified, the correct provider is selected based on the return type of the resolver. If the provider to use can't be inferred from the return type, the first (default) provider is used automatically. If needed we can mark a paging provider as the explicit default.
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddMongoDbPagingProviders(defaultProvider: true);
 ```
@@ -837,15 +833,9 @@ The following options can be configured.
 If we want to enforce consistent pagination defaults throughout our app, we can do so by modifying the global `PagingOptions`.
 
 ```csharp
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .ModifyPagingOptions(opt => opt.MaxPageSize = 100);
-    }
-}
+builder.Services
+    .AddGraphQLServer()
+    .ModifyPagingOptions(opt => opt.MaxPageSize = 100);
 ```
 
 [Learn more about possible PagingOptions](#pagingoptions)

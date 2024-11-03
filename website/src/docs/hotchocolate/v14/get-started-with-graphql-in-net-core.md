@@ -113,17 +113,17 @@ The project can be started by either pressing `Ctrl + F5` or clicking the green 
 </InputChoiceTabs.VisualStudio>
 </InputChoiceTabs>
 
-If you have set everything up correctly, you should be able to open <a href="http://localhost:5095/graphql" target="_blank" rel="noopener noreferrer">http://localhost:5095/graphql</a> in your browser and be greeted by our GraphQL IDE [Banana Cake Pop](/products/bananacakepop).
+If you have set everything up correctly, you should be able to open <a href="http://localhost:5095/graphql" target="_blank" rel="noopener noreferrer">http://localhost:5095/graphql</a> in your browser and be greeted by our GraphQL IDE [Nitro](/products/nitro).
 
-![GraphQL IDE](../../../images/getting-started-bcp.webp)
+![GraphQL IDE](../../../images/getting-started-nitro.webp)
 
-Next, click on `Create Document`. You will be presented with a settings dialog for this new tab, pictured below. Make sure the `Schema Endpoint` input field has the correct URL under which your GraphQL endpoint is available. If it is correct you can just go ahead and click the `Apply` button.
+Next, click on `Create Document`. You will be presented with a settings dialog for this new tab, pictured below. Make sure the `HTTP Endpoint` input field has the correct URL under which your GraphQL endpoint is available. If it is correct you can just go ahead and click the `Apply` button.
 
-![GraphQL IDE: Setup](../../../images/getting-started-bcp-setup.webp)
+![GraphQL IDE: Setup](../../../images/getting-started-nitro-setup.webp)
 
 Now you should be seeing an editor like the one pictured below. If your GraphQL server has been correctly set up you should see `Schema available` at the bottom right of the editor.
 
-![GraphQL IDE: Editor](../../../images/getting-started-bcp-editor.webp)
+![GraphQL IDE: Editor](../../../images/getting-started-nitro-editor.webp)
 
 The view is split into five panes.
 
@@ -153,13 +153,13 @@ Let's send a query to your GraphQL server. Paste the below query into the `Reque
 
 To execute the query, simply press the `Run` button. The result should be displayed as JSON in the `Response` pane as shown below:
 
-![GraphQL IDE: Executing a query](../../../images/getting-started-bcp-query.webp)
+![GraphQL IDE: Executing a query](../../../images/getting-started-nitro-query.webp)
 
-You can also view and browse the schema from within Banana Cake Pop. Click on the `Schema Reference` tab next to `Operation` in order to browse the schema. There's also a `Schema Definition` tab, pictured below, which shows the schema using the raw SDL (Schema Definition Language).
+You can also view and browse the schema from within Nitro. Click on the `Schema Reference` tab next to `Operation` in order to browse the schema. There's also a `Schema Definition` tab, pictured below, which shows the schema using the raw SDL (Schema Definition Language).
 
-![GraphQL IDE: Schema](../../../images/getting-started-bcp-schema.webp)
+![GraphQL IDE: Schema](../../../images/getting-started-nitro-schema.webp)
 
-Congratulations, you've built your first Hot Chocolate GraphQL server and sent a query using the Banana Cake Pop GraphQL IDE. 🎉🚀
+Congratulations, you've built your first Hot Chocolate GraphQL server and sent a query using the Nitro GraphQL IDE. 🎉🚀
 
 # Additional resources
 

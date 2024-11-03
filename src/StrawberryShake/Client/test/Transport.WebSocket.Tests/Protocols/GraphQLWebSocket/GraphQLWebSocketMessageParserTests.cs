@@ -1,8 +1,7 @@
 using System.Buffers;
 using System.Runtime.Serialization;
 using System.Text;
-using Snapshooter;
-using Snapshooter.Xunit;
+using CookieCrumble;
 
 namespace StrawberryShake.Transport.WebSockets.Protocols;
 
@@ -96,7 +95,7 @@ public class GraphQLWebSocketMessageParserTests
 
         // assert
         Assert.IsType<SerializationException>(ex)
-            .Message.MatchSnapshot(new SnapshotNameExtension(type));
+            .Message.MatchSnapshot(postFix: type);
     }
 
     [Fact]

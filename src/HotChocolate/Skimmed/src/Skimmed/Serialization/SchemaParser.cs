@@ -38,6 +38,12 @@ public static class SchemaParser
         {
             if (definition is DirectiveDefinitionNode def)
             {
+                if (BuiltIns.IsBuiltInDirective(def.Name.Value))
+                {
+                    // If a built-in directive is redefined in the schema, we just ignore it.
+                    continue;
+                }
+
                 if (schema.DirectiveDefinitions.ContainsName(def.Name.Value))
                 {
                     // TODO : parsing error
@@ -539,6 +545,11 @@ public static class SchemaParser
         {
             if (definition is DirectiveDefinitionNode directiveDef)
             {
+                if (BuiltIns.IsBuiltInDirective(directiveDef.Name.Value))
+                {
+                    continue;
+                }
+
                 BuildDirectiveType(
                     schema,
                     schema.DirectiveDefinitions[directiveDef.Name.Value],
@@ -633,8 +644,22 @@ public static class SchemaParser
                 directiveNode.Name.Value,
                 out var directiveType))
             {
-                directiveType = new DirectiveDefinition(directiveNode.Name.Value);
-                directiveType.IsRepeatable = true;
+                if (directiveNode.Name.Value == BuiltIns.Deprecated.Name)
+                {
+                    directiveType = BuiltIns.Deprecated.Create(schema);
+                }
+                else if (directiveNode.Name.Value == BuiltIns.SpecifiedBy.Name)
+                {
+                    directiveType = BuiltIns.SpecifiedBy.Create(schema);
+                }
+                else
+                {
+                    directiveType = new DirectiveDefinition(directiveNode.Name.Value);
+                    // TODO: This is problematic, but currently necessary for the Fusion
+                    // directives to work, since they don't have definitions in the source schema.
+                    directiveType.IsRepeatable = true;
+                }
+
                 schema.DirectiveDefinitions.Add(directiveType);
             }
 

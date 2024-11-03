@@ -30,11 +30,7 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadAsStringAsync();
 
-#if NET7_0_OR_GREATER
         result.MatchSnapshot();
-#else
-        result.MatchSnapshot("NET6");
-#endif
     }
 
     [Theory]
@@ -58,11 +54,34 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-#if NET7_0_OR_GREATER
         response.MatchMarkdownSnapshot();
-#else
-        response.MatchMarkdownSnapshot("NET6");
-#endif
+    }
+
+    [Theory]
+    [InlineData("/graphql?sdl")]
+    [InlineData("/graphql/schema/")]
+    [InlineData("/graphql/schema.graphql")]
+    [InlineData("/graphql/schema")]
+    public async Task Download_GraphQL_Schema_Slicing_Args_Enabled(string path)
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: sp =>
+                sp
+                    .RemoveAll<ITimeProvider>()
+                    .AddSingleton<ITimeProvider, StaticTimeProvider>()
+                    .AddGraphQL()
+                    .ModifyPagingOptions(o => o.RequirePagingBoundaries = true));
+        var url = TestServerExtensions.CreateUrl(path);
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+        // act
+        var response = await server.CreateClient().SendAsync(request);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        response.MatchMarkdownSnapshot();
     }
 
     [Theory]
@@ -103,11 +122,7 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadAsStringAsync();
 
-#if NET7_0_OR_GREATER
         result.MatchSnapshot();
-#else
-        result.MatchSnapshot("NET6");
-#endif
     }
 
     [Fact]
@@ -125,11 +140,7 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadAsStringAsync();
 
-#if NET7_0_OR_GREATER
         result.MatchSnapshot();
-#else
-        result.MatchSnapshot("NET6");
-#endif
     }
 
     [Fact]
@@ -198,11 +209,7 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadAsStringAsync();
 
-#if NET7_0_OR_GREATER
         result.MatchSnapshot();
-#else
-        result.MatchSnapshot("NET6");
-#endif
     }
 
     [Fact]
@@ -219,11 +226,7 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadAsStringAsync();
-#if NET7_0_OR_GREATER
         result.MatchSnapshot();
-#else
-        result.MatchSnapshot("NET6");
-#endif
     }
 
     [Fact]

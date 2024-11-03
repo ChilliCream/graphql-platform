@@ -294,7 +294,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The built-in `Decimal` scalar type..
+        ///   Looks up a localized string similar to The `Decimal` scalar type represents a decimal floating-point number..
         /// </summary>
         internal static string DecimalType_Description {
             get {

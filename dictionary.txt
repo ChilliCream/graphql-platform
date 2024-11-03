@@ -125,6 +125,7 @@ quox
 quux
 Rafi
 reencode
+refetched
 relayjs
 reprojected
 resheader
@@ -172,6 +173,5 @@ vsix
 VXNlcjox
 websockets
 Wilhuff
-winget
 Wunder
 xunit

@@ -38,7 +38,7 @@ Each of these mutations is executed serially one by one whereas their child sele
 A mutation type can be defined like the following.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Mutation
@@ -48,21 +48,15 @@ public class Mutation
         // Omitted code for brevity
     }
 }
-
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddMutationType<Mutation>();
-    }
-
-    // Omitted code for brevity
-}
 ```
 
-</Annotation>
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddMutationType<Mutation>();
+```
+
+</Implementation>
 <Code>
 
 ```csharp
@@ -82,16 +76,12 @@ public class MutationType : ObjectType<Mutation>
         descriptor.Field(f => f.AddBook(default));
     }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddMutationType<MutationType>();
-    }
-}
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddMutationType<MutationType>();
 ```
 
 </Code>
@@ -105,31 +95,27 @@ public class Mutation
         // Omitted code for brevity
     }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddDocumentFromString(@"
-                type Mutation {
-                    addBook(input: BookInput): Book
-                }
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddDocumentFromString(@"
+        type Mutation {
+            addBook(input: BookInput): Book
+        }
 
-                input BookInput {
-                    title: String
-                    author: String
-                }
+        input BookInput {
+            title: String
+            author: String
+        }
 
-                type Book {
-                    title: String
-                    author: String
-                }
-                ")
-            .BindRuntimeType<Mutation>();
-    }
-}
+        type Book {
+            title: String
+            author: String
+        }
+        ")
+    .BindRuntimeType<Mutation>();
 ```
 
 </Schema>
@@ -154,7 +140,7 @@ Hot Chocolate provides a default implementation based on the `System.Transaction
 The default transaction scope handler can be added like the following.
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddDefaultTransactionScopeHandler();
 ```
@@ -194,7 +180,7 @@ public class DefaultTransactionScopeHandler : ITransactionScopeHandler
 If we implement a custom transaction scope handler or if we choose to extend upon the default transaction scope handler, we can add it like the following.
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddTransactionScopeHandler<CustomTransactionScopeHandler>();
 ```
@@ -237,7 +223,7 @@ service
 With the mutation conventions enabled, we can define the described mutation pattern with minimal code by just annotating a field with `UseMutationConvention`.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Mutation
@@ -250,7 +236,7 @@ public class Mutation
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -299,7 +285,7 @@ service
 In the case that the conventions are applied by default we no longer need any annotation.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Mutation
@@ -311,7 +297,7 @@ public class Mutation
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -355,7 +341,7 @@ The mutation conventions also allow you to create mutations that follow the erro
 The basic concept here is to keep the resolver clean of any error handling code and use exceptions to signal an error state. The field will simply expose which exceptions are domain errors that shall be exposed to the schema. All other exceptions will still cause runtime errors.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Mutation
@@ -369,7 +355,7 @@ public class Mutation
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -472,7 +458,7 @@ If the exception is thrown and is caught in the error middleware, it will be rew
 > The name of the exception will be rewritten. `Exception` is replaced with `Error` to follow the common GraphQL naming conventions.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class UserNameTakenException : Exception
@@ -493,7 +479,7 @@ public class Mutation
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -567,7 +553,7 @@ The error instance and the translation of the exception can be done by an error 
 Add a `public` `static` method called `CreateErrorFrom` that takes an exception and returns the error object.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class UserNameTakenError
@@ -610,7 +596,7 @@ public class Mutation
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -769,7 +755,7 @@ public class Mutation
 Lastly, we can also use the constructor of an error class to consume an exception. Essentially the constructor in this case represents the factory that we described earlier.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class UserNameTakenError
@@ -802,7 +788,7 @@ public class Mutation
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -904,7 +890,7 @@ The naming patterns for inputs, payloads and errors can be adjusted globally as 
 In order to change the global mutation naming patterns you can pass in the `MutationConventionOptions` into the `AddMutationConventions` configuration method.
 
 ```csharp
-services
+builder.Services
     .AddGraphQL()
     .AddMutationConventions(
         new MutationConventionOptions
@@ -982,7 +968,7 @@ Often we also want to provide an error code so that the GUI components can more 
 > Note: All your error types have to implement the contract that the interface declares! Your errors/exceptions do not have to implement the common interface, but they have to declare all the interface's members.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 [GraphQLName("UserError")]
@@ -992,20 +978,16 @@ public interface IUserError
 
   string Code { get; }
 }
-
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            // ... Omitted code for brevity
-            .AddErrorInterfaceType<IUserError>();
-    }
-}
 ```
 
-</Annotation>
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    // ... Omitted code for brevity
+    .AddErrorInterfaceType<IUserError>();
+```
+
+</Implementation>
 <Code>
 
 ```csharp
@@ -1018,17 +1000,13 @@ public class CustomErrorInterfaceType : InterfaceType
         descriptor.Field("code").Type<NonNullType<StringType>>();
     }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            // ... Omitted code for brevity
-            .AddErrorInterfaceType<CustomErrorInterfaceType>();
-    }
-}
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    // ... Omitted code for brevity
+    .AddErrorInterfaceType<CustomErrorInterfaceType>();
 ```
 
 </Code>

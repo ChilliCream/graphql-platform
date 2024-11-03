@@ -1,9 +1,9 @@
-using BananaCakePop.Middleware;
+using ChilliCream.Nitro.App;
 
 namespace HotChocolate.AspNetCore;
 
 /// <summary>
-/// Represents the different modes of serving the Banana Cake Pop GraphQL tool. This class enables
+/// Represents the different modes of serving the Nitro GraphQL tool. This class enables
 /// serving the tool in a variety of predefined ways:
 /// <list type="bullet">
 /// <item>

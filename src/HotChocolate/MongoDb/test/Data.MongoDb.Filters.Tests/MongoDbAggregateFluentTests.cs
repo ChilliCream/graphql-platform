@@ -57,10 +57,10 @@ public class MongoDbAggregateFluentTests : IClassFixture<MongoResource>
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "true"), res2, "false")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "true")
+            .AddResult(res2, "false")
             .MatchAsync();
     }
 
@@ -148,7 +148,7 @@ public class MongoDbAggregateFluentTests : IClassFixture<MongoResource>
                     {
                         context.Result =
                             OperationResultBuilder
-                                .FromResult(context.Result!.ExpectSingleResult())
+                                .FromResult(context.Result!.ExpectOperationResult())
                                 .SetContextData("query", queryString)
                                 .Build();
                     }

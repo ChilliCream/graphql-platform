@@ -32,7 +32,7 @@ Hot Chocolate implements the [GraphQL multipart request specification](https://g
 In order to use file upload streams in our input types or as an argument register the `Upload` scalar like the following:
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddType<UploadType>();
 ```
@@ -42,7 +42,7 @@ services
 We can use the `Upload` scalar as an argument like the following:
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Mutation
@@ -60,7 +60,7 @@ public class Mutation
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -90,7 +90,7 @@ public class MutationType : ObjectType
 </Code>
 <Schema>
 
-Take a look at the Annotation-based or Code-first example.
+Take a look at the implementation-first or code-first example.
 
 </Schema>
 </ExampleTabs>
@@ -100,7 +100,7 @@ Take a look at the Annotation-based or Code-first example.
 In input object types it can be used like the following.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class ExampleInput
@@ -110,7 +110,7 @@ public class ExampleInput
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -131,7 +131,7 @@ public class ExampleInputType : InputObjectType<ExampleInput>
 </Code>
 <Schema>
 
-Take a look at the Annotation-based or Code-first example.
+Take a look at the implementation-first or code-first example.
 
 </Schema>
 </ExampleTabs>
@@ -187,7 +187,7 @@ Both Relay and Apollo support this specification through community packages:
 If you need to upload larger files or set custom upload size limits, you can configure those by registering custom [`FormOptions`](https://docs.microsoft.com/dotnet/api/microsoft.aspnetcore.http.features.formoptions).
 
 ```csharp
-services.Configure<FormOptions>(options =>
+builder.Services.Configure<FormOptions>(options =>
 {
     // Set the limit to 256 MB
     options.MultipartBodyLengthLimit = 268435456;

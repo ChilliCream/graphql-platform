@@ -37,9 +37,10 @@ Filtering is part of the `HotChocolate.Data` package.
 To use projections with your GraphQL endpoint you have to register projections on the schema:
 
 ```csharp
-services.AddGraphQLServer()
-  // Your schema configuration
-  .AddProjections();
+builder.Services
+    .AddGraphQLServer()
+    // Your schema configuration
+    .AddProjections();
 ```
 
 Projections can be registered on a field. A middleware will apply the selected fields on the result.
@@ -49,18 +50,18 @@ are members of a type will be projected. Fields that define a custom resolver ca
 to the database. If the middleware encounters a field that specifies `UseProjection()` this field will be skipped.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Query
 {
     [UseProjection]
-    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+    public IQueryable<User> GetUsers(IUserRepository repository)
         => repository.GetUsers();
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -74,7 +75,7 @@ public class QueryType : ObjectType<Query>
 
 public class Query
 {
-    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+    public IQueryable<User> GetUsers(IUserRepository repository)
         => repository.GetUsers();
 }
 ```
@@ -198,7 +199,7 @@ related data from another service. With projections, this resolver could only wo
 for the `email` field. To ensure a field is always projected you have to use `IsProjected(true)`.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class User
@@ -211,7 +212,7 @@ public class User
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -256,7 +257,7 @@ The projections middleware skips a field in two cases. Either the visitor encoun
 itself, or it defines `IsProjected(false)`.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class User
@@ -269,7 +270,7 @@ public class User
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp

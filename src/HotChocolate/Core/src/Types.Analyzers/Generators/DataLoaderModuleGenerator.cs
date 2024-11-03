@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Types.Analyzers.FileBuilders;
+using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 
@@ -13,12 +14,14 @@ public sealed class DataLoaderModuleGenerator : ISyntaxGenerator
         ImmutableArray<SyntaxInfo> syntaxInfos)
     {
         var module = GetDataLoaderModuleInfo(syntaxInfos);
+        var dataLoaderDefaults = syntaxInfos.GetDataLoaderDefaults();
 
         if (module is null || !syntaxInfos.Any(t => t is DataLoaderInfo or RegisterDataLoaderInfo))
         {
             return;
         }
 
+        HashSet<(string InterfaceName, string ClassName)>? groups = null;
         var generator = new DataLoaderModuleFileBuilder(module.ModuleName);
 
         generator.WriteHeader();
@@ -42,8 +45,25 @@ public sealed class DataLoaderModuleGenerator : ISyntaxGenerator
                 case DataLoaderInfo dataLoader:
                     var typeName = $"{dataLoader.Namespace}.{dataLoader.Name}";
                     var interfaceTypeName = $"{dataLoader.Namespace}.{dataLoader.InterfaceName}";
-                    generator.WriteAddDataLoader(typeName, interfaceTypeName);
+                    generator.WriteAddDataLoader(typeName, interfaceTypeName, dataLoaderDefaults.GenerateInterfaces);
+
+                    if(dataLoader.Groups.Count > 0)
+                    {
+                        groups ??= [];
+                        foreach (var groupName in dataLoader.Groups)
+                        {
+                            groups.Add(($"{dataLoader.Namespace}.I{groupName}", $"{dataLoader.Namespace}.{groupName}"));
+                        }
+                    }
                     break;
+            }
+        }
+
+        if (groups is not null)
+        {
+            foreach (var (interfaceName, className) in groups.OrderBy(t => t.ClassName))
+            {
+                generator.WriteAddDataLoaderGroup(className, interfaceName);
             }
         }
 

@@ -1,9 +1,8 @@
+#if NET8_0
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Execution;
-
-public class OrderedDictionary : OrderedDictionary<string, object?>;
 
 public class OrderedDictionary<TKey, TValue>
     : IDictionary<TKey, TValue>
@@ -47,13 +46,8 @@ public class OrderedDictionary<TKey, TValue>
         _map = new Dictionary<TKey, TValue>(source._map);
     }
 
-#if NET6_0_OR_GREATER
     public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
         => _map.TryGetValue(key, out value);
-#else
-    public bool TryGetValue(TKey key, out TValue value)
-        => _map.TryGetValue(key, out value);
-#endif
 
     public TValue this[TKey key]
     {
@@ -161,3 +155,4 @@ public class OrderedDictionary<TKey, TValue>
 
     public OrderedDictionary<TKey, TValue> Clone() => new(this);
 }
+#endif

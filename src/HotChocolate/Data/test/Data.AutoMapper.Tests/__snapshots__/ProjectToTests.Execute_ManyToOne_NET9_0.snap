@@ -1,0 +1,56 @@
+Result:
+---------------
+{
+  "data": {
+    "posts": [
+      {
+        "postId": 1,
+        "title": "titleA",
+        "blog": {
+          "url": "testa.com"
+        }
+      },
+      {
+        "postId": 2,
+        "title": "titleB",
+        "blog": {
+          "url": "testa.com"
+        }
+      },
+      {
+        "postId": 3,
+        "title": "titleC",
+        "blog": {
+          "url": "testb.com"
+        }
+      },
+      {
+        "postId": 4,
+        "title": "titleD",
+        "blog": {
+          "url": "testb.com"
+        }
+      }
+    ]
+  }
+}
+---------------
+
+SQL:
+---------------
+SELECT "b"."BlogId" IS NULL, "b"."Url", "p"."PostId", "p"."Title"
+FROM "Posts" AS "p"
+LEFT JOIN "Blogs" AS "b" ON "p"."BlogId" = "b"."BlogId"
+---------------
+
+Expression:
+---------------
+DbSet<Post>()
+    .Select(dtoPost => new PostDto{ 
+        Blog = dtoPost.Blog == null ? null : new BlogDto{ Url = dtoPost.Blog.Url }
+        , 
+        PostId = dtoPost.PostId ?? 0, 
+        Title = dtoPost.Title 
+    }
+    )
+---------------

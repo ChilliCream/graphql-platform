@@ -49,7 +49,7 @@ _This is of course an oversimplification that differs from the actual implementa
 
 # Defining a Resolver
 
-Resolvers can be defined in a way that should feel very familiar to C# developers, especially in the Annotation-based approach.
+Resolvers can be defined in a way that should feel very familiar to C# developers, especially in the implementation-first approach.
 
 ## Properties
 
@@ -62,26 +62,22 @@ Properties are also covered in detail by the [object type documentation](/docs/h
 A regular resolver is just a simple method, which returns a value.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Query
 {
     public string Foo() => "Bar";
 }
-
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddQueryType<Query>();
-    }
-}
 ```
 
-</Annotation>
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>();
+```
+
+</Implementation>
 <Code>
 
 ```csharp
@@ -99,16 +95,12 @@ public class QueryType: ObjectType<Query>
             .Type<NonNullType<StringType>>();
     }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddQueryType<QueryType>();
-    }
-}
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<QueryType>();
 ```
 
 We can also provide a resolver delegate by using the `Resolve` method.
@@ -130,27 +122,23 @@ public class Query
 {
     public string Foo() => "Bar";
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddDocumentFromString(@"
-                type Query {
-                    foo: String!
-                }
-            ")
-            .BindRuntimeType<Query>();
-    }
-}
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddDocumentFromString(@"
+        type Query {
+            foo: String!
+        }
+    ")
+    .BindRuntimeType<Query>();
 ```
 
 We can also add a resolver by calling `AddResolver()` on the `IRequestExecutorBuilder`.
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddDocumentFromString(@"
         type Query {
@@ -207,7 +195,7 @@ descriptor
 
 ## ResolveWith
 
-Thus far we have looked at two ways to specify resolvers in Code-first:
+Thus far we have looked at two ways to specify resolvers in code-first:
 
 - Add new methods to the CLR type, e.g. the `T` type of `ObjectType<T>`
 - Add new fields to the schema type in the form of delegates
@@ -221,7 +209,7 @@ But there's a third way. We can describe our field using the `descriptor`, but i
 ```csharp
 public class FooResolvers
 {
-    public string GetFoo(string arg, [Service] FooService service)
+    public string GetFoo(string arg, FooService service)
     {
         // Omitted code for brevity
     }
@@ -266,7 +254,7 @@ We can now access it like the following in our resolvers.
 ```csharp
 public class Query
 {
-    public List<User> GetUsers([Service] UserService userService)
+    public List<User> GetUsers(UserService userService)
         => userService.GetUsers();
 }
 ```
@@ -280,21 +268,15 @@ The [IHttpContextAccessor](https://docs.microsoft.com/dotnet/api/microsoft.aspne
 First we need to add the `IHttpContextAccessor` as a service.
 
 ```csharp
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services.AddHttpContextAccessor();
+builder.Services.AddHttpContextAccessor();
 
-        // Omitted code for brevity
-    }
-}
+// Omitted code for brevity
 ```
 
 After this we can inject it into our resolvers and make use of the the `HttpContext` property.
 
 ```csharp
-public string Foo(string id, [Service] IHttpContextAccessor httpContextAccessor)
+public string Foo(string id, IHttpContextAccessor httpContextAccessor)
 {
     if (httpContextAccessor.HttpContext is not null)
     {
@@ -335,9 +317,9 @@ From the point of view of this `friends` resolver, the `User` CLR type is its _p
 We can access this so called _parent_ value like the following.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
-In the Annotation-based approach we can just access the properties using the `this` keyword.
+In the implementation-first approach we can just access the properties using the `this` keyword.
 
 ```csharp
 public class User
@@ -369,7 +351,7 @@ public class User
 
 This is especially useful when using [type extensions](/docs/hotchocolate/v14/defining-a-schema/extending-types).
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -426,7 +408,7 @@ public class User
 When using `AddResolver()`, we can access the parent through the `IResolverContext`.
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddDocumentFromString(@"
         type User {

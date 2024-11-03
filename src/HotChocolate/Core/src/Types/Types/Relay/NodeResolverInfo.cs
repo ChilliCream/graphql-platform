@@ -39,8 +39,6 @@ internal sealed class NodeResolverInfo
     /// Defines if the node resolver was inferred from a query field.
     /// </summary>
     /// <value></value>
-#if NET5_0_OR_GREATER
     [MemberNotNullWhen(true, nameof(QueryField), nameof(Id))]
-#endif
     public bool IsQueryFieldResolver { get; }
 }

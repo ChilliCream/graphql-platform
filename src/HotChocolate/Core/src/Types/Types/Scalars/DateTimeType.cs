@@ -188,20 +188,11 @@ public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
             return false;
         }
 
-        if (serialized.EndsWith("Z")
-            && DateTime.TryParse(
+        if (DateTimeOffset.TryParse(
                 serialized,
                 CultureInfo.InvariantCulture,
-                DateTimeStyles.AssumeUniversal,
-                out var zuluTime))
-        {
-            value = new DateTimeOffset(
-                zuluTime.ToUniversalTime(),
-                TimeSpan.Zero);
-            return true;
-        }
-
-        if (DateTimeOffset.TryParse(serialized, out var dt))
+                DateTimeStyles.None,
+                out var dt))
         {
             value = dt;
             return true;

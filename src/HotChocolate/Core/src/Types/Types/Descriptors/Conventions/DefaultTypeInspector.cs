@@ -420,7 +420,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
         var temp = ArrayPool<DescriptorAttribute>.Shared.Rent(attributes.Length);
         var i = 0;
 
-        foreach (var attribute in attributeProvider.GetCustomAttributes(true))
+        foreach (var attribute in attributes)
         {
             if (attribute is DescriptorAttribute casted)
             {
@@ -796,12 +796,8 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
             return HasConfiguration(member);
         }
 
-#if NETSTANDARD2_0
-        if (returnType.IsByRef)
-#else
         if (returnType.IsByRefLike ||
             returnType.IsByRef)
-#endif
         {
             return false;
         }
@@ -865,9 +861,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
 
         // by ref and out will never be allowed
         if (parameterType.IsByRef ||
-#if !NETSTANDARD2_0
             parameter.ParameterType.IsByRefLike ||
-#endif
             parameter.IsOut)
         {
             return false;

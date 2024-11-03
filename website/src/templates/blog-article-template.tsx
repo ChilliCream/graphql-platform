@@ -1,8 +1,8 @@
 import { graphql } from "gatsby";
 import React, { FC } from "react";
 
-import { BlogArticle } from "@/components/blog-article/blog-article";
-import { Layout } from "@/components/layout";
+import { BlogArticle } from "@/components/articles";
+import { SiteLayout } from "@/components/layout";
 import { SEO } from "@/components/misc/seo";
 import { BlogArticleFragment } from "@/graphql-types";
 
@@ -12,7 +12,7 @@ interface BlogArticleTemplateProps {
 
 const BlogArticleTemplate: FC<BlogArticleTemplateProps> = ({ data }) => {
   return (
-    <Layout>
+    <SiteLayout disableStars>
       <SEO
         description={
           data.mdx!.frontmatter!.description || data.mdx!.excerpt || undefined
@@ -25,7 +25,7 @@ const BlogArticleTemplate: FC<BlogArticleTemplateProps> = ({ data }) => {
         title={data.mdx!.frontmatter!.title!}
       />
       <BlogArticle data={data} />
-    </Layout>
+    </SiteLayout>
   );
 };
 

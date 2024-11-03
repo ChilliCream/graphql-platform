@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using HotChocolate.Fusion.Composition.Properties;
 using HotChocolate.Language;
 using HotChocolate.Skimmed;
@@ -13,6 +14,7 @@ public sealed class FusionTypes
 {
     private readonly SchemaDefinition _fusionGraph;
     private readonly bool _prefixSelf;
+    private readonly FusionTypeNames _fusionTypeNames;
 
     public FusionTypes(SchemaDefinition fusionGraph, string? prefix = null, bool prefixSelf = false)
     {
@@ -22,6 +24,7 @@ public sealed class FusionTypes
         }
 
         var names = FusionTypeNames.Create(prefix, prefixSelf);
+        _fusionTypeNames = names;
         _fusionGraph = fusionGraph;
         _prefixSelf = prefixSelf;
 
@@ -120,6 +123,8 @@ public sealed class FusionTypes
 
     public DirectiveDefinition Fusion { get; }
 
+    public bool IsFusionDirective(string directiveName) => _fusionTypeNames.IsFusionDirective(directiveName);
+
     private ScalarTypeDefinition RegisterScalarType(string name)
     {
         var scalarType = new ScalarTypeDefinition(name);
@@ -178,6 +183,7 @@ public sealed class FusionTypes
         ScalarTypeDefinition selection)
     {
         var directiveType = new DirectiveDefinition(name);
+        directiveType.IsRepeatable = true;
         directiveType.Arguments.Add(new InputFieldDefinition(NameArg, new NonNullTypeDefinition(typeName)));
         directiveType.Arguments.Add(new InputFieldDefinition(SelectArg, selection));
         directiveType.Arguments.Add(new InputFieldDefinition(ArgumentArg, typeName));
@@ -254,6 +260,7 @@ public sealed class FusionTypes
         EnumTypeDefinition resolverKind)
     {
         var directiveType = new DirectiveDefinition(name);
+        directiveType.IsRepeatable = true;
         directiveType.Locations |= Types.DirectiveLocation.Object;
         directiveType.Arguments.Add(new InputFieldDefinition(SelectArg, new NonNullTypeDefinition(selectionSet)));
         directiveType.Arguments.Add(new InputFieldDefinition(SubgraphArg, new NonNullTypeDefinition(typeName)));
@@ -291,6 +298,7 @@ public sealed class FusionTypes
                 new InputFieldDefinition(NameArg, typeName),
             },
         };
+        directiveType.IsRepeatable = true;
         directiveType.Features.Set(new FusionTypeMetadata { IsFusionType = true });
         _fusionGraph.DirectiveDefinitions.Add(directiveType);
         return directiveType;
@@ -339,6 +347,7 @@ public sealed class FusionTypes
         ScalarTypeDefinition uri)
     {
         var directiveType = new DirectiveDefinition(name);
+        directiveType.IsRepeatable = true;
         directiveType.Locations = Types.DirectiveLocation.FieldDefinition;
         directiveType.Arguments.Add(new InputFieldDefinition(SubgraphArg, new NonNullTypeDefinition(typeName)));
         directiveType.Arguments.Add(new InputFieldDefinition(ClientGroupArg, typeName));

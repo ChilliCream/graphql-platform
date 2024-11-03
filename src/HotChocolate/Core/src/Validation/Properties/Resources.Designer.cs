@@ -303,7 +303,7 @@ namespace HotChocolate.Validation.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to `{0}` returns {1} value. Selections on scalars or enums are never allowed, because they are the leaf nodes of any GraphQL query..
+        ///   Looks up a localized string similar to Field &quot;{0}&quot; must not have a selection since type &quot;{1}&quot; has no subfields..
         /// </summary>
         internal static string ErrorHelper_LeafFieldsCannotHaveSelections {
             get {
@@ -321,7 +321,7 @@ namespace HotChocolate.Validation.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to `{0}` is an object, interface or union type field. Leaf selections on objects, interfaces, and unions without subfields are disallowed..
+        ///   Looks up a localized string similar to Field &quot;{0}&quot; of type &quot;{1}&quot; must have a selection of subfields. Did you mean &quot;{0} {{ ... }}&quot;?.
         /// </summary>
         internal static string ErrorHelper_NoSelectionOnCompositeField {
             get {

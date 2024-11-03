@@ -62,7 +62,7 @@ internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions opti
 
         if (arguments.Last is not null)
         {
-            query = query.Reverse().Take(arguments.Last.Value);
+            query = query.Reverse().Take(arguments.Last.Value + 1);
             requestedCount = arguments.Last.Value;
         }
 
@@ -103,14 +103,15 @@ internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions opti
                 .ToAsyncEnumerable(context.RequestAborted)
                 .ConfigureAwait(false))
             {
-                builder.Add(new Edge<TEntity>(item.Item, CursorFormatter.Format(item.Item, keys)));
-                totalCount ??= item.TotalCount;
                 fetchCount++;
 
-                if (fetchCount >= requestedCount)
+                if (fetchCount > requestedCount)
                 {
                     break;
                 }
+
+                builder.Add(new Edge<TEntity>(item.Item, CursorFormatter.Format(item.Item, keys)));
+                totalCount ??= item.TotalCount;
             }
         }
         else
@@ -120,13 +121,14 @@ internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions opti
                 .ToAsyncEnumerable(context.RequestAborted)
                 .ConfigureAwait(false))
             {
-                builder.Add(new Edge<TEntity>(item, CursorFormatter.Format(item, keys)));
                 fetchCount++;
 
-                if (fetchCount >= requestedCount)
+                if (fetchCount > requestedCount)
                 {
                     break;
                 }
+
+                builder.Add(new Edge<TEntity>(item, CursorFormatter.Format(item, keys)));
             }
         }
 

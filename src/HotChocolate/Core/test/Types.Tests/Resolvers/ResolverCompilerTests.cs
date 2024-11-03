@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Reflection;
 using System.Security.Claims;
+using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
@@ -11,7 +12,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using Moq;
-using Snapshooter.Xunit;
 
 #nullable enable
 
@@ -695,9 +695,11 @@ public class ResolverCompilerTests
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
+        var serviceProvider = new Mock<IServiceProvider>();
+        serviceProvider.Setup(t => t.GetService(typeof(MyService))).Returns(new MyService());
         var context = new Mock<IResolverContext>();
         context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
-        context.Setup(t => t.Service<MyService>()).Returns(new MyService());
+        context.Setup(t => t.Services).Returns(serviceProvider.Object);
         var result = (bool)(await resolver(context.Object))!;
         Assert.True(result);
     }

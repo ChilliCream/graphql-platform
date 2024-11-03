@@ -26,7 +26,8 @@ public sealed class DataLoaderInfo : SyntaxInfo
         _lookups = attribute.GetLookups();
         var declaringType = methodSymbol.ContainingType;
 
-        Name = GetDataLoaderName(methodSymbol.Name, attribute);
+        NameWithoutSuffix = GetDataLoaderName(methodSymbol.Name, attribute);
+        Name = NameWithoutSuffix + "DataLoader";
         InterfaceName = $"I{Name}";
         Namespace = methodSymbol.ContainingNamespace.ToDisplayString();
         FullName = $"{Namespace}.{Name}";
@@ -38,11 +39,16 @@ public sealed class DataLoaderInfo : SyntaxInfo
         KeyParameter = MethodSymbol.Parameters[0];
         ContainingType = declaringType.ToDisplayString();
         Parameters = CreateParameters(methodSymbol);
+        Groups = methodSymbol.GetDataLoaderGroupKeys();
     }
 
     public string Name { get; }
 
+    public string NameWithoutSuffix { get; }
+
     public string FullName { get; }
+
+    public ImmutableHashSet<string> Groups { get; }
 
     public string Namespace { get; }
 
@@ -175,6 +181,18 @@ public sealed class DataLoaderInfo : SyntaxInfo
                 continue;
             }
 
+            // check for well-known state
+            if (IsPredicateBuilder(parameter))
+            {
+                builder.Add(
+                    new DataLoaderParameterInfo(
+                        $"p{i}",
+                        parameter,
+                        DataLoaderParameterKind.PredicateBuilder,
+                        WellKnownTypes.PredicateBuilder));
+                continue;
+            }
+
             if (IsPagingArguments(parameter))
             {
                 builder.Add(
@@ -223,6 +241,12 @@ public sealed class DataLoaderInfo : SyntaxInfo
         return string.Equals(typeName, WellKnownTypes.SelectorBuilder, StringComparison.Ordinal);
     }
 
+    private static bool IsPredicateBuilder(IParameterSymbol parameter)
+    {
+        var typeName = parameter.Type.ToDisplayString();
+        return string.Equals(typeName, WellKnownTypes.PredicateBuilder, StringComparison.Ordinal);
+    }
+
     private static bool IsPagingArguments(IParameterSymbol parameter)
     {
         var typeName = parameter.Type.ToDisplayString();
@@ -252,7 +276,8 @@ public sealed class DataLoaderInfo : SyntaxInfo
 
     private bool Equals(DataLoaderInfo other)
         => AttributeSyntax.IsEquivalentTo(other.AttributeSyntax)
-            && MethodSyntax.IsEquivalentTo(other.MethodSyntax);
+            && MethodSyntax.IsEquivalentTo(other.MethodSyntax)
+            && Groups.SequenceEqual(other.Groups, StringComparer.Ordinal);
 
     public override int GetHashCode()
         => HashCode.Combine(AttributeSyntax, MethodSyntax);
@@ -274,11 +299,8 @@ public sealed class DataLoaderInfo : SyntaxInfo
             name = name.Substring(0, name.Length - 5);
         }
 
-        if (name.EndsWith("DataLoader"))
-        {
-            return name;
-        }
-
-        return name + "DataLoader";
+        return name.EndsWith("DataLoader")
+            ? name.Substring(0, name.Length - 10)
+            : name;
     }
 }

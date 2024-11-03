@@ -120,7 +120,6 @@ public interface IResolverContext : IHasContextData
     /// </returns>
     T Service<T>() where T : notnull;
 
-#if NET8_0_OR_GREATER
     /// <summary>
     /// Gets as required service from the dependency injection container.
     /// </summary>
@@ -130,8 +129,7 @@ public interface IResolverContext : IHasContextData
     /// <returns>
     /// Returns the specified service.
     /// </returns>
-    T? Service<T>(object key) where T : notnull;
-#endif
+    T Service<T>(object key) where T : notnull;
 
     /// <summary>
     /// Gets a resolver object containing one or more resolvers.

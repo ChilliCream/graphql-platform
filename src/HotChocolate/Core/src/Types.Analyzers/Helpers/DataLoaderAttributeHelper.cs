@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -13,6 +14,55 @@ public static class DataLoaderAttributeHelper
                 t.AttributeClass?.Name,
                 "DataLoaderAttribute",
                 StringComparison.Ordinal));
+
+    public static ImmutableHashSet<string> GetDataLoaderGroupKeys(this IMethodSymbol methodSymbol)
+    {
+        var groupNamesBuilder = ImmutableHashSet.CreateBuilder<string>(StringComparer.Ordinal);
+        AddGroupNames(groupNamesBuilder, methodSymbol.GetAttributes());
+        AddGroupNames(groupNamesBuilder, methodSymbol.ContainingType.GetAttributes());
+        return groupNamesBuilder.Count == 0 ? ImmutableHashSet<string>.Empty : groupNamesBuilder.ToImmutable();
+
+        static void AddGroupNames(ImmutableHashSet<string>.Builder builder, IEnumerable<AttributeData> attributes)
+        {
+            foreach (var attribute in attributes)
+            {
+                if (IsDataLoaderGroupAttribute(attribute.AttributeClass))
+                {
+                    var constructorArguments = attribute.ConstructorArguments;
+                    if (constructorArguments.Length > 0)
+                    {
+                        foreach (var arg in constructorArguments[0].Values)
+                        {
+                            if (arg.Value is string groupName)
+                            {
+                                builder.Add(groupName);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        static bool IsDataLoaderGroupAttribute(INamedTypeSymbol? attributeClass)
+        {
+            if (attributeClass == null)
+            {
+                return false;
+            }
+
+            while (attributeClass != null)
+            {
+                if (attributeClass.Name == "DataLoaderGroupAttribute")
+                {
+                    return true;
+                }
+
+                attributeClass = attributeClass.BaseType;
+            }
+
+            return false;
+        }
+    }
 
     public static string? GetDataLoaderStateKey(
         this IParameterSymbol parameter)
@@ -263,6 +313,27 @@ public static class DataLoaderAttributeHelper
     {
         var argumentSyntax = arguments.FirstOrDefault(
             t => t.NameEquals?.Name.ToFullString().Trim() == "GenerateRegistrationCode");
+
+        if (argumentSyntax is not null)
+        {
+            var valueExpression = argumentSyntax.Expression;
+            var value = context.SemanticModel.GetConstantValue(valueExpression).Value;
+
+            if (value is not null)
+            {
+                return (bool)value;
+            }
+        }
+
+        return true;
+    }
+
+    public static bool GenerateInterfaces(
+        this SeparatedSyntaxList<AttributeArgumentSyntax> arguments,
+        GeneratorSyntaxContext context)
+    {
+        var argumentSyntax = arguments.FirstOrDefault(
+            t => t.NameEquals?.Name.ToFullString().Trim() == "GenerateInterfaces");
 
         if (argumentSyntax is not null)
         {

@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BananaCakePop.Middleware" />
+    <PackageReference Include="ChilliCream.Nitro.App" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" />
   </ItemGroup>
 

@@ -133,10 +133,12 @@ public static class ProjectionObjectFieldDescriptorExtensions
         FieldMiddlewareDefinition placeholder =
             new(_ => _ => default, key: WellKnownMiddleware.Projection);
 
-        descriptor.Extend().Definition.MiddlewareDefinitions.Add(placeholder);
+        var extension = descriptor.Extend();
 
-        descriptor
-            .Extend()
+        extension.Definition.MiddlewareDefinitions.Add(placeholder);
+        extension.Definition.Flags |= FieldFlags.UsesProjections;
+
+        extension
             .OnBeforeCreate(
                 (context, definition) =>
                 {
@@ -321,9 +323,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
         public T Service<T>() where T : notnull => _context.Service<T>();
 
-    #if NET8_0_OR_GREATER
-        public T? Service<T>(object key) where T : notnull => _context.Service<T>(key);
-    #endif
+        public T Service<T>(object key) where T : notnull => _context.Service<T>(key);
 
         public T Resolver<T>() => _context.Resolver<T>();
 

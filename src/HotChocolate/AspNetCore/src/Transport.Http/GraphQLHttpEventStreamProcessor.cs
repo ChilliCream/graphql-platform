@@ -27,46 +27,27 @@ internal static class GraphQLHttpEventStreamProcessor
     {
         const int bufferSize = 64;
         var buffer = new byte[bufferSize];
-#if NET6_0_OR_GREATER
         var bufferMemory = new Memory<byte>(buffer);
-#endif
 
-#if NET6_0_OR_GREATER
         await using var tokenRegistration = ct.Register(
             static writer => ((PipeWriter)writer!).CancelPendingFlush(),
             state: writer,
             useSynchronizationContext: false);
-#else
-        using var tokenRegistration = ct.Register(
-            static writer => ((PipeWriter)writer!).CancelPendingFlush(),
-            state: writer,
-            useSynchronizationContext: false);
-#endif
 
         while (true)
         {
             try
             {
-#if NET6_0_OR_GREATER
                 var bytesRead = await stream.ReadAsync(bufferMemory, ct).ConfigureAwait(false);
-#else
-                var bytesRead = await stream.ReadAsync(buffer, 0, bufferSize, ct).ConfigureAwait(false);
-#endif
 
                 if (bytesRead == 0)
                 {
                     break;
                 }
 
-#if NET6_0_OR_GREATER
                 var memory = writer.GetMemory(bytesRead);
                 buffer.AsSpan()[..bytesRead].CopyTo(memory.Span);
                 writer.Advance(bytesRead);
-#else
-                var memory = writer.GetMemory(bytesRead);
-                buffer.AsSpan().Slice(0, bytesRead).CopyTo(memory.Span);
-                writer.Advance(bytesRead);
-#endif
             }
             catch
             {
@@ -90,17 +71,10 @@ internal static class GraphQLHttpEventStreamProcessor
     {
         using var message = new ArrayWriter();
 
-#if NET6_0_OR_GREATER
         await using var tokenRegistration = ct.Register(
             static reader => ((PipeReader)reader!).CancelPendingRead(),
             state: reader,
             useSynchronizationContext: false);
-#else
-        using var tokenRegistration = ct.Register(
-            static reader => ((PipeReader)reader!).CancelPendingRead(),
-            state: reader,
-            useSynchronizationContext: false);
-#endif
 
         while (true)
         {

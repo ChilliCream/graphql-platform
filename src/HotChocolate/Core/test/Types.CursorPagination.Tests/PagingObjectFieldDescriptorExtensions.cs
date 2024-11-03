@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace HotChocolate.Types.Pagination;
 
 public static class PagingObjectFieldDescriptorExtensionsTests

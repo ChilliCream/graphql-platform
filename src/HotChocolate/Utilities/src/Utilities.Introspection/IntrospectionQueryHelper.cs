@@ -51,10 +51,8 @@ internal static class IntrospectionQueryHelper
 
     private static string GetQueryFile(string fileName)
     {
-#pragma warning disable CS8600
         var stream = typeof(IntrospectionClient).Assembly
             .GetManifestResourceStream($"{_resourceNamespace}.{fileName}");
-#pragma warning restore CS8600
 
         if (stream is not null)
         {

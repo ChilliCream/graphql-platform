@@ -31,7 +31,7 @@ public static class TestHttpContextHelper
         return httpContext;
     }
 
-    public static HttpContext NewBcpHttpContext()
+    public static HttpContext NewNitroHttpContext()
     {
         var uri = new Uri(IO.Path.Combine(DefaultAzFuncGraphQLUri.ToString(), "index.html"));
 
@@ -44,8 +44,8 @@ public static class TestHttpContextHelper
         request.Path = new PathString(uri.AbsolutePath);
         request.QueryString = new QueryString(uri.Query);
 
-        // Ensure we accept Text/Html for BCP requests...
-        httpContext.Request.Headers[HeaderNames.Accept] = TestConstants.DefaultBcpContentType;
+        // Ensure we accept Text/Html for Nitro requests...
+        httpContext.Request.Headers[HeaderNames.Accept] = TestConstants.DefaultNitroContentType;
 
         httpContext.Response.Body = new MemoryStream();
 

@@ -198,11 +198,7 @@ internal sealed class ListTypeConverter : IChangeTypeProvider
     private static bool IsGenericCollection(Type type)
     {
         var interfaces = type.GetInterfaces();
-#if NET6_0_OR_GREATER
         ref var start = ref MemoryMarshal.GetArrayDataReference(interfaces);
-#else
-        ref var start = ref MemoryMarshal.GetReference(interfaces.AsSpan());
-#endif
 
         for (var i = 0; i < interfaces.Length; i++)
         {

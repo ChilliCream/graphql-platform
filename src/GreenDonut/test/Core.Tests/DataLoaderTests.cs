@@ -1,5 +1,5 @@
+using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 using Xunit;
 using Xunit.Abstractions;
 using static GreenDonut.TestHelpers;
@@ -10,8 +10,8 @@ namespace GreenDonut;
 
 public class DataLoaderTests(ITestOutputHelper output)
 {
-    [Fact(DisplayName = "Clear: Should not throw any exception")]
-    public void ClearNoException()
+    [Fact(DisplayName = "ClearCache: Should not throw any exception")]
+    public void ClearCacheNoException()
     {
         // arrange
         var fetch = CreateFetch<string, string>();
@@ -22,14 +22,14 @@ public class DataLoaderTests(ITestOutputHelper output)
         var dataLoader = scope.ServiceProvider.GetRequiredService<DataLoader<string, string>>();
 
         // act
-        void Verify() => dataLoader.Clear();
+        void Verify() => dataLoader.ClearCache();
 
         // assert
         Assert.Null(Record.Exception(Verify));
     }
 
-    [Fact(DisplayName = "Clear: Should remove all entries from the cache")]
-    public void ClearAllEntries()
+    [Fact(DisplayName = "ClearCache: Should remove all entries from the cache")]
+    public void ClearCacheAllEntries()
     {
         // arrange
         var fetch = CreateFetch<string, string>();
@@ -38,11 +38,11 @@ public class DataLoaderTests(ITestOutputHelper output)
         var options = new DataLoaderOptions { Cache = cache, };
         var loader = new DataLoader<string, string>(fetch, batchScheduler, options);
 
-        loader.Set("Foo", Task.FromResult<string?>("Bar"));
-        loader.Set("Bar", Task.FromResult<string?>("Baz"));
+        loader.SetCacheEntry("Foo", Task.FromResult<string?>("Bar"));
+        loader.SetCacheEntry("Bar", Task.FromResult<string?>("Baz"));
 
         // act
-        loader.Clear();
+        loader.ClearCache();
 
         // assert
         Assert.Equal(0, cache.Usage);
@@ -451,7 +451,6 @@ public class DataLoaderTests(ITestOutputHelper output)
         var options = new DataLoaderOptions
         {
             Cache = cacheOwner?.Cache,
-            CancellationToken = ct,
             MaxBatchSize = batching ? 1 : maxBatchSize,
         };
 
@@ -500,25 +499,25 @@ public class DataLoaderTests(ITestOutputHelper output)
         }
     }
 
-    [Fact(DisplayName = "Remove: Should throw an argument null exception for key")]
-    public void RemoveKeyNull()
+    [Fact(DisplayName = "RemoveCacheEntry: Should throw an argument null exception for key")]
+    public void RemoveCacheEntryKeyNull()
     {
         // arrange
         var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
         var loader = new DataLoader<string, string>(fetch, batchScheduler);
 
-        loader.Set("Foo", Task.FromResult<string?>("Bar"));
+        loader.SetCacheEntry("Foo", Task.FromResult<string?>("Bar"));
 
         // act
-        void Verify() => loader.Remove(default!);
+        void Verify() => loader.RemoveCacheEntry(default!);
 
         // assert
         Assert.Throws<ArgumentNullException>("key", Verify);
     }
 
-    [Fact(DisplayName = "Remove: Should not throw any exception")]
-    public void RemoveNoException()
+    [Fact(DisplayName = "RemoveCacheEntry: Should not throw any exception")]
+    public void RemoveCacheEntryNoException()
     {
         // arrange
         var fetch = CreateFetch<string, string>();
@@ -527,14 +526,14 @@ public class DataLoaderTests(ITestOutputHelper output)
         var key = "Foo";
 
         // act
-        void Verify() => loader.Remove(key);
+        void Verify() => loader.RemoveCacheEntry(key);
 
         // assert
         Assert.Null(Record.Exception(Verify));
     }
 
-    [Fact(DisplayName = "Remove: Should remove an existing entry")]
-    public void RemoveEntry()
+    [Fact(DisplayName = "RemoveCacheEntry: Should remove an existing entry")]
+    public void RemoveCacheEntry()
     {
         // arrange
         var fetch = CreateFetch<string, string>();
@@ -544,17 +543,17 @@ public class DataLoaderTests(ITestOutputHelper output)
         var loader = new DataLoader<string, string>(fetch, batchScheduler, options);
         var key = "Foo";
 
-        loader.Set(key, Task.FromResult<string?>("Bar"));
+        loader.SetCacheEntry(key, Task.FromResult<string?>("Bar"));
 
         // act
-        loader.Remove(key);
+        loader.RemoveCacheEntry(key);
 
         // assert
         Assert.Equal(0, cache.Usage);
     }
 
-    [Fact(DisplayName = "Set: Should throw an argument null exception for key")]
-    public void SetKeyNull()
+    [Fact(DisplayName = "SetCacheEntry: Should throw an argument null exception for key")]
+    public void SetCacheEntryKeyNull()
     {
         // arrange
         var fetch = CreateFetch<string, string>();
@@ -563,14 +562,14 @@ public class DataLoaderTests(ITestOutputHelper output)
         var value = Task.FromResult<string?>("Foo");
 
         // act
-        void Verify() => loader.Set(null!, value);
+        void Verify() => loader.SetCacheEntry(null!, value);
 
         // assert
         Assert.Throws<ArgumentNullException>("key", Verify);
     }
 
-    [Fact(DisplayName = "Set: Should throw an argument null exception for value")]
-    public void SetValueNull()
+    [Fact(DisplayName = "SetCacheEntry: Should throw an argument null exception for value")]
+    public void SetCacheEntryValueNull()
     {
         // arrange
         var fetch = CreateFetch<string, string>();
@@ -579,14 +578,14 @@ public class DataLoaderTests(ITestOutputHelper output)
         var key = "Foo";
 
         // act
-        void Verify() => loader.Set(key, default!);
+        void Verify() => loader.SetCacheEntry(key, default!);
 
         // assert
         Assert.Throws<ArgumentNullException>("value", Verify);
     }
 
-    [Fact(DisplayName = "Set: Should result in a new cache entry")]
-    public void SetNewCacheEntry()
+    [Fact(DisplayName = "SetCacheEntry: Should result in a new cache entry")]
+    public void SetCacheEntry()
     {
         // arrange
         var fetch = CreateFetch<string, string>();
@@ -598,14 +597,14 @@ public class DataLoaderTests(ITestOutputHelper output)
         var value = Task.FromResult<string?>("Bar");
 
         // act
-        loader.Set(key, value);
+        loader.SetCacheEntry(key, value);
 
         // assert
         Assert.Equal(1, cache.Usage);
     }
 
-    [Fact(DisplayName = "Set: Should result in 'Bar'")]
-    public void SetTwice()
+    [Fact(DisplayName = "SetCacheEntry: Should result in 'Bar'")]
+    public void SetCacheEntryTwice()
     {
         // arrange
         var fetch = CreateFetch<string, string>();
@@ -618,8 +617,8 @@ public class DataLoaderTests(ITestOutputHelper output)
         var second = Task.FromResult<string?>("Baz");
 
         // act
-        loader.Set(key, first);
-        loader.Set(key, second);
+        loader.SetCacheEntry(key, first);
+        loader.SetCacheEntry(key, second);
 
         // assert
         Assert.Equal(1, cache.Usage);
@@ -779,25 +778,25 @@ public class DataLoaderTests(ITestOutputHelper output)
         (await loadResult).MatchSnapshot();
     }
 
-    [Fact(DisplayName = "IDataLoader.Remove: Should throw an argument null exception for key")]
-    public void IDataLoaderRemoveKeyNull()
+    [Fact(DisplayName = "IDataLoader.RemoveCacheEntry: Should throw an argument null exception for key")]
+    public void IDataLoaderRemoveCacheEntryKeyNull()
     {
         // arrange
         var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
         IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
 
-        loader.Set("Foo", Task.FromResult((object?)"Bar"));
+        loader.SetCacheEntry("Foo", Task.FromResult((object?)"Bar"));
 
         // act
-        void Verify() => loader.Remove(null!);
+        void Verify() => loader.RemoveCacheEntry(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>("key", Verify);
     }
 
-    [Fact(DisplayName = "IDataLoader.Remove: Should not throw any exception")]
-    public void IDataLoaderRemoveNoException()
+    [Fact(DisplayName = "IDataLoader.RemoveCacheEntry: Should not throw any exception")]
+    public void IDataLoaderRemoveCacheEntryNoException()
     {
         // arrange
         var fetch = CreateFetch<string, string>();
@@ -806,14 +805,14 @@ public class DataLoaderTests(ITestOutputHelper output)
         object key = "Foo";
 
         // act
-        void Verify() => loader.Remove(key);
+        void Verify() => loader.RemoveCacheEntry(key);
 
         // assert
         Assert.Null(Record.Exception(Verify));
     }
 
-    [Fact(DisplayName = "IDataLoader.Remove: Should remove an existing entry")]
-    public void IDataLoaderRemoveEntry()
+    [Fact(DisplayName = "IDataLoader.RemoveCacheEntry: Should remove an existing entry")]
+    public void IDataLoaderRemoveCacheEntry()
     {
         // arrange
         var fetch = CreateFetch<string, string>();
@@ -823,17 +822,17 @@ public class DataLoaderTests(ITestOutputHelper output)
         IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler, options);
         object key = "Foo";
 
-        loader.Set(key, Task.FromResult((object?)"Bar"));
+        loader.SetCacheEntry(key, Task.FromResult((object?)"Bar"));
 
         // act
-        loader.Remove(key);
+        loader.RemoveCacheEntry(key);
 
         // assert
         Assert.Equal(0, cache.Usage);
     }
 
-    [Fact(DisplayName = "IDataLoader.Set: Should throw an argument null exception for key")]
-    public void IDataLoaderSetKeyNull()
+    [Fact(DisplayName = "IDataLoader.SetCacheEntry: Should throw an argument null exception for key")]
+    public void IDataLoaderSetCacheEntryKeyNull()
     {
         // arrange
         var fetch = CreateFetch<string, string>();
@@ -842,14 +841,14 @@ public class DataLoaderTests(ITestOutputHelper output)
         var value = Task.FromResult<object?>("Foo");
 
         // act
-        void Verify() => loader.Set(null!, value);
+        void Verify() => loader.SetCacheEntry(null!, value);
 
         // assert
         Assert.Throws<ArgumentNullException>("key", Verify);
     }
 
-    [Fact(DisplayName = "IDataLoader.Set: Should throw an argument null exception for value")]
-    public void IDataLoaderSetValueNull()
+    [Fact(DisplayName = "IDataLoader.SetCacheEntry: Should throw an argument null exception for value")]
+    public void IDataLoaderSetCacheEntryValueNull()
     {
         // arrange
         var fetch = CreateFetch<string, string>();
@@ -858,14 +857,14 @@ public class DataLoaderTests(ITestOutputHelper output)
         object key = "Foo";
 
         // act
-        void Verify() => loader.Set(key, default!);
+        void Verify() => loader.SetCacheEntry(key, default!);
 
         // assert
         Assert.Throws<ArgumentNullException>("value", Verify);
     }
 
-    [Fact(DisplayName = "IDataLoader.Set: Should not throw any exception")]
-    public void IDataLoaderSetNoException()
+    [Fact(DisplayName = "IDataLoader.SetCacheEntry: Should not throw any exception")]
+    public void IDataLoaderSetCacheEntryNoException()
     {
         // arrange
         var fetch = CreateFetch<string, string>();
@@ -875,14 +874,14 @@ public class DataLoaderTests(ITestOutputHelper output)
         var value = Task.FromResult<object?>("Bar");
 
         // act
-        void Verify() => loader.Set(key, value);
+        void Verify() => loader.SetCacheEntry(key, value);
 
         // assert
         Assert.Null(Record.Exception(Verify));
     }
 
-    [Fact(DisplayName = "IDataLoader.Set: Should result in a new cache entry")]
-    public void IDataLoaderSetNewCacheEntry()
+    [Fact(DisplayName = "IDataLoader.SetCacheEntry: Should result in a new cache entry")]
+    public void IDataLoaderSetCacheEntry()
     {
         // arrange
         var fetch = CreateFetch<string, string>();
@@ -894,14 +893,14 @@ public class DataLoaderTests(ITestOutputHelper output)
         var value = Task.FromResult<object?>("Bar");
 
         // act
-        loader.Set(key, value);
+        loader.SetCacheEntry(key, value);
 
         // assert
         Assert.Equal(1, cache.Usage);
     }
 
-    [Fact(DisplayName = "IDataLoader.Set: Should result in 'Bar'")]
-    public void IDataLoaderSetTwice()
+    [Fact(DisplayName = "IDataLoader.SetCacheEntry: Should result in 'Bar'")]
+    public void IDataLoaderSetCacheEntryTwice()
     {
         // arrange
         var fetch = CreateFetch<string, string>();
@@ -914,8 +913,8 @@ public class DataLoaderTests(ITestOutputHelper output)
         var second = Task.FromResult((object?)"Baz");
 
         // act
-        loader.Set(key, first);
-        loader.Set(key, second);
+        loader.SetCacheEntry(key, first);
+        loader.SetCacheEntry(key, second);
 
         // assert
         Assert.Equal(1, cache.Usage);

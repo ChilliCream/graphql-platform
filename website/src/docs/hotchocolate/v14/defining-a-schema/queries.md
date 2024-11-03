@@ -32,7 +32,7 @@ Queries are expected to be side-effect free and are therefore parallelized by th
 A query type can be defined like the following.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Query
@@ -42,19 +42,15 @@ public class Query
         return new Book { Title  = "C# in depth", Author = "Jon Skeet" };
     }
 }
-
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddQueryType<Query>();
-    }
-}
 ```
 
-</Annotation>
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>();
+```
+
+</Implementation>
 <Code>
 
 ```csharp
@@ -89,16 +85,12 @@ public class BookType : ObjectType<Book>
             .Type<StringType>();
     }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddQueryType<QueryType>();
-    }
-}
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<QueryType>();
 ```
 
 </Code>
@@ -112,27 +104,23 @@ public class Query
         return new Book { Title  = "C# in depth", Author = "Jon Skeet" };
     }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddDocumentFromString(@"
-                type Query {
-                  book: Book
-                }
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddDocumentFromString(@"
+        type Query {
+          book: Book
+        }
 
-                type Book {
-                  title: String
-                  author: String
-                }
-            ")
-            .BindRuntimeType<Query>()
-            .BindRuntimeType<Book>();
-    }
-}
+        type Book {
+          title: String
+          author: String
+        }
+    ")
+    .BindRuntimeType<Query>()
+    .BindRuntimeType<Book>();
 ```
 
 </Schema>

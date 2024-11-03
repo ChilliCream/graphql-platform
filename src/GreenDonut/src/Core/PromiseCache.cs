@@ -1,7 +1,6 @@
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
 
 namespace GreenDonut;
 
@@ -174,36 +173,43 @@ public sealed class PromiseCache : IPromiseCache
     }
 
     /// <inheritdoc />
-    public void PublishMany<T>(IReadOnlyList<T> values)
+    public void PublishMany<T>(ReadOnlySpan<T> values)
     {
-        var buffer = ArrayPool<Promise<T>>.Shared.Rent(values.Count);
-        var span = buffer.AsSpan().Slice(values.Count);
+        var buffer = ArrayPool<Promise<T>>.Shared.Rent(values.Length);
+        var bufferedPromises = buffer.AsSpan().Slice(0, values.Length);
 
+        // first we add the promises tp the promise list, which we keep
+        // for DataLoader that are not instantiated yet.
+        // for this we need a quick lock as the list is shared.
+        // once a DataLoader instantiate it can replay all promises that
+        // were published before.
         lock (_promises)
         {
-            for (var i = 0; i < values.Count; i++)
+            for (var i = 0; i < values.Length; i++)
             {
                 var promise = Promise<T>.Create(values[i], cloned: true);
-                span[i] = promise;
+                bufferedPromises[i] = promise;
                 _promises.Add(promise);
             }
         }
 
+        // now we notify all subscribers that are interested in the current promise type.
         if (_subscriptions.TryGetValue(typeof(T), out var subscriptions))
         {
             foreach (var subscription in subscriptions)
             {
                 if (subscription is Subscription<T> casted)
                 {
-                    for (var i = 0; i < span.Length; i++)
+                    for (var i = 0; i < bufferedPromises.Length; i++)
                     {
-                        casted.OnNext(span[i]);
+                        casted.OnNext(bufferedPromises[i]);
                     }
                 }
             }
         }
 
-        span.Clear();
+        // last we clear the buffer and return it to the pool.
+        bufferedPromises.Clear();
         ArrayPool<Promise<T>>.Shared.Return(buffer);
     }
 
@@ -239,11 +245,7 @@ public sealed class PromiseCache : IPromiseCache
 
             while (current is not null)
             {
-#if NETSTANDARD2_0
-                if(current.Value.Task.Status == TaskStatus.RanToCompletion
-#else
                 if (current.Value.Task.IsCompletedSuccessfully
-#endif
                     && !current.Value.IsClone
                     && current.Value.Type == type)
                 {
@@ -332,7 +334,6 @@ public sealed class PromiseCache : IPromiseCache
         }
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ClearSpaceForNewEntryUnsafe()
     {
         while (_head is not null && _usage > _size)
@@ -343,7 +344,6 @@ public sealed class PromiseCache : IPromiseCache
         }
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void TouchEntryUnsafe(Entry touched)
     {
         if (_order > _usage || _head == touched)
@@ -425,11 +425,7 @@ public sealed class PromiseCache : IPromiseCache
     {
         public void OnNext(PromiseCacheKey key, Promise<T> promise)
         {
-#if NETSTANDARD2_0
-            if(promise.Task.Status == TaskStatus.RanToCompletion
-#else
             if (promise.Task.IsCompletedSuccessfully
-#endif
                 && skipCacheKeyType?.Equals(key.Type, StringComparison.Ordinal) != true)
             {
                 next(owner, promise);
@@ -438,11 +434,7 @@ public sealed class PromiseCache : IPromiseCache
 
         public void OnNext(Promise<T> promise)
         {
-#if NETSTANDARD2_0
-            if(promise.Task.Status == TaskStatus.RanToCompletion)
-#else
             if (promise.Task.IsCompletedSuccessfully)
-#endif
             {
                 next(owner, promise);
             }

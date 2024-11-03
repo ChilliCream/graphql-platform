@@ -84,13 +84,34 @@ public sealed class DataLoaderModuleFileBuilder : IDisposable
             dataLoaderType);
     }
 
-    public void WriteAddDataLoader(string dataLoaderType, string dataLoaderInterfaceType)
+    public void WriteAddDataLoader(
+        string dataLoaderType,
+        string dataLoaderInterfaceType,
+        bool withInterface)
+    {
+        if (withInterface)
+        {
+            _writer.WriteIndentedLine(
+                "global::{0}.AddDataLoader<global::{1}, global::{2}>(services);",
+                WellKnownTypes.DataLoaderServiceCollectionExtension,
+                dataLoaderInterfaceType,
+                dataLoaderType);
+        }
+        else
+        {
+            _writer.WriteIndentedLine(
+                "global::{0}.AddDataLoader<global::{1}>(services);",
+                WellKnownTypes.DataLoaderServiceCollectionExtension,
+                dataLoaderType);
+        }
+    }
+
+    public void WriteAddDataLoaderGroup(string groupType, string groupInterfaceType)
     {
         _writer.WriteIndentedLine(
-            "global::{0}.AddDataLoader<global::{1}, global::{2}>(services);",
-            WellKnownTypes.DataLoaderServiceCollectionExtension,
-            dataLoaderInterfaceType,
-            dataLoaderType);
+            "services.AddScoped<global::{0}, global::{1}>();",
+            groupInterfaceType,
+            groupType);
     }
 
     public override string ToString()

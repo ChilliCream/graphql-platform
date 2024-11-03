@@ -49,6 +49,8 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
         List<SyntaxInfo> syntaxInfos,
         ModuleInfo module)
     {
+        var dataLoaderDefaults = syntaxInfos.GetDataLoaderDefaults();
+        HashSet<(string InterfaceName, string ClassName)>? groups = null;
         using var generator = new ModuleFileBuilder(module.ModuleName, "Microsoft.Extensions.DependencyInjection");
 
         generator.WriteHeader();
@@ -108,8 +110,22 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
                         var typeName = $"{dataLoader.Namespace}.{dataLoader.Name}";
                         var interfaceTypeName = $"{dataLoader.Namespace}.{dataLoader.InterfaceName}";
 
-                        generator.WriteRegisterDataLoader(typeName, interfaceTypeName);
+                        generator.WriteRegisterDataLoader(
+                            typeName,
+                            interfaceTypeName,
+                            dataLoaderDefaults.GenerateInterfaces);
                         hasConfigurations = true;
+
+                        if(dataLoader.Groups.Count > 0)
+                        {
+                            groups ??= [];
+                            foreach (var groupName in dataLoader.Groups)
+                            {
+                                groups.Add((
+                                    $"{dataLoader.Namespace}.I{groupName}",
+                                    $"{dataLoader.Namespace}.{groupName}"));
+                            }
+                        }
                     }
 
                     break;
@@ -172,6 +188,14 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
         {
             generator.WriteTryAddOperationType(OperationType.Subscription);
             hasConfigurations = true;
+        }
+
+        if (groups is not null)
+        {
+            foreach (var (interfaceName, className) in groups.OrderBy(t => t.ClassName))
+            {
+                generator.WriteRegisterDataLoaderGroup(className, interfaceName);
+            }
         }
 
         generator.WriteEndRegistrationMethod();

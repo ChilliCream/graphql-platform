@@ -3,7 +3,6 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Subscriptions.Postgres.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Subscriptions.Postgres</RootNamespace>
-    <TargetFrameworks>net7.0;net8.0</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>

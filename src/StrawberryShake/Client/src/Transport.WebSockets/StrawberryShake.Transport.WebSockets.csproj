@@ -16,10 +16,6 @@
     <PackageReference Include="System.IO.Pipelines" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1' OR '$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="System.Threading.Channels" />
-  </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Core\StrawberryShake.Core.csproj" />
     <ProjectReference Include="..\Resources\StrawberryShake.Resources.csproj" />

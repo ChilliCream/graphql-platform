@@ -37,7 +37,7 @@ internal sealed class QueryCacheMiddleware
         }
 
         // only single operation results can be cached.
-        var operationResult = context.Result?.ExpectSingleResult();
+        var operationResult = context.Result?.ExpectOperationResult();
 
         if (operationResult is { Errors: null })
         {
@@ -47,6 +47,14 @@ internal sealed class QueryCacheMiddleware
                     : new ExtensionData();
 
             contextData.Add(WellKnownContextData.CacheControlHeaderValue, cacheControlHeaderValue);
+
+            if (context.Operation.ContextData.TryGetValue(VaryHeaderValue, out var varyValue)
+                && varyValue is string varyHeaderValue
+                && !string.IsNullOrEmpty(varyHeaderValue))
+            {
+                contextData.Add(VaryHeaderValue, varyHeaderValue);
+            }
+
             context.Result = operationResult.WithContextData(contextData);
         }
     }

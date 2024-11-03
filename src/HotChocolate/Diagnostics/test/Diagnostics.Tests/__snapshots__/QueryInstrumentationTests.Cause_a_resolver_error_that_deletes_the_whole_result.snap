@@ -33,11 +33,11 @@
       "event": [
         {
           "Name": "AddedOperationToCache",
-          "Tags": {}
+          "Tags": []
         },
         {
           "Name": "AddedDocumentToCache",
-          "Tags": {}
+          "Tags": []
         }
       ],
       "activities": [
@@ -138,13 +138,28 @@
               "event": [
                 {
                   "Name": "exception",
-                  "Tags": {
-                    "exception.message": "fail",
-                    "exception.type": "GRAPHQL_ERROR",
-                    "graphql.error.path": "/causeFatalError",
-                    "graphql.error.location.column": 27,
-                    "graphql.error.location.line": 1
-                  }
+                  "Tags": [
+                    {
+                      "Key": "exception.message",
+                      "Value": "fail"
+                    },
+                    {
+                      "Key": "exception.type",
+                      "Value": "GRAPHQL_ERROR"
+                    },
+                    {
+                      "Key": "graphql.error.path",
+                      "Value": "/causeFatalError"
+                    },
+                    {
+                      "Key": "graphql.error.location.column",
+                      "Value": 27
+                    },
+                    {
+                      "Key": "graphql.error.location.line",
+                      "Value": 1
+                    }
+                  ]
                 }
               ]
             }

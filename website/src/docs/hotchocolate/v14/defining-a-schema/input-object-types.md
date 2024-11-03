@@ -18,7 +18,7 @@ input BookInput {
 Input object types can be defined like the following.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class BookInput
@@ -78,7 +78,7 @@ type Mutation {
 
 > Note: While it is possible, it is not encouraged, as it complicates future extensions of either type.
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -131,32 +131,28 @@ public class BookInput
 
     public string Author { get; set; }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddDocumentFromString(@"
+        input BookInput {
+          title: String
+          author: String
+        }
+
+        type Mutation {
+          addBook(input: BookInput): Book
+        }
+    ")
+    .BindRuntimeType<BookInput>()
+    .AddResolver( "Mutation", "addBook", (context) =>
     {
-        services
-            .AddGraphQLServer()
-            .AddDocumentFromString(@"
-                input BookInput {
-                  title: String
-                  author: String
-                }
+        var input = context.ArgumentValue<BookInput>("input");
 
-                type Mutation {
-                  addBook(input: BookInput): Book
-                }
-            ")
-            .BindRuntimeType<BookInput>()
-            .AddResolver( "Mutation", "addBook", (context) =>
-            {
-                var input = context.ArgumentValue<BookInput>("input");
-
-                // Omitted code for brevity
-            });
-    }
-}
+        // Omitted code for brevity
+    });
 ```
 
 </Schema>
@@ -248,7 +244,7 @@ The `DefaultValueAttribute` or the `DefaultValue` method on the field descriptor
 Consider the following scenario where we have a `UserInput` type with different fields like `name`, `active`. By default, we would like `active` to be `true`.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class UserInput
@@ -268,7 +264,7 @@ input UserInput {
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -320,7 +316,7 @@ Like for example objects or lists.
 Consider a scenario where we have a `UserProfileInput` type with a field `preferences`. The `preferences` field itself is an object containing various user preference settings.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Preferences
@@ -352,7 +348,7 @@ input UserProfileInput {
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -480,7 +476,7 @@ builder.Services
 Once activate you can create `Oneof` Input Objects like the following:
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 [OneOf]
@@ -548,7 +544,7 @@ type Mutation {
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -675,49 +671,45 @@ public class Mutation
         // Omitted code for brevity
     }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddDocumentFromString(@"
-                input PetInput @oneOf {
-                    dog: DogInput
-                    cat: CatInput
-                }
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddDocumentFromString(@"
+        input PetInput @oneOf {
+            dog: DogInput
+            cat: CatInput
+        }
 
-                input DogInput {
-                    name: String!
-                }
+        input DogInput {
+            name: String!
+        }
 
-                input CatInput {
-                    name: String!
-                }
+        input CatInput {
+            name: String!
+        }
 
-                interface Pet {
-                    name: String!
-                }
+        interface Pet {
+            name: String!
+        }
 
-                type Dog implements Pet {
-                    name: String!
-                }
+        type Dog implements Pet {
+            name: String!
+        }
 
-                type Cat implements Pet {
-                    name: String!
-                }
+        type Cat implements Pet {
+            name: String!
+        }
 
-                type Mutation {
-                    createPet(input: PetInput): Pet
-                }
-            ")
-            .BindRuntimeType<Mutation>()
-            .BindRuntimeType<Pet>()
-            .BindRuntimeType<Dog>()
-            .ModifyOptions(o => o.EnableOneOf = true);
-    }
-}
+        type Mutation {
+            createPet(input: PetInput): Pet
+        }
+    ")
+    .BindRuntimeType<Mutation>()
+    .BindRuntimeType<Pet>()
+    .BindRuntimeType<Dog>()
+    .ModifyOptions(o => o.EnableOneOf = true);
 ```
 
 </Schema>
