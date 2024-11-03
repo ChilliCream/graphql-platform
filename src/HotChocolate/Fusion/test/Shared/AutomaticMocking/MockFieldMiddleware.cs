@@ -113,10 +113,24 @@ internal sealed class MockFieldMiddleware
         {
             context.Result = CreateObject();
         }
+        else if (fieldType.IsInterfaceType() || fieldType.IsUnionType())
+        {
+            var possibleTypes = context.Schema.GetPossibleTypes(namedFieldType);
+
+            context.ValueType = possibleTypes.First();
+            context.Result = CreateObject();
+        }
         else if (fieldType.IsListType())
         {
             if (namedFieldType.IsObjectType())
             {
+                context.Result = CreateListOfObjects(null, nullIndex);
+            }
+            else if (namedFieldType.IsInterfaceType() || namedFieldType.IsUnionType())
+            {
+                var possibleTypes = context.Schema.GetPossibleTypes(namedFieldType);
+
+                context.ValueType = possibleTypes.First();
                 context.Result = CreateListOfObjects(null, nullIndex);
             }
             else if(namedFieldType is EnumType enumType)

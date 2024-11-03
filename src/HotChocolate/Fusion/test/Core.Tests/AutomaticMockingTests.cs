@@ -52,6 +52,98 @@ public class AutomaticMockingTests
     }
 
     [Fact]
+    public async Task Object_Null()
+    {
+        // arrange
+        var schema =
+            """
+            type Query {
+              obj: Object @null
+            }
+
+            type Object {
+              id: ID!
+              str: String!
+            }
+            """;
+        var request =
+            """
+            query {
+              obj {
+                id
+                str
+              }
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "obj": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Object_Error()
+    {
+        // arrange
+        var schema =
+            """
+            type Query {
+              obj: Object @error
+            }
+
+            type Object {
+              id: ID!
+              str: String!
+            }
+            """;
+        var request =
+            """
+            query {
+              obj {
+                id
+                str
+              }
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "Unexpected Execution Error",
+                  "locations": [
+                    {
+                      "line": 2,
+                      "column": 3
+                    }
+                  ],
+                  "path": [
+                    "obj"
+                  ]
+                }
+              ],
+              "data": {
+                "obj": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task Object_List()
     {
         // arrange
@@ -320,6 +412,1228 @@ public class AutomaticMockingTests
 
     #endregion
 
+    #region Interfaces
+
+    [Fact]
+    public async Task Interface()
+    {
+        // arrange
+        var schema =
+            """
+            type Query {
+              intrface: Interface
+            }
+
+            interface Interface {
+              id: ID!
+              str: String!
+            }
+
+            type Object implements Interface {
+              id: ID!
+              str: String!
+              num: Int!
+            }
+            """;
+        var request =
+            """
+            query {
+              intrface {
+                __typename
+                id
+                str
+                ... on Object {
+                  num
+                }
+              }
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "intrface": {
+                  "__typename": "Object",
+                  "id": "1",
+                  "str": "string",
+                  "num": 123
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Interface_Null()
+    {
+        // arrange
+        var schema =
+            """
+            type Query {
+              intrface: Interface @null
+            }
+
+            interface Interface {
+              id: ID!
+              str: String!
+            }
+
+            type Object implements Interface {
+              id: ID!
+              str: String!
+              num: Int!
+            }
+            """;
+        var request =
+            """
+            query {
+              intrface {
+                __typename
+                id
+                str
+                ... on Object {
+                  num
+                }
+              }
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "intrface": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Interface_Error()
+    {
+        // arrange
+        var schema =
+            """
+            type Query {
+              intrface: Interface @error
+            }
+
+            interface Interface {
+              id: ID!
+              str: String!
+            }
+
+            type Object implements Interface {
+              id: ID!
+              str: String!
+              num: Int!
+            }
+            """;
+        var request =
+            """
+            query {
+              intrface {
+                __typename
+                id
+                str
+                ... on Object {
+                  num
+                }
+              }
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "Unexpected Execution Error",
+                  "locations": [
+                    {
+                      "line": 2,
+                      "column": 3
+                    }
+                  ],
+                  "path": [
+                    "intrface"
+                  ]
+                }
+              ],
+              "data": {
+                "intrface": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Interface_List()
+    {
+        // arrange
+        var schema =
+            """
+            type Query {
+              interfaces: [Interface]
+            }
+
+            interface Interface {
+              id: ID!
+              str: String!
+            }
+
+            type Object implements Interface {
+              id: ID!
+              str: String!
+              num: Int!
+            }
+            """;
+        var request =
+            """
+            query {
+              interfaces {
+                __typename
+                id
+                str
+                ... on Object {
+                  num
+                }
+              }
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "interfaces": [
+                  {
+                    "__typename": "Object",
+                    "id": "1",
+                    "str": "string",
+                    "num": 123
+                  },
+                  {
+                    "__typename": "Object",
+                    "id": "2",
+                    "str": "string",
+                    "num": 123
+                  },
+                  {
+                    "__typename": "Object",
+                    "id": "3",
+                    "str": "string",
+                    "num": 123
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Interface_List_Null()
+    {
+        // arrange
+        var schema =
+            """
+            type Query {
+              interfaces: [Interface] @null
+            }
+
+            interface Interface {
+              id: ID!
+              str: String!
+            }
+
+            type Object implements Interface {
+              id: ID!
+              str: String!
+              num: Int!
+            }
+            """;
+        var request =
+            """
+            query {
+              interfaces {
+                __typename
+                id
+                str
+                ... on Object {
+                  num
+                }
+              }
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "interfaces": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Interface_List_Error()
+    {
+        // arrange
+        var schema =
+            """
+            type Query {
+              interfaces: [Interface] @error
+            }
+
+            interface Interface {
+              id: ID!
+              str: String!
+            }
+
+            type Object implements Interface {
+              id: ID!
+              str: String!
+              num: Int!
+            }
+            """;
+        var request =
+            """
+            query {
+              interfaces {
+                __typename
+                id
+                str
+                ... on Object {
+                  num
+                }
+              }
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "Unexpected Execution Error",
+                  "locations": [
+                    {
+                      "line": 2,
+                      "column": 3
+                    }
+                  ],
+                  "path": [
+                    "interfaces"
+                  ]
+                }
+              ],
+              "data": {
+                "interfaces": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Interface_List_NullAtIndex()
+    {
+        // arrange
+        var schema =
+            """
+            type Query {
+              interfaces: [Interface] @null(atIndex: 1)
+            }
+
+            interface Interface {
+              id: ID!
+              str: String!
+            }
+
+            type Object implements Interface {
+              id: ID!
+              str: String!
+              num: Int!
+            }
+            """;
+        var request =
+            """
+            query {
+              interfaces {
+                __typename
+                id
+                str
+                ... on Object {
+                  num
+                }
+              }
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "interfaces": [
+                  {
+                    "__typename": "Object",
+                    "id": "1",
+                    "str": "string",
+                    "num": 123
+                  },
+                  null,
+                  {
+                    "__typename": "Object",
+                    "id": "2",
+                    "str": "string",
+                    "num": 123
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Interface_List_ErrorAtIndex()
+    {
+        // arrange
+        var schema =
+            """
+            type Query {
+              interfaces: [Interface] @error(atIndex: 1)
+            }
+
+            interface Interface {
+              id: ID!
+              str: String!
+            }
+
+            type Object implements Interface {
+              id: ID!
+              str: String!
+              num: Int!
+            }
+            """;
+        var request =
+            """
+            query {
+              interfaces {
+                __typename
+                id
+                str
+                ... on Object {
+                  num
+                }
+              }
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "Unexpected Execution Error",
+                  "locations": [
+                    {
+                      "line": 2,
+                      "column": 3
+                    }
+                  ],
+                  "path": [
+                    "interfaces",
+                    1
+                  ]
+                }
+              ],
+              "data": {
+                "interfaces": [
+                  {
+                    "__typename": "Object",
+                    "id": "1",
+                    "str": "string",
+                    "num": 123
+                  },
+                  null,
+                  {
+                    "__typename": "Object",
+                    "id": "2",
+                    "str": "string",
+                    "num": 123
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Interface_List_Property_NullAtIndex()
+    {
+        // arrange
+        var schema =
+            """
+            type Query {
+              interfaces: [Interface]
+            }
+
+            interface Interface {
+              id: ID!
+              str: String!
+            }
+
+            type Object implements Interface {
+              id: ID!
+              str: String!
+              num: Int @null(atIndex: 1)
+            }
+            """;
+        var request =
+            """
+            query {
+              interfaces {
+                __typename
+                id
+                str
+                ... on Object {
+                  num
+                }
+              }
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "interfaces": [
+                  {
+                    "__typename": "Object",
+                    "id": "1",
+                    "str": "string",
+                    "num": 123
+                  },
+                  {
+                    "__typename": "Object",
+                    "id": "2",
+                    "str": "string",
+                    "num": null
+                  },
+                  {
+                    "__typename": "Object",
+                    "id": "3",
+                    "str": "string",
+                    "num": 123
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Interface_List_Property_ErrorAtIndex()
+    {
+        // arrange
+        var schema =
+            """
+            type Query {
+              interfaces: [Interface]
+            }
+
+            interface Interface {
+              id: ID!
+              str: String!
+            }
+
+            type Object implements Interface {
+              id: ID!
+              str: String!
+              num: Int @error(atIndex: 1)
+            }
+            """;
+        var request =
+            """
+            query {
+              interfaces {
+                __typename
+                id
+                str
+                ... on Object {
+                  num
+                }
+              }
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "Unexpected Execution Error",
+                  "locations": [
+                    {
+                      "line": 7,
+                      "column": 7
+                    }
+                  ],
+                  "path": [
+                    "interfaces",
+                    1,
+                    "num"
+                  ]
+                }
+              ],
+              "data": {
+                "interfaces": [
+                  {
+                    "__typename": "Object",
+                    "id": "1",
+                    "str": "string",
+                    "num": 123
+                  },
+                  {
+                    "__typename": "Object",
+                    "id": "2",
+                    "str": "string",
+                    "num": null
+                  },
+                  {
+                    "__typename": "Object",
+                    "id": "3",
+                    "str": "string",
+                    "num": 123
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    #endregion
+
+    #region Union
+
+    [Fact]
+    public async Task Union()
+    {
+        // arrange
+        var schema =
+            """
+            type Query {
+              unon: Union
+            }
+
+            union Union = Object
+
+            type Object {
+              id: ID!
+              str: String!
+            }
+            """;
+        var request =
+            """
+            query {
+              unon {
+                __typename
+                ... on Object {
+                  id
+                  str
+                }
+              }
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "unon": {
+                  "__typename": "Object",
+                  "id": "1",
+                  "str": "string"
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Union_Null()
+    {
+        // arrange
+        var schema =
+            """
+            type Query {
+              unon: Union @null
+            }
+
+            union Union = Object
+
+            type Object {
+              id: ID!
+              str: String!
+            }
+            """;
+        var request =
+            """
+            query {
+              unon {
+                __typename
+                ... on Object {
+                  id
+                  str
+                }
+              }
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "unon": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Union_Error()
+    {
+        // arrange
+        var schema =
+            """
+            type Query {
+              unon: Union @error
+            }
+
+            union Union = Object
+
+            type Object {
+              id: ID!
+              str: String!
+            }
+            """;
+        var request =
+            """
+            query {
+              unon {
+                __typename
+                ... on Object {
+                  id
+                  str
+                }
+              }
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "Unexpected Execution Error",
+                  "locations": [
+                    {
+                      "line": 2,
+                      "column": 3
+                    }
+                  ],
+                  "path": [
+                    "unon"
+                  ]
+                }
+              ],
+              "data": {
+                "unon": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Union_List()
+    {
+        // arrange
+        var schema =
+            """
+            type Query {
+              unions: [Union]
+            }
+
+            union Union = Object
+
+            type Object {
+              id: ID!
+              str: String!
+            }
+            """;
+        var request =
+            """
+            query {
+              unions {
+                __typename
+                ... on Object {
+                  id
+                  str
+                }
+              }
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "unions": [
+                  {
+                    "__typename": "Object",
+                    "id": "1",
+                    "str": "string"
+                  },
+                  {
+                    "__typename": "Object",
+                    "id": "2",
+                    "str": "string"
+                  },
+                  {
+                    "__typename": "Object",
+                    "id": "3",
+                    "str": "string"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Union_List_Null()
+    {
+        // arrange
+        var schema =
+            """
+            type Query {
+              unions: [Union] @null
+            }
+
+            union Union = Object
+
+            type Object {
+              id: ID!
+              str: String!
+            }
+            """;
+        var request =
+            """
+            query {
+              unions {
+                __typename
+                ... on Object {
+                  id
+                  str
+                }
+              }
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "unions": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Union_List_Error()
+    {
+        // arrange
+        var schema =
+            """
+            type Query {
+              unions: [Union] @error
+            }
+
+            union Union = Object
+
+            type Object {
+              id: ID!
+              str: String!
+            }
+            """;
+        var request =
+            """
+            query {
+              unions {
+                __typename
+                ... on Object {
+                  id
+                  str
+                }
+              }
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "Unexpected Execution Error",
+                  "locations": [
+                    {
+                      "line": 2,
+                      "column": 3
+                    }
+                  ],
+                  "path": [
+                    "unions"
+                  ]
+                }
+              ],
+              "data": {
+                "unions": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Union_List_NullAtIndex()
+    {
+        // arrange
+        var schema =
+            """
+            type Query {
+              unions: [Union] @null(atIndex: 1)
+            }
+
+            union Union = Object
+
+            type Object {
+              id: ID!
+              str: String!
+            }
+            """;
+        var request =
+            """
+            query {
+              unions {
+                __typename
+                ... on Object {
+                  id
+                  str
+                }
+              }
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "unions": [
+                  {
+                    "__typename": "Object",
+                    "id": "1",
+                    "str": "string"
+                  },
+                  null,
+                  {
+                    "__typename": "Object",
+                    "id": "2",
+                    "str": "string"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Union_List_ErrorAtIndex()
+    {
+        // arrange
+        var schema =
+            """
+            type Query {
+              unions: [Union] @error(atIndex: 1)
+            }
+
+            union Union = Object
+
+            type Object {
+              id: ID!
+              str: String!
+            }
+            """;
+        var request =
+            """
+            query {
+              unions {
+                __typename
+                ... on Object {
+                  id
+                  str
+                }
+              }
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "Unexpected Execution Error",
+                  "locations": [
+                    {
+                      "line": 2,
+                      "column": 3
+                    }
+                  ],
+                  "path": [
+                    "unions",
+                    1
+                  ]
+                }
+              ],
+              "data": {
+                "unions": [
+                  {
+                    "__typename": "Object",
+                    "id": "1",
+                    "str": "string"
+                  },
+                  null,
+                  {
+                    "__typename": "Object",
+                    "id": "2",
+                    "str": "string"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Union_List_Property_NullAtIndex()
+    {
+        // arrange
+        var schema =
+            """
+            type Query {
+              unions: [Union]
+            }
+
+            union Union = Object
+
+            type Object {
+              id: ID!
+              str: String @null(atIndex: 1)
+            }
+            """;
+        var request =
+            """
+            query {
+              unions {
+                __typename
+                ... on Object {
+                  id
+                  str
+                }
+              }
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "unions": [
+                  {
+                    "__typename": "Object",
+                    "id": "1",
+                    "str": "string"
+                  },
+                  {
+                    "__typename": "Object",
+                    "id": "2",
+                    "str": null
+                  },
+                  {
+                    "__typename": "Object",
+                    "id": "3",
+                    "str": "string"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Union_List_Property_ErrorAtIndex()
+    {
+        // arrange
+        var schema =
+            """
+            type Query {
+              unions: [Union]
+            }
+
+            union Union = Object
+
+            type Object {
+              id: ID!
+              str: String @error(atIndex: 1)
+            }
+            """;
+        var request =
+            """
+            query {
+              unions {
+                __typename
+                ... on Object {
+                  id
+                  str
+                }
+              }
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "Unexpected Execution Error",
+                  "locations": [
+                    {
+                      "line": 6,
+                      "column": 7
+                    }
+                  ],
+                  "path": [
+                    "unions",
+                    1,
+                    "str"
+                  ]
+                }
+              ],
+              "data": {
+                "unions": [
+                  {
+                    "__typename": "Object",
+                    "id": "1",
+                    "str": "string"
+                  },
+                  {
+                    "__typename": "Object",
+                    "id": "2",
+                    "str": null
+                  },
+                  {
+                    "__typename": "Object",
+                    "id": "3",
+                    "str": "string"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    #endregion
+
     #region Scalars
 
     [Fact]
@@ -348,6 +1662,82 @@ public class AutomaticMockingTests
             {
               "data": {
                 "str": "string"
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Scalar_Null()
+    {
+        // arrange
+        var schema =
+            """
+            type Query {
+              str: String @null
+            }
+            """;
+        var request =
+            """
+            query {
+              str
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "str": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Scalar_Error()
+    {
+        // arrange
+        var schema =
+            """
+            type Query {
+              str: String @error
+            }
+            """;
+        var request =
+            """
+            query {
+              str
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "Unexpected Execution Error",
+                  "locations": [
+                    {
+                      "line": 2,
+                      "column": 3
+                    }
+                  ],
+                  "path": [
+                    "str"
+                  ]
+                }
+              ],
+              "data": {
+                "str": null
               }
             }
             """);
@@ -383,6 +1773,82 @@ public class AutomaticMockingTests
                   "string",
                   "string"
                 ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Scalar_List_Null()
+    {
+        // arrange
+        var schema =
+            """
+            type Query {
+              scalars: [String!] @null
+            }
+            """;
+        var request =
+            """
+            query {
+              scalars
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "scalars": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Scalar_List_Error()
+    {
+        // arrange
+        var schema =
+            """
+            type Query {
+              scalars: [String!] @error
+            }
+            """;
+        var request =
+            """
+            query {
+              scalars
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "Unexpected Execution Error",
+                  "locations": [
+                    {
+                      "line": 2,
+                      "column": 3
+                    }
+                  ],
+                  "path": [
+                    "scalars"
+                  ]
+                }
+              ],
+              "data": {
+                "scalars": null
               }
             }
             """);
@@ -507,6 +1973,90 @@ public class AutomaticMockingTests
             {
               "data": {
                 "enm": "VALUE"
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Enum_Null()
+    {
+        // arrange
+        var schema =
+            """
+            type Query {
+              enm: MyEnum @null
+            }
+
+            enum MyEnum {
+              VALUE
+            }
+            """;
+        var request =
+            """
+            query {
+              enm
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "enm": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Enum_Error()
+    {
+        // arrange
+        var schema =
+            """
+            type Query {
+              enm: MyEnum @error
+            }
+
+            enum MyEnum {
+              VALUE
+            }
+            """;
+        var request =
+            """
+            query {
+              enm
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "Unexpected Execution Error",
+                  "locations": [
+                    {
+                      "line": 2,
+                      "column": 3
+                    }
+                  ],
+                  "path": [
+                    "enm"
+                  ]
+                }
+              ],
+              "data": {
+                "enm": null
               }
             }
             """);
