@@ -10,14 +10,147 @@ using HotChocolate.Fusion.Shared;
 using HotChocolate.Language;
 using HotChocolate.Skimmed.Serialization;
 using Microsoft.Extensions.DependencyInjection;
+using Xunit.Abstractions;
 using static HotChocolate.Fusion.Shared.DemoProjectSchemaExtensions;
 using static HotChocolate.Language.Utf8GraphQLParser;
 using HttpClientConfiguration = HotChocolate.Fusion.Composition.HttpClientConfiguration;
 
 namespace HotChocolate.Fusion;
 
-public class RequestPlannerTests
+public class RequestPlannerTests(ITestOutputHelper output)
 {
+    [Fact]
+    public async Task Fragment_Deduplication_1()
+    {
+        // arrange
+        var subgraph = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              entry: SomeObject!
+            }
+
+            type SomeObject {
+              id: ID!
+              string: String!
+              other: AnotherObject!
+            }
+
+            type AnotherObject {
+              id: ID!
+              number: Int!
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
+        var fusionGraph = await subgraphs.GetFusionGraphAsync();
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query test {
+              entry {
+                id
+                string
+                other {
+                  __typename
+                  ...frag4
+                }
+                ...frag1
+                ...frag2
+                ...frag3
+              }
+            }
+
+            fragment frag1 on SomeObject {
+              id
+              string
+              other {
+                number
+              }
+            }
+
+            fragment frag2 on SomeObject {
+              id
+              other {
+                id
+              }
+            }
+
+            fragment frag3 on SomeObject {
+              id
+              other {
+                __typename
+              }
+            }
+
+            fragment frag4 on AnotherObject {
+              id
+              number
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Fragment_Deduplication_2()
+    {
+        // arrange
+        var subgraph = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              viewer: Viewer!
+            }
+
+            type Viewer {
+              unionField: SomeUnion!
+            }
+
+            union SomeUnion = Object1 | Object2
+
+            type Object1 {
+              someField: String
+            }
+
+            type Object2 {
+              otherField: Int
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
+        var fusionGraph = await subgraphs.GetFusionGraphAsync();
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query {
+              viewer {
+                unionField {
+                  ... on Object1 {
+                    __typename
+                    someField
+                  }
+                }
+                unionField {
+                  __typename
+                }
+              }
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchMarkdownAsync();
+    }
+
     [Fact]
     public async Task Query_Plan_01()
     {
