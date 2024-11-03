@@ -7,7 +7,7 @@ namespace HotChocolate.Execution.Processing;
 
 public sealed partial class OperationCompiler
 {
-    internal sealed class CompilerContext(ISchema schema, DocumentNode document, bool enableNullBubbling)
+    internal sealed class CompilerContext(ISchema schema, DocumentNode document)
     {
         public ISchema Schema { get; } = schema;
 
@@ -26,8 +26,6 @@ public sealed partial class OperationCompiler
         public SelectionVariants SelectionVariants { get; private set; } = default!;
 
         public ImmutableArray<ISelectionSetOptimizer> Optimizers { get; private set; }
-
-        public bool EnableNullBubbling { get; } = enableNullBubbling;
 
         public void Initialize(
             ObjectType type,
