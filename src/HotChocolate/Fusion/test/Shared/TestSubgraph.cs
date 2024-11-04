@@ -18,14 +18,14 @@ public record TestSubgraph(
         string schemaText,
         bool isOffline = false)
         => CreateAsync(
-            configureBuilder: builder => builder
+            configure: builder => builder
                 .AddDocumentFromString(schemaText)
                 .AddResolverMocking()
                 .AddTestDirectives(),
             isOffline: isOffline);
 
     public static async Task<TestSubgraph> CreateAsync(
-        Action<IRequestExecutorBuilder> configureBuilder,
+        Action<IRequestExecutorBuilder> configure,
         string extensions = "",
         bool isOffline = false)
     {
@@ -39,7 +39,7 @@ public record TestSubgraph(
                     .AddRouting()
                     .AddGraphQLServer(disableDefaultSecurity: true);
 
-                configureBuilder(builder);
+                configure(builder);
             },
             app =>
             {
