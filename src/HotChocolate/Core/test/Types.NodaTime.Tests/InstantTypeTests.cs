@@ -1,5 +1,8 @@
+using System.Globalization;
+using CookieCrumble;
 using HotChocolate.Execution;
 using NodaTime;
+using NodaTime.Text;
 
 namespace HotChocolate.Types.NodaTime.Tests;
 
@@ -100,5 +103,34 @@ public class InstantTypeIntegrationTests
     {
         static object Call() => new InstantType([]);
         Assert.Throws<SchemaException>(Call);
+    }
+
+    [Fact]
+    public void InstantType_DescriptionKnownPatterns_MatchesSnapshot()
+    {
+        var instantType = new InstantType(InstantPattern.General, InstantPattern.ExtendedIso);
+
+        instantType.Description.MatchInlineSnapshot(
+            """
+            Represents an instant on the global timeline, with nanosecond resolution.
+
+            Allowed patterns:
+            - `YYYY-MM-DDThh:mm:ss±hh:mm`
+            - `YYYY-MM-DDThh:mm:ss.sssssssss±hh:mm`
+
+            Examples:
+            - `2000-01-01T20:00:00Z`
+            - `2000-01-01T20:00:00.999999999Z`
+            """);
+    }
+
+    [Fact]
+    public void InstantType_DescriptionUnknownPatterns_MatchesSnapshot()
+    {
+        var instantType = new InstantType(
+            InstantPattern.Create("MM", CultureInfo.InvariantCulture));
+
+        instantType.Description.MatchInlineSnapshot(
+            "Represents an instant on the global timeline, with nanosecond resolution.");
     }
 }
