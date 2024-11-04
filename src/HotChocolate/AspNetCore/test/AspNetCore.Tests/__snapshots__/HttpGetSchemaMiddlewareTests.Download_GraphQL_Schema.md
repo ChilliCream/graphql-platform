@@ -2,12 +2,12 @@
 
 ```text
 Headers:
-ETag: "1-B2t9cwf/BRF8NYIpFDtJE4DLg8FfD5d5HdAF9KObaUc="
+ETag: "1-LzuFZZrknIre5etJZHfNRC1e/vj+qW9tAf9pYpS8bQM="
 Cache-Control: public, must-revalidate, max-age=3600
 Content-Type: application/graphql; charset=utf-8
 Content-Disposition: attachment; filename="schema.graphql"
 Last-Modified: Fri, 01 Jan 2021 00:00:00 GMT
-Content-Length: 7193
+Content-Length: 7261
 -------------------------->
 Status Code: OK
 -------------------------->
@@ -30,7 +30,7 @@ type Droid implements Character {
   id: ID!
   name: String!
   appearsIn: [Episode]
-  friends("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FriendsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], sizedFields: [ "edges", "nodes" ])
+  friends("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FriendsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false)
   height(unit: Unit): Float
   primaryFunction: String
   traits: JSON
@@ -58,7 +58,7 @@ type Human implements Character {
   id: ID!
   name: String!
   appearsIn: [Episode]
-  friends("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FriendsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], sizedFields: [ "edges", "nodes" ])
+  friends("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FriendsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false)
   otherHuman: Human
   height(unit: Unit): Float
   homePlanet: String
