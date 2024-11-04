@@ -118,13 +118,12 @@ internal sealed class MergeTypeMiddleware : IMergeMiddleware
             if (!target.Arguments.TryGetField(sourceArgument.Name, out var targetArgument))
             {
                 context.Log.Write(LogEntryHelper.DirectiveDefinitionArgumentMismatch(new SchemaCoordinate(source.Name), source));
-                return;
+                continue;
             }
 
             if (!sourceArgument.Type.Equals(targetArgument.Type, TypeComparison.Structural))
             {
                 context.Log.Write(LogEntryHelper.DirectiveDefinitionArgumentMismatch(new SchemaCoordinate(source.Name), source));
-                return;
             }
         }
 

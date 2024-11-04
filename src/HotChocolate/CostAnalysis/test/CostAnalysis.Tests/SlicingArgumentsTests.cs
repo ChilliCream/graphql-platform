@@ -14,6 +14,7 @@ public class SlicingArgumentsTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
+                .ModifyPagingOptions(o => o.RequirePagingBoundaries = true)
                 .ExecuteRequestAsync(
                     """
                     {
@@ -54,6 +55,7 @@ public class SlicingArgumentsTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
+                .ModifyPagingOptions(o => o.RequirePagingBoundaries = true)
                 .ExecuteRequestAsync(
                     """
                     {
@@ -94,6 +96,7 @@ public class SlicingArgumentsTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
+                .ModifyPagingOptions(o => o.RequirePagingBoundaries = true)
                 .ExecuteRequestAsync(
                     """
                     {

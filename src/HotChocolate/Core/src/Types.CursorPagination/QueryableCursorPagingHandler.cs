@@ -67,6 +67,7 @@ internal sealed class QueryableCursorPagingHandler<TEntity>(PagingOptions option
             {
                 var originalQuery = executable.Source;
                 var combinedQuery = slicedQuery.Select(t => new { TotalCount = originalQuery.Count(), Item = t });
+                totalCount = 0;
 
                 var index = offset;
                 await foreach (var item in executable
