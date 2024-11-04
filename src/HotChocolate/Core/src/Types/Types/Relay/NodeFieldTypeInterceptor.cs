@@ -94,7 +94,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
                         };
                     }),
             },
-            Flags = FieldFlags.GlobalIdNodeField
+            Flags = FieldFlags.ParallelExecutable | FieldFlags.GlobalIdNodeField
         };
 
         // In the projection interceptor we want to change the context data that is on this field
@@ -134,7 +134,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
                         };
                     }),
             },
-            Flags = FieldFlags.GlobalIdNodesField
+            Flags = FieldFlags.ParallelExecutable | FieldFlags.GlobalIdNodesField
         };
 
         // In the projection interceptor we want to change the context data that is on this field

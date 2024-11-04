@@ -1,5 +1,8 @@
+using System.Globalization;
+using CookieCrumble;
 using HotChocolate.Execution;
 using NodaTime;
+using NodaTime.Text;
 
 namespace HotChocolate.Types.NodaTime.Tests;
 
@@ -96,5 +99,34 @@ public class LocalDateTypeIntegrationTests
     {
         static object Call() => new LocalDateType([]);
         Assert.Throws<SchemaException>(Call);
+    }
+
+    [Fact]
+    public void LocalDateType_DescriptionKnownPatterns_MatchesSnapshot()
+    {
+        var localDateType = new LocalDateType(LocalDatePattern.Iso, LocalDatePattern.FullRoundtrip);
+
+        localDateType.Description.MatchInlineSnapshot(
+            """
+            LocalDate represents a date within the calendar, with no reference to a particular time zone or time of day.
+
+            Allowed patterns:
+            - `YYYY-MM-DD`
+            - `YYYY-MM-DD (calendar)`
+
+            Examples:
+            - `2000-01-01`
+            - `2000-01-01 (ISO)`
+            """);
+    }
+
+    [Fact]
+    public void LocalDateType_DescriptionUnknownPatterns_MatchesSnapshot()
+    {
+        var localDateType = new LocalDateType(
+            LocalDatePattern.Create("MM", CultureInfo.InvariantCulture));
+
+        localDateType.Description.MatchInlineSnapshot(
+            "LocalDate represents a date within the calendar, with no reference to a particular time zone or time of day.");
     }
 }
