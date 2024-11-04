@@ -234,6 +234,9 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
         var result = await executor.ExecuteAsync(
             @"{
                 foos(first:1) {
+                    nodes {
+                        bar
+                    }
                     totalCount
                 }
             }");

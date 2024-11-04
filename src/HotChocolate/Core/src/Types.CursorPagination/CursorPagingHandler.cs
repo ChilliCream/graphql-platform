@@ -179,7 +179,13 @@ public abstract class CursorPagingHandler<TQuery, TEntity>(PagingOptions options
             return new Connection<TEntity>(ConnectionPageInfo.Empty, totalCount ?? -1);
         }
 
-        var data = await executor.QueryAsync(slicedQuery, offset, countRequired, cancellationToken).ConfigureAwait(false);
+        var data = await executor.QueryAsync(
+            slicedQuery,
+            originalQuery,
+            offset,
+            countRequired,
+            cancellationToken).ConfigureAwait(false);
+
         var moreItemsReturnedThanRequested = data.Edges.Length > length;
         var isSequenceFromStart = offset == 0;
         var edges = data.Edges;
