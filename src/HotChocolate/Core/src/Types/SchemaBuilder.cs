@@ -35,7 +35,8 @@ public partial class SchemaBuilder : ISchemaBuilder
     [
         typeof(IntrospectionTypeInterceptor),
         typeof(InterfaceCompletionTypeInterceptor),
-        typeof(MiddlewareValidationTypeInterceptor)
+        typeof(MiddlewareValidationTypeInterceptor),
+        typeof(SemanticNonNullTypeInterceptor),
     ];
 
     private SchemaOptions _options = new();

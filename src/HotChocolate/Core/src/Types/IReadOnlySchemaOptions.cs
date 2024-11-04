@@ -166,6 +166,12 @@ public interface IReadOnlySchemaOptions
     bool EnableStream { get; }
 
     /// <summary>
+    /// Enables the @semanticNonNull directive.
+    /// This feature is experimental and might be changed or removed in the future.
+    /// </summary>
+    bool EnableSemanticNonNull { get; }
+
+    /// <summary>
     /// Specifies the maximum allowed nodes that can be fetched at once through the nodes field.
     /// </summary>
     int MaxAllowedNodeBatchSize { get; }
