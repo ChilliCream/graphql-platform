@@ -1,5 +1,8 @@
+using System.Globalization;
+using CookieCrumble;
 using HotChocolate.Execution;
 using NodaTime;
+using NodaTime.Text;
 
 namespace HotChocolate.Types.NodaTime.Tests
 {
@@ -105,5 +108,36 @@ namespace HotChocolate.Types.NodaTime.Tests
             static object Call() => new LocalDateTimeType([]);
             Assert.Throws<SchemaException>(Call);
         }
+    }
+
+    [Fact]
+    public void LocalDateTimeType_DescriptionKnownPatterns_MatchesSnapshot()
+    {
+        var localDateTimeType = new LocalDateTimeType(
+            LocalDateTimePattern.ExtendedIso,
+            LocalDateTimePattern.FullRoundtrip);
+
+        localDateTimeType.Description.MatchInlineSnapshot(
+            """
+            A date and time in a particular calendar system.
+
+            Allowed patterns:
+            - `YYYY-MM-DDThh:mm:ss.sssssssss`
+            - `YYYY-MM-DDThh:mm:ss.sssssssss (calendar)`
+
+            Examples:
+            - `2000-01-01T20:00:00.999`
+            - `2000-01-01T20:00:00.999999999 (ISO)`
+            """);
+    }
+
+    [Fact]
+    public void LocalDateTimeType_DescriptionUnknownPatterns_MatchesSnapshot()
+    {
+        var localDateTimeType = new LocalDateTimeType(
+            LocalDateTimePattern.Create("MM", CultureInfo.InvariantCulture));
+
+        localDateTimeType.Description.MatchInlineSnapshot(
+            "A date and time in a particular calendar system.");
     }
 }

@@ -1,5 +1,8 @@
+using System.Globalization;
+using CookieCrumble;
 using HotChocolate.Execution;
 using NodaTime;
+using NodaTime.Text;
 
 namespace HotChocolate.Types.NodaTime.Tests
 {
@@ -134,5 +137,40 @@ namespace HotChocolate.Types.NodaTime.Tests
             static object Call() => new OffsetType([]);
             Assert.Throws<SchemaException>(Call);
         }
+    }
+
+    [Fact]
+    public void OffsetType_DescriptionKnownPatterns_MatchesSnapshot()
+    {
+        var offsetType = new OffsetType(
+            OffsetPattern.GeneralInvariant,
+            OffsetPattern.GeneralInvariantWithZ);
+
+        offsetType.Description.MatchInlineSnapshot(
+            """
+            An offset from UTC in seconds.
+            A positive value means that the local time is ahead of UTC (e.g. for Europe); a negative value means that the local time is behind UTC (e.g. for America).
+
+            Allowed patterns:
+            - `±hh:mm:ss`
+            - `Z`
+
+            Examples:
+            - `+02:30:00`
+            - `Z`
+            """);
+    }
+
+    [Fact]
+    public void OffsetType_DescriptionUnknownPatterns_MatchesSnapshot()
+    {
+        var offsetType = new OffsetType(
+            OffsetPattern.Create("mm", CultureInfo.InvariantCulture));
+
+        offsetType.Description.MatchInlineSnapshot(
+            """
+            An offset from UTC in seconds.
+            A positive value means that the local time is ahead of UTC (e.g. for Europe); a negative value means that the local time is behind UTC (e.g. for America).
+            """);
     }
 }
