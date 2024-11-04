@@ -166,7 +166,7 @@ public abstract class CursorPagingHandler<TQuery, TEntity>(PagingOptions options
         // we store the original query and the sliced query in the
         // context for later use by customizations.
         context.SetOriginalQuery(originalQuery);
-        context.SetSlicedQuery(originalQuery);
+        context.SetSlicedQuery(slicedQuery);
 
         // if no edges are required we will return a connection without edges.
         if (!edgesRequired)
@@ -179,7 +179,13 @@ public abstract class CursorPagingHandler<TQuery, TEntity>(PagingOptions options
             return new Connection<TEntity>(ConnectionPageInfo.Empty, totalCount ?? -1);
         }
 
-        var data = await executor.QueryAsync(slicedQuery, offset, countRequired, cancellationToken).ConfigureAwait(false);
+        var data = await executor.QueryAsync(
+            slicedQuery,
+            originalQuery,
+            offset,
+            countRequired,
+            cancellationToken).ConfigureAwait(false);
+
         var moreItemsReturnedThanRequested = data.Edges.Length > length;
         var isSequenceFromStart = offset == 0;
         var edges = data.Edges;

@@ -13,6 +13,8 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
         new TestData(Guid.NewGuid(), "D"),
     ];
 
+    public TestData[] EmptyData => [];
+
     [Fact]
     public async Task Simple_StringList_Default_Items()
     {
@@ -326,6 +328,27 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
     {
         // arrange
         var executor = CreateSchema(Data);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                root {
+                    nodes { foo }
+                    totalCount
+                }
+            }
+            """);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Nodes_And_TotalCount_EmptyData()
+    {
+        // arrange
+        var executor = CreateSchema(EmptyData);
 
         // act
         var result = await executor.ExecuteAsync(
