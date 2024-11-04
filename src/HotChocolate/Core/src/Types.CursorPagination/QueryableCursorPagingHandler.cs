@@ -56,6 +56,7 @@ internal sealed class QueryableCursorPagingHandler<TEntity>(PagingOptions option
 
         public async ValueTask<CursorPaginationData<TEntity>> QueryAsync(
             IQueryable<TEntity> slicedQuery,
+            IQueryable<TEntity> originalQuery,
             int offset,
             bool includeTotalCount,
             CancellationToken cancellationToken)
@@ -65,8 +66,8 @@ internal sealed class QueryableCursorPagingHandler<TEntity>(PagingOptions option
 
             if (includeTotalCount)
             {
-                var originalQuery = executable.Source;
                 var combinedQuery = slicedQuery.Select(t => new { TotalCount = originalQuery.Count(), Item = t });
+                totalCount = 0;
 
                 var index = offset;
                 await foreach (var item in executable

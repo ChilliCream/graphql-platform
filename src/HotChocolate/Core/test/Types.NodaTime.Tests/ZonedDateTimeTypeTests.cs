@@ -1,5 +1,8 @@
+using System.Globalization;
+using CookieCrumble;
 using HotChocolate.Execution;
 using NodaTime;
+using NodaTime.Text;
 
 namespace HotChocolate.Types.NodaTime.Tests;
 
@@ -155,5 +158,45 @@ public class ZonedDateTimeTypeIntegrationTests
     {
         static object Call() => new ZonedDateTimeType([]);
         Assert.Throws<SchemaException>(Call);
+    }
+
+    [Fact]
+    public void ZonedDateTimeType_DescriptionKnownPatterns_MatchesSnapshot()
+    {
+        var zonedDateTimeType = new ZonedDateTimeType(
+            ZonedDateTimePattern.GeneralFormatOnlyIso,
+            ZonedDateTimePattern.ExtendedFormatOnlyIso);
+
+        zonedDateTimeType.Description.MatchInlineSnapshot(
+            """
+            A LocalDateTime in a specific time zone and with a particular offset to distinguish between otherwise-ambiguous instants.
+            A ZonedDateTime is global, in that it maps to a single Instant.
+
+            Allowed patterns:
+            - `YYYY-MM-DDThh:mm:ss z (±hh:mm)`
+            - `YYYY-MM-DDThh:mm:ss.sssssssss z (±hh:mm)`
+
+            Examples:
+            - `2000-01-01T20:00:00 Europe/Zurich (+01)`
+            - `2000-01-01T20:00:00.999999999 Europe/Zurich (+01)`
+            """);
+    }
+
+    [Fact]
+    public void ZonedDateTimeType_DescriptionUnknownPatterns_MatchesSnapshot()
+    {
+        var zonedDateTimeType = new ZonedDateTimeType(
+            ZonedDateTimePattern.Create(
+                "MM",
+                CultureInfo.InvariantCulture,
+                null,
+                null,
+                new ZonedDateTime()));
+
+        zonedDateTimeType.Description.MatchInlineSnapshot(
+            """
+            A LocalDateTime in a specific time zone and with a particular offset to distinguish between otherwise-ambiguous instants.
+            A ZonedDateTime is global, in that it maps to a single Instant.
+            """);
     }
 }
