@@ -187,8 +187,6 @@ public class QueryableFilteringExtensionsTests
 
     public class BarQuery
     {
-        public Bar GetBar([ID<Bar>] Guid id) => new() { Id = id };
-
         [UseFiltering]
         public IQueryable<Bar> GetBars => new List<Bar>{
             new() { Id = Guid.Parse("2a874c44944c463a9eaf47191813266d") },
