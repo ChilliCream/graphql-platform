@@ -32,7 +32,11 @@ public class ZonedDateTimeType : StringToStructBaseType<ZonedDateTime>
 
         _allowedPatterns = allowedPatterns;
         _serializationPattern = allowedPatterns[0];
-        Description = NodaTimeResources.ZonedDateTimeType_Description;
+
+        Description = CreateDescription(
+            allowedPatterns,
+            NodaTimeResources.ZonedDateTimeType_Description,
+            NodaTimeResources.ZonedDateTimeType_Description_Extended);
     }
 
     /// <summary>
@@ -53,4 +57,22 @@ public class ZonedDateTimeType : StringToStructBaseType<ZonedDateTime>
         string resultValue,
         [NotNullWhen(true)] out ZonedDateTime? runtimeValue)
         => _allowedPatterns.TryParse(resultValue, out runtimeValue);
+
+    protected override Dictionary<IPattern<ZonedDateTime>, string> PatternMap => new()
+    {
+        { ZonedDateTimePattern.GeneralFormatOnlyIso, "YYYY-MM-DDThh:mm:ss z (±hh:mm)" },
+        { ZonedDateTimePattern.ExtendedFormatOnlyIso, "YYYY-MM-DDThh:mm:ss.sssssssss z (±hh:mm)" }
+    };
+
+    protected override Dictionary<IPattern<ZonedDateTime>, string> ExampleMap => new()
+    {
+        {
+            ZonedDateTimePattern.GeneralFormatOnlyIso,
+            "2000-01-01T20:00:00 Europe/Zurich (+01)"
+        },
+        {
+            ZonedDateTimePattern.ExtendedFormatOnlyIso,
+            "2000-01-01T20:00:00.999999999 Europe/Zurich (+01)"
+        }
+    };
 }
