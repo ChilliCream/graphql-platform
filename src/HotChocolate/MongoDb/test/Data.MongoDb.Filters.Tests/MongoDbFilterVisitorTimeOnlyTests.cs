@@ -29,9 +29,6 @@ public class MongoDbFilterVisitorTimeOnlyTests
     public MongoDbFilterVisitorTimeOnlyTests(MongoResource resource)
     {
         Init(resource);
-
-        // NOTE: At the time of coding, MongoDB C# Driver doesn't natively support TimeOnly
-        BsonSerializer.RegisterSerializationProvider(new LocalTimeOnlySerializationProvider());
     }
 
     [Fact]
@@ -149,6 +146,7 @@ public class MongoDbFilterVisitorTimeOnlyTests
     public class Foo
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public TimeOnly Bar { get; set; }
@@ -157,6 +155,7 @@ public class MongoDbFilterVisitorTimeOnlyTests
     public class FooNullable
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public TimeOnly? Bar { get; set; }
@@ -170,36 +169,5 @@ public class MongoDbFilterVisitorTimeOnlyTests
     public class FooNullableFilterType
         : FilterInputType<FooNullable>
     {
-    }
-
-    internal class LocalTimeOnlySerializationProvider : IBsonSerializationProvider
-    {
-        public IBsonSerializer? GetSerializer(Type type)
-        {
-            return type == typeof(TimeOnly) ? new TimeOnlySerializer() : null;
-        }
-    }
-
-    internal class TimeOnlySerializer : StructSerializerBase<TimeOnly>
-    {
-        public override void Serialize(
-            BsonSerializationContext context,
-            BsonSerializationArgs args,
-            TimeOnly value)
-        {
-            var dateTime = default(DateTime).Add(value.ToTimeSpan());
-            dateTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
-            var ticks = BsonUtils.ToMillisecondsSinceEpoch(dateTime);
-            context.Writer.WriteDateTime(ticks);
-        }
-
-        public override TimeOnly Deserialize(
-            BsonDeserializationContext context,
-            BsonDeserializationArgs args)
-        {
-            var ticks = context.Reader.ReadDateTime();
-            var dateTime = BsonUtils.ToDateTimeFromMillisecondsSinceEpoch(ticks);
-            return new TimeOnly(dateTime.Hour, dateTime.Minute, dateTime.Second);
-        }
     }
 }
