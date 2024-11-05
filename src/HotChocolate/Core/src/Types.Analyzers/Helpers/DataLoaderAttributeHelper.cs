@@ -86,7 +86,7 @@ public static class DataLoaderAttributeHelper
                 return keyProperty.Value?.ToString();
             }
 
-            return null;
+            return parameter.Name;
         }
 
         return null;

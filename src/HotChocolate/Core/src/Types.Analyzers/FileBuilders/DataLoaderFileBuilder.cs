@@ -50,7 +50,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
         _writer.WriteLine();
     }
 
-    public void WriteDataLoaderInterface(
+    public void WriteBeginDataLoaderInterface(
         string name,
         bool isPublic,
         DataLoaderKind kind,
@@ -74,9 +74,28 @@ public sealed class DataLoaderFileBuilder : IDisposable
 
         _writer.DecreaseIndent();
         _writer.WriteIndentedLine("{");
+    }
+
+    public void WriteDataLoaderInterfaceStateMethods(string interfaceName, ImmutableArray<DataLoaderParameterInfo> parameters)
+    {
+        using (_writer.IncreaseIndent())
+        {
+            foreach (var parameter in parameters.Where(x => x.Kind == DataLoaderParameterKind.ContextData)
+                .OrderBy(x => x.Index))
+            {
+                _writer.WriteIndentedLine("{0} With{1}({2} {3});",
+                    interfaceName, ToMethodName(parameter.Parameter.Name), parameter.Type.ToFullyQualified(),
+                    parameter.Parameter.Name);
+            }
+        }
+    }
+
+    public void WriteEndDataLoaderInterface()
+    {
         _writer.WriteIndentedLine("}");
         _writer.WriteLine();
     }
+
 
     public void WriteBeginDataLoaderClass(
         string name,
@@ -202,6 +221,24 @@ public sealed class DataLoaderFileBuilder : IDisposable
         }
 
         _writer.WriteIndentedLine("}");
+    }
+
+    public void WriteDataLoaderStateMethods(string interfaceName, ImmutableArray<DataLoaderParameterInfo> parameters)
+    {
+        foreach (var parameter in parameters.Where(x => x.Kind == DataLoaderParameterKind.ContextData)
+            .OrderBy(x => x.Index))
+        {
+            _writer.WriteIndentedLine("public {0} With{1}({2} {3})",
+                interfaceName, ToMethodName(parameter.Parameter.Name), parameter.Type.ToFullyQualified(), parameter.Parameter.Name);
+            _writer.WriteIndentedLine("{");
+            using (_writer.IncreaseIndent())
+            {
+                _writer.WriteIndentedLine("this.ContextData = this.ContextData.SetItem(\"{0}\", {1});", parameter.StateKey, parameter.Parameter.Name);
+                _writer.WriteIndentedLine("return this;");
+            }
+            _writer.WriteIndentedLine("}");
+            _writer.WriteLine();
+        }
     }
 
     public void WriteDataLoaderLoadMethod(
@@ -618,6 +655,12 @@ public sealed class DataLoaderFileBuilder : IDisposable
         throw new InvalidOperationException();
     }
 
+
+    private static string ToMethodName(string variableName)
+    {
+        return string.Concat(char.ToUpperInvariant(variableName[0]), variableName.Substring(1));
+    }
+
     public override string ToString()
         => _sb.ToString();
 
@@ -636,4 +679,5 @@ public sealed class DataLoaderFileBuilder : IDisposable
         _writer = default!;
         _disposed = true;
     }
+
 }

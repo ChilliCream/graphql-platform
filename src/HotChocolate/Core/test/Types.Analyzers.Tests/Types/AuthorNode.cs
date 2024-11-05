@@ -16,6 +16,12 @@ public static partial class AuthorNode
         CancellationToken cancellationToken)
         => await dataLoader.LoadAsync(author.Id, cancellationToken);
 
+    public static async Task<string?> GetSomeMoreInfo(
+        [Parent] Author author,
+        ISomeInfoWithServiceAndStateByIdDataLoader dataLoader,
+        CancellationToken cancellationToken)
+        => await dataLoader.WithState("xyz").WithFooId(Guid.NewGuid()).WithTenantId(12).LoadAsync(author.Id, cancellationToken);
+
     public static string GetAdditionalInfo(
         [Parent("Id")] Author author,
         string someArg)

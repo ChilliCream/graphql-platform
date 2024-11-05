@@ -56,6 +56,8 @@ public static class DataLoaders
         IReadOnlyList<int> keys,
         ChapterRepository repository,
         [DataLoaderState("key")] string? state,
+        [DataLoaderState] int tenantId,
+        [DataLoaderState] Guid fooId,
         CancellationToken ct)
         => await Task.FromResult(keys.ToDictionary(k => k, k => k + " - some info"));
 

@@ -18,6 +18,7 @@ namespace TestNamespace
     public interface IEntityByIdDataLoader
         : global::GreenDonut.IDataLoader<int, string>
     {
+        IEntityByIdDataLoader WithState(string state);
     }
 
     public sealed partial class EntityByIdDataLoader
@@ -34,6 +35,12 @@ namespace TestNamespace
         {
             _services = services ??
                 throw new global::System.ArgumentNullException(nameof(services));
+        }
+
+        public IEntityByIdDataLoader WithState(string state)
+        {
+            this.ContextData = this.ContextData.SetItem("key", state);
+            return this;
         }
 
         protected override async global::System.Threading.Tasks.ValueTask FetchAsync(

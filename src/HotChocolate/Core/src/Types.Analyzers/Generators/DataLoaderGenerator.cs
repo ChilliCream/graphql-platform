@@ -135,7 +135,9 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
 
         if (defaults.GenerateInterfaces)
         {
-            generator.WriteDataLoaderInterface(dataLoader.InterfaceName, isInterfacePublic, kind, keyType, valueType);
+            generator.WriteBeginDataLoaderInterface(dataLoader.InterfaceName, isInterfacePublic, kind, keyType, valueType);
+            generator.WriteDataLoaderInterfaceStateMethods(dataLoader.InterfaceName, dataLoader.Parameters);
+            generator.WriteEndDataLoaderInterface();
         }
 
         generator.WriteBeginDataLoaderClass(
@@ -153,6 +155,7 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
             valueType,
             dataLoader.GetLookups(keyType, valueType));
         generator.WriteLine();
+        generator.WriteDataLoaderStateMethods(defaults.GenerateInterfaces ? dataLoader.InterfaceName : dataLoader.Name, dataLoader.Parameters);
         generator.WriteDataLoaderLoadMethod(
             dataLoader.ContainingType,
             dataLoader.MethodSymbol,
@@ -279,4 +282,6 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
 
     private static string ToTypeNameNoGenerics(ITypeSymbol typeSymbol)
         => $"{typeSymbol.ContainingNamespace}.{typeSymbol.Name}";
+
+
 }
