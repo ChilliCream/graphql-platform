@@ -1,7 +1,9 @@
 #nullable enable
 
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -10,6 +12,7 @@ using HotChocolate.Types.Helpers;
 
 namespace HotChocolate;
 
+// TODO: Ignore node and error interface from semantic non-null
 public class SemanticNonNullTypeInterceptor : TypeInterceptor
 {
     private ITypeInspector _typeInspector = null!;
@@ -36,6 +39,12 @@ public class SemanticNonNullTypeInterceptor : TypeInterceptor
 
         if (definition is ObjectTypeDefinition objectDef)
         {
+            if (((RegisteredType)completionContext).IsMutationType == true)
+            {
+                // Fields on the Mutation type should stay non-null to abort execution.
+                return;
+            }
+
             foreach (var field in objectDef.Fields)
             {
                 if (field.IsIntrospectionField)
@@ -61,7 +70,14 @@ public class SemanticNonNullTypeInterceptor : TypeInterceptor
         OutputFieldDefinitionBase field,
         ITypeCompletionContext completionContext)
     {
-        if (!HasNonNullType(field))
+        if (field.Type is null)
+        {
+            return;
+        }
+
+        var levels = GetSemanticNonNullLevels(field.Type);
+
+        if (levels.Count < 1)
         {
             return;
         }
@@ -72,62 +88,172 @@ public class SemanticNonNullTypeInterceptor : TypeInterceptor
 
         ((RegisteredType)completionContext).Dependencies.Add(directiveDependency);
 
-        field.AddDirective(new SemanticNonNullDirective(), _typeInspector);
+        field.AddDirective(new SemanticNonNullDirective(levels), _typeInspector);
 
-        field.Type = RewriteTypeToNullableType(field, _typeInspector);
+        field.Type = BuildNullableTypeStructure(field.Type, _typeInspector);
     }
 
-    private static bool HasNonNullType(OutputFieldDefinitionBase definition)
+    private static List<int> GetSemanticNonNullLevels(TypeReference typeReference)
     {
-        var reference = definition.Type;
-
-        if (reference is ExtendedTypeReference extendedTypeRef)
+        if (typeReference is ExtendedTypeReference extendedTypeReference)
         {
-            return !extendedTypeRef.Type.IsNullable;
+            return GetSemanticNonNullLevelsFromReference(extendedTypeReference);
         }
 
-        if (reference is SchemaTypeReference schemaRef)
+        if (typeReference is SchemaTypeReference schemaRef)
         {
-            return schemaRef.Type is NonNullType;
+            return GetSemanticNonNullLevelsFromReference(schemaRef);
         }
 
-        if (reference is SyntaxTypeReference syntaxRef)
+        if (typeReference is SyntaxTypeReference syntaxRef)
         {
-            return syntaxRef.Type is NonNullTypeNode;
+            return GetSemanticNonNullLevelsFromReference(syntaxRef);
         }
 
-        return false;
+        return [];
     }
 
-    private static TypeReference RewriteTypeToNullableType(
-        OutputFieldDefinitionBase definition,
+    private static List<int> GetSemanticNonNullLevelsFromReference(ExtendedTypeReference typeReference)
+    {
+        var levels = new List<int>();
+
+        var currentType = typeReference.Type;
+        var index = 0;
+
+        do
+        {
+            if (currentType.IsArrayOrList)
+            {
+                if (!currentType.IsNullable)
+                {
+                    levels.Add(index);
+                }
+
+                index++;
+                currentType = currentType.ElementType;
+            }
+            else if (!currentType.IsNullable)
+            {
+                levels.Add(index);
+                break;
+            }
+            else
+            {
+                break;
+            }
+        } while (currentType is not null);
+
+        return levels;
+    }
+
+    private static List<int> GetSemanticNonNullLevelsFromReference(SchemaTypeReference typeReference)
+    {
+        var levels = new List<int>();
+
+        var currentType = typeReference.Type;
+        var index = 0;
+
+        while(true)
+        {
+            if (currentType is ListType listType)
+            {
+                index++;
+                currentType = listType.ElementType;
+            }
+            else if (currentType is NonNullType nonNullType)
+            {
+                levels.Add(index);
+                currentType = nonNullType.Type;
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        return levels;
+    }
+
+    private static List<int> GetSemanticNonNullLevelsFromReference(SyntaxTypeReference typeReference)
+    {
+        var levels = new List<int>();
+
+        var currentType = typeReference.Type;
+        var index = 0;
+
+        while(true)
+        {
+            if (currentType is ListTypeNode listType)
+            {
+                index++;
+                currentType = listType.Type;
+            }
+            else if (currentType is NonNullTypeNode nonNullType)
+            {
+                levels.Add(index);
+                currentType = nonNullType.Type;
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        return levels;
+    }
+
+    private static readonly bool?[] _fullNullablePattern = Enumerable.Range(0, 32).Select(_ => (bool?)true).ToArray();
+
+    private static TypeReference BuildNullableTypeStructure(
+        TypeReference typeReference,
         ITypeInspector typeInspector)
     {
-        var reference = definition.Type;
-
-        if (reference is ExtendedTypeReference extendedTypeRef)
+        if (typeReference is ExtendedTypeReference extendedTypeRef)
         {
-            return extendedTypeRef.Type.IsNullable
-                ? extendedTypeRef
-                : extendedTypeRef.WithType(
-                    typeInspector.ChangeNullability(extendedTypeRef.Type, true));
+            return extendedTypeRef.WithType(typeInspector.ChangeNullability(extendedTypeRef.Type, _fullNullablePattern));
         }
 
-        if (reference is SchemaTypeReference schemaRef)
+        if (typeReference is SchemaTypeReference schemaRef)
         {
-            return schemaRef.Type is NonNullType nnt
-                ? schemaRef.WithType(nnt.Type)
-                : schemaRef;
+            return schemaRef.WithType(BuildNullableTypeStructure(schemaRef.Type));
         }
 
-        if (reference is SyntaxTypeReference syntaxRef)
+        if (typeReference is SyntaxTypeReference syntaxRef)
         {
-            return syntaxRef.Type is NonNullTypeNode nnt
-                ? syntaxRef.WithType(nnt.Type)
-                : syntaxRef;
+            return syntaxRef.WithType(BuildNullableTypeStructure(syntaxRef.Type));
         }
 
         throw new NotSupportedException();
+    }
+
+    private static IType BuildNullableTypeStructure(ITypeSystemMember typeSystemMember)
+    {
+        if (typeSystemMember is ListType listType)
+        {
+            return new ListType(BuildNullableTypeStructure(listType.ElementType));
+        }
+
+        if (typeSystemMember is NonNullType nonNullType)
+        {
+            return BuildNullableTypeStructure(nonNullType.Type);
+        }
+
+        return (IType)typeSystemMember;
+    }
+
+    private static ITypeNode BuildNullableTypeStructure(ITypeNode typeNode)
+    {
+        if (typeNode is ListTypeNode listType)
+        {
+            return new ListTypeNode(BuildNullableTypeStructure(listType.Type));
+        }
+
+        if (typeNode is NonNullTypeNode nonNullType)
+        {
+            return BuildNullableTypeStructure(nonNullType.Type);
+        }
+
+        return typeNode;
     }
 
     private static ResultFormatterDefinition CreateSemanticNonNullResultFormatterDefinition()

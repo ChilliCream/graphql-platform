@@ -7,8 +7,34 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate;
 
+// TODO: Test node & paging
 public class SemanticNonNullTests
 {
+    [Fact]
+    public async Task MutationConventions()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .ModifyOptions(o =>
+            {
+                o.StrictValidation = false;
+                o.EnableSemanticNonNull = true;
+            })
+            .AddMutationConventions()
+            .AddMutationType<Mutation>()
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    public class Mutation
+    {
+        [UseMutationConvention]
+        [Error<MyException>]
+        public bool DoSomething() => true;
+    }
+
+    public class MyException : Exception;
+
     [Fact]
     public async Task Derive_SemanticNonNull_From_ImplementationFirst()
     {
@@ -16,6 +42,29 @@ public class SemanticNonNullTests
             .AddGraphQL()
             .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<Query>()
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Derive_SemanticNonNull_From_ImplementationFirst_With_GraphQLType_As_Type()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
+            .AddQueryType<QueryWithTypeAttribute>()
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Derive_SemanticNonNull_From_ImplementationFirst_With_GraphQLType_As_String()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
+            .AddType<Foo>()
+            .AddQueryType<QueryWithTypeAttributeAsString>()
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }
@@ -129,6 +178,104 @@ public class SemanticNonNullTests
 
         public Foo[][] NonNullObjectNestedArray { get; } = null!;
 
+        public Foo[]?[] InnerNonNullObjectNestedArray { get; } = null!;
+    }
+
+    [ObjectType("Query")]
+    public class QueryWithTypeAttribute
+    {
+        [GraphQLType<StringType>]
+        public string? Scalar { get; }
+
+        [GraphQLType<NonNullType<StringType>>]
+        public string NonNulScalar { get; } = null!;
+
+        [GraphQLType<ListType<StringType>>]
+        public string?[]? ScalarArray { get; }
+
+        [GraphQLType<NonNullType<ListType<NonNullType<StringType>>>>]
+        public string[] NonNullScalarArray { get; } = null!;
+
+        [GraphQLType<NonNullType<ListType<StringType>>>]
+        public string?[] OuterNonNullScalarArray { get; } = null!;
+
+        [GraphQLType<ListType<ListType<StringType>>>]
+        public string?[]?[]? ScalarNestedArray { get; }
+
+        [GraphQLType<NonNullType<ListType<NonNullType<ListType<NonNullType<StringType>>>>>>]
+        public string[][] NonNullScalarNestedArray { get; } = null!;
+
+        [GraphQLType<NonNullType<ListType<ListType<NonNullType<StringType>>>>>]
+        public string[]?[] InnerNonNullScalarNestedArray { get; } = null!;
+
+        [GraphQLType<FooType>]
+        public Foo? Object { get; }
+
+        [GraphQLType<NonNullType<FooType>>]
+        public Foo NonNullObject { get; } = null!;
+
+        [GraphQLType<ListType<FooType>>]
+        public Foo?[]? ObjectArray { get; }
+
+        [GraphQLType<NonNullType<ListType<NonNullType<FooType>>>>]
+        public Foo[] NonNullObjectArray { get; } = null!;
+
+        [GraphQLType<ListType<ListType<FooType>>>]
+        public Foo?[]?[]? ObjectNestedArray { get; }
+
+        [GraphQLType<NonNullType<ListType<NonNullType<ListType<NonNullType<FooType>>>>>>]
+        public Foo[][] NonNullObjectNestedArray { get; } = null!;
+
+        [GraphQLType<NonNullType<ListType<ListType<NonNullType<FooType>>>>>]
+        public Foo[]?[] InnerNonNullObjectNestedArray { get; } = null!;
+    }
+
+    [ObjectType("Query")]
+    public class QueryWithTypeAttributeAsString
+    {
+        [GraphQLType("String")]
+        public string? Scalar { get; }
+
+        [GraphQLType("String!")]
+        public string NonNulScalar { get; } = null!;
+
+        [GraphQLType("[String]")]
+        public string?[]? ScalarArray { get; }
+
+        [GraphQLType("[String!]!")]
+        public string[] NonNullScalarArray { get; } = null!;
+
+        [GraphQLType("[String]!")]
+        public string?[] OuterNonNullScalarArray { get; } = null!;
+
+        [GraphQLType("[[String]]")]
+        public string?[]?[]? ScalarNestedArray { get; }
+
+        [GraphQLType("[[String!]!]!")]
+        public string[][] NonNullScalarNestedArray { get; } = null!;
+
+        [GraphQLType("[[String!]]!")]
+        public string[]?[] InnerNonNullScalarNestedArray { get; } = null!;
+
+        [GraphQLType("Foo")]
+        public Foo? Object { get; }
+
+        [GraphQLType("Foo!")]
+        public Foo NonNullObject { get; } = null!;
+
+        [GraphQLType("[Foo]")]
+        public Foo?[]? ObjectArray { get; }
+
+        [GraphQLType("[Foo!]!")]
+        public Foo[] NonNullObjectArray { get; } = null!;
+
+        [GraphQLType("[[Foo]]")]
+        public Foo?[]?[]? ObjectNestedArray { get; }
+
+        [GraphQLType("[[Foo!]!]!")]
+        public Foo[][] NonNullObjectNestedArray { get; } = null!;
+
+        [GraphQLType("[[Foo!]]!")]
         public Foo[]?[] InnerNonNullObjectNestedArray { get; } = null!;
     }
 

@@ -256,6 +256,12 @@ internal sealed class TypeInitializer
             _globalComps,
             _isOfType);
 
+        // TODO: Maybe a controversial change :D
+        var kind = _getTypeKind(registeredType.Type);
+        registeredType.IsQueryType = kind == RootTypeKind.Query;
+        registeredType.IsMutationType = kind == RootTypeKind.Mutation;
+        registeredType.IsSubscriptionType = kind == RootTypeKind.Subscription;
+
         registeredType.Type.CompleteName(registeredType);
         registeredType.Status = TypeStatus.Named;
 
@@ -263,11 +269,6 @@ internal sealed class TypeInitializer
         {
             _typeRegistry.Register(registeredType.Type.Name, registeredType);
         }
-
-        var kind = _getTypeKind(registeredType.Type);
-        registeredType.IsQueryType = kind == RootTypeKind.Query;
-        registeredType.IsMutationType = kind == RootTypeKind.Mutation;
-        registeredType.IsSubscriptionType = kind == RootTypeKind.Subscription;
 
         if (kind is not RootTypeKind.None)
         {
