@@ -3,6 +3,7 @@
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using HotChocolate.Types;
+using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate;
@@ -10,6 +11,22 @@ namespace HotChocolate;
 // TODO: Test node & paging
 public class SemanticNonNullTests
 {
+    [Fact]
+    public async Task Object_Implementing_Node()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .ModifyOptions(o =>
+            {
+                o.EnableSemanticNonNull = true;
+                o.EnsureAllNodesCanBeResolved = false;
+            })
+            .AddQueryType<QueryWithNode>()
+            .AddGlobalObjectIdentification()
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
     [Fact]
     public async Task MutationConventions()
     {
@@ -25,15 +42,6 @@ public class SemanticNonNullTests
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }
-
-    public class Mutation
-    {
-        [UseMutationConvention]
-        [Error<MyException>]
-        public bool DoSomething() => true;
-    }
-
-    public class MyException : Exception;
 
     [Fact]
     public async Task Derive_SemanticNonNull_From_ImplementationFirst()
@@ -283,4 +291,22 @@ public class SemanticNonNullTests
     {
         public string Bar { get; } = default!;
     }
+
+    [ObjectType("Query")]
+    public class QueryWithNode
+    {
+        public MyNode GetMyNode() => new(1);
+    }
+
+    [Node]
+    public record MyNode([property: ID] int Id);
+
+    public class Mutation
+    {
+        [UseMutationConvention]
+        [Error<MyException>]
+        public bool DoSomething() => true;
+    }
+
+    public class MyException : Exception;
 }

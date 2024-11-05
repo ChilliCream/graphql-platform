@@ -1,21 +1,20 @@
 #nullable enable
 
 using HotChocolate.Configuration;
-using HotChocolate.Internal;
 using HotChocolate.Language;
-using HotChocolate.Language.Visitors;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
+using HotChocolate.Types.Relay;
 
 namespace HotChocolate;
 
-// TODO: Ignore node and error interface from semantic non-null
 public class SemanticNonNullTypeInterceptor : TypeInterceptor
 {
     private ITypeInspector _typeInspector = null!;
+    private ExtendedTypeReference _nodeTypeReference = null!;
 
     internal override bool IsEnabled(IDescriptorContext context)
         => context.Options.EnableSemanticNonNull;
@@ -28,6 +27,8 @@ public class SemanticNonNullTypeInterceptor : TypeInterceptor
         TypeReferenceResolver typeReferenceResolver)
     {
         _typeInspector = context.TypeInspector;
+
+        _nodeTypeReference = _typeInspector.GetTypeRef(typeof(NodeType));
     }
 
     public override void OnAfterCompleteName(ITypeCompletionContext completionContext, DefinitionBase definition)
@@ -45,9 +46,16 @@ public class SemanticNonNullTypeInterceptor : TypeInterceptor
                 return;
             }
 
+            var implementsNode = objectDef.Interfaces.Any(i => i.Equals(_nodeTypeReference));
+
             foreach (var field in objectDef.Fields)
             {
                 if (field.IsIntrospectionField)
+                {
+                    continue;
+                }
+
+                if (implementsNode && field.Name == "id")
                 {
                     continue;
                 }
@@ -59,6 +67,12 @@ public class SemanticNonNullTypeInterceptor : TypeInterceptor
         }
         else if (definition is InterfaceTypeDefinition interfaceDef)
         {
+            if (interfaceDef.Name == "Node")
+            {
+                // The Node interface is well defined, so we don't want to go and change the type of its fields.
+                return;
+            }
+
             foreach (var field in interfaceDef.Fields)
             {
                 ApplySemanticNonNullDirective(field, completionContext);
