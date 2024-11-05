@@ -1967,6 +1967,153 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         await snapshot.MatchMarkdownAsync();
     }
 
+    [Fact]
+    public async Task Test()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            configure: builder =>
+                builder
+                    .AddDocumentFromString(
+                        """
+                        type Query {
+                          node(id: ID!): Node
+                          wrapper: Wrapper
+                        }
+
+                        type Wrapper implements Node {
+                          id: ID!
+                          items: [ItemUnion!]!
+                        }
+
+                        type Item1 implements Node {
+                          id: ID!
+                          product: Product
+                        }
+
+                        type Item2 implements Node {
+                          id: ID!
+                          product: Product
+                        }
+
+                        type Item3 implements Node {
+                          id: ID!
+                          product: Product
+                        }
+
+                        type Product implements Node {
+                          id: ID!
+                        }
+
+                        interface Node {
+                          id: ID!
+                        }
+
+                        union ItemUnion = Item1 | Item2 | Item3
+                        """)
+                    .AddResolverMocking()
+                    .UseDefaultPipeline()
+                    .UseRequest(_ => context =>
+                    {
+                        context.Result = OperationResultBuilder.New()
+                            .SetData(new Dictionary<string, object?>
+                            {
+                                ["wrapper"] = new Dictionary<string, object>
+                                {
+                                    ["id"] = "1",
+                                    ["items"] = new List<object>
+                                    {
+                                        new Dictionary<string, object>
+                                        {
+                                            ["__typename"] = "Item1",
+                                            ["id"] = "2",
+                                            ["product"] = new Dictionary<string, object>
+                                            {
+                                                ["id"] = "22"
+                                            }
+                                        },
+                                        new Dictionary<string, object>
+                                        {
+                                            ["__typename"] = "Item2",
+                                            ["id"] = "3",
+                                            ["product"] = new Dictionary<string, object>
+                                            {
+                                                ["id"] = "33"
+                                            }
+                                        },
+                                        new Dictionary<string, object>
+                                        {
+                                            ["__typename"] = "Item3",
+                                            ["id"] = "4",
+                                            ["product"] = new Dictionary<string, object>
+                                            {
+                                                ["id"] = "44"
+                                            }
+                                        },
+                                    }
+                                }
+                            })
+                            .Build();
+                        return default;
+                    }));
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              nodes(ids: [ID!]!): [Node]!
+            }
+
+            type Product implements Node {
+              id: ID!
+              name: String!
+            }
+
+            interface Node {
+              id: ID!
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        wrapper {
+                          id
+                          items {
+                            __typename
+                            ... on Item1 {
+                              id
+                              product {
+                                id
+                                name
+                              }
+                            }
+                            ... on Item2 {
+                              id
+                              product {
+                                id
+                                name
+                              }
+                            }
+                            ... on Item3 {
+                              id
+                              product {
+                                id
+                                name
+                              }
+                            }
+                          }
+                        }
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        MatchMarkdownSnapshot(request, result);
+    }
+
     public sealed class HotReloadConfiguration : IObservable<GatewayConfiguration>
     {
         private GatewayConfiguration _configuration;
