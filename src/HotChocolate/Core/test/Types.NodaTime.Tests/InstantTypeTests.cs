@@ -46,10 +46,15 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void ParsesVariable()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.New()
-                    .SetDocument("mutation($arg: Instant!) { test(arg: $arg) }")
-                    .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-02-21T17:42:59.000001234Z" }, })
-                    .Build());
+                .Execute(
+                    OperationRequestBuilder.New()
+                        .SetDocument("mutation($arg: Instant!) { test(arg: $arg) }")
+                        .SetVariableValues(
+                            new Dictionary<string, object?>
+                            {
+                                { "arg", "2020-02-21T17:42:59.000001234Z" },
+                            })
+                        .Build());
 
             Assert.Equal(
                 "2020-02-21T17:52:59.000001234Z",
@@ -60,10 +65,15 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void DoesntParseAnIncorrectVariable()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.New()
-                    .SetDocument("mutation($arg: Instant!) { test(arg: $arg) }")
-                    .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-02-20T17:42:59" }, })
-                    .Build());
+                .Execute(
+                    OperationRequestBuilder.New()
+                        .SetDocument("mutation($arg: Instant!) { test(arg: $arg) }")
+                        .SetVariableValues(
+                            new Dictionary<string, object?>
+                            {
+                                { "arg", "2020-02-20T17:42:59" },
+                            })
+                        .Build());
 
             Assert.Null(result.ExpectOperationResult().Data);
             Assert.Single(result.ExpectOperationResult().Errors!);
@@ -73,9 +83,10 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void ParsesLiteral()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.New()
-                    .SetDocument("mutation { test(arg: \"2020-02-20T17:42:59.000001234Z\") }")
-                    .Build());
+                .Execute(
+                    OperationRequestBuilder.New()
+                        .SetDocument("mutation { test(arg: \"2020-02-20T17:42:59.000001234Z\") }")
+                        .Build());
 
             Assert.Equal(
                 "2020-02-20T17:52:59.000001234Z",
@@ -86,9 +97,10 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void DoesntParseIncorrectLiteral()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.New()
-                    .SetDocument("mutation { test(arg: \"2020-02-20T17:42:59\") }")
-                    .Build());
+                .Execute(
+                    OperationRequestBuilder.New()
+                        .SetDocument("mutation { test(arg: \"2020-02-20T17:42:59\") }")
+                        .Build());
 
             Assert.Null(result.ExpectOperationResult().Data);
             Assert.Single(result.ExpectOperationResult().Errors!);
@@ -104,34 +116,35 @@ namespace HotChocolate.Types.NodaTime.Tests
             static object Call() => new InstantType([]);
             Assert.Throws<SchemaException>(Call);
         }
-    }
 
-    [Fact]
-    public void InstantType_DescriptionKnownPatterns_MatchesSnapshot()
-    {
-        var instantType = new InstantType(InstantPattern.General, InstantPattern.ExtendedIso);
 
-        instantType.Description.MatchInlineSnapshot(
-            """
-            Represents an instant on the global timeline, with nanosecond resolution.
+        [Fact]
+        public void InstantType_DescriptionKnownPatterns_MatchesSnapshot()
+        {
+            var instantType = new InstantType(InstantPattern.General, InstantPattern.ExtendedIso);
 
-            Allowed patterns:
-            - `YYYY-MM-DDThh:mm:ss±hh:mm`
-            - `YYYY-MM-DDThh:mm:ss.sssssssss±hh:mm`
+            instantType.Description.MatchInlineSnapshot(
+                """
+                Represents an instant on the global timeline, with nanosecond resolution.
 
-            Examples:
-            - `2000-01-01T20:00:00Z`
-            - `2000-01-01T20:00:00.999999999Z`
-            """);
-    }
+                Allowed patterns:
+                - `YYYY-MM-DDThh:mm:ss±hh:mm`
+                - `YYYY-MM-DDThh:mm:ss.sssssssss±hh:mm`
 
-    [Fact]
-    public void InstantType_DescriptionUnknownPatterns_MatchesSnapshot()
-    {
-        var instantType = new InstantType(
-            InstantPattern.Create("MM", CultureInfo.InvariantCulture));
+                Examples:
+                - `2000-01-01T20:00:00Z`
+                - `2000-01-01T20:00:00.999999999Z`
+                """);
+        }
 
-        instantType.Description.MatchInlineSnapshot(
-            "Represents an instant on the global timeline, with nanosecond resolution.");
+        [Fact]
+        public void InstantType_DescriptionUnknownPatterns_MatchesSnapshot()
+        {
+            var instantType = new InstantType(
+                InstantPattern.Create("MM", CultureInfo.InvariantCulture));
+
+            instantType.Description.MatchInlineSnapshot(
+                "Represents an instant on the global timeline, with nanosecond resolution.");
+        }
     }
 }

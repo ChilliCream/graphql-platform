@@ -67,8 +67,8 @@ public class DataLoaderTests
         await ExpectValid(
             """
             {
-                a: node(id: "RW50aXR5OjE==") { ... on Entity { id } }
-                b: node(id: "RW50aXR5OjI==") { ... on Entity { id } }
+                a: node(id: "RW50aXR5OjE=") { ... on Entity { id } }
+                b: node(id: "RW50aXR5OjI=") { ... on Entity { id } }
             }
             """,
             configure: b => b

@@ -55,10 +55,15 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void ParsesVariable()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.New()
-                    .SetDocument("mutation($arg: OffsetDate!) { test(arg: $arg) }")
-                    .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-12-31+02" }, })
-                    .Build());
+                .Execute(
+                    OperationRequestBuilder.New()
+                        .SetDocument("mutation($arg: OffsetDate!) { test(arg: $arg) }")
+                        .SetVariableValues(
+                            new Dictionary<string, object?>
+                            {
+                                { "arg", "2020-12-31+02" },
+                            })
+                        .Build());
             Assert.Equal("2020-12-31+02", result.ExpectOperationResult().Data!["test"]);
         }
 
@@ -66,10 +71,15 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void ParsesVariableWithMinutes()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.New()
-                    .SetDocument("mutation($arg: OffsetDate!) { test(arg: $arg) }")
-                    .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-12-31+02:35" }, })
-                    .Build());
+                .Execute(
+                    OperationRequestBuilder.New()
+                        .SetDocument("mutation($arg: OffsetDate!) { test(arg: $arg) }")
+                        .SetVariableValues(
+                            new Dictionary<string, object?>
+                            {
+                                { "arg", "2020-12-31+02:35" },
+                            })
+                        .Build());
             Assert.Equal("2020-12-31+02:35", result.ExpectOperationResult().Data!["test"]);
         }
 
@@ -77,10 +87,15 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void DoesntParseAnIncorrectVariable()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.New()
-                    .SetDocument("mutation($arg: OffsetDate!) { test(arg: $arg) }")
-                    .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-12-31" }, })
-                    .Build());
+                .Execute(
+                    OperationRequestBuilder.New()
+                        .SetDocument("mutation($arg: OffsetDate!) { test(arg: $arg) }")
+                        .SetVariableValues(
+                            new Dictionary<string, object?>
+                            {
+                                { "arg", "2020-12-31" },
+                            })
+                        .Build());
             Assert.Null(result.ExpectOperationResult().Data);
             Assert.Single(result.ExpectOperationResult().Errors!);
         }
@@ -89,9 +104,10 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void ParsesLiteral()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.New()
-                    .SetDocument("mutation { test(arg: \"2020-12-31+02\") }")
-                    .Build());
+                .Execute(
+                    OperationRequestBuilder.New()
+                        .SetDocument("mutation { test(arg: \"2020-12-31+02\") }")
+                        .Build());
             Assert.Equal("2020-12-31+02", result.ExpectOperationResult().Data!["test"]);
         }
 
@@ -99,9 +115,10 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void ParsesLiteralWithMinutes()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.New()
-                    .SetDocument("mutation { test(arg: \"2020-12-31+02:35\") }")
-                    .Build());
+                .Execute(
+                    OperationRequestBuilder.New()
+                        .SetDocument("mutation { test(arg: \"2020-12-31+02:35\") }")
+                        .Build());
             Assert.Equal("2020-12-31+02:35", result.ExpectOperationResult().Data!["test"]);
         }
 
@@ -109,9 +126,10 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void DoesntParseIncorrectLiteral()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.New()
-                    .SetDocument("mutation { test(arg: \"2020-12-31\") }")
-                    .Build());
+                .Execute(
+                    OperationRequestBuilder.New()
+                        .SetDocument("mutation { test(arg: \"2020-12-31\") }")
+                        .Build());
             Assert.Null(result.ExpectOperationResult().Data);
             Assert.Single(result.ExpectOperationResult().Errors!);
             Assert.Null(result.ExpectOperationResult().Errors![0].Code);
@@ -126,36 +144,36 @@ namespace HotChocolate.Types.NodaTime.Tests
             static object Call() => new OffsetDateType([]);
             Assert.Throws<SchemaException>(Call);
         }
-    }
 
-    [Fact]
-    public void OffsetDateType_DescriptionKnownPatterns_MatchesSnapshot()
-    {
-        var offsetDateType = new OffsetDateType(
-            OffsetDatePattern.GeneralIso,
-            OffsetDatePattern.FullRoundtrip);
+        [Fact]
+        public void OffsetDateType_DescriptionKnownPatterns_MatchesSnapshot()
+        {
+            var offsetDateType = new OffsetDateType(
+                OffsetDatePattern.GeneralIso,
+                OffsetDatePattern.FullRoundtrip);
 
-        offsetDateType.Description.MatchInlineSnapshot(
-            """
-            A combination of a LocalDate and an Offset, to represent a date at a specific offset from UTC but without any time-of-day information.
+            offsetDateType.Description.MatchInlineSnapshot(
+                """
+                A combination of a LocalDate and an Offset, to represent a date at a specific offset from UTC but without any time-of-day information.
 
-            Allowed patterns:
-            - `YYYY-MM-DD±hh:mm`
-            - `YYYY-MM-DD±hh:mm (calendar)`
+                Allowed patterns:
+                - `YYYY-MM-DD±hh:mm`
+                - `YYYY-MM-DD±hh:mm (calendar)`
 
-            Examples:
-            - `2000-01-01Z`
-            - `2000-01-01Z (ISO)`
-            """);
-    }
+                Examples:
+                - `2000-01-01Z`
+                - `2000-01-01Z (ISO)`
+                """);
+        }
 
-    [Fact]
-    public void OffsetDateType_DescriptionUnknownPatterns_MatchesSnapshot()
-    {
-        var offsetDateType = new OffsetDateType(
-            OffsetDatePattern.Create("MM", CultureInfo.InvariantCulture, new OffsetDate()));
+        [Fact]
+        public void OffsetDateType_DescriptionUnknownPatterns_MatchesSnapshot()
+        {
+            var offsetDateType = new OffsetDateType(
+                OffsetDatePattern.Create("MM", CultureInfo.InvariantCulture, new OffsetDate()));
 
-        offsetDateType.Description.MatchInlineSnapshot(
-            "A combination of a LocalDate and an Offset, to represent a date at a specific offset from UTC but without any time-of-day information.");
+            offsetDateType.Description.MatchInlineSnapshot(
+                "A combination of a LocalDate and an Offset, to represent a date at a specific offset from UTC but without any time-of-day information.");
+        }
     }
 }

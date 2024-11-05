@@ -49,7 +49,11 @@ namespace HotChocolate.Types.NodaTime.Tests
                 .Execute(
                     OperationRequestBuilder.New()
                         .SetDocument("mutation($arg: LocalTime!) { test(arg: $arg) }")
-                        .SetVariableValues(new Dictionary<string, object?> { { "arg", "12:42:13.031011234" }, })
+                        .SetVariableValues(
+                            new Dictionary<string, object?>
+                            {
+                                { "arg", "12:42:13.031011234" },
+                            })
                         .Build());
 
             Assert.Equal("12:52:13.031011234", result.ExpectOperationResult().Data!["test"]);
@@ -62,7 +66,11 @@ namespace HotChocolate.Types.NodaTime.Tests
                 .Execute(
                     OperationRequestBuilder.New()
                         .SetDocument("mutation($arg: LocalTime!) { test(arg: $arg) }")
-                        .SetVariableValues(new Dictionary<string, object?> { { "arg", "12:42:13" }, })
+                        .SetVariableValues(
+                            new Dictionary<string, object?>
+                            {
+                                { "arg", "12:42:13" },
+                            })
                         .Build());
 
             Assert.Equal("12:52:13", result.ExpectOperationResult().Data!["test"]);
@@ -75,7 +83,11 @@ namespace HotChocolate.Types.NodaTime.Tests
                 .Execute(
                     OperationRequestBuilder.New()
                         .SetDocument("mutation($arg: LocalTime!) { test(arg: $arg) }")
-                        .SetVariableValues(new Dictionary<string, object?> { { "arg", "12:42" }, })
+                        .SetVariableValues(
+                            new Dictionary<string, object?>
+                            {
+                                { "arg", "12:42" },
+                            })
                         .Build());
 
             Assert.Null(result.ExpectOperationResult().Data);
@@ -129,36 +141,36 @@ namespace HotChocolate.Types.NodaTime.Tests
             static object Call() => new LocalTimeType([]);
             Assert.Throws<SchemaException>(Call);
         }
-    }
 
-    [Fact]
-    public void LocalTimeType_DescriptionKnownPatterns_MatchesSnapshot()
-    {
-        var localTimeType = new LocalTimeType(
-            LocalTimePattern.GeneralIso,
-            LocalTimePattern.ExtendedIso);
+        [Fact]
+        public void LocalTimeType_DescriptionKnownPatterns_MatchesSnapshot()
+        {
+            var localTimeType = new LocalTimeType(
+                LocalTimePattern.GeneralIso,
+                LocalTimePattern.ExtendedIso);
 
-        localTimeType.Description.MatchInlineSnapshot(
-            """
-            LocalTime represents a time of day, with no reference to a particular calendar, time zone, or date.
+            localTimeType.Description.MatchInlineSnapshot(
+                """
+                LocalTime represents a time of day, with no reference to a particular calendar, time zone, or date.
 
-            Allowed patterns:
-            - `hh:mm:ss`
-            - `hh:mm:ss.sssssssss`
+                Allowed patterns:
+                - `hh:mm:ss`
+                - `hh:mm:ss.sssssssss`
 
-            Examples:
-            - `20:00:00`
-            - `20:00:00.999`
-            """);
-    }
+                Examples:
+                - `20:00:00`
+                - `20:00:00.999`
+                """);
+        }
 
-    [Fact]
-    public void LocalTimeType_DescriptionUnknownPatterns_MatchesSnapshot()
-    {
-        var localTimeType = new LocalTimeType(
-            LocalTimePattern.Create("mm", CultureInfo.InvariantCulture));
+        [Fact]
+        public void LocalTimeType_DescriptionUnknownPatterns_MatchesSnapshot()
+        {
+            var localTimeType = new LocalTimeType(
+                LocalTimePattern.Create("mm", CultureInfo.InvariantCulture));
 
-        localTimeType.Description.MatchInlineSnapshot(
-            "LocalTime represents a time of day, with no reference to a particular calendar, time zone, or date.");
+            localTimeType.Description.MatchInlineSnapshot(
+                "LocalTime represents a time of day, with no reference to a particular calendar, time zone, or date.");
+        }
     }
 }

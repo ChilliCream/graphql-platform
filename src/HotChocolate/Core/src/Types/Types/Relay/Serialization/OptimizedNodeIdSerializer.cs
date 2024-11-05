@@ -118,7 +118,7 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
             }
         }
 
-        Base64.DecodeFromUtf8InPlace(span, out var written);
+        var status = Base64.DecodeFromUtf8InPlace(span, out var written);
         span = span.Slice(0, written);
 
         var delimiterIndex = FindDelimiterIndex(span);

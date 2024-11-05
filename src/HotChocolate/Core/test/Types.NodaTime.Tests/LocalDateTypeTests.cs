@@ -13,8 +13,8 @@ namespace HotChocolate.Types.NodaTime.Tests
             public class Query
             {
                 public LocalDate One => LocalDate.FromDateTime(
-                    new DateTime(2020, 02, 20, 17, 42, 59))
-                        .WithCalendar(CalendarSystem.HebrewCivil);
+                        new DateTime(2020, 02, 20, 17, 42, 59))
+                    .WithCalendar(CalendarSystem.HebrewCivil);
             }
 
             public class Mutation
@@ -46,10 +46,15 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void ParsesVariable()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.New()
-                    .SetDocument("mutation($arg: LocalDate!) { test(arg: $arg) }")
-                    .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-02-21" }, })
-                    .Build());
+                .Execute(
+                    OperationRequestBuilder.New()
+                        .SetDocument("mutation($arg: LocalDate!) { test(arg: $arg) }")
+                        .SetVariableValues(
+                            new Dictionary<string, object?>
+                            {
+                                { "arg", "2020-02-21" },
+                            })
+                        .Build());
 
             Assert.Equal("2020-02-24", result.ExpectOperationResult().Data!["test"]);
         }
@@ -58,10 +63,15 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void DoesntParseAnIncorrectVariable()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.New()
-                    .SetDocument("mutation($arg: LocalDate!) { test(arg: $arg) }")
-                    .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-02-20T17:42:59" }, })
-                    .Build());
+                .Execute(
+                    OperationRequestBuilder.New()
+                        .SetDocument("mutation($arg: LocalDate!) { test(arg: $arg) }")
+                        .SetVariableValues(
+                            new Dictionary<string, object?>
+                            {
+                                { "arg", "2020-02-20T17:42:59" },
+                            })
+                        .Build());
 
             Assert.Null(result.ExpectOperationResult().Data);
             Assert.Single(result.ExpectOperationResult().Errors!);
@@ -71,9 +81,10 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void ParsesLiteral()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.New()
-                    .SetDocument("mutation { test(arg: \"2020-02-20\") }")
-                    .Build());
+                .Execute(
+                    OperationRequestBuilder.New()
+                        .SetDocument("mutation { test(arg: \"2020-02-20\") }")
+                        .Build());
 
             Assert.Equal("2020-02-23", result.ExpectOperationResult().Data!["test"]);
         }
@@ -82,9 +93,10 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void DoesntParseIncorrectLiteral()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.New()
-                    .SetDocument("mutation { test(arg: \"2020-02-20T17:42:59\") }")
-                    .Build());
+                .Execute(
+                    OperationRequestBuilder.New()
+                        .SetDocument("mutation { test(arg: \"2020-02-20T17:42:59\") }")
+                        .Build());
 
             Assert.Null(result.ExpectOperationResult().Data);
             Assert.Single(result.ExpectOperationResult().Errors!);
@@ -100,34 +112,34 @@ namespace HotChocolate.Types.NodaTime.Tests
             static object Call() => new LocalDateType([]);
             Assert.Throws<SchemaException>(Call);
         }
-    }
 
-    [Fact]
-    public void LocalDateType_DescriptionKnownPatterns_MatchesSnapshot()
-    {
-        var localDateType = new LocalDateType(LocalDatePattern.Iso, LocalDatePattern.FullRoundtrip);
+        [Fact]
+        public void LocalDateType_DescriptionKnownPatterns_MatchesSnapshot()
+        {
+            var localDateType = new LocalDateType(LocalDatePattern.Iso, LocalDatePattern.FullRoundtrip);
 
-        localDateType.Description.MatchInlineSnapshot(
-            """
-            LocalDate represents a date within the calendar, with no reference to a particular time zone or time of day.
+            localDateType.Description.MatchInlineSnapshot(
+                """
+                LocalDate represents a date within the calendar, with no reference to a particular time zone or time of day.
 
-            Allowed patterns:
-            - `YYYY-MM-DD`
-            - `YYYY-MM-DD (calendar)`
+                Allowed patterns:
+                - `YYYY-MM-DD`
+                - `YYYY-MM-DD (calendar)`
 
-            Examples:
-            - `2000-01-01`
-            - `2000-01-01 (ISO)`
-            """);
-    }
+                Examples:
+                - `2000-01-01`
+                - `2000-01-01 (ISO)`
+                """);
+        }
 
-    [Fact]
-    public void LocalDateType_DescriptionUnknownPatterns_MatchesSnapshot()
-    {
-        var localDateType = new LocalDateType(
-            LocalDatePattern.Create("MM", CultureInfo.InvariantCulture));
+        [Fact]
+        public void LocalDateType_DescriptionUnknownPatterns_MatchesSnapshot()
+        {
+            var localDateType = new LocalDateType(
+                LocalDatePattern.Create("MM", CultureInfo.InvariantCulture));
 
-        localDateType.Description.MatchInlineSnapshot(
-            "LocalDate represents a date within the calendar, with no reference to a particular time zone or time of day.");
+            localDateType.Description.MatchInlineSnapshot(
+                "LocalDate represents a date within the calendar, with no reference to a particular time zone or time of day.");
+        }
     }
 }

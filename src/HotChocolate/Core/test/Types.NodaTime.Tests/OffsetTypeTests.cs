@@ -56,10 +56,15 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void ParsesVariable()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.New()
-                    .SetDocument("mutation($arg: Offset!) { test(arg: $arg) }")
-                    .SetVariableValues(new Dictionary<string, object?> { {"arg", "+02" }, })
-                    .Build());
+                .Execute(
+                    OperationRequestBuilder.New()
+                        .SetDocument("mutation($arg: Offset!) { test(arg: $arg) }")
+                        .SetVariableValues(
+                            new Dictionary<string, object?>
+                            {
+                                { "arg", "+02" },
+                            })
+                        .Build());
             Assert.Equal("+03:05", result.ExpectOperationResult().Data!["test"]);
         }
 
@@ -67,10 +72,15 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void ParsesVariableWithMinutes()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.New()
-                    .SetDocument("mutation($arg: Offset!) { test(arg: $arg) }")
-                    .SetVariableValues(new Dictionary<string, object?> { {"arg", "+02:35" }, })
-                    .Build());
+                .Execute(
+                    OperationRequestBuilder.New()
+                        .SetDocument("mutation($arg: Offset!) { test(arg: $arg) }")
+                        .SetVariableValues(
+                            new Dictionary<string, object?>
+                            {
+                                { "arg", "+02:35" },
+                            })
+                        .Build());
             Assert.Equal("+03:40", result.ExpectOperationResult().Data!["test"]);
         }
 
@@ -78,10 +88,15 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void DoesntParseAnIncorrectVariable()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.New()
-                    .SetDocument("mutation($arg: Offset!) { test(arg: $arg) }")
-                    .SetVariableValues(new Dictionary<string, object?> { {"arg", "18:30:13+02" }, })
-                    .Build());
+                .Execute(
+                    OperationRequestBuilder.New()
+                        .SetDocument("mutation($arg: Offset!) { test(arg: $arg) }")
+                        .SetVariableValues(
+                            new Dictionary<string, object?>
+                            {
+                                { "arg", "18:30:13+02" },
+                            })
+                        .Build());
             Assert.Null(result.ExpectOperationResult().Data);
             Assert.Single(result.ExpectOperationResult().Errors!);
         }
@@ -90,9 +105,10 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void ParsesLiteral()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.New()
-                    .SetDocument("mutation { test(arg: \"+02\") }")
-                    .Build());
+                .Execute(
+                    OperationRequestBuilder.New()
+                        .SetDocument("mutation { test(arg: \"+02\") }")
+                        .Build());
             Assert.Equal("+03:05", result.ExpectOperationResult().Data!["test"]);
         }
 
@@ -100,9 +116,10 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void ParsesLiteralWithMinutes()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.New()
-                    .SetDocument("mutation { test(arg: \"+02:35\") }")
-                    .Build());
+                .Execute(
+                    OperationRequestBuilder.New()
+                        .SetDocument("mutation { test(arg: \"+02:35\") }")
+                        .Build());
             Assert.Equal("+03:40", result.ExpectOperationResult().Data!["test"]);
         }
 
@@ -110,9 +127,10 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void ParsesLiteralWithZ()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.New()
-                    .SetDocument("mutation { test(arg: \"Z\") }")
-                    .Build());
+                .Execute(
+                    OperationRequestBuilder.New()
+                        .SetDocument("mutation { test(arg: \"Z\") }")
+                        .Build());
             Assert.Equal("+01:05", result.ExpectOperationResult().Data!["test"]);
         }
 
@@ -120,9 +138,10 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void DoesntParseIncorrectLiteral()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.New()
-                    .SetDocument("mutation { test(arg: \"18:30:13+02\") }")
-                    .Build());
+                .Execute(
+                    OperationRequestBuilder.New()
+                        .SetDocument("mutation { test(arg: \"18:30:13+02\") }")
+                        .Build());
             Assert.Null(result.ExpectOperationResult().Data);
             Assert.Single(result.ExpectOperationResult().Errors!);
             Assert.Null(result.ExpectOperationResult().Errors![0].Code);
@@ -137,40 +156,40 @@ namespace HotChocolate.Types.NodaTime.Tests
             static object Call() => new OffsetType([]);
             Assert.Throws<SchemaException>(Call);
         }
-    }
 
-    [Fact]
-    public void OffsetType_DescriptionKnownPatterns_MatchesSnapshot()
-    {
-        var offsetType = new OffsetType(
-            OffsetPattern.GeneralInvariant,
-            OffsetPattern.GeneralInvariantWithZ);
+        [Fact]
+        public void OffsetType_DescriptionKnownPatterns_MatchesSnapshot()
+        {
+            var offsetType = new OffsetType(
+                OffsetPattern.GeneralInvariant,
+                OffsetPattern.GeneralInvariantWithZ);
 
-        offsetType.Description.MatchInlineSnapshot(
-            """
-            An offset from UTC in seconds.
-            A positive value means that the local time is ahead of UTC (e.g. for Europe); a negative value means that the local time is behind UTC (e.g. for America).
+            offsetType.Description.MatchInlineSnapshot(
+                """
+                An offset from UTC in seconds.
+                A positive value means that the local time is ahead of UTC (e.g. for Europe); a negative value means that the local time is behind UTC (e.g. for America).
 
-            Allowed patterns:
-            - `±hh:mm:ss`
-            - `Z`
+                Allowed patterns:
+                - `±hh:mm:ss`
+                - `Z`
 
-            Examples:
-            - `+02:30:00`
-            - `Z`
-            """);
-    }
+                Examples:
+                - `+02:30:00`
+                - `Z`
+                """);
+        }
 
-    [Fact]
-    public void OffsetType_DescriptionUnknownPatterns_MatchesSnapshot()
-    {
-        var offsetType = new OffsetType(
-            OffsetPattern.Create("mm", CultureInfo.InvariantCulture));
+        [Fact]
+        public void OffsetType_DescriptionUnknownPatterns_MatchesSnapshot()
+        {
+            var offsetType = new OffsetType(
+                OffsetPattern.Create("mm", CultureInfo.InvariantCulture));
 
-        offsetType.Description.MatchInlineSnapshot(
-            """
-            An offset from UTC in seconds.
-            A positive value means that the local time is ahead of UTC (e.g. for Europe); a negative value means that the local time is behind UTC (e.g. for America).
-            """);
+            offsetType.Description.MatchInlineSnapshot(
+                """
+                An offset from UTC in seconds.
+                A positive value means that the local time is ahead of UTC (e.g. for Europe); a negative value means that the local time is behind UTC (e.g. for America).
+                """);
+        }
     }
 }

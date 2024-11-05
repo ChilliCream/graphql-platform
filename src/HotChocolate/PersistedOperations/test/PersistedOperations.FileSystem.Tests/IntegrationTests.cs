@@ -1,7 +1,7 @@
+using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Types;
 using HotChocolate.Execution;
-using Snapshooter.Xunit;
 using HotChocolate.Language;
 using IO = System.IO;
 

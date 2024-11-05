@@ -21,7 +21,7 @@ public class ResolverTests
                 }
             }
 
-            internal class Test;
+            internal class Test { }
             """).MatchMarkdownAsync();
     }
 
@@ -44,7 +44,7 @@ public class ResolverTests
                 }
             }
 
-            internal class Test;
+            internal class Test { }
             """).MatchMarkdownAsync();
     }
 
@@ -67,7 +67,7 @@ public class ResolverTests
                 }
             }
 
-            internal class Test;
+            internal class Test { }
             """).MatchMarkdownAsync();
     }
 
@@ -91,7 +91,7 @@ public class ResolverTests
                 }
             }
 
-            internal class Test;
+            internal class Test { }
             """).MatchMarkdownAsync();
     }
 
@@ -115,7 +115,7 @@ public class ResolverTests
                 }
             }
 
-            internal class Test;
+            internal class Test { }
             """).MatchMarkdownAsync();
     }
 
@@ -139,7 +139,7 @@ public class ResolverTests
                 }
             }
 
-            internal class Test;
+            internal class Test { }
             """).MatchMarkdownAsync();
     }
 }

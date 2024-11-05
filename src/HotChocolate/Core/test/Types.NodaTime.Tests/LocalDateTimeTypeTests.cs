@@ -52,7 +52,10 @@ namespace HotChocolate.Types.NodaTime.Tests
                     OperationRequestBuilder.New()
                         .SetDocument("mutation($arg: LocalDateTime!) { test(arg: $arg) }")
                         .SetVariableValues(
-                            new Dictionary<string, object?> { { "arg", "2020-02-21T17:42:59.000001234" }, })
+                            new Dictionary<string, object?>
+                            {
+                                { "arg", "2020-02-21T17:42:59.000001234" },
+                            })
                         .Build());
 
             Assert.Equal("2020-02-21T17:52:59.000001234", result.ExpectOperationResult().Data!["test"]);
@@ -66,7 +69,10 @@ namespace HotChocolate.Types.NodaTime.Tests
                     OperationRequestBuilder.New()
                         .SetDocument("mutation($arg: LocalDateTime!) { test(arg: $arg) }")
                         .SetVariableValues(
-                            new Dictionary<string, object?> { { "arg", "2020-02-20T17:42:59.000001234Z" }, })
+                            new Dictionary<string, object?>
+                            {
+                                { "arg", "2020-02-20T17:42:59.000001234Z" },
+                            })
                         .Build());
 
             Assert.Null(result.ExpectOperationResult().Data);
@@ -108,36 +114,37 @@ namespace HotChocolate.Types.NodaTime.Tests
             static object Call() => new LocalDateTimeType([]);
             Assert.Throws<SchemaException>(Call);
         }
-    }
 
-    [Fact]
-    public void LocalDateTimeType_DescriptionKnownPatterns_MatchesSnapshot()
-    {
-        var localDateTimeType = new LocalDateTimeType(
-            LocalDateTimePattern.ExtendedIso,
-            LocalDateTimePattern.FullRoundtrip);
 
-        localDateTimeType.Description.MatchInlineSnapshot(
-            """
-            A date and time in a particular calendar system.
+        [Fact]
+        public void LocalDateTimeType_DescriptionKnownPatterns_MatchesSnapshot()
+        {
+            var localDateTimeType = new LocalDateTimeType(
+                LocalDateTimePattern.ExtendedIso,
+                LocalDateTimePattern.FullRoundtrip);
 
-            Allowed patterns:
-            - `YYYY-MM-DDThh:mm:ss.sssssssss`
-            - `YYYY-MM-DDThh:mm:ss.sssssssss (calendar)`
+            localDateTimeType.Description.MatchInlineSnapshot(
+                """
+                A date and time in a particular calendar system.
 
-            Examples:
-            - `2000-01-01T20:00:00.999`
-            - `2000-01-01T20:00:00.999999999 (ISO)`
-            """);
-    }
+                Allowed patterns:
+                - `YYYY-MM-DDThh:mm:ss.sssssssss`
+                - `YYYY-MM-DDThh:mm:ss.sssssssss (calendar)`
 
-    [Fact]
-    public void LocalDateTimeType_DescriptionUnknownPatterns_MatchesSnapshot()
-    {
-        var localDateTimeType = new LocalDateTimeType(
-            LocalDateTimePattern.Create("MM", CultureInfo.InvariantCulture));
+                Examples:
+                - `2000-01-01T20:00:00.999`
+                - `2000-01-01T20:00:00.999999999 (ISO)`
+                """);
+        }
 
-        localDateTimeType.Description.MatchInlineSnapshot(
-            "A date and time in a particular calendar system.");
+        [Fact]
+        public void LocalDateTimeType_DescriptionUnknownPatterns_MatchesSnapshot()
+        {
+            var localDateTimeType = new LocalDateTimeType(
+                LocalDateTimePattern.Create("MM", CultureInfo.InvariantCulture));
+
+            localDateTimeType.Description.MatchInlineSnapshot(
+                "A date and time in a particular calendar system.");
+        }
     }
 }
