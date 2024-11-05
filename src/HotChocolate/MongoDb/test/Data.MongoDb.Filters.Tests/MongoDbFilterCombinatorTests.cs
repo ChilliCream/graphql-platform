@@ -34,7 +34,8 @@ public class MongoDbFilterCombinatorTests
                 .SetDocument("{ root(where: { }){ bar }}")
                 .Build());
 
-        await Snapshot.Create()
+        await Snapshot
+            .Create()
             .Add(res1)
             .MatchAsync();
     }

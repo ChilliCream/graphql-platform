@@ -58,9 +58,9 @@ public class MongoDbCursorPagingAggregateFluentTests : IClassFixture<MongoResour
             }");
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), result)
+        await Snapshot
+            .Create()
+            .AddResult(result)
             .MatchAsync();
     }
 
@@ -93,9 +93,9 @@ public class MongoDbCursorPagingAggregateFluentTests : IClassFixture<MongoResour
             }");
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), result)
+        await Snapshot
+            .Create()
+            .AddResult(result)
             .MatchAsync();
     }
 
@@ -128,9 +128,9 @@ public class MongoDbCursorPagingAggregateFluentTests : IClassFixture<MongoResour
             }");
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), result)
+        await Snapshot
+            .Create()
+            .AddResult(result)
             .MatchAsync();
     }
 
@@ -163,9 +163,9 @@ public class MongoDbCursorPagingAggregateFluentTests : IClassFixture<MongoResour
             }");
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), result)
+        await Snapshot
+            .Create()
+            .AddResult(result)
             .MatchAsync();
     }
 
@@ -184,9 +184,9 @@ public class MongoDbCursorPagingAggregateFluentTests : IClassFixture<MongoResour
             }");
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), result)
+        await Snapshot
+            .Create()
+            .AddResult(result)
             .MatchAsync();
     }
 
@@ -208,9 +208,9 @@ public class MongoDbCursorPagingAggregateFluentTests : IClassFixture<MongoResour
             }");
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), result)
+        await Snapshot
+            .Create()
+            .AddResult(result)
             .MatchAsync();
     }
 

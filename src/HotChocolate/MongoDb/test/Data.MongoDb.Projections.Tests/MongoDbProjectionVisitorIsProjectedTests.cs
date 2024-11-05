@@ -43,9 +43,9 @@ public class MongoDbProjectionVisitorIsProjectedTests(MongoResource resource)
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -62,9 +62,9 @@ public class MongoDbProjectionVisitorIsProjectedTests(MongoResource resource)
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -81,9 +81,9 @@ public class MongoDbProjectionVisitorIsProjectedTests(MongoResource resource)
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
