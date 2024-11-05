@@ -166,7 +166,8 @@ public interface IReadOnlySchemaOptions
     bool EnableStream { get; }
 
     /// <summary>
-    /// Enables the @semanticNonNull directive.
+    /// Enables the @semanticNonNull directive and rewrites Non-Null types to nullable types
+    /// with this directive attached to indicate semantic non-nullability.
     /// This feature is experimental and might be changed or removed in the future.
     /// </summary>
     bool EnableSemanticNonNull { get; }
