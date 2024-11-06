@@ -119,9 +119,9 @@ public class MongoDbProjectionObjectTests(MongoResource resource) : IClassFixtur
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 

@@ -50,10 +50,10 @@ public class MongoDbFilterVisitorDateOnlyTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "2022-01-16"), res2, "2022-01-15")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "2022-01-16")
+            .AddResult(res2, "2022-01-15")
             .MatchAsync();
     }
 
@@ -75,10 +75,10 @@ public class MongoDbFilterVisitorDateOnlyTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "2022-01-16"), res2, "2022-01-15")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "2022-01-16")
+            .AddResult(res2, "2022-01-15")
             .MatchAsync();
     }
 
@@ -106,11 +106,11 @@ public class MongoDbFilterVisitorDateOnlyTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "2022-01-16"), res2, "2022-01-15"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "2022-01-16")
+            .AddResult(res2, "2022-01-15")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -139,11 +139,11 @@ public class MongoDbFilterVisitorDateOnlyTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "2022-01-16"), res2, "2022-01-15"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "2022-01-16")
+            .AddResult(res2, "2022-01-15")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
