@@ -1,6 +1,7 @@
 using CookieCrumble;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using Squadron;
 
@@ -86,6 +87,7 @@ public class MongoDbSortVisitorEnumTests
     public class Foo
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public FooEnum BarEnum { get; set; }
@@ -94,6 +96,7 @@ public class MongoDbSortVisitorEnumTests
     public class FooNullable
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public FooEnum? BarEnum { get; set; }

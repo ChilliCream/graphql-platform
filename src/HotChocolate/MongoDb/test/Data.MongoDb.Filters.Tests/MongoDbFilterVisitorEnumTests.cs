@@ -1,6 +1,7 @@
 using CookieCrumble;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using Squadron;
 
@@ -283,6 +284,7 @@ public class MongoDbFilterVisitorEnumTests
     public class Foo
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public FooEnum BarEnum { get; set; }
@@ -291,6 +293,7 @@ public class MongoDbFilterVisitorEnumTests
     public class FooNullable
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public FooEnum? BarEnum { get; set; }

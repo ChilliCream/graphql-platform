@@ -13,7 +13,7 @@ testa Result:
 
 testa Query:
 ---------------
-find({ "Bar" : { "$regex" : /^testa/ } })
+find({ "Bar" : { "$regex" : { "$regularExpression" : { "pattern" : "^testa", "options" : "" } } } })
 ---------------
 
 testb Result:
@@ -31,7 +31,7 @@ testb Result:
 
 testb Query:
 ---------------
-find({ "Bar" : { "$regex" : /^testb/ } })
+find({ "Bar" : { "$regex" : { "$regularExpression" : { "pattern" : "^testb", "options" : "" } } } })
 ---------------
 
 null

@@ -106,6 +106,7 @@ public class MongoDbSortCollectionTests : IClassFixture<MongoResource>
     public class Foo
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         [BsonElement("renameTest")]
@@ -115,6 +116,7 @@ public class MongoDbSortCollectionTests : IClassFixture<MongoResource>
     public class Bar
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public DateTimeOffset Baz { get; set; }

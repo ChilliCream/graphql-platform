@@ -1,5 +1,6 @@
 using CookieCrumble;
 using HotChocolate.Execution;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using Squadron;
 
@@ -113,6 +114,7 @@ public class MongoDbProjectionVisitorIsProjectedTests(MongoResource resource)
     public class Foo
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         [IsProjected(true)]
@@ -127,6 +129,7 @@ public class MongoDbProjectionVisitorIsProjectedTests(MongoResource resource)
     public class Bar
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         [IsProjected(false)]
