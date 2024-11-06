@@ -1,5 +1,6 @@
 using CookieCrumble;
 using HotChocolate.Execution;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using Squadron;
 
@@ -127,6 +128,7 @@ public class MongoDbProjectionObjectTests(MongoResource resource) : IClassFixtur
     public class Foo
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public short BarShort { get; set; }
@@ -145,6 +147,7 @@ public class MongoDbProjectionObjectTests(MongoResource resource) : IClassFixtur
     public class FooDeep
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public short BarShort { get; set; }
@@ -155,6 +158,7 @@ public class MongoDbProjectionObjectTests(MongoResource resource) : IClassFixtur
     public class FooNullable
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public short? BarShort { get; set; }
@@ -173,6 +177,7 @@ public class MongoDbProjectionObjectTests(MongoResource resource) : IClassFixtur
     public class Bar
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public Foo Foo { get; set; } = default!;
@@ -183,6 +188,7 @@ public class MongoDbProjectionObjectTests(MongoResource resource) : IClassFixtur
     public class BarDeep
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public FooDeep Foo { get; set; } = default!;
@@ -191,6 +197,7 @@ public class MongoDbProjectionObjectTests(MongoResource resource) : IClassFixtur
     public class BarNullableDeep
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public FooDeep? Foo { get; set; }
@@ -209,6 +216,7 @@ public class MongoDbProjectionObjectTests(MongoResource resource) : IClassFixtur
         }
 
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public FooNullable? Foo { get; set; }

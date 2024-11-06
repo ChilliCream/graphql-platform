@@ -1002,6 +1002,7 @@ public class MongoDbFilterVisitorObjectIdTests
     public class Foo
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public ObjectId ObjectId { get; set; }
@@ -1010,6 +1011,7 @@ public class MongoDbFilterVisitorObjectIdTests
     public class FooNullable
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public ObjectId? ObjectId { get; set; }
