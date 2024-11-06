@@ -35,7 +35,7 @@
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.11.0" />
     <PackageVersion Include="Microsoft.OpenApi" Version="1.6.14" />
     <PackageVersion Include="Microsoft.OpenApi.Readers" Version="1.6.14" />
-    <PackageVersion Include="MongoDB.Driver" Version="2.29.0" />
+    <PackageVersion Include="MongoDB.Driver" Version="3.0.0" />
     <PackageVersion Include="Moq" Version="4.20.70" />
     <PackageVersion Include="NetTopologySuite" Version="2.0.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.2" />
@@ -50,7 +50,7 @@
     <PackageVersion Include="sqlite-net-pcl" Version="1.9.172" />
     <PackageVersion Include="SQLitePCLRaw.bundle_green" Version="2.1.8" />
     <PackageVersion Include="SQLitePCLRaw.core" Version="2.1.8" />
-    <PackageVersion Include="Squadron.Mongo" Version="0.21.0" />
+    <PackageVersion Include="Squadron.Mongo" Version="0.23.0" />
     <PackageVersion Include="Squadron.Nats" Version="0.18.0" />
     <PackageVersion Include="Squadron.PostgreSql" Version="0.18.0" />
     <PackageVersion Include="Squadron.RabbitMQ" Version="0.18.0" />

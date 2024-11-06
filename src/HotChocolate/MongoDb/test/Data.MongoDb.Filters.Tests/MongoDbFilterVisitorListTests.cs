@@ -1,6 +1,7 @@
 using CookieCrumble;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using Squadron;
 
@@ -411,6 +412,7 @@ public class MongoDbFilterVisitorListTests
     public class Foo
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public IEnumerable<FooNested?>? FooNested { get; set; }
@@ -419,6 +421,7 @@ public class MongoDbFilterVisitorListTests
     public class FooSimple
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public IEnumerable<string?>? Bar { get; set; }
@@ -427,6 +430,7 @@ public class MongoDbFilterVisitorListTests
     public class FooNested
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public string? Bar { get; set; }
