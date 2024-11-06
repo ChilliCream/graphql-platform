@@ -1,4 +1,4 @@
-# Test2
+# Fragment_Deduplication_2
 
 ## UserRequest
 
@@ -29,7 +29,7 @@
       {
         "type": "Resolve",
         "subgraph": "Subgraph_1",
-        "document": "query fetch_viewer_1 { viewer { unionField { __typename ... on Object1 { __typename someField } } } }",
+        "document": "query fetch_viewer_1 { viewer { unionField { __typename ... on Object2 { __typename } ... on Object1 { __typename someField } } } }",
         "selectionSetId": 0
       },
       {

@@ -62,6 +62,10 @@ internal abstract partial class ResolverNodeBase
             IReadOnlyList<string> path,
             TransportFeatures transportFeatures)
         {
+
+            var rewriter = new InlineFragmentOperationRewriter(selectionSet.DeclaringOperation.Schema);
+            document = rewriter.RewriteDocument(document, null);
+
             string[]? buffer = null;
             var usedCapacity = 0;
 

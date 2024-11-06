@@ -1,4 +1,4 @@
-# Test1
+# Fragment_Deduplication_1
 
 ## UserRequest
 
@@ -8,25 +8,27 @@ query test {
     id
     string
     other {
-      id
-      number
+      __typename
+      ... frag4
     }
-    ...frag1
-    ...frag2
-    ...frag3
+    ... frag1
+    ... frag2
+    ... frag3
   }
 }
 
 fragment frag1 on SomeObject {
   id
   string
+  other {
+    number
+  }
 }
 
 fragment frag2 on SomeObject {
   id
   other {
     id
-    number
   }
 }
 
@@ -36,13 +38,18 @@ fragment frag3 on SomeObject {
     __typename
   }
 }
+
+fragment frag4 on AnotherObject {
+  id
+  number
+}
 ```
 
 ## QueryPlan
 
 ```json
 {
-  "document": "query test { entry { id string other { id number } ... frag1 ... frag2 ... frag3 } } fragment frag1 on SomeObject { id string } fragment frag2 on SomeObject { id other { id number } } fragment frag3 on SomeObject { id other { __typename } }",
+  "document": "query test { entry { id string other { __typename ... frag4 } ... frag1 ... frag2 ... frag3 } } fragment frag1 on SomeObject { id string other { number } } fragment frag2 on SomeObject { id other { id } } fragment frag3 on SomeObject { id other { __typename } } fragment frag4 on AnotherObject { id number }",
   "operation": "test",
   "rootNode": {
     "type": "Sequence",
@@ -50,7 +57,7 @@ fragment frag3 on SomeObject {
       {
         "type": "Resolve",
         "subgraph": "Subgraph_1",
-        "document": "query test_1 { entry { id string other { id number __typename } } }",
+        "document": "query test_1 { entry { id string other { __typename id number } } }",
         "selectionSetId": 0
       },
       {
