@@ -49,10 +49,10 @@ public class MongoDbFilterVisitorTimeOnlyTests
                 .Build());
 
         // arrange
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "0630"), res2, "1600")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "0630")
+            .AddResult(res2, "1600")
             .MatchAsync();
     }
 
@@ -74,10 +74,10 @@ public class MongoDbFilterVisitorTimeOnlyTests
                 .Build());
 
         // arrange
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "0630"), res2, "1600")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "0630")
+            .AddResult(res2, "1600")
             .MatchAsync();
     }
 
@@ -104,11 +104,11 @@ public class MongoDbFilterVisitorTimeOnlyTests
                 .Build());
 
         // arrange
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "0630"), res2, "1600"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "0630")
+            .AddResult(res2, "1600")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -135,11 +135,11 @@ public class MongoDbFilterVisitorTimeOnlyTests
                 .Build());
 
         // arrange
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "0630"), res2, "1600"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "0630")
+            .AddResult(res2, "1600")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
