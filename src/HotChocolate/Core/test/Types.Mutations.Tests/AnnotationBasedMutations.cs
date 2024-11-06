@@ -436,6 +436,7 @@ public class AnnotationBasedMutations
         schema.MatchSnapshot();
     }
 
+#if NET7_0_OR_GREATER
     [Fact]
     public async Task SimpleMutation_Override_Payload_WithError()
     {
@@ -450,6 +451,7 @@ public class AnnotationBasedMutations
 
         schema.MatchSnapshot();
     }
+#endif
 
     [Fact]
     public async Task SimpleMutation_Override_Input()
