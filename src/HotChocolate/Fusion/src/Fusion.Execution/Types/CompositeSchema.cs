@@ -59,7 +59,8 @@ public sealed class CompositeSchema
     /// <summary>
     /// Gets all the directive types that are supported by this schema.
     /// </summary>
-    public ImmutableArray<CompositeDirectiveDefinition> DirectiveDefinitions => _directiveDefinitions.Values;
+    public ImmutableArray<CompositeDirectiveDefinition> DirectiveDefinitions
+        => _directiveDefinitions.Values;
 
     /// <summary>
     /// Gets a type by its name and kind.

@@ -6,7 +6,7 @@ public sealed class SourceObjectType(
     string name,
     string schemaName,
     ImmutableArray<Lookup> lookups)
-    : ISourceMember
+    : ISourceComplexType
 {
     public string Name { get; } = name;
 

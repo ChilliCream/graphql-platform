@@ -14,7 +14,9 @@ public sealed class CompositeOutputField(
     private ICompositeType _type = default!;
     private SourceObjectFieldCollection _sources = default!;
     private DirectiveCollection _directives = default!;
+    private CompositeComplexType _declaringType = default!;
     private bool _completed;
+
     public string Name { get; } = name;
 
     public string? Description { get; } = description;
@@ -70,6 +72,21 @@ public sealed class CompositeOutputField(
         }
     }
 
+    public CompositeComplexType DeclaringType
+    {
+        get => _declaringType;
+        private set
+        {
+            if (_completed)
+            {
+                throw new NotSupportedException(
+                    "The type definition is sealed and cannot be modified.");
+            }
+
+            _declaringType = value;
+        }
+    }
+
     internal void Complete(CompositeObjectFieldCompletionContext context)
     {
         if (_completed)
@@ -81,6 +98,7 @@ public sealed class CompositeOutputField(
         Directives = context.Directives;
         Type = context.Type;
         Sources = context.Sources;
+        DeclaringType = context.DeclaringType;
         _completed = true;
     }
 

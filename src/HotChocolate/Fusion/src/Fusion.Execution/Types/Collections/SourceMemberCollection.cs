@@ -24,7 +24,9 @@ public class SourceMemberCollection<TMember> : IEnumerable<TMember> where TMembe
     public bool TryGetMember(string schemaName, [NotNullWhen(true)] out TMember? member)
         => _members.TryGetValue(schemaName, out member);
 
-    protected ImmutableArray<TMember> Members => _members.Values;
+    public ImmutableArray<string> Schemas => _members.Keys;
+
+    public ImmutableArray<TMember> Members => _members.Values;
 
     public IEnumerator<TMember> GetEnumerator()
         => ((IEnumerable<TMember>)_members.Values).GetEnumerator();

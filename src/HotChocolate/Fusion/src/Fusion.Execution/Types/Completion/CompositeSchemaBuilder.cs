@@ -186,7 +186,7 @@ public static class CompositeSchemaBuilder
     {
         foreach (var fieldDef in typeDef.Fields)
         {
-            CompleteObjectField(type.Fields[fieldDef.Name.Value], fieldDef, schemaContext);
+            CompleteObjectField(type, type.Fields[fieldDef.Name.Value], fieldDef, schemaContext);
         }
 
         var directives = CompletionTools.CreateDirectiveCollection(typeDef.Directives, schemaContext);
@@ -196,6 +196,7 @@ public static class CompositeSchemaBuilder
     }
 
     private static void CompleteObjectField(
+        CompositeObjectType declaringType,
         CompositeOutputField field,
         FieldDefinitionNode fieldDef,
         CompositeSchemaContext compositeSchemaContext)
@@ -208,7 +209,7 @@ public static class CompositeSchemaBuilder
         var directives = CompletionTools.CreateDirectiveCollection(fieldDef.Directives, compositeSchemaContext);
         var type = compositeSchemaContext.GetType(fieldDef.Type);
         var sources = BuildSourceObjectFieldCollection(field, fieldDef, compositeSchemaContext);
-        field.Complete(new CompositeObjectFieldCompletionContext(directives, type, sources));
+        field.Complete(new CompositeObjectFieldCompletionContext(declaringType, directives, type, sources));
     }
 
     private static SourceObjectFieldCollection BuildSourceObjectFieldCollection(
