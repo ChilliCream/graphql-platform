@@ -662,6 +662,32 @@ public class GraphQLRequestParserTests
     }
 
     [Fact]
+    public void Parse_Empty_OperationName()
+    {
+        // arrange
+        var source = Encoding.UTF8.GetBytes(
+            """
+            {
+                "operationName": "",
+                "query": "{}"
+            }
+            """.NormalizeLineBreaks());
+        var parserOptions = new ParserOptions();
+        var requestParser = new Utf8GraphQLRequestParser(
+            source,
+            parserOptions,
+            new DocumentCache(),
+            new Sha256DocumentHashProvider());
+
+        // act
+        var batch = requestParser.Parse();
+
+        // assert
+        var request = Assert.Single(batch);
+        Assert.Null(request.OperationName);
+    }
+
+    [Fact]
     public void Parse_Empty_Json()
     {
         // assert

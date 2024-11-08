@@ -12,6 +12,7 @@ public ref partial struct Utf8GraphQLRequestParser
             case TokenKind.String:
                 if(_reader.Value.Length == 0)
                 {
+                    _reader.MoveNext();
                     return null;
                 }
 
