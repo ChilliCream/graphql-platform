@@ -48,7 +48,7 @@ public class RequestPlannerTests(ITestOutputHelper output)
         var result = await CreateQueryPlanAsync(
             fusionGraph,
             """
-            query test {
+            query {
               entry {
                 id
                 string
@@ -611,7 +611,7 @@ public class RequestPlannerTests(ITestOutputHelper output)
         var result = await CreateQueryPlanAsync(
             fusionGraph,
             """
-            query usePreloadSearchQuery(
+            query searchQuery(
               $query: String!
               $filters: [FilterInput!]
               $sortOrder: ShopSearchSortOrder!
@@ -880,6 +880,124 @@ public class RequestPlannerTests(ITestOutputHelper output)
             fragment zeroResults on ShopSearchResult {
               ...alternativeQuerySuggestions
               ...galaxusReferral
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Fragment_Deduplication_4()
+    {
+        // arrange
+        var subgraph = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              field1: String!
+              field2: String!
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
+        var fusionGraph = await subgraphs.GetFusionGraphAsync();
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query {
+              field1
+              ... on Query {
+                field2
+              }
+              ...query
+            }
+
+            fragment query on Query {
+              field1
+              field2
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Fragment_Deduplication_5()
+    {
+        // arrange
+        var subgraph = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              field1: String!
+              field2: String!
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
+        var fusionGraph = await subgraphs.GetFusionGraphAsync();
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query test($skip: Boolean!) {
+              field1
+              ... @skip(if: $skip) {
+                field2
+              }
+              ...query
+            }
+
+            fragment query on Query {
+              field1
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Fragment_Deduplication_6()
+    {
+        // arrange
+        var subgraph = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              field1: String!
+              field2: String!
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
+        var fusionGraph = await subgraphs.GetFusionGraphAsync();
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query test($skip: Boolean!) {
+              field1
+              ... on Query @skip(if: $skip) {
+                field2
+              }
+              ...query
+            }
+
+            fragment query on Query {
+              field1
             }
             """);
 

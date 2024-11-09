@@ -62,8 +62,9 @@ internal abstract partial class ResolverNodeBase
             IReadOnlyList<string> path,
             TransportFeatures transportFeatures)
         {
-
-            var rewriter = new InlineFragmentOperationRewriter(selectionSet.DeclaringOperation.Schema);
+            // This is a temporary solution to selections being duplicated during request planning.
+            // It should be properly fixed with new planner in the future.
+            var rewriter = new SelectionRewriter();
             document = rewriter.RewriteDocument(document, null);
 
             string[]? buffer = null;
