@@ -440,6 +440,10 @@
                 "title": "Custom Attributes"
               },
               {
+                "path": "errors",
+                "title": "Errors"
+              },
+              {
                 "path": "language",
                 "title": "Language"
               },
@@ -786,6 +790,10 @@
                 "title": "Custom Attributes"
               },
               {
+                "path": "errors",
+                "title": "Errors"
+              },
+              {
                 "path": "language",
                 "title": "Language"
               },
@@ -1112,6 +1120,10 @@
                 "title": "Custom Attributes"
               },
               {
+                "path": "error-filter",
+                "title": "Error Filter"
+              },
+              {
                 "path": "language",
                 "title": "Language"
               },
@@ -1366,6 +1378,10 @@
               {
                 "path": "custom-attributes",
                 "title": "Custom Attributes"
+              },
+              {
+                "path": "error-filter",
+                "title": "Error Filter"
               },
               {
                 "path": "language",
