@@ -8,8 +8,8 @@
     "union": {
       "another": true,
       "review": {
-        "id": "UmV2aWV3OjE=",
-        "score": 1
+        "id": "UmV2aWV3OjI=",
+        "score": 2
       }
     }
   }

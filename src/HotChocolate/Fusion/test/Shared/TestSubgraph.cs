@@ -46,7 +46,7 @@ public record TestSubgraph(
             {
                 app.Use(next => context =>
                 {
-                    testContext.HasReceivedRequest = true;
+                    testContext.NumberOfReceivedRequests++;
                     return next(context);
                 });
 
@@ -58,10 +58,12 @@ public record TestSubgraph(
         return new TestSubgraph(testServer, schema, testContext, extensions, isOffline);
     }
 
-    public bool HasReceivedRequest => Context.HasReceivedRequest;
+    public int NumberOfReceivedRequests => Context.NumberOfReceivedRequests;
+
+    public bool HasReceivedRequest => Context.NumberOfReceivedRequests > 0;
 }
 
 public class SubgraphTestContext
 {
-    public bool HasReceivedRequest { get; set; }
+    public int NumberOfReceivedRequests { get; set; }
 }
