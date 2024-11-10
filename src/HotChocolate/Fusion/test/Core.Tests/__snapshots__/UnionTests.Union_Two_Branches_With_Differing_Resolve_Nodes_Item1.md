@@ -8,8 +8,8 @@
     "union": {
       "something": "Something",
       "product": {
-        "id": "UHJvZHVjdDoy",
-        "name": "Product_2"
+        "id": "UHJvZHVjdDox",
+        "name": "Product_1"
       }
     }
   }

@@ -407,8 +407,8 @@ public class UnionTests(ITestOutputHelper output)
         Assert.False(subgraphB.HasReceivedRequest);
     }
 
-    [Fact]
-    public async Task Union_List_With_Differing_Union_Item_Dependencies()
+     [Fact]
+    public async Task Union_List_With_Differing_Union_Item_Dependencies_SameSelections()
     {
         // arrange
         var subgraphA = await TestSubgraph.CreateAsync(
@@ -478,6 +478,82 @@ public class UnionTests(ITestOutputHelper output)
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
+        // Ideally it would just be one request, but that's for another day...
+        Assert.Equal(3, subgraphB.NumberOfReceivedRequests);
+    }
+
+    [Fact]
+    public async Task Union_List_With_Differing_Union_Item_Dependencies()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            configure: builder =>
+            {
+                builder
+                    .AddQueryType<SubgraphA_Query>()
+                    .AddType<ISomeUnion>()
+                    .AddType<SubgraphA_Item1>()
+                    .AddType<SubgraphA_Item2>()
+                    .AddType<SubgraphA_Item3>()
+                    .AddType<SubgraphA_Product>()
+                    .AddType<SubgraphA_Review>()
+                    .ModifyOptions(o => o.EnsureAllNodesCanBeResolved = false)
+                    .AddGlobalObjectIdentification();
+            });
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            configure: builder =>
+            {
+                builder
+                    .AddQueryType()
+                    .AddType<SubgraphB_Product>()
+                    .AddType<SubgraphB_Review>()
+                    .AddGlobalObjectIdentification();
+            });
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = Parse("""
+                      query {
+                        listOfUnion {
+                          __typename
+                          ... on Item1 {
+                            something
+                            product {
+                              id
+                              name
+                            }
+                          }
+                          ... on Item2 {
+                            other
+                            product {
+                              name
+                            }
+                          }
+                          ... on Item3 {
+                            another
+                            review {
+                              id
+                              score
+                            }
+                          }
+                        }
+                      }
+                      """);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            OperationRequestBuilder
+                .New()
+                .SetDocument(request)
+                .Build());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result);
+        await snapshot.MatchMarkdownAsync();
+        // Ideally it would just be one request, but that's for another day...
+        Assert.Equal(3, subgraphB.NumberOfReceivedRequests);
     }
 
     [ObjectType("Query")]
@@ -487,8 +563,8 @@ public class UnionTests(ITestOutputHelper output)
         {
             return item switch
             {
-                1 => new SubgraphA_Item1("Something", new SubgraphA_Product(2)),
-                _ => new SubgraphA_Item3(true, new SubgraphA_Review(1))
+                1 => new SubgraphA_Item1("Something", new SubgraphA_Product(1)),
+                _ => new SubgraphA_Item3(true, new SubgraphA_Review(2))
             };
         }
 
@@ -496,9 +572,12 @@ public class UnionTests(ITestOutputHelper output)
         {
             return
             [
-                new SubgraphA_Item1("Something", new SubgraphA_Product(2)),
-                new SubgraphA_Item2(123, new SubgraphA_Product(4)),
-                new SubgraphA_Item3(true, new SubgraphA_Review(1))
+                new SubgraphA_Item1("Something", new SubgraphA_Product(1)),
+                new SubgraphA_Item2(123, new SubgraphA_Product(2)),
+                new SubgraphA_Item3(true, new SubgraphA_Review(3)),
+                new SubgraphA_Item1("Something", new SubgraphA_Product(4)),
+                new SubgraphA_Item2(123, new SubgraphA_Product(5)),
+                new SubgraphA_Item3(true, new SubgraphA_Review(6))
             ];
         }
     }
