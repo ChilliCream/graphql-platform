@@ -63,7 +63,7 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
         var hasInterfaceTypes = false;
         var hasConfigurations = false;
 
-        foreach (var syntaxInfo in syntaxInfos)
+        foreach (var syntaxInfo in syntaxInfos.OrderBy(s => s.OrderByKey))
         {
             if(syntaxInfo.Diagnostics.Length > 0)
             {
