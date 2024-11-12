@@ -1,14 +1,14 @@
 ---
-title: Error Filter
+title: Errors
 ---
 
 GraphQL errors in Hot Chocolate are passed to the operation result by returning an instance of `IError` or an enumerable of `IError` in a field resolver.
 
 Moreover, you can throw a `QueryException` that will be be caught by the execution engine and translated to a field error.
 
-One further way to raise an error are non-terminating field errors. This can be raised by using `IResolverContext.RaiseError`. With this you can provide a result and raise an error for your current field.
+One further way to raise an error are non-terminating field errors. This can be raised by using `IResolverContext.ReportError`. With this you can provide a result and raise an error for your current field.
 
-> If you do want to log errors head over to our diagnostic source [documentation](/docs/hotchocolate/v10/execution-engine/instrumentation) and see how you can hook up your logging framework of choice to it.
+> If you do want to log errors head over to our diagnostic source [documentation](/docs/hotchocolate/v13/server/instrumentation) and see how you can hook up your logging framework of choice to it.
 
 # Error Builder
 
@@ -22,39 +22,30 @@ var error = ErrorBuilder
     .Build();
 ```
 
-# Exceptions
+# Error Filters
 
 If some other exception is thrown during execution, then the execution engine will create an instance of `IError` with the message **Unexpected Execution Error** and the actual exception assigned to the error. However, the exception details will not be serialized so by default the user will only see the error message **Unexpected Execution Error**.
 
 If you want to translate exceptions into errors with useful information then you can write an `IErrorFilter`.
 
-An error filter has to be registered with the execution builder or with your dependency injection.
+An error filter has to be registered as a service.
 
 ```csharp
-IQueryExecuter executer = schema.MakeExecutable(builder =>
-    builder.UseDefaultPipeline(options)
-        .AddErrorFilter<MyErrorFilter>());
-```
-
-OR
-
-```csharp
-services.AddErrorFilter<MyErrorFilter>();
+builder.Services.AddErrorFilter<MyErrorFilter>();
 ```
 
 It is also possible to just register the error filter as a delegate like the following.
 
 ```csharp
-IQueryExecuter executer = schema.MakeExecutable(builder =>
-    builder.UseDefaultPipeline(options)
-        .AddErrorFilter(error =>
-        {
-            if (error.Exception is NullReferenceException)
-            {
-                return error.WithCode("NullRef");
-            }
-            return error;
-        }));
+builder.Services.AddErrorFilter(error =>
+{
+    if (error.Exception is NullReferenceException)
+    {
+        return error.WithCode("NullRef");
+    }
+
+    return error;
+});
 ```
 
 Since errors are immutable we have added some helper functions like `WithMessage`, `WithCode` and so on that create a new error with the desired properties. Moreover, you can create an error builder from an error and modify multiple properties and then rebuild the error object.
@@ -69,15 +60,12 @@ return ErrorBuilder
 
 # Exception Details
 
-In order to automatically add exception details to your GraphQL error you can switch the execution option to include exception details. By default we will switch this on if the debugger is attached. You can overwrite the behavior by setting the option.
+In order to automatically add exception details to your GraphQL errors, you can enable the `IncludeExceptionDetails` option. By default this will be enabled when the debugger is attached.
 
 ```csharp
-SchemaBuilder
-    .New()
-    // ...
-    .Create()
-    .MakeExecutable(new QueryExecutionOptions
-    {
-        IncludeExceptionDetails = true
-    });
+builder
+    .AddGraphQL()
+    .ModifyRequestOptions(
+        o => o.IncludeExceptionDetails =
+            builder.Environment.IsDevelopment());
 ```
