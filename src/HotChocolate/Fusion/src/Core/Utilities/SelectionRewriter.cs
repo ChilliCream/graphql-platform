@@ -1,17 +1,15 @@
 using System.Collections.Immutable;
-using HotChocolate.Fusion.Types;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 
-namespace HotChocolate.Fusion.Planning;
+namespace HotChocolate.Fusion.Utilities;
 
-public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
+public sealed class SelectionRewriter
 {
     public DocumentNode RewriteDocument(DocumentNode document, string? operationName)
     {
         var operation = document.GetOperation(operationName);
-        var operationType = schema.GetOperationType(operation.Operation);
-        var fragmentLookup = CreateFragmentLookup(document);
-        var context = new Context(operationType, fragmentLookup);
+        var context = new Context();
 
         RewriteFields(operation.SelectionSet, context);
 
@@ -45,7 +43,7 @@ public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
                     break;
 
                 case FragmentSpreadNode fragmentSpread:
-                    InlineFragmentDefinition(fragmentSpread, context);
+                    context.Selections.Add(fragmentSpread);
                     break;
             }
         }
@@ -64,8 +62,7 @@ public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
         }
         else
         {
-            var field = ((CompositeComplexType)context.Type).Fields[fieldNode.Name.Value];
-            var fieldContext = context.Branch(field.Type.NamedType());
+            var fieldContext = new Context();
 
             RewriteFields(fieldNode.SelectionSet, fieldContext);
 
@@ -90,19 +87,15 @@ public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
 
     private void RewriteInlineFragment(InlineFragmentNode inlineFragment, Context context)
     {
-        if ((inlineFragment.TypeCondition is  null
-            || inlineFragment.TypeCondition.Name.Value.Equals(context.Type.Name, StringComparison.Ordinal))
-            && inlineFragment.Directives.Count == 0)
+        if ((inlineFragment.TypeCondition is null ||
+                inlineFragment.TypeCondition.Name.Value.Equals(context.Type, StringComparison.Ordinal)) &&
+            inlineFragment.Directives.Count == 0)
         {
             RewriteFields(inlineFragment.SelectionSet, context);
             return;
         }
 
-        var typeCondition = inlineFragment.TypeCondition is null
-            ? context.Type
-            : schema.GetType(inlineFragment.TypeCondition.Name.Value);
-
-        var inlineFragmentContext = context.Branch(typeCondition);
+        var inlineFragmentContext = new Context(inlineFragment.TypeCondition?.Name.Value);
 
         RewriteFields(inlineFragment.SelectionSet, inlineFragmentContext);
 
@@ -117,41 +110,6 @@ public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
             newSelectionSetNode);
 
         context.Selections.Add(newInlineFragment);
-    }
-
-    private void InlineFragmentDefinition(
-        FragmentSpreadNode fragmentSpread,
-        Context context)
-    {
-        var fragmentDefinition = context.GetFragmentDefinition(fragmentSpread.Name.Value);
-        var typeCondition = schema.GetType(fragmentDefinition.TypeCondition.Name.Value);
-
-        if (fragmentSpread.Directives.Count == 0
-            && typeCondition.IsAssignableFrom(context.Type))
-        {
-            RewriteFields(fragmentDefinition.SelectionSet, context);
-        }
-        else
-        {
-            var fragmentContext = context.Branch(typeCondition);
-
-            RewriteFields(fragmentDefinition.SelectionSet, context);
-
-            var selectionSet = new SelectionSetNode(
-                null,
-                fragmentContext.Selections.ToImmutable());
-
-            var inlineFragment = new InlineFragmentNode(
-                null,
-                new NamedTypeNode(typeCondition.Name),
-                RewriteDirectives(fragmentSpread.Directives),
-                selectionSet);
-
-            if (context.Visited.Add(inlineFragment))
-            {
-                context.Selections.Add(inlineFragment);
-            }
-        }
     }
 
     private IReadOnlyList<DirectiveNode> RewriteDirectives(IReadOnlyList<DirectiveNode> directives)
@@ -174,6 +132,7 @@ public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
             var directive = directives[i];
             buffer[i] = new DirectiveNode(directive.Name.Value, RewriteArguments(directive.Arguments));
         }
+
         return ImmutableArray.Create(buffer);
     }
 
@@ -194,39 +153,17 @@ public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
         {
             buffer[i] = arguments[i].WithLocation(null);
         }
+
         return ImmutableArray.Create(buffer);
     }
 
-    private Dictionary<string, FragmentDefinitionNode> CreateFragmentLookup(DocumentNode document)
+    private class Context(string? typeName = null)
     {
-        var lookup = new Dictionary<string, FragmentDefinitionNode>();
-
-        foreach (var definition in document.Definitions)
-        {
-            if (definition is FragmentDefinitionNode fragmentDef)
-            {
-                lookup.Add(fragmentDef.Name.Value, fragmentDef);
-            }
-        }
-
-        return lookup;
-    }
-
-    public readonly ref struct Context(
-        ICompositeNamedType type,
-        Dictionary<string, FragmentDefinitionNode> fragments)
-    {
-        public ICompositeNamedType Type { get; } = type;
+        public string? Type => typeName;
 
         public ImmutableArray<ISelectionNode>.Builder Selections { get; } =
             ImmutableArray.CreateBuilder<ISelectionNode>();
 
         public HashSet<ISelectionNode> Visited { get; } = new(SyntaxComparer.BySyntax);
-
-        public FragmentDefinitionNode GetFragmentDefinition(string name)
-            => fragments[name];
-
-        public Context Branch(ICompositeNamedType type)
-            => new(type, fragments);
     }
 }
