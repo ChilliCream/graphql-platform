@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
@@ -11,11 +12,11 @@ public record TestSubgraph(
     TestServer TestServer,
     ISchema Schema,
     SubgraphTestContext Context,
-    string SchemaExtensions = "",
+    [StringSyntax("graphql")] string SchemaExtensions = "",
     bool IsOffline = false)
 {
     public static Task<TestSubgraph> CreateAsync(
-        string schemaText,
+        [StringSyntax("graphql")] string schemaText,
         bool isOffline = false)
         => CreateAsync(
             configure: builder => builder
@@ -26,7 +27,7 @@ public record TestSubgraph(
 
     public static async Task<TestSubgraph> CreateAsync(
         Action<IRequestExecutorBuilder> configure,
-        string extensions = "",
+        [StringSyntax("graphql")] string extensions = "",
         bool isOffline = false)
     {
         var testServerFactory = new TestServerFactory();

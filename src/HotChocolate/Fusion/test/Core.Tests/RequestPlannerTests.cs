@@ -10,14 +10,1004 @@ using HotChocolate.Fusion.Shared;
 using HotChocolate.Language;
 using HotChocolate.Skimmed.Serialization;
 using Microsoft.Extensions.DependencyInjection;
+using Xunit.Abstractions;
 using static HotChocolate.Fusion.Shared.DemoProjectSchemaExtensions;
 using static HotChocolate.Language.Utf8GraphQLParser;
 using HttpClientConfiguration = HotChocolate.Fusion.Composition.HttpClientConfiguration;
 
 namespace HotChocolate.Fusion;
 
-public class RequestPlannerTests
+public class RequestPlannerTests(ITestOutputHelper output)
 {
+    [Fact]
+    public async Task Fragment_Deduplication_1()
+    {
+        // arrange
+        var subgraph = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              entry: SomeObject!
+            }
+
+            type SomeObject {
+              id: ID!
+              string: String!
+              other: AnotherObject!
+            }
+
+            type AnotherObject {
+              id: ID!
+              number: Int!
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
+        var fusionGraph = await subgraphs.GetFusionGraphAsync();
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query {
+              entry {
+                id
+                string
+                other {
+                  __typename
+                  ...frag4
+                }
+                ...frag1
+                ...frag2
+                ...frag3
+              }
+            }
+
+            fragment frag1 on SomeObject {
+              id
+              string
+              other {
+                number
+              }
+            }
+
+            fragment frag2 on SomeObject {
+              id
+              other {
+                id
+              }
+            }
+
+            fragment frag3 on SomeObject {
+              id
+              other {
+                __typename
+              }
+            }
+
+            fragment frag4 on AnotherObject {
+              id
+              number
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Fragment_Deduplication_2()
+    {
+        // arrange
+        var subgraph = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              viewer: Viewer!
+            }
+
+            type Viewer {
+              unionField: SomeUnion!
+            }
+
+            union SomeUnion = Object1 | Object2
+
+            type Object1 {
+              someField: String
+            }
+
+            type Object2 {
+              otherField: Int
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
+        var fusionGraph = await subgraphs.GetFusionGraphAsync();
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query {
+              viewer {
+                unionField {
+                  ... on Object1 {
+                    __typename
+                    someField
+                  }
+                }
+                unionField {
+                  __typename
+                }
+              }
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Fragment_Deduplication_3()
+    {
+        // arrange
+        var subgraph = await TestSubgraph.CreateAsync(
+            """
+            schema {
+              query: Query
+            }
+
+            "The node interface is implemented by entities that have a global unique identifier."
+            interface Node {
+              id: ID!
+            }
+
+            interface ProductFilter {
+              identifier: String!
+              title: String!
+              tooltip: FilterTooltip
+            }
+
+            type AlternativeQuerySuggestion {
+              queryString: String!
+              productCount: Int!
+              productPreviewImageUrls: [URL!]!
+            }
+
+            type BlogPage implements Node {
+              id: ID!
+            }
+
+            type Brand implements Node {
+              products(sortOrder: ProductListSortOrder! = RELEVANCE filters: [FilterInput!] "Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): BrandProductsConnection
+              id: ID!
+              databaseId: Int! @deprecated(reason: "This is only meant for backwards compatibility.")
+            }
+
+            "A connection to a list of items."
+            type BrandProductFiltersConnection {
+              "Information to aid in pagination."
+              pageInfo: PageInfo!
+              "A list of edges."
+              edges: [BrandProductFiltersEdge!]
+              "A flattened list of the nodes."
+              nodes: [ProductFilter!]
+            }
+
+            "An edge in a connection."
+            type BrandProductFiltersEdge {
+              "A cursor for use in pagination."
+              cursor: String!
+              "The item at the end of the edge."
+              node: ProductFilter!
+            }
+
+            "A connection to a list of items."
+            type BrandProductsConnection {
+              "Information to aid in pagination."
+              pageInfo: PageInfo!
+              "A list of edges."
+              edges: [BrandProductsEdge!]
+              "A flattened list of the nodes."
+              nodes: [Product]
+              "Identifies the total count of items in the connection."
+              totalCount: Int!
+              productFilters("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): BrandProductFiltersConnection
+            }
+
+            "An edge in a connection."
+            type BrandProductsEdge {
+              "A cursor for use in pagination."
+              cursor: String!
+              "The item at the end of the edge."
+              node: Product
+            }
+
+            type CheckboxFilter implements ProductFilter {
+              identifier: String!
+              title: String!
+              tooltip: FilterTooltip
+              pinnedOptions: [CheckboxFilterOption!]!
+              commonOptions: [CheckboxFilterOption!]!
+            }
+
+            type CheckboxFilterOption {
+              optionIdentifier: String!
+              title: String!
+              count: Int!
+              tooltip: FilterTooltip
+            }
+
+            type CommunityDiscussion implements Node {
+              id: ID!
+              databaseId: Int! @deprecated(reason: "This is only meant for backwards compatibility.")
+            }
+
+            type FilterTooltip {
+              text: String
+              absoluteUrl: URL
+            }
+
+            type GalaxusReferral {
+              productCount: Int!
+              portalUrl: URL!
+              products: [Product!]
+            }
+
+            type NavigationItem implements Node {
+              products(sortOrder: ProductListSortOrder! = RELEVANCE filters: [FilterInput!] "Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): NavigationItemProductsConnection
+              id: ID!
+            }
+
+            "A connection to a list of items."
+            type NavigationItemProductFiltersConnection {
+              "Information to aid in pagination."
+              pageInfo: PageInfo!
+              "A list of edges."
+              edges: [NavigationItemProductFiltersEdge!]
+              "A flattened list of the nodes."
+              nodes: [ProductFilter!]
+            }
+
+            "An edge in a connection."
+            type NavigationItemProductFiltersEdge {
+              "A cursor for use in pagination."
+              cursor: String!
+              "The item at the end of the edge."
+              node: ProductFilter!
+            }
+
+            "A connection to a list of items."
+            type NavigationItemProductsConnection {
+              "Information to aid in pagination."
+              pageInfo: PageInfo!
+              "A list of edges."
+              edges: [NavigationItemProductsEdge!]
+              "A flattened list of the nodes."
+              nodes: [Product]
+              "Identifies the total count of items in the connection."
+              totalCount: Int!
+              productFilters("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): NavigationItemProductFiltersConnection
+              quickFilters("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): NavigationItemQuickFiltersConnection
+            }
+
+            "An edge in a connection."
+            type NavigationItemProductsEdge {
+              "A cursor for use in pagination."
+              cursor: String!
+              "The item at the end of the edge."
+              node: Product
+            }
+
+            "A connection to a list of items."
+            type NavigationItemQuickFiltersConnection {
+              "Information to aid in pagination."
+              pageInfo: PageInfo!
+              "A list of edges."
+              edges: [NavigationItemQuickFiltersEdge!]
+              "A flattened list of the nodes."
+              nodes: [QuickFilter!]
+            }
+
+            "An edge in a connection."
+            type NavigationItemQuickFiltersEdge {
+              "A cursor for use in pagination."
+              cursor: String!
+              "The item at the end of the edge."
+              node: QuickFilter!
+            }
+
+            "Information about pagination in a connection."
+            type PageInfo {
+              "Indicates whether more edges exist following the set defined by the clients arguments."
+              hasNextPage: Boolean!
+              "Indicates whether more edges exist prior the set defined by the clients arguments."
+              hasPreviousPage: Boolean!
+              "When paginating backwards, the cursor to continue."
+              startCursor: String
+              "When paginating forwards, the cursor to continue."
+              endCursor: String
+            }
+
+            type Product implements Node {
+              id: ID!
+            }
+
+            type ProductQuestion implements Node {
+              id: ID!
+              databaseId: Int! @deprecated(reason: "This is only meant for backwards compatibility.")
+            }
+
+            type ProductReview implements Node {
+              id: ID!
+              databaseId: Int! @deprecated(reason: "This is only meant for backwards compatibility.")
+            }
+
+            type ProductType implements Node {
+              id: ID!
+              databaseId: Int! @deprecated(reason: "This is only meant for backwards compatibility.")
+            }
+
+            type Query {
+              "Fetches an object given its ID."
+              node("ID of the object." id: ID!): Node
+              "Lookup nodes by a list of IDs."
+              nodes("The list of node IDs." ids: [ID!]!): [Node]!
+              productById(id: ID!): Product
+              blogPageById(id: ID!): BlogPage
+              brandById(id: ID!): Brand
+              productTypeById(id: ID!): ProductType
+              discussionById(id: ID!): CommunityDiscussion
+              questionById(id: ID!): ProductQuestion
+              ratingById(id: ID!): ProductReview
+              navigationItemById(id: ID!): NavigationItem
+              shopSearch(query: String! filters: [FilterInput!] searchQueryConfig: ShopSearchConfigInput): ShopSearchResult!
+            }
+
+            type QuickFilter {
+              filterIdentifier: String!
+              optionIdentifier: String!
+              optionTitle: String!
+              filterTitle: String!
+              disabled: Boolean!
+            }
+
+            type RangeFilter implements ProductFilter {
+              identifier: String!
+              title: String!
+              tooltip: FilterTooltip
+              topOutliersMerged: Boolean!
+              min: Decimal!
+              max: Decimal!
+              step: Float!
+              unitName: String
+              unitId: Int
+              dataPoints: [RangeFilterDataPoint!]!
+            }
+
+            type RangeFilterDataPoint {
+              count: Int!
+              value: Decimal!
+            }
+
+            type ShopSearchAdditionalQueryInfo {
+              correctedQuery: String
+              didYouMeanQuery: String
+              lastProductSearchPass: String
+              executedSearchTerm: String
+              testGroup: String
+              isManagedQuery: Boolean!
+              isRerankedQuery: Boolean!
+            }
+
+            type ShopSearchResult implements Node {
+              products(sortOrder: ShopSearchSortOrder! = RELEVANCE filters: [FilterInput!] "Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): ShopSearchResultProductsConnection
+              id: ID!
+              productFilters("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): ShopSearchResultProductFiltersConnection
+              quickFilters("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): ShopSearchResultQuickFiltersConnection
+              productTypes("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): ShopSearchResultProductTypesConnection
+              brands("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): ShopSearchResultBrandsConnection
+              blogPages("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): ShopSearchResultBlogPagesConnection
+              communityItems("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): ShopSearchResultCommunityItemsConnection
+              additionalQueryInfo: ShopSearchAdditionalQueryInfo
+              alternativeQuerySuggestions: [AlternativeQuerySuggestion!]
+              "Certain queries lead to a redirection instead of a search result. A common case is a redirect to a brand page. Others are also possible."
+              redirectionUrl: URL
+              galaxusReferral: GalaxusReferral
+            }
+
+            "A connection to a list of items."
+            type ShopSearchResultBlogPagesConnection {
+              "Information to aid in pagination."
+              pageInfo: PageInfo!
+              "A list of edges."
+              edges: [ShopSearchResultBlogPagesEdge!]
+              "A flattened list of the nodes."
+              nodes: [BlogPage!]
+            }
+
+            "An edge in a connection."
+            type ShopSearchResultBlogPagesEdge {
+              "A cursor for use in pagination."
+              cursor: String!
+              "The item at the end of the edge."
+              node: BlogPage!
+            }
+
+            "A connection to a list of items."
+            type ShopSearchResultBrandsConnection {
+              "Information to aid in pagination."
+              pageInfo: PageInfo!
+              "A list of edges."
+              edges: [ShopSearchResultBrandsEdge!]
+              "A flattened list of the nodes."
+              nodes: [Brand!]
+            }
+
+            "An edge in a connection."
+            type ShopSearchResultBrandsEdge {
+              "A cursor for use in pagination."
+              cursor: String!
+              "The item at the end of the edge."
+              node: Brand!
+            }
+
+            "A connection to a list of items."
+            type ShopSearchResultCommunityItemsConnection {
+              "Information to aid in pagination."
+              pageInfo: PageInfo!
+              "A list of edges."
+              edges: [ShopSearchResultCommunityItemsEdge!]
+              "A flattened list of the nodes."
+              nodes: [CommunitySearchResult!]
+            }
+
+            "An edge in a connection."
+            type ShopSearchResultCommunityItemsEdge {
+              "A cursor for use in pagination."
+              cursor: String!
+              "The item at the end of the edge."
+              node: CommunitySearchResult!
+            }
+
+            "A connection to a list of items."
+            type ShopSearchResultProductFiltersConnection {
+              "Information to aid in pagination."
+              pageInfo: PageInfo!
+              "A list of edges."
+              edges: [ShopSearchResultProductFiltersEdge!]
+              "A flattened list of the nodes."
+              nodes: [ProductFilter!]
+            }
+
+            "An edge in a connection."
+            type ShopSearchResultProductFiltersEdge {
+              "A cursor for use in pagination."
+              cursor: String!
+              "The item at the end of the edge."
+              node: ProductFilter!
+            }
+
+            "A connection to a list of items."
+            type ShopSearchResultProductTypesConnection {
+              "Information to aid in pagination."
+              pageInfo: PageInfo!
+              "A list of edges."
+              edges: [ShopSearchResultProductTypesEdge!]
+              "A flattened list of the nodes."
+              nodes: [ProductType!]
+            }
+
+            "An edge in a connection."
+            type ShopSearchResultProductTypesEdge {
+              "A cursor for use in pagination."
+              cursor: String!
+              "The item at the end of the edge."
+              node: ProductType!
+            }
+
+            "A connection to a list of items."
+            type ShopSearchResultProductsConnection {
+              "Information to aid in pagination."
+              pageInfo: PageInfo!
+              "A list of edges."
+              edges: [ShopSearchResultProductsEdge!]
+              "A flattened list of the nodes."
+              nodes: [Product]
+              "Identifies the total count of items in the connection."
+              totalCount: Int!
+              productFilters("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): ShopSearchResultProductFiltersConnection
+              quickFilters("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): ShopSearchResultQuickFiltersConnection
+            }
+
+            "An edge in a connection."
+            type ShopSearchResultProductsEdge {
+              "A cursor for use in pagination."
+              cursor: String!
+              "The item at the end of the edge."
+              node: Product
+            }
+
+            "A connection to a list of items."
+            type ShopSearchResultQuickFiltersConnection {
+              "Information to aid in pagination."
+              pageInfo: PageInfo!
+              "A list of edges."
+              edges: [ShopSearchResultQuickFiltersEdge!]
+              "A flattened list of the nodes."
+              nodes: [QuickFilter!]
+            }
+
+            "An edge in a connection."
+            type ShopSearchResultQuickFiltersEdge {
+              "A cursor for use in pagination."
+              cursor: String!
+              "The item at the end of the edge."
+              node: QuickFilter!
+            }
+
+            union CommunitySearchResult = ProductReview | ProductQuestion | CommunityDiscussion
+
+            input FilterInput {
+              filterIdentifier: String!
+              optionIdentifiers: [String!]
+              min: Decimal
+              max: Decimal
+              unitId: Int
+            }
+
+            input ShopSearchConfigInput {
+              searchQueryId: String
+              ltrEnabled: Boolean
+              rewriters: [String!]
+              testGroup: String
+            }
+
+            enum ApplyPolicy {
+              BEFORE_RESOLVER
+              AFTER_RESOLVER
+              VALIDATION
+            }
+
+            enum ProductListSortOrder {
+              HIGHEST_PRICE
+              LOWEST_PRICE
+              NUMBER_OF_SALES
+              RELEVANCE
+              REBATE
+              AVAILABILITY
+              RATING
+              NEWEST
+            }
+
+            enum ShopSearchSortOrder {
+              HIGHEST_PRICE
+              LOWEST_PRICE
+              NUMBER_OF_SALES
+              RELEVANCE
+              REBATE
+              AVAILABILITY
+              RATING
+              NEWEST
+            }
+
+            "The built-in `Decimal` scalar type."
+            scalar Decimal
+
+            "The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
+            scalar Long
+
+            scalar URL @specifiedBy(url: "https:\/\/tools.ietf.org\/html\/rfc3986")
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
+        var fusionGraph = await subgraphs.GetFusionGraphAsync();
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query searchQuery(
+              $query: String!
+              $filters: [FilterInput!]
+              $sortOrder: ShopSearchSortOrder!
+              $searchQueryConfig: ShopSearchConfigInput!
+            ) {
+              shopSearch(query: $query, searchQueryConfig: $searchQueryConfig) {
+                ...searchEngineResultsPage
+                ...searchEngineResultsPageProducts_1rZpll
+                products(first: 48, filters: $filters, sortOrder: $sortOrder) {
+                  productFilters {
+                    edges {
+                      node {
+                        __typename
+                        identifier
+                      }
+                    }
+                  }
+                }
+                id
+              }
+            }
+
+            fragment alternativeQuerySuggestions on ShopSearchResult {
+              alternativeQuerySuggestions {
+                productCount
+                productPreviewImageUrls
+                queryString
+              }
+            }
+
+            fragment galaxusReferral on ShopSearchResult {
+              galaxusReferral {
+                portalUrl
+                productCount
+                products {
+                  id
+                }
+              }
+            }
+
+            fragment searchEngineBlogTeasersSection on ShopSearchResult {
+              blogPages {
+                nodes {
+                  id
+                }
+              }
+            }
+
+            fragment searchEngineCommunitySection on ShopSearchResult {
+              communityItems(first: 3) {
+                nodes {
+                  __typename
+                  ... on CommunityDiscussion {
+                    databaseId
+                  }
+                  ... on ProductQuestion {
+                    databaseId
+                  }
+                  ... on ProductReview {
+                    databaseId
+                  }
+                  ... on Node {
+                    __isNode: __typename
+                    id
+                  }
+                }
+              }
+            }
+
+            fragment searchEngineProductsSection on ShopSearchResultProductsConnection {
+              edges {
+                node {
+                  id
+                }
+              }
+              productFilters {
+                edges {
+                  node {
+                    __typename
+                    ... on CheckboxFilter {
+                      __typename
+                      identifier
+                      title
+                    }
+                    ... on RangeFilter {
+                      __typename
+                      identifier
+                      title
+                    }
+                  }
+                }
+              }
+              totalCount
+              pageInfo {
+                hasNextPage
+                endCursor
+              }
+            }
+
+            fragment searchEngineResultsPage on ShopSearchResult {
+              ...searchEngineTitleSection
+              ...useSerpTrackingShopSearchResult
+              ...searchEngineBlogTeasersSection
+              ...searchEngineCommunitySection
+              ...zeroResults
+              additionalQueryInfo {
+                lastProductSearchPass
+              }
+              alternativeQuerySuggestions {
+                __typename
+              }
+              galaxusReferral {
+                __typename
+              }
+              redirectionUrl
+            }
+
+            fragment searchEngineResultsPageProducts_1rZpll on ShopSearchResult {
+              products(first: 48, filters: $filters, sortOrder: $sortOrder) {
+                edges {
+                  node {
+                    id
+                    __typename
+                  }
+                  cursor
+                }
+                ...searchEngineProductsSection
+                ...vectorProductsSection
+                ...useSerpTrackingProducts
+                productFilters {
+                  ...searchFiltersProductFilters
+                }
+                quickFilters {
+                  ...searchFiltersQuickFilters
+                }
+                pageInfo {
+                  endCursor
+                  hasNextPage
+                }
+              }
+              id
+            }
+
+            fragment searchEngineTitleSection on ShopSearchResult {
+              additionalQueryInfo {
+                correctedQuery
+                didYouMeanQuery
+                lastProductSearchPass
+              }
+            }
+
+            fragment searchFiltersProductFilters on ShopSearchResultProductFiltersConnection {
+              edges {
+                node {
+                  __typename
+                  ... on CheckboxFilter {
+                    __typename
+                    identifier
+                    title
+                    commonOptions {
+                      count
+                      optionIdentifier
+                      title
+                      tooltip {
+                        absoluteUrl
+                        text
+                      }
+                    }
+                    pinnedOptions {
+                      count
+                      optionIdentifier
+                      title
+                      tooltip {
+                        absoluteUrl
+                        text
+                      }
+                    }
+                    tooltip {
+                      absoluteUrl
+                      text
+                    }
+                  }
+                  ... on RangeFilter {
+                    __typename
+                    identifier
+                    title
+                    min
+                    max
+                    step
+                    dataPoints {
+                      count
+                      value
+                    }
+                    topOutliersMerged
+                    unitId
+                    unitName
+                    tooltip {
+                      absoluteUrl
+                      text
+                    }
+                  }
+                }
+              }
+            }
+
+            fragment searchFiltersQuickFilters on ShopSearchResultQuickFiltersConnection {
+              edges {
+                node {
+                  disabled
+                  filterIdentifier
+                  optionIdentifier
+                  optionTitle
+                  filterTitle
+                }
+              }
+            }
+
+            fragment useSerpTrackingProducts on ShopSearchResultProductsConnection {
+              totalCount
+            }
+
+            fragment useSerpTrackingShopSearchResult on ShopSearchResult {
+              brands {
+                edges {
+                  node {
+                    id
+                  }
+                }
+              }
+              productTypes {
+                edges {
+                  node {
+                    id
+                  }
+                }
+              }
+              redirectionUrl
+              galaxusReferral {
+                __typename
+              }
+              alternativeQuerySuggestions {
+                queryString
+              }
+              additionalQueryInfo {
+                correctedQuery
+                didYouMeanQuery
+                isRerankedQuery
+                lastProductSearchPass
+                testGroup
+              }
+            }
+
+            fragment vectorProductsSection on ShopSearchResultProductsConnection {
+              edges {
+                node {
+                  id
+                }
+              }
+              pageInfo {
+                hasNextPage
+                endCursor
+              }
+              totalCount
+            }
+
+            fragment zeroResults on ShopSearchResult {
+              ...alternativeQuerySuggestions
+              ...galaxusReferral
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Fragment_Deduplication_4()
+    {
+        // arrange
+        var subgraph = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              field1: String!
+              field2: String!
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
+        var fusionGraph = await subgraphs.GetFusionGraphAsync();
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query {
+              field1
+              ... on Query {
+                field2
+              }
+              ...query
+            }
+
+            fragment query on Query {
+              field1
+              field2
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Fragment_Deduplication_5()
+    {
+        // arrange
+        var subgraph = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              field1: String!
+              field2: String!
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
+        var fusionGraph = await subgraphs.GetFusionGraphAsync();
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query test($skip: Boolean!) {
+              field1
+              ... @skip(if: $skip) {
+                field2
+              }
+              ...query
+            }
+
+            fragment query on Query {
+              field1
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Fragment_Deduplication_6()
+    {
+        // arrange
+        var subgraph = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              field1: String!
+              field2: String!
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraph]);
+        var fusionGraph = await subgraphs.GetFusionGraphAsync();
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query test($skip: Boolean!) {
+              field1
+              ... on Query @skip(if: $skip) {
+                field2
+              }
+              ...query
+            }
+
+            fragment query on Query {
+              field1
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchMarkdownAsync();
+    }
+
     [Fact]
     public async Task Query_Plan_01()
     {
