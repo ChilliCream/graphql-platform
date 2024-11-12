@@ -21,9 +21,11 @@ internal static partial class TestHelper
 
     public static Snapshot GetGeneratedSourceSnapshot([StringSyntax("csharp")] string sourceText)
     {
-        // Parse the provided string into a C# syntax tree.
-        var syntaxTree = CSharpSyntaxTree.ParseText(sourceText);
+        return GetGeneratedSourceSnapshot([sourceText]);
+    }
 
+    public static Snapshot GetGeneratedSourceSnapshot(string[] sourceTexts)
+    {
         IEnumerable<PortableExecutableReference> references =
         [
 #if NET8_0
@@ -48,7 +50,7 @@ internal static partial class TestHelper
         // Create a Roslyn compilation for the syntax tree.
         var compilation = CSharpCompilation.Create(
             assemblyName: "Tests",
-            syntaxTrees: [syntaxTree],
+            syntaxTrees: sourceTexts.Select(s => CSharpSyntaxTree.ParseText(s)),
             references);
 
         // Create an instance of our GraphQLServerGenerator incremental source generator.
