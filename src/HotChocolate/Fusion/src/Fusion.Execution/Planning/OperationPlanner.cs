@@ -21,7 +21,7 @@ public sealed class OperationPlanner2(CompositeSchema schema)
         CompositeComplexType? type = null;
         var areAnySelectionsResolvable = false;
 
-        foreach (var selection in parent.SyntaxNode.Selections)
+        foreach (var selection in parent.SelectionNodes)
         {
             if (selection is FieldNode fieldNode)
             {
@@ -82,7 +82,7 @@ public sealed class OperationPlanner2(CompositeSchema schema)
                     }
                     else
                     {
-                        unresolved.Add(new UnresolvedField(fieldNode, type, parent));
+                        unresolved.Add(new UnresolvedField(fieldNode, field, parent));
                     }
 
                     path.Pop();
@@ -90,17 +90,19 @@ public sealed class OperationPlanner2(CompositeSchema schema)
                 else
                 {
                     // unresolvable fields will be collected to backtrack later.
-                    unresolved.Add(new UnresolvedField(fieldNode, type, parent));
+                    unresolved.Add(new UnresolvedField(fieldNode, field, parent));
                 }
             }
         }
 
-        if(unresolved.Count > 0)
+        if (unresolved.Count > 0)
         {
             var current = parent;
             var unresolvedPath = new Stack<IQueryPlanNode>();
             unresolvedPath.Push(parent);
 
+            // first we try to find an entity from which we can branch.
+            // We go up until we find the first entity.
             while (!current.IsEntity
                 && current.Parent is ISelectionPlanNode parentSelection)
             {
@@ -108,22 +110,28 @@ public sealed class OperationPlanner2(CompositeSchema schema)
                 unresolvedPath.Push(current);
             }
 
-            if(!current.IsEntity)
+            // If we could not find an entity we cannot resolve the unresolved selections.
+            if (!current.IsEntity)
             {
                 // TODO: there is a case where we do root selections on data, we will ignore it for now.
                 return false;
             }
 
             // if we have found an entity to branch of from we will check
-            // if any of the unresolved selections can be resolved through the entity.
+            // if any of the unresolved selections can be resolved through one of the entity lookups.
             var processed = new HashSet<string>();
+
+            // we first try to weight the schemas that the fields can be resolved by.
+            // The schema is weighted by the fields it potentially can resolve.
             var schemasWeighted = GetSchemasWeighted(unresolved, processed);
+
             foreach (var schemaName in schemasWeighted.OrderByDescending(t => t.Value).Select(t => t.Key))
             {
                 if (processed.Add(schemaName))
                 {
-                    var resovable = true;
+                    var isPathResolvable = true;
 
+                    // a possible schema must be able to resolve the path to the lookup.
                     foreach (var pathSegment in unresolvedPath.Skip(1))
                     {
                         if (pathSegment is SelectionPlanNode selection
@@ -133,19 +141,41 @@ public sealed class OperationPlanner2(CompositeSchema schema)
                             continue;
                         }
 
-                        resovable = true;
+                        isPathResolvable = true;
                         break;
                     }
 
-                    if(!resovable)
+                    // if the path is not resolvable we will skip it and move to the next.
+                    if (!isPathResolvable)
                     {
                         continue;
                     }
 
+                    // next we try to find a lookup
+                    if (TryGetLookup(current, processed, out var lookup))
+                    {
+                        // note : this can lead to a operation explosions as fields could be unresolvable
+                        // and would be spread out in the lower level call. We do that for now to test out the
+                        // overall concept and will backtrack later to the upper call.
+                        var fields = new List<ISelectionNode>();
+                        foreach (var unresolvedField in unresolved)
+                        {
+                            if (unresolvedField.Field.Sources.ContainsSchema(schemaName))
+                            {
+                                fields.Add(unresolvedField.FieldNode);
+                            }
+                        }
 
+                        var newOperation = new OperationPlanNode(
+                            schemaName,
+                            fields,
+                            parent.Type,
+                            parent);
+
+                        TryResolveSelectionSet(newOperation, newOperation, path);
+                    }
                 }
             }
-
         }
 
         return areAnySelectionsResolvable;
@@ -161,8 +191,11 @@ public sealed class OperationPlanner2(CompositeSchema schema)
 
     private bool TryGetLookup(ISelectionPlanNode selection, HashSet<string> schemas, out Lookup lookup)
     {
-
+        throw new NotImplementedException();
     }
+
+    private FieldNode
+
 
     private static Dictionary<string, int> GetSchemasWeighted(
         IEnumerable<UnresolvedField> unresolvedFields,
@@ -174,7 +207,7 @@ public sealed class OperationPlanner2(CompositeSchema schema)
         {
             foreach (var schemaName in unresolvedField.Field.Sources.Schemas)
             {
-                if(counts.TryGetValue(schemaName, out var count))
+                if (counts.TryGetValue(schemaName, out var count))
                 {
                     counts[schemaName] = count + 1;
                 }
@@ -207,27 +240,62 @@ public sealed class OperationPlanner2(CompositeSchema schema)
         public ICollection<OperationPlanNode> Operations { get; } = new List<OperationPlanNode>();
     }
 
-    public class OperationPlanNode : ISelectionProvider
+    public sealed class OperationPlanNode : ISelectionPlanNode
     {
+        private List<ISelectionPlanNode>? _selections;
+        private List<CompositeDirective>? _directives;
+
         public OperationPlanNode(
             string schemaName,
-            SelectionSetNode syntaxNode,
-            ICompositeNamedType type)
+            SelectionSetNode selectionSet,
+            ICompositeNamedType type,
+            IQueryPlanNode? parent = null)
         {
+            Parent = parent;
             SchemaName = schemaName;
-            SyntaxNode = syntaxNode;
+            SelectionNodes = selectionSet.Selections;
             Type = type;
         }
 
-        public string SchemaName { get; }
+        public OperationPlanNode(
+            string schemaName,
+            IReadOnlyList<ISelectionNode> selections,
+            ICompositeNamedType type,
+            IQueryPlanNode? parent = null)
+        {
+            Parent = parent;
+            SchemaName = schemaName;
+            SelectionNodes = selections;
+            Type = type;
+        }
 
-        public SelectionSetNode SyntaxNode { get; }
+        public IQueryPlanNode? Parent { get; }
+
+        public string SchemaName { get; }
 
         public ICompositeNamedType Type { get; }
 
         public bool IsEntity => false;
 
-        public ICollection<ISelectionPlanNode> Selections { get; } = new List<ISelectionPlanNode>();
+        public IReadOnlyList<ISelectionPlanNode> Selections
+            => _selections ??= [];
+
+        public IReadOnlyList<ISelectionNode> SelectionNodes { get; }
+
+        public void AddSelection(ISelectionPlanNode selection)
+        {
+            ArgumentNullException.ThrowIfNull(selection);
+            (_selections ??= []).Add(selection);
+        }
+
+        public IReadOnlyList<CompositeDirective> Directives
+            => _directives ??= [];
+
+        public void AddDirective(CompositeDirective selection)
+        {
+            ArgumentNullException.ThrowIfNull(selection);
+            (_directives ??= []).Add(selection);
+        }
     }
 
     public class SelectionPlanNode : ISelectionPlanNode
@@ -314,13 +382,13 @@ public sealed class OperationPlanner2(CompositeSchema schema)
 
     public interface ISelectionProvider : IQueryPlanNode
     {
-        SelectionSetNode SyntaxNode { get; }
-
         ICompositeNamedType Type { get; }
 
         bool IsEntity { get; }
 
         IReadOnlyList<ISelectionPlanNode>? Selections { get; }
+
+        IReadOnlyList<ISelectionNode> SelectionNodes  { get; }
 
         void AddSelection(ISelectionPlanNode selection);
     }

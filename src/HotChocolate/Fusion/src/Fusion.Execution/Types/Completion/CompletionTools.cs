@@ -119,6 +119,7 @@ internal static class CompletionTools
                 lookups.Add(
                     new Lookup(
                         lookup.SchemaName,
+                        lookup.Field.Name.Value,
                         LookupKind.Default,
                         arguments.ToImmutable(),
                         fields.ToImmutable()));
