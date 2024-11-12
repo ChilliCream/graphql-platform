@@ -206,11 +206,6 @@ public class SchemaOptions : IReadOnlySchemaOptions
     public bool StripLeadingIFromInterface { get; set; }
 
     /// <summary>
-    /// Specifies that the true nullability proto type shall be enabled.
-    /// </summary>
-    public bool EnableTrueNullability { get; set; }
-
-    /// <summary>
     /// Specifies that the @tag directive shall be registered with the type system.
     /// </summary>
     public bool EnableTag { get; set; } = true;
@@ -266,7 +261,6 @@ public class SchemaOptions : IReadOnlySchemaOptions
             DefaultFieldBindingFlags = options.DefaultFieldBindingFlags,
             MaxAllowedNodeBatchSize = options.MaxAllowedNodeBatchSize,
             StripLeadingIFromInterface = options.StripLeadingIFromInterface,
-            EnableTrueNullability = options.EnableTrueNullability,
             EnableTag = options.EnableTag,
             DefaultQueryDependencyInjectionScope = options.DefaultQueryDependencyInjectionScope,
             DefaultMutationDependencyInjectionScope = options.DefaultMutationDependencyInjectionScope,

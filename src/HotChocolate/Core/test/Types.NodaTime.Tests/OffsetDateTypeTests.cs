@@ -1,5 +1,8 @@
+using System.Globalization;
+using CookieCrumble;
 using HotChocolate.Execution;
 using NodaTime;
+using NodaTime.Text;
 
 namespace HotChocolate.Types.NodaTime.Tests;
 
@@ -122,5 +125,36 @@ public class OffsetDateTypeIntegrationTests
     {
         static object Call() => new OffsetDateType([]);
         Assert.Throws<SchemaException>(Call);
+    }
+
+    [Fact]
+    public void OffsetDateType_DescriptionKnownPatterns_MatchesSnapshot()
+    {
+        var offsetDateType = new OffsetDateType(
+            OffsetDatePattern.GeneralIso,
+            OffsetDatePattern.FullRoundtrip);
+
+        offsetDateType.Description.MatchInlineSnapshot(
+            """
+            A combination of a LocalDate and an Offset, to represent a date at a specific offset from UTC but without any time-of-day information.
+
+            Allowed patterns:
+            - `YYYY-MM-DD±hh:mm`
+            - `YYYY-MM-DD±hh:mm (calendar)`
+
+            Examples:
+            - `2000-01-01Z`
+            - `2000-01-01Z (ISO)`
+            """);
+    }
+
+    [Fact]
+    public void OffsetDateType_DescriptionUnknownPatterns_MatchesSnapshot()
+    {
+        var offsetDateType = new OffsetDateType(
+            OffsetDatePattern.Create("MM", CultureInfo.InvariantCulture, new OffsetDate()));
+
+        offsetDateType.Description.MatchInlineSnapshot(
+            "A combination of a LocalDate and an Offset, to represent a date at a specific offset from UTC but without any time-of-day information.");
     }
 }

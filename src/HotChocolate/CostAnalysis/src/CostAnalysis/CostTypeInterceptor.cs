@@ -72,8 +72,12 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
                     // https://ibm.github.io/graphql-specs/cost-spec.html#sec-requireOneSlicingArgument
                     // Per default, requireOneSlicingArgument is enabled,
                     // and has to be explicitly disabled if not desired for a field.
+                    // However, we have found that users turn the whole cost feature of because of this setting
+                    // which leads to less overall security for the deployed GraphQL server.
+                    // For this reason we have decided to disable slicing arguments by default.
                     var requirePagingBoundaries =
-                        slicingArgs.Length > 0 && (options.RequirePagingBoundaries ?? true);
+                        slicingArgs.Length > 0
+                            && (options.RequirePagingBoundaries ?? false);
 
                     fieldDef.AddDirective(
                         new ListSizeDirective(

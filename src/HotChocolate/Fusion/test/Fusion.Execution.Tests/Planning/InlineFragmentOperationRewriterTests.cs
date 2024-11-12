@@ -199,4 +199,43 @@ public static class InlineFragmentOperationRewriterTests
             }
             """);
     }
+
+    [Fact]
+    public static void Deduplicate_Fields()
+    {
+        // arrange
+        var compositeSchemaDoc = Utf8GraphQLParser.Parse(FileResource.Open("fusion1.graphql"));
+        var compositeSchema = CompositeSchemaBuilder.Create(compositeSchemaDoc);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+                productById(id: 1) {
+                    ... Product
+                    name
+                }
+            }
+
+            fragment Product on Product {
+                id
+                name
+                name
+            }
+            """);
+
+        // act
+        var rewriter = new InlineFragmentOperationRewriter(compositeSchema);
+        var rewritten = rewriter.RewriteDocument(doc, null);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            {
+              productById(id: 1) {
+                id
+                name
+              }
+            }
+            """);
+    }
 }

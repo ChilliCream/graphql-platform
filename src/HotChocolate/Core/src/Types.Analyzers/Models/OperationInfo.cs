@@ -8,6 +8,8 @@ public sealed class OperationInfo(OperationType type, string typeName, string me
 
     public string MethodName { get; } = methodName;
 
+    public override string OrderByKey => TypeName;
+
     public override bool Equals(object? obj)
         => obj is OperationInfo other && Equals(other);
 

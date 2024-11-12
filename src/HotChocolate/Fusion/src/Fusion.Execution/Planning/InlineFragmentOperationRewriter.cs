@@ -55,7 +55,12 @@ public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
     {
         if (fieldNode.SelectionSet is null)
         {
-            context.Selections.Add(fieldNode.WithLocation(null));
+            var node = fieldNode.WithLocation(null);
+
+            if (context.Visited.Add(node))
+            {
+                context.Selections.Add(node);
+            }
         }
         else
         {
@@ -76,7 +81,10 @@ public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
                 RewriteArguments(fieldNode.Arguments),
                 newSelectionSetNode);
 
-            context.Selections.Add(newFieldNode);
+            if (context.Visited.Add(newFieldNode))
+            {
+                context.Selections.Add(newFieldNode);
+            }
         }
     }
 
@@ -139,7 +147,10 @@ public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
                 RewriteDirectives(fragmentSpread.Directives),
                 selectionSet);
 
-            context.Selections.Add(inlineFragment);
+            if (context.Visited.Add(inlineFragment))
+            {
+                context.Selections.Add(inlineFragment);
+            }
         }
     }
 
@@ -209,6 +220,8 @@ public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
 
         public ImmutableArray<ISelectionNode>.Builder Selections { get; } =
             ImmutableArray.CreateBuilder<ISelectionNode>();
+
+        public HashSet<ISelectionNode> Visited { get; } = new(SyntaxComparer.BySyntax);
 
         public FragmentDefinitionNode GetFragmentDefinition(string name)
             => fragments[name];
