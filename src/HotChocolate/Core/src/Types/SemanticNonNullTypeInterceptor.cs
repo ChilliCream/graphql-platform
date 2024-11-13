@@ -60,9 +60,13 @@ public class SemanticNonNullTypeInterceptor : TypeInterceptor
                     continue;
                 }
 
-                ApplySemanticNonNullDirective(field, completionContext);
+                // TODO: This is not correct for lists
+                var hasSemanticNonNull = ApplySemanticNonNullDirective(field, completionContext);
 
-                field.FormatterDefinitions.Add(CreateSemanticNonNullResultFormatterDefinition());
+                if (hasSemanticNonNull)
+                {
+                    field.FormatterDefinitions.Add(CreateSemanticNonNullResultFormatterDefinition());
+                }
             }
         }
         else if (definition is InterfaceTypeDefinition interfaceDef)
@@ -80,20 +84,20 @@ public class SemanticNonNullTypeInterceptor : TypeInterceptor
         }
     }
 
-    private void ApplySemanticNonNullDirective(
+    private bool ApplySemanticNonNullDirective(
         OutputFieldDefinitionBase field,
         ITypeCompletionContext completionContext)
     {
         if (field.Type is null)
         {
-            return;
+            return false;
         }
 
         var levels = GetSemanticNonNullLevels(field.Type);
 
         if (levels.Count < 1)
         {
-            return;
+            return false;
         }
 
         var directiveDependency = new TypeDependency(
@@ -105,6 +109,8 @@ public class SemanticNonNullTypeInterceptor : TypeInterceptor
         field.AddDirective(new SemanticNonNullDirective(levels), _typeInspector);
 
         field.Type = BuildNullableTypeStructure(field.Type, _typeInspector);
+
+        return true;
     }
 
     private static List<int> GetSemanticNonNullLevels(TypeReference typeReference)
