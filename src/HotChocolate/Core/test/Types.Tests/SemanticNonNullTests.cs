@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate;
 
-// TODO: Test node & paging
+// TODO: Test paginatino
 public class SemanticNonNullTests
 {
     [Fact]

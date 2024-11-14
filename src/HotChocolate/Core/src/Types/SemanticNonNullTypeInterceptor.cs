@@ -1,5 +1,6 @@
 #nullable enable
 
+using System.Collections;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -180,7 +181,7 @@ public class SemanticNonNullTypeInterceptor : TypeInterceptor
         var currentType = typeReference.Type;
         var index = 0;
 
-        while(true)
+        while (true)
         {
             if (currentType is ListType listType)
             {
@@ -208,7 +209,7 @@ public class SemanticNonNullTypeInterceptor : TypeInterceptor
         var currentType = typeReference.Type;
         var index = 0;
 
-        while(true)
+        while (true)
         {
             if (currentType is ListTypeNode listType)
             {
@@ -237,7 +238,8 @@ public class SemanticNonNullTypeInterceptor : TypeInterceptor
     {
         if (typeReference is ExtendedTypeReference extendedTypeRef)
         {
-            return extendedTypeRef.WithType(typeInspector.ChangeNullability(extendedTypeRef.Type, _fullNullablePattern));
+            return extendedTypeRef.WithType(typeInspector.ChangeNullability(extendedTypeRef.Type,
+                _fullNullablePattern));
         }
 
         if (typeReference is SchemaTypeReference schemaRef)
@@ -284,45 +286,40 @@ public class SemanticNonNullTypeInterceptor : TypeInterceptor
     }
 
     private static ResultFormatterDefinition CreateSemanticNonNullResultFormatterDefinition(HashSet<int> levels)
-        => new((ctx, result) =>
+        => new((context, result) =>
             {
-                if (levels.Contains(0) && result is null)
-                {
-                    throw new GraphQLException(CreateSemanticNonNullViolationError(ctx));
-                }
-
-                if (result is IEnumerable<object?> listResult)
-                {
-                    var index = 0;
-                    foreach(var item in listResult)
-                    {
-                        if (item is null && levels.Contains(1))
-                        {
-                            var path = ctx.Path.Append(index);
-                            var error = CreateSemanticNonNullViolationError(path);
-
-                            ctx.ReportError(error);
-                        }
-
-                        index++;
-                    }
-                }
+                CheckResultForSemanticNonNullViolations(result, context, context.Path, levels, 0);
 
                 return result;
             },
             key: WellKnownMiddleware.SemanticNonNull,
             isRepeatable: false);
 
-    private static IError CreateSemanticNonNullViolationError(IResolverContext context)
-        => ErrorBuilder.New()
-            .SetMessage("TODO")
-            .AddLocation(context.Selection.SyntaxNode)
-            .SetPath(context.Path)
-            .Build();
+    private static void CheckResultForSemanticNonNullViolations(object? result, IResolverContext context, Path path, HashSet<int> levels,
+        int currentLevel)
+    {
+        if (result is null && levels.Contains(currentLevel))
+        {
+            context.ReportError(CreateSemanticNonNullViolationError(path));
+            return;
+        }
+
+        if (result is IEnumerable enumerable)
+        {
+            var index = 0;
+            foreach (var item in enumerable)
+            {
+                CheckResultForSemanticNonNullViolations(item, context, path.Append(index), levels, currentLevel + 1);
+
+                index++;
+            }
+        }
+    }
 
     private static IError CreateSemanticNonNullViolationError(Path path)
         => ErrorBuilder.New()
-            .SetMessage("TODO")
+            .SetMessage("Cannot return null for semantic non-null field.")
+            .SetCode(ErrorCodes.Execution.SemanticNonNullViolation)
             .SetPath(path)
             .Build();
 }

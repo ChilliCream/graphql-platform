@@ -1,0 +1,31 @@
+{
+  "errors": [
+    {
+      "message": "test",
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ],
+      "path": [
+        "dummy"
+      ]
+    },
+    {
+      "message": "test",
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ],
+      "path": [
+        "dummy"
+      ]
+    }
+  ],
+  "data": {
+    "dummy": "test"
+  }
+}

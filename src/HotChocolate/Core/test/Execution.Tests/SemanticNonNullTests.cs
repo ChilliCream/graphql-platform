@@ -1,10 +1,11 @@
 using CookieCrumble;
 using HotChocolate.Resolvers;
+using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution;
 
-// TODO: Test mutation conventions, pagination, nested arrays
+// TODO: Test nested arrays, pagination
 public class SemanticNonNullTests
 {
     #region Scalar
@@ -751,6 +752,71 @@ public class SemanticNonNullTests
 
     #endregion
 
+    [Fact]
+    public async Task Mutation_With_MutationConventions()
+    {
+        var result = await new ServiceCollection()
+            .AddGraphQL()
+            .ModifyOptions(o =>
+            {
+                o.StrictValidation = false;
+                o.EnableSemanticNonNull = true;
+            })
+            .AddMutationConventions()
+            .AddMutationType<Mutation>()
+            .ExecuteRequestAsync("""
+                                 mutation {
+                                   someMutationReturningNull {
+                                     scalarReturningNull
+                                   }
+                                 }
+                                 """);
+
+        result.MatchSnapshot();
+    }
+
+    // TODO: Rename
+    [Fact]
+    public async Task Test()
+    {
+        var result = await new ServiceCollection()
+            .AddGraphQL()
+            .ModifyOptions(o =>
+            {
+                o.EnableSemanticNonNull = true;
+            })
+            .AddMutationConventions()
+            .AddQueryType<Query>()
+            .ExecuteRequestAsync("""
+                                 {
+                                   nestedScalarArrayNullableOuterItems
+                                 }
+                                 """);
+
+        result.MatchSnapshot();
+    }
+
+    // TODO: Rename
+    [Fact]
+    public async Task Test2()
+    {
+        var result = await new ServiceCollection()
+            .AddGraphQL()
+            .ModifyOptions(o =>
+            {
+                o.EnableSemanticNonNull = true;
+            })
+            .AddMutationConventions()
+            .AddQueryType<Query>()
+            .ExecuteRequestAsync("""
+                                 {
+                                   nestedScalarArrayNullableMiddleItem
+                                 }
+                                 """);
+
+        result.MatchSnapshot();
+    }
+
     public class Query
     {
         #region Scalar
@@ -812,6 +878,7 @@ public class SemanticNonNullTests
 
         public Task<string[]> ScalarListItemThrowingError(IResolverContext context)
         {
+            // TODO: How can you create a terminating error for a single item?
             context.ReportError(ErrorBuilder.New().SetMessage("Another error").SetPath(context.Path.Append(1)).Build());
             return Task.FromResult<string[]>(["a", null!, "c"]);
         }
@@ -823,8 +890,12 @@ public class SemanticNonNullTests
 
         public string[] PureScalarListItemReturningNull => ["a", null!, "c"];
 
-        // TODO: Implement iterator
-        public string[] PureScalarListItemThrowingError => throw new Exception("Somethin went wrong");
+        public string[] PureScalarListItemThrowingError(IResolverContext context)
+        {
+            // TODO: How can you create a terminating error for a single item?
+            context.ReportError(ErrorBuilder.New().SetMessage("Another error").SetPath(context.Path.Append(1)).Build());
+            return ["a", null!, "c"];
+        }
 
         public string?[] PureNullableScalarListItemReturningNull => ["a", null, "c"];
 
@@ -906,7 +977,25 @@ public class SemanticNonNullTests
         public SomeObject?[] PureNullableObjectListItemReturningNull => [new("a"), null, new("c")];
 
         #endregion
+
+        #region Nested Array
+        public string?[][]? NestedScalarArrayNullableOuterItems()
+        {
+            return [["a1", null!, "c1"], null!, ["a2", null!, "c2"]];
+        }
+
+        public string[]?[] NestedScalarArrayNullableMiddleItem()
+        {
+            return [["a1", null!, "c1"], null!, ["a2", null!, "c2"]];
+        }
+        #endregion
     }
 
     public record SomeObject(string Property);
+
+    public class Mutation
+    {
+        [UseMutationConvention(PayloadFieldName = "scalarReturningNull")]
+        public Task<string> SomeMutationReturningNull() => Task.FromResult<string>(null!);
+    }
 }

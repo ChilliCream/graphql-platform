@@ -9,7 +9,8 @@
         }
       ],
       "path": [
-        "scalarListReturningNull"
+        "nestedScalarArrayNullableOuterItems",
+        1
       ],
       "extensions": {
         "code": "HC0088"
@@ -17,6 +18,18 @@
     }
   ],
   "data": {
-    "scalarListReturningNull": null
+    "nestedScalarArrayNullableOuterItems": [
+      [
+        "a1",
+        null,
+        "c1"
+      ],
+      null,
+      [
+        "a2",
+        null,
+        "c2"
+      ]
+    ]
   }
 }

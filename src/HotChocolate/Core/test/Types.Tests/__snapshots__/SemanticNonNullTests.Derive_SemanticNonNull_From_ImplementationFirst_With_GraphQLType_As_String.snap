@@ -24,5 +24,4 @@ type Query {
   innerNonNullObjectNestedArray: [[Foo]] @semanticNonNull(levels: [ 0, 2 ])
 }
 
-"TODO"
-directive @semanticNonNull("TODO" levels: [Int!] = [ 0 ]) on FIELD_DEFINITION
+directive @semanticNonNull(levels: [Int!] = [ 0 ]) on FIELD_DEFINITION

@@ -1,7 +1,7 @@
 {
   "errors": [
     {
-      "message": "TODO",
+      "message": "Cannot return null for semantic non-null field.",
       "locations": [
         {
           "line": 2,
@@ -11,7 +11,10 @@
       "path": [
         "pureObjectListItemReturningNull",
         1
-      ]
+      ],
+      "extensions": {
+        "code": "HC0088"
+      }
     }
   ],
   "data": {

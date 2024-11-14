@@ -19,5 +19,4 @@ type Query {
   myNode: MyNode @semanticNonNull
 }
 
-"TODO"
-directive @semanticNonNull("TODO" levels: [Int!] = [ 0 ]) on FIELD_DEFINITION
+directive @semanticNonNull(levels: [Int!] = [ 0 ]) on FIELD_DEFINITION

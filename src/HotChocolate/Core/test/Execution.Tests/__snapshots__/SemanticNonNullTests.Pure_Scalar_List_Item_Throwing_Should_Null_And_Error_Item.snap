@@ -1,7 +1,7 @@
 {
   "errors": [
     {
-      "message": "Unexpected Execution Error",
+      "message": "Another error",
       "locations": [
         {
           "line": 2,
@@ -9,11 +9,32 @@
         }
       ],
       "path": [
-        "pureScalarListItemThrowingError"
+        "pureScalarListItemThrowingError",
+        1
       ]
+    },
+    {
+      "message": "Cannot return null for semantic non-null field.",
+      "locations": [
+        {
+          "line": 2,
+          "column": 3
+        }
+      ],
+      "path": [
+        "pureScalarListItemThrowingError",
+        1
+      ],
+      "extensions": {
+        "code": "HC0088"
+      }
     }
   ],
   "data": {
-    "pureScalarListItemThrowingError": null
+    "pureScalarListItemThrowingError": [
+      "a",
+      null,
+      "c"
+    ]
   }
 }

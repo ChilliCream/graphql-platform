@@ -1,7 +1,7 @@
 {
   "errors": [
     {
-      "message": "Another error",
+      "message": "Cannot return null for semantic non-null field.",
       "locations": [
         {
           "line": 2,
@@ -9,9 +9,13 @@
         }
       ],
       "path": [
-        "scalarListItemThrowingError",
+        "nestedScalarArrayNullableMiddleItem",
+        0,
         1
-      ]
+      ],
+      "extensions": {
+        "code": "HC0088"
+      }
     },
     {
       "message": "Cannot return null for semantic non-null field.",
@@ -22,7 +26,8 @@
         }
       ],
       "path": [
-        "scalarListItemThrowingError",
+        "nestedScalarArrayNullableMiddleItem",
+        2,
         1
       ],
       "extensions": {
@@ -31,10 +36,18 @@
     }
   ],
   "data": {
-    "scalarListItemThrowingError": [
-      "a",
+    "nestedScalarArrayNullableMiddleItem": [
+      [
+        "a1",
+        null,
+        "c1"
+      ],
       null,
-      "c"
+      [
+        "a2",
+        null,
+        "c2"
+      ]
     ]
   }
 }
