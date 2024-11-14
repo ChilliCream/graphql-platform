@@ -8,7 +8,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate;
 
-// TODO: Test paginatino
 public class SemanticNonNullTests
 {
     [Fact]
@@ -39,6 +38,20 @@ public class SemanticNonNullTests
             })
             .AddMutationConventions()
             .AddMutationType<Mutation>()
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Pagination()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .ModifyOptions(o =>
+            {
+                o.EnableSemanticNonNull = true;
+            })
+            .AddQueryType<QueryWithPagination>()
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }
@@ -309,4 +322,13 @@ public class SemanticNonNullTests
     }
 
     public class MyException : Exception;
+
+    public class QueryWithPagination
+    {
+        [UsePaging]
+        public string[] GetCursorPagination() => [];
+
+        [UseOffsetPaging]
+        public string[] GetOffsetPagination() => [];
+    }
 }

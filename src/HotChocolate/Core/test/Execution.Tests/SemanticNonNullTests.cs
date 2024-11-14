@@ -5,7 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution;
 
-// TODO: Test nested arrays, pagination
 public class SemanticNonNullTests
 {
     #region Scalar
@@ -775,9 +774,56 @@ public class SemanticNonNullTests
         result.MatchSnapshot();
     }
 
-    // TODO: Rename
     [Fact]
-    public async Task Test()
+    public async Task Query_With_Connection()
+    {
+        var result = await new ServiceCollection()
+            .AddGraphQL()
+            .ModifyOptions(o =>
+            {
+                o.EnableSemanticNonNull = true;
+            })
+            .AddMutationConventions()
+            .AddQueryType<Query>()
+            .ExecuteRequestAsync("""
+                                 {
+                                   scalarConnection {
+                                     edges {
+                                       node
+                                     }
+                                   }
+                                 }
+                                 """);
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Query_With_NullableConnectionNodes()
+    {
+        var result = await new ServiceCollection()
+            .AddGraphQL()
+            .ModifyOptions(o =>
+            {
+                o.EnableSemanticNonNull = true;
+            })
+            .AddMutationConventions()
+            .AddQueryType<Query>()
+            .ExecuteRequestAsync("""
+                                 {
+                                   nullableScalarConnection {
+                                     edges {
+                                       node
+                                     }
+                                   }
+                                 }
+                                 """);
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Pure_Scalar_ListOfList_Nullable_Outer_And_Inner_Middle_Returns_Null_Should_Null_And_Error()
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
@@ -796,9 +842,8 @@ public class SemanticNonNullTests
         result.MatchSnapshot();
     }
 
-    // TODO: Rename
     [Fact]
-    public async Task Test2()
+    public async Task Pure_Scalar_ListOfList_Nullable_Middle_Item_Outer_And_Inner_Return_Null_Should_Null_And_Error()
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
@@ -890,6 +935,7 @@ public class SemanticNonNullTests
 
         public string[] PureScalarListItemReturningNull => ["a", null!, "c"];
 
+        // TODO: This is no longer a pure resolver as soon as it access the IResolverContext, right?
         public string[] PureScalarListItemThrowingError(IResolverContext context)
         {
             // TODO: How can you create a terminating error for a single item?
@@ -971,8 +1017,12 @@ public class SemanticNonNullTests
 
         public SomeObject[] PureObjectListItemReturningNull => [new("a"), null!, new("c")];
 
-        // TODO: Implement iterator
-        public SomeObject[] PureObjectListItemThrowingError => throw new Exception("Somethin went wrong");
+        // TODO: This is no longer a pure resolver as soon as it access the IResolverContext, right?
+        public SomeObject[] PureObjectListItemThrowingError(IResolverContext context)
+        {
+            context.ReportError(ErrorBuilder.New().SetMessage("Another error").SetPath(context.Path.Append(1)).Build());
+            return [new("a"), null!, new("c")];;
+        }
 
         public SomeObject?[] PureNullableObjectListItemReturningNull => [new("a"), null, new("c")];
 
@@ -989,6 +1039,12 @@ public class SemanticNonNullTests
             return [["a1", null!, "c1"], null!, ["a2", null!, "c2"]];
         }
         #endregion
+
+        [UsePaging]
+        public string[] ScalarConnection() => new[] { "a", null!, "c" };
+
+        [UsePaging]
+        public string?[] NullableScalarConnection() => new[] { "a", null, "c" };
     }
 
     public record SomeObject(string Property);

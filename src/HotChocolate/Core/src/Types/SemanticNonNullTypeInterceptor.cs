@@ -47,6 +47,11 @@ public class SemanticNonNullTypeInterceptor : TypeInterceptor
                 return;
             }
 
+            if (objectDef.Name is "CollectionSegmentInfo" or "PageInfo")
+            {
+                return;
+            }
+
             var implementsNode = objectDef.Interfaces.Any(i => i.Equals(_nodeTypeReference));
 
             foreach (var field in objectDef.Fields)
@@ -306,6 +311,12 @@ public class SemanticNonNullTypeInterceptor : TypeInterceptor
 
         if (result is IEnumerable enumerable)
         {
+            if (currentLevel >= 32)
+            {
+                // We bail if we're at a depth of 32 as this would mean that we're dealing with an AnyType or another structure.
+                return;
+            }
+
             var index = 0;
             foreach (var item in enumerable)
             {
