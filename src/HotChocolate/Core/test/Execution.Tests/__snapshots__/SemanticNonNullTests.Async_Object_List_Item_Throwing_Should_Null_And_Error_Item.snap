@@ -1,0 +1,41 @@
+{
+  "errors": [
+    {
+      "message": "Another error",
+      "locations": [
+        {
+          "line": 2,
+          "column": 3
+        }
+      ],
+      "path": [
+        "objectListItemThrowingError",
+        1
+      ]
+    },
+    {
+      "message": "TODO",
+      "locations": [
+        {
+          "line": 2,
+          "column": 3
+        }
+      ],
+      "path": [
+        "objectListItemThrowingError",
+        1
+      ]
+    }
+  ],
+  "data": {
+    "objectListItemThrowingError": [
+      {
+        "property": "a"
+      },
+      null,
+      {
+        "property": "c"
+      }
+    ]
+  }
+}

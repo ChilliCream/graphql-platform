@@ -1,0 +1,24 @@
+{
+  "errors": [
+    {
+      "message": "TODO",
+      "locations": [
+        {
+          "line": 2,
+          "column": 3
+        }
+      ],
+      "path": [
+        "pureScalarListItemReturningNull",
+        1
+      ]
+    }
+  ],
+  "data": {
+    "pureScalarListItemReturningNull": [
+      "a",
+      null,
+      "c"
+    ]
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "errors": [
+    {
+      "message": "TODO",
+      "locations": [
+        {
+          "line": 2,
+          "column": 3
+        }
+      ],
+      "path": [
+        "pureObjectListItemReturningNull",
+        1
+      ]
+    }
+  ],
+  "data": {
+    "pureObjectListItemReturningNull": [
+      {
+        "property": "a"
+      },
+      null,
+      {
+        "property": "c"
+      }
+    ]
+  }
+}

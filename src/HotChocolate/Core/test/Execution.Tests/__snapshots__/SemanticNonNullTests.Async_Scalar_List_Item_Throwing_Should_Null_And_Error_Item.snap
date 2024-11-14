@@ -1,0 +1,37 @@
+{
+  "errors": [
+    {
+      "message": "Another error",
+      "locations": [
+        {
+          "line": 2,
+          "column": 3
+        }
+      ],
+      "path": [
+        "scalarListItemThrowingError",
+        1
+      ]
+    },
+    {
+      "message": "TODO",
+      "locations": [
+        {
+          "line": 2,
+          "column": 3
+        }
+      ],
+      "path": [
+        "scalarListItemThrowingError",
+        1
+      ]
+    }
+  ],
+  "data": {
+    "scalarListItemThrowingError": [
+      "a",
+      null,
+      "c"
+    ]
+  }
+}

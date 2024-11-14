@@ -60,13 +60,21 @@ public class SemanticNonNullTypeInterceptor : TypeInterceptor
                     continue;
                 }
 
-                // TODO: This is not correct for lists
-                var hasSemanticNonNull = ApplySemanticNonNullDirective(field, completionContext);
-
-                if (hasSemanticNonNull)
+                if (field.Type is null)
                 {
-                    field.FormatterDefinitions.Add(CreateSemanticNonNullResultFormatterDefinition());
+                    continue;
                 }
+
+                var levels = GetSemanticNonNullLevels(field.Type);
+
+                if (levels.Count < 1)
+                {
+                    continue;
+                }
+
+                ApplySemanticNonNullDirective(field, completionContext, levels);
+
+                field.FormatterDefinitions.Add(CreateSemanticNonNullResultFormatterDefinition(levels));
             }
         }
         else if (definition is InterfaceTypeDefinition interfaceDef)
@@ -79,41 +87,40 @@ public class SemanticNonNullTypeInterceptor : TypeInterceptor
 
             foreach (var field in interfaceDef.Fields)
             {
-                ApplySemanticNonNullDirective(field, completionContext);
+                if (field.Type is null)
+                {
+                    continue;
+                }
+
+                var levels = GetSemanticNonNullLevels(field.Type);
+
+                if (levels.Count < 1)
+                {
+                    continue;
+                }
+
+                ApplySemanticNonNullDirective(field, completionContext, levels);
             }
         }
     }
 
-    private bool ApplySemanticNonNullDirective(
+    private void ApplySemanticNonNullDirective(
         OutputFieldDefinitionBase field,
-        ITypeCompletionContext completionContext)
+        ITypeCompletionContext completionContext,
+        HashSet<int> levels)
     {
-        if (field.Type is null)
-        {
-            return false;
-        }
-
-        var levels = GetSemanticNonNullLevels(field.Type);
-
-        if (levels.Count < 1)
-        {
-            return false;
-        }
-
         var directiveDependency = new TypeDependency(
             _typeInspector.GetTypeRef(typeof(SemanticNonNullDirective)),
             TypeDependencyFulfilled.Completed);
 
         ((RegisteredType)completionContext).Dependencies.Add(directiveDependency);
 
-        field.AddDirective(new SemanticNonNullDirective(levels), _typeInspector);
+        field.AddDirective(new SemanticNonNullDirective(levels.ToList()), _typeInspector);
 
-        field.Type = BuildNullableTypeStructure(field.Type, _typeInspector);
-
-        return true;
+        field.Type = BuildNullableTypeStructure(field.Type!, _typeInspector);
     }
 
-    private static List<int> GetSemanticNonNullLevels(TypeReference typeReference)
+    private static HashSet<int> GetSemanticNonNullLevels(TypeReference typeReference)
     {
         if (typeReference is ExtendedTypeReference extendedTypeReference)
         {
@@ -133,9 +140,9 @@ public class SemanticNonNullTypeInterceptor : TypeInterceptor
         return [];
     }
 
-    private static List<int> GetSemanticNonNullLevelsFromReference(ExtendedTypeReference typeReference)
+    private static HashSet<int> GetSemanticNonNullLevelsFromReference(ExtendedTypeReference typeReference)
     {
-        var levels = new List<int>();
+        var levels = new HashSet<int>();
 
         var currentType = typeReference.Type;
         var index = 0;
@@ -166,9 +173,9 @@ public class SemanticNonNullTypeInterceptor : TypeInterceptor
         return levels;
     }
 
-    private static List<int> GetSemanticNonNullLevelsFromReference(SchemaTypeReference typeReference)
+    private static HashSet<int> GetSemanticNonNullLevelsFromReference(SchemaTypeReference typeReference)
     {
-        var levels = new List<int>();
+        var levels = new HashSet<int>();
 
         var currentType = typeReference.Type;
         var index = 0;
@@ -194,9 +201,9 @@ public class SemanticNonNullTypeInterceptor : TypeInterceptor
         return levels;
     }
 
-    private static List<int> GetSemanticNonNullLevelsFromReference(SyntaxTypeReference typeReference)
+    private static HashSet<int> GetSemanticNonNullLevelsFromReference(SyntaxTypeReference typeReference)
     {
-        var levels = new List<int>();
+        var levels = new HashSet<int>();
 
         var currentType = typeReference.Type;
         var index = 0;
@@ -276,12 +283,29 @@ public class SemanticNonNullTypeInterceptor : TypeInterceptor
         return typeNode;
     }
 
-    private static ResultFormatterDefinition CreateSemanticNonNullResultFormatterDefinition()
+    private static ResultFormatterDefinition CreateSemanticNonNullResultFormatterDefinition(HashSet<int> levels)
         => new((ctx, result) =>
             {
-                if (result is null)
+                if (levels.Contains(0) && result is null)
                 {
                     throw new GraphQLException(CreateSemanticNonNullViolationError(ctx));
+                }
+
+                if (result is IEnumerable<object?> listResult)
+                {
+                    var index = 0;
+                    foreach(var item in listResult)
+                    {
+                        if (item is null && levels.Contains(1))
+                        {
+                            var path = ctx.Path.Append(index);
+                            var error = CreateSemanticNonNullViolationError(path);
+
+                            ctx.ReportError(error);
+                        }
+
+                        index++;
+                    }
                 }
 
                 return result;
@@ -294,5 +318,11 @@ public class SemanticNonNullTypeInterceptor : TypeInterceptor
             .SetMessage("TODO")
             .AddLocation(context.Selection.SyntaxNode)
             .SetPath(context.Path)
+            .Build();
+
+    private static IError CreateSemanticNonNullViolationError(Path path)
+        => ErrorBuilder.New()
+            .SetMessage("TODO")
+            .SetPath(path)
             .Build();
 }
