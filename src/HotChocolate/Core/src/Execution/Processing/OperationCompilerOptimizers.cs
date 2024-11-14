@@ -60,8 +60,7 @@ public readonly struct OperationCompilerRequest
         ObjectType rootType,
         ISchema schema,
         ImmutableArray<IOperationOptimizer>? operationOptimizers = null,
-        ImmutableArray<ISelectionSetOptimizer>? selectionSetOptimizers = null,
-        bool enableNullBubbling = true)
+        ImmutableArray<ISelectionSetOptimizer>? selectionSetOptimizers = null)
     {
         if (string.IsNullOrEmpty(id))
         {
@@ -77,7 +76,6 @@ public readonly struct OperationCompilerRequest
         Schema = schema ?? throw new ArgumentNullException(nameof(schema));
         OperationOptimizers = operationOptimizers ?? ImmutableArray<IOperationOptimizer>.Empty;
         SelectionSetOptimizers = selectionSetOptimizers ?? ImmutableArray<ISelectionSetOptimizer>.Empty;
-        EnableNullBubbling = enableNullBubbling;
     }
 
     /// <summary>
@@ -109,6 +107,4 @@ public readonly struct OperationCompilerRequest
     public ImmutableArray<IOperationOptimizer> OperationOptimizers { get; }
 
     public ImmutableArray<ISelectionSetOptimizer> SelectionSetOptimizers { get; }
-
-    public bool EnableNullBubbling { get; }
 }

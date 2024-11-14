@@ -152,9 +152,9 @@ We have also simplified what the builder does and removed a lot of the convenien
 
 The interface `IQueryResultBuilder` and its implementations were replaced with `OperationResultBuilder` which produces an `OperationResult` on `Build()`.
 
-### IQueryResult replaced by OperationResult
+### IQueryResult replaced by IOperationResult
 
-The interface `IQueryResultBuilder` and its implementations were replaced with `OperationResultBuilder` which produces an `OperationResult` on `Build()`.
+The interface `IQueryResult` was replaced with `IOperationResult`.
 
 ## Operation complexity analyzer replaced
 

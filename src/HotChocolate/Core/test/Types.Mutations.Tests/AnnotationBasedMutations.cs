@@ -437,6 +437,21 @@ public class AnnotationBasedMutations
     }
 
     [Fact]
+    public async Task SimpleMutation_Override_Payload_WithError()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddCostAnalyzer()
+                .AddMutationType<SimpleMutationPayloadOverrideWithError>()
+                .AddMutationConventions(true)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task SimpleMutation_Override_Input()
     {
         var schema =
@@ -1353,6 +1368,15 @@ public class AnnotationBasedMutations
         public DoSomethingPayload DoSomething(string something)
         {
             throw new Exception();
+        }
+    }
+
+    public class SimpleMutationPayloadOverrideWithError
+    {
+        [Error(typeof(CustomException))]
+        public DoSomethingPayload DoSomething()
+        {
+            return new DoSomethingPayload();
         }
     }
 

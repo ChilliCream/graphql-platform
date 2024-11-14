@@ -21,6 +21,8 @@ public sealed class RequestMiddlewareInfo(
 
     public List<RequestMiddlewareParameterInfo> InvokeParameters { get; } = invokeParameters;
 
+    public override string OrderByKey => Name;
+
     public override bool Equals(object? obj)
         => obj is RequestMiddlewareInfo other && Equals(other);
 

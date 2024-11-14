@@ -228,14 +228,4 @@ internal static class ErrorHelper
             .SetMessage("PersistedQueryNotFound")
             .SetCode(ErrorCodes.Execution.PersistedOperationNotFound)
             .Build();
-
-    public static IError NoNullBubbling_ArgumentValue_NotAllowed(
-        ArgumentNode argument)
-    {
-        var errorBuilder = ErrorBuilder.New();
-        errorBuilder.SetLocations([argument.Value]);
-        errorBuilder.SetMessage(ErrorHelper_NoNullBubbling_ArgumentValue_NotAllowed);
-
-        return errorBuilder.Build();
-    }
 }

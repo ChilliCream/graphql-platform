@@ -178,11 +178,11 @@ public sealed class ObjectResult
         {
             for (var i = 0; i < _capacity; i++)
             {
-                var field = _buffer[i];
+                var fieldResult = _buffer[i];
 
-                if (field.IsInitialized)
+                if (fieldResult.IsInitialized)
                 {
-                    yield return field.Name;
+                    yield return fieldResult.Name;
                 }
             }
         }
@@ -194,11 +194,11 @@ public sealed class ObjectResult
         {
             for (var i = 0; i < _capacity; i++)
             {
-                var field = _buffer[i];
+                var fieldResult = _buffer[i];
 
-                if (field.IsInitialized)
+                if (fieldResult.IsInitialized)
                 {
-                    yield return field.Value;
+                    yield return fieldResult.Value;
                 }
             }
         }

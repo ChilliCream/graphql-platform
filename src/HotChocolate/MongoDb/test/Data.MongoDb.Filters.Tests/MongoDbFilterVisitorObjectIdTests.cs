@@ -57,11 +57,11 @@ public class MongoDbFilterVisitorObjectIdTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "6124e80f3f5fc839830c1f69"), res2, "6124e80f3f5fc839830c1f6a"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "6124e80f3f5fc839830c1f69")
+            .AddResult(res2, "6124e80f3f5fc839830c1f6a")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -91,11 +91,11 @@ public class MongoDbFilterVisitorObjectIdTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "6124e80f3f5fc839830c1f69"), res2, "6124e80f3f5fc839830c1f6a"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "6124e80f3f5fc839830c1f69")
+            .AddResult(res2, "6124e80f3f5fc839830c1f6a")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -131,12 +131,12 @@ public class MongoDbFilterVisitorObjectIdTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "6124e80f3f5fc839830c1f69"), res2, "6124e80f3f5fc839830c1f6a"), res3, "6124e80f3f5fc839830c1f6b"), res4, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "6124e80f3f5fc839830c1f69")
+            .AddResult(res2, "6124e80f3f5fc839830c1f6a")
+            .AddResult(res3, "6124e80f3f5fc839830c1f6b")
+            .AddResult(res4, "null")
             .MatchAsync();
     }
 
@@ -172,12 +172,12 @@ public class MongoDbFilterVisitorObjectIdTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "6124e80f3f5fc839830c1f69"), res2, "6124e80f3f5fc839830c1f6a"), res3, "6124e80f3f5fc839830c1f6b"), res4, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "6124e80f3f5fc839830c1f69")
+            .AddResult(res2, "6124e80f3f5fc839830c1f6a")
+            .AddResult(res3, "6124e80f3f5fc839830c1f6b")
+            .AddResult(res4, "null")
             .MatchAsync();
     }
 
@@ -213,12 +213,12 @@ public class MongoDbFilterVisitorObjectIdTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "6124e80f3f5fc839830c1f69"), res2, "6124e80f3f5fc839830c1f6a"), res3, "6124e80f3f5fc839830c1f6b"), res4, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "6124e80f3f5fc839830c1f69")
+            .AddResult(res2, "6124e80f3f5fc839830c1f6a")
+            .AddResult(res3, "6124e80f3f5fc839830c1f6b")
+            .AddResult(res4, "null")
             .MatchAsync();
     }
 
@@ -254,12 +254,12 @@ public class MongoDbFilterVisitorObjectIdTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "6124e80f3f5fc839830c1f69"), res2, "6124e80f3f5fc839830c1f6a"), res3, "6124e80f3f5fc839830c1f6b"), res4, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "6124e80f3f5fc839830c1f69")
+            .AddResult(res2, "6124e80f3f5fc839830c1f6a")
+            .AddResult(res3, "6124e80f3f5fc839830c1f6b")
+            .AddResult(res4, "null")
             .MatchAsync();
     }
 
@@ -291,12 +291,12 @@ public class MongoDbFilterVisitorObjectIdTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "6124e80f3f5fc839830c1f69"), res2, "6124e80f3f5fc839830c1f6a"), res3, "6124e80f3f5fc839830c1f6b"), res4, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "6124e80f3f5fc839830c1f69")
+            .AddResult(res2, "6124e80f3f5fc839830c1f6a")
+            .AddResult(res3, "6124e80f3f5fc839830c1f6b")
+            .AddResult(res4, "null")
             .MatchAsync();
     }
 
@@ -332,12 +332,12 @@ public class MongoDbFilterVisitorObjectIdTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "6124e80f3f5fc839830c1f69"), res2, "6124e80f3f5fc839830c1f6a"), res3, "6124e80f3f5fc839830c1f6b"), res4, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "6124e80f3f5fc839830c1f69")
+            .AddResult(res2, "6124e80f3f5fc839830c1f6a")
+            .AddResult(res3, "6124e80f3f5fc839830c1f6b")
+            .AddResult(res4, "null")
             .MatchAsync();
     }
 
@@ -373,12 +373,12 @@ public class MongoDbFilterVisitorObjectIdTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "6124e80f3f5fc839830c1f69"), res2, "6124e80f3f5fc839830c1f6a"), res3, "6124e80f3f5fc839830c1f6b"), res4, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "6124e80f3f5fc839830c1f69")
+            .AddResult(res2, "6124e80f3f5fc839830c1f6a")
+            .AddResult(res3, "6124e80f3f5fc839830c1f6b")
+            .AddResult(res4, "null")
             .MatchAsync();
     }
 
@@ -414,12 +414,12 @@ public class MongoDbFilterVisitorObjectIdTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "6124e80f3f5fc839830c1f69"), res2, "6124e80f3f5fc839830c1f6a"), res3, "6124e80f3f5fc839830c1f6b"), res4, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "6124e80f3f5fc839830c1f69")
+            .AddResult(res2, "6124e80f3f5fc839830c1f6a")
+            .AddResult(res3, "6124e80f3f5fc839830c1f6b")
+            .AddResult(res4, "null")
             .MatchAsync();
     }
 
@@ -467,11 +467,11 @@ public class MongoDbFilterVisitorObjectIdTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "6124e80f3f5fc839830c1f69and6124e80f3f5fc839830c1f6a"), res2, "band6124e80f3f5fc839830c1f6b"), res3, "nullAnd6124e80f3f5fc839830c1f6b")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "6124e80f3f5fc839830c1f69and6124e80f3f5fc839830c1f6a")
+            .AddResult(res2, "band6124e80f3f5fc839830c1f6b")
+            .AddResult(res3, "nullAnd6124e80f3f5fc839830c1f6b")
             .MatchAsync();
     }
 
@@ -532,11 +532,11 @@ public class MongoDbFilterVisitorObjectIdTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "6124e80f3f5fc839830c1f69and6124e80f3f5fc839830c1f6a"), res2, "band6124e80f3f5fc839830c1f6b"), res3, "nullAnd6124e80f3f5fc839830c1f6b")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "6124e80f3f5fc839830c1f69and6124e80f3f5fc839830c1f6a")
+            .AddResult(res2, "band6124e80f3f5fc839830c1f6b")
+            .AddResult(res3, "nullAnd6124e80f3f5fc839830c1f6b")
             .MatchAsync();
     }
 
@@ -567,11 +567,11 @@ public class MongoDbFilterVisitorObjectIdTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "a"), res2, "6124e80f3f5fc839830c1f6a"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "a")
+            .AddResult(res2, "6124e80f3f5fc839830c1f6a")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -601,11 +601,11 @@ public class MongoDbFilterVisitorObjectIdTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "a"), res2, "6124e80f3f5fc839830c1f6a"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "a")
+            .AddResult(res2, "6124e80f3f5fc839830c1f6a")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -637,12 +637,12 @@ public class MongoDbFilterVisitorObjectIdTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "a"), res2, "6124e80f3f5fc839830c1f6a"), res3, "6124e80f3f5fc839830c1f6b"), res4, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "a")
+            .AddResult(res2, "6124e80f3f5fc839830c1f6a")
+            .AddResult(res3, "6124e80f3f5fc839830c1f6b")
+            .AddResult(res4, "null")
             .MatchAsync();
     }
 
@@ -678,12 +678,12 @@ public class MongoDbFilterVisitorObjectIdTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "a"), res2, "6124e80f3f5fc839830c1f6a"), res3, "6124e80f3f5fc839830c1f6b"), res4, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "a")
+            .AddResult(res2, "6124e80f3f5fc839830c1f6a")
+            .AddResult(res3, "6124e80f3f5fc839830c1f6b")
+            .AddResult(res4, "null")
             .MatchAsync();
     }
 
@@ -719,12 +719,12 @@ public class MongoDbFilterVisitorObjectIdTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "a"), res2, "6124e80f3f5fc839830c1f6a"), res3, "6124e80f3f5fc839830c1f6b"), res4, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "a")
+            .AddResult(res2, "6124e80f3f5fc839830c1f6a")
+            .AddResult(res3, "6124e80f3f5fc839830c1f6b")
+            .AddResult(res4, "null")
             .MatchAsync();
     }
 
@@ -760,12 +760,12 @@ public class MongoDbFilterVisitorObjectIdTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "a"), res2, "6124e80f3f5fc839830c1f6a"), res3, "6124e80f3f5fc839830c1f6b"), res4, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "a")
+            .AddResult(res2, "6124e80f3f5fc839830c1f6a")
+            .AddResult(res3, "6124e80f3f5fc839830c1f6b")
+            .AddResult(res4, "null")
             .MatchAsync();
     }
 
@@ -797,12 +797,12 @@ public class MongoDbFilterVisitorObjectIdTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "a"), res2, "6124e80f3f5fc839830c1f6a"), res3, "6124e80f3f5fc839830c1f6b"), res4, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "a")
+            .AddResult(res2, "6124e80f3f5fc839830c1f6a")
+            .AddResult(res3, "6124e80f3f5fc839830c1f6b")
+            .AddResult(res4, "null")
             .MatchAsync();
     }
 
@@ -838,12 +838,12 @@ public class MongoDbFilterVisitorObjectIdTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "a"), res2, "6124e80f3f5fc839830c1f6a"), res3, "6124e80f3f5fc839830c1f6b"), res4, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "a")
+            .AddResult(res2, "6124e80f3f5fc839830c1f6a")
+            .AddResult(res3, "6124e80f3f5fc839830c1f6b")
+            .AddResult(res4, "null")
             .MatchAsync();
     }
 
@@ -880,12 +880,12 @@ public class MongoDbFilterVisitorObjectIdTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "a"), res2, "6124e80f3f5fc839830c1f6a"), res3, "6124e80f3f5fc839830c1f6b"), res4, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "a")
+            .AddResult(res2, "6124e80f3f5fc839830c1f6a")
+            .AddResult(res3, "6124e80f3f5fc839830c1f6b")
+            .AddResult(res4, "null")
             .MatchAsync();
     }
 
@@ -920,12 +920,12 @@ public class MongoDbFilterVisitorObjectIdTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "a"), res2, "6124e80f3f5fc839830c1f6a"), res3, "6124e80f3f5fc839830c1f6b"), res4, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "a")
+            .AddResult(res2, "6124e80f3f5fc839830c1f6a")
+            .AddResult(res3, "6124e80f3f5fc839830c1f6b")
+            .AddResult(res4, "null")
             .MatchAsync();
     }
 
@@ -958,11 +958,11 @@ public class MongoDbFilterVisitorObjectIdTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "6124e80f3f5fc839830c1f69and6124e80f3f5fc839830c1f6a"), res2, "band6124e80f3f5fc839830c1f6b"), res3, "bandNull")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "6124e80f3f5fc839830c1f69and6124e80f3f5fc839830c1f6a")
+            .AddResult(res2, "band6124e80f3f5fc839830c1f6b")
+            .AddResult(res3, "bandNull")
             .MatchAsync();
     }
 
@@ -991,17 +991,18 @@ public class MongoDbFilterVisitorObjectIdTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "6124e80f3f5fc839830c1f69and6124e80f3f5fc839830c1f6a"), res2, "band6124e80f3f5fc839830c1f6b"), res3, "bandNull")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "6124e80f3f5fc839830c1f69and6124e80f3f5fc839830c1f6a")
+            .AddResult(res2, "band6124e80f3f5fc839830c1f6b")
+            .AddResult(res3, "bandNull")
             .MatchAsync();
     }
 
     public class Foo
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public ObjectId ObjectId { get; set; }
@@ -1010,6 +1011,7 @@ public class MongoDbFilterVisitorObjectIdTests
     public class FooNullable
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public ObjectId? ObjectId { get; set; }

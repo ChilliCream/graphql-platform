@@ -1,6 +1,7 @@
 using CookieCrumble;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using Squadron;
 
@@ -34,7 +35,8 @@ public class MongoDbFilterCombinatorTests
                 .SetDocument("{ root(where: { }){ bar }}")
                 .Build());
 
-        await Snapshot.Create()
+        await Snapshot
+            .Create()
             .Add(res1)
             .MatchAsync();
     }
@@ -42,6 +44,7 @@ public class MongoDbFilterCombinatorTests
     public class Foo
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public bool Bar { get; set; }
