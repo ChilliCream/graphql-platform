@@ -96,6 +96,19 @@ public class DateTypeTests
     }
 
     [Fact]
+    public void Deserialize_InvalidFormat_To_DateOnly()
+    {
+        // arrange
+        var type = new DateType();
+
+        // act
+        var success = type.TryDeserialize("2018/06/11", out _);
+
+        // assert
+        Assert.False(success);
+    }
+
+    [Fact]
     public void Deserialize_InvalidString_To_DateOnly()
     {
         // arrange

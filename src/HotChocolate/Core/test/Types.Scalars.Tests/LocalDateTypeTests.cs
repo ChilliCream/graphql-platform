@@ -293,6 +293,19 @@ public class LocalDateTypeTests : ScalarTypeTestBase
     }
 
     [Fact]
+    public void LocalDate_ExpectDeserializeInvalidFormatToDateOnly()
+    {
+        // arrange
+        ScalarType scalar = new LocalDateType();
+
+        // act
+        var success = scalar.TryDeserialize("2018/06/11", out var _);
+
+        // assert
+        Assert.False(success);
+    }
+
+    [Fact]
     public void LocalDate_ExpectDeserializeInvalidStringToDateOnly()
     {
         // arrange
