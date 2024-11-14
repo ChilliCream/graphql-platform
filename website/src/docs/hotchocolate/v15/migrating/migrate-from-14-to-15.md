@@ -20,6 +20,11 @@ Support for .NET Standard 2.0, .NET 6, and .NET 7 has been removed.
 
 `HotChocolate.Types.FSharp` has been replaced by the community project [FSharp.HotChocolate](https://www.nuget.org/packages/FSharp.HotChocolate).
 
+## Runtime type changes
+
+- The runtime type for `LocalDateType` and `DateType` has been changed from `DateTime` to `DateOnly`.
+- The runtime type for `LocalTimeType` has been changed from `DateTime` to `TimeOnly`.
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.
