@@ -44,9 +44,9 @@ public class DateTypeTests
         // arrange
         var dateType = new DateType();
         var dateTime = new DateTimeOffset(
-            new DateTime(2018, 6, 11, 8, 46, 14),
+            new DateTime(2018, 6, 11, 2, 46, 14),
             new TimeSpan(4, 0, 0));
-        var expectedValue = "2018-06-11";
+        var expectedValue = "2018-06-10";
 
         // act
         var serializedValue = (string)dateType.Serialize(dateTime);
@@ -145,14 +145,15 @@ public class DateTypeTests
         // arrange
         var type = new DateType();
         var date = new DateTimeOffset(
-            new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc));
+            new DateTime(2018, 6, 11, 2, 46, 14),
+            new TimeSpan(4, 0, 0));
 
         // act
         var success = type.TryDeserialize(date, out var deserialized);
 
         // assert
         Assert.True(success);
-        Assert.Equal(DateOnly.FromDateTime(date.DateTime),
+        Assert.Equal(DateOnly.FromDateTime(date.UtcDateTime),
             Assert.IsType<DateOnly>(deserialized));
     }
 
