@@ -176,11 +176,6 @@ public interface IReadOnlySchemaOptions
     bool StripLeadingIFromInterface { get; }
 
     /// <summary>
-    /// Specifies that the true nullability proto type shall be enabled.
-    /// </summary>
-    bool EnableTrueNullability { get; }
-
-    /// <summary>
     /// Specifies that the @tag directive shall be registered with the type system.
     /// </summary>
     bool EnableTag { get; }

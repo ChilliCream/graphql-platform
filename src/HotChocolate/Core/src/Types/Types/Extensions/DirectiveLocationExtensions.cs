@@ -37,6 +37,10 @@ public static class DirectiveLocationExtensions
                Language.DirectiveLocation.InlineFragment
            },
            {
+               DirectiveLocation.VariableDefinition,
+               Language.DirectiveLocation.VariableDefinition
+           },
+           {
                DirectiveLocation.Schema,
                Language.DirectiveLocation.Schema
            },

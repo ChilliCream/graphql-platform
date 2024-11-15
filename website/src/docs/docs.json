@@ -1,14 +1,14 @@
 [
   {
-    "path": "bananacakepop",
-    "title": "Banana Cake Pop",
-    "description": "GraphQL IDE / API Management",
-    "metaDescription": "Banana Cake Pop is a performant, feature-rich GraphQL IDE that helps developers and data scientists to explore, share, and test any GraphQL API.",
-    "latestStableVersion": "v2",
+    "path": "nitro",
+    "title": "Nitro (fka Banana Cake Pop)",
+    "description": "GraphQL API Management",
+    "metaDescription": "Nitro is a performant, feature-rich GraphQL IDE that helps developers and data scientists to explore, share, and test any GraphQL API.",
+    "latestStableVersion": "",
     "versions": [
       {
-        "path": "v2",
-        "title": "v2",
+        "path": "",
+        "title": "latest",
         "items": [
           {
             "path": "index",
@@ -42,7 +42,7 @@
           },
           {
             "path": "apis",
-            "title": "Apis",
+            "title": "APIs",
             "items": [
               { "path": "overview", "title": "Overview" },
               { "path": "stages", "title": "Stages" },
@@ -78,16 +78,50 @@
             "title": "Environments"
           },
           {
-            "path": "workspaces",
-            "title": "Workspaces"
-          },
-          {
             "path": "organizations",
             "title": "Organizations"
           },
           {
-            "path": "bcp-services",
+            "path": "workspaces",
+            "title": "Workspaces"
+          },
+          {
+            "path": "nitro-services",
             "title": "Connect your API"
+          },
+          {
+            "path": "cli",
+            "title": "CLI",
+            "items": [
+              {
+                "path": "index",
+                "title": "Introduction"
+              },
+              {
+                "path": "authentication",
+                "title": "Authentication"
+              }
+            ]
+          },
+          {
+            "path": "cli-commands",
+            "title": "CLI Commands",
+            "items": [
+              { "path": "api-key", "title": "api-key" },
+              { "path": "api", "title": "api" },
+              { "path": "client", "title": "client" },
+              { "path": "environment", "title": "environment" },
+              { "path": "launch", "title": "launch" },
+              { "path": "login", "title": "login" },
+              { "path": "logout", "title": "logout" },
+              { "path": "schema", "title": "schema" },
+              { "path": "stage", "title": "stage" },
+              {
+                "path": "fusion-configuration",
+                "title": "fusion-configuration"
+              },
+              { "path": "workspace", "title": "workspace" }
+            ]
           },
           {
             "path": "subscriptions",
@@ -119,7 +153,7 @@
     "title": "Hot Chocolate",
     "description": "GraphQL Server / Gateway",
     "metaDescription": "Hot Chocolate is the most efficient, feature-rich, open-source GraphQL server in the .NET ecosystem, that helps developers to build powerful APIs.",
-    "latestStableVersion": "v13",
+    "latestStableVersion": "v14",
     "versions": [
       {
         "path": "v14",
@@ -404,6 +438,10 @@
               {
                 "path": "custom-attributes",
                 "title": "Custom Attributes"
+              },
+              {
+                "path": "errors",
+                "title": "Errors"
               },
               {
                 "path": "language",
@@ -752,6 +790,10 @@
                 "title": "Custom Attributes"
               },
               {
+                "path": "errors",
+                "title": "Errors"
+              },
+              {
                 "path": "language",
                 "title": "Language"
               },
@@ -1078,6 +1120,10 @@
                 "title": "Custom Attributes"
               },
               {
+                "path": "error-filter",
+                "title": "Error Filter"
+              },
+              {
                 "path": "language",
                 "title": "Language"
               },
@@ -1332,6 +1378,10 @@
               {
                 "path": "custom-attributes",
                 "title": "Custom Attributes"
+              },
+              {
+                "path": "error-filter",
+                "title": "Error Filter"
               },
               {
                 "path": "language",
@@ -1606,7 +1656,7 @@
     "title": "Strawberry Shake",
     "description": "GraphQL Client for .NET",
     "metaDescription": "Strawberry Shake is an incredible GraphQL client for the .NET ecosystem, that helps developers to build awesome UIs in Blazor, Maui, and more.",
-    "latestStableVersion": "v13",
+    "latestStableVersion": "v14",
     "versions": [
       {
         "path": "v14",
@@ -1895,49 +1945,6 @@
           {
             "path": "scalars",
             "title": "Scalars"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "path": "barista",
-    "title": "Barista",
-    "description": "GraphQL CLI",
-    "metaDescription": "Barista is a powerful .NET command-line tool used for managing your GraphQL API's schema and client registries. It provides a suite of commands that facilitate the handling of schemas, clients, stages, workspaces, environments, and API keys.",
-    "latestStableVersion": "v1",
-    "versions": [
-      {
-        "path": "v1",
-        "title": "v1",
-        "items": [
-          {
-            "path": "index",
-            "title": "Introduction"
-          },
-          {
-            "path": "authentication",
-            "title": "Authentication"
-          },
-          {
-            "path": "commands",
-            "title": "Commands",
-            "items": [
-              { "path": "api-key", "title": "api-key" },
-              { "path": "api", "title": "api" },
-              { "path": "client", "title": "client" },
-              { "path": "environment", "title": "environment" },
-              { "path": "launch", "title": "launch" },
-              { "path": "login", "title": "login" },
-              { "path": "logout", "title": "logout" },
-              { "path": "schema", "title": "schema" },
-              { "path": "stage", "title": "stage" },
-              {
-                "path": "fusion-configuration",
-                "title": "fusion-configuration"
-              },
-              { "path": "workspace", "title": "workspace" }
-            ]
           }
         ]
       }

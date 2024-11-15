@@ -41,7 +41,21 @@ internal static class GeneratorUtils
             }
         }
 
-        return new DataLoaderDefaultsInfo(null, null, true, true);
+        return new DataLoaderDefaultsInfo(null, null, true, true, true);
+    }
+
+    public static DataLoaderDefaultsInfo GetDataLoaderDefaults(
+        this List<SyntaxInfo> syntaxInfos)
+    {
+        foreach (var syntaxInfo in syntaxInfos)
+        {
+            if (syntaxInfo is DataLoaderDefaultsInfo defaults)
+            {
+                return defaults;
+            }
+        }
+
+        return new DataLoaderDefaultsInfo(null, null, true, true, true);
     }
 
     public static string CreateModuleName(string? assemblyName)

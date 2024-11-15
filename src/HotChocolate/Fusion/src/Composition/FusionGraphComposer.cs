@@ -33,6 +33,7 @@ public sealed class FusionGraphComposer
         Func<ICompositionLog>? logFactory = null)
         : this(
             [
+                new LookupEntityEnricher(),
                 new RefResolverEntityEnricher(),
                 new PatternEntityEnricher(),
                 new RequireEnricher(),
@@ -41,7 +42,7 @@ public sealed class FusionGraphComposer
             [
                 new InterfaceTypeMergeHandler(), new UnionTypeMergeHandler(),
                 new InputObjectTypeMergeHandler(), new EnumTypeMergeHandler(),
-                new ScalarTypeMergeHandler(),
+                new ScalarTypeMergeHandler()
             ],
             fusionTypePrefix,
             fusionTypeSelf,
@@ -67,7 +68,9 @@ public sealed class FusionGraphComposer
                 .Use<MergeEntityMiddleware>()
                 .Use<EntityFieldDependencyMiddleware>()
                 .Use(() => new MergeTypeMiddleware(mergeHandlers))
+                .Use<RemoveDirectivesWithoutLocationMiddleware>()
                 .Use<MergeQueryAndMutationTypeMiddleware>()
+                .Use<MergeSchemaDefinitionMiddleware>()
                 .Use<MergeSubscriptionTypeMiddleware>()
                 .Use<NodeMiddleware>()
                 .Use<ApplyTagDirectiveMiddleware>()

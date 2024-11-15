@@ -141,7 +141,7 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <summary>
     /// Defines if the OneOf spec RFC is enabled. This feature is experimental.
     /// </summary>
-    public bool EnableOneOf { get; set; }
+    public bool EnableOneOf { get; set; } = true;
 
     /// <summary>
     /// Defines if the schema building process shall validate that all nodes are resolvable through `node`.
@@ -206,11 +206,6 @@ public class SchemaOptions : IReadOnlySchemaOptions
     public bool StripLeadingIFromInterface { get; set; }
 
     /// <summary>
-    /// Specifies that the true nullability proto type shall be enabled.
-    /// </summary>
-    public bool EnableTrueNullability { get; set; }
-
-    /// <summary>
     /// Specifies that the @tag directive shall be registered with the type system.
     /// </summary>
     public bool EnableTag { get; set; } = true;
@@ -266,7 +261,6 @@ public class SchemaOptions : IReadOnlySchemaOptions
             DefaultFieldBindingFlags = options.DefaultFieldBindingFlags,
             MaxAllowedNodeBatchSize = options.MaxAllowedNodeBatchSize,
             StripLeadingIFromInterface = options.StripLeadingIFromInterface,
-            EnableTrueNullability = options.EnableTrueNullability,
             EnableTag = options.EnableTag,
             DefaultQueryDependencyInjectionScope = options.DefaultQueryDependencyInjectionScope,
             DefaultMutationDependencyInjectionScope = options.DefaultMutationDependencyInjectionScope,

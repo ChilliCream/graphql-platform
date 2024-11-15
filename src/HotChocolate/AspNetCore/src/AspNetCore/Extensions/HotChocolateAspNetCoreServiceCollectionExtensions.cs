@@ -94,8 +94,8 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// <param name="maxAllowedRequestSize">
     /// The max allowed GraphQL request size.
     /// </param>
-    /// <param name="disableCostAnalyzer">
-    /// Defines if the cost analyzer should be disabled.
+    /// <param name="disableDefaultSecurity">
+    /// Defines if the default security policy should be disabled.
     /// </param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
@@ -104,7 +104,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
         this IServiceCollection services,
         string? schemaName = default,
         int maxAllowedRequestSize = MaxAllowedRequestSize,
-        bool disableCostAnalyzer = false)
+        bool disableDefaultSecurity = false)
     {
         var builder = services
             .AddGraphQLServerCore(maxAllowedRequestSize)
@@ -112,14 +112,20 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
             .AddDefaultHttpRequestInterceptor()
             .AddSubscriptionServices();
 
-        if (!disableCostAnalyzer)
+        if (!disableDefaultSecurity)
         {
             builder.AddCostAnalyzer();
-            builder.AddIntrospectionAllowedRule(
+            builder.DisableIntrospection(
                 (sp, _) =>
                 {
                     var environment = sp.GetService<IHostEnvironment>();
-                    return (environment?.IsDevelopment() ?? true) == false;
+                    return environment?.IsDevelopment() == false;
+                });
+            builder.AddMaxAllowedFieldCycleDepthRule(
+                isEnabled: (sp, _) =>
+                {
+                    var environment = sp.GetService<IHostEnvironment>();
+                    return environment?.IsDevelopment() == false;
                 });
         }
 
@@ -135,8 +141,8 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// <param name="schemaName">
     /// The name of the schema. Use explicit schema names if you host multiple schemas.
     /// </param>
-    /// <param name="disableCostAnalyzer">
-    /// Defines if the cost analyzer should be disabled.
+    /// <param name="disableDefaultSecurity">
+    /// Defines if the default security policy should be disabled.
     /// </param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
@@ -144,8 +150,8 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     public static IRequestExecutorBuilder AddGraphQLServer(
         this IRequestExecutorBuilder builder,
         string? schemaName = default,
-        bool disableCostAnalyzer = false)
-        => builder.Services.AddGraphQLServer(schemaName, disableCostAnalyzer: disableCostAnalyzer);
+        bool disableDefaultSecurity = false)
+        => builder.Services.AddGraphQLServer(schemaName, disableDefaultSecurity: disableDefaultSecurity);
 
     /// <summary>
     /// Registers the GraphQL Upload Scalar.

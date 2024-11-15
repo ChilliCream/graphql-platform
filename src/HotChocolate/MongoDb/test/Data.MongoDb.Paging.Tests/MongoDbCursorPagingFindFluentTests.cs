@@ -5,6 +5,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using Squadron;
 
@@ -32,7 +33,7 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
     public async Task Simple_StringList_Default_Items()
     {
         // arrange
-        var executor = await CreateSchemaAsync();
+        var executor = await CreateSchemaAsync(requiresPagingBoundaries: false);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -57,9 +58,9 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
             }");
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), result)
+        await Snapshot
+            .Create()
+            .AddResult(result)
             .MatchAsync();
     }
 
@@ -92,9 +93,9 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
             }");
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), result)
+        await Snapshot
+            .Create()
+            .AddResult(result)
             .MatchAsync();
     }
 
@@ -127,9 +128,9 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
             }");
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), result)
+        await Snapshot
+            .Create()
+            .AddResult(result)
             .MatchAsync();
     }
 
@@ -162,9 +163,9 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
             }");
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), result)
+        await Snapshot
+            .Create()
+            .AddResult(result)
             .MatchAsync();
     }
 
@@ -172,7 +173,7 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
     public async Task Simple_StringList_Global_DefaultItem_2()
     {
         // arrange
-        var executor = await CreateSchemaAsync();
+        var executor = await CreateSchemaAsync(requiresPagingBoundaries: false);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -197,9 +198,9 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
             }");
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), result)
+        await Snapshot
+            .Create()
+            .AddResult(result)
             .MatchAsync();
     }
 
@@ -207,7 +208,7 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
     public async Task JustTotalCount()
     {
         // arrange
-        var executor = await CreateSchemaAsync();
+        var executor = await CreateSchemaAsync(requiresPagingBoundaries: false);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -218,9 +219,9 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
             }");
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), result)
+        await Snapshot
+            .Create()
+            .AddResult(result)
             .MatchAsync();
     }
 
@@ -234,20 +235,24 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
         var result = await executor.ExecuteAsync(
             @"{
                 foos(first:1) {
+                    nodes {
+                        bar
+                    }
                     totalCount
                 }
             }");
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), result)
+        await Snapshot
+            .Create()
+            .AddResult(result)
             .MatchAsync();
     }
 
     public class Foo
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public string Bar { get; set; } = default!;
@@ -266,7 +271,7 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
         return ctx => collection.AsExecutable();
     }
 
-    private ValueTask<IRequestExecutor> CreateSchemaAsync()
+    private ValueTask<IRequestExecutor> CreateSchemaAsync(bool requiresPagingBoundaries = true)
     {
         return new ServiceCollection()
             .AddGraphQL()
@@ -305,6 +310,7 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
                     }
                 })
             .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)
+            .ModifyPagingOptions(o => o.RequirePagingBoundaries = requiresPagingBoundaries)
             .UseDefaultPipeline()
             .Services
             .BuildServiceProvider()

@@ -8,25 +8,9 @@ export const closeAside = createAction("[Common] Close aside pane");
 
 export const closeTOC = createAction("[Common] Close table of contents pane");
 
-export const hideCookieConsent = createAction(
-  "[Common] Hide cookie consent message"
-);
-
-export const hideLegacyDocHeader = createAction(
-  "[Common] Hide legacy documentation message"
-);
-
-export const showCookieConsent = createAction(
-  "[Common] Show cookie consent message"
-);
-
 export const showPromo = createAction("[Common] Show promo message");
 
 export const hidePromo = createAction("[Common] Hide promo message");
-
-export const showLegacyDocInfo = createAction(
-  "[Common] Show legacy documentation message"
-);
 
 export const toggleAside = createAction("[Common] Toggle aside pane");
 

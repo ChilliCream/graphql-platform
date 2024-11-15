@@ -1,6 +1,22 @@
 # Paging_Last_5
 
-## Result 1
+## SQL 0
+
+```sql
+-- @__p_0='6'
+SELECT b."Id", b."AlwaysNull", b."DisplayName", b."Name", b."BrandDetails_Country_Name"
+FROM "Brands" AS b
+ORDER BY b."Name" DESC, b."Id" DESC
+LIMIT @__p_0
+```
+
+## Expression 0
+
+```text
+[Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].OrderBy(t => t.Name).ThenBy(t => t.Id).Reverse().Take(6)
+```
+
+## Result 3
 
 ```json
 {
@@ -13,7 +29,7 @@
 }
 ```
 
-## Result 2
+## Result 4
 
 ```json
 [

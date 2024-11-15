@@ -73,8 +73,7 @@ internal sealed class OperationResolverMiddleware
             operationType,
             context.Schema,
             _operationCompilerOptimizers.OperationOptimizers,
-            _operationCompilerOptimizers.SelectionSetOptimizers,
-            context.IsNullBubblingEnabled());
+            _operationCompilerOptimizers.SelectionSetOptimizers);
 
         var compiler = _operationCompilerPool.Get();
         var operation = compiler.Compile(request);

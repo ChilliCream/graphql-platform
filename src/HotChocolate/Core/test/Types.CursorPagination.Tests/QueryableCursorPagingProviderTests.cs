@@ -697,7 +697,7 @@ public class QueryableCursorPagingProviderTests
             throw new NotImplementedException();
         }
 
-        public T? Service<T>(object key) where T : notnull
+        public T Service<T>(object key) where T : notnull
         {
             throw new NotImplementedException();
         }

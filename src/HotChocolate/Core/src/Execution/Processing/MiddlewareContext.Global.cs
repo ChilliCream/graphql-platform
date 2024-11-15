@@ -170,7 +170,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
     public T Service<T>() where T : notnull => Services.GetRequiredService<T>();
 
-    public T? Service<T>(object key) where T : notnull => Services.GetKeyedService<T>(key);
+    public T Service<T>(object key) where T : notnull => Services.GetRequiredKeyedService<T>(key);
 
     public object Service(Type service)
     {

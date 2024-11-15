@@ -26,7 +26,7 @@ public sealed class CostOptions
     public bool ApplyCostDefaults { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets the default cost for a async resolver pipeline.
+    /// Gets or sets the default cost for an async resolver pipeline.
     /// </summary>
     public double? DefaultResolverCost { get; set; } = 10.0;
 

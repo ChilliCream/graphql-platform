@@ -1,6 +1,6 @@
 name: Bug Report
 description: Report a bug to help us improve.
-labels: [🐛 bug]
+type: Bug
 body:
   - type: markdown
     attributes:
@@ -25,7 +25,7 @@ body:
       options:
         - Hot Chocolate
         - Strawberry Shake
-        - Banana Cake Pop
+        - Nitro
         - Green Donut
     validations:
       required: true

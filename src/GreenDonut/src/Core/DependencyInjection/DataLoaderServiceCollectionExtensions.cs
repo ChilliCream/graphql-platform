@@ -42,11 +42,25 @@ public static class DataLoaderServiceCollectionExtensions
         return services;
     }
 
+    public static IServiceCollection AddDataLoader<TService, TImplementation>(
+        this IServiceCollection services,
+        Func<IServiceProvider, TImplementation> factory)
+        where TService : class, IDataLoader
+        where TImplementation : class, TService
+    {
+        services.TryAddDataLoaderCore();
+        services.AddSingleton(new DataLoaderRegistration(typeof(TService), typeof(TImplementation), sp => factory(sp)));
+        services.TryAddScoped<TImplementation>(sp => sp.GetDataLoader<TImplementation>());
+        services.TryAddScoped<TService>(sp => sp.GetDataLoader<TService>());
+        return services;
+    }
+
     public static IServiceCollection TryAddDataLoaderCore(
         this IServiceCollection services)
     {
         services.TryAddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
 
+        services.TryAddSingleton<DataLoaderRegistrar>();
         services.AddSingleton<DataLoaderScopeFactory>();
         services.TryAddScoped<IDataLoaderScope>(sp => sp.GetRequiredService<DataLoaderScopeFactory>().CreateScope(sp));
         services.TryAddScoped<IBatchScheduler, AutoBatchScheduler>();
@@ -92,18 +106,18 @@ file static class DataLoaderServiceProviderExtensions
 
 internal sealed class DataLoaderScopeFactory
 {
-    private readonly FrozenDictionary<Type, DataLoaderRegistration> _registrations;
+    private readonly DataLoaderRegistrar _registrar;
 
-    public DataLoaderScopeFactory(IEnumerable<DataLoaderRegistration> dataLoaderRegistrations)
-        => _registrations = dataLoaderRegistrations.ToFrozenDictionary(t => t.ServiceType);
+    public DataLoaderScopeFactory(DataLoaderRegistrar registrar)
+        => _registrar = registrar;
 
     public IDataLoaderScope CreateScope(IServiceProvider scopedServiceProvider)
-        => new DefaultDataLoaderScope(scopedServiceProvider, _registrations);
+        => new DefaultDataLoaderScope(scopedServiceProvider, _registrar.Registrations);
 }
 
 file sealed class DefaultDataLoaderScope(
     IServiceProvider serviceProvider,
-    FrozenDictionary<Type, DataLoaderRegistration> registrations)
+    IReadOnlyDictionary<Type, DataLoaderRegistration> registrations)
     : IDataLoaderScope
 {
     private readonly ConcurrentDictionary<string, IDataLoader> _dataLoaders = new();

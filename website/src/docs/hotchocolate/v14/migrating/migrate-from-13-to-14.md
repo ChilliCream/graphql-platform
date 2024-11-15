@@ -12,6 +12,74 @@ Start by installing the latest `14.x.x` version of **all** of the `HotChocolate.
 
 Things that have been removed or had a change in behavior that may cause your code not to compile or lead to unexpected behavior at runtime if not addressed.
 
+## Banana Cake Pop and Barista renamed to Nitro
+
+| Old                                           | New                                   | Notes                                    |
+| --------------------------------------------- | ------------------------------------- | ---------------------------------------- |
+| AddBananaCakePopExporter                      | AddNitroExporter                      |                                          |
+| AddBananaCakePopServices                      | AddNitro                              |                                          |
+| BananaCakePop.Middleware                      | ChilliCream.Nitro.App                 |                                          |
+| BananaCakePop.Services                        | ChilliCream.Nitro                     |                                          |
+| BananaCakePop.Services.Azure                  | ChilliCream.Nitro.Azure               |                                          |
+| BananaCakePop.Services.Fusion                 | ChilliCream.Nitro.Fusion              |                                          |
+| barista                                       | nitro                                 | CLI executable                           |
+| Barista                                       | ChilliCream.Nitro.CLI                 | CLI NuGet package                        |
+| BARISTA_API_ID                                | NITRO_API_ID                          |                                          |
+| BARISTA_API_KEY                               | NITRO_API_KEY                         |                                          |
+| BARISTA_CLIENT_ID                             | NITRO_CLIENT_ID                       |                                          |
+| BARISTA_OPERATIONS_FILE                       | NITRO_OPERATIONS_FILE                 |                                          |
+| BARISTA_OUTPUT_FILE                           | NITRO_OUTPUT_FILE                     |                                          |
+| BARISTA_SCHEMA_FILE                           | NITRO_SCHEMA_FILE                     |                                          |
+| BARISTA_STAGE                                 | NITRO_STAGE                           |                                          |
+| BARISTA_SUBGRAPH_ID                           | NITRO_SUBGRAPH_ID                     |                                          |
+| BARISTA_SUBGRAPH_NAME                         | NITRO_SUBGRAPH_NAME                   |                                          |
+| BARISTA_TAG                                   | NITRO_TAG                             |                                          |
+| bcp                                           | nitro                                 | Key in `subgraph-config.json`            |
+| bcp-config.json                               | nitro-config.json                     |                                          |
+| BCP_API_ID                                    | NITRO_API_ID                          |                                          |
+| BCP_API_KEY                                   | NITRO_API_KEY                         |                                          |
+| BCP_STAGE                                     | NITRO_STAGE                           |                                          |
+| eat.bananacakepop.com                         | nitro.chillicream.com                 |                                          |
+| MapBananaCakePop                              | MapNitroApp                           |                                          |
+| @chillicream/bananacakepop-express-middleware | @chillicream/nitro-express-middleware |                                          |
+| @chillicream/bananacakepop-graphql-ide        | @chillicream/nitro-embedded           | `mode: "self"` is now `mode: "embedded"` |
+
+## Dependency injection changes
+
+- It is no longer necessary to use the `[Service]` attribute unless you're using keyed services, in which case the attribute is used to specify the key.
+  - Hot Chocolate will identify services automatically.
+- Support for the `[FromServices]` attribute has been removed.
+  - As with the `[Service]` attribute above, this attribute is no longer necessary.
+- Since the `RegisterService` method is no longer required, it has been removed, along with the `ServiceKind` enum.
+- Scoped services injected into query resolvers are now resolver-scoped by default (not request scoped). For mutation resolvers, services are request-scoped by default.
+- The default scope can be changed in two ways:
+
+  1. Globally, using `ModifyOptions`:
+
+     ```csharp
+     builder.Services
+         .AddGraphQLServer()
+         .ModifyOptions(o =>
+         {
+             o.DefaultQueryDependencyInjectionScope =
+                 DependencyInjectionScope.Resolver;
+             o.DefaultMutationDependencyInjectionScope =
+                 DependencyInjectionScope.Request;
+         });
+     ```
+
+  2. On a per-resolver basis, with the `[UseRequestScope]` or `[UseResolverScope]` attribute.
+     - Note: The `[UseServiceScope]` attribute has been removed.
+
+For more information, see the [Dependency Injection](/docs/hotchocolate/v14/server/dependency-injection) documentation.
+
+## Entity framework integration changes
+
+- The `RegisterDbContext` method is no longer required, and has therefore been removed, along with the `DbContextKind` enum.
+- Use `RegisterDbContextFactory` to register a DbContext factory.
+
+For more information, see the [Entity Framework integration](/docs/hotchocolate/v14/integrations/entity-framework) documentation.
+
 ## New GID format
 
 This release introduces a more performant GID serializer, which also simplifies the underlying format of globally unique IDs.
@@ -23,10 +91,10 @@ This change is breaking if your consumers depend on the format of the GIDs, by f
 If you don't want to switch to the new format yet, you can register the legacy serializer, which only supports parsing and emitting the old ID format:
 
 ```csharp
-services
-  .AddGraphQLServer()
-  .AddLegacyNodeIdSerializer()
-  .AddGlobalObjectIdentification();
+builder.Services
+    .AddGraphQLServer()
+    .AddLegacyNodeIdSerializer()
+    .AddGlobalObjectIdentification();
 ```
 
 > Note: `AddLegacyNodeIdSerializer()` needs to be called before `AddGlobalObjectIdentification()`.
@@ -40,10 +108,10 @@ Therefore, you'll first want to make sure that all of your services support pars
 This can be done, by configuring the new default serializer to not yet emit the new format:
 
 ```csharp
-services
-  .AddGraphQLServer()
-  .AddDefaultNodeIdSerializer(outputNewIdFormat: false)
-  .AddGlobalObjectIdentification();
+builder.Services
+    .AddGraphQLServer()
+    .AddDefaultNodeIdSerializer(outputNewIdFormat: false)
+    .AddGlobalObjectIdentification();
 ```
 
 > Note: `AddDefaultNodeIdSerializer()` needs to be called before `AddGlobalObjectIdentification()`.
@@ -51,9 +119,9 @@ services
 Once all of your services have been updated to this, you can start emitting the new format service-by-service, by removing the `AddDefaultNodeIdSerializer()` call and switching to the new default behavior:
 
 ```csharp
-services
-  .AddGraphQLServer()
-  .AddGlobalObjectIdentification();
+builder.Services
+    .AddGraphQLServer()
+    .AddGlobalObjectIdentification();
 ```
 
 ## Node Resolver validation
@@ -63,9 +131,9 @@ We now enforce that each object type implementing the `Node` interface also defi
 You can opt out of this new behavior by setting the `EnsureAllNodesCanBeResolved` option to `false`.
 
 ```csharp
-services
-  .AddGraphQLServer()
-  .ModifyOptions(o => o.EnsureAllNodesCanBeResolved = false)
+builder.Services
+    .AddGraphQLServer()
+    .ModifyOptions(o => o.EnsureAllNodesCanBeResolved = false)
 ```
 
 ## Builder APIs
@@ -84,9 +152,9 @@ We have also simplified what the builder does and removed a lot of the convenien
 
 The interface `IQueryResultBuilder` and its implementations were replaced with `OperationResultBuilder` which produces an `OperationResult` on `Build()`.
 
-### IQueryResult replaced by OperationResult
+### IQueryResult replaced by IOperationResult
 
-The interface `IQueryResultBuilder` and its implementations were replaced with `OperationResultBuilder` which produces an `OperationResult` on `Build()`.
+The interface `IQueryResult` was replaced with `IOperationResult`.
 
 ## Operation complexity analyzer replaced
 
@@ -141,6 +209,30 @@ Please ensure that your clients are sending date/time strings in the correct for
 | -------------- | ------------------- | ---------------------- |
 | cacheDirectory | "persisted_queries" | "persisted_operations" |
 
+## MutationResult renamed to FieldResult
+
+| Old name                      | New name                   |
+| ----------------------------- | -------------------------- |
+| MutationResult&lt;TResult&gt; | FieldResult&lt;TResult&gt; |
+| IMutationResult               | IFieldResult               |
+
+## IReadStoredQueries and IWriteStoredQueries now IOperationDocumentStorage
+
+`IReadStoredQueries` and `IWriteStoredQueries` have been merged into a single interface named `IOperationDocumentStorage`.
+
+Renamed interface methods:
+
+| Old name          | New name     |
+| ----------------- | ------------ |
+| TryReadQueryAsync | TryReadAsync |
+| WriteQueryAsync   | SaveAsync    |
+
+## Required keyed services
+
+Accessing a keyed service that has not been registered will now throw, instead of returning `null`. The return type is now non-nullable.
+
+This change aligns the API with the regular (non-keyed) service access API.
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.
@@ -152,23 +244,23 @@ In an effort to align our configuration APIs, we're now also offering a delegate
 **Before**
 
 ```csharp
-services
-  .AddGraphQLServer()
-  .SetPagingOptions(new PagingOptions
-  {
-      MaxPageSize = 100,
-      DefaultPageSize = 25
-  });
+builder.Services
+    .AddGraphQLServer()
+    .SetPagingOptions(new PagingOptions
+    {
+        MaxPageSize = 100,
+        DefaultPageSize = 25
+    });
 ```
 
 **After**
 
 ```csharp
-services
-  .AddGraphQLServer()
-  .ModifyPagingOptions(opt =>
-  {
-      opt.MaxPageSize = 100;
-      opt.DefaultPageSize = 25;
-  });
+builder.Services
+    .AddGraphQLServer()
+    .ModifyPagingOptions(opt =>
+    {
+        opt.MaxPageSize = 100;
+        opt.DefaultPageSize = 25;
+    });
 ```

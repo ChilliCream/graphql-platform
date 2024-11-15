@@ -404,7 +404,8 @@ public class CustomFilteringConvention : FilterConvention
 }
 
 // and then
-services.AddGraphQLServer()
+builder.Services
+    .AddGraphQLServer()
     .AddFiltering<CustomFilteringConvention>();
 ```
 
@@ -412,7 +413,7 @@ To make this registration easier, Hot Chocolate also supports convention and pro
 Instead of creating a custom `FilterConvention`, you can also do the following:
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddFiltering()
     .AddConvention<IFilterConvention>(

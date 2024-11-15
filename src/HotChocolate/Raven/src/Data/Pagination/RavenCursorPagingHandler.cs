@@ -61,6 +61,7 @@ internal sealed class RavenCursorPagingHandler<TEntity>(PagingOptions options)
 
         public async ValueTask<CursorPaginationData<TEntity>> QueryAsync(
             RavenPagingContainer<TEntity> slicedQuery,
+            RavenPagingContainer<TEntity> originalQuery,
             int offset,
             bool includeTotalCount,
             CancellationToken cancellationToken)
@@ -68,7 +69,7 @@ internal sealed class RavenCursorPagingHandler<TEntity>(PagingOptions options)
             if (includeTotalCount)
             {
                 var itemsTask = slicedQuery.QueryAsync(offset, cancellationToken);
-                var countTask = slicedQuery.CountAsync(cancellationToken);
+                var countTask = originalQuery.CountAsync(cancellationToken);
 
                 await Task.WhenAll(itemsTask, countTask).ConfigureAwait(false);
 

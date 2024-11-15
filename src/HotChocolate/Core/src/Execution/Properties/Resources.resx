@@ -324,7 +324,4 @@
   <data name="SelectionSetOptimizerContext_AddSelection_ResponseNameNotTheSame" xml:space="preserve">
     <value>The provided response name must be the same as on the selection.</value>
   </data>
-  <data name="ErrorHelper_NoNullBubbling_ArgumentValue_NotAllowed" xml:space="preserve">
-    <value>Only boolean values are allowed to switch null bubbling on or off.</value>
-  </data>
 </root>

@@ -68,7 +68,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: 22
           cache: "yarn"
           cache-dependency-path: "website/yarn.lock"
 
@@ -89,7 +89,7 @@ jobs:
       - uses: actions/setup-node@v4
         name: Setup node
         with:
-          node-version: "20"
+          node-version: 22
       - run: npm install -g markdownlint-cli2
         name: Install markdownlint-cli2
       - run: markdownlint-cli2 "*.md" "website/src/**/*.md"
@@ -109,7 +109,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "14.x"
+          node-version: 22
           cache: "yarn"
           cache-dependency-path: "website/yarn.lock"
 
@@ -204,14 +204,12 @@ jobs:
           CI_BUILD: true
 
       - name: Upload Test Results as Artifact
-        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-results-${{ matrix.name }}
           path: ${{ matrix.directoryPath }}/TestResults/*.trx
 
       - name: Upload Coverage File as Artifact
-        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: coverage-${{ matrix.name }}
@@ -226,60 +224,25 @@ jobs:
           name: mismatch-files-${{ matrix.name }}
           path: ${{ matrix.directoryPath }}/**/__mismatch__/*
 
-  merge-coverage:
-    name: Merge and Upload Coverage
+  upload-coverage:
+    name: Upload Coverage
     needs: library-tests
-    if: always() && needs.library-tests.result != 'cancelled'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          show-progress: false
-
-      - name: Install .NET
-        if: ${{ !cancelled() }}
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: |
-            8.x
-            9.x
-
-      - name: Create All.sln
-        if: ${{ !cancelled() }}
-        run: ./build.sh CreateAllSln
-
-      - name: Build
-        if: ${{ !cancelled() }}
-        run: dotnet build ./src/All.sln
-
       - name: Download all coverage artifacts
-        if: ${{ !cancelled() }}
         uses: actions/download-artifact@v4
         with:
           path: ./output/download
           pattern: coverage-*
 
-      - name: Merge Coverage Files
-        if: ${{ !cancelled() }}
-        timeout-minutes: 10
-        run: |
-          dotnet tool install -g dotnet-reportgenerator-globaltool
-          reportgenerator "-reports:./output/download/**/*.xml" "-targetdir:./output/coverage/merged" -reporttypes:Opencover -license:$ReportGenerator_License
-        env:
-          ReportGenerator_License: ${{ secrets.REPORTGENERATOR_LICENSE }}
-
-      - name: Upload Combined Coverage to Codecov
-        if: ${{ !cancelled() }}
+      - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         timeout-minutes: 10
         with:
-          file: ./output/coverage/merged/OpenCover.xml
           token: ${{ secrets.CODECOV_TOKEN }}
           name: graphql-platform
           flags: unittests
           fail_ci_if_error: true
-          disable_search: true
 
   ci-status-check:
     name: "CI Status Check"

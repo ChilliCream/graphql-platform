@@ -108,6 +108,10 @@ public interface IOperation : IHasReadOnlyContextData, IEnumerable<ISelectionSet
     /// </returns>
     long CreateIncludeFlags(IVariableValueCollection variables);
 
+    bool TryGetState<TState>(out TState? state);
+
+    bool TryGetState<TState>(string key, out TState? state);
+
     /// <summary>
     /// Gets or adds state to this operation.
     /// </summary>
@@ -118,7 +122,7 @@ public interface IOperation : IHasReadOnlyContextData, IEnumerable<ISelectionSet
     /// The factory that creates the state if it does not exist.
     /// </param>
     /// <returns>
-    ///  Returns the state.
+    /// Returns the state.
     /// </returns>
     TState GetOrAddState<TState>(
         Func<TState> createState);

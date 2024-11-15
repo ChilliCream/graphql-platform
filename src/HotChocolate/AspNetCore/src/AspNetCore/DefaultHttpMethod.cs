@@ -1,7 +1,7 @@
 namespace HotChocolate.AspNetCore;
 
 /// <summary>
-/// The default HTTP fetch method for Banana Cake Pop.
+/// The default HTTP fetch method for Nitro.
 /// </summary>
 public enum DefaultHttpMethod
 {

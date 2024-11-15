@@ -117,6 +117,25 @@ internal sealed class Operation : IOperation
         return context;
     }
 
+    public bool TryGetState<TState>(out TState? state)
+    {
+        var key = typeof(TState).FullName ?? throw new InvalidOperationException();
+        return TryGetState(key, out state);
+    }
+
+    public bool TryGetState<TState>(string key, out TState? state)
+    {
+        if(_contextData.TryGetValue(key, out var value)
+            && value is TState casted)
+        {
+            state = casted;
+            return true;
+        }
+
+        state = default;
+        return false;
+    }
+
     public TState GetOrAddState<TState>(Func<TState> createState)
         => GetOrAddState<TState, object?>(_ => createState(), null);
 

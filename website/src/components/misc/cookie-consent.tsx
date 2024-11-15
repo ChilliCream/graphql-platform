@@ -1,65 +1,58 @@
-import React, { FC, useEffect } from "react";
+import React, { FC, useCallback, useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
-import { useDispatch, useSelector } from "react-redux";
 
-import { State } from "@/state";
-import { hideCookieConsent, showCookieConsent } from "@/state/common";
 import styled from "styled-components";
 import { Dialog, DialogButton, DialogContainer, LearnMoreLink } from "./dialog";
 
-export const CookieConsent: FC = () => {
-  const show = useSelector<State, boolean>(
-    (state) => state.common.showCookieConsent
-  );
-  const dispatch = useDispatch();
-  const cookieName = "chillicream-cookie-consent";
-  const [cookies, setCookie] = useCookies([cookieName]);
-  const consentCookieValue = cookies[cookieName];
+const COOKIE_NAME = "chillicream_website_cookie_consent_shown";
 
-  const clickDismiss = () => {
+export const CookieConsent: FC = () => {
+  const [cookies, setCookie] = useCookies([COOKIE_NAME]);
+  const [show, setShow] = useState(false);
+
+  const clickDismiss = useCallback(() => {
     const expires = new Date();
 
-    expires.setFullYear(new Date().getFullYear() + 1);
+    expires.setFullYear(expires.getFullYear() + 1);
 
-    setCookie(cookieName, "true", { path: "/", expires });
-  };
+    setCookie(COOKIE_NAME, true, {
+      path: "/",
+      expires,
+      sameSite: "lax",
+    });
+    setShow(false);
+  }, [setCookie, setShow]);
 
   useEffect(() => {
-    if (consentCookieValue === "true") {
-      dispatch(hideCookieConsent());
-    } else {
-      dispatch(showCookieConsent());
-    }
-  }, [consentCookieValue]);
+    setShow(!cookies[COOKIE_NAME]);
+  }, [cookies, setShow]);
 
-  return (
+  return show ? (
     <Dialog
       role="dialog"
       aria-live="polite"
       aria-label="cookieconsent"
       aria-describedby="cookieconsent:desc"
-      show={show}
+      show
     >
-      {show && (
-        <Container>
-          <Message id="cookieconsent:desc">
-            This website uses cookies to ensure you get the best experience on
-            our website.{" "}
-            <LearnMoreLink prefetch={false} to="/legal/cookie-policy.html">
-              Learn more
-            </LearnMoreLink>
-          </Message>
-          <DialogButton
-            aria-label="dismiss cookie message"
-            role="button"
-            onClick={clickDismiss}
-          >
-            Got it!
-          </DialogButton>
-        </Container>
-      )}
+      <Container>
+        <Message id="cookieconsent:desc">
+          This website uses cookies to ensure you get the best experience on our
+          website.{" "}
+          <LearnMoreLink prefetch={false} to="/legal/cookie-policy.html">
+            Learn more
+          </LearnMoreLink>
+        </Message>
+        <DialogButton
+          aria-label="dismiss cookie message"
+          role="button"
+          onClick={clickDismiss}
+        >
+          Got it!
+        </DialogButton>
+      </Container>
     </Dialog>
-  );
+  ) : null;
 };
 
 const Container = styled(DialogContainer)`

@@ -220,6 +220,11 @@ public static class WellKnownContextData
     public const string CacheControlHeaderValue = "HotChocolate.Caching.CacheControlHeaderValue";
 
     /// <summary>
+    /// The key to get the Vary header value from the context data.
+    /// </summary>
+    public const string VaryHeaderValue = "HotChocolate.Caching.VaryHeaderValue";
+
+    /// <summary>
     /// The key to to ski caching a query result.
     /// </summary>
     public const string SkipQueryCaching = "HotChocolate.Caching.SkipQueryCaching";
@@ -253,11 +258,6 @@ public static class WellKnownContextData
     /// The key to access the authorization allowed flag on the member context.
     /// </summary>
     public const string AllowAnonymous = "HotChocolate.Authorization.AllowAnonymous";
-
-    /// <summary>
-    /// The key to access the true nullability flag on the execution context.
-    /// </summary>
-    public const string EnableTrueNullability = "HotChocolate.Types.EnableTrueNullability";
 
     /// <summary>
     /// The key to access the tag options object.

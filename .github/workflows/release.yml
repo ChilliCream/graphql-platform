@@ -3,11 +3,11 @@ name: Release
 on:
   push:
     tags:
-      - '14.*'
+      - '15.*'
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     permissions:
       contents: write
     steps:

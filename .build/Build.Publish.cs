@@ -52,9 +52,6 @@ partial class Build
             projFile = File.ReadAllText(EmptyAzf12Proj);
             File.WriteAllText(EmptyAzf12Proj, projFile.Replace("14.0.0-preview.build.0", SemVersion));
 
-            projFile = File.ReadAllText(EmptyAzfUp12Proj);
-            File.WriteAllText(EmptyAzfUp12Proj, projFile.Replace("14.0.0-preview.build.0", SemVersion));
-
             projFile = File.ReadAllText(Gateway13Proj);
             File.WriteAllText(Gateway13Proj, projFile.Replace("14.0.0-preview.build.0", SemVersion));
 
@@ -76,15 +73,6 @@ partial class Build
                 .SetNoRestore(true)
                 .SetProjectFile(PackSolutionFile)
                 .SetConfiguration(Configuration)
-                .SetInformationalVersion(SemVersion)
-                .SetFileVersion(Version)
-                .SetAssemblyVersion(Version)
-                .SetVersion(SemVersion));
-
-            DotNetPack(c => c
-                .SetProject(FSharpTypes)
-                .SetConfiguration(Configuration)
-                .SetOutputDirectory(PackageDirectory)
                 .SetInformationalVersion(SemVersion)
                 .SetFileVersion(Version)
                 .SetAssemblyVersion(Version)

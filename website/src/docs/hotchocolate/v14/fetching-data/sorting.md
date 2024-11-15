@@ -60,9 +60,10 @@ Sorting is part of the `HotChocolate.Data` package.
 To use sorting you need to register it on the schema:
 
 ```csharp
-services.AddGraphQLServer()
-  // Your schema configuration
-  .AddSorting();
+builder.Services
+    .AddGraphQLServer()
+    // Your schema configuration
+    .AddSorting();
 ```
 
 Hot Chocolate will infer the sorting types directly from your .Net Model and then use a Middleware to apply the order to `IQueryable<T>` or `IEnumerable<T>` on execution.
@@ -74,7 +75,7 @@ Hot Chocolate will infer the sorting types directly from your .Net Model and the
 public class Query
 {
     [UseSorting]
-    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+    public IQueryable<User> GetUsers(IUserRepository repository)
         => repository.GetUsers();
 }
 ```
@@ -93,7 +94,7 @@ public class QueryType : ObjectType<Query>
 
 public class Query
 {
-    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+    public IQueryable<User> GetUsers(IUserRepository repository)
         => repository.GetUsers();
 }
 ```
@@ -217,7 +218,7 @@ To apply this sorting type, we just have to provide it to the `UseSorting` exten
 public class Query
 {
     [UseSorting(typeof(UserSortType))]
-    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+    public IQueryable<User> GetUsers(IUserRepository repository)
         => repository.GetUsers();
 }
 ```
@@ -236,7 +237,7 @@ public class QueryType : ObjectType<Query>
 
 public class Query
 {
-    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+    public IQueryable<User> GetUsers(IUserRepository repository)
         => repository.GetUsers();
 }
 ```
@@ -268,10 +269,12 @@ public class CustomConvention : SortConvention
     }
 }
 
-services.AddGraphQLServer()
+builder.Services
+    .AddGraphQLServer()
     .AddConvention<ISortConvention, CustomConvention>();
 // or
-services.AddGraphQLServer()
+builder.Services
+    .AddGraphQLServer()
     .AddConvention<ISortConvention>(new Convention(x =>
         x.AddDefaults()))
 ```
@@ -287,10 +290,12 @@ public class CustomConventionExtension : SortConventionExtension
     }
 }
 
-services.AddGraphQLServer()
+builder.Services
+    .AddGraphQLServer()
     .AddConvention<ISortConvention, CustomConventionExtension>();
 // or
-services.AddGraphQLServer()
+builder.Services
+    .AddGraphQLServer()
     .AddConvention<ISortConvention>(new SortConventionExtension(x =>
     {
         // config

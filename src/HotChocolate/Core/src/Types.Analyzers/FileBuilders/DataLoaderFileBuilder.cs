@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Inspectors;
@@ -83,10 +84,11 @@ public sealed class DataLoaderFileBuilder : IDisposable
         bool isPublic,
         DataLoaderKind kind,
         ITypeSymbol key,
-        ITypeSymbol value)
+        ITypeSymbol value,
+        bool withInterface)
     {
         _writer.WriteIndentedLine(
-            "{0} sealed class {1}",
+            "{0} sealed partial class {1}",
             isPublic
                 ? "public"
                 : "internal",
@@ -98,7 +100,10 @@ public sealed class DataLoaderFileBuilder : IDisposable
                 : ": global::GreenDonut.DataLoaderBase<{0}, {1}>",
             key.ToFullyQualified(),
             value.ToFullyQualified());
-        _writer.WriteIndentedLine(", {0}", interfaceName);
+        if (withInterface)
+        {
+            _writer.WriteIndentedLine(", {0}", interfaceName);
+        }
         _writer.DecreaseIndent();
         _writer.WriteIndentedLine("{");
         _writer.IncreaseIndent();
@@ -225,8 +230,8 @@ public sealed class DataLoaderFileBuilder : IDisposable
                 value.ToFullyQualified(),
                 kind is DataLoaderKind.Group ? "[]" : string.Empty,
                 value.IsValueType ? string.Empty : "?");
-                _writer.WriteIndentedLine(
-            "global::{0}<{1}{2}> context,",
+            _writer.WriteIndentedLine(
+                "global::{0}<{1}{2}> context,",
                 WellKnownTypes.DataLoaderFetchContext,
                 value.ToFullyQualified(),
                 kind is DataLoaderKind.Group ? "[]" : string.Empty);
@@ -254,8 +259,31 @@ public sealed class DataLoaderFileBuilder : IDisposable
                         isScoped ? "scope.ServiceProvider" : "_services",
                         parameter.Type.ToFullyQualified());
                 }
-                else if (parameter.Kind is DataLoaderParameterKind.SelectorBuilder
-                    || parameter.Kind is DataLoaderParameterKind.PagingArguments)
+                else if (parameter.Kind is DataLoaderParameterKind.SelectorBuilder)
+                {
+                    _writer.WriteIndentedLine(
+                        "var {0} = context.GetState<{1}>(\"{2}\")",
+                        parameter.VariableName,
+                        parameter.Type.ToFullyQualified(),
+                        parameter.StateKey);
+                    _writer.IncreaseIndent();
+                    _writer.WriteIndentedLine(
+                        "?? new global::GreenDonut.Selectors.DefaultSelectorBuilder();");
+                    _writer.DecreaseIndent();
+                }
+                else if (parameter.Kind is DataLoaderParameterKind.PredicateBuilder)
+                {
+                    _writer.WriteIndentedLine(
+                        "var {0} = context.GetState<{1}>(\"{2}\")",
+                        parameter.VariableName,
+                        parameter.Type.ToFullyQualified(),
+                        parameter.StateKey);
+                    _writer.IncreaseIndent();
+                    _writer.WriteIndentedLine(
+                        "?? new global::GreenDonut.Predicates.DefaultPredicateBuilder();");
+                    _writer.DecreaseIndent();
+                }
+                else if (parameter.Kind is DataLoaderParameterKind.PagingArguments)
                 {
                     _writer.WriteIndentedLine(
                         "var {0} = context.GetRequiredState<{1}>(\"{2}\");",
@@ -277,7 +305,6 @@ public sealed class DataLoaderFileBuilder : IDisposable
                             parameter.Type.PrintNullRefQualifier(),
                             parameter.StateKey,
                             defaultValueString);
-
                     }
                     else if (parameter.Type.IsNullableType())
                     {
@@ -457,7 +484,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
         DataLoaderKind kind,
         ImmutableArray<DataLoaderParameterInfo> parameters)
     {
-        _writer.Write("await {0}.{1}(", containingType, fetchMethod.Name);
+        _writer.Write("await global::{0}.{1}(", containingType, fetchMethod.Name);
 
         for (var i = 0; i < parameters.Length; i++)
         {
@@ -482,6 +509,100 @@ public sealed class DataLoaderFileBuilder : IDisposable
         }
 
         _writer.WriteLine(").ConfigureAwait(false);");
+    }
+
+    public void WriteDataLoaderGroupClass(
+        string groupClassName,
+        IReadOnlyList<GroupedDataLoaderInfo> dataLoaders,
+        bool withInterface)
+    {
+        if (withInterface)
+        {
+            _writer.WriteIndentedLine("public interface I{0}", groupClassName);
+            _writer.WriteIndentedLine("{");
+            _writer.IncreaseIndent();
+
+            foreach (var dataLoader in dataLoaders)
+            {
+                _writer.WriteIndentedLine("{0} {1} {{ get; }}", dataLoader.InterfaceName, dataLoader.Name);
+            }
+
+            _writer.DecreaseIndent();
+            _writer.WriteIndentedLine("}");
+            _writer.WriteLine();
+        }
+
+        if (withInterface)
+        {
+            _writer.WriteIndentedLine("public sealed partial class {0} : I{0}", groupClassName);
+        }
+        else
+        {
+            _writer.WriteIndentedLine("public sealed partial class {0}", groupClassName);
+        }
+
+        _writer.WriteIndentedLine("{");
+        _writer.IncreaseIndent();
+
+        _writer.WriteIndentedLine("private readonly IServiceProvider _services;");
+
+        foreach (var dataLoader in dataLoaders)
+        {
+            _writer.WriteIndentedLine("private {0}? {1};", dataLoader.InterfaceName, dataLoader.FieldName);
+        }
+
+        _writer.WriteLine();
+        _writer.WriteIndentedLine("public {0}(IServiceProvider services)", groupClassName);
+        _writer.WriteIndentedLine("{");
+        _writer.IncreaseIndent();
+        _writer.WriteIndentedLine("_services = services");
+        _writer.IncreaseIndent();
+        _writer.WriteIndentedLine("?? throw new ArgumentNullException(nameof(services));");
+        _writer.DecreaseIndent();
+        _writer.DecreaseIndent();
+        _writer.WriteIndentedLine("}");
+
+        foreach (var dataLoader in dataLoaders)
+        {
+            _writer.WriteIndentedLine(
+                "public {0} {1}",
+                dataLoader.InterfaceName,
+                dataLoader.Name);
+
+            _writer.WriteIndentedLine("{");
+            _writer.IncreaseIndent();
+
+            _writer.WriteIndentedLine("get");
+
+            _writer.WriteIndentedLine("{");
+            _writer.IncreaseIndent();
+
+            _writer.WriteIndentedLine(
+                "if ({0} is null)",
+                dataLoader.FieldName);
+
+            _writer.WriteIndentedLine("{");
+            _writer.IncreaseIndent();
+
+            _writer.WriteIndentedLine(
+                "{0} = _services.GetRequiredService<{1}>();",
+                dataLoader.FieldName,
+                dataLoader.InterfaceName);
+
+            _writer.DecreaseIndent();
+            _writer.WriteIndentedLine("}");
+            _writer.WriteLine();
+            _writer.WriteIndentedLine("return {0}!;", dataLoader.FieldName);
+
+            _writer.DecreaseIndent();
+            _writer.WriteIndentedLine("}");
+
+            _writer.DecreaseIndent();
+            _writer.WriteIndentedLine("}");
+        }
+
+        _writer.DecreaseIndent();
+        _writer.WriteIndentedLine("}");
     }
 
     public void WriteLine() => _writer.WriteLine();

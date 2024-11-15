@@ -59,8 +59,9 @@ internal abstract class DeferredExecutionTask
             Task.Factory.StartNew(
                 () =>
                 {
-                    ExecutionContext.Run(capturedContext, (state) =>
-                        ExecuteAsync(operationContextOwner, resultId, parentResultId, patchId),
+                    ExecutionContext.Run(
+                        capturedContext,
+                        _ => ExecuteAsync(operationContextOwner, resultId, parentResultId, patchId),
                         null);
                 },
                 default,
