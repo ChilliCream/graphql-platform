@@ -54,7 +54,7 @@ public class DateType : ScalarType<DateOnly, StringValueNode>
             string s => new StringValueNode(s),
             DateOnly d => ParseValue(d),
             DateTimeOffset o => ParseValue(DateOnly.FromDateTime(o.UtcDateTime)),
-            DateTime dt => ParseValue(DateOnly.FromDateTime(dt)),
+            DateTime dt => ParseValue(DateOnly.FromDateTime(dt.ToUniversalTime())),
             _ => throw new SerializationException(
                 TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()), this)
         };
@@ -71,10 +71,10 @@ public class DateType : ScalarType<DateOnly, StringValueNode>
                 resultValue = Serialize(d);
                 return true;
             case DateTimeOffset o:
-                resultValue = Serialize(o);
+                resultValue = Serialize(o.UtcDateTime);
                 return true;
             case DateTime dt:
-                resultValue = Serialize(dt);
+                resultValue = Serialize(dt.ToUniversalTime());
                 return true;
             default:
                 resultValue = null;
@@ -99,7 +99,7 @@ public class DateType : ScalarType<DateOnly, StringValueNode>
                 runtimeValue = DateOnly.FromDateTime(o.UtcDateTime);
                 return true;
             case DateTime dt:
-                runtimeValue = DateOnly.FromDateTime(dt);
+                runtimeValue = DateOnly.FromDateTime(dt.ToUniversalTime());
                 return true;
             default:
                 runtimeValue = null;
