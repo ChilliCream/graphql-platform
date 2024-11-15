@@ -25,6 +25,14 @@ Support for .NET Standard 2.0, .NET 6, and .NET 7 has been removed.
 - The runtime type for `LocalDateType` and `DateType` has been changed from `DateTime` to `DateOnly`.
 - The runtime type for `LocalTimeType` has been changed from `DateTime` to `TimeOnly`.
 
+## DateTime serialized in universal time for the Date type
+
+`DateTime`s are now serialized in universal time for the `Date` type.
+
+For example, the `DateTime` `2018-06-11 02:46:14` in a time zone of `04:00` will now serialize as `2018-06-10` and not `2018-06-11`.
+
+Use the `LocalDate` type if you do not want the date to be converted to universal time.
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.
