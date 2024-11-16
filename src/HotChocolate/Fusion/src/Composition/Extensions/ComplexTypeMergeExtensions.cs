@@ -1,3 +1,4 @@
+using HotChocolate.Language;
 using HotChocolate.Skimmed;
 using static HotChocolate.Fusion.Composition.MergeExtensions;
 
@@ -64,6 +65,8 @@ internal static class ComplexTypeMergeExtensions
             return;
         }
 
+        MergeSemanticNonNullability(context, source, target);
+
         if (!mergedType.Equals(target.Type, TypeComparison.Structural))
         {
             target.Type = mergedType;
@@ -101,7 +104,7 @@ internal static class ComplexTypeMergeExtensions
                     return;
                 }
 
-                if(!targetArgument.Type.Equals(mergedInputType, TypeComparison.Structural))
+                if (!targetArgument.Type.Equals(mergedInputType, TypeComparison.Structural))
                 {
                     targetArgument.Type = mergedInputType;
                 }
@@ -128,7 +131,7 @@ internal static class ComplexTypeMergeExtensions
         // If the target field is not deprecated and the source field is deprecated, copy over the
         target.MergeDeprecationWith(source);
 
-        target.MergeDirectivesWith(source, context);
+        target.MergeDirectivesWith(source, context, shouldApplySemanticNonNull: false);
 
         foreach (var sourceArgument in source.Arguments)
         {
@@ -150,5 +153,119 @@ internal static class ComplexTypeMergeExtensions
                 targetArgument.DefaultValue = sourceArgument.DefaultValue;
             }
         }
+    }
+
+    private static void MergeSemanticNonNullability(
+        this CompositionContext context,
+        OutputFieldDefinition source,
+        OutputFieldDefinition target)
+    {
+        var sourceSemanticNonNullLevels = GetSemanticNonNullLevels(source);
+        var targetSemanticNonNullLevels = GetSemanticNonNullLevels(target);
+
+        if (sourceSemanticNonNullLevels.Count < 1 && targetSemanticNonNullLevels.Count < 1)
+        {
+            return;
+        }
+
+        List<int> levels = [];
+
+        var currentLevel = 0;
+        var currentSourceType = source.Type;
+        var currentTargetType = target.Type;
+        while (true)
+        {
+            if (currentTargetType is NonNullTypeDefinition targetNonNullType)
+            {
+                if (currentSourceType is not NonNullTypeDefinition)
+                {
+                    if (sourceSemanticNonNullLevels.Contains(currentLevel))
+                    {
+                        // Non-Null + Semantic Non-Null case
+                        levels.Add(currentLevel);
+                    }
+                }
+
+                currentTargetType = targetNonNullType.NullableType;
+            }
+            else if (targetSemanticNonNullLevels.Contains(currentLevel))
+            {
+                if (currentSourceType is NonNullTypeDefinition || sourceSemanticNonNullLevels.Contains(currentLevel))
+                {
+                    // Semantic Non-Null + (Non-Null || Semantic Non-Null) case
+                    levels.Add(currentLevel);
+                }
+            }
+
+            if (currentSourceType is NonNullTypeDefinition sourceNonNullType)
+            {
+                currentSourceType = sourceNonNullType.NullableType;
+            }
+
+            if (currentTargetType is ListTypeDefinition targetListType)
+            {
+                currentTargetType = targetListType.ElementType;
+
+                if (currentSourceType is ListTypeDefinition sourceListType)
+                {
+                    currentSourceType = sourceListType.ElementType;
+                }
+
+                currentLevel++;
+
+                continue;
+            }
+
+            break;
+        }
+
+        var targetSemanticNonNullDirective = target.Directives
+            .FirstOrDefault(d => d.Name == BuiltIns.SemanticNonNull.Name);
+
+        if (targetSemanticNonNullDirective is not null)
+        {
+            target.Directives.Remove(targetSemanticNonNullDirective);
+        }
+
+        if (levels.Count < 1)
+        {
+            return;
+        }
+
+        if (context.FusionGraph.DirectiveDefinitions.TryGetDirective(BuiltIns.SemanticNonNull.Name,
+            out var semanticNonNullDirectiveDefinition))
+        {
+            if (levels is [0])
+            {
+                target.Directives.Add(new Directive(semanticNonNullDirectiveDefinition));
+            }
+            else
+            {
+                var levelsValueNode = new ListValueNode(levels.Select(l => new IntValueNode(l)).ToList());
+                var levelsArgument = new ArgumentAssignment(BuiltIns.SemanticNonNull.Levels, levelsValueNode);
+                target.Directives.Add(new Directive(semanticNonNullDirectiveDefinition, levelsArgument));
+            }
+        }
+    }
+
+    private static List<int> GetSemanticNonNullLevels(IDirectivesProvider provider)
+    {
+        var directive = provider.Directives
+            .FirstOrDefault(d => d.Name == BuiltIns.SemanticNonNull.Name);
+
+        if (directive is null)
+        {
+            return [];
+        }
+
+        if (directive.Arguments.TryGetValue(BuiltIns.SemanticNonNull.Levels, out var levelsArg))
+        {
+            if (levelsArg is ListValueNode listValueNode)
+            {
+                return listValueNode.Items.Cast<IntValueNode>().Select(i => i.ToInt32()).ToList();
+            }
+        }
+
+        return [0];
     }
 }
