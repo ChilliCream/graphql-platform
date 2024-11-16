@@ -12,7 +12,7 @@ using HotChocolate.Types.Relay;
 
 namespace HotChocolate;
 
-public class SemanticNonNullTypeInterceptor : TypeInterceptor
+internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
 {
     private ITypeInspector _typeInspector = null!;
     private ExtendedTypeReference _nodeTypeReference = null!;
@@ -32,6 +32,51 @@ public class SemanticNonNullTypeInterceptor : TypeInterceptor
         _nodeTypeReference = _typeInspector.GetTypeRef(typeof(NodeType));
     }
 
+    /// <summary>
+    /// After the root types have been resolved, we go through all the fields of the mutation type
+    /// and undo semantic non-nullability. This is because mutations can be chained and we want to retain
+    /// the null-bubbling so execution is aborted once one non-null mutation field produces an error.
+    /// We have to do this in a different hook because the mutation type is not yet fully resolved in the
+    /// <see cref="OnAfterCompleteName"/> hook.
+    /// </summary>
+    public override void OnAfterResolveRootType(
+        ITypeCompletionContext completionContext,
+        ObjectTypeDefinition definition,
+        OperationType operationType)
+    {
+        if (operationType == OperationType.Mutation)
+        {
+            foreach (var field in definition.Fields)
+            {
+                if (field.IsIntrospectionField)
+                {
+                    continue;
+                }
+
+                if (!field.HasDirectives)
+                {
+                    continue;
+                }
+
+                var semanticNonNullDirective =
+                    field.Directives.FirstOrDefault(d => d.Value is SemanticNonNullDirective);
+
+                if (semanticNonNullDirective is not null)
+                {
+                    field.Directives.Remove(semanticNonNullDirective);
+                }
+
+                var semanticNonNullFormatterDefinition =
+                    field.FormatterDefinitions.FirstOrDefault(fd => fd.Key == WellKnownMiddleware.SemanticNonNull);
+
+                if (semanticNonNullFormatterDefinition is not null)
+                {
+                    field.FormatterDefinitions.Remove(semanticNonNullFormatterDefinition);
+                }
+            }
+        }
+    }
+
     public override void OnAfterCompleteName(ITypeCompletionContext completionContext, DefinitionBase definition)
     {
         if (completionContext.IsIntrospectionType)
@@ -41,12 +86,6 @@ public class SemanticNonNullTypeInterceptor : TypeInterceptor
 
         if (definition is ObjectTypeDefinition objectDef)
         {
-            if (((RegisteredType)completionContext).IsMutationType == true)
-            {
-                // Fields on the Mutation type should stay non-null to abort execution.
-                return;
-            }
-
             if (objectDef.Name is "CollectionSegmentInfo" or "PageInfo")
             {
                 return;
@@ -300,7 +339,8 @@ public class SemanticNonNullTypeInterceptor : TypeInterceptor
             key: WellKnownMiddleware.SemanticNonNull,
             isRepeatable: false);
 
-    private static void CheckResultForSemanticNonNullViolations(object? result, IResolverContext context, Path path, HashSet<int> levels,
+    private static void CheckResultForSemanticNonNullViolations(object? result, IResolverContext context, Path path,
+        HashSet<int> levels,
         int currentLevel)
     {
         if (result is null && levels.Contains(currentLevel))
