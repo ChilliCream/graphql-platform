@@ -69,7 +69,7 @@ internal sealed class MockFieldMiddleware
             }
         }
 
-        if (fieldName.EndsWith("ById"))
+        if (fieldName.EndsWith("ById") || fieldName is "node" or "nodes")
         {
             if (context.Selection.Arguments.ContainsName("id"))
             {
@@ -111,14 +111,14 @@ internal sealed class MockFieldMiddleware
 
         if (fieldType.IsObjectType())
         {
-            context.Result = CreateObject();
+            context.Result = CreateObject(++_idCounter);
         }
         else if (fieldType.IsInterfaceType() || fieldType.IsUnionType())
         {
             var possibleTypes = context.Schema.GetPossibleTypes(namedFieldType);
 
             context.ValueType = possibleTypes.First();
-            context.Result = CreateObject();
+            context.Result = CreateObject(++_idCounter);
         }
         else if (fieldType.IsListType())
         {
@@ -172,11 +172,9 @@ internal sealed class MockFieldMiddleware
         return enumType.Values.FirstOrDefault()?.Value;
     }
 
-    private object CreateObject(object? id = null, int? index = null)
+    private object CreateObject(object id, int? index = null)
     {
-        var finalId = id ?? ++_idCounter;
-
-        return new ObjectTypeInst(finalId, index);
+        return new ObjectTypeInst(id, index);
     }
 
     private object?[] CreateListOfScalars(INamedType scalarType, int? nullIndex)
@@ -203,7 +201,11 @@ internal sealed class MockFieldMiddleware
         }
 
         return Enumerable.Range(0, DefaultListSize)
-            .Select(index => nullIndex == index ? null : CreateObject(null, index))
+            .Select(index =>
+            {
+                var id = ++_idCounter;
+                return nullIndex == index ? null : CreateObject(id, index);
+            })
             .ToArray();
     }
 

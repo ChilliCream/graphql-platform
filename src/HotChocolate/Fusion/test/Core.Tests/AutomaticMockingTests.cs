@@ -232,7 +232,7 @@ public class AutomaticMockingTests
                   },
                   null,
                   {
-                    "id": "2"
+                    "id": "3"
                   }
                 ]
               }
@@ -292,7 +292,7 @@ public class AutomaticMockingTests
                   },
                   null,
                   {
-                    "id": "2"
+                    "id": "3"
                   }
                 ]
               }
@@ -813,7 +813,7 @@ public class AutomaticMockingTests
                   null,
                   {
                     "__typename": "Object",
-                    "id": "2",
+                    "id": "3",
                     "str": "string",
                     "num": 123
                   }
@@ -891,7 +891,7 @@ public class AutomaticMockingTests
                   null,
                   {
                     "__typename": "Object",
-                    "id": "2",
+                    "id": "3",
                     "str": "string",
                     "num": 123
                   }
@@ -1416,7 +1416,7 @@ public class AutomaticMockingTests
                   null,
                   {
                     "__typename": "Object",
-                    "id": "2",
+                    "id": "3",
                     "str": "string"
                   }
                 ]
@@ -1487,7 +1487,7 @@ public class AutomaticMockingTests
                   null,
                   {
                     "__typename": "Object",
-                    "id": "2",
+                    "id": "3",
                     "str": "string"
                   }
                 ]
@@ -2554,6 +2554,466 @@ public class AutomaticMockingTests
                     "id": "5"
                   },
                   null
+                ]
+              }
+            }
+            """);
+    }
+
+    #endregion
+
+    #region node
+
+    [Fact]
+    public async Task NodeField()
+    {
+        // arrange
+        var schema =
+            """
+            type Query {
+              node(id: ID!): Node
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Product implements Node {
+              id: ID!
+              name: String!
+            }
+            """;
+        var request =
+            """
+            query {
+              node(id: "5") {
+                id
+                ... on Product {
+                  name
+                }
+              }
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "node": {
+                  "id": "1",
+                  "name": "string"
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task NodeField_Null()
+    {
+        // arrange
+        var schema =
+            """
+            type Query {
+              node(id: ID!): Node @null
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Product implements Node {
+              id: ID!
+              name: String!
+            }
+            """;
+        var request =
+            """
+            query {
+              node(id: "5") {
+                id
+                ... on Product {
+                  name
+                }
+              }
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "node": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task NodeField_Error()
+    {
+        // arrange
+        var schema =
+            """
+            type Query {
+              node(id: ID!): Node @error
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Product implements Node {
+              id: ID!
+              name: String!
+            }
+            """;
+        var request =
+            """
+            query {
+              node(id: "5") {
+                id
+                ... on Product {
+                  name
+                }
+              }
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "Unexpected Execution Error",
+                  "locations": [
+                    {
+                      "line": 2,
+                      "column": 3
+                    }
+                  ],
+                  "path": [
+                    "node"
+                  ]
+                }
+              ],
+              "data": {
+                "node": null
+              }
+            }
+            """);
+    }
+
+    #endregion
+
+    #region nodes
+
+    [Fact]
+    public async Task NodesField()
+    {
+        // arrange
+        var schema =
+            """
+            type Query {
+              nodes(ids: [ID!]!): [Node]!
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Product implements Node {
+              id: ID!
+              name: String!
+            }
+            """;
+        var request =
+            """
+            query {
+              nodes(ids: ["5", "6"]) {
+                id
+                ... on Product {
+                  name
+                }
+              }
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "nodes": [
+                  {
+                    "id": "1",
+                    "name": "string"
+                  },
+                  {
+                    "id": "2",
+                    "name": "string"
+                  },
+                  {
+                    "id": "3",
+                    "name": "string"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task NodesField_Null()
+    {
+        // arrange
+        var schema =
+            """
+            type Query {
+              nodes(ids: [ID!]!): [Node]! @null
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Product implements Node {
+              id: ID!
+              name: String!
+            }
+            """;
+        var request =
+            """
+            query {
+              nodes(ids: ["5", "6"]) {
+                id
+                ... on Product {
+                  name
+                }
+              }
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "Cannot return null for non-nullable field.",
+                  "locations": [
+                    {
+                      "line": 2,
+                      "column": 3
+                    }
+                  ],
+                  "path": [
+                    "nodes"
+                  ],
+                  "extensions": {
+                    "code": "HC0018"
+                  }
+                }
+              ],
+              "data": null
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task NodesField_Error()
+    {
+        // arrange
+        var schema =
+            """
+            type Query {
+              nodes(ids: [ID!]!): [Node]! @error
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Product implements Node {
+              id: ID!
+              name: String!
+            }
+            """;
+        var request =
+            """
+            query {
+              nodes(ids: ["5", "6"]) {
+                id
+                ... on Product {
+                  name
+                }
+              }
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "Unexpected Execution Error",
+                  "locations": [
+                    {
+                      "line": 2,
+                      "column": 3
+                    }
+                  ],
+                  "path": [
+                    "nodes"
+                  ]
+                }
+              ],
+              "data": null
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task NodesField_NullAtIndex()
+    {
+        // arrange
+        var schema =
+            """
+            type Query {
+              nodes(ids: [ID!]!): [Node]! @null(atIndex: 1)
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Product implements Node {
+              id: ID!
+              name: String!
+            }
+            """;
+        var request =
+            """
+            query {
+              nodes(ids: ["5", "6"]) {
+                id
+                ... on Product {
+                  name
+                }
+              }
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "nodes": [
+                  {
+                    "id": "1",
+                    "name": "string"
+                  },
+                  null,
+                  {
+                    "id": "3",
+                    "name": "string"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task NodesField_ErrorAtIndex()
+    {
+        // arrange
+        var schema =
+            """
+            type Query {
+              nodes(ids: [ID!]!): [Node]! @error(atIndex: 1)
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Product implements Node {
+              id: ID!
+              name: String!
+            }
+            """;
+        var request =
+            """
+            query {
+              nodes(ids: ["5", "6"]) {
+                id
+                ... on Product {
+                  name
+                }
+              }
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "Unexpected Execution Error",
+                  "locations": [
+                    {
+                      "line": 2,
+                      "column": 3
+                    }
+                  ],
+                  "path": [
+                    "nodes",
+                    1
+                  ]
+                }
+              ],
+              "data": {
+                "nodes": [
+                  {
+                    "id": "1",
+                    "name": "string"
+                  },
+                  null,
+                  {
+                    "id": "3",
+                    "name": "string"
+                  }
                 ]
               }
             }
