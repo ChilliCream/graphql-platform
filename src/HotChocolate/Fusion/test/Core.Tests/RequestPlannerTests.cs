@@ -20,6 +20,100 @@ namespace HotChocolate.Fusion;
 public class RequestPlannerTests(ITestOutputHelper output)
 {
     [Fact]
+    public async Task Same_Field_On_Two_Subgraphs_One_Removes_It()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            interface Node {
+              id: ID!
+            }
+
+            type BlogAuthor {
+              fullName: String!
+            }
+
+            type Query {
+              node(id: ID!): Node
+            }
+
+            type User implements Node {
+              followedBlogAuthors(first: Int!): [BlogAuthor]!
+              someField: String!
+              otherField: Int!
+              anotherField: Float!
+              id: ID!
+            }
+            """,
+            """
+            schema @remove(coordinate: "User.followedBlogAuthors") {
+            }
+            """
+        );
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            interface Node {
+              id: ID!
+            }
+
+            type BlogAuthor {
+              fullName: String!
+            }
+
+            type Query {
+              node(id: ID!): Node
+            }
+
+            type User implements Node {
+              followedBlogAuthors(first: Int!): [BlogAuthor]!
+              id: ID!
+            }
+            """
+        );
+
+        var subgraphC = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              userBySlug(slug: String!): User
+            }
+
+            type User {
+              id: ID!
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB, subgraphC]);
+        var fusionGraph = await subgraphs.GetFusionGraphAsync();
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query {
+              userBySlug(slug: "me") {
+                ...likedAuthors
+              }
+            }
+
+            fragment likedAuthors on User {
+              someField
+              otherField
+              anotherField
+              followedBlogAuthors(first: 3) {
+                fullName
+              }
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchMarkdownAsync();
+    }
+
+    [Fact]
     public async Task Fragment_Deduplication_1()
     {
         // arrange
