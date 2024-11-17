@@ -1,62 +1,9 @@
-# Test
+# Same_Selection_On_Two_List_Fields_That_Require_Data_From_Another_Subgraph
 
 ## Result
 
 ```json
 {
-  "errors": [
-    {
-      "message": "Cannot return null for non-nullable field.",
-      "locations": [
-        {
-          "line": 11,
-          "column": 5
-        }
-      ],
-      "path": [
-        "productsB",
-        2,
-        "price"
-      ],
-      "extensions": {
-        "code": "HC0018"
-      }
-    },
-    {
-      "message": "Cannot return null for non-nullable field.",
-      "locations": [
-        {
-          "line": 11,
-          "column": 5
-        }
-      ],
-      "path": [
-        "productsB",
-        1,
-        "price"
-      ],
-      "extensions": {
-        "code": "HC0018"
-      }
-    },
-    {
-      "message": "Cannot return null for non-nullable field.",
-      "locations": [
-        {
-          "line": 11,
-          "column": 5
-        }
-      ],
-      "path": [
-        "productsB",
-        0,
-        "price"
-      ],
-      "extensions": {
-        "code": "HC0018"
-      }
-    }
-  ],
   "data": {
     "productsA": [
       {
@@ -79,9 +26,24 @@
       }
     ],
     "productsB": [
-      null,
-      null,
-      null
+      {
+        "id": "4",
+        "name": "string",
+        "price": 123.456,
+        "reviewCount": 123
+      },
+      {
+        "id": "5",
+        "name": "string",
+        "price": 123.456,
+        "reviewCount": 123
+      },
+      {
+        "id": "6",
+        "name": "string",
+        "price": 123.456,
+        "reviewCount": 123
+      }
     ]
   }
 }

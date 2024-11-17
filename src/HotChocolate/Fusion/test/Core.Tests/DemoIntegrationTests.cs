@@ -16,7 +16,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
     private readonly Func<ICompositionLog> _logFactory = () => new TestCompositionLog(output);
 
     [Fact]
-    public async Task Test()
+    public async Task Same_Selection_On_Two_List_Fields_That_Require_Data_From_Another_Subgraph()
     {
         // arrange
         var subgraphA = await TestSubgraph.CreateAsync(
