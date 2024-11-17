@@ -90,4 +90,9 @@ public static class WellKnownMiddleware
     /// The key identifies the authorization middleware.
     /// </summary>
     public const string Authorization = "HotChocolate.Authorization";
+
+    /// <summary>
+    /// This key identifies the semantic-non-null middleware.
+    /// </summary>
+    public const string SemanticNonNull = "HotChocolate.Types.SemanticNonNull";
 }
