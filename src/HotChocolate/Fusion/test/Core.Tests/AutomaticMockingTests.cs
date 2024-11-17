@@ -2604,7 +2604,7 @@ public class AutomaticMockingTests
             {
               "data": {
                 "node": {
-                  "id": "1",
+                  "id": "5",
                   "name": "string"
                 }
               }
@@ -2761,15 +2761,11 @@ public class AutomaticMockingTests
               "data": {
                 "nodes": [
                   {
-                    "id": "1",
+                    "id": "5",
                     "name": "string"
                   },
                   {
-                    "id": "2",
-                    "name": "string"
-                  },
-                  {
-                    "id": "3",
+                    "id": "6",
                     "name": "string"
                   }
                 ]
@@ -2936,14 +2932,10 @@ public class AutomaticMockingTests
               "data": {
                 "nodes": [
                   {
-                    "id": "1",
+                    "id": "5",
                     "name": "string"
                   },
-                  null,
-                  {
-                    "id": "3",
-                    "name": "string"
-                  }
+                  null
                 ]
               }
             }
@@ -3006,14 +2998,10 @@ public class AutomaticMockingTests
               "data": {
                 "nodes": [
                   {
-                    "id": "1",
+                    "id": "5",
                     "name": "string"
                   },
-                  null,
-                  {
-                    "id": "3",
-                    "name": "string"
-                  }
+                  null
                 ]
               }
             }

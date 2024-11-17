@@ -79,6 +79,15 @@ internal sealed class MockFieldMiddleware
                     context.Result = CreateObject(id);
                     return ValueTask.CompletedTask;
                 }
+
+                if(namedFieldType.IsUnionType() || namedFieldType.IsInterfaceType())
+                {
+                    var possibleTypes = context.Schema.GetPossibleTypes(namedFieldType);
+
+                    context.ValueType = possibleTypes.First();
+                    context.Result = CreateObject(id);
+                    return ValueTask.CompletedTask;
+                }
             }
 
             if (context.Selection.Arguments.ContainsName("ids"))
@@ -91,10 +100,22 @@ internal sealed class MockFieldMiddleware
                     nullableType = fieldType.InnerType();
                 }
 
-                if (nullableType.IsListType() && namedFieldType.IsObjectType())
+                if (nullableType.IsListType())
                 {
-                    context.Result = CreateListOfObjects(ids, nullIndex);
-                    return ValueTask.CompletedTask;
+                    if (namedFieldType.IsObjectType())
+                    {
+                        context.Result = CreateListOfObjects(ids, nullIndex);
+                        return ValueTask.CompletedTask;
+                    }
+
+                    if(namedFieldType.IsUnionType() || namedFieldType.IsInterfaceType())
+                    {
+                        var possibleTypes = context.Schema.GetPossibleTypes(namedFieldType);
+
+                        context.ValueType = possibleTypes.First();
+                        context.Result = CreateListOfObjects(ids, nullIndex);
+                        return ValueTask.CompletedTask;
+                    }
                 }
             }
         }
