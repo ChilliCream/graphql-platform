@@ -17,6 +17,79 @@ public class DemoIntegrationTests(ITestOutputHelper output)
     private readonly Func<ICompositionLog> _logFactory = () => new TestCompositionLog(output);
 
     [Fact]
+    public async Task Test()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            interface Node {
+              id: ID!
+            }
+
+            type Query {
+              productsA: [Product]
+              productsB: [Product]
+              node(id: ID!): Node
+              nodes(ids: [ID!]!): [Node]!
+            }
+
+            type Product implements Node {
+              id: ID!
+              name: String!
+            }
+            """);
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            interface Node {
+              id: ID!
+            }
+
+            type Query {
+              node(id: ID!): Node
+              nodes(ids: [ID!]!): [Node]!
+            }
+
+            type Product implements Node {
+              id: ID!
+              price: Float!
+              reviewCount: Int!
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = Parse("""
+                      query {
+                        productsA {
+                          id
+                          name
+                          price
+                          reviewCount
+                        }
+                        productsB {
+                          id
+                          name
+                          price
+                          reviewCount
+                        }
+                      }
+                      """);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            OperationRequestBuilder
+                .New()
+                .SetDocument(request)
+                .Build());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result);
+        await snapshot.MatchMarkdownAsync();
+    }
+
+    [Fact]
     public async Task Authors_And_Reviews_AutoCompose()
     {
         // arrange
