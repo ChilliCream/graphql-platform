@@ -196,6 +196,77 @@ public class AutomaticMockingTests
     }
 
     [Fact]
+    public async Task Object_List_Twice()
+    {
+        // arrange
+        var schema =
+            """
+            type Query {
+              objsA: [Object!]!
+              objsB: [Object!]!
+            }
+
+            type Object {
+              id: ID!
+              str: String!
+            }
+            """;
+        var request =
+            """
+            query {
+              objsA {
+                id
+                str
+              }
+              objsB {
+                id
+                str
+              }
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "objsA": [
+                  {
+                    "id": "1",
+                    "str": "string"
+                  },
+                  {
+                    "id": "2",
+                    "str": "string"
+                  },
+                  {
+                    "id": "3",
+                    "str": "string"
+                  }
+                ],
+                "objsB": [
+                  {
+                    "id": "4",
+                    "str": "string"
+                  },
+                  {
+                    "id": "5",
+                    "str": "string"
+                  },
+                  {
+                    "id": "6",
+                    "str": "string"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task Object_List_NullAtIndex()
     {
         // arrange
