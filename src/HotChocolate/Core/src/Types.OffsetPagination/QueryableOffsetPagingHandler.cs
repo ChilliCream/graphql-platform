@@ -22,7 +22,9 @@ public class QueryableOffsetPagingHandler<TEntity>(PagingOptions options)
         return source switch
         {
             IQueryable<TEntity> q => ResolveAsync(context, q, arguments, ct),
-            IEnumerable<TEntity> e => ResolveAsync(context, e.AsQueryable(), arguments, ct),
+            IEnumerable<TEntity> e => e.GetType().IsValueType
+                ? throw new GraphQLException("Cannot handle the specified data source.")
+                : ResolveAsync(context, e.AsQueryable(), arguments, ct),
             IExecutable<TEntity> ex => SliceAsync(context, ex.Source, arguments),
             _ => throw new GraphQLException("Cannot handle the specified data source."),
         };

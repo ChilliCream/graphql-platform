@@ -1,0 +1,22 @@
+schema {
+  query: Query
+}
+
+"The node interface is implemented by entities that have a global unique identifier."
+interface Node {
+  id: ID!
+}
+
+type MyNode implements Node {
+  id: ID!
+}
+
+type Query {
+  "Fetches an object given its ID."
+  node("ID of the object." id: ID!): Node
+  "Lookup nodes by a list of IDs."
+  nodes("The list of node IDs." ids: [ID!]!): [Node]!
+  myNode: MyNode @semanticNonNull
+}
+
+directive @semanticNonNull(levels: [Int!] = [ 0 ]) on FIELD_DEFINITION
