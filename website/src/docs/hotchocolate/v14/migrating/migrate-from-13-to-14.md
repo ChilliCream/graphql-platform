@@ -138,6 +138,8 @@ The methods used for parsing and serialization have also been renamed:
 
 The `Parse()` (previously `Deserialize()`) method has also changed its return type from `IdValue` to `NodeId`. The parsed Id value can now be accessed through the `NodeId.InternalId` instead of the `IdValue.Value` property.
 
+The ability to encode the schema name in the GID via `.Serialize("SchemaName", "MyType", "<raw-id>")` has been dropped and is no longer supported.
+
 ## Node Resolver validation
 
 We now enforce that each object type implementing the `Node` interface also defines a resolver, so that the object can be refetched through the `node(id: ID!)` field.
