@@ -150,14 +150,6 @@ builder.Services
     .ModifyOptions(o => o.EnsureAllNodesCanBeResolved = false)
 ```
 
-## IDataLoader<TKey, TValue> arguments now need to be marked as service
-
-Previously, you could inject `IDataLoader<TKey, TValue>` without any attribute. Now you need to mark it as a service.
-
-```csharp
-public string GetMyType([Service] IDataLoader<int, MyType?> dataLoader)
-```
-
 ## DataLoader.LoadAsync always returns nullable type
 
 Previously, the `LoadAsync` method on a DataLoader was typed as non-nullable, even though `null` could be returned.
