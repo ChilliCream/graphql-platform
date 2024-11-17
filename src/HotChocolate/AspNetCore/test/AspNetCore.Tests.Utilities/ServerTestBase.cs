@@ -41,6 +41,7 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                     .AddStarWarsTypes()
                     .AddTypeExtension<QueryExtension>()
                     .AddTypeExtension<SubscriptionsExtensions>()
+                    .AddType<Foo>()
                     .AddStarWarsRepositories()
                     .AddInMemorySubscriptions()
                     .UseInstrumentation()
@@ -168,5 +169,11 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                 .UseWebSockets()
                 .UseRouting()
                 .UseEndpoints(endpoints => configureConventions?.Invoke(endpoints)));
+    }
+
+    [DirectiveType(DirectiveLocation.Subscription)]
+    public class Foo
+    {
+        public required int Bar { get; set; }
     }
 }
