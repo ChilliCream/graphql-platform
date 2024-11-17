@@ -55,7 +55,7 @@ public class ArgumentCoercionHelperTests
                            }
                          }
                          """)
-            .SetVariableValues(new Dictionary<string, object>
+            .SetVariableValues(new Dictionary<string, object?>
             {
                 ["variable"] = "SOME_VALUE"
             })
@@ -76,7 +76,7 @@ public class ArgumentCoercionHelperTests
 
     public class Query
     {
-        public Parent GetParent(IResolverContext context)
+        public Parent? GetParent(IResolverContext context)
         {
             var selection = context.GetSelections((ObjectType)context.Selection.Type).First();
 
