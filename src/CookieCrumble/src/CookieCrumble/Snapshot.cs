@@ -503,6 +503,12 @@ public class Snapshot
         bool inline,
         [NotNullWhen(false)] out string? snapshotDiff)
     {
+        if (OperatingSystem.IsWindows())
+        {
+            // Normalize escaped line endings
+            after = after.Replace("\\r\\n", "\\n");
+        }
+
         var diff = InlineDiffBuilder.Diff(before, after);
 
         if (diff.HasDifferences)
