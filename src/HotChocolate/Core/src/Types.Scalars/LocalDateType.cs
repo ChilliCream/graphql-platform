@@ -121,9 +121,9 @@ public class LocalDateType : ScalarType<DateOnly, StringValueNode>
         [NotNullWhen(true)] out DateOnly? value)
     {
         if (serialized is not null
-            && DateOnly.TryParse(
+            && DateOnly.TryParseExact(
                 serialized,
-                CultureInfo.InvariantCulture,
+                _localFormat,
                 out var date))
         {
             value = date;
