@@ -13,7 +13,7 @@ atest Result:
 
 atest Query:
 ---------------
-find({ "Bar" : { "$regex" : /atest$/ } })
+find({ "Bar" : { "$regex" : { "$regularExpression" : { "pattern" : "atest$", "options" : "" } } } })
 ---------------
 
 btest Result:
@@ -31,7 +31,7 @@ btest Result:
 
 btest Query:
 ---------------
-find({ "Bar" : { "$regex" : /btest$/ } })
+find({ "Bar" : { "$regex" : { "$regularExpression" : { "pattern" : "btest$", "options" : "" } } } })
 ---------------
 
 null
