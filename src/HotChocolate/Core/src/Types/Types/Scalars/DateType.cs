@@ -114,9 +114,9 @@ public class DateType : ScalarType<DateOnly, StringValueNode>
         string? serialized,
         [NotNullWhen(true)] out DateOnly? value)
     {
-        if (DateOnly.TryParse(
+        if (DateOnly.TryParseExact(
            serialized,
-           CultureInfo.InvariantCulture,
+           _dateFormat,
            out var date))
         {
             value = date;
