@@ -290,6 +290,19 @@ public class LocalTimeTypeTests : ScalarTypeTestBase
     }
 
     [Fact]
+    public void LocalTime_ExpectDeserializeInvalidFormatToTimeOnly()
+    {
+        // arrange
+        ScalarType scalar = new LocalTimeType();
+
+        // act
+        var success = scalar.TryDeserialize("08:46:14 pm", out var _);
+
+        // assert
+        Assert.False(success);
+    }
+
+    [Fact]
     public void LocalTime_ExpectDeserializeInvalidStringToTimeOnly()
     {
         // arrange
