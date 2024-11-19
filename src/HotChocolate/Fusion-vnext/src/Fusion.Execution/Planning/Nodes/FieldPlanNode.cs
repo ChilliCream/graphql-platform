@@ -6,16 +6,18 @@ namespace HotChocolate.Fusion.Planning;
 public class FieldPlanNode : SelectionPlanNode
 {
     public FieldPlanNode(
-        string responseName,
-        CompositeOutputField field,
-        SelectionSetNode? selectionSet)
-        : base(field.Type.NamedType(), selectionSet?.Selections)
+        FieldNode fieldNode,
+        CompositeOutputField field)
+        : base(field.Type.NamedType(), fieldNode.SelectionSet?.Selections)
     {
-        ResponseName = responseName;
+        FieldNode = fieldNode;
         Field = field;
+        ResponseName = FieldNode.Alias?.Value ?? field.Name;
     }
 
     public string ResponseName { get; }
+
+    public FieldNode FieldNode { get; }
 
     public CompositeOutputField Field { get; }
 }

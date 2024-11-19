@@ -14,9 +14,15 @@ public sealed class OperationPlanner2(CompositeSchema schema)
 
     public bool TryResolveSelectionSet(
         OperationPlanNode operation,
-        ISelectionPlanNode parent,
+        SelectionPlanNode parent,
         Stack<SelectionSetContext> path)
     {
+        if (parent.SelectionNodes is null)
+        {
+            throw new InvalidOperationException(
+                "A leaf field cannot be a parent node.");
+        }
+
         List<UnresolvedField> unresolved = default!;
         CompositeComplexType? type = null;
         var areAnySelectionsResolvable = false;
@@ -25,7 +31,7 @@ public sealed class OperationPlanner2(CompositeSchema schema)
         {
             if (selection is FieldNode fieldNode)
             {
-                type ??= (CompositeComplexType)parent.Type;
+                type ??= (CompositeComplexType)parent.DeclaringType;
 
                 if (!type.Fields.TryGetField(fieldNode.Name.Value, out var field))
                 {
@@ -66,11 +72,7 @@ public sealed class OperationPlanner2(CompositeSchema schema)
                     var selectionSetContext = new SelectionSetContext
                     {
                         SyntaxNode = fieldNode.SelectionSet,
-                        PlanNode = new SelectionPlanNode(
-                            fieldNode.Alias?.Value ?? fieldNode.Name.Value,
-                            fieldNode.SelectionSet,
-                            fieldNamedType,
-                            isEntity: false)
+                        PlanNode = new FieldPlanNode(fieldNode, field)
                     };
 
                     path.Push(selectionSetContext);
@@ -98,13 +100,13 @@ public sealed class OperationPlanner2(CompositeSchema schema)
         if (unresolved.Count > 0)
         {
             var current = parent;
-            var unresolvedPath = new Stack<IQueryPlanNode>();
+            var unresolvedPath = new Stack<PlanNode>();
             unresolvedPath.Push(parent);
 
             // first we try to find an entity from which we can branch.
             // We go up until we find the first entity.
             while (!current.IsEntity
-                && current.Parent is ISelectionPlanNode parentSelection)
+                && current.Parent is SelectionPlanNode parentSelection)
             {
                 current = parentSelection;
                 unresolvedPath.Push(current);
@@ -134,7 +136,7 @@ public sealed class OperationPlanner2(CompositeSchema schema)
                     // a possible schema must be able to resolve the path to the lookup.
                     foreach (var pathSegment in unresolvedPath.Skip(1))
                     {
-                        if (pathSegment is SelectionPlanNode selection
+                        if (pathSegment is FieldPlanNode selection
                             && selection.Field is not null
                             && selection.Field.Sources.ContainsSchema(schemaName))
                         {
@@ -168,8 +170,8 @@ public sealed class OperationPlanner2(CompositeSchema schema)
 
                         var newOperation = new OperationPlanNode(
                             schemaName,
+                            parent.DeclaringType,
                             CreateLookupSelections(lookup, parent, fields),
-                            parent.Type,
                             parent);
 
                         TryResolveSelectionSet(newOperation, newOperation, path);
@@ -189,14 +191,14 @@ public sealed class OperationPlanner2(CompositeSchema schema)
         return false;
     }
 
-    private bool TryGetLookup(ISelectionPlanNode selection, HashSet<string> schemas, out Lookup lookup)
+    private bool TryGetLookup(SelectionPlanNode selection, HashSet<string> schemas, out Lookup lookup)
     {
         throw new NotImplementedException();
     }
 
     private IReadOnlyList<ISelectionNode> CreateLookupSelections(
         Lookup lookup,
-        ISelectionPlanNode parent,
+        SelectionPlanNode parent,
         IReadOnlyList<ISelectionNode> selections)
     {
         throw new NotImplementedException();
@@ -239,53 +241,10 @@ public sealed class OperationPlanner2(CompositeSchema schema)
         public SelectionPlanNode PlanNode { get; set; } = default!;
     }
 
-    public record UnresolvedField(FieldNode FieldNode, CompositeOutputField Field, ISelectionPlanNode Parent);
+    public record UnresolvedField(FieldNode FieldNode, CompositeOutputField Field, SelectionPlanNode Parent);
 
     public class RequestPlanNode
     {
         public ICollection<OperationPlanNode> Operations { get; } = new List<OperationPlanNode>();
-    }
-}
-
-public class ScopePlanNode : ISelectionPlanNode
-{
-    private List<ISelectionPlanNode>? _selections;
-    private List<CompositeDirective>? _directives;
-
-    public OperationPlanNode(
-        SelectionSetNode selectionSet,
-        ICompositeNamedType type,
-        IQueryPlanNode? parent = null)
-    {
-        SelectionNodes = selectionSet.Selections;
-        Type = type;
-        Parent = parent;
-        IsEntity = type.IsEntity();
-    }
-
-    public IQueryPlanNode? Parent { get; }
-
-    public ICompositeNamedType Type { get; }
-
-    public bool IsEntity { get; }
-
-    public IReadOnlyList<ISelectionNode> SelectionNodes { get; }
-
-    public IReadOnlyList<ISelectionPlanNode> Selections
-    {
-        get => _selections
-            ?? (IReadOnlyList<ISelectionPlanNode>)Array.Empty<ISelectionPlanNode>();
-    }
-
-    public IReadOnlyList<CompositeDirective> Directives { get; }
-
-    public void AddSelection(ISelectionPlanNode selection)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void AddDirective(CompositeDirective selection)
-    {
-        throw new NotImplementedException();
     }
 }

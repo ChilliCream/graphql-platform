@@ -10,10 +10,10 @@ public sealed class OperationPlanNode : SelectionPlanNode
 {
     public OperationPlanNode(
         string schemaName,
-        ICompositeNamedType type,
+        ICompositeNamedType declaringType,
         SelectionSetNode selectionSet,
         PlanNode? parent = null)
-        : base(type, selectionSet.Selections)
+        : base(declaringType, selectionSet.Selections)
     {
         SchemaName = schemaName;
         Parent = parent;
@@ -21,10 +21,10 @@ public sealed class OperationPlanNode : SelectionPlanNode
 
     public OperationPlanNode(
         string schemaName,
-        ICompositeNamedType type,
+        ICompositeNamedType declaringType,
         IReadOnlyList<ISelectionNode> selections,
         PlanNode? parent = null)
-        : base(type, selections)
+        : base(declaringType, selections)
     {
         SchemaName = schemaName;
         Parent = parent;
