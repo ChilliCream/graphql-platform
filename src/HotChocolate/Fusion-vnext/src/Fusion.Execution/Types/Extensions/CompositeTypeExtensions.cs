@@ -19,4 +19,9 @@ public static class CompositeTypeExtensions
                 throw new ArgumentOutOfRangeException(nameof(type));
         }
     }
+
+    public static bool IsEntity(this ICompositeNamedType type)
+    {
+        return false;
+    }
 }

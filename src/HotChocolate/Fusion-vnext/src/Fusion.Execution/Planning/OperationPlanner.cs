@@ -168,7 +168,7 @@ public sealed class OperationPlanner2(CompositeSchema schema)
 
                         var newOperation = new OperationPlanNode(
                             schemaName,
-                            fields,
+                            CreateLookupSelections(lookup, parent, fields),
                             parent.Type,
                             parent);
 
@@ -194,7 +194,13 @@ public sealed class OperationPlanner2(CompositeSchema schema)
         throw new NotImplementedException();
     }
 
-    private FieldNode
+    private IReadOnlyList<ISelectionNode> CreateLookupSelections(
+        Lookup lookup,
+        ISelectionPlanNode parent,
+        IReadOnlyList<ISelectionNode> selections)
+    {
+        throw new NotImplementedException();
+    }
 
 
     private static Dictionary<string, int> GetSchemasWeighted(
@@ -239,334 +245,47 @@ public sealed class OperationPlanner2(CompositeSchema schema)
     {
         public ICollection<OperationPlanNode> Operations { get; } = new List<OperationPlanNode>();
     }
-
-    public sealed class OperationPlanNode : ISelectionPlanNode
-    {
-        private List<ISelectionPlanNode>? _selections;
-        private List<CompositeDirective>? _directives;
-
-        public OperationPlanNode(
-            string schemaName,
-            SelectionSetNode selectionSet,
-            ICompositeNamedType type,
-            IQueryPlanNode? parent = null)
-        {
-            Parent = parent;
-            SchemaName = schemaName;
-            SelectionNodes = selectionSet.Selections;
-            Type = type;
-        }
-
-        public OperationPlanNode(
-            string schemaName,
-            IReadOnlyList<ISelectionNode> selections,
-            ICompositeNamedType type,
-            IQueryPlanNode? parent = null)
-        {
-            Parent = parent;
-            SchemaName = schemaName;
-            SelectionNodes = selections;
-            Type = type;
-        }
-
-        public IQueryPlanNode? Parent { get; }
-
-        public string SchemaName { get; }
-
-        public ICompositeNamedType Type { get; }
-
-        public bool IsEntity => false;
-
-        public IReadOnlyList<ISelectionPlanNode> Selections
-            => _selections ??= [];
-
-        public IReadOnlyList<ISelectionNode> SelectionNodes { get; }
-
-        public void AddSelection(ISelectionPlanNode selection)
-        {
-            ArgumentNullException.ThrowIfNull(selection);
-            (_selections ??= []).Add(selection);
-        }
-
-        public IReadOnlyList<CompositeDirective> Directives
-            => _directives ??= [];
-
-        public void AddDirective(CompositeDirective selection)
-        {
-            ArgumentNullException.ThrowIfNull(selection);
-            (_directives ??= []).Add(selection);
-        }
-    }
-
-    public class SelectionPlanNode : ISelectionPlanNode
-    {
-        private List<CompositeDirective>? _directives;
-        private List<ArgumentAssignment>? _arguments;
-
-        public SelectionPlanNode(
-            string responseName,
-            SelectionSetNode syntaxNode,
-            ICompositeNamedType type,
-            bool isEntity)
-        {
-            ResponseName = responseName;
-            SyntaxNode = syntaxNode;
-            Type = type;
-            IsEntity = isEntity;
-        }
-
-        public string ResponseName { get; }
-
-        public CompositeOutputField? Field { get; set; }
-
-        public SelectionSetNode SyntaxNode { get; }
-
-        public ICompositeNamedType Type { get; }
-
-        public bool IsEntity { get; }
-
-        public IReadOnlyList<ArgumentAssignment> Arguments
-        {
-            get => _arguments ??= [];
-        }
-
-        public IReadOnlyList<CompositeDirective> Directives { get; }
-
-        public IReadOnlyList<ISelectionPlanNode>? Selections { get; }
-
-        public void AddSelection(ISelectionPlanNode selection)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void AddDirective(CompositeDirective selection)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public class ScopePlanNode : ISelectionPlanNode
-    {
-        private List<CompositeDirective>? _directives;
-
-        public ScopePlanNode(
-            SelectionSetNode syntaxNode,
-            ICompositeNamedType type,
-            bool isEntity)
-        {
-            SyntaxNode = syntaxNode;
-            Type = type;
-            IsEntity = isEntity;
-        }
-
-        public SelectionSetNode SyntaxNode { get; }
-
-        public ICompositeNamedType Type { get; }
-
-        public bool IsEntity { get; }
-
-        public IReadOnlyList<ISelectionPlanNode>? Selections { get; }
-
-        public IReadOnlyList<CompositeDirective> Directives { get; }
-
-        public void AddSelection(ISelectionPlanNode selection)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void AddDirective(CompositeDirective selection)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public interface ISelectionProvider : IQueryPlanNode
-    {
-        ICompositeNamedType Type { get; }
-
-        bool IsEntity { get; }
-
-        IReadOnlyList<ISelectionPlanNode>? Selections { get; }
-
-        IReadOnlyList<ISelectionNode> SelectionNodes  { get; }
-
-        void AddSelection(ISelectionPlanNode selection);
-    }
-
-    public interface ISelectionPlanNode : ISelectionProvider
-    {
-        IReadOnlyList<CompositeDirective> Directives { get; }
-
-        void AddDirective(CompositeDirective selection);
-    }
-
-    public interface IQueryPlanNode
-    {
-        IQueryPlanNode? Parent { get; }
-    }
 }
 
-public sealed class OperationPlanner(CompositeSchema schema)
+public class ScopePlanNode : ISelectionPlanNode
 {
-    public DocumentNode RewriteDocument(DocumentNode document, string? operationName)
-    {
-        var backlog = new Queue<SelectionSet>();
-        var operation = document.GetOperation(operationName);
-        var operationType = schema.GetOperationType(operation.Operation);
-        var context = new Context("a", operationType, backlog, isRoot: true);
+    private List<ISelectionPlanNode>? _selections;
+    private List<CompositeDirective>? _directives;
 
-        // RewriteFields(operation.SelectionSet, context);
-
-        var newSelectionSet = new SelectionSetNode(
-            null,
-            context.Selections.ToImmutable());
-
-        var newOperation = new OperationDefinitionNode(
-            null,
-            operation.Name,
-            operation.Operation,
-            operation.VariableDefinitions,
-            operation.Directives,
-            newSelectionSet);
-
-        return new DocumentNode(ImmutableArray<IDefinitionNode>.Empty.Add(newOperation));
-    }
-
-    private void CollectRootFields(
+    public OperationPlanNode(
         SelectionSetNode selectionSet,
-        CompositeObjectType operationType,
-        Queue<SelectionSet> backlog)
-    {
-        foreach (var selection in selectionSet.Selections.OfType<FieldNode>())
-        {
-            var field = operationType.Fields[selection.Name.Value];
-
-            foreach (var source in field.Sources.OrderByDescending(
-                s => GetFieldCount(s.SchemaName, selection.SelectionSet!, field.Type.NamedType())))
-            {
-                var context = new Context(source.SchemaName, field.Type.NamedType(), backlog);
-                CollectFields(selection.SelectionSet!, context);
-            }
-        }
-    }
-
-    private void CollectFields(SelectionSetNode selectionSet, Context context)
-    {
-        if (context.Type is CompositeComplexType complexType)
-        {
-            foreach (var selection in selectionSet.Selections)
-            {
-                switch (selection)
-                {
-                    case FieldNode field:
-                        CollectField(field, complexType, context);
-                        break;
-                }
-            }
-        }
-    }
-
-    private void CollectField(FieldNode selection, CompositeComplexType complexType, Context context)
-    {
-        if (!complexType.Fields.TryGetField(selection.Name.Value, out var field)
-            || !field.Sources.TryGetMember(context.SchemaName, out var sourceField))
-        {
-            context.EnqueueToBacklog(selection);
-            return;
-        }
-
-        if (selection.SelectionSet is null)
-        {
-            context.Selections.Add(selection.WithLocation(null));
-        }
-        else
-        {
-            var fieldContext = context.Branch(field.Type.NamedType());
-
-            CollectFields(selection.SelectionSet, fieldContext);
-
-            var newSelectionSetNode = new SelectionSetNode(
-                null,
-                fieldContext.Selections.ToImmutable());
-
-            var newFieldNode = new FieldNode(
-                null,
-                selection.Name,
-                selection.Alias,
-                selection.Directives,
-                selection.Arguments,
-                newSelectionSetNode);
-
-            context.Selections.Add(newFieldNode);
-        }
-    }
-
-    private static int GetFieldCount(string schemaName, SelectionSetNode selectionSet, ICompositeNamedType type)
-    {
-        if (type is CompositeComplexType complexType)
-        {
-            var count = 0;
-
-            foreach (var selection in selectionSet.Selections)
-            {
-                if (selection is FieldNode fieldNode
-                    && complexType.Fields.TryGetField(fieldNode.Name.Value, out var field)
-                    && field.Sources.ContainsSchema(schemaName))
-                {
-                    count++;
-
-                    if (fieldNode.SelectionSet is not null)
-                    {
-                        count += GetFieldCount(schemaName, fieldNode.SelectionSet, field.Type.NamedType());
-                    }
-                }
-            }
-
-            return count;
-        }
-
-        // we will look at unions later
-        return 0;
-    }
-
-    private sealed class Context(
-        string schemaName,
         ICompositeNamedType type,
-        Queue<SelectionSet> backlog,
-        bool isRoot = false)
+        IQueryPlanNode? parent = null)
     {
-        private SelectionSet? _next;
-
-        public string SchemaName => schemaName;
-
-        public ICompositeNamedType Type => type;
-
-        public bool IsRoot => isRoot;
-
-        public ImmutableArray<ISelectionNode>.Builder Selections { get; } =
-            ImmutableArray.CreateBuilder<ISelectionNode>();
-
-        public void EnqueueToBacklog(ISelectionNode selection)
-        {
-            if (_next is null)
-            {
-                _next = new SelectionSet(SchemaName, Type);
-                backlog.Enqueue(_next);
-            }
-
-            _next.Selections.Add(selection);
-        }
-
-        public Context Branch(ICompositeNamedType type)
-            => new(SchemaName, type, backlog);
+        SelectionNodes = selectionSet.Selections;
+        Type = type;
+        Parent = parent;
+        IsEntity = type.IsEntity();
     }
 
-    private sealed class SelectionSet(string schemaName, ICompositeNamedType type)
+    public IQueryPlanNode? Parent { get; }
+
+    public ICompositeNamedType Type { get; }
+
+    public bool IsEntity { get; }
+
+    public IReadOnlyList<ISelectionNode> SelectionNodes { get; }
+
+    public IReadOnlyList<ISelectionPlanNode> Selections
     {
-        public string SchemaName { get; } = schemaName;
+        get => _selections
+            ?? (IReadOnlyList<ISelectionPlanNode>)Array.Empty<ISelectionPlanNode>();
+    }
 
-        public ICompositeNamedType Type { get; } = type;
+    public IReadOnlyList<CompositeDirective> Directives { get; }
 
-        public List<ISelectionNode> Selections { get; } = new();
+    public void AddSelection(ISelectionPlanNode selection)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void AddDirective(CompositeDirective selection)
+    {
+        throw new NotImplementedException();
     }
 }
