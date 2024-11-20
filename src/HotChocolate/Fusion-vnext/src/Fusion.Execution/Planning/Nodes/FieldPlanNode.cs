@@ -1,7 +1,7 @@
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
-namespace HotChocolate.Fusion.Planning;
+namespace HotChocolate.Fusion.Planning.Nodes;
 
 public sealed class FieldPlanNode : SelectionPlanNode
 {

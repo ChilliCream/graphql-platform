@@ -1,7 +1,7 @@
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
-namespace HotChocolate.Fusion.Planning;
+namespace HotChocolate.Fusion.Planning.Nodes;
 
 /// <summary>
 /// The base class for plan nodes that can have child selections.

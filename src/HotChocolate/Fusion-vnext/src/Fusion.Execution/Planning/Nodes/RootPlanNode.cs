@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion.Planning;
+namespace HotChocolate.Fusion.Planning.Nodes;
 
 public sealed class RootPlanNode : PlanNode, IOperationPlanNodeProvider
 {

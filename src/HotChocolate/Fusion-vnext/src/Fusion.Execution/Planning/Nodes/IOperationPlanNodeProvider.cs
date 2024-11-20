@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion.Planning;
+namespace HotChocolate.Fusion.Planning.Nodes;
 
 public interface IOperationPlanNodeProvider
 {

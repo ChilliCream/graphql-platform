@@ -1,3 +1,4 @@
+using HotChocolate.Fusion.Planning.Nodes;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -22,7 +23,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 schema.QueryType,
                 operationDefinition.SelectionSet);
 
-            if (TryResolveSelectionSet(operation, operation, new Stack<SelectionSetContext>()))
+            if (TryResolveSelectionSet(operation, operation, new Stack<SelectionPathSegment>()))
             {
                 rootPlanNode.AddOperation(operation);
             }
@@ -34,7 +35,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
     private bool TryResolveSelectionSet(
         OperationPlanNode operation,
         SelectionPlanNode parent,
-        Stack<SelectionSetContext> path)
+        Stack<SelectionPathSegment> path)
     {
         if (parent.SelectionNodes is null)
         {
@@ -73,6 +74,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
                                 "Only complex types can have a selection set.");
                         }
 
+                        parent.AddSelection(new FieldPlanNode(fieldNode, field));
                         areAnySelectionsResolvable = true;
                         continue;
                     }
@@ -88,16 +90,14 @@ public sealed class OperationPlanner(CompositeSchema schema)
                             "Only object, interface, or union types can have a selection set.");
                     }
 
-                    var selectionSetContext = new SelectionSetContext
-                    {
-                        SyntaxNode = fieldNode.SelectionSet, PlanNode = new FieldPlanNode(fieldNode, field)
-                    };
+                    var fieldPlanNode = new FieldPlanNode(fieldNode, field);
+                    var pathSegment = new SelectionPathSegment(fieldPlanNode);
 
-                    path.Push(selectionSetContext);
+                    path.Push(pathSegment);
 
-                    if (TryResolveSelectionSet(operation, selectionSetContext.PlanNode, path))
+                    if (TryResolveSelectionSet(operation, fieldPlanNode, path))
                     {
-                        parent.AddSelection(selectionSetContext.PlanNode);
+                        parent.AddSelection(fieldPlanNode);
                         areAnySelectionsResolvable = true;
                     }
                     else
@@ -307,14 +307,13 @@ public sealed class OperationPlanner(CompositeSchema schema)
         return counts;
     }
 
-    public class SelectionSetContext
-    {
-        public SelectionSetNode SyntaxNode { get; set; } = default!;
+    public record SelectionPathSegment(
+        SelectionPlanNode PlanNode);
 
-        public SelectionPlanNode PlanNode { get; set; } = default!;
-    }
-
-    public record UnresolvedField(FieldNode FieldNode, CompositeOutputField Field, SelectionPlanNode Parent);
+    public record UnresolvedField(
+        FieldNode FieldNode,
+        CompositeOutputField Field,
+        SelectionPlanNode Parent);
 
     public class RequestPlanNode
     {
