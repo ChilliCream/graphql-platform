@@ -14,9 +14,5 @@ public sealed class CompositeDirective(
     public ArgumentAssignmentCollection Arguments { get; } = new(arguments);
 
     public DirectiveNode ToSyntaxNode()
-    {
-        return new DirectiveNode(
-            new NameNode(Name),
-            Arguments.ToSyntaxNodes());
-    }
+        => new(new NameNode(Name), Arguments.ToSyntaxNodes());
 }

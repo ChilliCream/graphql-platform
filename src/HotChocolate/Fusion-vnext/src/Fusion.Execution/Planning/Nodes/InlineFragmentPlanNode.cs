@@ -11,4 +11,13 @@ public sealed class InlineFragmentPlanNode : SelectionPlanNode
         : base(declaringType, selectionNodes)
     {
     }
+
+    public InlineFragmentNode ToSyntaxNode()
+    {
+        return new InlineFragmentNode(
+            null,
+            new NamedTypeNode(DeclaringType.Name),
+            Directives.ToSyntaxNode(),
+            Selections.ToSyntaxNode());
+    }
 }

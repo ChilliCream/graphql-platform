@@ -34,6 +34,9 @@ public sealed class OperationPlanNode : SelectionPlanNode, IOperationPlanNodePro
 
     public string SchemaName { get; }
 
+    // todo: variable representations are missing.
+    // todo: how to we represent state?
+
     public IReadOnlyList<OperationPlanNode> Operations
         => _operations ?? (IReadOnlyList<OperationPlanNode>)Array.Empty<OperationPlanNode>();
 
@@ -42,5 +45,16 @@ public sealed class OperationPlanNode : SelectionPlanNode, IOperationPlanNodePro
         ArgumentNullException.ThrowIfNull(operation);
         (_operations ??= []).Add(operation);
         operation.Parent = this;
+    }
+
+    public OperationDefinitionNode ToSyntaxNode()
+    {
+        return new OperationDefinitionNode(
+            null,
+            null,
+            OperationType.Query,
+            Array.Empty<VariableDefinitionNode>(),
+            Directives.ToSyntaxNode(),
+            Selections.ToSyntaxNode());
     }
 }

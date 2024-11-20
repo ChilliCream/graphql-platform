@@ -65,6 +65,13 @@ public abstract class SelectionPlanNode : PlanNode
     public void AddSelection(SelectionPlanNode selection)
     {
         ArgumentNullException.ThrowIfNull(selection);
+
+        if(selection is OperationPlanNode)
+        {
+            throw new NotSupportedException(
+                "An operation cannot be a child of a selection.");
+        }
+
         (_selections ??= []).Add(selection);
         selection.Parent = this;
     }
