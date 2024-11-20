@@ -59,7 +59,11 @@ public sealed class OperationPlanner(CompositeSchema schema)
                         "There is an unknown field in the selection set.");
                 }
 
-                if (IsResolvable(fieldNode, field, operation.SchemaName))
+                // if we have an operation plan node we have a pre-validated set of
+                // root fields, so we now the field will be resolvable on the
+                // source schema.
+                if (parent is OperationPlanNode
+                    || IsResolvable(fieldNode, field, operation.SchemaName))
                 {
                     var fieldNamedType = field.Type.NamedType();
 
@@ -180,6 +184,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
                         // and would be spread out in the lower level call. We do that for now to test out the
                         // overall concept and will backtrack later to the upper call.
                         var fields = new List<ISelectionNode>();
+
                         foreach (var unresolvedField in unresolved)
                         {
                             if (unresolvedField.Field.Sources.ContainsSchema(schemaName))
@@ -190,7 +195,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
 
                         var newOperation = new OperationPlanNode(
                             schemaName,
-                            parent.DeclaringType,
+                            schema.QueryType,
                             CreateLookupSelections(lookup, parent, fields),
                             parent);
 
@@ -237,15 +242,15 @@ public sealed class OperationPlanner(CompositeSchema schema)
         SelectionPlanNode parent,
         IReadOnlyList<ISelectionNode> selections)
     {
-        // this is not correct ... we just do it like that to get something going.
-        var mutable = new List<ISelectionNode>(selections);
-
-        foreach (var field in lookup.Fields)
-        {
-            mutable.Add(new FieldNode(field.Name));
-        }
-
-        return mutable;
+        return
+        [
+            new FieldNode(
+                new NameNode(lookup.Name),
+                null,
+                Array.Empty<DirectiveNode>(),
+                Array.Empty<ArgumentNode>(),
+                new SelectionSetNode(selections))
+        ];
     }
 
 
