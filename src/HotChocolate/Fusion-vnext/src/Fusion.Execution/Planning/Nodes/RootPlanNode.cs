@@ -1,6 +1,6 @@
 namespace HotChocolate.Fusion.Planning;
 
-public class RootPlanNode : PlanNode, IOperationPlanNodeProvider
+public sealed class RootPlanNode : PlanNode, IOperationPlanNodeProvider
 {
     private readonly List<OperationPlanNode> _operations = new();
 

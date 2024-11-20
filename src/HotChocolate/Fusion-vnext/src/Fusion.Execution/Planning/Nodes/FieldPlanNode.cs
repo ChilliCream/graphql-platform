@@ -3,7 +3,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning;
 
-public class FieldPlanNode : SelectionPlanNode
+public sealed class FieldPlanNode : SelectionPlanNode
 {
     public FieldPlanNode(
         FieldNode fieldNode,
