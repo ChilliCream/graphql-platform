@@ -1,5 +1,6 @@
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
 using Squadron;
 using Xunit.Abstractions;
 
@@ -63,7 +64,7 @@ public class PostgresPubSubIntegrationTests
         // register subscription provider
         graphqlBuilder.AddPostgresSubscriptions((_, options) =>
         {
-            options.ConnectionFactory = _ => new(_resource.GetConnection(_dbName));
+            options.ConnectionFactory = _ => new ValueTask<NpgsqlConnection>(_resource.GetConnection(_dbName));
         });
     }
 
