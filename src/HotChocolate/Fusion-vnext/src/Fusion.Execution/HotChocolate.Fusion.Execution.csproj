@@ -1,13 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AssemblyName>HotChocolate.Fusion.Planning</AssemblyName>
+    <AssemblyName>HotChocolate.Fusion.Execution</AssemblyName>
     <RootNamespace>HotChocolate.Fusion</RootNamespace>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
   <ItemGroup>
