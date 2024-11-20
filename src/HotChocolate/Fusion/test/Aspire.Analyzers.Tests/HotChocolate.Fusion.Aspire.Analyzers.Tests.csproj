@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0</TargetFrameworks>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFrameworks>net9.0; net8.0</TargetFrameworks>
+    <TargetFramework>net9.0</TargetFramework>
     <DisableFusionAnalyzerBuild>true</DisableFusionAnalyzerBuild>
   </PropertyGroup>
 
