@@ -1,16 +1,16 @@
-using System.Collections.Immutable;
-using System.Security.Cryptography;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Planning;
 
-public sealed class OperationPlanner2(CompositeSchema schema)
+public sealed class OperationPlanner(CompositeSchema schema)
 {
     public RootPlanNode CreatePlan(DocumentNode document, string? operationName)
     {
-        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().First();
+        ArgumentNullException.ThrowIfNull(document);
+
+        var operationDefinition =  document.GetOperation(operationName);
         var schemasWeighted = GetSchemasWeighted(schema.QueryType, operationDefinition.SelectionSet);
         var rootPlanNode = new RootPlanNode();
 
@@ -31,7 +31,7 @@ public sealed class OperationPlanner2(CompositeSchema schema)
         return rootPlanNode;
     }
 
-    public bool TryResolveSelectionSet(
+    private bool TryResolveSelectionSet(
         OperationPlanNode operation,
         SelectionPlanNode parent,
         Stack<SelectionSetContext> path)
