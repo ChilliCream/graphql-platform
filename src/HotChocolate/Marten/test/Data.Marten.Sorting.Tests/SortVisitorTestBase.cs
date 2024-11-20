@@ -61,26 +61,26 @@ public class SortVisitorTestBase : IAsyncLifetime
 
     public async Task DisposeAsync() => await Container.DisposeAsync();
 
-    private static Func<IResolverContext, IQueryable<TResult>> BuildResolver<TResult>(
+    private static async Task<Func<IResolverContext, IQueryable<TResult>>> BuildResolverAsync<TResult>(
         IDocumentStore store,
         params TResult[] results)
         where TResult : class
     {
-        using var session = store.LightweightSession();
+        await using var session = store.LightweightSession();
 
         foreach (var item in results)
         {
             session.Store(item);
         }
 
-        session.SaveChanges();
+        await session.SaveChangesAsync();
 
         return ctx => ((IDocumentSession)ctx.LocalContextData["session"]!).Query<TResult>();
     }
 
     protected T[] CreateEntity<T>(params T[] entities) => entities;
 
-    protected IRequestExecutor CreateSchema<TEntity, T>(
+    protected async Task<IRequestExecutor> CreateSchemaAsync<TEntity, T>(
         TEntity[] entities,
         SortConvention? convention = null)
         where TEntity : class
@@ -90,7 +90,7 @@ public class SortVisitorTestBase : IAsyncLifetime
         Container.Resource.CreateDatabaseAsync(dbName).GetAwaiter().GetResult();
         var store = DocumentStore.For(Container.Resource.GetConnectionString(dbName));
 
-        var resolver = BuildResolver(store, entities);
+        var resolver = await BuildResolverAsync(store, entities);
 
         var builder = SchemaBuilder.New()
             .AddMartenSorting()
