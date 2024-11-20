@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Security.Cryptography;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -7,9 +8,27 @@ namespace HotChocolate.Fusion.Planning;
 
 public sealed class OperationPlanner2(CompositeSchema schema)
 {
-    public void CreatePlan(DocumentNode document, string? operationName)
+    public RootPlanNode CreatePlan(DocumentNode document, string? operationName)
     {
-        throw new NotImplementedException();
+        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().First();
+        var schemasWeighted = GetSchemasWeighted(schema.QueryType, operationDefinition.SelectionSet);
+        var rootPlanNode = new RootPlanNode();
+
+        // this need to be rewritten to check if everything is planned for.
+        foreach (var schemaName in schemasWeighted.OrderByDescending(t => t.Value).Select(t => t.Key))
+        {
+            var operation = new OperationPlanNode(
+                schemaName,
+                schema.QueryType,
+                operationDefinition.SelectionSet);
+
+            if (TryResolveSelectionSet(operation, operation, new Stack<SelectionSetContext>()))
+            {
+                rootPlanNode.AddOperation(operation);
+            }
+        }
+
+        return rootPlanNode;
     }
 
     public bool TryResolveSelectionSet(
@@ -23,7 +42,7 @@ public sealed class OperationPlanner2(CompositeSchema schema)
                 "A leaf field cannot be a parent node.");
         }
 
-        List<UnresolvedField> unresolved = default!;
+        List<UnresolvedField>? unresolved = null;
         CompositeComplexType? type = null;
         var areAnySelectionsResolvable = false;
 
@@ -48,7 +67,7 @@ public sealed class OperationPlanner2(CompositeSchema schema)
                     // just include it and no further processing is required.
                     if (fieldNode.SelectionSet is null)
                     {
-                        if (fieldNamedType.Kind is TypeKind.Enum or TypeKind.Scalar)
+                        if (fieldNamedType.Kind is not TypeKind.Enum and not TypeKind.Scalar)
                         {
                             throw new InvalidOperationException(
                                 "Only complex types can have a selection set.");
@@ -71,8 +90,7 @@ public sealed class OperationPlanner2(CompositeSchema schema)
 
                     var selectionSetContext = new SelectionSetContext
                     {
-                        SyntaxNode = fieldNode.SelectionSet,
-                        PlanNode = new FieldPlanNode(fieldNode, field)
+                        SyntaxNode = fieldNode.SelectionSet, PlanNode = new FieldPlanNode(fieldNode, field)
                     };
 
                     path.Push(selectionSetContext);
@@ -84,6 +102,7 @@ public sealed class OperationPlanner2(CompositeSchema schema)
                     }
                     else
                     {
+                        unresolved ??= [];
                         unresolved.Add(new UnresolvedField(fieldNode, field, parent));
                     }
 
@@ -92,12 +111,13 @@ public sealed class OperationPlanner2(CompositeSchema schema)
                 else
                 {
                     // unresolvable fields will be collected to backtrack later.
+                    unresolved ??= [];
                     unresolved.Add(new UnresolvedField(fieldNode, field, parent));
                 }
             }
         }
 
-        if (unresolved.Count > 0)
+        if (unresolved?.Count > 0)
         {
             var current = parent;
             var unresolvedPath = new Stack<PlanNode>();
@@ -174,7 +194,11 @@ public sealed class OperationPlanner2(CompositeSchema schema)
                             CreateLookupSelections(lookup, parent, fields),
                             parent);
 
-                        TryResolveSelectionSet(newOperation, newOperation, path);
+                        // what do we do of its not successful
+                        if (TryResolveSelectionSet(newOperation, newOperation, path))
+                        {
+                            operation.AddOperation(newOperation);
+                        }
                     }
                 }
             }
@@ -183,16 +207,28 @@ public sealed class OperationPlanner2(CompositeSchema schema)
         return areAnySelectionsResolvable;
     }
 
+    // this needs more meat
     private bool IsResolvable(
         FieldNode fieldNode,
         CompositeOutputField field,
         string schemaName)
-    {
-        return false;
-    }
+        => field.Sources.ContainsSchema(schemaName);
 
     private bool TryGetLookup(SelectionPlanNode selection, HashSet<string> schemas, out Lookup lookup)
     {
+        // we need a helper here that can take lookups from interfaces
+        // also this is a simplified selection of a lookup ... we have to take into account what data
+        // is available for free.
+        foreach (var schemaName in schemas)
+        {
+            if (((CompositeObjectType)selection.DeclaringType).Sources.TryGetMember(schemaName, out var source)
+                && source.Lookups.Length > 0)
+            {
+                lookup = source.Lookups[0];
+                return true;
+            }
+        }
+
         throw new NotImplementedException();
     }
 
@@ -201,7 +237,15 @@ public sealed class OperationPlanner2(CompositeSchema schema)
         SelectionPlanNode parent,
         IReadOnlyList<ISelectionNode> selections)
     {
-        throw new NotImplementedException();
+        // this is not correct ... we just do it like that to get something going.
+        var mutable = new List<ISelectionNode>(selections);
+
+        foreach (var field in lookup.Fields)
+        {
+            mutable.Add(new FieldNode(field.Name));
+        }
+
+        return mutable;
     }
 
 
@@ -229,6 +273,35 @@ public sealed class OperationPlanner2(CompositeSchema schema)
         foreach (var schemaName in skipSchemaNames)
         {
             counts.Remove(schemaName);
+        }
+
+        return counts;
+    }
+
+    private static Dictionary<string, int> GetSchemasWeighted(
+        CompositeObjectType operationType,
+        SelectionSetNode selectionSet)
+    {
+        var counts = new Dictionary<string, int>();
+
+        foreach (var selectionNode in selectionSet.Selections)
+        {
+            if (selectionNode is FieldNode fieldNode)
+            {
+                var field = operationType.Fields[fieldNode.Name.Value];
+
+                foreach (var schemaName in field.Sources.Schemas)
+                {
+                    if (counts.TryGetValue(schemaName, out var count))
+                    {
+                        counts[schemaName] = count + 1;
+                    }
+                    else
+                    {
+                        counts[schemaName] = 1;
+                    }
+                }
+            }
         }
 
         return counts;

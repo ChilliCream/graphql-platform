@@ -18,12 +18,12 @@ public sealed class CompositeObjectType(
 
     internal void Complete(CompositeObjectTypeCompletionContext context)
     {
-        base.Complete();
-
         Directives = context.Directives;
         Implements = context.Interfaces;
         Sources = context.Sources;
         IsEntity = context.Sources.Any(t => t.Lookups.Length > 0);
+
+        base.Complete();
     }
 
     public override string ToString() => Name;

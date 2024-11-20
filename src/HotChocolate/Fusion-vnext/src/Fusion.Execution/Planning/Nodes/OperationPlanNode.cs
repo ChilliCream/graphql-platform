@@ -6,8 +6,10 @@ namespace HotChocolate.Fusion.Planning;
 /// <summary>
 /// Represents an operation to resolve data from a specific source schema.
 /// </summary>
-public sealed class OperationPlanNode : SelectionPlanNode
+public sealed class OperationPlanNode : SelectionPlanNode, IOperationPlanNodeProvider
 {
+    private List<OperationPlanNode>? _operations;
+
     public OperationPlanNode(
         string schemaName,
         ICompositeNamedType declaringType,
@@ -31,4 +33,14 @@ public sealed class OperationPlanNode : SelectionPlanNode
     }
 
     public string SchemaName { get; }
+
+    public IReadOnlyList<OperationPlanNode> Operations
+        => _operations ?? (IReadOnlyList<OperationPlanNode>)Array.Empty<OperationPlanNode>();
+
+    public void AddOperation(OperationPlanNode operation)
+    {
+        ArgumentNullException.ThrowIfNull(operation);
+        (_operations ??= []).Add(operation);
+        operation.Parent = this;
+    }
 }

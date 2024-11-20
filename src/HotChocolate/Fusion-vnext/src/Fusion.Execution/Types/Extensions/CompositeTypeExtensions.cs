@@ -22,6 +22,6 @@ public static class CompositeTypeExtensions
 
     public static bool IsEntity(this ICompositeNamedType type)
     {
-        return false;
+        return true;
     }
 }

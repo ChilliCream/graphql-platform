@@ -7,7 +7,7 @@ namespace HotChocolate.Fusion.Planing;
 
 public class ParsingTests
 {
-    // [Fact]
+    [Fact]
     public void Test()
     {
         var compositeSchemaDoc = Utf8GraphQLParser.Parse(FileResource.Open("fusion1.graphql"));
@@ -25,12 +25,15 @@ public class ParsingTests
             fragment Product on Product {
                 id
                 name
+                estimatedDelivery(postCode: "1234")
             }
             """);
 
         var rewriter = new InlineFragmentOperationRewriter(compositeSchema);
         doc = rewriter.RewriteDocument(doc, null);
 
-        doc.MatchSnapshot();
+        var planner = new OperationPlanner2(compositeSchema);
+        var plan = planner.CreatePlan(doc, null);
+
     }
 }
