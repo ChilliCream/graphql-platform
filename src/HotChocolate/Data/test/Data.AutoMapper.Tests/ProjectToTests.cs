@@ -110,7 +110,11 @@ public class ProjectToTests
                     }")
                 .Build());
 
+#if NET9_0
+        var snapshot = new Snapshot(postFix: "NET9_0");
+#else
         var snapshot = new Snapshot();
+#endif
         snapshot.AddSqlFrom(res1);
         await snapshot.MatchAsync();
     }
@@ -147,7 +151,11 @@ public class ProjectToTests
                     }")
                 .Build());
 
+#if NET9_0
+        var snapshot = new Snapshot(postFix: "NET9_0");
+#else
         var snapshot = new Snapshot();
+#endif
         snapshot.AddSqlFrom(res1);
         await snapshot.MatchAsync();
     }
@@ -205,7 +213,11 @@ public class ProjectToTests
                     }")
                 .Build());
 
+#if NET9_0
+        var snapshot = new Snapshot(postFix: "NET9_0");
+#else
         var snapshot = new Snapshot();
+#endif
         snapshot.AddSqlFrom(res1);
         await snapshot.MatchAsync();
     }

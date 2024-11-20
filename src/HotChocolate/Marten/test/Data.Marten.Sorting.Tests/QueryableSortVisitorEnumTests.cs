@@ -35,7 +35,7 @@ public class QueryableSortVisitorEnumTests
     public async Task Create_Enum_OrderBy()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooSortType>(_fooEntities);
+        var tester = await _cache.CreateSchemaAsync<Foo, FooSortType>(_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -64,7 +64,7 @@ public class QueryableSortVisitorEnumTests
     public async Task Create_Enum_OrderBy_Nullable()
     {
         // arrange
-        var tester = _cache.CreateSchema<FooNullable, FooNullableSortType>(
+        var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableSortType>(
             _fooNullableEntities);
 
         // act

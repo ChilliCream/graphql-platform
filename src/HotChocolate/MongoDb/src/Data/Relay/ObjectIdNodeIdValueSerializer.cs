@@ -132,7 +132,7 @@ internal sealed class ObjectIdNodeIdValueSerializer(bool compress = true) : INod
 
     private static bool TryParseHexString(ReadOnlySpan<byte> formattedId, byte[] rawBytes)
     {
-        if (formattedId == null)
+        if (formattedId.IsEmpty)
         {
             return false;
         }

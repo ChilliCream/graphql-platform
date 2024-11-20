@@ -21,7 +21,7 @@ internal static class GraphQLNamingHelper
 
     public static string CreateName(string name)
     {
-        ArgumentException.ThrowIfNullOrEmpty(nameof(name));
+        ArgumentException.ThrowIfNullOrEmpty(name);
 
         var stringBuilder = new StringBuilder();
 
