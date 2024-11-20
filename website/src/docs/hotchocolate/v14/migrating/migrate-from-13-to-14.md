@@ -238,6 +238,20 @@ Accessing a keyed service that has not been registered will now throw, instead o
 
 This change aligns the API with the regular (non-keyed) service access API.
 
+## Change to OnlyAllowPersistedOperations option
+
+**Before**
+
+```csharp
+ModifyRequestOptions(o => o.OnlyAllowPersistedOperations = true);
+```
+
+**After**
+
+```csharp
+ModifyRequestOptions(o => o.PersistedOperations.OnlyAllowPersistedDocuments = true);
+```
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.
