@@ -189,19 +189,24 @@ Please ensure that your clients are sending date/time strings in the correct for
 
 ### Methods renamed
 
-| Old method name                     | New method name                        |
-| ----------------------------------- | -------------------------------------- |
-| UsePersistedQueryPipeline           | UsePersistedOperationPipeline          |
-| UseAutomaticPersistedQueryPipeline  | UseAutomaticPersistedOperationPipeline |
-| AddFileSystemQueryStorage           | AddFileSystemOperationDocumentStorage  |
-| AddInMemoryQueryStorage             | AddInMemoryOperationDocumentStorage    |
-| AddRedisQueryStorage                | AddRedisOperationDocumentStorage       |
-| OnlyAllowPersistedQueries           | OnlyAllowPersistedOperations           |
-| OnlyPersistedQueriesAreAllowedError | OnlyPersistedOperationsAreAllowedError |
-| AllowNonPersistedQuery              | AllowNonPersistedOperation             |
-| UseReadPersistedQuery               | UseReadPersistedOperation              |
-| UseAutomaticPersistedQueryNotFound  | UseAutomaticPersistedOperationNotFound |
-| UseWritePersistedQuery              | UseWritePersistedOperation             |
+| Old method name                    | New method name                        |
+| ---------------------------------- | -------------------------------------- |
+| UsePersistedQueryPipeline          | UsePersistedOperationPipeline          |
+| UseAutomaticPersistedQueryPipeline | UseAutomaticPersistedOperationPipeline |
+| AddFileSystemQueryStorage          | AddFileSystemOperationDocumentStorage  |
+| AddInMemoryQueryStorage            | AddInMemoryOperationDocumentStorage    |
+| AddRedisQueryStorage               | AddRedisOperationDocumentStorage       |
+| AllowNonPersistedQuery             | AllowNonPersistedOperation             |
+| UseReadPersistedQuery              | UseReadPersistedOperation              |
+| UseAutomaticPersistedQueryNotFound | UseAutomaticPersistedOperationNotFound |
+| UseWritePersistedQuery             | UseWritePersistedOperation             |
+
+### Options renamed
+
+| Old option name                     | New option name                                 |
+| ----------------------------------- | ----------------------------------------------- |
+| OnlyAllowPersistedQueries           | PersistedOperations.OnlyAllowPersistedDocuments |
+| OnlyPersistedQueriesAreAllowedError | PersistedOperations.OperationNotAllowedError    |
 
 ### Defaults changed
 
