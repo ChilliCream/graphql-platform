@@ -570,7 +570,11 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
+#if NET9_0
+            .Create(postFix: "NET9_0")
+#else
             .Create()
+#endif
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "14")
@@ -644,7 +648,11 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
+#if NET9_0
+            .Create(postFix: "NET9_0")
+#else
             .Create()
+#endif
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "14")
@@ -718,7 +726,11 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
+#if NET9_0
+            .Create(postFix: "NET9_0")
+#else
             .Create()
+#endif
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "14")
@@ -792,7 +804,11 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
+#if NET9_0
+            .Create(postFix: "NET9_0")
+#else
             .Create()
+#endif
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "14")

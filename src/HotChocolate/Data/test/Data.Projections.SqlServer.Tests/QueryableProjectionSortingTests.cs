@@ -149,7 +149,11 @@ public class QueryableProjectionSortingTests
 
         // assert
         await Snapshot
+#if NET9_0
+            .Create(postFix: "NET9_0")
+#else
             .Create()
+#endif
             .AddResult(res1)
             .MatchAsync();
     }
@@ -187,7 +191,11 @@ public class QueryableProjectionSortingTests
 
         // assert
         await Snapshot
+#if NET9_0
+            .Create(postFix: "NET9_0")
+#else
             .Create()
+#endif
             .AddResult(res1)
             .MatchAsync();
     }

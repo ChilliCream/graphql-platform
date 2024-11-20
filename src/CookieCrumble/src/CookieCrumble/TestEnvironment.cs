@@ -22,6 +22,11 @@ public static class TestEnvironment
     /// The target framework identifier.
     /// </summary>
     public const string TargetFramework = "NET8_0";
+#elif NET9_0
+    /// <summary>
+    /// The target framework identifier.
+    /// </summary>
+    public const string TargetFramework = "NET9_0";
 #endif
 
     public static bool IsLocalEnvironment()

@@ -1,6 +1,8 @@
 using System.Text;
 using HotChocolate;
+#if !NET9_0_OR_GREATER
 using HotChocolate.Execution;
+#endif
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;

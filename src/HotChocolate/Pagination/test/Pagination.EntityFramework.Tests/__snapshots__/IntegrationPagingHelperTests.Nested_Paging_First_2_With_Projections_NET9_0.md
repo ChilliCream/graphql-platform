@@ -13,35 +13,36 @@ LIMIT @__p_0
 ## Expression 0
 
 ```text
-[Microsoft.EntityFrameworkCore.Query.QueryRootExpression].OrderBy(t => t.Name).ThenBy(t => t.Id).Take(3)
+[Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].OrderBy(t => t.Name).ThenBy(t => t.Id).Take(3)
 ```
 
 ## SQL 1
 
 ```sql
-SELECT t."BrandId", t0."Name", t0."BrandId", t0."Id"
+-- @__keys_0={ '2', '1' } (DbType = Object)
+SELECT p1."BrandId", p3."Name", p3."BrandId", p3."Id"
 FROM (
     SELECT p."BrandId"
     FROM "Products" AS p
-    WHERE p."BrandId" IN (2, 1)
+    WHERE p."BrandId" = ANY (@__keys_0)
     GROUP BY p."BrandId"
-) AS t
+) AS p1
 LEFT JOIN (
-    SELECT t1."Name", t1."BrandId", t1."Id"
+    SELECT p2."Name", p2."BrandId", p2."Id"
     FROM (
         SELECT p0."Name", p0."BrandId", p0."Id", ROW_NUMBER() OVER(PARTITION BY p0."BrandId" ORDER BY p0."Name", p0."Id") AS row
         FROM "Products" AS p0
-        WHERE p0."BrandId" IN (2, 1)
-    ) AS t1
-    WHERE t1.row <= 3
-) AS t0 ON t."BrandId" = t0."BrandId"
-ORDER BY t."BrandId", t0."BrandId", t0."Name", t0."Id"
+        WHERE p0."BrandId" = ANY (@__keys_0)
+    ) AS p2
+    WHERE p2.row <= 3
+) AS p3 ON p1."BrandId" = p3."BrandId"
+ORDER BY p1."BrandId", p3."BrandId", p3."Name", p3."Id"
 ```
 
 ## Expression 1
 
 ```text
-[Microsoft.EntityFrameworkCore.Query.QueryRootExpression].Where(t => value(HotChocolate.Data.IntegrationPagingHelperTests+ProductsByBrandDataLoader+<>c__DisplayClass2_0).keys.Contains(t.BrandId)).Select(root => new Product() {Name = IIF((root.Name == null), null, root.Name), BrandId = root.BrandId, Id = root.Id}).GroupBy(t => t.BrandId).Select(g => new Group`2() {Key = g.Key, Items = g.OrderBy(t => t.Name).ThenBy(t => t.Id).Take(3).ToList()})
+[Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].Where(t => value(HotChocolate.Data.IntegrationPagingHelperTests+ProductsByBrandDataLoader+<>c__DisplayClass2_0).keys.Contains(t.BrandId)).Select(root => new Product() {Name = root.Name, BrandId = root.BrandId, Id = root.Id}).GroupBy(t => t.BrandId).Select(g => new Group`2() {Key = g.Key, Items = g.OrderBy(t => t.Name).ThenBy(t => t.Id).Take(3).ToList()})
 ```
 
 ## Result

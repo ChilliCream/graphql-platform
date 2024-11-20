@@ -1,4 +1,6 @@
+#if !NET9_0_OR_GREATER
 using HotChocolate.Execution;
+#endif
 using HotChocolate.Properties;
 
 namespace HotChocolate;

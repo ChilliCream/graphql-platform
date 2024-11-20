@@ -5,7 +5,7 @@
     <AssemblyName>StrawberryShake.Razor</AssemblyName>
     <RootNamespace>StrawberryShake.Razor</RootNamespace>
     <Description>Provides razor components for using StrawberryShake.</Description>
-    <TargetFrameworks>net8.0; net7.0; net6.0</TargetFrameworks>
+    <TargetFrameworks>net9.0; net8.0; net7.0; net6.0</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>

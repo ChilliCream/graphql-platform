@@ -56,7 +56,12 @@ public class ExecutableTests(AuthorFixture authorFixture) : IClassFixture<Author
         var result = await executable.SingleOrDefaultAsync(default);
 
         // assert
-        new { result, executable = executable.Print(), }.MatchSnapshot();
+        new { result, executable = executable.Print(), }
+#if NET9_0
+            .MatchSnapshot(postFix: "NET9_0");
+#else
+            .MatchSnapshot();
+#endif
     }
 
     [Fact]

@@ -961,16 +961,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         }
 
         snapshot.AddQueries(queries);
-
-#if NET9_0_OR_GREATER
-        snapshot.MatchMarkdownSnapshot("NET9_0");
-#elif NET8_0
-        snapshot.MatchMarkdownSnapshot("NET8_0");
-#elif NET7_0
-        snapshot.MatchMarkdownSnapshot("NET7_0");
-#else
         snapshot.MatchMarkdownSnapshot();
-#endif
     }
 
     [Fact]
