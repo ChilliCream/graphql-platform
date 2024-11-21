@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - main
+      - main-version-*
 
 concurrency:
   group: ci-new-2-${{ github.event.pull_request.number }}
