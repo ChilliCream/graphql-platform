@@ -87,7 +87,7 @@ public class SortVisitorTestBase : IAsyncLifetime
         where T : SortInputType<TEntity>
     {
         var dbName = $"DB_{Guid.NewGuid():N}";
-        Container.Resource.CreateDatabaseAsync(dbName).GetAwaiter().GetResult();
+        await Container.Resource.CreateDatabaseAsync(dbName);
         var store = DocumentStore.For(Container.Resource.GetConnectionString(dbName));
 
         var resolver = await BuildResolverAsync(store, entities);
@@ -113,7 +113,7 @@ public class SortVisitorTestBase : IAsyncLifetime
 
         var schema = builder.Create();
 
-        return new ServiceCollection()
+        return await new ServiceCollection()
             .Configure<RequestExecutorSetup>(
                 Schema.DefaultName,
                 o => o.Schema = schema)
@@ -136,8 +136,7 @@ public class SortVisitorTestBase : IAsyncLifetime
             .Services
             .BuildServiceProvider()
             .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync()
-            .Result;
+            .GetRequestExecutorAsync();
     }
 
     private void ApplyConfigurationToField<TEntity, TType>(
