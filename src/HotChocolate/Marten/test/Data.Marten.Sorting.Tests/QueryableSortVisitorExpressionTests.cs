@@ -54,7 +54,7 @@ public class QueryableSortVisitorExpressionTests
     public async Task Create_CollectionLengthExpression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooSortInputType>(_fooEntities);
+        var tester = await _cache.CreateSchemaAsync<Foo, FooSortInputType>(_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(

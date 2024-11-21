@@ -67,7 +67,7 @@ public class QueryableFilterVisitorListTests
     public async Task Create_ArrayAllObjectStringEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -104,7 +104,7 @@ public class QueryableFilterVisitorListTests
     public async Task Create_ArraySomeObjectStringEqualWithNull_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -152,7 +152,7 @@ public class QueryableFilterVisitorListTests
     public async Task Create_ArrayNoneObjectStringEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -188,7 +188,7 @@ public class QueryableFilterVisitorListTests
     public async Task Create_ArrayAnyObjectStringEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
