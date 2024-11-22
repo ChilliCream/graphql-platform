@@ -1,16 +1,17 @@
-using System.Collections.Immutable;
-using System.Security.Cryptography;
+using HotChocolate.Fusion.Planning.Nodes;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Planning;
 
-public sealed class OperationPlanner2(CompositeSchema schema)
+public sealed class OperationPlanner(CompositeSchema schema)
 {
     public RootPlanNode CreatePlan(DocumentNode document, string? operationName)
     {
-        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().First();
+        ArgumentNullException.ThrowIfNull(document);
+
+        var operationDefinition =  document.GetOperation(operationName);
         var schemasWeighted = GetSchemasWeighted(schema.QueryType, operationDefinition.SelectionSet);
         var rootPlanNode = new RootPlanNode();
 
@@ -22,7 +23,7 @@ public sealed class OperationPlanner2(CompositeSchema schema)
                 schema.QueryType,
                 operationDefinition.SelectionSet);
 
-            if (TryResolveSelectionSet(operation, operation, new Stack<SelectionSetContext>()))
+            if (TryResolveSelectionSet(operation, operation, new Stack<SelectionPathSegment>()))
             {
                 rootPlanNode.AddOperation(operation);
             }
@@ -31,10 +32,10 @@ public sealed class OperationPlanner2(CompositeSchema schema)
         return rootPlanNode;
     }
 
-    public bool TryResolveSelectionSet(
+    private bool TryResolveSelectionSet(
         OperationPlanNode operation,
         SelectionPlanNode parent,
-        Stack<SelectionSetContext> path)
+        Stack<SelectionPathSegment> path)
     {
         if (parent.SelectionNodes is null)
         {
@@ -58,7 +59,11 @@ public sealed class OperationPlanner2(CompositeSchema schema)
                         "There is an unknown field in the selection set.");
                 }
 
-                if (IsResolvable(fieldNode, field, operation.SchemaName))
+                // if we have an operation plan node we have a pre-validated set of
+                // root fields, so we now the field will be resolvable on the
+                // source schema.
+                if (parent is OperationPlanNode
+                    || IsResolvable(fieldNode, field, operation.SchemaName))
                 {
                     var fieldNamedType = field.Type.NamedType();
 
@@ -73,6 +78,7 @@ public sealed class OperationPlanner2(CompositeSchema schema)
                                 "Only complex types can have a selection set.");
                         }
 
+                        parent.AddSelection(new FieldPlanNode(fieldNode, field));
                         areAnySelectionsResolvable = true;
                         continue;
                     }
@@ -88,16 +94,14 @@ public sealed class OperationPlanner2(CompositeSchema schema)
                             "Only object, interface, or union types can have a selection set.");
                     }
 
-                    var selectionSetContext = new SelectionSetContext
-                    {
-                        SyntaxNode = fieldNode.SelectionSet, PlanNode = new FieldPlanNode(fieldNode, field)
-                    };
+                    var fieldPlanNode = new FieldPlanNode(fieldNode, field);
+                    var pathSegment = new SelectionPathSegment(fieldPlanNode);
 
-                    path.Push(selectionSetContext);
+                    path.Push(pathSegment);
 
-                    if (TryResolveSelectionSet(operation, selectionSetContext.PlanNode, path))
+                    if (TryResolveSelectionSet(operation, fieldPlanNode, path))
                     {
-                        parent.AddSelection(selectionSetContext.PlanNode);
+                        parent.AddSelection(fieldPlanNode);
                         areAnySelectionsResolvable = true;
                     }
                     else
@@ -180,6 +184,7 @@ public sealed class OperationPlanner2(CompositeSchema schema)
                         // and would be spread out in the lower level call. We do that for now to test out the
                         // overall concept and will backtrack later to the upper call.
                         var fields = new List<ISelectionNode>();
+
                         foreach (var unresolvedField in unresolved)
                         {
                             if (unresolvedField.Field.Sources.ContainsSchema(schemaName))
@@ -190,7 +195,7 @@ public sealed class OperationPlanner2(CompositeSchema schema)
 
                         var newOperation = new OperationPlanNode(
                             schemaName,
-                            parent.DeclaringType,
+                            schema.QueryType,
                             CreateLookupSelections(lookup, parent, fields),
                             parent);
 
@@ -237,15 +242,15 @@ public sealed class OperationPlanner2(CompositeSchema schema)
         SelectionPlanNode parent,
         IReadOnlyList<ISelectionNode> selections)
     {
-        // this is not correct ... we just do it like that to get something going.
-        var mutable = new List<ISelectionNode>(selections);
-
-        foreach (var field in lookup.Fields)
-        {
-            mutable.Add(new FieldNode(field.Name));
-        }
-
-        return mutable;
+        return
+        [
+            new FieldNode(
+                new NameNode(lookup.Name),
+                null,
+                Array.Empty<DirectiveNode>(),
+                Array.Empty<ArgumentNode>(),
+                new SelectionSetNode(selections))
+        ];
     }
 
 
@@ -307,14 +312,13 @@ public sealed class OperationPlanner2(CompositeSchema schema)
         return counts;
     }
 
-    public class SelectionSetContext
-    {
-        public SelectionSetNode SyntaxNode { get; set; } = default!;
+    public record SelectionPathSegment(
+        SelectionPlanNode PlanNode);
 
-        public SelectionPlanNode PlanNode { get; set; } = default!;
-    }
-
-    public record UnresolvedField(FieldNode FieldNode, CompositeOutputField Field, SelectionPlanNode Parent);
+    public record UnresolvedField(
+        FieldNode FieldNode,
+        CompositeOutputField Field,
+        SelectionPlanNode Parent);
 
     public class RequestPlanNode
     {
