@@ -31,6 +31,42 @@ public class IntegrationTests
         // assert
         result.MatchSnapshot();
     }
+
+    [Fact]
+    public async Task Sorting_Should_Work_When_UsedOnAsyncResolver()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                d => d
+                    .Name(OperationTypeNames.Query)
+                    .Field("foos")
+                        .Type(typeof(List<Foo>))
+                        .Resolve(async _ => await Task.FromResult(new List<Foo>(
+                            [
+                                new Foo { CreatedUtc = new DateTime(2000, 1, 1, 1, 1, 1) },
+                                new Foo { CreatedUtc = new DateTime(2010, 1, 1, 1, 1, 1) },
+                                new Foo { CreatedUtc = new DateTime(2020, 1, 1, 1, 1, 1) }
+                            ])))
+                        .UseSorting())
+            .AddSorting()
+            .BuildRequestExecutorAsync();
+
+        const string query = @"
+        {
+            foos(order: { createdUtc: DESC }) {
+                createdUtc
+            }
+        }
+        ";
+
+        // act
+        var result = await executor.ExecuteAsync(query);
+
+        // assert
+        result.MatchSnapshot();
+    }
 }
 
 public class Query
