@@ -26,8 +26,8 @@ public class QueryableFilterVisitorInterfacesTests
     public async Task Create_InterfaceStringEqual_Expression()
     {
         // arrange
-        var tester = _cache
-            .CreateSchema<BarInterface, FilterInputType<BarInterface>>(_barEntities,
+        var tester = await _cache
+            .CreateSchemaAsync<BarInterface, FilterInputType<BarInterface>>(_barEntities,
                 configure: Configure);
 
         // act
