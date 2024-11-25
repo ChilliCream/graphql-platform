@@ -100,6 +100,14 @@
               {
                 "path": "authentication",
                 "title": "Authentication"
+              },
+              {
+                "path": "global-options",
+                "title": "Global Options"
+              },
+              {
+                "path": "automation",
+                "title": "Automation"
               }
             ]
           },
@@ -114,6 +122,7 @@
               { "path": "launch", "title": "launch" },
               { "path": "login", "title": "login" },
               { "path": "logout", "title": "logout" },
+              { "path": "pat", "title": "pat" },
               { "path": "schema", "title": "schema" },
               { "path": "stage", "title": "stage" },
               {
