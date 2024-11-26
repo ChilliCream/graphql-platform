@@ -758,6 +758,27 @@ public class InterfaceTypeTests : TypeTestBase
             .MatchSnapshotAsync();
     }
 
+    [Fact]
+    public async Task InterfaceType_ReuseImplementingObjectType_InInputType()
+    {
+        // arrange
+        static async Task BuildSchemaAsync()
+            => await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<PetQuery>()
+                .AddMutationType<PetMutation>()
+                .AddType<Dog>()
+                .AddType<DogInput>()
+                .ModifyOptions(o => o.EnableOneOf = true)
+                .BuildSchemaAsync();
+
+        // act
+        var exception = await Record.ExceptionAsync(BuildSchemaAsync);
+
+        // assert
+        Assert.Null(exception);
+    }
+
     private sealed class SnakeCaseNamingConventions : DefaultNamingConventions
     {
         public override string GetMemberName(MemberInfo member, MemberKind kind)
@@ -889,4 +910,20 @@ public class InterfaceTypeTests : TypeTestBase
     public class Dog : Canine
     {
     }
+
+    public class PetMutation
+    {
+        public bool AddPet(PetInput pet)
+        {
+            return true;
+        }
+    }
+
+    [OneOf]
+    public class PetInput
+    {
+        public Dog Dog { get; set; }
+    }
+
+    public class DogInput : InputObjectType<Dog>;
 }
