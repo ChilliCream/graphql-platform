@@ -6,33 +6,18 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types;
 
-public class DateTypeTests
+public class LocalDateTimeTypeTests
 {
-    [Fact]
-    public void Serialize_DateOnly()
-    {
-        // arrange
-        var dateType = new DateType();
-        var dateOnly = new DateOnly(2018, 6, 11);
-        var expectedValue = "2018-06-11";
-
-        // act
-        var serializedValue = (string)dateType.Serialize(dateOnly);
-
-        // assert
-        Assert.Equal(expectedValue, serializedValue);
-    }
-
     [Fact]
     public void Serialize_DateTime()
     {
         // arrange
-        var dateType = new DateType();
+        var localDateTimeType = new LocalDateTimeType();
         var dateTime = new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
-        var expectedValue = "2018-06-11";
+        var expectedValue = "2018-06-11T08:46:14";
 
         // act
-        var serializedValue = (string)dateType.Serialize(dateTime);
+        var serializedValue = (string)localDateTimeType.Serialize(dateTime);
 
         // assert
         Assert.Equal(expectedValue, serializedValue);
@@ -42,14 +27,14 @@ public class DateTypeTests
     public void Serialize_DateTimeOffset()
     {
         // arrange
-        var dateType = new DateType();
+        var localDateTimeType = new LocalDateTimeType();
         var dateTime = new DateTimeOffset(
             new DateTime(2018, 6, 11, 2, 46, 14),
             new TimeSpan(4, 0, 0));
-        var expectedValue = "2018-06-10";
+        var expectedValue = "2018-06-11T02:46:14";
 
         // act
-        var serializedValue = (string)dateType.Serialize(dateTime);
+        var serializedValue = (string)localDateTimeType.Serialize(dateTime);
 
         // assert
         Assert.Equal(expectedValue, serializedValue);
@@ -59,10 +44,10 @@ public class DateTypeTests
     public void Serialize_Null()
     {
         // arrange
-        var dateType = new DateType();
+        var localDateTimeType = new LocalDateTimeType();
 
         // act
-        var serializedValue = dateType.Serialize(null);
+        var serializedValue = localDateTimeType.Serialize(null);
 
         // assert
         Assert.Null(serializedValue);
@@ -72,47 +57,47 @@ public class DateTypeTests
     public void Serialize_String_Exception()
     {
         // arrange
-        var dateType = new DateType();
+        var localDateTimeType = new LocalDateTimeType();
 
         // act
-        void Action() => dateType.Serialize("foo");
+        void Action() => localDateTimeType.Serialize("foo");
 
         // assert
         Assert.Throws<SerializationException>(Action);
     }
 
     [Fact]
-    public void Deserialize_IsoString_DateOnly()
+    public void Deserialize_IsoString_DateTime()
     {
         // arrange
-        var dateType = new DateType();
-        var date = new DateOnly(2018, 6, 11);
+        var localDateTimeType = new LocalDateTimeType();
+        var dateTime = new DateTime(2018, 6, 11, 8, 46, 14);
 
         // act
-        var result = (DateOnly)dateType.Deserialize("2018-06-11")!;
+        var result = (DateTime)localDateTimeType.Deserialize("2018-06-11T08:46:14")!;
 
         // assert
-        Assert.Equal(date, result);
+        Assert.Equal(dateTime, result);
     }
 
     [Fact]
-    public void Deserialize_InvalidFormat_To_DateOnly()
+    public void Deserialize_InvalidFormat_To_DateTime()
     {
         // arrange
-        var type = new DateType();
+        var type = new LocalDateTimeType();
 
         // act
-        var success = type.TryDeserialize("2018/06/11", out _);
+        var success = type.TryDeserialize("2018/06/11T08:46:14 pm", out _);
 
         // assert
         Assert.False(success);
     }
 
     [Fact]
-    public void Deserialize_InvalidString_To_DateOnly()
+    public void Deserialize_InvalidString_To_DateTime()
     {
         // arrange
-        var type = new DateType();
+        var type = new LocalDateTimeType();
 
         // act
         var success = type.TryDeserialize("abc", out _);
@@ -122,78 +107,61 @@ public class DateTypeTests
     }
 
     [Fact]
-    public void Deserialize_DateOnly_To_DateOnly()
+    public void Deserialize_DateTime_To_DateTime()
     {
         // arrange
-        var type = new DateType();
-        var date = new DateOnly(2018, 6, 11);
+        var type = new LocalDateTimeType();
+        var dateTime = new DateTime(2018, 6, 11, 8, 46, 14);
 
         // act
-        var success = type.TryDeserialize(date, out var deserialized);
+        var success = type.TryDeserialize(dateTime, out var deserialized);
 
         // assert
         Assert.True(success);
-        Assert.Equal(date, deserialized);
+        Assert.Equal(dateTime, deserialized);
     }
 
     [Fact]
-    public void Deserialize_DateTime_To_DateOnly()
+    public void Deserialize_DateTimeOffset_To_DateTime()
     {
         // arrange
-        var type = new DateType();
-        var date = new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
-
-        // act
-        var success = type.TryDeserialize(date, out var deserialized);
-
-        // assert
-        Assert.True(success);
-        Assert.Equal(DateOnly.FromDateTime(date),
-            Assert.IsType<DateOnly>(deserialized));
-    }
-
-    [Fact]
-    public void Deserialize_DateTimeOffset_To_DateOnly()
-    {
-        // arrange
-        var type = new DateType();
-        var date = new DateTimeOffset(
+        var type = new LocalDateTimeType();
+        var dateTime = new DateTimeOffset(
             new DateTime(2018, 6, 11, 2, 46, 14),
             new TimeSpan(4, 0, 0));
 
         // act
-        var success = type.TryDeserialize(date, out var deserialized);
+        var success = type.TryDeserialize(dateTime, out var deserialized);
 
         // assert
         Assert.True(success);
-        Assert.Equal(DateOnly.FromDateTime(date.UtcDateTime),
-            Assert.IsType<DateOnly>(deserialized));
+        Assert.Equal(dateTime.DateTime, Assert.IsType<DateTime>(deserialized));
     }
 
     [Fact]
-    public void Deserialize_NullableDateOnly_To_DateOnly()
+    public void Deserialize_NullableDateTime_To_DateTime()
     {
         // arrange
-        var type = new DateType();
-        DateOnly? date = new DateOnly(2018, 6, 11);
+        var type = new LocalDateTimeType();
+        DateTime? dateTime = new DateTime(2018, 6, 11, 8, 46, 14);
 
         // act
-        var success = type.TryDeserialize(date, out var deserialized);
+        var success = type.TryDeserialize(dateTime, out var deserialized);
 
         // assert
         Assert.True(success);
-        Assert.Equal(date, Assert.IsType<DateOnly>(deserialized));
+        Assert.Equal(dateTime, Assert.IsType<DateTime>(deserialized));
     }
 
     [Fact]
-    public void Deserialize_NullableDateOnly_To_DateOnly_2()
+    public void Deserialize_NullableDateTime_To_DateTime_2()
     {
         // arrange
-        var type = new DateType();
-        DateOnly? date = null;
+        var type = new LocalDateTimeType();
+        DateTime? dateTime = null;
 
         // act
-        var success = type.TryDeserialize(date, out var deserialized);
+        var success = type.TryDeserialize(dateTime, out var deserialized);
 
         // assert
         Assert.True(success);
@@ -204,7 +172,7 @@ public class DateTypeTests
     public void Deserialize_Null_To_Null()
     {
         // arrange
-        var type = new DateType();
+        var type = new LocalDateTimeType();
 
         // act
         var success = type.TryDeserialize(null, out var deserialized);
@@ -218,12 +186,12 @@ public class DateTypeTests
     public void ParseLiteral_StringValueNode()
     {
         // arrange
-        var dateType = new DateType();
-        var literal = new StringValueNode("2018-06-29");
-        var expectedDateTime = new DateOnly(2018, 6, 29);
+        var localDateTimeType = new LocalDateTimeType();
+        var literal = new StringValueNode("2018-06-29T08:46:14");
+        var expectedDateTime = new DateTime(2018, 6, 29, 8, 46, 14);
 
         // act
-        var dateTime = (DateOnly)dateType.ParseLiteral(literal)!;
+        var dateTime = (DateTime)localDateTimeType.ParseLiteral(literal)!;
 
         // assert
         Assert.Equal(expectedDateTime, dateTime);
@@ -242,12 +210,12 @@ public class DateTypeTests
         Thread.CurrentThread.CurrentCulture =
             CultureInfo.GetCultureInfo(cultureName);
 
-        var dateType = new DateType();
-        var literal = new StringValueNode("2018-06-29");
-        var expectedDateTime = new DateOnly(2018, 6, 29);
+        var localDateTimeType = new LocalDateTimeType();
+        var literal = new StringValueNode("2018-06-29T08:46:14");
+        var expectedDateTime = new DateTime(2018, 6, 29, 8, 46, 14);
 
         // act
-        var dateTime = (DateOnly)dateType.ParseLiteral(literal)!;
+        var dateTime = (DateTime)localDateTimeType.ParseLiteral(literal)!;
 
         // assert
         Assert.Equal(expectedDateTime, dateTime);
@@ -257,27 +225,27 @@ public class DateTypeTests
     public void ParseLiteral_NullValueNode()
     {
         // arrange
-        var dateType = new DateType();
+        var localDateTimeType = new LocalDateTimeType();
         var literal = NullValueNode.Default;
 
         // act
-        var value = dateType.ParseLiteral(literal);
+        var value = localDateTimeType.ParseLiteral(literal);
 
         // assert
         Assert.Null(value);
     }
 
     [Fact]
-    public void ParseValue_DateOnly()
+    public void ParseValue_DateTime()
     {
         // arrange
-        var dateType = new DateType();
-        var dateOnly = new DateOnly(2018, 6, 11);
-        var expectedLiteralValue = "2018-06-11";
+        var localDateTimeType = new LocalDateTimeType();
+        var dateTime = new DateTime(2018, 6, 11, 8, 46, 14);
+        var expectedLiteralValue = "2018-06-11T08:46:14";
 
         // act
         var stringLiteral =
-            (StringValueNode)dateType.ParseValue(dateOnly);
+            (StringValueNode)localDateTimeType.ParseValue(dateTime);
 
         // assert
         Assert.Equal(expectedLiteralValue, stringLiteral.Value);
@@ -287,41 +255,25 @@ public class DateTypeTests
     public void ParseValue_Null()
     {
         // arrange
-        var dateType = new DateType();
+        var localDateTimeType = new LocalDateTimeType();
 
         // act
-        var literal = dateType.ParseValue(null);
+        var literal = localDateTimeType.ParseValue(null);
 
         // assert
         Assert.Equal(NullValueNode.Default, literal);
     }
 
     [Fact]
-    public void ParseResult_DateOnly()
-    {
-        // arrange
-        var dateType = new DateType();
-        var resultValue = new DateOnly(2023, 6, 19);
-        var expectedLiteralValue = "2023-06-19";
-
-        // act
-        var literal = dateType.ParseResult(resultValue);
-
-        // assert
-        Assert.Equal(typeof(StringValueNode), literal.GetType());
-        Assert.Equal(expectedLiteralValue, literal.Value);
-    }
-
-    [Fact]
     public void ParseResult_DateTime()
     {
         // arrange
-        var dateType = new DateType();
+        var localDateTimeType = new LocalDateTimeType();
         var resultValue = new DateTime(2023, 6, 19, 11, 24, 0, DateTimeKind.Utc);
-        var expectedLiteralValue = "2023-06-19";
+        var expectedLiteralValue = "2023-06-19T11:24:00";
 
         // act
-        var literal = dateType.ParseResult(resultValue);
+        var literal = localDateTimeType.ParseResult(resultValue);
 
         // assert
         Assert.Equal(typeof(StringValueNode), literal.GetType());
@@ -332,12 +284,12 @@ public class DateTypeTests
     public void ParseResult_DateTimeOffset()
     {
         // arrange
-        var dateType = new DateType();
+        var localDateTimeType = new LocalDateTimeType();
         var resultValue = new DateTimeOffset(2023, 6, 19, 11, 24, 0, new TimeSpan(6, 0, 0));
-        var expectedLiteralValue = "2023-06-19";
+        var expectedLiteralValue = "2023-06-19T11:24:00";
 
         // act
-        var literal = dateType.ParseResult(resultValue);
+        var literal = localDateTimeType.ParseResult(resultValue);
 
         // assert
         Assert.Equal(typeof(StringValueNode), literal.GetType());
@@ -348,12 +300,12 @@ public class DateTypeTests
     public void ParseResult_String()
     {
         // arrange
-        var dateType = new DateType();
-        var resultValue = "2023-06-19";
-        var expectedLiteralValue = "2023-06-19";
+        var localDateTimeType = new LocalDateTimeType();
+        var resultValue = "2023-06-19T11:24:00";
+        var expectedLiteralValue = "2023-06-19T11:24:00";
 
         // act
-        var literal = dateType.ParseResult(resultValue);
+        var literal = localDateTimeType.ParseResult(resultValue);
 
         // assert
         Assert.Equal(typeof(StringValueNode), literal.GetType());
@@ -364,10 +316,10 @@ public class DateTypeTests
     public void ParseResult_Null()
     {
         // arrange
-        var dateType = new DateType();
+        var localDateTimeType = new LocalDateTimeType();
 
         // act
-        var literal = dateType.ParseResult(null);
+        var literal = localDateTimeType.ParseResult(null);
 
         // assert
         Assert.Equal(NullValueNode.Default, literal);
@@ -377,21 +329,21 @@ public class DateTypeTests
     public void ParseResult_SerializationException()
     {
         // arrange
-        var dateType = new DateType();
+        var localDateTimeType = new LocalDateTimeType();
         var resultValue = 1;
 
         // act
-        var exception = Record.Exception(() => dateType.ParseResult(resultValue));
+        var exception = Record.Exception(() => localDateTimeType.ParseResult(resultValue));
 
         // assert
         Assert.IsType<SerializationException>(exception);
     }
 
     [Fact]
-    public void EnsureDateTypeKindIsCorrect()
+    public void EnsureLocalDateTimeTypeKindIsCorrect()
     {
         // arrange
-        var type = new DateType();
+        var type = new LocalDateTimeType();
 
         // act
         var kind = type.Kind;
@@ -401,45 +353,44 @@ public class DateTypeTests
     }
 
     [Fact]
-    public void DateType_Binds_Only_Explicitly()
+    public void LocalDateTimeType_Binds_Only_Explicitly()
     {
         // arrange
         // act
         var schema = SchemaBuilder.New()
             .AddQueryType<Query>()
-            .AddType(new DateType())
+            .AddType(new LocalDateTimeType())
             .Create();
 
         // assert
-        IType dateType = schema.QueryType.Fields["dateField"].Type;
+        IType localDateTimeType = schema.QueryType.Fields["localDateTimeField"].Type;
         IType dateTimeType = schema.QueryType.Fields["dateTimeField"].Type;
 
-        Assert.IsType<DateType>(dateType);
+        Assert.IsType<LocalDateTimeType>(localDateTimeType);
         Assert.IsType<DateTimeType>(dateTimeType);
     }
 
     [Fact]
-    public async Task DateOnly_As_Argument_Schema()
+    public async Task LocalDateTime_As_Argument_Schema()
     {
         await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType<QueryDate1>()
+            .AddQueryType<QueryDateTime1>()
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }
 
     [Fact]
-    public async Task DateOnly_As_Argument()
+    public async Task LocalDateTime_As_Argument()
     {
         await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType<QueryDate1>()
-            .AddType(() => new TimeSpanType(TimeSpanFormat.DotNet))
+            .AddQueryType<QueryDateTime1>()
             .ExecuteRequestAsync(
                 """
                 {
                     foo {
-                        date(date: "2017-12-30")
+                        localDateTime(localDateTime: "2017-12-30T11:24:00")
                     }
                 }
                 """)
@@ -447,27 +398,26 @@ public class DateTypeTests
     }
 
     [Fact]
-    public async Task DateOnly_As_ReturnValue_Schema()
+    public async Task LocalDateTime_As_ReturnValue_Schema()
     {
         await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType<QueryDate2>()
+            .AddQueryType<QueryDateTime2>()
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }
 
     [Fact]
-    public async Task DateOnly_As_ReturnValue()
+    public async Task LocalDateTime_As_ReturnValue()
     {
         await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType<QueryDate2>()
-            .AddType(() => new TimeSpanType(TimeSpanFormat.DotNet))
+            .AddQueryType<QueryDateTime2>()
             .ExecuteRequestAsync(
                 """
                 {
                     bar {
-                        date
+                        localDateTime
                     }
                 }
                 """)
@@ -476,31 +426,32 @@ public class DateTypeTests
 
     public class Query
     {
-        [GraphQLType(typeof(DateType))]
-        public DateOnly? DateField => new();
+        [GraphQLType<LocalDateTimeType>]
+        public DateTime? LocalDateTimeField => new();
 
-        public DateTime? DateTimeField => DateTime.UtcNow;
+        public DateTime? DateTimeField => new();
     }
 
-    public class QueryDate1
+    public class QueryDateTime1
     {
         public Foo Foo => new();
     }
 
     public class Foo
     {
-        [GraphQLType(typeof(DateType))]
-        public DateOnly GetDate([GraphQLType(typeof(DateType))] DateOnly date) => date;
+        [GraphQLType<LocalDateTimeType>]
+        public DateTime GetLocalDateTime([GraphQLType<LocalDateTimeType>] DateTime localDateTime)
+            => localDateTime;
     }
 
-    public class QueryDate2
+    public class QueryDateTime2
     {
         public Bar Bar => new();
     }
 
     public class Bar
     {
-        [GraphQLType(typeof(DateType))]
-        public DateOnly GetDate() => DateOnly.MaxValue;
+        [GraphQLType<LocalDateTimeType>]
+        public DateTime GetLocalDateTime() => DateTime.MaxValue;
     }
 }
