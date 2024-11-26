@@ -428,6 +428,6 @@ public class XmlDocumentationProviderTests
             typeof(WithDictionaryArgs).GetMethod(nameof(WithDictionaryArgs.Method))!);
 
         // assert
-        Assert.Equal(methodDescription, "This is a method description");
+        Assert.Equal("This is a method description", methodDescription);
     }
 }
