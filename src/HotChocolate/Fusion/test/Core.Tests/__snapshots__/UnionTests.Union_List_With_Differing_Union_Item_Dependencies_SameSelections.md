@@ -4,81 +4,58 @@
 
 ```json
 {
-  "errors": [
-    {
-      "message": "Cannot return null for non-nullable field.",
-      "locations": [
-        {
-          "line": 15,
-          "column": 9
+  "data": {
+    "listOfUnion": [
+      {
+        "__typename": "Item1",
+        "something": "Something",
+        "product": {
+          "id": "UHJvZHVjdDox",
+          "name": "Product_1"
         }
-      ],
-      "path": [
-        "listOfUnion",
-        4,
-        "product",
-        "name"
-      ],
-      "extensions": {
-        "code": "HC0018"
-      }
-    },
-    {
-      "message": "Cannot return null for non-nullable field.",
-      "locations": [
-        {
-          "line": 15,
-          "column": 9
+      },
+      {
+        "__typename": "Item2",
+        "other": 123,
+        "product": {
+          "id": "UHJvZHVjdDoy",
+          "name": "Product_2"
         }
-      ],
-      "path": [
-        "listOfUnion",
-        3,
-        "product",
-        "name"
-      ],
-      "extensions": {
-        "code": "HC0018"
-      }
-    },
-    {
-      "message": "Cannot return null for non-nullable field.",
-      "locations": [
-        {
-          "line": 15,
-          "column": 9
+      },
+      {
+        "__typename": "Item3",
+        "another": true,
+        "review": {
+          "id": "UmV2aWV3OjM=",
+          "score": 3
         }
-      ],
-      "path": [
-        "listOfUnion",
-        1,
-        "product",
-        "name"
-      ],
-      "extensions": {
-        "code": "HC0018"
-      }
-    },
-    {
-      "message": "Cannot return null for non-nullable field.",
-      "locations": [
-        {
-          "line": 15,
-          "column": 9
+      },
+      {
+        "__typename": "Item1",
+        "something": "Something",
+        "product": {
+          "id": "UHJvZHVjdDo0",
+          "name": "Product_4"
         }
-      ],
-      "path": [
-        "listOfUnion",
-        0,
-        "product",
-        "name"
-      ],
-      "extensions": {
-        "code": "HC0018"
+      },
+      {
+        "__typename": "Item2",
+        "other": 123,
+        "product": {
+          "id": "UHJvZHVjdDo1",
+          "name": "Product_5"
+        }
+      },
+      {
+        "__typename": "Item3",
+        "another": true,
+        "review": {
+          "id": "UmV2aWV3OjY=",
+          "score": 1
+        }
       }
-    }
-  ],
-  "data": null
+    ]
+  }
 }
 ```
 
