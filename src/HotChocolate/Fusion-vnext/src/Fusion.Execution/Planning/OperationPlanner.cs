@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Fusion.Planning.Nodes;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
@@ -11,7 +12,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
     {
         ArgumentNullException.ThrowIfNull(document);
 
-        var operationDefinition =  document.GetOperation(operationName);
+        var operationDefinition = document.GetOperation(operationName);
         var schemasWeighted = GetSchemasWeighted(schema.QueryType, operationDefinition.SelectionSet);
         var rootPlanNode = new RootPlanNode();
 
@@ -23,7 +24,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 schema.QueryType,
                 operationDefinition.SelectionSet);
 
-            if (TryResolveSelectionSet(operation, operation, new Stack<SelectionPathSegment>()))
+            if (TryPlanSelectionSet(operation, operation, new Stack<SelectionPathSegment>()))
             {
                 rootPlanNode.AddOperation(operation);
             }
@@ -32,7 +33,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
         return rootPlanNode;
     }
 
-    private bool TryResolveSelectionSet(
+    private bool TryPlanSelectionSet(
         OperationPlanNode operation,
         SelectionPlanNode parent,
         Stack<SelectionPathSegment> path)
@@ -99,7 +100,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
 
                     path.Push(pathSegment);
 
-                    if (TryResolveSelectionSet(operation, fieldPlanNode, path))
+                    if (TryPlanSelectionSet(operation, fieldPlanNode, path))
                     {
                         parent.AddSelection(fieldPlanNode);
                         areAnySelectionsResolvable = true;
@@ -161,8 +162,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
                     foreach (var pathSegment in unresolvedPath.Skip(1))
                     {
                         if (pathSegment is FieldPlanNode selection
-                            && selection.Field is not null
-                            && selection.Field.Sources.ContainsSchema(schemaName))
+                            && selection.Field.Sources.Contains(schemaName))
                         {
                             continue;
                         }
@@ -193,16 +193,14 @@ public sealed class OperationPlanner(CompositeSchema schema)
                             }
                         }
 
-                        var newOperation = new OperationPlanNode(
-                            schemaName,
-                            schema.QueryType,
-                            CreateLookupSelections(lookup, parent, fields),
-                            parent);
+                        type ??= (CompositeComplexType)parent.DeclaringType;
+                        var lookupOperation = CreateLookupOperation(schemaName, lookup, type, parent, fields);
+                        var lookupField = lookupOperation.Selections[0];
 
                         // what do we do of its not successful
-                        if (TryResolveSelectionSet(newOperation, newOperation, path))
+                        if (TryPlanSelectionSet(lookupOperation, lookupField, path))
                         {
-                            operation.AddOperation(newOperation);
+                            operation.AddOperation(lookupOperation);
                         }
                     }
                 }
@@ -237,22 +235,39 @@ public sealed class OperationPlanner(CompositeSchema schema)
         throw new NotImplementedException();
     }
 
-    private IReadOnlyList<ISelectionNode> CreateLookupSelections(
+    private OperationPlanNode CreateLookupOperation(
+        string schemaName,
         Lookup lookup,
+        CompositeComplexType entityType,
         SelectionPlanNode parent,
         IReadOnlyList<ISelectionNode> selections)
     {
-        return
-        [
-            new FieldNode(
-                new NameNode(lookup.Name),
-                null,
-                Array.Empty<DirectiveNode>(),
-                Array.Empty<ArgumentNode>(),
-                new SelectionSetNode(selections))
-        ];
-    }
+        var lookupFieldNode = new FieldNode(
+            new NameNode(lookup.Name),
+            null,
+            Array.Empty<DirectiveNode>(),
+            Array.Empty<ArgumentNode>(),
+            new SelectionSetNode(selections));
 
+        var selectionNodes = new ISelectionNode[] { lookupFieldNode };
+
+        var lookupFieldPlan = new FieldPlanNode(
+            lookupFieldNode,
+            new OutputFieldInfo(
+                lookup.Name,
+                entityType,
+                ImmutableArray<string>.Empty.Add(schemaName)));
+
+        var lookupOperation = new OperationPlanNode(
+            schemaName,
+            schema.QueryType,
+            selectionNodes,
+            parent);
+
+        lookupOperation.AddSelection(lookupFieldPlan);
+
+        return lookupOperation;
+    }
 
     private static Dictionary<string, int> GetSchemasWeighted(
         IEnumerable<UnresolvedField> unresolvedFields,

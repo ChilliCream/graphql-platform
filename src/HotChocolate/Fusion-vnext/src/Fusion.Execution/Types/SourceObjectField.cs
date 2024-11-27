@@ -5,7 +5,7 @@ public sealed class SourceObjectField(
     string schemaName,
     FieldRequirements? requirements,
     ICompositeType type)
-    : ISourceMember
+    : ISourceOutputField
 {
     public string Name { get; } = name;
 
@@ -16,4 +16,9 @@ public sealed class SourceObjectField(
     public ICompositeType Type { get; } = type;
 
     public int BaseCost => 1;
+}
+
+public interface ISourceOutputField : ISourceMember
+{
+    ICompositeType Type { get; }
 }

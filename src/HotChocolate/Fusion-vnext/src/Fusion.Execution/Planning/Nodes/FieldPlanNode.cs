@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using HotChocolate.Fusion.Types;
+using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning.Nodes;
@@ -11,7 +12,7 @@ public sealed class FieldPlanNode : SelectionPlanNode
 
     public FieldPlanNode(
         FieldNode fieldNode,
-        CompositeOutputField field)
+        OutputFieldInfo field)
         : base(field.Type.NamedType(), fieldNode.SelectionSet?.Selections)
     {
         FieldNode = fieldNode;
@@ -19,11 +20,18 @@ public sealed class FieldPlanNode : SelectionPlanNode
         ResponseName = FieldNode.Alias?.Value ?? field.Name;
     }
 
+    public FieldPlanNode(
+        FieldNode fieldNode,
+        CompositeOutputField field)
+        : this(fieldNode, new OutputFieldInfo(field))
+    {
+    }
+
     public string ResponseName { get; }
 
     public FieldNode FieldNode { get; }
 
-    public CompositeOutputField Field { get; }
+    public OutputFieldInfo Field { get; }
 
     public IReadOnlyList<ArgumentAssignment> Arguments
         => _arguments ?? (IReadOnlyList<ArgumentAssignment>)Array.Empty<ArgumentAssignment>();
@@ -44,4 +52,19 @@ public sealed class FieldPlanNode : SelectionPlanNode
             Arguments.ToSyntaxNode(),
             Selections.Count == 0 ? null : Selections.ToSyntaxNode());
     }
+}
+
+public class OutputFieldInfo(string name, ICompositeType type, ImmutableArray<string> sources)
+{
+    public OutputFieldInfo(CompositeOutputField field)
+        : this(field.Name, field.Type, field.Sources.Schemas)
+    {
+
+    }
+
+    public string Name => name;
+
+    public ICompositeType Type => type;
+
+    public ImmutableArray<string> Sources => sources;
 }
