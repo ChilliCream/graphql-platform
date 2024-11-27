@@ -607,7 +607,7 @@ public class ObjectTypeExtensionTests
                 .AddTypeExtension(typeof(StaticExtensions))
                 .ExecuteRequestAsync("{ hello }");
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -620,7 +620,7 @@ public class ObjectTypeExtensionTests
                 .AddTypeExtension(typeof(StaticExtensions))
                 .BuildSchemaAsync();
 
-        SnapshotExtensions.MatchSnapshot(schema);
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -633,7 +633,7 @@ public class ObjectTypeExtensionTests
                 .AddTypeExtension<QueryExtensionWithStaticField>()
                 .BuildSchemaAsync();
 
-        SnapshotExtensions.MatchSnapshot(schema);
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -647,7 +647,7 @@ public class ObjectTypeExtensionTests
                 .ModifyOptions(t => t.DefaultFieldBindingFlags = InstanceAndStatic)
                 .BuildSchemaAsync();
 
-        SnapshotExtensions.MatchSnapshot(schema);
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -660,7 +660,7 @@ public class ObjectTypeExtensionTests
                 .AddTypeExtension<QueryExtensionWithStaticField>()
                 .ExecuteRequestAsync("{ hello }");
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -673,7 +673,7 @@ public class ObjectTypeExtensionTests
                 .AddTypeExtension(typeof(StaticFooQueryExtensions))
                 .BuildSchemaAsync();
 
-        SnapshotExtensions.MatchSnapshot(schema);
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -686,7 +686,7 @@ public class ObjectTypeExtensionTests
                 .AddTypeExtension(typeof(StaticFooQueryExtensions))
                 .ExecuteRequestAsync("{ hello }");
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -699,7 +699,7 @@ public class ObjectTypeExtensionTests
                 .AddTypeExtension<QueryExtensions>()
                 .BuildSchemaAsync();
 
-        SnapshotExtensions.MatchSnapshot(schema);
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -713,7 +713,7 @@ public class ObjectTypeExtensionTests
                     d => d.ExtendsType<QueryType>().Field("foo").Type<IntType>())
                 .BuildSchemaAsync();
 
-        SnapshotExtensions.MatchSnapshot(schema);
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -727,7 +727,7 @@ public class ObjectTypeExtensionTests
                     d => d.Field("foo").Type<IntType>())
                 .BuildSchemaAsync();
 
-        SnapshotExtensions.MatchSnapshot(schema);
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -742,7 +742,7 @@ public class ObjectTypeExtensionTests
                     d => d.Field("foo").Type<IntType>())
                 .BuildSchemaAsync();
 
-        SnapshotExtensions.MatchSnapshot(schema);
+        schema.MatchSnapshot();
     }
 
     public class FooType : ObjectType<Foo>

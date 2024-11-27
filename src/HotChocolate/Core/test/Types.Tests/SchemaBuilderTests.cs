@@ -2088,7 +2088,7 @@ public class SchemaBuilderTests
                 .ModifyOptions(options => options.DefaultBindingBehavior = BindingBehavior.Explicit)
                 .BuildSchemaAsync();
 
-        SnapshotExtensions.MatchSnapshot(schema);
+        schema.MatchSnapshot();
     }
 
     public interface IMockConvention : IConvention

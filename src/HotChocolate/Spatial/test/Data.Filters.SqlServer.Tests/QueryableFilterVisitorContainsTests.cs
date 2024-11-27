@@ -85,10 +85,10 @@ public class QueryableFilterVisitorContainsTests : SchemaCache
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "1"), res2, "2")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "1")
+            .AddResult(res2, "2")
             .MatchAsync();
     }
 
@@ -138,10 +138,10 @@ public class QueryableFilterVisitorContainsTests : SchemaCache
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "2"), res2, "1")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "2")
+            .AddResult(res2, "1")
             .MatchAsync();
     }
 
