@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Fusion.Planning.Nodes;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
@@ -124,23 +125,8 @@ public sealed class OperationPlanner(CompositeSchema schema)
 
         if (unresolved?.Count > 0)
         {
-            var current = parent;
-            var unresolvedPath = new Stack<PlanNode>();
-            unresolvedPath.Push(parent);
-
-            // first we try to find an entity from which we can branch.
-            // We go up until we find the first entity.
-            while (!current.IsEntity
-                && current.Parent is SelectionPlanNode parentSelection)
+            if(!TryResolveEntityType(parent, out var entityPath))
             {
-                current = parentSelection;
-                unresolvedPath.Push(current);
-            }
-
-            // If we could not find an entity we cannot resolve the unresolved selections.
-            if (!current.IsEntity)
-            {
-                // TODO: there is a case where we do root selections on data, we will ignore it for now.
                 return false;
             }
 
@@ -159,7 +145,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
                     var isPathResolvable = true;
 
                     // a possible schema must be able to resolve the path to the lookup.
-                    foreach (var pathSegment in unresolvedPath.Skip(1))
+                    foreach (var pathSegment in entityPath.Skip(1))
                     {
                         if (pathSegment is FieldPlanNode selection
                             && selection.Field.Sources.Contains(schemaName))
@@ -178,7 +164,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
                     }
 
                     // next we try to find a lookup
-                    if (TryGetLookup(current, processed, out var lookup))
+                    if (TryGetLookup((SelectionPlanNode)entityPath.Peek(), processed, out var lookup))
                     {
                         // note : this can lead to a operation explosions as fields could be unresolvable
                         // and would be spread out in the lower level call. We do that for now to test out the
@@ -208,6 +194,33 @@ public sealed class OperationPlanner(CompositeSchema schema)
         }
 
         return areAnySelectionsResolvable;
+    }
+
+    /// <summary>
+    /// Tries to find an entity type in the current selection path.
+    /// </summary>
+    private static bool TryResolveEntityType(
+        SelectionPlanNode parent,
+        [NotNullWhen(true)] out Stack<PlanNode>? entityPath)
+    {
+        var current = parent;
+        entityPath = new Stack<PlanNode>();
+        entityPath.Push(parent);
+
+        // if the current SelectionPlanNode is not an entity we will move up the selection path.
+        while (current is { IsEntity: false, Parent: SelectionPlanNode parentSelection })
+        {
+            current = parentSelection;
+            entityPath.Push(current);
+        }
+
+        if (!current.IsEntity)
+        {
+            entityPath = null;
+            return false;
+        }
+
+        return true;
     }
 
     // this needs more meat
