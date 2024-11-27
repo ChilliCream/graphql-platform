@@ -414,4 +414,20 @@ public class XmlDocumentationProviderTests
         // assert
         methodDescription.MatchSnapshot();
     }
+
+    [Fact]
+    public void When_method_has_dictionary_args_then_it_is_found()
+    {
+        // arrange
+        var documentationProvider = new XmlDocumentationProvider(
+            new XmlDocumentationFileResolver(),
+            new NoOpStringBuilderPool());
+
+        // act
+        var methodDescription = documentationProvider.GetDescription(
+            typeof(WithDictionaryArgs).GetMethod(nameof(WithDictionaryArgs.Method))!);
+
+        // assert
+        Assert.Equal("This is a method description", methodDescription);
+    }
 }
