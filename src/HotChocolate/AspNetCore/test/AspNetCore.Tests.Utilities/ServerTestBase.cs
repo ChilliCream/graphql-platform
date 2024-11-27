@@ -174,6 +174,6 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
     [DirectiveType(DirectiveLocation.Subscription)]
     public class Foo
     {
-        public required int Bar { get; set; }
+        public int Bar { get; set; }
     }
 }
