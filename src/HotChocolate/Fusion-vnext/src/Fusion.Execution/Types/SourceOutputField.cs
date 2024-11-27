@@ -1,8 +1,9 @@
 namespace HotChocolate.Fusion.Types;
 
-public class SourceInterfaceField(
+public sealed class SourceOutputField(
     string name,
     string schemaName,
+    FieldRequirements? requirements,
     ICompositeType type)
     : ISourceMember
 {
@@ -10,5 +11,9 @@ public class SourceInterfaceField(
 
     public string SchemaName { get; } = schemaName;
 
+    public FieldRequirements? Requirements { get; } = requirements;
+
     public ICompositeType Type { get; } = type;
+
+    public int BaseCost => 1;
 }

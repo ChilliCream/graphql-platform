@@ -10,6 +10,7 @@ public abstract class CompositeComplexType : ICompositeNamedType
 {
     private DirectiveCollection _directives = default!;
     private CompositeInterfaceTypeCollection _implements = default!;
+    private ISourceComplexTypeCollection<ISourceComplexType> _sources = default!;
     private bool _completed;
 
     protected CompositeComplexType(
@@ -68,6 +69,27 @@ public abstract class CompositeComplexType : ICompositeNamedType
     /// The fields of this type.
     /// </value>
     public CompositeOutputFieldCollection Fields { get; }
+
+    /// <summary>
+    /// Gets the source type definition of this type.
+    /// </summary>
+    /// <value>
+    /// The source type definition of this type.
+    /// </value>
+    public ISourceComplexTypeCollection<ISourceComplexType> Sources
+    {
+        get => _sources;
+        private protected set
+        {
+            if (_completed)
+            {
+                throw new NotSupportedException(
+                    "The type definition is sealed and cannot be modified.");
+            }
+
+            _sources = value;
+        }
+    }
 
     private protected void Complete()
     {

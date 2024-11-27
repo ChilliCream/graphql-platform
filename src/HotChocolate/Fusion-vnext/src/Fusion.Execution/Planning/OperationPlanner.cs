@@ -142,23 +142,8 @@ public sealed class OperationPlanner(CompositeSchema schema)
             {
                 if (processed.Add(schemaName))
                 {
-                    var isPathResolvable = true;
-
-                    // a possible schema must be able to resolve the path to the lookup.
-                    foreach (var pathSegment in entityPath.Skip(1))
-                    {
-                        if (pathSegment is FieldPlanNode selection
-                            && selection.Field.Sources.Contains(schemaName))
-                        {
-                            continue;
-                        }
-
-                        isPathResolvable = true;
-                        break;
-                    }
-
                     // if the path is not resolvable we will skip it and move to the next.
-                    if (!isPathResolvable)
+                    if (!IsEntityPathResolvable(entityPath, schemaName))
                     {
                         continue;
                     }
@@ -223,6 +208,22 @@ public sealed class OperationPlanner(CompositeSchema schema)
         return true;
     }
 
+    private static bool IsEntityPathResolvable(Stack<PlanNode> entityPath, string schemaName)
+    {
+        foreach (var planNode in entityPath)
+        {
+            if (planNode is FieldPlanNode fieldPlanNode)
+            {
+                if (!fieldPlanNode.Field.Sources.Contains(schemaName))
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
     // this needs more meat
     private bool IsResolvable(
         FieldNode fieldNode,
@@ -237,7 +238,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
         // is available for free.
         foreach (var schemaName in schemas)
         {
-            if (((CompositeObjectType)selection.DeclaringType).Sources.TryGetMember(schemaName, out var source)
+            if (((CompositeComplexType)selection.DeclaringType).Sources.TryGetType(schemaName, out var source)
                 && source.Lookups.Length > 0)
             {
                 lookup = source.Lookups[0];
