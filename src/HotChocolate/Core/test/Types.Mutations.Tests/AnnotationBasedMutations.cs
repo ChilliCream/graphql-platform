@@ -82,7 +82,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -134,7 +134,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -189,7 +189,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -212,7 +212,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -248,7 +248,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -283,7 +283,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -339,7 +339,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -512,7 +512,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -543,7 +543,7 @@ public class AnnotationBasedMutations
                         .SetVariableValues(new Dictionary<string, object?> { { "id", id } })
                         .Build());
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -567,7 +567,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -592,7 +592,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -615,7 +615,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -653,7 +653,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -678,7 +678,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -702,7 +702,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -770,7 +770,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -794,7 +794,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -832,7 +832,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -856,7 +856,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -894,7 +894,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -917,7 +917,7 @@ public class AnnotationBasedMutations
                         }
                     }
                     """);
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -955,7 +955,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -979,7 +979,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -1017,7 +1017,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -1041,7 +1041,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -1093,7 +1093,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -1117,7 +1117,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -1170,7 +1170,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]

@@ -38,10 +38,10 @@ public class QueryableSortVisitorExpressionTests : IClassFixture<SchemaCache>
             .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "DESC"), res2, "ASC")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "DESC")
+            .AddResult(res2, "ASC")
             .MatchAsync();
     }
 
@@ -88,11 +88,11 @@ public class QueryableSortVisitorExpressionTests : IClassFixture<SchemaCache>
             .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "ASC"), res2, "DESC")
-            .MatchAsync();;
+        await Snapshot
+            .Create()
+            .AddResult(res1, "ASC")
+            .AddResult(res2, "DESC")
+            .MatchAsync();
     }
 
     public class Foo

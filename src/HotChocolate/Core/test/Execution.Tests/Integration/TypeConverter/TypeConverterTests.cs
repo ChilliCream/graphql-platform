@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using CookieCrumble;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
@@ -164,8 +165,7 @@ public class TypeConverterTests
                 .AddQueryType<QuerySet>()
                 .ExecuteRequestAsync("{ set(set: [\"abc\", \"abc\"]) }");
 
-        CookieCrumble.SnapshotExtensions.MatchInlineSnapshot(
-            result,
+        result.MatchInlineSnapshot(
             """
             {
               "data": {
@@ -186,8 +186,7 @@ public class TypeConverterTests
                 .AddQueryType<QuerySet>()
                 .ExecuteRequestAsync("{ set2(set: [\"abc\", \"abc\"]) }");
 
-        CookieCrumble.SnapshotExtensions.MatchInlineSnapshot(
-            result,
+        result.MatchInlineSnapshot(
             """
             {
               "data": {
