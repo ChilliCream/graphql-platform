@@ -13,6 +13,7 @@
     <PackageVersion Include="AutoMapper" Version="10.1.1" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net80" Version="1.7.8" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net90" Version="1.7.8" />
+    <PackageVersion Include="BenchmarkDotNet" Version="0.14.0" />
     <PackageVersion Include="ChilliCream.Nitro.App" Version="$(NitroVersion)" />
     <PackageVersion Include="ChilliCream.Testing.Utilities" Version="0.2.0" />
     <PackageVersion Include="coverlet.collector" Version="6.0.2" />
