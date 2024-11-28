@@ -15,7 +15,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
 
         var operationDefinition = document.GetOperation(operationName);
         var schemasWeighted = GetSchemasWeighted(schema.QueryType, operationDefinition.SelectionSet);
-        var rootPlanNode = new RootPlanNode();
+        var operationPlan = new RootPlanNode();
 
         // this need to be rewritten to check if everything is planned for.
         foreach (var schemaName in schemasWeighted.OrderByDescending(t => t.Value).Select(t => t.Key))
@@ -27,11 +27,13 @@ public sealed class OperationPlanner(CompositeSchema schema)
 
             if (TryPlanSelectionSet(operation, operation, new Stack<SelectionPathSegment>()))
             {
-                rootPlanNode.AddOperation(operation);
+                operationPlan.AddOperation(operation);
             }
         }
 
-        return rootPlanNode;
+        OperationVariableBinder.BindOperationVariables(operationDefinition, operationPlan);
+
+        return operationPlan;
     }
 
     private bool TryPlanSelectionSet(

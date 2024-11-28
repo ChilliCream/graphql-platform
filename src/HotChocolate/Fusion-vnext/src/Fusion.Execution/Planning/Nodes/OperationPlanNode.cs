@@ -8,7 +8,10 @@ namespace HotChocolate.Fusion.Planning.Nodes;
 /// </summary>
 public sealed class OperationPlanNode : SelectionPlanNode, IOperationPlanNodeProvider
 {
+    private static readonly IReadOnlyDictionary<string, VariableDefinitionNode> _emptyVariableMap =
+        new Dictionary<string, VariableDefinitionNode>();
     private List<OperationPlanNode>? _operations;
+    private Dictionary<string, VariableDefinitionNode>? _variables;
 
     public OperationPlanNode(
         string schemaName,
@@ -37,8 +40,17 @@ public sealed class OperationPlanNode : SelectionPlanNode, IOperationPlanNodePro
     // todo: variable representations are missing.
     // todo: how to we represent state?
 
+    public IReadOnlyDictionary<string, VariableDefinitionNode> VariableDefinitions
+        => _variables ?? _emptyVariableMap;
+
     public IReadOnlyList<OperationPlanNode> Operations
         => _operations ?? (IReadOnlyList<OperationPlanNode>)Array.Empty<OperationPlanNode>();
+
+    public void AddVariableDefinition(VariableDefinitionNode variable)
+    {
+        ArgumentNullException.ThrowIfNull(variable);
+        (_variables ??= new Dictionary<string, VariableDefinitionNode>()).Add(variable.Variable.Name.Value, variable);
+    }
 
     public void AddOperation(OperationPlanNode operation)
     {
@@ -53,7 +65,7 @@ public sealed class OperationPlanNode : SelectionPlanNode, IOperationPlanNodePro
             null,
             null,
             OperationType.Query,
-            Array.Empty<VariableDefinitionNode>(),
+            _variables?.Values.OrderBy(t => t.Variable.Name.Value).ToArray() ?? [],
             Directives.ToSyntaxNode(),
             Selections.ToSyntaxNode());
     }
