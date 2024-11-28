@@ -45,6 +45,7 @@ else
     "$DOTNET_INSTALL_FILE" --install-dir "$DOTNET_DIRECTORY" --version "5.0.408" --no-path
     "$DOTNET_INSTALL_FILE" --install-dir "$DOTNET_DIRECTORY" --version "6.0.402" --no-path
     "$DOTNET_INSTALL_FILE" --install-dir "$DOTNET_DIRECTORY" --version "7.0.306" --no-path
+    "$DOTNET_INSTALL_FILE" --install-dir "$DOTNET_DIRECTORY" --version "8.0.404" --no-path
 
     # If global.json exists, load expected version
     if [[ -f "$DOTNET_GLOBAL_FILE" ]]; then
