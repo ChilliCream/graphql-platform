@@ -5,6 +5,7 @@ using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Serialization;
+using HotChocolate.Transport.Http;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -394,7 +395,7 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
                 });
 
         // assert
-        result.MatchInlineSnapshot(
+        new GraphQLHttpResponse(result).MatchInlineSnapshot(
             """
             {
               "data": {
@@ -405,8 +406,7 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
                 "wait": true
               }
             }
-            """,
-            formatter: SnapshotValueFormatters.GraphQLHttp);
+            """);
     }
 
     [Fact]
@@ -498,7 +498,7 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
             });
 
         // assert
-        result.MatchInlineSnapshot(
+        new GraphQLHttpResponse(result).MatchInlineSnapshot(
             """
             {
               "data": {
@@ -521,8 +521,7 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
                 "wait": true
               }
             }
-            """,
-            formatter: SnapshotValueFormatters.GraphQLHttp);
+            """);
     }
 
     [Fact]
