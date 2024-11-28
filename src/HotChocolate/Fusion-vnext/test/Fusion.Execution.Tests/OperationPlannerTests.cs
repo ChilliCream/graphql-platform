@@ -145,14 +145,25 @@ public class OperationPlannerTests
                 """
                 {
                   productById {
-                    id
                     name
                   }
                 }
 
                 {
                   productById {
-                    estimatedDelivery
+                    reviews {
+                      nodes {
+                        body
+                        stars
+                        author
+                      }
+                    }
+                  }
+                }
+
+                {
+                  userById {
+                    displayName
                   }
                 }
                 """);

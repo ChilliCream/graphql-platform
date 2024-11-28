@@ -37,7 +37,8 @@ public sealed class OperationPlanner(CompositeSchema schema)
     private bool TryPlanSelectionSet(
         OperationPlanNode operation,
         SelectionPlanNode parent,
-        Stack<SelectionPathSegment> path)
+        Stack<SelectionPathSegment> path,
+        bool skipUnresolved = false)
     {
         if (parent.SelectionNodes is null)
         {
@@ -46,15 +47,12 @@ public sealed class OperationPlanner(CompositeSchema schema)
         }
 
         List<UnresolvedField>? unresolved = null;
-        CompositeComplexType? type = null;
-        var areAnySelectionsResolvable = false;
+        var type = (CompositeComplexType)parent.DeclaringType;
 
         foreach (var selection in parent.SelectionNodes)
         {
             if (selection is FieldNode fieldNode)
             {
-                type ??= (CompositeComplexType)parent.DeclaringType;
-
                 if (!type.Fields.TryGetField(fieldNode.Name.Value, out var field))
                 {
                     throw new InvalidOperationException(
@@ -81,7 +79,6 @@ public sealed class OperationPlanner(CompositeSchema schema)
                         }
 
                         parent.AddSelection(new FieldPlanNode(fieldNode, field));
-                        areAnySelectionsResolvable = true;
                         continue;
                     }
 
@@ -104,7 +101,6 @@ public sealed class OperationPlanner(CompositeSchema schema)
                     if (TryPlanSelectionSet(operation, fieldPlanNode, path))
                     {
                         parent.AddSelection(fieldPlanNode);
-                        areAnySelectionsResolvable = true;
                     }
                     else
                     {
@@ -123,62 +119,93 @@ public sealed class OperationPlanner(CompositeSchema schema)
             }
         }
 
-        if (unresolved?.Count > 0)
+        return skipUnresolved
+            || unresolved is null
+            || unresolved.Count == 0
+            || TryHandleUnresolvedSelections(operation, parent, type, unresolved, path);
+    }
+
+    private bool TryHandleUnresolvedSelections(
+        OperationPlanNode operation,
+        SelectionPlanNode parent,
+        CompositeComplexType type,
+        List<UnresolvedField> unresolved,
+        Stack<SelectionPathSegment> path)
+    {
+        if (!TryResolveEntityType(parent, out var entityPath))
         {
-            if(!TryResolveEntityType(parent, out var entityPath))
+            return false;
+        }
+
+        // if we have found an entity to branch of from we will check
+        // if any of the unresolved selections can be resolved through one of the entity lookups.
+        var processedSchemas = new HashSet<string>();
+        var processedFields = new HashSet<string>();
+        var fields = new List<ISelectionNode>();
+
+        // we first try to weight the schemas that the fields can be resolved by.
+        // The schema is weighted by the fields it potentially can resolve.
+        var schemasWeighted = GetSchemasWeighted(unresolved, processedSchemas);
+
+        foreach (var schemaName in schemasWeighted.OrderByDescending(t => t.Value).Select(t => t.Key))
+        {
+            if (!processedSchemas.Add(schemaName))
             {
-                return false;
+                continue;
             }
 
-            // if we have found an entity to branch of from we will check
-            // if any of the unresolved selections can be resolved through one of the entity lookups.
-            var processed = new HashSet<string>();
-
-            // we first try to weight the schemas that the fields can be resolved by.
-            // The schema is weighted by the fields it potentially can resolve.
-            var schemasWeighted = GetSchemasWeighted(unresolved, processed);
-
-            foreach (var schemaName in schemasWeighted.OrderByDescending(t => t.Value).Select(t => t.Key))
+            // if the path is not resolvable we will skip it and move to the next.
+            if (!IsEntityPathResolvable(entityPath, schemaName))
             {
-                if (processed.Add(schemaName))
+                continue;
+            }
+
+            // next we try to find a lookup
+            if (!TryGetLookup((SelectionPlanNode)entityPath.Peek(), processedSchemas, out var lookup))
+            {
+                continue;
+            }
+
+            // note : this can lead to a operation explosions as fields could be unresolvable
+            // and would be spread out in the lower level call. We do that for now to test out the
+            // overall concept and will backtrack later to the upper call.
+            fields.Clear();
+
+            foreach (var unresolvedField in unresolved)
+            {
+                if (unresolvedField.Field.Sources.ContainsSchema(schemaName)
+                    && !processedFields.Contains(unresolvedField.Field.Name))
                 {
-                    // if the path is not resolvable we will skip it and move to the next.
-                    if (!IsEntityPathResolvable(entityPath, schemaName))
-                    {
-                        continue;
-                    }
+                    fields.Add(unresolvedField.FieldNode);
+                }
+            }
 
-                    // next we try to find a lookup
-                    if (TryGetLookup((SelectionPlanNode)entityPath.Peek(), processed, out var lookup))
-                    {
-                        // note : this can lead to a operation explosions as fields could be unresolvable
-                        // and would be spread out in the lower level call. We do that for now to test out the
-                        // overall concept and will backtrack later to the upper call.
-                        var fields = new List<ISelectionNode>();
+            var lookupOperation = CreateLookupOperation(schemaName, lookup, type, parent, fields);
+            var lookupField = lookupOperation.Selections[0];
 
-                        foreach (var unresolvedField in unresolved)
-                        {
-                            if (unresolvedField.Field.Sources.ContainsSchema(schemaName))
-                            {
-                                fields.Add(unresolvedField.FieldNode);
-                            }
-                        }
+            // what do we do of its not successful
+            if (!TryPlanSelectionSet(lookupOperation, lookupField, path))
+            {
+                continue;
+            }
 
-                        type ??= (CompositeComplexType)parent.DeclaringType;
-                        var lookupOperation = CreateLookupOperation(schemaName, lookup, type, parent, fields);
-                        var lookupField = lookupOperation.Selections[0];
+            operation.AddOperation(lookupOperation);
 
-                        // what do we do of its not successful
-                        if (TryPlanSelectionSet(lookupOperation, lookupField, path))
-                        {
-                            operation.AddOperation(lookupOperation);
-                        }
-                    }
+            foreach (var selection in lookupField.Selections)
+            {
+                switch (selection)
+                {
+                    case FieldPlanNode field:
+                        processedFields.Add(field.Field.Name);
+                        break;
+
+                    default:
+                        throw new NotSupportedException();
                 }
             }
         }
 
-        return areAnySelectionsResolvable;
+        return unresolved.Count == processedFields.Count;
     }
 
     /// <summary>
@@ -210,7 +237,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
 
     private static bool IsEntityPathResolvable(Stack<PlanNode> entityPath, string schemaName)
     {
-        foreach (var planNode in entityPath)
+        foreach (var planNode in entityPath.Skip(1))
         {
             if (planNode is FieldPlanNode fieldPlanNode)
             {
