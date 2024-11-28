@@ -39,7 +39,7 @@ public class OperationPlannerTests
             .IsEqualTo(
                 """
                 {
-                  productById {
+                  productById(id: 1) {
                     id
                     name
                   }
@@ -81,7 +81,7 @@ public class OperationPlannerTests
             .IsEqualTo(
                 """
                 {
-                  productById {
+                  productById(id: 1) {
                     id
                     name
                   }
@@ -89,7 +89,7 @@ public class OperationPlannerTests
 
                 {
                   productById {
-                    estimatedDelivery
+                    estimatedDelivery(postCode: "12345")
                   }
                 }
                 """);
@@ -144,14 +144,14 @@ public class OperationPlannerTests
             .IsEqualTo(
                 """
                 {
-                  productById {
+                  productById(id: 1) {
                     name
                   }
                 }
 
                 {
                   productById {
-                    reviews {
+                    reviews(first: 10) {
                       nodes {
                         body
                         stars
