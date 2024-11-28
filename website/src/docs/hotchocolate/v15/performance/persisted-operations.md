@@ -86,7 +86,7 @@ This file is expected to contain the operation document that the hash was genera
 
 > Warning: Do not forget to ensure that the server has access to the directory.
 
-### Redis
+## Redis
 
 To load persisted operation documents from Redis, we have to add the following package.
 
@@ -108,7 +108,7 @@ public void ConfigureServices(IServiceCollection services)
 
 Keys in the specified Redis database are expected to be operation IDs (hashes) and contain the actual operation document as the value.
 
-### Azure Blob Storage
+## Azure Blob Storage
 
 To load persisted operation documents from Azure Blob Storage, we have to add the following package.
 
@@ -130,7 +130,38 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
-## Hashing algorithms
+Unlike with Redis, a Blob Storage client has no easy way to set the expiration of files in Azure Blob Storage. However, you can define [a Lifecycle Management Policy](https://learn.microsoft.com/en-us/azure/storage/blobs/lifecycle-management-overview?tabs=azure-portal). The following sample policy will instruct Azure to remove all files from the `hotchocolate` container when they have not been accessed for 10 days.
+
+```json
+{
+  "rules": [
+    {
+      "enabled": true,
+      "name": "remove-after-10d",
+      "type": "Lifecycle",
+      "definition": {
+        "actions": {
+          "baseBlob": {
+            "delete": {
+              "daysAfterLastAccessTimeGreaterThan": 10
+            }
+          }
+        },
+        "filters": {
+          "blobTypes": [
+            "blockBlob"
+          ],
+          "prefixMatch": [
+            "hotchocolate/"
+          ]
+        }
+      }
+    }
+  ]
+}
+```
+
+# Hashing algorithms
 
 Per default Hot Chocolate uses the MD5 hashing algorithm, but we can override this default by specifying a `DocumentHashProvider`.
 
@@ -160,7 +191,7 @@ AddSha256DocumentHashProvider(HashFormat.Base64)
 
 > Note: [Relay](https://relay.dev) uses the MD5 hashing algorithm - no additional Hot Chocolate configuration is required.
 
-## Blocking regular operations
+# Blocking regular operations
 
 If you want to disallow any dynamic operations, you can enable `OnlyAllowPersistedDocuments`:
 
