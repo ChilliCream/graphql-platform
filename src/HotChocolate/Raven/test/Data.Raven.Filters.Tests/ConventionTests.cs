@@ -1,5 +1,3 @@
-using CookieCrumble;
-
 namespace HotChocolate.Data.Filters;
 
 [Collection(SchemaCacheCollectionFixture.DefinitionName)]

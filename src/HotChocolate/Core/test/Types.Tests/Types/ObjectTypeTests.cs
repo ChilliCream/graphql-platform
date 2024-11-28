@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Linq.Expressions;
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;

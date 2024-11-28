@@ -5,7 +5,6 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Basic.Reference.Assemblies;
-using CookieCrumble;
 using GreenDonut;
 using HotChocolate.Pagination;
 using HotChocolate.Types.Analyzers;

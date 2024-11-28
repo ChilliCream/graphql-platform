@@ -1,9 +1,10 @@
 using System.Buffers;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using CookieCrumble.Formatters;
 using Microsoft.AspNetCore.WebUtilities;
 
-namespace CookieCrumble.Formatters;
+namespace CookieCrumble.HotChocolate.Formatters;
 
 internal sealed class GraphQLHttpResponseFormatter : SnapshotValueFormatter<HttpResponseMessage>
 {

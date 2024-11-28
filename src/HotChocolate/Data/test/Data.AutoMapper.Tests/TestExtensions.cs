@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using static CookieCrumble.Formatters.SnapshotValueFormatters;
 

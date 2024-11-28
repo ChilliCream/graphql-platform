@@ -1,5 +1,4 @@
 using System.Text.Json;
-using CookieCrumble;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;

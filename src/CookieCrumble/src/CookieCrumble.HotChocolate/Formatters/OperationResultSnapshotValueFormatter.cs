@@ -1,8 +1,9 @@
 using System.Buffers;
 using System.Text.Json;
+using CookieCrumble.Formatters;
 using HotChocolate.Transport;
 
-namespace CookieCrumble.Formatters;
+namespace CookieCrumble.HotChocolate.Formatters;
 
 internal sealed class OperationResultSnapshotValueFormatter : SnapshotValueFormatter<OperationResult>
 {

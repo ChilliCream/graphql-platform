@@ -1,7 +1,6 @@
 #pragma warning disable RCS1102 // Make class static
 
 using System.Reflection;
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;

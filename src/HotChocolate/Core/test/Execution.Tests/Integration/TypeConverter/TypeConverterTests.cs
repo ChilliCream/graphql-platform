@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using CookieCrumble;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
