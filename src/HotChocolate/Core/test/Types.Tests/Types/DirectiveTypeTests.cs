@@ -3,7 +3,6 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
-using CookieCrumble;
 
 namespace HotChocolate.Types;
 

@@ -1,8 +1,9 @@
 using System.Buffers;
+using CookieCrumble.Formatters;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 
-namespace CookieCrumble.Formatters;
+namespace CookieCrumble.HotChocolate.Formatters;
 
 internal sealed class GraphQLSnapshotValueFormatter : SnapshotValueFormatter<ISyntaxNode>
 {

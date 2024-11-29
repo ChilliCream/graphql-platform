@@ -1,5 +1,4 @@
 using System.Globalization;
-using CookieCrumble;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types;

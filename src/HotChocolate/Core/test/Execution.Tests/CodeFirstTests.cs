@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Runtime.CompilerServices;
-using CookieCrumble;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Resolvers;

@@ -1,5 +1,4 @@
 using System.Text.Json;
-using CookieCrumble;
 using HotChocolate.Data;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Sorting;

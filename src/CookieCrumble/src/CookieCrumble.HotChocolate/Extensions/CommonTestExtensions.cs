@@ -2,7 +2,7 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace CookieCrumble;
+namespace CookieCrumble.HotChocolate;
 
 public static class CommonTestExtensions
 {

@@ -1,21 +1,23 @@
 using System.Buffers;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using CookieCrumble.Formatters;
+using HotChocolate.Transport.Http;
 using Microsoft.AspNetCore.WebUtilities;
 
-namespace CookieCrumble.Formatters;
+namespace CookieCrumble.HotChocolate.Formatters;
 
-internal sealed class GraphQLHttpResponseFormatter : SnapshotValueFormatter<HttpResponseMessage>
+internal sealed class GraphQLHttpResponseFormatter : SnapshotValueFormatter<GraphQLHttpResponse>
 {
-    protected override void Format(IBufferWriter<byte> snapshot, HttpResponseMessage value)
+    protected override void Format(IBufferWriter<byte> snapshot, GraphQLHttpResponse value)
     {
-        var contentType = value.Content.Headers.ContentType;
+        var contentType = value.ContentHeaders.ContentType;
 
         if (string.Equals(contentType?.MediaType, "multipart/mixed", StringComparison.Ordinal))
         {
             var boundary = contentType!.Parameters.First(
                 t => string.Equals(t.Name, "boundary", StringComparison.Ordinal));
-            FormatStreamAsync(snapshot, boundary, value.Content.ReadAsStream()).Wait();
+            FormatStreamAsync(snapshot, boundary, value.HttpResponseMessage.Content.ReadAsStream()).Wait();
         }
     }
 

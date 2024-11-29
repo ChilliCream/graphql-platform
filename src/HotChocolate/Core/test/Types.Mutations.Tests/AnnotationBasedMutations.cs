@@ -1,5 +1,4 @@
 using System.Reflection;
-using CookieCrumble;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
