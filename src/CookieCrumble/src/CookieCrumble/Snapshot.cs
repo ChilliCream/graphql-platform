@@ -7,7 +7,6 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using CookieCrumble.Formatters;
 using DiffPlex.DiffBuilder;
-using HotChocolate.Utilities;
 using Xunit;
 using static System.Collections.Immutable.ImmutableStack;
 using static System.IO.Path;
@@ -23,15 +22,9 @@ public class Snapshot
         CreateRange(new ISnapshotValueFormatter[]
         {
             new PlainTextSnapshotValueFormatter(),
-            new GraphQLSnapshotValueFormatter(),
-            new ExecutionResultSnapshotValueFormatter(),
-            new SchemaSnapshotValueFormatter(),
             new ExceptionSnapshotValueFormatter(),
-            new SchemaErrorSnapshotValueFormatter(),
             new HttpResponseSnapshotValueFormatter(),
-            new OperationResultSnapshotValueFormatter(),
-            new JsonElementSnapshotValueFormatter(),
-            new QueryPlanSnapshotValueFormatter(),
+            new JsonElementSnapshotValueFormatter()
         });
     private static readonly JsonSnapshotValueFormatter _defaultFormatter = new();
 
@@ -610,7 +603,7 @@ public class Snapshot
 
     private string CreateMarkdownSnapshotFileName()
     {
-        var extension =  _extension.EqualsOrdinal(".snap") ? ".md" : _extension;
+        var extension = _extension.Equals(".snap", StringComparison.Ordinal) ? ".md" : _extension;
 
         var fileName = GetFileNameWithoutExtension(_fileName);
 

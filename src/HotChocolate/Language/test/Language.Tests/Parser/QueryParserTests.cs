@@ -1,5 +1,4 @@
 using System.Text;
-using CookieCrumble;
 using Xunit;
 using static CookieCrumble.Formatters.SnapshotValueFormatters;
 

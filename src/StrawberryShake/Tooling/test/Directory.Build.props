@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Using Include="CookieCrumble" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble\CookieCrumble.csproj" />
   </ItemGroup>
 

@@ -1,10 +1,11 @@
 using System.Buffers;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using CookieCrumble.Formatters;
 using HotChocolate;
 using HotChocolate.Execution;
 
-namespace CookieCrumble.Formatters;
+namespace CookieCrumble.HotChocolate.Formatters;
 
 internal sealed class ExecutionResultSnapshotValueFormatter
     : SnapshotValueFormatter<IExecutionResult>

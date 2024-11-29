@@ -1,7 +1,8 @@
 using System.Buffers;
+using CookieCrumble.Formatters;
 using HotChocolate.Fusion.Execution.Nodes;
 
-namespace CookieCrumble.Formatters;
+namespace CookieCrumble.Fusion.Formatters;
 
 internal sealed class QueryPlanSnapshotValueFormatter() : SnapshotValueFormatter<QueryPlan>("json")
 {
