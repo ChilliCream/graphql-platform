@@ -15,8 +15,6 @@ internal sealed class NodeRequestDocumentFormatter(
     ISchema schema)
     : RequestDocumentFormatter(configuration)
 {
-    private readonly ISchema _schema = schema;
-
     internal RequestDocument CreateRequestDocument(
         QueryPlanContext context,
         SelectionExecutionStep executionStep,
@@ -113,7 +111,7 @@ internal sealed class NodeRequestDocumentFormatter(
     {
         var selectionNodes = new List<ISelectionNode>();
         var typeSelectionNodes = new List<ISelectionNode>();
-        var entityType = _schema.GetType<ObjectType>(entityTypeName);
+        var entityType = schema.GetType<ObjectType>(entityTypeName);
         var selectionSet = (SelectionSet)context.Operation.GetSelectionSet(parentSelection, entityType);
 
         CreateSelectionNodes(

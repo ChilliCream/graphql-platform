@@ -1,3 +1,4 @@
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
@@ -9,10 +10,15 @@ internal sealed class MockFieldMiddleware
 {
     private const int DefaultListSize = 3;
 
-    private int _idCounter;
-
     public ValueTask InvokeAsync(IMiddlewareContext context)
     {
+        var mockingContext = context.GetGlobalStateOrDefault<AutomaticMockingContext>(nameof(AutomaticMockingContext));
+        if (mockingContext is null)
+        {
+            mockingContext = new AutomaticMockingContext();
+            context.SetGlobalState(nameof(AutomaticMockingContext), mockingContext);
+        }
+
         var field = context.Selection.Field;
         var fieldName = field.Name;
         var fieldType = field.Type;
@@ -32,9 +38,9 @@ internal sealed class MockFieldMiddleware
                 {
                     context.ReportError(CreateError(context, nullIndex));
                 }
-                else if (namedFieldType.IsScalarType())
+                else if (namedFieldType.IsScalarType() || namedFieldType.IsEnumType())
                 {
-                    var currentListIndex = context.Parent<ObjectTypeInst>().Index;
+                    var currentListIndex = context.Parent<ObjectTypeInst>()?.Index;
                     if (currentListIndex.HasValue && currentListIndex == nullIndex)
                     {
                         throw new GraphQLException(CreateError(context));
@@ -52,9 +58,9 @@ internal sealed class MockFieldMiddleware
             {
                 nullIndex = nullDirective.AtIndex;
 
-                if (namedFieldType.IsScalarType())
+                if (namedFieldType.IsScalarType() || namedFieldType.IsEnumType())
                 {
-                    var currentListIndex = context.Parent<ObjectTypeInst>().Index;
+                    var currentListIndex = context.Parent<ObjectTypeInst>()?.Index;
                     if (currentListIndex.HasValue && currentListIndex == nullIndex)
                     {
                         context.Result = null;
@@ -69,13 +75,16 @@ internal sealed class MockFieldMiddleware
             }
         }
 
-        if (fieldName.EndsWith("ById"))
+        if (fieldName.EndsWith("ById") || fieldName is "node" or "nodes")
         {
             if (context.Selection.Arguments.ContainsName("id"))
             {
                 var id = context.ArgumentValue<object>("id");
-                if (namedFieldType.IsObjectType())
+                if (namedFieldType.IsCompositeType())
                 {
+                    var possibleTypes = context.Schema.GetPossibleTypes(namedFieldType);
+
+                    context.ValueType = possibleTypes.First();
                     context.Result = CreateObject(id);
                     return ValueTask.CompletedTask;
                 }
@@ -91,10 +100,16 @@ internal sealed class MockFieldMiddleware
                     nullableType = fieldType.InnerType();
                 }
 
-                if (nullableType.IsListType() && namedFieldType.IsObjectType())
+                if (nullableType.IsListType())
                 {
-                    context.Result = CreateListOfObjects(ids, nullIndex);
-                    return ValueTask.CompletedTask;
+                    if (namedFieldType.IsCompositeType())
+                    {
+                        var possibleTypes = context.Schema.GetPossibleTypes(namedFieldType);
+
+                        context.ValueType = possibleTypes.First();
+                        context.Result = CreateListOfObjects(ids, nullIndex);
+                        return ValueTask.CompletedTask;
+                    }
                 }
             }
         }
@@ -109,34 +124,53 @@ internal sealed class MockFieldMiddleware
             }
         }
 
-        if (fieldType.IsObjectType())
+        var hasIdFieldSelection = context.Select().IsSelected("id");
+
+        if (fieldType.IsCompositeType())
         {
-            context.Result = CreateObject();
+            int? id = hasIdFieldSelection ? ++mockingContext.IdCounter : null;
+            var possibleTypes = context.Schema.GetPossibleTypes(namedFieldType);
+
+            context.ValueType = possibleTypes.First();
+            context.Result = CreateObject(id);
         }
         else if (fieldType.IsListType())
         {
-            if (namedFieldType.IsObjectType())
+            if (namedFieldType.IsCompositeType())
             {
-                context.Result = CreateListOfObjects(null, nullIndex);
+                var ids = Enumerable.Range(0, DefaultListSize)
+                    .Select(_ => (object?)(hasIdFieldSelection ? ++mockingContext.IdCounter : null)).ToArray();
+                var possibleTypes = context.Schema.GetPossibleTypes(namedFieldType);
+
+                context.ValueType = possibleTypes.First();
+                context.Result = CreateListOfObjects(ids, nullIndex);
+            }
+            else if (namedFieldType is EnumType enumType)
+            {
+                context.Result = CreateListOfEnums(enumType, nullIndex);
             }
             else
             {
-                context.Result = CreateListOfScalars(namedFieldType, nullIndex);
+                context.Result = CreateListOfScalars(namedFieldType, nullIndex, mockingContext);
             }
+        }
+        else if (namedFieldType is EnumType enumType)
+        {
+            context.Result = CreateEnumValue(enumType);
         }
         else
         {
-            context.Result = CreateScalarValue(namedFieldType);
+            context.Result = CreateScalarValue(namedFieldType, mockingContext);
         }
 
         return ValueTask.CompletedTask;
     }
 
-    private object? CreateScalarValue(INamedType scalarType)
+    private object? CreateScalarValue(INamedType scalarType, AutomaticMockingContext mockingContext)
     {
         return scalarType switch
         {
-            IdType => ++_idCounter,
+            IdType => ++mockingContext.IdCounter,
             StringType => "string",
             IntType => 123,
             FloatType => 123.456,
@@ -145,31 +179,34 @@ internal sealed class MockFieldMiddleware
         };
     }
 
-    private object CreateObject(object? id = null, int? index = null)
+    private object? CreateEnumValue(EnumType enumType)
     {
-        var finalId = id ?? ++_idCounter;
-
-        return new ObjectTypeInst(finalId, index);
+        return enumType.Values.FirstOrDefault()?.Value;
     }
 
-    private object?[] CreateListOfScalars(INamedType scalarType, int? nullIndex)
+    private object CreateObject(object? id, int? index = null)
+    {
+        return new ObjectTypeInst(id, index);
+    }
+
+    private object?[] CreateListOfScalars(INamedType scalarType, int? nullIndex, AutomaticMockingContext mockingContext)
     {
         return Enumerable.Range(0, DefaultListSize)
-            .Select(index => nullIndex == index ? null : CreateScalarValue(scalarType))
+            .Select(index => nullIndex == index ? null : CreateScalarValue(scalarType, mockingContext))
             .ToArray();
     }
 
-    private object?[] CreateListOfObjects(object[]? ids, int? nullIndex)
+    private object?[] CreateListOfEnums(EnumType enumType, int? nullIndex)
     {
-        if (ids is not null)
-        {
-            return ids
-                .Select((itemId, index) => nullIndex == index ? null : CreateObject(itemId, index))
-                .ToArray();
-        }
-
         return Enumerable.Range(0, DefaultListSize)
-            .Select(index => CreateObject(null, index))
+            .Select(index => nullIndex == index ? null : CreateEnumValue(enumType))
+            .ToArray();
+    }
+
+    private object?[] CreateListOfObjects(object?[] ids, int? nullIndex)
+    {
+        return ids
+            .Select((itemId, index) => nullIndex == index ? null : CreateObject(itemId, index))
             .ToArray();
     }
 
@@ -190,4 +227,9 @@ internal sealed class MockFieldMiddleware
     }
 
     private record ObjectTypeInst(object? Id = null, int? Index = null);
+
+    private class AutomaticMockingContext
+    {
+        public int IdCounter { get; set; }
+    }
 }
