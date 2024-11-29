@@ -1,6 +1,6 @@
 namespace HotChocolate.Fusion.Types;
 
-public sealed class SourceObjectField(
+public sealed class SourceOutputField(
     string name,
     string schemaName,
     FieldRequirements? requirements,

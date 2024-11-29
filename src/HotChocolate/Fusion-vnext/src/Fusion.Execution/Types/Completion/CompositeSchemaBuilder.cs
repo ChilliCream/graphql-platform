@@ -219,12 +219,12 @@ public static class CompositeSchemaBuilder
     {
         var fieldDirectives = FieldDirectiveParser.Parse(fieldDef.Directives);
         var requireDirectives = RequiredDirectiveParser.Parse(fieldDef.Directives);
-        var temp = ImmutableArray.CreateBuilder<SourceObjectField>();
+        var temp = ImmutableArray.CreateBuilder<SourceOutputField>();
 
         foreach (var fieldDirective in fieldDirectives)
         {
             temp.Add(
-                new SourceObjectField(
+                new SourceOutputField(
                     fieldDirective.SourceName ?? field.Name,
                     fieldDirective.SchemaName,
                     ParseRequirements(requireDirectives, fieldDirective.SchemaName),
