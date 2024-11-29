@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Text;
 using CookieCrumble.Formatters;
+using CookieCrumble.Xunit;
 
 namespace CookieCrumble.XunitTests;
 
@@ -8,7 +9,7 @@ public class SnapshotTests
 {
     public SnapshotTests()
     {
-        CookieCrumble.Snapshot.RegisterTestFramework(new CookieCrumble.Xunit.XunitFramework());
+        Snapshot.RegisterTestFramework(new XunitFramework());
     }
 
     [Fact]

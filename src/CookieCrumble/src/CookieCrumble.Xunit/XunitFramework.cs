@@ -1,5 +1,4 @@
-﻿using CookieCrumble;
-using System.Reflection;
+﻿using System.Reflection;
 using Xunit;
 using Xunit.Sdk;
 

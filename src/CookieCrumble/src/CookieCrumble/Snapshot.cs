@@ -38,7 +38,7 @@ public class Snapshot
     {
         if (_testFramework is null)
         {
-            throw new Exception("Please initialise a test framework before using Snapshot");
+            throw new Exception("Please initialize a test framework before using Snapshot");
         }
 
         var frames = new StackTrace(true).GetFrames();

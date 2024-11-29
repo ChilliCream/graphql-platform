@@ -22,7 +22,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\CookieCrumble.Xunit\CookieCrumble.Xunit.csproj" />
-    <ProjectReference Include="..\..\src\CookieCrumble\CookieCrumble.csproj" />
   </ItemGroup>
 
 </Project>
