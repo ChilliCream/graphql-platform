@@ -1,6 +1,6 @@
 using System.Runtime.CompilerServices;
 
-namespace HotChocolate.AspNetCore.Authorization;
+namespace GreenDonut;
 
 internal static class ModuleInitializer
 {
@@ -8,6 +8,5 @@ internal static class ModuleInitializer
     public static void Initialize()
     {
         CookieCrumbleXunit.Initialize();
-        CookieCrumbleHotChocolate.Initialize();
     }
 }
