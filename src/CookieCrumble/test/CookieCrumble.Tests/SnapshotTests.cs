@@ -3,11 +3,11 @@ using System.Text;
 using CookieCrumble.Formatters;
 using CookieCrumble.Xunit;
 
-namespace CookieCrumble.XunitTests;
+namespace CookieCrumble;
 
 public class SnapshotTests
 {
-    public SnapshotTests()
+    static SnapshotTests()
     {
         Snapshot.RegisterTestFramework(new XunitFramework());
     }
