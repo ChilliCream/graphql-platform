@@ -43,8 +43,9 @@ internal sealed class DefaultAuthorizationHandler : IAuthorizationHandler
             throw new ArgumentNullException(nameof(authorizationPolicyProvider));
         _authorizationPolicyCache = authorizationPolicyCache ??
             throw new ArgumentNullException(nameof(authorizationPolicyCache));
-
+#if NET7_0_OR_GREATER
         _canCachePolicies = _authorizationPolicyProvider.AllowsCachingPolicies;
+#endif
     }
 
     /// <summary>
