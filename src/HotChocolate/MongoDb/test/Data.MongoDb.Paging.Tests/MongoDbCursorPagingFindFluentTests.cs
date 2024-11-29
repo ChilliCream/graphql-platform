@@ -1,10 +1,10 @@
-using CookieCrumble;
 using HotChocolate.Data.MongoDb.Filters;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using Squadron;
 
@@ -127,9 +127,9 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
             }");
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), result)
+        await Snapshot
+            .Create()
+            .AddResult(result)
             .MatchAsync();
     }
 
@@ -162,9 +162,9 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
             }");
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), result)
+        await Snapshot
+            .Create()
+            .AddResult(result)
             .MatchAsync();
     }
 
@@ -234,6 +234,9 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
         var result = await executor.ExecuteAsync(
             @"{
                 foos(first:1) {
+                    nodes {
+                        bar
+                    }
                     totalCount
                 }
             }");
@@ -248,6 +251,7 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
     public class Foo
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public string Bar { get; set; } = default!;

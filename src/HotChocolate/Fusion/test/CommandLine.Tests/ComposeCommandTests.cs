@@ -1,6 +1,5 @@
 using System.CommandLine.Parsing;
 using System.Text;
-using CookieCrumble;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.CommandLine;
 using HotChocolate.Fusion.CommandLine.Helpers;

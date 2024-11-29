@@ -6,6 +6,8 @@ public sealed class OperationRegistrationInfo(OperationType type, string typeNam
 
     public string TypeName { get; } = typeName;
 
+    public override string OrderByKey => TypeName;
+
     public override bool Equals(object? obj)
         => obj is OperationRegistrationInfo other && Equals(other);
 

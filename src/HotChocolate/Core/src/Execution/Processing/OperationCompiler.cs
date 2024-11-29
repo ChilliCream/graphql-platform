@@ -80,7 +80,7 @@ public sealed partial class OperationCompiler
             var variants = GetOrCreateSelectionVariants(id);
             SelectionSetInfo[] infos = [new(request.Definition.SelectionSet, 0)];
 
-            var context = new CompilerContext(request.Schema, request.Document, request.EnableNullBubbling);
+            var context = new CompilerContext(request.Schema, request.Document);
             context.Initialize(request.RootType, variants, infos, rootPath, selectionSetOptimizers);
             CompileSelectionSet(context);
 
@@ -419,9 +419,7 @@ public sealed partial class OperationCompiler
 
         if (context.Type.Fields.TryGetField(fieldName, out var field))
         {
-            var fieldType = context.EnableNullBubbling
-                ? field.Type
-                : field.Type.RewriteToNullableType();
+            var fieldType = field.Type;
 
             if (context.Fields.TryGetValue(responseName, out var preparedSelection))
             {
@@ -739,7 +737,7 @@ public sealed partial class OperationCompiler
     {
         if (_deferContext is null)
         {
-            return new CompilerContext(context.Schema, context.Document, context.EnableNullBubbling);
+            return new CompilerContext(context.Schema, context.Document);
         }
 
         var temp = _deferContext;

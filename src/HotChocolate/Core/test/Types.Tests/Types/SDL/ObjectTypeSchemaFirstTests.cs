@@ -1,5 +1,3 @@
-using CookieCrumble;
-
 namespace HotChocolate.Types.SDL;
 
 public class ObjectTypeSchemaFirstTests

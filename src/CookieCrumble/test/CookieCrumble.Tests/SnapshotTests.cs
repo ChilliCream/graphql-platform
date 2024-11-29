@@ -1,7 +1,6 @@
 using System.Buffers;
 using System.Text;
 using CookieCrumble.Formatters;
-using HotChocolate.Language;
 
 namespace CookieCrumble;
 
@@ -101,15 +100,6 @@ public class SnapshotTests
 
         var snapshot = new Snapshot();
         snapshot.Add(new MyClass { Foo = "123", });
-        snapshot.Match();
-    }
-
-    [Fact]
-    public void SnapshotBuilder_GraphQL_Segment()
-    {
-        var snapshot = new Snapshot();
-        snapshot.Add(new MyClass { Foo = "def", });
-        snapshot.Add(Utf8GraphQLParser.Parse("{ abc }"));
         snapshot.Match();
     }
 

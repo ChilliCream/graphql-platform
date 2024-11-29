@@ -95,7 +95,6 @@ public static class SchemaHelper
                     o.EnableTag = false;
                     o.EnableOneOf = false;
                     o.EnableFlagEnums = false;
-                    o.EnableTrueNullability = false;
                 })
             .SetSchema(d => d.Extend().OnBeforeCreate(
                 c => c.ContextData.Add(_typeInfosKey, typeInfos)))

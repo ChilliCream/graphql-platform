@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using System.Text;
-using CookieCrumble;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -659,6 +658,32 @@ public class GraphQLRequestParserTests
                 // act
                 requestParser.Parse();
             });
+    }
+
+    [Fact]
+    public void Parse_Empty_OperationName()
+    {
+        // arrange
+        var source = Encoding.UTF8.GetBytes(
+            """
+            {
+                "operationName": "",
+                "query": "{}"
+            }
+            """.NormalizeLineBreaks());
+        var parserOptions = new ParserOptions();
+        var requestParser = new Utf8GraphQLRequestParser(
+            source,
+            parserOptions,
+            new DocumentCache(),
+            new Sha256DocumentHashProvider());
+
+        // act
+        var batch = requestParser.Parse();
+
+        // assert
+        var request = Assert.Single(batch);
+        Assert.Null(request.OperationName);
     }
 
     [Fact]

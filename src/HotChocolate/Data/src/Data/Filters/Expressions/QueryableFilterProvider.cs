@@ -184,6 +184,18 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
         => (context, input) =>
         {
             var inMemory = IsInMemoryQuery<TEntityType>(input);
+
+            // if no filter is defined we can stop here and yield back control.
+            var skipFiltering = context.GetLocalStateOrDefault<bool>(SkipFilteringKey);
+
+            // ensure filtering is only applied once
+            context.SetLocalState(SkipFilteringKey, true);
+
+            if (skipFiltering)
+            {
+                return input;
+            }
+
             var predicate = AsPredicate<TEntityType>(context, argumentName, inMemory);
 
             if (predicate is not null)
@@ -205,13 +217,7 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
         var filter = context.GetLocalStateOrDefault<IValueNode>(ContextValueNodeKey) ??
             context.ArgumentLiteral<IValueNode>(argumentName);
 
-        // if no filter is defined we can stop here and yield back control.
-        var skipFiltering = context.GetLocalStateOrDefault<bool>(SkipFilteringKey);
-
-        // ensure filtering is only applied once
-        context.SetLocalState(SkipFilteringKey, true);
-
-        if (filter.IsNull() || skipFiltering)
+        if (filter.IsNull())
         {
             return null;
         }

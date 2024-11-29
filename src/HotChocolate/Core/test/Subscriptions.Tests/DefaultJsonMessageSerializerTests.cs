@@ -1,5 +1,3 @@
-using CookieCrumble;
-
 namespace HotChocolate.Subscriptions;
 
 public class DefaultJsonMessageSerializerTests

@@ -13,7 +13,7 @@ a Result:
 
 a Query:
 ---------------
-find({ "ObjectId" : { "$not" : { "$gte" : ObjectId("6124e80f3f5fc839830c1f69") } } })
+find({ "ObjectId" : { "$not" : { "$gte" : { "$oid" : "6124e80f3f5fc839830c1f69" } } } })
 ---------------
 
 6124e80f3f5fc839830c1f6a Result:
@@ -34,7 +34,7 @@ find({ "ObjectId" : { "$not" : { "$gte" : ObjectId("6124e80f3f5fc839830c1f69") }
 
 6124e80f3f5fc839830c1f6a Query:
 ---------------
-find({ "ObjectId" : { "$not" : { "$gte" : ObjectId("6124e80f3f5fc839830c1f6a") } } })
+find({ "ObjectId" : { "$not" : { "$gte" : { "$oid" : "6124e80f3f5fc839830c1f6a" } } } })
 ---------------
 
 6124e80f3f5fc839830c1f6b Result:
@@ -58,7 +58,7 @@ find({ "ObjectId" : { "$not" : { "$gte" : ObjectId("6124e80f3f5fc839830c1f6a") }
 
 6124e80f3f5fc839830c1f6b Query:
 ---------------
-find({ "ObjectId" : { "$not" : { "$gte" : ObjectId("6124e80f3f5fc839830c1f6b") } } })
+find({ "ObjectId" : { "$not" : { "$gte" : { "$oid" : "6124e80f3f5fc839830c1f6b" } } } })
 ---------------
 
 null

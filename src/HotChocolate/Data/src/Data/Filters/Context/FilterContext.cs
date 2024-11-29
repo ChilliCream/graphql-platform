@@ -67,7 +67,7 @@ public class FilterContext : IFilterContext
         return null;
     }
 
-    private object? Serialize(IFilterValueNode? value)
+    private static object? Serialize(IFilterValueNode? value)
     {
         switch (value)
         {

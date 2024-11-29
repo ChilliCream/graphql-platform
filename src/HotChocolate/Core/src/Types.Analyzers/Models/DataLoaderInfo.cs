@@ -78,6 +78,8 @@ public sealed class DataLoaderInfo : SyntaxInfo
 
     public ImmutableArray<DataLoaderParameterInfo> Parameters { get; }
 
+    public override string OrderByKey => FullName;
+
     public ImmutableArray<CacheLookup> GetLookups(ITypeSymbol keyType, ITypeSymbol valueType)
     {
         if (_lookups.Length > 0)

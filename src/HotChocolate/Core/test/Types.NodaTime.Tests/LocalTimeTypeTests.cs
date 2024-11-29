@@ -1,5 +1,7 @@
+using System.Globalization;
 using HotChocolate.Execution;
 using NodaTime;
+using NodaTime.Text;
 
 namespace HotChocolate.Types.NodaTime.Tests;
 
@@ -125,5 +127,36 @@ public class LocalTimeTypeIntegrationTests
     {
         static object Call() => new LocalTimeType([]);
         Assert.Throws<SchemaException>(Call);
+    }
+
+    [Fact]
+    public void LocalTimeType_DescriptionKnownPatterns_MatchesSnapshot()
+    {
+        var localTimeType = new LocalTimeType(
+            LocalTimePattern.GeneralIso,
+            LocalTimePattern.ExtendedIso);
+
+        localTimeType.Description.MatchInlineSnapshot(
+            """
+            LocalTime represents a time of day, with no reference to a particular calendar, time zone, or date.
+
+            Allowed patterns:
+            - `hh:mm:ss`
+            - `hh:mm:ss.sssssssss`
+
+            Examples:
+            - `20:00:00`
+            - `20:00:00.999`
+            """);
+    }
+
+    [Fact]
+    public void LocalTimeType_DescriptionUnknownPatterns_MatchesSnapshot()
+    {
+        var localTimeType = new LocalTimeType(
+            LocalTimePattern.Create("mm", CultureInfo.InvariantCulture));
+
+        localTimeType.Description.MatchInlineSnapshot(
+            "LocalTime represents a time of day, with no reference to a particular calendar, time zone, or date.");
     }
 }
