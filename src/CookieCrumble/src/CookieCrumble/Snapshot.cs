@@ -30,9 +30,9 @@ public class Snapshot
     private static ITestFramework _testFramework = null!;
     private readonly List<ISnapshotSegment> _segments = [];
     private readonly string _title;
+    private readonly string _fileName;
     private string _extension;
     private string? _postFix;
-    private string? _fileName;
 
     public Snapshot(string? postFix = null, string? extension = null)
     {
@@ -43,7 +43,7 @@ public class Snapshot
 
         var frames = new StackTrace(true).GetFrames();
         _title = CreateMarkdownTitle(frames);
-        _fileName = GetFilename(frames);
+        _fileName = CreateFileName(frames);
         _postFix = postFix;
         _extension = extension ?? ".snap";
     }
@@ -630,7 +630,7 @@ public class Snapshot
             : string.Concat(fileName, "_", _postFix, extension);
     }
 
-    private static string GetFilename(StackFrame[] frames)
+    private static string CreateFileName(StackFrame[] frames)
     {
         foreach (var stackFrame in frames)
         {
