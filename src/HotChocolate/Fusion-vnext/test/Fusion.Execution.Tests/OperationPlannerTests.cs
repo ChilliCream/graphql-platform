@@ -242,4 +242,54 @@ public class OperationPlannerTests
                 }
                 """);
     }
+
+    [Test]
+    public async Task Plan_With_Conditional_InlineFragment()
+    {
+        var compositeSchemaDoc = Utf8GraphQLParser.Parse(FileResource.Open("fusion1.graphql"));
+        var compositeSchema = CompositeSchemaBuilder.Create(compositeSchemaDoc);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+                productById(id: 1) {
+                    ... Product
+                }
+            }
+
+            fragment Product on Product {
+                id
+                name
+                ... @include(if: true) {
+                    estimatedDelivery(postCode: "12345")
+                }
+            }
+            """);
+
+        var rewriter = new InlineFragmentOperationRewriter(compositeSchema);
+        var rewritten = rewriter.RewriteDocument(doc, null);
+
+        // act
+        var planner = new OperationPlanner(compositeSchema);
+        var plan = planner.CreatePlan(rewritten, null);
+
+        // assert
+        await Assert
+            .That(plan.ToSyntaxNode().ToString(indented: true))
+            .IsEqualTo(
+                """
+                {
+                  productById(id: 1) {
+                    id
+                    name
+                  }
+                }
+
+                {
+                  productById {
+                    estimatedDelivery(postCode: "12345")
+                  }
+                }
+                """);
+    }
 }

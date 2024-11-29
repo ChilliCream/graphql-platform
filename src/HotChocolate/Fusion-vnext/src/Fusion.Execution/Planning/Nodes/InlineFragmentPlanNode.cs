@@ -7,6 +7,13 @@ public sealed class InlineFragmentPlanNode : SelectionPlanNode
 {
     public InlineFragmentPlanNode(
         ICompositeNamedType declaringType,
+        InlineFragmentNode inlineFragment)
+        : this(declaringType, inlineFragment.SelectionSet.Selections)
+    {
+    }
+
+    public InlineFragmentPlanNode(
+        ICompositeNamedType declaringType,
         IReadOnlyList<ISelectionNode> selectionNodes)
         : base(declaringType, selectionNodes)
     {
