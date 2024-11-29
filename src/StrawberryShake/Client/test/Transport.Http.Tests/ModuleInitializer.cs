@@ -1,6 +1,6 @@
 using System.Runtime.CompilerServices;
 
-namespace HotChocolate.Fusion;
+namespace StrawberryShake.Transport.Http;
 
 internal static class ModuleInitializer
 {
@@ -8,7 +8,5 @@ internal static class ModuleInitializer
     public static void Initialize()
     {
         CookieCrumbleXunit.Initialize();
-        CookieCrumbleFusion.Initialize();
-        CookieCrumbleHotChocolate.Initialize();
     }
 }
