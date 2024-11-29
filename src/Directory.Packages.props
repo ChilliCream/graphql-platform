@@ -35,8 +35,6 @@
     <PackageVersion Include="Microsoft.OpenApi.Readers" Version="1.6.14" />
     <PackageVersion Include="MongoDB.Driver" Version="3.0.0" />
     <PackageVersion Include="Moq" Version="4.20.70" />
-    <PackageVersion Include="MSTest.TestAdapter" Version="3.0.4" />
-    <PackageVersion Include="MSTest.TestFramework" Version="3.0.4" />
     <PackageVersion Include="NetTopologySuite" Version="2.0.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageVersion Include="NodaTime" Version="3.0.0" />
