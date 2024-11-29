@@ -199,7 +199,7 @@ public class DefinitionBase : IDefinition
             }
         }
 
-        if (Description is not null)
+        if (target.Description is null && Description is not null)
         {
             target.Description = Description;
         }

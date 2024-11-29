@@ -1,0 +1,31 @@
+{
+  "errors": [
+    {
+      "message": "Cannot return null for semantic non-null field.",
+      "locations": [
+        {
+          "line": 2,
+          "column": 3
+        }
+      ],
+      "path": [
+        "objectListItemReturningNull",
+        1
+      ],
+      "extensions": {
+        "code": "HC0088"
+      }
+    }
+  ],
+  "data": {
+    "objectListItemReturningNull": [
+      {
+        "property": "a"
+      },
+      null,
+      {
+        "property": "c"
+      }
+    ]
+  }
+}

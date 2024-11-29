@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.CostAnalysis.Types;
 using HotChocolate.Types;
 

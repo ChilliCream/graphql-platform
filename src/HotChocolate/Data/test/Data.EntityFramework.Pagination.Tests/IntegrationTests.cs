@@ -1,6 +1,5 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using CookieCrumble;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Data.TestContext;
 using HotChocolate.Execution;

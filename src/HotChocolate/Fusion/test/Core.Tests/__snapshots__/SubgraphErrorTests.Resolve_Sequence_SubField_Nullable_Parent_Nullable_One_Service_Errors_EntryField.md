@@ -23,7 +23,7 @@
     "product": {
       "id": "1",
       "brand": {
-        "id": "1",
+        "id": "2",
         "name": null
       }
     }

@@ -164,8 +164,7 @@ public class TypeConverterTests
                 .AddQueryType<QuerySet>()
                 .ExecuteRequestAsync("{ set(set: [\"abc\", \"abc\"]) }");
 
-        CookieCrumble.SnapshotExtensions.MatchInlineSnapshot(
-            result,
+        result.MatchInlineSnapshot(
             """
             {
               "data": {
@@ -186,8 +185,7 @@ public class TypeConverterTests
                 .AddQueryType<QuerySet>()
                 .ExecuteRequestAsync("{ set2(set: [\"abc\", \"abc\"]) }");
 
-        CookieCrumble.SnapshotExtensions.MatchInlineSnapshot(
-            result,
+        result.MatchInlineSnapshot(
             """
             {
               "data": {

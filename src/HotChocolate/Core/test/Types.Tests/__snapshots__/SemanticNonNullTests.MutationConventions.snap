@@ -1,0 +1,24 @@
+schema {
+  mutation: Mutation
+}
+
+interface Error {
+  message: String @semanticNonNull
+}
+
+type DoSomethingPayload {
+  boolean: Boolean
+  errors: [DoSomethingError] @semanticNonNull(levels: [ 1 ])
+}
+
+type Mutation {
+  doSomething: DoSomethingPayload!
+}
+
+type MyError implements Error {
+  message: String @semanticNonNull
+}
+
+union DoSomethingError = MyError
+
+directive @semanticNonNull(levels: [Int!] = [ 0 ]) on FIELD_DEFINITION

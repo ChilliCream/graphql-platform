@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - main
+      - main-version-*
 
 concurrency:
   group: ci-new-2-${{ github.event.pull_request.number }}
@@ -149,9 +150,7 @@ jobs:
       - name: Install .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: |
-            8.x
-            9.x
+          dotnet-version: 9.x
 
       - name: Generate Test Matrix
         run: dotnet run --project ./.build -- GenerateMatrix

@@ -17,12 +17,14 @@ public record TestSubgraph(
 {
     public static Task<TestSubgraph> CreateAsync(
         [StringSyntax("graphql")] string schemaText,
+        [StringSyntax("graphql")] string extensions = "",
         bool isOffline = false)
         => CreateAsync(
             configure: builder => builder
                 .AddDocumentFromString(schemaText)
                 .AddResolverMocking()
                 .AddTestDirectives(),
+            extensions: extensions,
             isOffline: isOffline);
 
     public static async Task<TestSubgraph> CreateAsync(

@@ -1,6 +1,5 @@
 using System.Text;
 using System.Text.Json;
-using CookieCrumble;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.StarWars;

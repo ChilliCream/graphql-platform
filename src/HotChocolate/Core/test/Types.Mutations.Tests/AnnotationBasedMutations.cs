@@ -1,5 +1,4 @@
 using System.Reflection;
-using CookieCrumble;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
@@ -82,7 +81,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -134,7 +133,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -189,7 +188,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -212,7 +211,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -248,7 +247,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -283,7 +282,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -339,7 +338,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -512,7 +511,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -543,7 +542,7 @@ public class AnnotationBasedMutations
                         .SetVariableValues(new Dictionary<string, object?> { { "id", id } })
                         .Build());
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -567,7 +566,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -592,7 +591,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -615,7 +614,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -653,7 +652,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -678,7 +677,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -702,7 +701,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -770,7 +769,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -794,7 +793,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -832,7 +831,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -856,7 +855,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -894,7 +893,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -917,7 +916,7 @@ public class AnnotationBasedMutations
                         }
                     }
                     """);
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -955,7 +954,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -979,7 +978,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -1017,7 +1016,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -1041,7 +1040,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -1093,7 +1092,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -1117,7 +1116,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -1170,7 +1169,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]

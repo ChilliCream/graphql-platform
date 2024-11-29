@@ -11,14 +11,6 @@ namespace HotChocolate.Fusion.Shared;
 
 public class TestSubgraphCollection(ITestOutputHelper outputHelper, TestSubgraph[] subgraphs) : IDisposable
 {
-    public IHttpClientFactory GetHttpClientFactory()
-    {
-        var subgraphsDictionary = GetSubgraphs()
-            .ToDictionary(s => s.SubgraphName, s => s.Subgraph);
-
-        return new TestSubgraphCollectionHttpClientFactory(subgraphsDictionary);
-    }
-
     public async Task<IRequestExecutor> GetExecutorAsync(
         FusionFeatureCollection? features = null,
         Action<FusionGatewayBuilder>? configure = null)
@@ -72,6 +64,14 @@ public class TestSubgraphCollection(ITestOutputHelper outputHelper, TestSubgraph
         configure?.Invoke(builder);
 
         return await builder.BuildRequestExecutorAsync();
+    }
+
+    private IHttpClientFactory GetHttpClientFactory()
+    {
+        var subgraphsDictionary = GetSubgraphs()
+            .ToDictionary(s => s.SubgraphName, s => s.Subgraph);
+
+        return new TestSubgraphCollectionHttpClientFactory(subgraphsDictionary);
     }
 
     private IEnumerable<(string SubgraphName, TestSubgraph Subgraph)> GetSubgraphs()

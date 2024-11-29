@@ -1,7 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Configuration;
 using HotChocolate.Types;
-using CookieCrumble;
 
 namespace HotChocolate.Execution;
 

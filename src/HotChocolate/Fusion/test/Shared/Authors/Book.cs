@@ -1,4 +1,3 @@
-
 namespace HotChocolate.Fusion.Shared.Authors;
 
 public class Book

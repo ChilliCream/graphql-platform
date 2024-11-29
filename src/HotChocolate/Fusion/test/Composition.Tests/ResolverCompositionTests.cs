@@ -1,4 +1,3 @@
-using CookieCrumble;
 using Xunit.Abstractions;
 
 namespace HotChocolate.Fusion.Composition;

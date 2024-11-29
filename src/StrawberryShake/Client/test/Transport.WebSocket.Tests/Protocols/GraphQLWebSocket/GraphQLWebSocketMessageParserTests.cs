@@ -1,7 +1,6 @@
 using System.Buffers;
 using System.Runtime.Serialization;
 using System.Text;
-using CookieCrumble;
 
 namespace StrawberryShake.Transport.WebSockets.Protocols;
 

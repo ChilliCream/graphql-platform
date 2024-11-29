@@ -1,5 +1,4 @@
 using System.Reflection;
-using CookieCrumble;
 using HotChocolate.Tests;
 using HotChocolate.Types.Descriptors;
 using OperationRequestBuilder = HotChocolate.Execution.OperationRequestBuilder;

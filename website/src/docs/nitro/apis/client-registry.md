@@ -126,7 +126,7 @@ public void ConfigureServices(IServiceCollection services)
 ## Block Ad-Hoc Queries
 
 While you want to allow ad-hoc queries during development, you might want to disable them in production.
-This can be done by setting the `OnlyAllowPersistedOperations` option to `true` in the `ModifyRequestOptions` method.
+This can be done by setting the `PersistedOperations.OnlyAllowPersistedDocuments` option to `true` in the `ModifyRequestOptions` method.
 
 ```csharp
 public void ConfigureServices(IServiceCollection services)
@@ -135,7 +135,7 @@ public void ConfigureServices(IServiceCollection services)
         .AddGraphQLServer()
         .AddQueryType<Query>()
         .AddNitro() // Connect to the client registry
-        .ModifyRequestOptions(x => x.OnlyAllowPersistedOperations = true)
+        .ModifyRequestOptions(x => x.PersistedOperations.OnlyAllowPersistedDocuments = true)
         .UsePersistedOperationPipeline(); // Enable the persisted operation pipeline
 }
 ```
@@ -151,8 +151,8 @@ public void ConfigureServices(IServiceCollection services)
         .AddNitro() // Connect to the client registry
         .ModifyRequestOptions(x =>
         {
-            x.OnlyAllowPersistedOperations = true;
-            x.OnlyPersistedOperationsAreAllowedError = ErrorBuilder.New()
+            x.PersistedOperations.OnlyAllowPersistedDocuments = true;
+            x.PersistedOperations.OperationNotAllowedError = ErrorBuilder.New()
                 .SetMessage("Only persisted operations are allowed.")
                 .Build();
         })

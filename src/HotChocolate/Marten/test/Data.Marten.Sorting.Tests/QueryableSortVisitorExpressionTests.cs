@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -54,7 +53,7 @@ public class QueryableSortVisitorExpressionTests
     public async Task Create_CollectionLengthExpression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooSortInputType>(_fooEntities);
+        var tester = await _cache.CreateSchemaAsync<Foo, FooSortInputType>(_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -68,16 +67,11 @@ public class QueryableSortVisitorExpressionTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(),
-                    res1,
-                    "ASC"),
-                res2,
-                "DESC")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "ASC")
+            .AddResult(res2, "DESC")
             .MatchAsync();
-        ;
     }
 
     public class Foo

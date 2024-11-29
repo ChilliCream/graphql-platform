@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Linq.Expressions;
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -1960,7 +1959,7 @@ public class ObjectTypeTests : TypeTestBase
                 .BuildSchemaAsync();
 
         // assert
-        SnapshotExtensions.MatchSnapshot(schema);
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -1975,7 +1974,7 @@ public class ObjectTypeTests : TypeTestBase
                 .BuildSchemaAsync();
 
         // assert
-        SnapshotExtensions.MatchSnapshot(schema);
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -2012,7 +2011,7 @@ public class ObjectTypeTests : TypeTestBase
                 .BuildSchemaAsync();
 
         // assert
-        SnapshotExtensions.MatchSnapshot(schema);
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -2033,7 +2032,7 @@ public class ObjectTypeTests : TypeTestBase
                 .ExecuteRequestAsync("{ hello staticHello }");
 
         // assert
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -2050,7 +2049,7 @@ public class ObjectTypeTests : TypeTestBase
                 .BuildSchemaAsync();
 
         // assert
-        SnapshotExtensions.MatchSnapshot(schema);
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -2067,14 +2066,14 @@ public class ObjectTypeTests : TypeTestBase
             .Execute("{ value }")
             .ToJson();
 
-        SnapshotExtensions.MatchInlineSnapshot(result,
-        """
-        {
-            "data": {
-                "value": 1024
+        result.MatchInlineSnapshot(
+            """
+            {
+                "data": {
+                    "value": 1024
+                }
             }
-        }
-        """);
+            """);
     }
 
     [Fact]
@@ -2110,7 +2109,7 @@ public class ObjectTypeTests : TypeTestBase
                 .AddQueryType<QueryWithGenerics>()
                 .BuildSchemaAsync();
 
-        SnapshotExtensions.MatchSnapshot(schema);
+        schema.MatchSnapshot();
     }
 
     public abstract class ResolverBase

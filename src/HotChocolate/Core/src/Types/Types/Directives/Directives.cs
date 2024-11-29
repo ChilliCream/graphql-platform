@@ -15,6 +15,7 @@ public static class Directives
         WellKnownDirectives.Stream,
         WellKnownDirectives.Defer,
         WellKnownDirectives.OneOf,
+        WellKnownDirectives.SemanticNonNull
     ];
 
     internal static IReadOnlyList<TypeReference> CreateReferences(
@@ -36,6 +37,11 @@ public static class Directives
         if (descriptorContext.Options.EnableStream)
         {
             directiveTypes.Add(typeInspector.GetTypeRef(typeof(StreamDirectiveType)));
+        }
+
+        if (descriptorContext.Options.EnableSemanticNonNull)
+        {
+            directiveTypes.Add(typeInspector.GetTypeRef(typeof(SemanticNonNullDirective)));
         }
 
         if (descriptorContext.Options.EnableTag)

@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Types.OffsetPagination\HotChocolate.Types.OffsetPagination.csproj" />
     <ProjectReference Include="..\..\src\Data\HotChocolate.Data.csproj" />
   </ItemGroup>
 

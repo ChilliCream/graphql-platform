@@ -1,6 +1,5 @@
 using HotChocolate.Data.TestContext;
 using HotChocolate.Pagination;
-using CookieCrumble;
 using Microsoft.EntityFrameworkCore;
 using Squadron;
 

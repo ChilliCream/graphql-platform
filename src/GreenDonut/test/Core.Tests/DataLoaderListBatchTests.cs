@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 

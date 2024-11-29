@@ -1,5 +1,3 @@
-using CookieCrumble;
-
 namespace HotChocolate.Language;
 
 public class MD5DocumentHashProviderTests

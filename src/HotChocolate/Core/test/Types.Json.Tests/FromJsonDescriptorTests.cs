@@ -1,5 +1,4 @@
 using System.Text.Json;
-using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using Moq;

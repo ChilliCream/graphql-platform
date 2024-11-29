@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using System.Dynamic;
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Tests;

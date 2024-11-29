@@ -4,7 +4,6 @@
 // ReSharper disable UnusedType.Global
 // ReSharper disable UnusedAutoPropertyAccessor.Global
 
-using CookieCrumble;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Data.Filters;

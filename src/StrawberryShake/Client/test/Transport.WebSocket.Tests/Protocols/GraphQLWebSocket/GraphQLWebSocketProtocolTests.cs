@@ -1,6 +1,5 @@
 using System.Text;
 using System.Text.Json;
-using CookieCrumble;
 using Moq;
 using StrawberryShake.Transport.WebSockets.Messages;
 

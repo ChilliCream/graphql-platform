@@ -1,4 +1,3 @@
-using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
@@ -2088,7 +2087,7 @@ public class SchemaBuilderTests
                 .ModifyOptions(options => options.DefaultBindingBehavior = BindingBehavior.Explicit)
                 .BuildSchemaAsync();
 
-        SnapshotExtensions.MatchSnapshot(schema);
+        schema.MatchSnapshot();
     }
 
     public interface IMockConvention : IConvention

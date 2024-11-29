@@ -1,0 +1,40 @@
+{
+  "errors": [
+    {
+      "message": "Another error",
+      "locations": [
+        {
+          "line": 2,
+          "column": 3
+        }
+      ],
+      "path": [
+        "scalarListItemThrowingError",
+        1
+      ]
+    },
+    {
+      "message": "Cannot return null for semantic non-null field.",
+      "locations": [
+        {
+          "line": 2,
+          "column": 3
+        }
+      ],
+      "path": [
+        "scalarListItemThrowingError",
+        1
+      ],
+      "extensions": {
+        "code": "HC0088"
+      }
+    }
+  ],
+  "data": {
+    "scalarListItemThrowingError": [
+      "a",
+      null,
+      "c"
+    ]
+  }
+}

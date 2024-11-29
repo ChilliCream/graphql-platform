@@ -1,5 +1,4 @@
 using System.Net;
-using CookieCrumble;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution.Configuration;
 using Microsoft.AspNetCore.Builder;

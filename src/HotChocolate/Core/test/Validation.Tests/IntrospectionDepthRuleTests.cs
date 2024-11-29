@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Language;
 using HotChocolate.Validation.Options;
 using Microsoft.Extensions.DependencyInjection;

@@ -1,5 +1,4 @@
 using System.Reflection;
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;

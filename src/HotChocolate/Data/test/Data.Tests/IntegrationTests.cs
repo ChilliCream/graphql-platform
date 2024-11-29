@@ -4,7 +4,6 @@
 // ReSharper disable MemberCanBePrivate.Global
 // ReSharper disable MoveLocalFunctionAfterJumpStatement
 
-using CookieCrumble;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using HotChocolate.Types;

@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Composition;
 using HotChocolate.Fusion.Composition.Features;

@@ -1,4 +1,3 @@
-using CookieCrumble;
 using Xunit;
 
 namespace HotChocolate.Language.Utilities;

@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Data.MongoDb.Filters;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;

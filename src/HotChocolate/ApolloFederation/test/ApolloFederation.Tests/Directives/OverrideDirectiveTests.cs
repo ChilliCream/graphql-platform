@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.ApolloFederation.Resolvers;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Execution;

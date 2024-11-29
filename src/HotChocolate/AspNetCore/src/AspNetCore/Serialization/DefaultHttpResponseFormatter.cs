@@ -551,7 +551,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 return _multiPartFormat;
             }
 
-            if (mediaType.Kind is EventStream)
+            if (mediaType.Kind is EventStream or All)
             {
                 return _eventStreamFormat;
             }

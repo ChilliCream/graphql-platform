@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;

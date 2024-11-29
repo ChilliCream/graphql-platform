@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;

@@ -6,9 +6,9 @@ namespace HotChocolate.Data;
 
 public class SchemaCache : FilterVisitorTestBase
 {
-    private readonly ConcurrentDictionary<(Type, Type, object), IRequestExecutor> _cache = new();
+    private readonly ConcurrentDictionary<(Type, Type, object), Task<IRequestExecutor>> _cache = new();
 
-    public IRequestExecutor CreateSchema<T, TType>(
+    public async Task<IRequestExecutor> CreateSchemaAsync<T, TType>(
         T[] entities,
         bool withPaging = false,
         Action<ISchemaBuilder>? configure = null)
@@ -16,9 +16,9 @@ public class SchemaCache : FilterVisitorTestBase
         where TType : FilterInputType<T>
     {
         (Type, Type, T[] entites) key = (typeof(T), typeof(TType), entities);
-        return _cache.GetOrAdd(
+        return await _cache.GetOrAdd(
             key,
-            _ => base.CreateSchema<T, TType>(
+            async _ => await base.CreateSchemaAsync<T, TType>(
                 entities,
                 withPaging: withPaging,
                 configure: configure));

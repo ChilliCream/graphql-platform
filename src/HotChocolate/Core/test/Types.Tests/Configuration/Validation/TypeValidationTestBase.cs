@@ -1,5 +1,4 @@
 using System.Text;
-using CookieCrumble;
 
 namespace HotChocolate.Configuration.Validation;
 

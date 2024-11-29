@@ -1,5 +1,3 @@
-using CookieCrumble;
-
 namespace HotChocolate.Language;
 
 public class Sha256DocumentHashProviderTests

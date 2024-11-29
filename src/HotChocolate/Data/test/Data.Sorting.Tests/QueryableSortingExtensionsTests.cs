@@ -1,5 +1,4 @@
 using System.Reflection;
-using CookieCrumble;
 using HotChocolate.Data.Sorting.Expressions;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
@@ -56,9 +55,9 @@ public class QueryableSortingExtensionsTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -80,9 +79,9 @@ public class QueryableSortingExtensionsTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 

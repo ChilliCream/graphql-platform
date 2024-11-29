@@ -1,7 +1,6 @@
 using System.Collections.Immutable;
 using System.Reflection;
 using System.Security.Claims;
-using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;

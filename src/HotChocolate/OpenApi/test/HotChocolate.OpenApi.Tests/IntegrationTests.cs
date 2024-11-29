@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.OpenApi.Extensions;
 using Microsoft.AspNetCore.Builder;

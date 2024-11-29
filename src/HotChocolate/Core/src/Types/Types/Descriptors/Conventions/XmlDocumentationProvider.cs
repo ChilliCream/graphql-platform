@@ -405,7 +405,8 @@ public class XmlDocumentationProvider : IDocumentationProvider
                             "(`[0-9]+)|(, .*?PublicKeyToken=[0-9a-z]*)",
                             string.Empty)
                         .Replace("[[", "{")
-                        .Replace("]]", "}"))
+                        .Replace("]]", "}")
+                        .Replace("],[", ","))
                     .ToArray());
 
                 if (!string.IsNullOrEmpty(paramTypesList))

@@ -1,6 +1,5 @@
 #nullable enable
 
-using CookieCrumble;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types;

@@ -1,5 +1,4 @@
 using HotChocolate.Types;
-using CookieCrumble;
 
 namespace HotChocolate.Data.Filters;
 

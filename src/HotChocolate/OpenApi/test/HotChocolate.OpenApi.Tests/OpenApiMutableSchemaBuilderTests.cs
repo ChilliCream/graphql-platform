@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Skimmed.Serialization;
 using Microsoft.OpenApi.Readers;
 

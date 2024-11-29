@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using CookieCrumble;
 using GreenDonut;
 using GreenDonut.DependencyInjection;
 using HotChocolate.Fetching;
