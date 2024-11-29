@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types;
@@ -6,7 +5,7 @@ namespace HotChocolate.Types;
 /// <summary>
 /// The `@oneOf` directive is used within the type system definition language
 /// to indicate an Input Object is a Oneof Input Object.
-/// 
+///
 /// <code>
 /// input UserUniqueCondition @oneOf {
 ///   id: ID

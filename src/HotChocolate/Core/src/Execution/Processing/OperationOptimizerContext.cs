@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -125,13 +124,9 @@ public readonly ref struct OperationOptimizerContext
     /// Creates a temporary operation object for the optimizer.
     /// </summary>
     public IOperation CreateOperation()
-        => new Operation(
-            Id,
-            Document,
-            Definition,
-            _rootType,
-            _variants,
-            _includeConditions,
-            _contextData,
-            _hasIncrementalParts);
+    {
+        var operation = new Operation(Id, Document, Definition, _rootType, Schema);
+        operation.Seal(_contextData, _variants, _hasIncrementalParts, _includeConditions);
+        return operation;
+    }
 }

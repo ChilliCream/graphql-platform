@@ -1,8 +1,5 @@
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types;
 
@@ -11,8 +8,6 @@ public class InputValueFormatterTests
     [Fact]
     public async Task Add_Input_Formatter_To_Argument()
     {
-        Snapshot.FullName();
-
         await SchemaBuilder.New()
             .AddQueryType<QueryType>()
             .Create()
@@ -24,8 +19,6 @@ public class InputValueFormatterTests
     [Fact]
     public async Task Add_Chained_Input_Formatter_To_Argument()
     {
-        Snapshot.FullName();
-
         await SchemaBuilder.New()
             .AddQueryType<QueryType>()
             .Create()
@@ -37,8 +30,6 @@ public class InputValueFormatterTests
     [Fact]
     public async Task Add_Input_Formatter_To_Field()
     {
-        Snapshot.FullName();
-
         await SchemaBuilder.New()
             .AddQueryType<QueryType>()
             .Create()
@@ -50,8 +41,6 @@ public class InputValueFormatterTests
     [Fact]
     public async Task Add_Chained_Input_Formatter_To_Field()
     {
-        Snapshot.FullName();
-
         await SchemaBuilder.New()
             .AddQueryType<QueryType>()
             .Create()
@@ -123,17 +112,17 @@ public class InputValueFormatterTests
 
     public class UpperCaseInputValueFormatter : IInputValueFormatter
     {
-        public object Format(object runtimeValue)
+        public object Format(object originalValue)
         {
-            return runtimeValue is string s ? s.ToUpperInvariant() : runtimeValue;
+            return originalValue is string s ? s.ToUpperInvariant() : originalValue;
         }
     }
 
     public class AddTwoInputValueFormatter : IInputValueFormatter
     {
-        public object Format(object runtimeValue)
+        public object Format(object originalValue)
         {
-            return runtimeValue is string s ? s + "2" : runtimeValue;
+            return originalValue is string s ? s + "2" : originalValue;
         }
     }
 }

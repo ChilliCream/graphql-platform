@@ -1,7 +1,4 @@
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 
 namespace StrawberryShake.Persistence.SQLite;
@@ -90,7 +87,7 @@ internal sealed class DatabaseHelper
             {
                 Id = reader.GetString(0),
                 Value = reader.GetString(1),
-                Type = reader.GetString(2)
+                Type = reader.GetString(2),
             };
         }
     }
@@ -138,7 +135,7 @@ internal sealed class DatabaseHelper
                 Id = reader.GetString(0),
                 Variables = reader.GetString(1),
                 ResultType = reader.GetString(2),
-                DataInfo = reader.GetString(3)
+                DataInfo = reader.GetString(3),
             };
         }
     }

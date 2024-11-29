@@ -25,7 +25,7 @@ public class MongoDbFilterCombinator
             FilterCombinator.And => CombineWithAnd(operations),
             FilterCombinator.Or => CombineWithOr(operations),
             _ => throw ThrowHelper
-                .Filtering_MongoDbCombinator_InvalidCombinator(this, combinator)
+                .Filtering_MongoDbCombinator_InvalidCombinator(this, combinator),
         };
 
         return true;

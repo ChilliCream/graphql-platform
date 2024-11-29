@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Types;
@@ -118,7 +112,7 @@ public static class SchemaPrinter
             typeDefinitions.Insert(0, PrintSchemaTypeDefinition(schema));
         }
 
-        var builtInDirectives = new HashSet<string> { Skip, Include, Deprecated };
+        var builtInDirectives = new HashSet<string> { Skip, Include, Deprecated, };
 
         var directiveTypeDefinitions =
             schema.DirectiveTypes
@@ -242,7 +236,7 @@ public static class SchemaPrinter
             InputObjectType type => PrintInputObjectType(type),
             UnionType type => PrintUnionType(type),
             EnumType type => PrintEnumType(type),
-            _ => throw new NotSupportedException()
+            _ => throw new NotSupportedException(),
         };
 
     private static ObjectTypeDefinitionNode PrintObjectType(
@@ -359,7 +353,6 @@ public static class SchemaPrinter
             values
         );
     }
-
 
     private static EnumValueDefinitionNode PrintEnumValue(IEnumValue enumValue)
     {
@@ -533,5 +526,17 @@ public static class SchemaPrinter
         => directive.AsSyntaxNode(true);
 
     private static StringValueNode PrintDescription(string description)
-        => string.IsNullOrEmpty(description) ? null : new StringValueNode(description);
+    {
+        if (string.IsNullOrEmpty(description))
+        {
+            return null;
+        }
+
+        // Get rid of any unnecessary whitespace.
+        description = description.Trim();
+
+        var isBlock = description.Contains("\n");
+
+        return new StringValueNode(null, description, isBlock);
+    }
 }

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using HotChocolate.Utilities;
@@ -38,7 +37,6 @@ public static class QueryableFilterVisitorContextExtensions
         expression = null;
         return false;
     }
-
 
     /// <summary>
     /// Tries to build the a typed expression based on the items that are stored on the scope

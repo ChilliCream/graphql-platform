@@ -45,7 +45,7 @@ internal sealed class FusionGraphConfiguration
             {
                 if (!_entitySubgraphMap.TryGetValue(entityName, out var availableOnSubgraphs))
                 {
-                    availableOnSubgraphs = new List<string>();
+                    availableOnSubgraphs = [];
                     _entitySubgraphMap.Add(entityName, availableOnSubgraphs);
                 }
                 availableOnSubgraphs.Add(subgraph.Name);
@@ -124,7 +124,7 @@ internal sealed class FusionGraphConfiguration
         type = default!;
         return false;
     }
-    
+
     public string GetTypeName(string subgraphName, string typeName)
     {
         if (!_typeNameLookup.TryGetValue((subgraphName, typeName), out var temp))
@@ -137,7 +137,7 @@ internal sealed class FusionGraphConfiguration
 
     public string GetTypeName(QualifiedTypeName qualifiedTypeName)
         => GetTypeName(qualifiedTypeName.SubgraphName, qualifiedTypeName.TypeName);
-    
+
     /// <summary>
     /// Gets the subgraph type name of a fusion graph type.
     /// </summary>

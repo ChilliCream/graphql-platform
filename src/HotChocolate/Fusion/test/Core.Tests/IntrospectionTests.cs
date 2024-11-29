@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Composition;
 using HotChocolate.Fusion.Shared;
@@ -26,7 +25,7 @@ public class IntrospectionTests(ITestOutputHelper output)
             new[]
             {
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
             });
 
         var executor = await new ServiceCollection()
@@ -40,16 +39,16 @@ public class IntrospectionTests(ITestOutputHelper output)
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
+            OperationRequestBuilder
                 .New()
-                .SetQuery(request)
-                .Create());
+                .SetDocument(request)
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        CollectSnapshotData(snapshot, request, result);
+        await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 }

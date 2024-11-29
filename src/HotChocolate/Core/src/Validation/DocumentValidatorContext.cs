@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -10,8 +8,8 @@ namespace HotChocolate.Validation;
 public sealed class DocumentValidatorContext : IDocumentValidatorContext
 {
     private static readonly FieldInfoListBufferPool _fieldInfoPool = new();
-    private readonly List<FieldInfoListBuffer> _buffers = new() { new FieldInfoListBuffer() };
-    private readonly List<IError> _errors = new();
+    private readonly List<FieldInfoListBuffer> _buffers = [new FieldInfoListBuffer(),];
+    private readonly List<IError> _errors = [];
 
     private ISchema? _schema;
     private IOutputType? _nonNullString;
@@ -34,7 +32,7 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
         }
     }
 
-    public string DocumentId { get; set; } = default!;
+    public OperationDocumentId DocumentId { get; set; }
 
     public OperationType? OperationType { get; set; }
 
@@ -98,6 +96,8 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
 
     public bool UnexpectedErrorsDetected { get; set; }
 
+    public bool FatalErrorDetected { get; set; }
+
     public int Count { get; set; }
 
     public int Max { get; set; }
@@ -105,6 +105,14 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
     public int Allowed { get; set; }
 
     public IDictionary<string, object?> ContextData { get; set; } = default!;
+
+    public List<FieldInfoPair> CurrentFieldPairs { get; } = [];
+
+    public List<FieldInfoPair> NextFieldPairs { get; } = [];
+
+    public HashSet<FieldInfoPair> ProcessedFieldPairs { get; } = [];
+
+    public FieldDepthCycleTracker FieldDepth { get; } = new();
 
     public IList<FieldInfo> RentFieldInfoList()
     {
@@ -159,7 +167,12 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
         InputFields.Clear();
         _errors.Clear();
         List.Clear();
+        CurrentFieldPairs.Clear();
+        NextFieldPairs.Clear();
+        ProcessedFieldPairs.Clear();
+        FieldDepth.Reset();
         UnexpectedErrorsDetected = false;
+        FatalErrorDetected = false;
         Count = 0;
         Max = 0;
         Allowed = 0;

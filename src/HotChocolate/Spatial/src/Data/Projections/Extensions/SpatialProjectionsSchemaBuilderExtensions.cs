@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Data.Projections;
 using HotChocolate.Data.Projections.Spatial;
 

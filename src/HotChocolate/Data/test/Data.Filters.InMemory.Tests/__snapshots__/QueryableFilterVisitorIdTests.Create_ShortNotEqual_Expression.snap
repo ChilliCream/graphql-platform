@@ -4,10 +4,10 @@
   "data": {
     "root": [
       {
-        "barShort": "Rm9vU2hvcnQKczE0"
+        "barShort": "Rm9vU2hvcnQ6MTQ="
       },
       {
-        "barShort": "Rm9vU2hvcnQKczEz"
+        "barShort": "Rm9vU2hvcnQ6MTM="
       }
     ]
   }
@@ -20,10 +20,10 @@
   "data": {
     "root": [
       {
-        "barShort": "Rm9vU2hvcnQKczEy"
+        "barShort": "Rm9vU2hvcnQ6MTI="
       },
       {
-        "barShort": "Rm9vU2hvcnQKczE0"
+        "barShort": "Rm9vU2hvcnQ6MTQ="
       }
     ]
   }
@@ -35,7 +35,7 @@ null
 {
   "errors": [
     {
-      "message": "The provided value for filter \u0060neq\u0060 of type IdOperationFilterInput is invalid. Null values are not supported.",
+      "message": "The provided value for filter `neq` of type IdOperationFilterInput is invalid. Null values are not supported.",
       "locations": [
         {
           "line": 1,
@@ -53,7 +53,7 @@ null
     }
   ],
   "data": {
-    "root": []
+    "root": null
   }
 }
 ---------------

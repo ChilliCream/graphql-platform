@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -58,6 +55,8 @@ public class InterfaceTypeDescriptor
     protected override void OnCreateDefinition(
         InterfaceTypeDefinition definition)
     {
+        Context.Descriptors.Push(this);
+
         if (!Definition.AttributesAreApplied && Definition.RuntimeType != typeof(object))
         {
             Context.TypeInspector.ApplyAttributes(
@@ -82,19 +81,14 @@ public class InterfaceTypeDescriptor
         Definition.Fields.AddRange(fields.Values);
 
         base.OnCreateDefinition(definition);
+
+        Context.Descriptors.Pop();
     }
 
     protected virtual void OnCompleteFields(
         IDictionary<string, InterfaceFieldDefinition> fields,
         ISet<MemberInfo> handledMembers)
     {
-    }
-
-    public IInterfaceTypeDescriptor SyntaxNode(
-        InterfaceTypeDefinitionNode interfaceTypeDefinition)
-    {
-        Definition.SyntaxNode = interfaceTypeDefinition;
-        return this;
     }
 
     public IInterfaceTypeDescriptor Name(string value)
@@ -108,21 +102,6 @@ public class InterfaceTypeDescriptor
         Definition.Description = value;
         return this;
     }
-
-    [Obsolete("Use Implements.")]
-    public IInterfaceTypeDescriptor Interface<TInterface>()
-        where TInterface : InterfaceType
-        => Implements<TInterface>();
-
-    [Obsolete("Use Implements.")]
-    public IInterfaceTypeDescriptor Interface<TInterface>(
-        TInterface type)
-        where TInterface : InterfaceType
-        => Implements(type);
-
-    [Obsolete("Use Implements.")]
-    public IInterfaceTypeDescriptor Interface(NamedTypeNode namedType)
-        => Implements(namedType);
 
     public IInterfaceTypeDescriptor Implements<T>()
         where T : InterfaceType

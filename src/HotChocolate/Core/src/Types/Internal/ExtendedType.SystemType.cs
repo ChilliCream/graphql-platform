@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 #nullable enable
 
 namespace HotChocolate.Internal;
@@ -35,7 +32,7 @@ internal sealed partial class ExtendedType
 
             var typeArguments =
                 type.IsArray && elementType is not null
-                    ? new[] { elementType }
+                    ? new[] { elementType, }
                     : GetGenericArguments(type, cache);
 
             return new ExtendedType(

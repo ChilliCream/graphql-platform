@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using NetTopologySuite.Geometries;
 
@@ -12,7 +11,7 @@ internal static class GeoJsonConverterExtensions
     {
         if (coordinatesList.Count == 0)
         {
-            coordinates = Array.Empty<Coordinate>();
+            coordinates = [];
             return true;
         }
 

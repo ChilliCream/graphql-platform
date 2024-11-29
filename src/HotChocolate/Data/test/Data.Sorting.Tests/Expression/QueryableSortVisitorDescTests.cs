@@ -1,7 +1,4 @@
-using System;
-using System.Linq;
 using HotChocolate.Language;
-using Xunit;
 
 namespace HotChocolate.Data.Sorting.Expressions;
 
@@ -91,7 +88,7 @@ public class QueryableSortVisitorDescTests
     [Theory]
     [InlineData(null, "2018-01-01", "2019-01-01", "2020-01-01")]
     [InlineData("2020-01-01", "2019-01-01", "2018-01-01", null)]
-    public void Sort_NullableDateTimeDesc(params string[] dataObject)
+    public void Sort_NullableDateTimeDesc(params string?[] dataObject)
     {
         Test_Desc(
             dataObject.Select(x => x is null ? default : (DateTime?)DateTime.Parse(x))
@@ -114,7 +111,7 @@ public class QueryableSortVisitorDescTests
 
         // assert
         var inputs =
-            data.Select(x => new FooNullable<string> { Bar = x }).ToArray();
+            data.Select(x => new FooNullable<string> { Bar = x, }).ToArray();
         var sorted = func(inputs);
 
         for (var i = 0; i < expected.Length; i++)
@@ -135,7 +132,7 @@ public class QueryableSortVisitorDescTests
         var func = tester.Build<Foo<T>>(value);
 
         // assert
-        var inputs = data.Select(x => new Foo<T> { Bar = x }).ToArray();
+        var inputs = data.Select(x => new Foo<T> { Bar = x, }).ToArray();
         var sorted = func(inputs);
 
         for (var i = 0; i < expected.Length; i++)

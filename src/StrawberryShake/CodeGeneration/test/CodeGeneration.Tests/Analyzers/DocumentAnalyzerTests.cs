@@ -1,14 +1,9 @@
-using System.Linq;
-using System.Threading.Tasks;
-using HotChocolate;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
 using HotChocolate.Utilities;
-using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Utilities;
-using Xunit;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;
 
@@ -31,7 +26,7 @@ public class DocumentAnalyzerTests
                 {
                     new(schema.ToDocument()),
                     new(Utf8GraphQLParser.Parse(
-                        @"extend scalar String @runtimeType(name: ""Abc"")"))
+                        @"extend scalar String @runtimeType(name: ""Abc"")")),
                 });
 
         var document =
@@ -44,12 +39,11 @@ public class DocumentAnalyzerTests
 
         // act
         var clientModel =
-            DocumentAnalyzer
+            await DocumentAnalyzer
                 .New()
                 .SetSchema(schema)
                 .AddDocument(document)
-                .AnalyzeAsync()
-                .Result;
+                .AnalyzeAsync();
 
         // assert
         Assert.Empty(clientModel.InputObjectTypes);
@@ -78,7 +72,6 @@ public class DocumentAnalyzerTests
             });
     }
 
-
     [Fact]
     public async Task One_Fragment_One_Deferred_Fragment()
     {
@@ -98,7 +91,7 @@ public class DocumentAnalyzerTests
                     new(Utf8GraphQLParser.Parse(
                         @"extend scalar String @runtimeType(name: ""Abc"")")),
                     new(Utf8GraphQLParser.Parse(
-                        "extend schema @key(fields: \"id\")"))
+                        "extend schema @key(fields: \"id\")")),
                 });
 
         var document =
@@ -120,16 +113,15 @@ public class DocumentAnalyzerTests
 
         // act
         var clientModel =
-            DocumentAnalyzer
+            await DocumentAnalyzer
                 .New()
                 .SetSchema(schema)
                 .AddDocument(document)
-                .AnalyzeAsync()
-                .Result;
+                .AnalyzeAsync();
 
         // assert
         var human = clientModel.OutputTypes.First(t => t.Name.EqualsOrdinal("GetHero_Hero_Human"));
-        Assert.Equal(1, human.Fields.Count);
+        Assert.Single(human.Fields);
 
         Assert.True(
             human.Deferred.ContainsKey("HeroAppearsIn"),

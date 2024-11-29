@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <AssemblyName>HotChocolate.Data.Raven.Projections.Tests</AssemblyName>
@@ -6,11 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
     <ProjectReference Include="..\..\src\Data\HotChocolate.Data.Raven.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Squadron.RavenDB" Version="0.17.0" />
+    <PackageReference Include="Squadron.RavenDB" />
   </ItemGroup>
 
 </Project>

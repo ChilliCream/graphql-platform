@@ -42,5 +42,5 @@ internal sealed class NodeExecutionStep(
     /// <summary>
     /// Gets the execution steps that handle the various entity types.
     /// </summary>
-    public List<NodeEntityExecutionStep> EntitySteps { get; } = new();
+    public List<NodeEntityExecutionStep> EntitySteps { get; } = [];
 }

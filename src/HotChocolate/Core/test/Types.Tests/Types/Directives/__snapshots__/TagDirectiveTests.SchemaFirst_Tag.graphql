@@ -1,0 +1,21 @@
+schema {
+  query: Query
+}
+
+type Query {
+  field: String @tag(name: "abc")
+}
+
+"""
+The @tag directive is used to apply arbitrary string
+metadata to a schema location. Custom tooling can use
+this metadata during any step of the schema delivery flow,
+including composition, static analysis, and documentation.
+
+interface Book {
+  id: ID! @tag(name: "your-value")
+  title: String!
+  author: String!
+}
+"""
+directive @tag("The name of the tag." name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION

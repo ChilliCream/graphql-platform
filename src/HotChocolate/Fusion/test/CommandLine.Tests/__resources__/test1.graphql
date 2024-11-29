@@ -1,0 +1,38 @@
+type Query {
+  node(id: ID!): Node
+  nodes(ids: [ID!]!): [Node]!
+  userById(id: ID!): User
+  userByName(name: String!): User
+  users(first: Int, after: String, last: Int, before: String): UsersConnection
+}
+
+type User implements Node {
+  id: ID!
+  name: String!
+  displayName: String!
+  birthdate: String!
+}
+
+interface Node {
+  id: ID!
+}
+
+type UsersConnection {
+  pageInfo: PageInfo!
+  edges: [UsersEdge!]
+  nodes: [User!]
+}
+
+type UsersEdge {
+  cursor: String!
+  node: User!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+scalar DateTime

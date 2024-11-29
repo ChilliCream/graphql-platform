@@ -11,7 +11,7 @@
     ],
     "Extensions": {
       "operations": 2,
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Lone-Anonymous-Operation"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Lone-Anonymous-Operation"
     },
     "Exception": null,
     "SyntaxNode": {

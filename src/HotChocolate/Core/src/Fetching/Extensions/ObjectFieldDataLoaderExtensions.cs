@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading.Tasks;
 using GreenDonut;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
@@ -10,19 +7,17 @@ using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Fetching.Utilities.ThrowHelper;
 using static HotChocolate.WellKnownMiddleware;
 
-#nullable enable
-
 // ReSharper disable once CheckNamespace
 namespace HotChocolate.Types;
 
 public static class DataLoaderObjectFieldExtensions
 {
-    public static IObjectFieldDescriptor UseDataloader<TDataLoader>(
+    public static IObjectFieldDescriptor UseDataLoader<TDataLoader>(
         this IObjectFieldDescriptor descriptor)
         where TDataLoader : IDataLoader
-        => UseDataloader(descriptor, typeof(TDataLoader));
+        => UseDataLoader(descriptor, typeof(TDataLoader));
 
-    public static IObjectFieldDescriptor UseDataloader(
+    public static IObjectFieldDescriptor UseDataLoader(
         this IObjectFieldDescriptor descriptor,
         Type dataLoaderType)
     {
@@ -124,35 +119,32 @@ public static class DataLoaderObjectFieldExtensions
         return false;
     }
 
-    private sealed class GroupedDataLoaderMiddleware<TDataLoader, TKey, TValue>
+    private sealed class GroupedDataLoaderMiddleware<TDataLoader, TKey, TValue>(FieldDelegate next)
         where TKey : notnull
         where TDataLoader : IDataLoader<TKey, TValue[]>
     {
-        private readonly FieldDelegate _next;
-
-        public GroupedDataLoaderMiddleware(FieldDelegate next)
-        {
-            _next = next ?? throw new ArgumentNullException(nameof(next));
-        }
-
         public async Task InvokeAsync(IMiddlewareContext context)
         {
-            var dataloader = context.DataLoader<TDataLoader>();
+            var dataLoader = context.DataLoader<TDataLoader>();
 
-            await _next(context).ConfigureAwait(false);
+            await next(context).ConfigureAwait(false);
 
             if (context.Result is IReadOnlyCollection<TKey> values)
             {
-                var data = await dataloader
+                var data = await dataLoader
                     .LoadAsync(values, context.RequestAborted)
                     .ConfigureAwait(false);
 
-                var result = new HashSet<object>();
+                var result = new HashSet<object?>();
                 for (var m = 0; m < data.Count; m++)
                 {
-                    for (var n = 0; n < data[m].Length; n++)
+                    var group = data[m];
+                    if (group is not null)
                     {
-                        result.Add(data[m][n]!);
+                        for (var n = 0; n < group.Length; n++)
+                        {
+                            result.Add(group[n]);
+                        }
                     }
                 }
 
@@ -160,39 +152,34 @@ public static class DataLoaderObjectFieldExtensions
             }
             else if (context.Result is TKey value)
             {
-                context.Result = await dataloader
+                context.Result = await dataLoader
                     .LoadAsync(value, context.RequestAborted)
                     .ConfigureAwait(false);
             }
         }
     }
 
-    private sealed class DataLoaderMiddleware<TDataLoader, TKey, TValue>
+    private sealed class DataLoaderMiddleware<TDataLoader, TKey, TValue>(FieldDelegate next)
         where TKey : notnull
         where TDataLoader : IDataLoader<TKey, TValue>
     {
-        private readonly FieldDelegate _next;
-
-        public DataLoaderMiddleware(FieldDelegate next)
-        {
-            _next = next ?? throw new ArgumentNullException(nameof(next));
-        }
+        private readonly FieldDelegate _next = next ?? throw new ArgumentNullException(nameof(next));
 
         public async Task InvokeAsync(IMiddlewareContext context)
         {
-            var dataloader = context.DataLoader<TDataLoader>();
+            var dataLoader = context.DataLoader<TDataLoader>();
 
             await _next(context).ConfigureAwait(false);
 
             if (context.Result is IReadOnlyCollection<TKey> values)
             {
-                context.Result = await dataloader
+                context.Result = await dataLoader
                     .LoadAsync(values, context.RequestAborted)
                     .ConfigureAwait(false);
             }
             else if (context.Result is TKey value)
             {
-                context.Result = await dataloader
+                context.Result = await dataLoader
                     .LoadAsync(value, context.RequestAborted)
                     .ConfigureAwait(false);
             }

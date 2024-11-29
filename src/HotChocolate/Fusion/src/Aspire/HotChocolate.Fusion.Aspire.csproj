@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Fusion.Aspire</AssemblyName>
+    <RootNamespace>HotChocolate.Fusion</RootNamespace>
+
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)HotChocolate.Fusion.Aspire.targets" Pack="true" PackagePath="build/HotChocolate.Fusion.Aspire.targets" Visible="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Composition\HotChocolate.Fusion.Composition.csproj" />
+  </ItemGroup>
+
+</Project>

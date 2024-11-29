@@ -1,6 +1,4 @@
-using System;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace StrawberryShake.Transport.WebSockets;
 
@@ -11,7 +9,7 @@ public sealed class SocketMessageWriter
     : RequestWriter,
         IAsyncDisposable
 {
-    private static readonly JsonWriterOptions _options = new() { SkipValidation = true };
+    private static readonly JsonWriterOptions _options = new() { SkipValidation = true, };
 
     /// <summary>
     /// The underlying json writer

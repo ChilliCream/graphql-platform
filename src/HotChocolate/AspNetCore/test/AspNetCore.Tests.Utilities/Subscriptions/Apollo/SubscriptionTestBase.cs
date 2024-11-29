@@ -104,7 +104,7 @@ public class SubscriptionTestBase : ServerTestBase
     protected static WebSocketClient CreateWebSocketClient(TestServer testServer)
     {
         var client = testServer.CreateWebSocketClient();
-        client.ConfigureRequest = r => r.Headers.Add("Sec-WebSocket-Protocol", "graphql-ws");
+        client.ConfigureRequest = r => r.Headers.SecWebSocketProtocol = "graphql-ws";
         return client;
     }
 

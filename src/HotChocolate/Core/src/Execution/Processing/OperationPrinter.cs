@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -25,7 +22,7 @@ internal static class OperationPrinter
                 var includeCondition = operation.IncludeConditions[i];
                 long flag = 2 ^ i;
 
-                var arguments = new List<ArgumentNode> { new("flag", new IntValueNode(flag)) };
+                var arguments = new List<ArgumentNode> { new("flag", new IntValueNode(flag)), };
 
                 if (includeCondition.Skip is BooleanValueNode)
                 {
@@ -88,14 +85,14 @@ internal static class OperationPrinter
                             Array.Empty<VariableDefinitionNode>(),
                             new NamedTypeNode(typeContext.Name),
                             Array.Empty<DirectiveNode>(),
-                            CreateSelectionSet(context, fragment.SelectionSet, new()));
+                            CreateSelectionSet(context, fragment.SelectionSet, []));
                 }
 
                 selections.Add(
                     new FragmentSpreadNode(
                         null,
                         new(fragmentName),
-                        new[] { new DirectiveNode("defer") }));
+                        new[] { new DirectiveNode("defer"), }));
             }
         }
 
@@ -141,7 +138,6 @@ internal static class OperationPrinter
             null,
             selection.SyntaxNode.Name,
             selection.SyntaxNode.Alias,
-            null,
             directives,
             selection.SyntaxNode.Arguments,
             selectionSet);

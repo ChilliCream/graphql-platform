@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using Snapshooter.Xunit;
 
 namespace HotChocolate;
 
@@ -172,7 +168,7 @@ public class SchemaErrorTests
 
     private sealed class ErrorInterceptor : TypeInterceptor
     {
-        public List<Exception> Exceptions { get; } = new();
+        public List<Exception> Exceptions { get; } = [];
 
         public override void OnCreateSchemaError(IDescriptorContext context, Exception error)
             => Exceptions.Add(error);

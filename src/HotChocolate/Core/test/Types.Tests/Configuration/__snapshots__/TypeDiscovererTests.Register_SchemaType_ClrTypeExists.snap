@@ -1,4 +1,4 @@
-﻿{
+{
   "registered": [
     {
       "type": "HotChocolate.Types.Introspection.__Directive",
@@ -73,6 +73,14 @@
       ]
     },
     {
+      "type": "HotChocolate.Types.OneOfDirectiveType",
+      "runtimeType": "System.Object",
+      "references": [
+        "HotChocolate.Types.OneOfDirectiveType",
+        "OneOfDirectiveType"
+      ]
+    },
+    {
       "type": "HotChocolate.Types.SkipDirectiveType",
       "runtimeType": "System.Object",
       "references": [
@@ -131,6 +139,15 @@
         "BarType (Output)",
         "ObjectType<Bar> (Output)"
       ]
+    },
+    {
+      "type": "HotChocolate.Types.DirectiveType<HotChocolate.Types.Tag>",
+      "runtimeType": "HotChocolate.Types.Tag",
+      "references": [
+        "DirectiveType<Tag>",
+        "@Tag",
+        "HotChocolate.Types.DirectiveType`1[HotChocolate.Types.Tag]"
+      ]
     }
   ],
   "runtimeTypeRefs": {
@@ -146,6 +163,7 @@
     "Foo (Output)": "HotChocolate.Configuration.TypeDiscovererTests+FooType (Output)",
     "String": "HotChocolate.Types.StringType",
     "Boolean!": "HotChocolate.Types.BooleanType",
-    "Bar (Output)": "HotChocolate.Configuration.TypeDiscovererTests+BarType (Output)"
+    "Bar (Output)": "HotChocolate.Configuration.TypeDiscovererTests+BarType (Output)",
+    "Tag": "DirectiveType<Tag>"
   }
 }

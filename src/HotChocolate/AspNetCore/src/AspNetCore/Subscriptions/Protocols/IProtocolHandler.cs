@@ -12,7 +12,6 @@ public interface IProtocolHandler
     /// </summary>
     string Name { get; }
 
-
     ValueTask OnReceiveAsync(
         ISocketSession session,
         ReadOnlySequence<byte> message,
@@ -63,7 +62,7 @@ public interface IProtocolHandler
     ValueTask SendResultMessageAsync(
         ISocketSession session,
         string operationSessionId,
-        IQueryResult result,
+        IOperationResult result,
         CancellationToken cancellationToken = default);
 
     /// <summary>

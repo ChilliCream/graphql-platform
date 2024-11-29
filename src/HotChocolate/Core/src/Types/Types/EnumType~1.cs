@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
@@ -33,14 +32,6 @@ public class EnumType<T> : EnumType, IEnumType<T>
     /// <summary>
     /// Initializes a new instance of <see cref="EnumType"/>.
     /// </summary>
-    public EnumType()
-    {
-        _configure = Configure;
-    }
-
-    /// <summary>
-    /// Initializes a new instance of <see cref="EnumType"/>.
-    /// </summary>
     /// <param name="configure">
     /// A delegate defining the configuration.
     /// </param>
@@ -48,6 +39,15 @@ public class EnumType<T> : EnumType, IEnumType<T>
     {
         _configure = configure
             ?? throw new ArgumentNullException(nameof(configure));
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="EnumType"/>.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public EnumType()
+    {
+        _configure = Configure;
     }
 
     /// <inheritdoc />

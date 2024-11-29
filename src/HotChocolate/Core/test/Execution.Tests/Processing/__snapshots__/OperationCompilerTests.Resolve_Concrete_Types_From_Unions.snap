@@ -1,0 +1,41 @@
+query QueryName {
+  oneOrTwo {
+    ... TypeOneParts
+    ... TypeTwoParts
+  }
+}
+
+fragment TypeOneParts on TypeOne {
+  field1 {
+    name
+  }
+}
+
+fragment TypeTwoParts on TypeTwo {
+  field1 {
+    name
+  }
+}
+
+---------------------------------------------------------
+
+query QueryName {
+  ... on UnionQuery {
+    oneOrTwo @__execute(id: 0, kind: DEFAULT, type: COMPOSITE) {
+      ... on TypeTwo {
+        field1 @__execute(id: 1, kind: DEFAULT, type: COMPOSITE) {
+          ... on FieldTwo1 {
+            name @__execute(id: 3, kind: DEFAULT, type: LEAF)
+          }
+        }
+      }
+      ... on TypeOne {
+        field1 @__execute(id: 2, kind: DEFAULT, type: COMPOSITE) {
+          ... on FieldOne1 {
+            name @__execute(id: 4, kind: DEFAULT, type: LEAF)
+          }
+        }
+      }
+    }
+  }
+}

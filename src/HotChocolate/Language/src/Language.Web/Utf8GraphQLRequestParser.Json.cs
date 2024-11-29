@@ -1,6 +1,4 @@
-using System;
 using System.Buffers;
-using System.Collections.Generic;
 using static HotChocolate.Language.Properties.LangWebResources;
 
 namespace HotChocolate.Language;
@@ -94,7 +92,7 @@ public ref partial struct Utf8GraphQLRequestParser
         return parser.ParseObjectOrNull();
     }
 
-    public static unsafe IReadOnlyDictionary<string, object?>? ParseVariables(
+    public static unsafe IReadOnlyList<IReadOnlyDictionary<string, object?>>? ParseVariables(
         string sourceText,
         ParserOptions? options = null)
     {
@@ -127,7 +125,7 @@ public ref partial struct Utf8GraphQLRequestParser
         }
     }
 
-    public static IReadOnlyDictionary<string, object?>? ParseVariables(
+    public static IReadOnlyList<IReadOnlyDictionary<string, object?>>? ParseVariables(
         ReadOnlySpan<byte> sourceText,
         ParserOptions? options = null)
     {

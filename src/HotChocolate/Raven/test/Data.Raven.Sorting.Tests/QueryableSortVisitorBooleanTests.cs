@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Data.Sorting;
@@ -6,12 +5,12 @@ namespace HotChocolate.Data.Sorting;
 [Collection(SchemaCacheCollectionFixture.DefinitionName)]
 public class QueryableSortVisitorBooleanTests
 {
-    private static readonly Foo[] _fooEntities = { new() { Bar = true }, new() { Bar = false } };
+    private static readonly Foo[] _fooEntities = [new() { Bar = true, }, new() { Bar = false, },];
 
     private static readonly FooNullable[] _fooNullableEntities =
-    {
-        new() { Bar = true }, new() { Bar = null }, new() { Bar = false }
-    };
+    [
+        new() { Bar = true, }, new() { Bar = null, }, new() { Bar = false, },
+    ];
 
     private readonly SchemaCache _cache;
 
@@ -28,14 +27,14 @@ public class QueryableSortVisitorBooleanTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: { bar: ASC}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(order: { bar: ASC}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: { bar: DESC}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(order: { bar: DESC}){ bar}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -53,14 +52,14 @@ public class QueryableSortVisitorBooleanTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: [{ bar: ASC}]){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(order: [{ bar: ASC}]){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: [{ bar: DESC}]){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(order: [{ bar: DESC}]){ bar}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -79,14 +78,14 @@ public class QueryableSortVisitorBooleanTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: { bar: ASC}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(order: { bar: ASC}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: { bar: DESC}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(order: { bar: DESC}){ bar}}")
+                .Build());
 
         // assert
         await Snapshot

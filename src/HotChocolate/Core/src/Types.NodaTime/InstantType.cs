@@ -16,13 +16,6 @@ public class InstantType : StringToStructBaseType<Instant>
     /// <summary>
     /// Initializes a new instance of <see cref="InstantType"/>.
     /// </summary>
-    public InstantType() : this(InstantPattern.ExtendedIso)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of <see cref="InstantType"/>.
-    /// </summary>
     public InstantType(params IPattern<Instant>[] allowedPatterns) : base("Instant")
     {
         if (allowedPatterns.Length == 0)
@@ -32,7 +25,19 @@ public class InstantType : StringToStructBaseType<Instant>
 
         _allowedPatterns = allowedPatterns;
         _serializationPattern = allowedPatterns[0];
-        Description = NodaTimeResources.InstantType_Description;
+
+        Description = CreateDescription(
+            allowedPatterns,
+            NodaTimeResources.InstantType_Description,
+            NodaTimeResources.InstantType_Description_Extended);
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="InstantType"/>.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public InstantType() : this(InstantPattern.ExtendedIso)
+    {
     }
 
     /// <inheritdoc />
@@ -45,4 +50,16 @@ public class InstantType : StringToStructBaseType<Instant>
         string resultValue,
         [NotNullWhen(true)] out Instant? runtimeValue)
         => _allowedPatterns.TryParse(resultValue, out runtimeValue);
+
+    protected override Dictionary<IPattern<Instant>, string> PatternMap => new()
+    {
+        { InstantPattern.General, "YYYY-MM-DDThh:mm:ss±hh:mm" },
+        { InstantPattern.ExtendedIso, "YYYY-MM-DDThh:mm:ss.sssssssss±hh:mm" }
+    };
+
+    protected override Dictionary<IPattern<Instant>, string> ExampleMap => new()
+    {
+        { InstantPattern.General, "2000-01-01T20:00:00Z" },
+        { InstantPattern.ExtendedIso, "2000-01-01T20:00:00.999999999Z" }
+    };
 }

@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using HotChocolate;
-
 namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
 public sealed class ObjectTypeDescriptor : ComplexTypeDescriptor

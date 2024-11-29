@@ -4,5 +4,5 @@ public enum DataLoaderKind
 {
     Batch,
     Group,
-    Cache
+    Cache,
 }

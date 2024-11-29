@@ -1,13 +1,7 @@
-using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Execution.Pipeline;
 
@@ -16,14 +10,12 @@ public class TimeoutMiddlewareTests
     [Fact]
     public async Task TimeoutMiddleware_Is_Integrated_Into_DefaultPipeline()
     {
-        Snapshot.FullName();
-
-        await new ServiceCollection()
+        (await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<TimeoutQuery>()
             .ModifyRequestOptions(o => o.ExecutionTimeout = TimeSpan.FromMilliseconds(100))
-            .ExecuteRequestAsync("{ timeout }")
-            .MatchSnapshotAsync();
+            .ExecuteRequestAsync("{ timeout }"))
+            .MatchSnapshot();
     }
 
     [Fact]

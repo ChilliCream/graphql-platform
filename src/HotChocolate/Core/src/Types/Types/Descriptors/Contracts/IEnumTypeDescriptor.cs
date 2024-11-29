@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -12,16 +10,6 @@ public interface IEnumTypeDescriptor
     : IDescriptor<EnumTypeDefinition>
     , IFluent
 {
-    /// <summary>
-    /// Associates the enum type with a syntax node
-    /// of the parsed GraphQL SDL.
-    /// </summary>
-    /// <param name="enumTypeDefinition">
-    /// The the type definition node.
-    /// </param>
-    IEnumTypeDescriptor SyntaxNode(
-        EnumTypeDefinitionNode enumTypeDefinition);
-
     /// <summary>
     /// Defines the name the enum type shall have.
     /// </summary>
@@ -44,28 +32,10 @@ public interface IEnumTypeDescriptor
     /// <param name="value">
     /// The value to include.
     /// </param>
-    [Obsolete("Use `Value`.")]
-    IEnumValueDescriptor Item<T>(T value);
-
-    /// <summary>
-    /// Defines a value that should be included on the enum type.
-    /// </summary>
-    /// <param name="value">
-    /// The value to include.
-    /// </param>
     IEnumValueDescriptor Value<T>(T value);
 
     /// <summary>
-    /// Specifies if the enum values shall be inferred or explicitly specfied.
-    /// </summary>
-    /// <param name="behavior">
-    /// The binding behavior.
-    /// </param>
-    [Obsolete("Use `BindValues`.")]
-    IEnumTypeDescriptor BindItems(BindingBehavior behavior);
-
-    /// <summary>
-    /// Specifies if the enum values shall be inferred or explicitly specfied.
+    /// Specifies if the enum values shall be inferred or explicitly specified.
     /// </summary>
     /// <param name="behavior">
     /// The binding behavior.

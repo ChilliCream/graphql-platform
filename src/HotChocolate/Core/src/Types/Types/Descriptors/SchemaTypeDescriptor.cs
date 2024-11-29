@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
@@ -44,14 +43,14 @@ public class SchemaTypeDescriptor
     public ISchemaTypeDescriptor Directive<T>(T directiveInstance)
         where T : class
     {
-        Definition.AddDirective(directiveInstance, Context.TypeInspector);
+        Definition.GetLegacyDefinition().AddDirective(directiveInstance, Context.TypeInspector);
         return this;
     }
 
     public ISchemaTypeDescriptor Directive<T>()
         where T : class, new()
     {
-        Definition.AddDirective(new T(), Context.TypeInspector);
+        Definition.GetLegacyDefinition().AddDirective(new T(), Context.TypeInspector);
         return this;
     }
 
@@ -59,7 +58,7 @@ public class SchemaTypeDescriptor
         string name,
         params ArgumentNode[] arguments)
     {
-        Definition.AddDirective(name, arguments);
+        Definition.GetLegacyDefinition().AddDirective(name, arguments);
         return this;
     }
 

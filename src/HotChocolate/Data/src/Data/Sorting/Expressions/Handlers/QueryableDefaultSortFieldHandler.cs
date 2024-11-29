@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -45,7 +44,7 @@ public class QueryableDefaultSortFieldHandler
 
         var lastSelector = lastFieldSelector.Selector;
         Expression nextSelector;
-        if (field.Metadata is ExpressionSortMetadata { Expression: LambdaExpression expression })
+        if (field.Metadata is ExpressionSortMetadata { Expression: LambdaExpression expression, })
         {
             if (expression.Parameters.Count != 1 ||
                 expression.Parameters[0].Type != context.RuntimeTypes.Peek()!.Source)
@@ -96,7 +95,7 @@ public class QueryableDefaultSortFieldHandler
             return false;
         }
 
-        // Deque last
+        // Dequeue last
         context.PopInstance();
         context.RuntimeTypes.Pop();
 

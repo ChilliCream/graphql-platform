@@ -1,7 +1,4 @@
-using System;
 using System.IO.Pipelines;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace StrawberryShake.Transport.WebSockets;
 
@@ -62,7 +59,7 @@ internal static class MessageReceiver
         this PipeWriter writer,
         CancellationToken cancellationToken)
     {
-        Memory<byte> memory = writer.GetMemory(1);
+        var memory = writer.GetMemory(1);
         memory.Span[0] = MessageProcessor.Delimiter;
         writer.Advance(1);
 

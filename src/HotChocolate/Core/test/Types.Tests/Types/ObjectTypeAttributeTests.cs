@@ -1,11 +1,7 @@
-using System;
 using System.Reflection;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
-using Xunit;
 
 #nullable enable
 
@@ -191,9 +187,7 @@ public class ObjectTypeAttributeTests
             IObjectTypeDescriptor descriptor,
             Type type)
         {
-#pragma warning disable CS0618
-            descriptor.Field("abc").Resolver<string>("def");
-#pragma warning restore CS0618
+            descriptor.Field("abc").Resolve<string>("def");
         }
     }
 

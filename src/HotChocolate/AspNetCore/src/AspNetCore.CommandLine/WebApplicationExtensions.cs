@@ -1,5 +1,4 @@
 using System.CommandLine.Parsing;
-using System.Threading.Tasks;
 using HotChocolate.AspNetCore.CommandLine;
 
 namespace Microsoft.Extensions.Hosting;
@@ -94,5 +93,5 @@ public static class HostBuilderExtensions
     }
 
     private static bool IsGraphQLCommand(this string[] args)
-        => args is ["schema", ..];
+        => args is ["schema", ..,];
 }

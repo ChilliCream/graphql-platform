@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using CookieCrumble;
 
 namespace HotChocolate.Data.Filters;
 
@@ -41,7 +38,6 @@ public class FilterAttributeTests
             .Create()
             .MatchSnapshot();
 
-#if NET6_0_OR_GREATER
     [Fact]
     public void Create_Schema_With_FilterInput_With_GenericAttribute()
         => SchemaBuilder.New()
@@ -55,29 +51,28 @@ public class FilterAttributeTests
         [UseFiltering<FooFilterInput>]
         public IEnumerable<Foo> Foos { get; } = new[]
         {
-            new Foo { Bar = "aa", Baz = 1, Qux = 1 },
-            new Foo { Bar = "ba", Baz = 1 },
-            new Foo { Bar = "ca", Baz = 2 },
-            new Foo { Bar = "ab", Baz = 2 },
-            new Foo { Bar = "ac", Baz = 2 },
-            new Foo { Bar = "ad", Baz = 2 },
-            new Foo { Bar = null!, Baz = 0 }
+            new Foo { Bar = "aa", Baz = 1, Qux = 1, },
+            new Foo { Bar = "ba", Baz = 1, },
+            new Foo { Bar = "ca", Baz = 2, },
+            new Foo { Bar = "ab", Baz = 2, },
+            new Foo { Bar = "ac", Baz = 2, },
+            new Foo { Bar = "ad", Baz = 2, },
+            new Foo { Bar = null!, Baz = 0, },
         };
     }
-#endif
 
     public class Query1
     {
         [UseFiltering]
         public IEnumerable<Foo> Foos { get; } = new[]
         {
-            new Foo { Bar = "aa", Baz = 1, Qux = 1 },
-            new Foo { Bar = "ba", Baz = 1 },
-            new Foo { Bar = "ca", Baz = 2 },
-            new Foo { Bar = "ab", Baz = 2 },
-            new Foo { Bar = "ac", Baz = 2 },
-            new Foo { Bar = "ad", Baz = 2 },
-            new Foo { Bar = null!, Baz = 0 }
+            new Foo { Bar = "aa", Baz = 1, Qux = 1, },
+            new Foo { Bar = "ba", Baz = 1, },
+            new Foo { Bar = "ca", Baz = 2, },
+            new Foo { Bar = "ab", Baz = 2, },
+            new Foo { Bar = "ac", Baz = 2, },
+            new Foo { Bar = "ad", Baz = 2, },
+            new Foo { Bar = null!, Baz = 0, },
         };
     }
 
@@ -86,13 +81,13 @@ public class FilterAttributeTests
         [UseFiltering(Type = typeof(FooFilterInput))]
         public IEnumerable<Foo> Foos { get; } = new[]
         {
-            new Foo { Bar = "aa", Baz = 1, Qux = 1 },
-            new Foo { Bar = "ba", Baz = 1 },
-            new Foo { Bar = "ca", Baz = 2 },
-            new Foo { Bar = "ab", Baz = 2 },
-            new Foo { Bar = "ac", Baz = 2 },
-            new Foo { Bar = "ad", Baz = 2 },
-            new Foo { Bar = null!, Baz = 0 }
+            new Foo { Bar = "aa", Baz = 1, Qux = 1, },
+            new Foo { Bar = "ba", Baz = 1, },
+            new Foo { Bar = "ca", Baz = 2, },
+            new Foo { Bar = "ab", Baz = 2, },
+            new Foo { Bar = "ac", Baz = 2, },
+            new Foo { Bar = "ad", Baz = 2, },
+            new Foo { Bar = null!, Baz = 0, },
         };
     }
 
@@ -101,13 +96,13 @@ public class FilterAttributeTests
         [UseFiltering(typeof(FooFilterInput))]
         public IEnumerable<Foo> Foos { get; } = new[]
         {
-            new Foo { Bar = "aa", Baz = 1, Qux = 1 },
-            new Foo { Bar = "ba", Baz = 1 },
-            new Foo { Bar = "ca", Baz = 2 },
-            new Foo { Bar = "ab", Baz = 2 },
-            new Foo { Bar = "ac", Baz = 2 },
-            new Foo { Bar = "ad", Baz = 2 },
-            new Foo { Bar = null!, Baz = 0 }
+            new Foo { Bar = "aa", Baz = 1, Qux = 1, },
+            new Foo { Bar = "ba", Baz = 1, },
+            new Foo { Bar = "ca", Baz = 2, },
+            new Foo { Bar = "ab", Baz = 2, },
+            new Foo { Bar = "ac", Baz = 2, },
+            new Foo { Bar = "ad", Baz = 2, },
+            new Foo { Bar = null!, Baz = 0, },
         };
     }
 
@@ -116,11 +111,11 @@ public class FilterAttributeTests
         [UseFiltering]
         public IEnumerable<Bar> Bars { get; } = new[]
         {
-            new Bar { Baz = 1 },
-            new Bar { Baz = 2 },
-            new Bar { Baz = 2 },
-            new Bar { Baz = 2 },
-            new Bar { Baz = 2 },
+            new Bar { Baz = 1, },
+            new Bar { Baz = 2, },
+            new Bar { Baz = 2, },
+            new Bar { Baz = 2, },
+            new Bar { Baz = 2, },
         };
     }
 

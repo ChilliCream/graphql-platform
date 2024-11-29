@@ -1,6 +1,6 @@
 name: Feature Request
 description: Suggest an idea for one of our products.
-labels: [🎉 enhancement]
+type: Feature
 body:
   - type: dropdown
     id: product
@@ -10,7 +10,7 @@ body:
       options:
         - Hot Chocolate
         - Strawberry Shake
-        - Banana Cake Pop
+        - Nitro
         - Green Donut
     validations:
       required: true

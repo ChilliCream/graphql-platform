@@ -4,7 +4,7 @@
   "data": {
     "root": [
       {
-        "barShort": "Rm9vU2hvcnQKczE0"
+        "barShort": "Rm9vU2hvcnQ6MTQ="
       }
     ]
   }
@@ -17,7 +17,7 @@
   "data": {
     "root": [
       {
-        "barShort": "Rm9vU2hvcnQKczEz"
+        "barShort": "Rm9vU2hvcnQ6MTM="
       }
     ]
   }
@@ -29,7 +29,7 @@ nullAnd14
 {
   "errors": [
     {
-      "message": "The provided value for filter \u0060nin\u0060 of type IdOperationFilterInput is invalid. Null values are not supported.",
+      "message": "The provided value for filter `nin` of type IdOperationFilterInput is invalid. Null values are not supported.",
       "locations": [
         {
           "line": 1,
@@ -47,7 +47,7 @@ nullAnd14
     }
   ],
   "data": {
-    "root": []
+    "root": null
   }
 }
 ---------------

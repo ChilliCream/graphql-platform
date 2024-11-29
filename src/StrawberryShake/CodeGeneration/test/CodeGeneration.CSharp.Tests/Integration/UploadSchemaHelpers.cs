@@ -8,7 +8,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar;
 
 public static class UploadSchemaHelpers
 {
-
     public static MemoryStream CreateStream(string str)
     {
         var data = new MemoryStream();
@@ -54,7 +53,7 @@ public static class UploadSchemaHelpers
             if (nested is not null)
             {
                 return string.Join(",",
-                    nested.SelectMany(y => y.Select(x => x?.ReadContents() ?? "null")));
+                    nested.SelectMany(y => y!.Select(x => x?.ReadContents() ?? "null")));
             }
 
             if (objectSingle is not null)
@@ -72,7 +71,7 @@ public static class UploadSchemaHelpers
             {
                 return string.Join(",",
                     objectNested.SelectMany(y
-                        => y.Select(x => x?.Bar!.Baz!.File!.ReadContents() ?? "null")));
+                        => y!.Select(x => x?.Bar!.Baz!.File!.ReadContents() ?? "null")));
             }
 
             return "error";
@@ -84,5 +83,4 @@ public static class UploadSchemaHelpers
     public record Bar(Baz? Baz);
 
     public record Baz(IFile? File);
-
 }

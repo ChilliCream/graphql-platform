@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+      <AssemblyName>HotChocolate.OpenApi</AssemblyName>
+      <RootNamespace>HotChocolate.OpenApi</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <InternalsVisibleTo Include="HotChocolate.OpenApi.Tests"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\..\Core\src\Abstractions\HotChocolate.Abstractions.csproj" />
+      <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
+      <ProjectReference Include="..\..\..\Core\src\Types.Json\HotChocolate.Types.Json.csproj" />
+      <ProjectReference Include="..\..\..\Core\src\Types.Scalars\HotChocolate.Types.Scalars.csproj" />
+      <ProjectReference Include="..\..\..\Skimmed\src\Skimmed\Skimmed.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="JsonPointer.Net" />
+      <PackageReference Include="Microsoft.Extensions.Http" />
+      <PackageReference Include="Microsoft.OpenApi" />
+      <PackageReference Include="Microsoft.OpenApi.Readers" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Update="Properties\OpenApiResources.resx">
+        <Generator>ResXFileCodeGenerator</Generator>
+        <LastGenOutput>OpenApiResources.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="Properties\OpenApiResources.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>OpenApiResources.resx</DependentUpon>
+      </Compile>
+    </ItemGroup>
+
+</Project>

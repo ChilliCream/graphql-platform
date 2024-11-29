@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -10,7 +8,7 @@ namespace StrawberryShake.CodeGeneration.Utilities;
 
 internal sealed class EntityTypeInterceptor : TypeInterceptor
 {
-    private readonly List<TypeInfo> _outputTypes = new();
+    private readonly List<TypeInfo> _outputTypes = [];
     private readonly IReadOnlyList<SelectionSetNode> _globalEntityPatterns;
     private readonly IReadOnlyDictionary<string, SelectionSetNode> _typeEntityPatterns;
 

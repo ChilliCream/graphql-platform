@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using HotChocolate.AspNetCore;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.AspNetCore.Instrumentation;
@@ -7,6 +6,8 @@ using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
+using Microsoft.Extensions.Hosting;
 using static HotChocolate.AspNetCore.ServerDefaults;
 
 // ReSharper disable once CheckNamespace
@@ -43,11 +44,9 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
 
         services.AddGraphQLCore();
         services.TryAddSingleton<IHttpResponseFormatter>(
-            DefaultHttpResponseFormatter.Create(
-                new HttpResponseFormatterOptions
-                {
-                    HttpTransportVersion = HttpTransportVersion.Latest
-                }));
+            sp => DefaultHttpResponseFormatter.Create(
+                new HttpResponseFormatterOptions { HttpTransportVersion = HttpTransportVersion.Latest },
+                sp.GetRequiredService<ITimeProvider>()));
         services.TryAddSingleton<IHttpRequestParser>(
             sp => new DefaultHttpRequestParser(
                 sp.GetRequiredService<IDocumentCache>(),
@@ -61,29 +60,23 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
             {
                 0 => new NoopServerDiagnosticEventListener(),
                 1 => listeners[0],
-                _ => new AggregateServerDiagnosticEventListener(listeners)
+                _ => new AggregateServerDiagnosticEventListener(listeners),
             };
         });
 
-        if (services.All(t => t.ImplementationType !=
-            typeof(HttpContextParameterExpressionBuilder)))
+        if (!services.IsImplementationTypeRegistered<HttpContextParameterExpressionBuilder>())
         {
-            services.AddSingleton<IParameterExpressionBuilder,
-                HttpContextParameterExpressionBuilder>();
+            services.AddSingleton<IParameterExpressionBuilder, HttpContextParameterExpressionBuilder>();
         }
 
-        if (services.All(t => t.ImplementationType !=
-            typeof(HttpRequestParameterExpressionBuilder)))
+        if (!services.IsImplementationTypeRegistered<HttpRequestParameterExpressionBuilder>())
         {
-            services.AddSingleton<IParameterExpressionBuilder,
-                HttpRequestParameterExpressionBuilder>();
+            services.AddSingleton<IParameterExpressionBuilder, HttpRequestParameterExpressionBuilder>();
         }
 
-        if (services.All(t => t.ImplementationType !=
-            typeof(HttpResponseParameterExpressionBuilder)))
+        if (!services.IsImplementationTypeRegistered<HttpResponseParameterExpressionBuilder>())
         {
-            services.AddSingleton<IParameterExpressionBuilder,
-                HttpResponseParameterExpressionBuilder>();
+            services.AddSingleton<IParameterExpressionBuilder, HttpResponseParameterExpressionBuilder>();
         }
 
         return services;
@@ -101,18 +94,43 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// <param name="maxAllowedRequestSize">
     /// The max allowed GraphQL request size.
     /// </param>
+    /// <param name="disableDefaultSecurity">
+    /// Defines if the default security policy should be disabled.
+    /// </param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
     /// </returns>
     public static IRequestExecutorBuilder AddGraphQLServer(
         this IServiceCollection services,
         string? schemaName = default,
-        int maxAllowedRequestSize = MaxAllowedRequestSize)
-        => services
+        int maxAllowedRequestSize = MaxAllowedRequestSize,
+        bool disableDefaultSecurity = false)
+    {
+        var builder = services
             .AddGraphQLServerCore(maxAllowedRequestSize)
             .AddGraphQL(schemaName)
             .AddDefaultHttpRequestInterceptor()
             .AddSubscriptionServices();
+
+        if (!disableDefaultSecurity)
+        {
+            builder.AddCostAnalyzer();
+            builder.DisableIntrospection(
+                (sp, _) =>
+                {
+                    var environment = sp.GetService<IHostEnvironment>();
+                    return environment?.IsDevelopment() == false;
+                });
+            builder.AddMaxAllowedFieldCycleDepthRule(
+                isEnabled: (sp, _) =>
+                {
+                    var environment = sp.GetService<IHostEnvironment>();
+                    return environment?.IsDevelopment() == false;
+                });
+        }
+
+        return builder;
+    }
 
     /// <summary>
     /// Adds a GraphQL server configuration to the DI.
@@ -123,61 +141,17 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// <param name="schemaName">
     /// The name of the schema. Use explicit schema names if you host multiple schemas.
     /// </param>
+    /// <param name="disableDefaultSecurity">
+    /// Defines if the default security policy should be disabled.
+    /// </param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
     /// </returns>
     public static IRequestExecutorBuilder AddGraphQLServer(
         this IRequestExecutorBuilder builder,
-        string? schemaName = default) =>
-        builder.Services.AddGraphQLServer(schemaName);
-
-    [Obsolete(
-        "Use the new configuration API -> " +
-        "services.AddGraphQLServer().AddQueryType<Query>()...")]
-    public static IServiceCollection AddGraphQL(
-        this IServiceCollection services,
-        ISchema schema,
-        int maxAllowedRequestSize = MaxAllowedRequestSize) =>
-        RequestExecutorBuilderLegacyHelper.SetSchema(
-            services
-                .AddGraphQLServerCore(maxAllowedRequestSize)
-                .AddGraphQL()
-                .AddDefaultHttpRequestInterceptor()
-                .AddSubscriptionServices(),
-            schema)
-            .Services;
-
-    [Obsolete(
-        "Use the new configuration API -> " +
-        "services.AddGraphQLServer().AddQueryType<Query>()...")]
-    public static IServiceCollection AddGraphQL(
-        this IServiceCollection services,
-        Func<IServiceProvider, ISchema> schemaFactory,
-        int maxAllowedRequestSize = MaxAllowedRequestSize) =>
-        RequestExecutorBuilderLegacyHelper.SetSchema(
-                services
-                    .AddGraphQLServerCore(maxAllowedRequestSize)
-                    .AddGraphQL()
-                    .AddDefaultHttpRequestInterceptor()
-                    .AddSubscriptionServices(),
-                schemaFactory)
-            .Services;
-
-    [Obsolete(
-        "Use the new configuration API -> " +
-        "services.AddGraphQLServer().AddQueryType<Query>()...")]
-    public static IServiceCollection AddGraphQL(
-        this IServiceCollection services,
-        ISchemaBuilder schemaBuilder,
-        int maxAllowedRequestSize = MaxAllowedRequestSize) =>
-        RequestExecutorBuilderLegacyHelper.SetSchemaBuilder(
-            services
-                .AddGraphQLServerCore(maxAllowedRequestSize)
-                .AddGraphQL()
-                .AddDefaultHttpRequestInterceptor()
-                .AddSubscriptionServices(),
-            schemaBuilder)
-            .Services;
+        string? schemaName = default,
+        bool disableDefaultSecurity = false)
+        => builder.Services.AddGraphQLServer(schemaName, disableDefaultSecurity: disableDefaultSecurity);
 
     /// <summary>
     /// Registers the GraphQL Upload Scalar.

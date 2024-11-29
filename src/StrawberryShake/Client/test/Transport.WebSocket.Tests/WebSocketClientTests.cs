@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using CookieCrumble;
-
 namespace StrawberryShake.Transport.WebSockets;
 
 public class WebSocketClientTests

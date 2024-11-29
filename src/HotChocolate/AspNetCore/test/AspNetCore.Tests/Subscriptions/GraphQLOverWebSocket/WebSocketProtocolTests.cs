@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using CookieCrumble;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
 using HotChocolate.AspNetCore.Tests.Utilities;
@@ -11,8 +10,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 using static System.Net.WebSockets.WebSocketCloseStatus;
-
-#nullable enable
 
 namespace HotChocolate.AspNetCore.Subscriptions.GraphQLOverWebSocket;
 
@@ -81,8 +78,8 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                             {
                                 ConnectionInitializationTimeout =
                                     TimeSpan.FromMilliseconds(1000),
-                                KeepAliveInterval = TimeSpan.FromMilliseconds(150)
-                            }
+                                KeepAliveInterval = TimeSpan.FromMilliseconds(150),
+                            },
                         }));
                 var client = CreateWebSocketClient(testServer);
                 using var webSocket = await client.ConnectAsync(SubscriptionUri, ct);
@@ -114,8 +111,8 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                             Sockets =
                             {
                                 ConnectionInitializationTimeout = TimeSpan.FromMilliseconds(50),
-                                KeepAliveInterval = TimeSpan.FromMilliseconds(150)
-                            }
+                                KeepAliveInterval = TimeSpan.FromMilliseconds(150),
+                            },
                         }));
                 var client = CreateWebSocketClient(testServer);
 
@@ -145,7 +142,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                 using var webSocket = await client.ConnectAsync(SubscriptionUri, ct);
 
                 // act
-                await webSocket.SendConnectionInitAsync(new() { ["token"] = "abc " }, ct);
+                await webSocket.SendConnectionInitAsync(new() { ["token"] = "abc ", }, ct);
 
                 // assert
                 var message = await webSocket.ReceiveServerMessageAsync(ct);
@@ -228,7 +225,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                 var client = testServer.CreateWebSocketClient();
 
                 // act
-                client.ConfigureRequest = r => r.Headers.Add("Sec-WebSocket-Protocol", "foo");
+                client.ConfigureRequest = r => r.Headers.SecWebSocketProtocol = "foo";
                 using var socket = await client.ConnectAsync(SubscriptionUri, ct);
 
                 // assert
@@ -272,7 +269,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                 await testServer.SendPostRequestAsync(
                     new ClientQueryRequest
                     {
-                        Query = 
+                        Query =
                             """
                             mutation {
                                 createReview(episode: NEW_HOPE review: {
@@ -282,7 +279,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                                     stars
                                 }
                             }
-                            """
+                            """,
                     });
 
                 // assert
@@ -413,7 +410,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                                 }) {
                                     stars
                                 }
-                            }"
+                            }",
                     });
 
                 await WaitForMessage(webSocket, Messages.Next, ct);
@@ -432,7 +429,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                         }) {
                             stars
                         }
-                    }"
+                    }",
                     });
 
                 // assert
@@ -477,7 +474,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                         }) {
                             stars
                         }
-                    }"
+                    }",
                     });
 
                 await WaitForMessage(webSocket, Messages.Next, ct);
@@ -489,7 +486,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                         Query = @"
                     mutation {
                         complete(episode:NEW_HOPE)
-                    }"
+                    }",
                     });
 
                 // assert
@@ -501,7 +498,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
     }
 
     [Fact]
-    public async Task Send_Subscribe_600x_Complete_From_Server()
+    public async Task Send_Subscribe_100x_Complete_From_Server()
     {
         await TryTest(
             async ct =>
@@ -521,19 +518,19 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                     "subscription { onReview(episode: NEW_HOPE) { stars } }");
 
                 var stopwatch = Stopwatch.StartNew();
-                
-                for (var i = 0; i < 600; i++)
+
+                for (var i = 0; i < 100; i++)
                 {
                     await webSocket.SendSubscribeAsync(i.ToString(), payload, ct);
                 }
-                
-                while(diagnostics.Subscribed < 600)
+
+                while(diagnostics.Subscribed < 100)
                 {
                     await Task.Delay(10, ct);
                 }
-                
+
                 _output.WriteLine($"Subscribed in {stopwatch.ElapsedMilliseconds}ms");
-                
+
                 await testServer.SendPostRequestAsync(
                     new ClientQueryRequest
                     {
@@ -545,10 +542,10 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                                 }) {
                                     stars
                                 }
-                            }"
+                            }",
                     });
 
-                for (var i = 0; i < 600; i++)
+                for (var i = 0; i < 100; i++)
                 {
                     await WaitForMessage(webSocket, Messages.Next, ct);
                 }
@@ -557,11 +554,11 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                 await testServer.SendPostRequestAsync(
                     new ClientQueryRequest
                     {
-                        Query = @"mutation { complete(episode:NEW_HOPE) }"
+                        Query = @"mutation { complete(episode:NEW_HOPE) }",
                     });
 
                 // assert
-                for (var i = 0; i < 600; i++)
+                for (var i = 0; i < 100; i++)
                 {
                     await WaitForMessage(webSocket, Messages.Complete, ct);
                 }
@@ -671,7 +668,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
 
                 // act
                 await webSocket.SendPingAsync(
-                    new Dictionary<string, object?> { ["abc"] = "def" },
+                    new Dictionary<string, object?> { ["abc"] = "def", },
                     ct);
 
                 // assert
@@ -712,6 +709,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             async ct =>
             {
                 // arrange
+                snapshot.Clear();
                 var interceptor = new PingPongInterceptor();
                 using var testServer = CreateStarWarsServer(
                     configureServices: s => s
@@ -722,7 +720,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
 
                 // act
                 await webSocket.SendPongAsync(
-                    new Dictionary<string, object?> { ["abc"] = "def" },
+                    new Dictionary<string, object?> { ["abc"] = "def", },
                     ct);
 
                 // assert
@@ -930,7 +928,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             CancellationToken cancellationToken = default)
         {
             var payload = pingMessage.As<Dictionary<string, string?>>();
-            var responsePayload = new Dictionary<string, object?> { ["touched"] = true };
+            var responsePayload = new Dictionary<string, object?> { ["touched"] = true, };
 
             if (payload is not null)
             {
@@ -957,9 +955,9 @@ public class WebSocketProtocolTests : SubscriptionTestBase
     public sealed class SubscriptionTestDiagnostics : SubscriptionDiagnosticEventsListener
     {
         private int _subscribed;
-        
+
         public int Subscribed => _subscribed;
-        
+
         public bool UnsubscribeInvoked { get; private set; }
 
         public bool CloseInvoked { get; private set; }

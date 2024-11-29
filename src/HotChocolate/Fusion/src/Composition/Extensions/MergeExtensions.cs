@@ -1,10 +1,11 @@
 using HotChocolate.Skimmed;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Composition;
 
 internal static class MergeExtensions
 {
-    internal static IType? MergeOutputType(IType source, IType target)
+    internal static ITypeDefinition? MergeOutputType(ITypeDefinition source, ITypeDefinition target)
     {
         if (source.Equals(target, TypeComparison.Structural))
         {
@@ -26,7 +27,7 @@ internal static class MergeExtensions
 
                 if (rewrittenType is not null)
                 {
-                    return new ListType(rewrittenType);
+                    return new ListTypeDefinition(rewrittenType);
                 }
             }
 
@@ -48,7 +49,7 @@ internal static class MergeExtensions
 
                 if (rewrittenType is not null)
                 {
-                    return new ListType(rewrittenType);
+                    return new ListTypeDefinition(rewrittenType);
                 }
             }
 
@@ -63,7 +64,7 @@ internal static class MergeExtensions
 
                 if (rewrittenType is not null)
                 {
-                    return new NonNullType(new ListType(rewrittenType));
+                    return new NonNullTypeDefinition(new ListTypeDefinition(rewrittenType));
                 }
             }
             else
@@ -72,7 +73,7 @@ internal static class MergeExtensions
 
                 if (rewrittenType is not null)
                 {
-                    return new ListType(rewrittenType);
+                    return new ListTypeDefinition(rewrittenType);
                 }
             }
         }
@@ -80,7 +81,7 @@ internal static class MergeExtensions
         return null;
     }
 
-    internal static IType? MergeInputType(IType source, IType target)
+    internal static ITypeDefinition? MergeInputType(ITypeDefinition source, ITypeDefinition target)
     {
         if (source.Equals(target, TypeComparison.Structural))
         {
@@ -93,7 +94,7 @@ internal static class MergeExtensions
 
             if (nullableSource.Equals(target, TypeComparison.Structural))
             {
-                return new NonNullType(nullableSource);
+                return new NonNullTypeDefinition(nullableSource);
             }
 
             if (nullableSource.Kind == target.Kind && nullableSource.Kind == TypeKind.List)
@@ -102,7 +103,7 @@ internal static class MergeExtensions
 
                 if (rewrittenType is not null)
                 {
-                    return new NonNullType(new ListType(rewrittenType));
+                    return new NonNullTypeDefinition(new ListTypeDefinition(rewrittenType));
                 }
             }
 
@@ -124,7 +125,7 @@ internal static class MergeExtensions
 
                 if (rewrittenType is not null)
                 {
-                    return new NonNullType(new ListType(rewrittenType));
+                    return new NonNullTypeDefinition(new ListTypeDefinition(rewrittenType));
                 }
             }
 
@@ -139,7 +140,7 @@ internal static class MergeExtensions
 
                 if (rewrittenType is not null)
                 {
-                    return new NonNullType(new ListType(rewrittenType));
+                    return new NonNullTypeDefinition(new ListTypeDefinition(rewrittenType));
                 }
             }
             else
@@ -148,7 +149,7 @@ internal static class MergeExtensions
 
                 if (rewrittenType is not null)
                 {
-                    return new ListType(rewrittenType);
+                    return new ListTypeDefinition(rewrittenType);
                 }
             }
         }
@@ -156,23 +157,94 @@ internal static class MergeExtensions
         return null;
     }
 
-    internal static void MergeDescriptionWith<T>(this T target, T source) where T : IHasDescription
+    internal static void MergeDescriptionWith(this INamedTypeDefinition target, INamedTypeDefinition source)
     {
         if (string.IsNullOrWhiteSpace(target.Description) && !string.IsNullOrWhiteSpace(source.Description))
         {
             target.Description = source.Description;
         }
-    } 
-    
-    internal static void MergeDeprecationWith<T>(this T target, T source) where T : ICanBeDeprecated
+    }
+
+    internal static void MergeDirectivesWith(
+        this IDirectivesProvider target,
+        IDirectivesProvider source,
+        CompositionContext context)
+    {
+        foreach (var directive in source.Directives)
+        {
+            if (context.FusionTypes.IsFusionDirective(directive.Name)
+                // @deprecated is handled separately
+                || directive.Name == BuiltIns.Deprecated.Name
+                // @tag is handled separately
+                || directive.Name == "tag")
+            {
+                continue;
+            }
+
+            context.FusionGraph.DirectiveDefinitions.TryGetDirective(directive.Name, out var directiveDefinition);
+
+            if (!target.Directives.ContainsName(directive.Name))
+            {
+                target.Directives.Add(directive);
+            }
+            else
+            {
+                if (directiveDefinition is not null && directiveDefinition.IsRepeatable)
+                {
+                    target.Directives.Add(directive);
+                }
+            }
+        }
+    }
+
+    internal static void MergeDescriptionWith(this DirectiveDefinition target, DirectiveDefinition source)
+    {
+        if (string.IsNullOrWhiteSpace(target.Description) && !string.IsNullOrWhiteSpace(source.Description))
+        {
+            target.Description = source.Description;
+        }
+    }
+
+    internal static void MergeDescriptionWith(this EnumValue target, EnumValue source)
+    {
+        if (string.IsNullOrWhiteSpace(target.Description) && !string.IsNullOrWhiteSpace(source.Description))
+        {
+            target.Description = source.Description;
+        }
+    }
+
+    internal static void MergeDescriptionWith(this IFieldDefinition target, IFieldDefinition source)
+    {
+        if (string.IsNullOrWhiteSpace(target.Description) && !string.IsNullOrWhiteSpace(source.Description))
+        {
+            target.Description = source.Description;
+        }
+    }
+
+    internal static void MergeDeprecationWith(this IFieldDefinition target, IFieldDefinition source)
     {
         if (!target.IsDeprecated && source.IsDeprecated)
         {
             target.IsDeprecated = true;
         }
-        
-        if (target.IsDeprecated && 
-            string.IsNullOrWhiteSpace(target.DeprecationReason) && 
+
+        if (target.IsDeprecated &&
+            string.IsNullOrWhiteSpace(target.DeprecationReason) &&
+            !string.IsNullOrWhiteSpace(source.DeprecationReason))
+        {
+            target.DeprecationReason = source.DeprecationReason;
+        }
+    }
+
+    internal static void MergeDeprecationWith(this EnumValue target, EnumValue source)
+    {
+        if (!target.IsDeprecated && source.IsDeprecated)
+        {
+            target.IsDeprecated = true;
+        }
+
+        if (target.IsDeprecated &&
+            string.IsNullOrWhiteSpace(target.DeprecationReason) &&
             !string.IsNullOrWhiteSpace(source.DeprecationReason))
         {
             target.DeprecationReason = source.DeprecationReason;

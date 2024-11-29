@@ -9,6 +9,10 @@ namespace HotChocolate.Execution.Options;
 public interface IRequestExecutorOptionsAccessor
     : IErrorHandlerOptionsAccessor
     , IRequestTimeoutOptionsAccessor
-    , IComplexityAnalyzerOptionsAccessor
-    , IPersistedQueryOptionsAccessor
-{ }
+    , IPersistedOperationOptionsAccessor
+{
+    /// <summary>
+    /// Specifies that the transport is allowed to provide the schema SDL document as a file.
+    /// </summary>
+    bool EnableSchemaFileSupport { get; }
+}

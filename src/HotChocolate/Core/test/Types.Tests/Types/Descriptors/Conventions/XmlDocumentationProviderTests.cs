@@ -1,8 +1,5 @@
 using System.Drawing;
-using System.Linq;
 using System.Text.RegularExpressions;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -59,6 +56,25 @@ public class XmlDocumentationProviderTests
         Assert.Equal(
             "null for the default Record.\nSee this and\nthis" +
             " at\nhttps://foo.com/bar/baz.",
+            description);
+    }
+
+    [Fact]
+    public void When_description_has_paramref_tag_then_it_is_converted()
+    {
+        // arrange
+        var documentationProvider = new XmlDocumentationProvider(
+            new XmlDocumentationFileResolver(),
+            new NoOpStringBuilderPool());
+
+        // act
+        var description = documentationProvider.GetDescription(
+            typeof(WithParamrefTagInXmlDoc)
+                .GetMethod(nameof(WithParamrefTagInXmlDoc.Foo))!);
+
+        // assert
+        Assert.Equal(
+            "This is a parameter reference to id.",
             description);
     }
 
@@ -299,7 +315,7 @@ public class XmlDocumentationProviderTests
             typeof(ClassWithSummary));
 
         // assert
-        Assert.Equal("I am a test class.", description);
+        Assert.Equal("I am a test class. This should not be escaped: >", description);
     }
 
     [Fact]
@@ -396,5 +412,21 @@ public class XmlDocumentationProviderTests
 
         // assert
         methodDescription.MatchSnapshot();
+    }
+
+    [Fact]
+    public void When_method_has_dictionary_args_then_it_is_found()
+    {
+        // arrange
+        var documentationProvider = new XmlDocumentationProvider(
+            new XmlDocumentationFileResolver(),
+            new NoOpStringBuilderPool());
+
+        // act
+        var methodDescription = documentationProvider.GetDescription(
+            typeof(WithDictionaryArgs).GetMethod(nameof(WithDictionaryArgs.Method))!);
+
+        // assert
+        Assert.Equal("This is a method description", methodDescription);
     }
 }

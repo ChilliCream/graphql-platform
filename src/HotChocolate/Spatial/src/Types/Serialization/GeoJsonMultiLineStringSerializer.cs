@@ -1,7 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
@@ -28,7 +25,7 @@ internal class GeoJsonMultiLineStringSerializer
             throw new ArgumentNullException(nameof(type));
         }
 
-        if (coordinates is IList { Count: > 0 } list)
+        if (coordinates is IList { Count: > 0, } list)
         {
             if (list.Count == 0)
             {
@@ -55,7 +52,7 @@ internal class GeoJsonMultiLineStringSerializer
             }
         }
 
-        if (coordinates is not Coordinate[][] { Length: > 0 } parts)
+        if (coordinates is not Coordinate[][] { Length: > 0, } parts)
         {
             throw Serializer_Parse_CoordinatesIsInvalid(type);
         }
@@ -139,7 +136,7 @@ internal class GeoJsonMultiLineStringSerializer
                         ParseCoordinateValue(type, geometry)),
                     new ObjectFieldNode(
                         CrsFieldName,
-                        new IntValueNode(geometry.SRID))
+                        new IntValueNode(geometry.SRID)),
                 };
 
             return new ObjectValueNode(list);

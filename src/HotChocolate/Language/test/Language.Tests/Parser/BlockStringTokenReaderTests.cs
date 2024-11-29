@@ -1,6 +1,4 @@
-using System;
 using System.Text;
-using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Language;
@@ -187,7 +185,7 @@ public class BlockStringTokenReaderTests
     private void UnexpectedSyntaxException()
     {
         // arrange
-        var source = new byte[] { 187 };
+        var source = new byte[] { 187, };
         var reader = new Utf8GraphQLReader(source);
         var raised = false;
 

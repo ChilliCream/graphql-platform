@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Types.Relay;
 using static HotChocolate.WellKnownContextData;
 
@@ -8,32 +7,6 @@ namespace HotChocolate;
 
 public static class RelaySchemaBuilderExtensions
 {
-    /// <summary>
-    /// Enables relay schema style.
-    /// </summary>
-    [Obsolete("Use AddGlobalObjectIdentification / AddQueryFieldToMutationPayloads")]
-    public static ISchemaBuilder EnableRelaySupport(
-        this ISchemaBuilder schemaBuilder,
-        RelayOptions? options = null)
-    {
-        options ??= new();
-
-        if (options.AddQueryFieldToMutationPayloads)
-        {
-            MutationPayloadOptions payloadOptions = new()
-            {
-                QueryFieldName = options.QueryFieldName,
-                MutationPayloadPredicate = options.MutationPayloadPredicate
-            };
-
-            schemaBuilder.AddQueryFieldToMutationPayloads(payloadOptions);
-        }
-
-        return schemaBuilder
-            .SetContextData(IsRelaySupportEnabled, 1)
-            .AddGlobalObjectIdentification();
-    }
-
     /// <summary>
     /// Adds a <c>node</c> field to the root query according to the
     /// Global Object Identification specification.
@@ -51,6 +24,8 @@ public static class RelaySchemaBuilderExtensions
         bool registerNodeInterface)
     {
         schemaBuilder.SetContextData(GlobalIdSupportEnabled, 1);
+
+        schemaBuilder.TryAddTypeInterceptor<NodeIdSerializerTypeInterceptor>();
 
         if (registerNodeInterface)
         {

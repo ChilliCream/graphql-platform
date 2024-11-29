@@ -1,8 +1,5 @@
-using System;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
-using Snapshooter.Xunit;
-using Xunit;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types.Relay;
 
@@ -12,31 +9,33 @@ public class IdDescriptorTests
     public async Task Id_On_Arguments()
     {
         // arrange
-        var idSerializer = new IdSerializer();
-        var intId = idSerializer.Serialize("Query", 1);
-        var stringId = idSerializer.Serialize("Query", "abc");
-        var guidId = idSerializer.Serialize("Query", Guid.Empty);
+        var intId = Convert.ToBase64String("Query:1"u8);
+        var stringId = Convert.ToBase64String("Query:abc"u8);
+        var guidId = Convert.ToBase64String(Combine("Another:"u8, Guid.Empty.ToByteArray()));
 
         // act
         var result =
-            await SchemaBuilder.New()
+            await new ServiceCollection()
+                .AddGraphQLServer()
                 .AddQueryType<QueryType>()
                 .AddType<FooPayloadType>()
                 .AddGlobalObjectIdentification(false)
-                .Create()
-                .MakeExecutable()
-                .ExecuteAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                .ExecuteRequestAsync(
+                    OperationRequestBuilder.New()
+                        .SetDocument(
                             @"query foo ($intId: ID! $stringId: ID! $guidId: ID!) {
                                     intId(id: $intId)
                                     stringId(id: $stringId)
                                     guidId(id: $guidId)
                                 }")
-                        .SetVariableValue("intId", intId)
-                        .SetVariableValue("stringId", stringId)
-                        .SetVariableValue("guidId", guidId)
-                        .Create());
+                        .SetVariableValues(
+                            new Dictionary<string, object>
+                            {
+                                { "intId", intId },
+                                { "stringId", stringId },
+                                { "guidId", guidId },
+                            })
+                        .Build());
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -46,33 +45,40 @@ public class IdDescriptorTests
     public async Task Id_On_Objects()
     {
         // arrange
-        var idSerializer = new IdSerializer();
-        var someId = idSerializer.Serialize("Some", 1);
+        var someId = Convert.ToBase64String("Some:1"u8);
+        var anotherId = Convert.ToBase64String("Another:1"u8);
 
         // act
         var result =
-            await SchemaBuilder.New()
+            await new ServiceCollection()
+                .AddGraphQLServer()
                 .AddQueryType<QueryType>()
                 .AddType<FooPayloadType>()
                 .AddGlobalObjectIdentification(false)
-                .Create()
-                .MakeExecutable()
-                .ExecuteAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
-                            @"query foo ($someId: ID!) {
-                                foo(input: { someId: $someId }) {
+                .ExecuteRequestAsync(
+                    OperationRequestBuilder.New()
+                        .SetDocument(
+                            """
+                            query foo ($someId: ID!, $anotherId: ID!) {
+                                foo(input: { someId: $someId, anotherId: $anotherId }) {
                                     someId
+                                    anotherId
                                 }
-                            }")
-                        .SetVariableValue("someId", someId)
-                        .Create());
+                            }
+                            """)
+                        .SetVariableValues(new Dictionary<string, object>
+                        {
+                            { "someId", someId },
+                            { "anotherId", anotherId }
+                        })
+                        .Build());
 
         // assert
         new
         {
             result = result.ToJson(),
-            someId
+            someId,
+            anotherId
         }.MatchSnapshot();
     }
 
@@ -85,6 +91,14 @@ public class IdDescriptorTests
             .Create()
             .ToString()
             .MatchSnapshot();
+    }
+
+    private static byte[] Combine(ReadOnlySpan<byte> s1, ReadOnlySpan<byte> s2)
+    {
+        var buffer = new byte[s1.Length + s2.Length];
+        s1.CopyTo(buffer);
+        s2.CopyTo(buffer.AsSpan()[s1.Length..]);
+        return buffer;
     }
 
     public class QueryType : ObjectType<Query>
@@ -101,7 +115,7 @@ public class IdDescriptorTests
 
             descriptor
                 .Field(t => t.GuidId(default))
-                .Argument("id", a => a.ID());
+                .Argument("id", a => a.ID<Another>());
 
             descriptor
                 .Field(t => t.Foo(default))
@@ -117,6 +131,10 @@ public class IdDescriptorTests
             descriptor
                 .Field(t => t.SomeId)
                 .ID("Some");
+
+            descriptor
+                .Field(t => t.AnotherId)
+                .ID<Another>();
         }
     }
 
@@ -129,6 +147,10 @@ public class IdDescriptorTests
             descriptor
                 .Field(t => t.SomeId)
                 .ID("Bar");
+
+            descriptor
+                .Field(t => t.AnotherId)
+                .ID<Another>();
         }
     }
 
@@ -139,6 +161,10 @@ public class IdDescriptorTests
             descriptor
                 .Field(t => t.SomeId)
                 .ID();
+
+            descriptor
+                .Field(t => t.AnotherId)
+                .ID();
         }
     }
 
@@ -147,21 +173,27 @@ public class IdDescriptorTests
         public string IntId(int id) => id.ToString();
         public string StringId(string id) => id;
         public string GuidId(Guid id) => id.ToString();
-        public IFooPayload Foo(FooInput input) => new FooPayload { SomeId = input.SomeId };
+        public IFooPayload Foo(FooInput input)
+            => new FooPayload { SomeId = input.SomeId, AnotherId = input.AnotherId };
     }
 
     public class FooInput
     {
         public string SomeId { get; set; }
+        public string AnotherId { get; set; }
     }
 
     public class FooPayload : IFooPayload
     {
         public string SomeId { get; set; }
+        public string AnotherId { get; set; }
     }
 
     public interface IFooPayload
     {
         string SomeId { get; set; }
+        string AnotherId { get; set; }
     }
+
+    private class Another;
 }

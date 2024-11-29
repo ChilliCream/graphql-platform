@@ -1,7 +1,5 @@
-﻿using System;
 using HotChocolate.Internal;
 using HotChocolate.Types;
-using Xunit;
 
 namespace HotChocolate.Utilities;
 
@@ -64,6 +62,6 @@ public class BaseTypesTests
 
     public enum FooEnum
     {
-        Bar
+        Bar,
     }
 }

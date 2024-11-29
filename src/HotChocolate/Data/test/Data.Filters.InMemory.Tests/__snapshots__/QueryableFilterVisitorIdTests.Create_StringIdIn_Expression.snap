@@ -4,10 +4,10 @@ testatestAndtestb
   "data": {
     "root": [
       {
-        "bar": "Rm9vCmR0ZXN0YXRlc3Q="
+        "bar": "Rm9vOnRlc3RhdGVzdA=="
       },
       {
-        "bar": "Rm9vCmR0ZXN0YnRlc3Q="
+        "bar": "Rm9vOnRlc3RidGVzdA=="
       }
     ]
   }
@@ -19,7 +19,7 @@ testbtestAndNull
 {
   "errors": [
     {
-      "message": "The provided value for filter \u0060in\u0060 of type IdOperationFilterInput is invalid. Null values are not supported.",
+      "message": "The provided value for filter `in` of type IdOperationFilterInput is invalid. Null values are not supported.",
       "locations": [
         {
           "line": 1,
@@ -37,7 +37,7 @@ testbtestAndNull
     }
   ],
   "data": {
-    "root": []
+    "root": null
   }
 }
 ---------------
@@ -48,7 +48,7 @@ testatest
   "data": {
     "root": [
       {
-        "bar": "Rm9vCmR0ZXN0YXRlc3Q="
+        "bar": "Rm9vOnRlc3RhdGVzdA=="
       }
     ]
   }

@@ -1,6 +1,4 @@
-using CookieCrumble;
 using HotChocolate.Data.Raven.Filters;
-using HotChocolate.Data.Raven.Pagination;
 using HotChocolate.Data.Raven.Paging;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
@@ -16,14 +14,14 @@ namespace HotChocolate.Data;
 [Collection(SchemaCacheCollectionFixture.DefinitionName)]
 public class RavenAsyncDocumentQueryTests
 {
-    private readonly List<Foo> foos = new()
-    {
-        new Foo { Bar = "a" },
-        new Foo { Bar = "b" },
-        new Foo { Bar = "d" },
-        new Foo { Bar = "e" },
-        new Foo { Bar = "f" }
-    };
+    private readonly List<Foo> foos =
+    [
+        new Foo { Bar = "a", },
+        new Foo { Bar = "b", },
+        new Foo { Bar = "d", },
+        new Foo { Bar = "e", },
+        new Foo { Bar = "f", },
+    ];
 
     private readonly SchemaCache _resource;
 
@@ -191,6 +189,9 @@ public class RavenAsyncDocumentQueryTests
         var result = await executor.ExecuteAsync(
             @"{
                 foos(first:1) {
+                    nodes {
+                        bar
+                    }
                     totalCount
                 }
             }");
@@ -257,7 +258,8 @@ public class RavenAsyncDocumentQueryTests
 
         // act
         var result = await executor.ExecuteAsync(
-            @"{
+            """
+            {
                 foosOffset(take: 2 skip: 2) {
                     items {
                         bar
@@ -268,7 +270,8 @@ public class RavenAsyncDocumentQueryTests
                         hasPreviousPage
                     }
                 }
-            }");
+            }
+            """);
 
         // assert
         await Snapshot.Create().AddResult(result).MatchAsync();
@@ -396,7 +399,7 @@ public class RavenAsyncDocumentQueryTests
                                 }
                             })
                         .UsePaging<ObjectType<Foo>>(
-                            options: new PagingOptions { IncludeTotalCount = true });
+                            options: new PagingOptions { IncludeTotalCount = true, });
 
                     descriptor
                         .Field("foosOffset")
@@ -422,7 +425,7 @@ public class RavenAsyncDocumentQueryTests
                                 }
                             })
                         .UseOffsetPaging<ObjectType<Foo>>(
-                            options: new PagingOptions { IncludeTotalCount = true });
+                            options: new PagingOptions { IncludeTotalCount = true, });
                 })
             .UseRequest(
                 next => async context =>
@@ -431,10 +434,10 @@ public class RavenAsyncDocumentQueryTests
                     if (context.ContextData.TryGetValue("query", out var queryString))
                     {
                         context.Result =
-                            QueryResultBuilder
-                                .FromResult(context.Result!.ExpectQueryResult())
+                            OperationResultBuilder
+                                .FromResult(context.Result!.ExpectOperationResult())
                                 .SetContextData("query", queryString)
-                                .Create();
+                                .Build();
                     }
                 })
             .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)

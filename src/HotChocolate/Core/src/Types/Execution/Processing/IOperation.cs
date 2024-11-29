@@ -1,7 +1,5 @@
 #nullable enable
 
-using System;
-using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -62,6 +60,11 @@ public interface IOperation : IHasReadOnlyContextData, IEnumerable<ISelectionSet
     bool HasIncrementalParts { get; }
 
     /// <summary>
+    /// Gets the schema for which this operation is compiled.
+    /// </summary>
+    ISchema Schema { get; }
+
+    /// <summary>
     /// Gets the selection set for the specified <paramref name="selection"/> and
     /// <paramref name="typeContext"/>.
     /// </summary>
@@ -104,4 +107,93 @@ public interface IOperation : IHasReadOnlyContextData, IEnumerable<ISelectionSet
     /// Returns the include flags for the specified variable values.
     /// </returns>
     long CreateIncludeFlags(IVariableValueCollection variables);
+
+    bool TryGetState<TState>(out TState? state);
+
+    bool TryGetState<TState>(string key, out TState? state);
+
+    /// <summary>
+    /// Gets or adds state to this operation.
+    /// </summary>
+    /// <typeparam name="TState">
+    /// The type of the state.
+    /// </typeparam>
+    /// <param name="createState">
+    /// The factory that creates the state if it does not exist.
+    /// </param>
+    /// <returns>
+    /// Returns the state.
+    /// </returns>
+    TState GetOrAddState<TState>(
+        Func<TState> createState);
+
+    /// <summary>
+    /// Gets or adds state to this operation.
+    /// </summary>
+    /// <typeparam name="TState">
+    /// The type of the state.
+    /// </typeparam>
+    /// <typeparam name="TContext">
+    /// The type of the context.
+    /// </typeparam>
+    /// <param name="createState">
+    /// The factory that creates the state if it does not exist.
+    /// </param>
+    /// <param name="context">
+    /// The context that is passed to the factory.
+    /// </param>
+    /// <returns>
+    /// Returns the state.
+    /// </returns>
+    TState GetOrAddState<TState, TContext>(
+        Func<TContext, TState> createState,
+        TContext context);
+
+    /// <summary>
+    /// Gets or adds state to this operation.
+    /// </summary>
+    /// <typeparam name="TState">
+    /// The type of the state.
+    /// </typeparam>
+    /// <typeparam name="TContext">
+    /// The type of the context.
+    /// </typeparam>
+    /// <param name="key">
+    /// The key of the state.
+    /// </param>
+    /// <param name="createState">
+    /// The factory that creates the state if it does not exist.
+    /// </param>
+    /// <returns>
+    /// Returns the state.
+    /// </returns>
+    TState GetOrAddState<TState, TContext>(
+        string key,
+        Func<string, TState> createState);
+
+    /// <summary>
+    /// Gets or adds state to this operation.
+    /// </summary>
+    /// <typeparam name="TState">
+    /// The type of the state.
+    /// </typeparam>
+    /// <typeparam name="TContext">
+    /// The type of the context.
+    /// </typeparam>
+    /// <param name="key">
+    /// The key of the state.
+    /// </param>
+    /// <param name="createState">
+    /// The factory that creates the state if it does not exist.
+    /// </param>
+    /// <param name="context">
+    /// The context that is passed to the factory.
+    /// </param>
+    /// <returns>
+    /// Returns the state.
+    /// </returns>
+    TState GetOrAddState<TState, TContext>(
+        string key,
+        Func<string, TContext, TState> createState,
+        TContext context);
 }

@@ -1,35 +1,10 @@
 namespace HotChocolate.Internal;
 
-public readonly struct TypeComponent
+public readonly record struct TypeComponent(TypeComponentKind Kind, IExtendedType Type)
 {
-    public TypeComponent(TypeComponentKind kind, IExtendedType type)
-    {
-        Kind = kind;
-        Type = type;
-    }
-
-    public TypeComponentKind Kind { get; }
-
-    public IExtendedType Type { get; }
-
-    public override bool Equals(object obj)
-    {
-        return obj is TypeComponent component &&
-               Kind == component.Kind &&
-               Type == component.Type;
-    }
-
-    public override int GetHashCode()
-    {
-        unchecked
-        {
-            return Kind.GetHashCode() * 397 ^ Type.GetHashCode() * 397;
-        }
-    }
-
     public override string ToString() => Kind.ToString();
 
     public static implicit operator TypeComponent(
-        (TypeComponentKind, IExtendedType) component) =>
-        new TypeComponent(component.Item1, component.Item2);
+        (TypeComponentKind, IExtendedType) component)
+        => new(component.Item1, component.Item2);
 }

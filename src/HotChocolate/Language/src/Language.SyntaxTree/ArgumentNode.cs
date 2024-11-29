@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
@@ -34,6 +32,20 @@ public sealed class ArgumentNode : ISyntaxNode
     /// </param>
     public ArgumentNode(string name, int value)
         : this(null, new NameNode(name), new IntValueNode(value))
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="ArgumentNode"/>.
+    /// </summary>
+    /// <param name="name">
+    /// The argument name.
+    /// </param>
+    /// <param name="value">
+    /// The argument value.
+    /// </param>
+    public ArgumentNode(string name, bool value)
+        : this(null, new NameNode(name), new BooleanValueNode(value))
     {
     }
 

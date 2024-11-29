@@ -10,6 +10,7 @@ using Nuke.Common.ProjectModel;
 using System.Linq;
 using System;
 using System.IO;
+using Serilog;
 
 [UnsetVisualStudioEnvironmentVariables]
 partial class Build : NukeBuild
@@ -85,7 +86,6 @@ partial class Build : NukeBuild
                 .OrderBy(p => p.Name)
                 .ToList();
 
-
             var matrix = new
             {
                 include = testProjects.Select(p => new
@@ -100,8 +100,37 @@ partial class Build : NukeBuild
                 RootDirectory / "matrix.json",
                 JsonConvert.SerializeObject(matrix));
         });
-}
 
+    Target Accept => _ => _
+        .Executes(() =>
+        {
+            foreach (var mismatchDir in Directory.GetDirectories(
+                RootDirectory, "__mismatch__", SearchOption.AllDirectories))
+            {
+                Log.Information("Analyzing {0} ...", mismatchDir);
+
+                var snapshotDir = Directory.GetParent(mismatchDir)!.FullName;
+                foreach (var mismatch in Directory.GetFiles(
+                    mismatchDir, "*.*", SearchOption.TopDirectoryOnly))
+                {
+                    var snapshot = Path.Combine(snapshotDir, Path.GetFileName(mismatch));
+                    if (File.Exists(snapshot))
+                    {
+                        File.Delete(snapshot);
+                        File.Move(mismatch, snapshot);
+                    }
+                }
+
+                foreach (var mismatch in Directory.GetFiles(
+                    mismatchDir, "*.*", SearchOption.AllDirectories))
+                {
+                    File.Delete(mismatch);
+                }
+
+                Directory.Delete(mismatchDir, true);
+            }
+        });
+}
 
 [Serializable]
 public class TestProject

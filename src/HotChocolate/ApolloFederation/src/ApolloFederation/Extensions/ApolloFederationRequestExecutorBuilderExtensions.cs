@@ -1,6 +1,7 @@
-using System;
+using HotChocolate.ApolloFederation;
+using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Execution.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+using FederationVersion = HotChocolate.ApolloFederation.FederationVersion;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -15,6 +16,9 @@ public static class ApolloFederationRequestExecutorBuilderExtensions
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
+    /// <param name="version">
+    /// The apollo federation version to use.
+    /// </param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/>.
     /// </returns>
@@ -22,13 +26,18 @@ public static class ApolloFederationRequestExecutorBuilderExtensions
     /// The <paramref name="builder"/> is <c>null</c>.
     /// </exception>
     public static IRequestExecutorBuilder AddApolloFederation(
-        this IRequestExecutorBuilder builder)
+        this IRequestExecutorBuilder builder,
+        FederationVersion version = FederationVersion.Default)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        return builder.ConfigureSchema(s => ApolloFederationSchemaBuilderExtensions.AddApolloFederation(s));
+        ArgumentNullException.ThrowIfNull(builder);
+        builder.SetContextData(FederationContextData.FederationVersion, version);
+        builder.TryAddTypeInterceptor<FederationTypeInterceptor>();
+        builder.BindRuntimeType<Policy, StringType>();
+        builder.AddTypeConverter<Policy, string>(from => from.Value);
+        builder.AddTypeConverter<string, Policy>(from => new Policy(from));
+        builder.BindRuntimeType<Scope, StringType>();
+        builder.AddTypeConverter<Scope, string>(from => from.Value);
+        builder.AddTypeConverter<string, Scope>(from => new Scope(from));
+        return builder;
     }
 }

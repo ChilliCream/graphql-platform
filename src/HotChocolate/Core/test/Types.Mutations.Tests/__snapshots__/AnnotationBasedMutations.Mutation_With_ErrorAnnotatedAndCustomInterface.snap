@@ -1,0 +1,45 @@
+schema {
+  query: Query
+  mutation: MutationWithErrorInterface
+}
+
+interface IErrorInterface {
+  message: String!
+}
+
+interface IInterfaceError {
+  name: String!
+}
+
+interface IInterfaceError2 {
+  name: String!
+}
+
+type AnnotatedPayload {
+  boolean: Boolean
+  errors: [AnnotatedError!]
+}
+
+type ErrorAnnotated implements IErrorInterface & IInterfaceError {
+  message: String!
+  name: String!
+}
+
+type ErrorAnnotatedAndNot implements IErrorInterface & IInterfaceError2 {
+  message: String!
+  name: String!
+}
+
+type MutationWithErrorInterface {
+  annotated(input: AnnotatedInput!): AnnotatedPayload!
+}
+
+type Query {
+  abc: String
+}
+
+union AnnotatedError = ErrorAnnotated | ErrorAnnotatedAndNot
+
+input AnnotatedInput {
+  something: String!
+}

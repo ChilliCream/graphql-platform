@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
+using NodaTime.Text;
 using static HotChocolate.Types.NodaTime.Properties.NodaTimeResources;
 
 namespace HotChocolate.Types.NodaTime;
@@ -16,7 +17,7 @@ public abstract class StringToStructBaseType<TRuntimeType>
     where TRuntimeType : struct
 {
     /// <summary>
-    /// Initializes a new instance of <see cref="StringToStructBaseType"/>.
+    /// Initializes a new instance of <see cref="StringToStructBaseType{TRuntimeType}"/>.
     /// </summary>
     /// <param name="name">
     /// The name of the scalar.
@@ -29,7 +30,7 @@ public abstract class StringToStructBaseType<TRuntimeType>
     /// <inheritdoc />
     protected override TRuntimeType ParseLiteral(StringValueNode literal)
     {
-        if (TryDeserialize(literal.Value, out TRuntimeType? value))
+        if (TryDeserialize(literal.Value, out var value))
         {
             return value.Value;
         }
@@ -107,7 +108,7 @@ public abstract class StringToStructBaseType<TRuntimeType>
             return true;
         }
 
-        if (resultValue is string s && TryDeserialize(s, out TRuntimeType? val))
+        if (resultValue is string s && TryDeserialize(s, out var val))
         {
             runtimeValue = val;
             return true;
@@ -133,4 +134,32 @@ public abstract class StringToStructBaseType<TRuntimeType>
     protected abstract bool TryDeserialize(
         string resultValue,
         [NotNullWhen(true)] out TRuntimeType? runtimeValue);
+
+    protected string CreateDescription(
+        IPattern<TRuntimeType>[] allowedPatterns,
+        string description,
+        string extendedDescription)
+    {
+        if (allowedPatterns.All(PatternMap.ContainsKey))
+        {
+            var patternsText =
+                string.Join("\n", allowedPatterns.Select(p => $"- `{PatternMap[p]}`"));
+            var examplesText =
+                string.Join("\n", allowedPatterns.Select(e => $"- `{ExampleMap[e]}`"));
+
+            return string.Format(extendedDescription, patternsText, examplesText);
+        }
+
+        return description;
+    }
+
+    /// <summary>
+    /// A map from Noda Time patterns to more universal (ISO-like) formats for display purposes.
+    /// </summary>
+    protected abstract Dictionary<IPattern<TRuntimeType>, string> PatternMap { get; }
+
+    /// <summary>
+    /// A map from Noda Time patterns to example strings.
+    /// </summary>
+    protected abstract Dictionary<IPattern<TRuntimeType>, string> ExampleMap { get; }
 }

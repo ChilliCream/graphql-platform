@@ -1,5 +1,3 @@
-using System;
-using System.Security.Cryptography;
 using System.Text;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Descriptors.Operations;
@@ -28,7 +26,7 @@ public class OperationDocumentGenerator : ClassBaseGenerator<OperationDescriptor
             MutationOperationDescriptor => "Mutation",
             QueryOperationDescriptor => "Query",
             SubscriptionOperationDescriptor => "Subscription",
-            _ => throw new ArgumentOutOfRangeException(nameof(descriptor))
+            _ => throw new ArgumentOutOfRangeException(nameof(descriptor)),
         };
 
         var classBuilder = ClassBuilder
@@ -60,7 +58,7 @@ public class OperationDocumentGenerator : ClassBaseGenerator<OperationDescriptor
             .SetType(TypeNames.OperationKind)
             .AsLambda($"{TypeNames.OperationKind}.{operationKind}");
 
-        if (descriptor.Strategy == RequestStrategy.PersistedQuery)
+        if (descriptor.Strategy == RequestStrategy.PersistedOperation)
         {
             classBuilder
                 .AddProperty("Body")

@@ -1,5 +1,3 @@
-using ChilliCream.Testing;
-using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Language.Utilities;

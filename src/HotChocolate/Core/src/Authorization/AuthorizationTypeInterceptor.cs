@@ -1,9 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-#if NET6_0_OR_GREATER
 using System.Runtime.InteropServices;
-#endif
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -19,11 +15,11 @@ namespace HotChocolate.Authorization;
 
 internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 {
-    private readonly List<ObjectTypeInfo> _objectTypes = new();
-    private readonly List<UnionTypeInfo> _unionTypes = new();
+    private readonly List<ObjectTypeInfo> _objectTypes = [];
+    private readonly List<UnionTypeInfo> _unionTypes = [];
     private readonly Dictionary<ObjectType, IDirectiveCollection> _directives = new();
-    private readonly HashSet<TypeReference> _completedTypeRefs = new();
-    private readonly HashSet<RegisteredType> _completedTypes = new();
+    private readonly HashSet<TypeReference> _completedTypeRefs = [];
+    private readonly HashSet<RegisteredType> _completedTypes = [];
     private State? _state;
 
     private IDescriptorContext _context = default!;
@@ -31,8 +27,9 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
     private TypeRegistry _typeRegistry = default!;
     private TypeLookup _typeLookup = default!;
     private ExtensionData _schemaContextData = default!;
+    private ITypeCompletionContext _queryContext = default!;
 
-    internal override uint Position => uint.MaxValue;
+    internal override uint Position => uint.MaxValue - 50;
 
     internal override void InitializeContext(
         IDescriptorContext context,
@@ -47,7 +44,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         _typeLookup = typeLookup;
     }
 
-    public override void OnBeforeCreateSchema(
+    internal override void OnBeforeCreateSchemaInternal(
         IDescriptorContext context,
         ISchemaBuilder schemaBuilder)
     {
@@ -102,13 +99,24 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         FindFieldsAndApplyAuthMiddleware(state);
     }
 
+    public override void OnAfterResolveRootType(
+        ITypeCompletionContext completionContext,
+        ObjectTypeDefinition definition,
+        OperationType operationType)
+    {
+        if (operationType is OperationType.Query)
+        {
+            _queryContext = completionContext;
+        }
+    }
+
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
         DefinitionBase definition)
     {
         // last in the initialization we need to intercept the query type and ensure that
         // authorization configuration is applied to the special introspection and node fields.
-        if ((completionContext.IsQueryType ?? false) &&
+        if (ReferenceEquals(_queryContext, completionContext) &&
             definition is ObjectTypeDefinition typeDef)
         {
             var state = _state ?? throw ThrowHelper.StateNotInitialized();
@@ -204,7 +212,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
                                         typeRef,
                                         out var authTypeRefs))
                                     {
-                                        authTypeRefs = new List<TypeReference>();
+                                        authTypeRefs = [];
                                         state.AbstractToConcrete.Add(typeRef, authTypeRefs);
                                     }
 
@@ -240,7 +248,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
                     if (authTypeRefs is null &&
                         !state.AbstractToConcrete.TryGetValue(unionTypeRef, out authTypeRefs))
                     {
-                        authTypeRefs = new List<TypeReference>();
+                        authTypeRefs = [];
                         state.AbstractToConcrete.Add(unionTypeRef, authTypeRefs);
                     }
 
@@ -381,7 +389,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
             else
             {
                 throw ThrowHelper.UnauthorizedType(
-                    new FieldCoordinate(typeName, fieldDef.Name));
+                    new SchemaCoordinate(typeName, fieldDef.Name));
             }
         }
     }
@@ -582,20 +590,14 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         var directives = (List<DirectiveDefinition>)definition.Directives;
         var length = directives.Count;
 
-#if NET6_0_OR_GREATER
         ref var start = ref MemoryMarshal.GetReference(CollectionsMarshal.AsSpan(directives));
-#endif
 
         for (var i = 0; i < length; i++)
         {
-#if NET6_0_OR_GREATER
             var directiveDef = Unsafe.Add(ref start, i);
-#else
-            var directiveDef = directives[i];
-#endif
 
-            if (directiveDef.Type is NameDirectiveReference { Name: Authorize } ||
-                (directiveDef.Type is ExtendedTypeDirectiveReference { Type.Type: { } type } &&
+            if (directiveDef.Type is NameDirectiveReference { Name: Authorize, } ||
+                (directiveDef.Type is ExtendedTypeDirectiveReference { Type.Type: { } type, } &&
                     type == typeof(AuthorizeDirective)))
             {
                 return true;

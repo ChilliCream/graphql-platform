@@ -1,7 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace StrawberryShake.Transport.WebSockets;
 
 /// <summary>
@@ -35,12 +31,12 @@ internal sealed class SynchronizedMessageWriter : IAsyncDisposable
         Action<SocketMessageWriter> action,
         CancellationToken cancellationToken)
     {
+        await _semaphore
+            .WaitAsync(cancellationToken)
+            .ConfigureAwait(false);
+
         try
         {
-            await _semaphore
-                .WaitAsync(cancellationToken)
-                .ConfigureAwait(false);
-
             _socketMessageWriter.Reset();
             action.Invoke(_socketMessageWriter);
 

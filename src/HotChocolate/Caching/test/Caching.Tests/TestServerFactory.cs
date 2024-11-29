@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
@@ -9,7 +7,7 @@ namespace HotChocolate.Caching.Http.Tests;
 
 public class TestServerFactory : IDisposable
 {
-    private readonly List<TestServer> _instances = new List<TestServer>();
+    private readonly List<TestServer> _instances = [];
 
     public TestServer Create(
         Action<IServiceCollection> configureServices,

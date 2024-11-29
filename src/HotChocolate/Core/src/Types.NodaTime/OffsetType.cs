@@ -18,13 +18,6 @@ public class OffsetType : StringToStructBaseType<Offset>
     /// <summary>
     /// Initializes a new instance of <see cref="OffsetType"/>.
     /// </summary>
-    public OffsetType() : this(OffsetPattern.GeneralInvariantWithZ)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of <see cref="OffsetType"/>.
-    /// </summary>
     public OffsetType(params IPattern<Offset>[] allowedPatterns) : base("Offset")
     {
         if (allowedPatterns.Length == 0)
@@ -34,7 +27,19 @@ public class OffsetType : StringToStructBaseType<Offset>
 
         _allowedPatterns = allowedPatterns;
         _serializationPattern = allowedPatterns[0];
-        Description = NodaTimeResources.OffsetType_Description;
+
+        Description = CreateDescription(
+            allowedPatterns,
+            NodaTimeResources.OffsetType_Description,
+            NodaTimeResources.OffsetType_Description_Extended);
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="OffsetType"/>.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public OffsetType() : this(OffsetPattern.GeneralInvariantWithZ)
+    {
     }
 
     /// <inheritdoc />
@@ -47,4 +52,16 @@ public class OffsetType : StringToStructBaseType<Offset>
         string resultValue,
         [NotNullWhen(true)] out Offset? runtimeValue)
         => _allowedPatterns.TryParse(resultValue, out runtimeValue);
+
+    protected override Dictionary<IPattern<Offset>, string> PatternMap => new()
+    {
+        { OffsetPattern.GeneralInvariant, "±hh:mm:ss" },
+        { OffsetPattern.GeneralInvariantWithZ, "Z" }
+    };
+
+    protected override Dictionary<IPattern<Offset>, string> ExampleMap => new()
+    {
+        { OffsetPattern.GeneralInvariant, "+02:30:00" },
+        { OffsetPattern.GeneralInvariantWithZ, "Z" }
+    };
 }

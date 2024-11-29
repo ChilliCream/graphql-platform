@@ -1,9 +1,9 @@
-﻿{
+{
   "Headers": [
     {
       "Key": "Cache-Control",
       "Value": [
-        "public, max-age=2000"
+        "max-age=2000"
       ]
     }
   ],

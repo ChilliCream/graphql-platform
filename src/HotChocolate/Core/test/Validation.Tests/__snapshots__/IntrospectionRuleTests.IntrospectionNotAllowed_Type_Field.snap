@@ -1,82 +1,27 @@
-﻿[
+[
   {
     "Message": "Introspection is not allowed for the current request.",
     "Code": "HC0046",
     "Path": null,
     "Locations": [
       {
-        "Line": 3,
-        "Column": 21
+        "Line": 2,
+        "Column": 5
       }
     ],
     "Extensions": {
       "field": {
         "Kind": "Name",
         "Location": {
-          "Start": 39,
-          "End": 46,
-          "Line": 3,
-          "Column": 21
+          "Start": 6,
+          "End": 13,
+          "Line": 2,
+          "Column": 5
         },
         "Value": "__type"
       },
       "code": "HC0046"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "Field",
-      "Alias": null,
-      "Arguments": [
-        {
-          "Kind": "Argument",
-          "Location": {
-            "Start": 46,
-            "End": 58,
-            "Line": 3,
-            "Column": 28
-          },
-          "Name": {
-            "Kind": "Name",
-            "Location": {
-              "Start": 46,
-              "End": 51,
-              "Line": 3,
-              "Column": 28
-            },
-            "Value": "name"
-          },
-          "Value": {
-            "Kind": "StringValue",
-            "Location": {
-              "Start": 52,
-              "End": 58,
-              "Line": 3,
-              "Column": 34
-            },
-            "Value": "foo",
-            "Block": false
-          }
-        }
-      ],
-      "Required": null,
-      "SelectionSet": null,
-      "Location": {
-        "Start": 39,
-        "End": 76,
-        "Line": 3,
-        "Column": 21
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 39,
-          "End": 46,
-          "Line": 3,
-          "Column": 21
-        },
-        "Value": "__type"
-      },
-      "Directives": []
-    }
+    "Exception": null
   }
 ]

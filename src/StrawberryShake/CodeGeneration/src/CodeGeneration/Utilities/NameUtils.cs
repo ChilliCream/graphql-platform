@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text;
 using HotChocolate;
 using StrawberryShake.CodeGeneration.CSharp;
+using Path = HotChocolate.Path;
 
 namespace StrawberryShake.CodeGeneration.Utilities;
 
@@ -27,7 +28,7 @@ public static class NameUtils
         var builder = new StringBuilder();
         var current = path;
 
-        while (current is not null or { IsRoot: false })
+        while (current is not null or { IsRoot: false, })
         {
             if (current is NamePathSegment nameSegment)
             {
@@ -71,6 +72,11 @@ public static class NameUtils
             if (enumValue[i] == '_')
             {
                 upper = true;
+
+                if (i == 0)
+                {
+                    value.Append('_');
+                }
             }
             else if (upper)
             {
@@ -98,10 +104,9 @@ public static class NameUtils
 
     public static string GetLeftPropertyAssignment(string property)
     {
-        if (property is { Length: >0 } && property[0] == '_')
+        if (property is { Length: >0, } && property[0] == '_')
         {
             return $"this.{property}";
-
         }
 
         return property;

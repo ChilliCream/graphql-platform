@@ -1,4 +1,3 @@
-using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using HotChocolate.Types.Descriptors;
@@ -34,12 +33,10 @@ public class UseOffsetPagingAttribute : DescriptorAttribute
         Order = order;
     }
 
-
     /// <summary>
     /// The schema type representation of the item type.
     /// </summary>
     public Type? Type { get; private set; }
-
 
     /// <summary>
     /// Specifies the collection segment name.
@@ -121,7 +118,7 @@ public class UseOffsetPagingAttribute : DescriptorAttribute
                     IncludeTotalCount = _includeTotalCount,
                     RequirePagingBoundaries = _requirePagingBoundaries,
                     ProviderName = ProviderName,
-                    InferCollectionSegmentNameFromField = _inferCollectionSegmentNameFromField
+                    InferCollectionSegmentNameFromField = _inferCollectionSegmentNameFromField,
                 });
         }
 
@@ -139,7 +136,7 @@ public class UseOffsetPagingAttribute : DescriptorAttribute
                     IncludeTotalCount = _includeTotalCount,
                     RequirePagingBoundaries = _requirePagingBoundaries,
                     ProviderName = ProviderName,
-                    InferCollectionSegmentNameFromField = _inferCollectionSegmentNameFromField
+                    InferCollectionSegmentNameFromField = _inferCollectionSegmentNameFromField,
                 });
         }
     }

@@ -1,4 +1,3 @@
-using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using HotChocolate.Subscriptions.Diagnostics;
@@ -12,7 +11,7 @@ public sealed class SubscriptionTestDiagnostics : SubscriptionDiagnosticEventsLi
 
     private readonly JsonSerializerOptions _options = new(JsonSerializerDefaults.Web)
     {
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     };
 
     public SubscriptionTestDiagnostics(ITestOutputHelper output)

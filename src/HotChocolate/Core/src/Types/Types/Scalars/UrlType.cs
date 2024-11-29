@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -14,15 +13,6 @@ public class UrlType : ScalarType<Uri, StringValueNode>
     /// <summary>
     /// Initializes a new instance of the <see cref="UrlType"/> class.
     /// </summary>
-    public UrlType()
-        : this(ScalarNames.URL, bind: BindingBehavior.Implicit)
-    {
-        SpecifiedBy = new Uri(_specifiedBy);
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="UrlType"/> class.
-    /// </summary>
     public UrlType(
         string name,
         string? description = null,
@@ -30,6 +20,16 @@ public class UrlType : ScalarType<Uri, StringValueNode>
         : base(name, bind)
     {
         Description = description;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UrlType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public UrlType()
+        : this(ScalarNames.URL, bind: BindingBehavior.Implicit)
+    {
+        SpecifiedBy = new Uri(_specifiedBy);
     }
 
     protected override bool IsInstanceOfType(StringValueNode valueSyntax)

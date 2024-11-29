@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Features;
 using HotChocolate.Skimmed;
-using static HotChocolate.Fusion.Composition.WellKnownContextData;
 
 namespace HotChocolate.Fusion.Composition;
 
@@ -9,9 +9,9 @@ internal static class TypeExtensions
     public static void TryApplySource<T>(
         this CompositionContext context,
         T source,
-        Schema sourceSchema,
+        SchemaDefinition sourceSchema,
         T target)
-        where T : ITypeSystemMember, IHasContextData, IHasDirectives
+        where T : ITypeSystemMemberDefinition, IFeatureProvider, IDirectivesProvider
         => TryApplySource(context, source, sourceSchema.Name, target);
 
     public static void TryApplySource<T>(
@@ -19,8 +19,13 @@ internal static class TypeExtensions
         T source,
         string subgraphName,
         T target)
-        where T : ITypeSystemMember, IHasContextData, IHasDirectives
+        where T : ITypeSystemMemberDefinition, IFeatureProvider, IDirectivesProvider
     {
+        if (target.ContainsInternalDirective())
+        {
+            return;
+        }
+
         if (source.TryGetOriginalName(out var originalName))
         {
             target.Directives.Add(
@@ -33,9 +38,9 @@ internal static class TypeExtensions
     public static void ApplySource<T>(
         this CompositionContext context,
         T source,
-        Schema sourceSchema,
+        SchemaDefinition sourceSchema,
         T target)
-        where T : ITypeSystemMember, IHasContextData, IHasDirectives
+        where T : ITypeSystemMemberDefinition, IFeatureProvider, IDirectivesProvider
         => ApplySource(context, source, sourceSchema.Name, target);
 
     public static void ApplySource<T>(
@@ -43,8 +48,13 @@ internal static class TypeExtensions
         T source,
         string subgraphName,
         T target)
-        where T : ITypeSystemMember, IHasContextData, IHasDirectives
+        where T : ITypeSystemMemberDefinition, IFeatureProvider, IDirectivesProvider
     {
+        if (target.ContainsInternalDirective())
+        {
+            return;
+        }
+
         if (source.TryGetOriginalName(out var originalName))
         {
             target.Directives.Add(
@@ -63,21 +73,22 @@ internal static class TypeExtensions
     public static bool TryGetOriginalName<T>(
         this T member,
         [NotNullWhen(true)] out string? originalName)
-        where T : ITypeSystemMember, IHasContextData
+        where T : ITypeSystemMemberDefinition, IFeatureProvider
     {
-        if (member.ContextData.TryGetValue(OriginalName, out var value) &&
-            value is string s)
+        var metadata = member.Features.Get<FusionMemberMetadata>();
+
+        if(metadata?.OriginalName is null)
         {
-            originalName = s;
-            return true;
+            originalName = null;
+            return false;
         }
 
-        originalName = null;
-        return false;
+        originalName = metadata.OriginalName;
+        return true;
     }
 
     public static string GetOriginalName<T>(this T member)
-        where T : IHasName, IHasContextData
+        where T : INameProvider, IFeatureProvider
         => member.TryGetOriginalName(out var originalName)
             ? originalName
             : member.Name;

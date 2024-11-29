@@ -1,8 +1,4 @@
-using System;
-using System.Linq;
 using HotChocolate.Language;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types;
 
@@ -178,7 +174,7 @@ public class EnumTypeExtensionTests
     {
         Bar,
         Baz,
-        Quox
+        Quox,
     }
 
     public class DummyDirective

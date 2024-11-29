@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -14,16 +13,16 @@ namespace HotChocolate.Data.MongoDb.Sorting;
 public class MongoDbSortCollectionTests : IClassFixture<MongoResource>
 {
     private static readonly Foo[] _fooEntities =
-    {
-        new() { Bar = true },
-        new() { Bar = false }
-    };
+    [
+        new() { Bar = true, },
+        new() { Bar = false, },
+    ];
 
     private static readonly Bar[] _barEntities =
-    {
-        new() { Baz = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero) },
-        new() { Baz = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero) }
-    };
+    [
+        new() { Baz = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero), },
+        new() { Baz = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero), },
+    ];
 
     private readonly MongoResource _resource;
 
@@ -48,20 +47,20 @@ public class MongoDbSortCollectionTests : IClassFixture<MongoResource>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: { bar: ASC}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(order: { bar: ASC}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: { bar: DESC}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(order: { bar: DESC}){ bar}}")
+                .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "ASC"), res2, "DESC")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "ASC")
+            .AddResult(res2, "DESC")
             .MatchAsync();
     }
 
@@ -86,26 +85,27 @@ public class MongoDbSortCollectionTests : IClassFixture<MongoResource>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: { baz: ASC}){ baz}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(order: { baz: ASC}){ baz}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: { baz: DESC}){ baz}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(order: { baz: DESC}){ baz}}")
+                .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "ASC"), res2, "DESC")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "ASC")
+            .AddResult(res2, "DESC")
             .MatchAsync();
     }
 
     public class Foo
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         [BsonElement("renameTest")]
@@ -115,6 +115,7 @@ public class MongoDbSortCollectionTests : IClassFixture<MongoResource>
     public class Bar
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public DateTimeOffset Baz { get; set; }
@@ -151,10 +152,10 @@ public class MongoDbSortCollectionTests : IClassFixture<MongoResource>
                     if (context.ContextData.TryGetValue("query", out var queryString))
                     {
                         context.Result =
-                            QueryResultBuilder
-                                .FromResult(context.Result!.ExpectQueryResult())
+                            OperationResultBuilder
+                                .FromResult(context.Result!.ExpectOperationResult())
                                 .SetContextData("query", queryString)
-                                .Create();
+                                .Build();
                     }
                 })
             .UseDefaultPipeline()

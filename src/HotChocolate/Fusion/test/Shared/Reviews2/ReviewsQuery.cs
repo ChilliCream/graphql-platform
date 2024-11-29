@@ -6,7 +6,7 @@ namespace HotChocolate.Fusion.Shared.Reviews2;
 public sealed class ReviewsQuery
 {
     public Viewer Viewer { get; } = new();
-    
+
     public IEnumerable<Review> GetReviews(
         [Service] ReviewRepository repository)
         => repository.GetReviews();

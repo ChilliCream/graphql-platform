@@ -885,6 +885,18 @@
               },
               "IsDeprecated": false,
               "DeprecationReason": null
+            },
+            {
+              "Name": "oneOf",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "Kind": "Scalar",
+                "Name": "Boolean",
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
             }
           ],
           "InputFields": null,
@@ -984,6 +996,33 @@
               "DeprecationReason": null
             },
             {
+              "Name": "heroByTraits",
+              "Description": null,
+              "Args": [
+                {
+                  "Name": "traits",
+                  "Description": null,
+                  "Type": {
+                    "Kind": "NonNull",
+                    "Name": null,
+                    "OfType": {
+                      "Kind": "Scalar",
+                      "Name": "JSON",
+                      "OfType": null
+                    }
+                  },
+                  "DefaultValue": null
+                }
+              ],
+              "Type": {
+                "Kind": "Interface",
+                "Name": "Character",
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
               "Name": "heroes",
               "Description": null,
               "Args": [
@@ -991,15 +1030,18 @@
                   "Name": "episodes",
                   "Description": null,
                   "Type": {
-                    "Kind": "List",
+                    "Kind": "NonNull",
                     "Name": null,
                     "OfType": {
-                      "Kind": "NonNull",
+                      "Kind": "List",
                       "Name": null,
                       "OfType": {
-                        "Kind": "Enum",
-                        "Name": "Episode",
-                        "OfType": null
+                        "Kind": "NonNull",
+                        "Name": null,
+                        "OfType": {
+                          "Kind": "Enum",
+                          "Name": "Episode"
+                        }
                       }
                     }
                   },
@@ -1030,12 +1072,19 @@
                   "Name": "characterIds",
                   "Description": null,
                   "Type": {
-                    "Kind": "List",
+                    "Kind": "NonNull",
                     "Name": null,
                     "OfType": {
-                      "Kind": "Scalar",
-                      "Name": "String",
-                      "OfType": null
+                      "Kind": "List",
+                      "Name": null,
+                      "OfType": {
+                        "Kind": "NonNull",
+                        "Name": null,
+                        "OfType": {
+                          "Kind": "Scalar",
+                          "Name": "String"
+                        }
+                      }
                     }
                   },
                   "DefaultValue": null
@@ -1068,9 +1117,13 @@
                   "Name": "text",
                   "Description": null,
                   "Type": {
-                    "Kind": "Scalar",
-                    "Name": "String",
-                    "OfType": null
+                    "Kind": "NonNull",
+                    "Name": null,
+                    "OfType": {
+                      "Kind": "Scalar",
+                      "Name": "String",
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": null
                 }
@@ -1095,9 +1148,13 @@
                   "Name": "id",
                   "Description": null,
                   "Type": {
-                    "Kind": "Scalar",
-                    "Name": "String",
-                    "OfType": null
+                    "Kind": "NonNull",
+                    "Name": null,
+                    "OfType": {
+                      "Kind": "Scalar",
+                      "Name": "String",
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": null
                 }
@@ -1118,9 +1175,13 @@
                   "Name": "id",
                   "Description": null,
                   "Type": {
-                    "Kind": "Scalar",
-                    "Name": "String",
-                    "OfType": null
+                    "Kind": "NonNull",
+                    "Name": null,
+                    "OfType": {
+                      "Kind": "Scalar",
+                      "Name": "String",
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": null
                 }
@@ -1420,6 +1481,18 @@
               },
               "IsDeprecated": false,
               "DeprecationReason": null
+            },
+            {
+              "Name": "traits",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "Kind": "Scalar",
+                "Name": "JSON",
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
             }
           ],
           "InputFields": null,
@@ -1569,6 +1642,18 @@
               "Type": {
                 "Kind": "Scalar",
                 "Name": "String",
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "Name": "traits",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "Kind": "Scalar",
+                "Name": "JSON",
                 "OfType": null
               },
               "IsDeprecated": false,
@@ -1747,6 +1832,18 @@
                   "Name": "Episode",
                   "OfType": null
                 }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "Name": "traits",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "Kind": "Scalar",
+                "Name": "JSON",
+                "OfType": null
               },
               "IsDeprecated": false,
               "DeprecationReason": null
@@ -1995,6 +2092,16 @@
               "DeprecationReason": null
             }
           ],
+          "PossibleTypes": null
+        },
+        {
+          "Kind": "Scalar",
+          "Name": "JSON",
+          "Description": null,
+          "Fields": null,
+          "InputFields": null,
+          "Interfaces": null,
+          "EnumValues": null,
           "PossibleTypes": null
         },
         {
@@ -2313,23 +2420,96 @@
           "OnField": false
         },
         {
-          "Name": "export",
-          "Description": null,
+          "Name": "cost",
+          "Description": "The purpose of the `cost` directive is to define a `weight` for GraphQL types, fields, and arguments. Static analysis can use these weights when calculating the overall cost of a query or response.",
           "Args": [
             {
-              "Name": "as",
-              "Description": null,
+              "Name": "weight",
+              "Description": "The `weight` argument defines what value to add to the overall cost for every appearance, or possible appearance, of a type, field, argument, etc.",
               "Type": {
-                "Kind": "Scalar",
-                "Name": "String",
-                "OfType": null
+                "Kind": "NonNull",
+                "Name": null,
+                "OfType": {
+                  "Kind": "Scalar",
+                  "Name": "String",
+                  "OfType": null
+                }
               },
               "DefaultValue": null
             }
           ],
           "OnOperation": false,
           "OnFragment": false,
-          "OnField": true
+          "OnField": false
+        },
+        {
+          "Name": "listSize",
+          "Description": "The purpose of the `@listSize` directive is to either inform the static analysis about the size of returned lists (if that information is statically available), or to point the analysis to where to find that information.",
+          "Args": [
+            {
+              "Name": "assumedSize",
+              "Description": "The `assumedSize` argument can be used to statically define the maximum length of a list returned by a field.",
+              "Type": {
+                "Kind": "Scalar",
+                "Name": "Int",
+                "OfType": null
+              },
+              "DefaultValue": null
+            },
+            {
+              "Name": "slicingArguments",
+              "Description": "The `slicingArguments` argument can be used to define which of the field's arguments with numeric type are slicing arguments, so that their value determines the size of the list returned by that field. It may specify a list of multiple slicing arguments.",
+              "Type": {
+                "Kind": "List",
+                "Name": null,
+                "OfType": {
+                  "Kind": "NonNull",
+                  "Name": null,
+                  "OfType": {
+                    "Kind": "Scalar",
+                    "Name": "String",
+                    "OfType": null
+                  }
+                }
+              },
+              "DefaultValue": null
+            },
+            {
+              "Name": "sizedFields",
+              "Description": "The `sizedFields` argument can be used to define that the value of the `assumedSize` argument or of a slicing argument does not affect the size of a list returned by a field itself, but that of a list returned by one of its sub-fields.",
+              "Type": {
+                "Kind": "List",
+                "Name": null,
+                "OfType": {
+                  "Kind": "NonNull",
+                  "Name": null,
+                  "OfType": {
+                    "Kind": "Scalar",
+                    "Name": "String",
+                    "OfType": null
+                  }
+                }
+              },
+              "DefaultValue": null
+            },
+            {
+              "Name": "requireOneSlicingArgument",
+              "Description": "The `requireOneSlicingArgument` argument can be used to inform the static analysis that it should expect that exactly one of the defined slicing arguments is present in a query. If that is not the case (i.e., if none or multiple slicing arguments are present), the static analysis may throw an error.",
+              "Type": {
+                "Kind": "NonNull",
+                "Name": null,
+                "OfType": {
+                  "Kind": "Scalar",
+                  "Name": "Boolean",
+                  "OfType": null
+                }
+              },
+              "DefaultValue": "true"
+            }
+          ],
+          "OnOperation": false,
+          "OnFragment": false,
+          "OnField": false
         }
       ]
     }
@@ -3925,6 +4105,26 @@
               },
               "IsDeprecated": false,
               "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
+              "Name": "oneOf",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "__typename": "__Type",
+                "Name": "Boolean",
+                "Kind": "Scalar",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
             }
           ],
           "InputFields": null,
@@ -4060,6 +4260,56 @@
             },
             {
               "__typename": "__Field",
+              "Name": "heroByTraits",
+              "Description": null,
+              "Args": [
+                {
+                  "__typename": "__InputValue",
+                  "Name": "traits",
+                  "Description": null,
+                  "Type": {
+                    "__typename": "__Type",
+                    "Name": null,
+                    "Kind": "NonNull",
+                    "Description": null,
+                    "Fields": null,
+                    "InputFields": null,
+                    "Interfaces": null,
+                    "EnumValues": null,
+                    "PossibleTypes": null,
+                    "OfType": {
+                      "__typename": "__Type",
+                      "Name": "JSON",
+                      "Kind": "Scalar",
+                      "Description": null,
+                      "Fields": null,
+                      "InputFields": null,
+                      "Interfaces": null,
+                      "EnumValues": null,
+                      "PossibleTypes": null,
+                      "OfType": null
+                    }
+                  },
+                  "DefaultValue": null
+                }
+              ],
+              "Type": {
+                "__typename": "__Type",
+                "Name": "Character",
+                "Kind": "Interface",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
               "Name": "heroes",
               "Description": null,
               "Args": [
@@ -4070,7 +4320,7 @@
                   "Type": {
                     "__typename": "__Type",
                     "Name": null,
-                    "Kind": "List",
+                    "Kind": "NonNull",
                     "Description": null,
                     "Fields": null,
                     "InputFields": null,
@@ -4080,7 +4330,7 @@
                     "OfType": {
                       "__typename": "__Type",
                       "Name": null,
-                      "Kind": "NonNull",
+                      "Kind": "List",
                       "Description": null,
                       "Fields": null,
                       "InputFields": null,
@@ -4089,15 +4339,26 @@
                       "PossibleTypes": null,
                       "OfType": {
                         "__typename": "__Type",
-                        "Name": "Episode",
-                        "Kind": "Enum",
+                        "Name": null,
+                        "Kind": "NonNull",
                         "Description": null,
                         "Fields": null,
                         "InputFields": null,
                         "Interfaces": null,
                         "EnumValues": null,
                         "PossibleTypes": null,
-                        "OfType": null
+                        "OfType": {
+                          "__typename": "__Type",
+                          "Name": "Episode",
+                          "Kind": "Enum",
+                          "Description": null,
+                          "Fields": null,
+                          "InputFields": null,
+                          "Interfaces": null,
+                          "EnumValues": null,
+                          "PossibleTypes": null,
+                          "OfType": null
+                        }
                       }
                     }
                   },
@@ -4153,7 +4414,7 @@
                   "Type": {
                     "__typename": "__Type",
                     "Name": null,
-                    "Kind": "List",
+                    "Kind": "NonNull",
                     "Description": null,
                     "Fields": null,
                     "InputFields": null,
@@ -4162,15 +4423,37 @@
                     "PossibleTypes": null,
                     "OfType": {
                       "__typename": "__Type",
-                      "Name": "String",
-                      "Kind": "Scalar",
+                      "Name": null,
+                      "Kind": "List",
                       "Description": null,
                       "Fields": null,
                       "InputFields": null,
                       "Interfaces": null,
                       "EnumValues": null,
                       "PossibleTypes": null,
-                      "OfType": null
+                      "OfType": {
+                        "__typename": "__Type",
+                        "Name": null,
+                        "Kind": "NonNull",
+                        "Description": null,
+                        "Fields": null,
+                        "InputFields": null,
+                        "Interfaces": null,
+                        "EnumValues": null,
+                        "PossibleTypes": null,
+                        "OfType": {
+                          "__typename": "__Type",
+                          "Name": "String",
+                          "Kind": "Scalar",
+                          "Description": null,
+                          "Fields": null,
+                          "InputFields": null,
+                          "Interfaces": null,
+                          "EnumValues": null,
+                          "PossibleTypes": null,
+                          "OfType": null
+                        }
+                      }
                     }
                   },
                   "DefaultValue": null
@@ -4235,15 +4518,26 @@
                   "Description": null,
                   "Type": {
                     "__typename": "__Type",
-                    "Name": "String",
-                    "Kind": "Scalar",
+                    "Name": null,
+                    "Kind": "NonNull",
                     "Description": null,
                     "Fields": null,
                     "InputFields": null,
                     "Interfaces": null,
                     "EnumValues": null,
                     "PossibleTypes": null,
-                    "OfType": null
+                    "OfType": {
+                      "__typename": "__Type",
+                      "Name": "String",
+                      "Kind": "Scalar",
+                      "Description": null,
+                      "Fields": null,
+                      "InputFields": null,
+                      "Interfaces": null,
+                      "EnumValues": null,
+                      "PossibleTypes": null,
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": null
                 }
@@ -4285,15 +4579,26 @@
                   "Description": null,
                   "Type": {
                     "__typename": "__Type",
-                    "Name": "String",
-                    "Kind": "Scalar",
+                    "Name": null,
+                    "Kind": "NonNull",
                     "Description": null,
                     "Fields": null,
                     "InputFields": null,
                     "Interfaces": null,
                     "EnumValues": null,
                     "PossibleTypes": null,
-                    "OfType": null
+                    "OfType": {
+                      "__typename": "__Type",
+                      "Name": "String",
+                      "Kind": "Scalar",
+                      "Description": null,
+                      "Fields": null,
+                      "InputFields": null,
+                      "Interfaces": null,
+                      "EnumValues": null,
+                      "PossibleTypes": null,
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": null
                 }
@@ -4324,15 +4629,26 @@
                   "Description": null,
                   "Type": {
                     "__typename": "__Type",
-                    "Name": "String",
-                    "Kind": "Scalar",
+                    "Name": null,
+                    "Kind": "NonNull",
                     "Description": null,
                     "Fields": null,
                     "InputFields": null,
                     "Interfaces": null,
                     "EnumValues": null,
                     "PossibleTypes": null,
-                    "OfType": null
+                    "OfType": {
+                      "__typename": "__Type",
+                      "Name": "String",
+                      "Kind": "Scalar",
+                      "Description": null,
+                      "Fields": null,
+                      "InputFields": null,
+                      "Interfaces": null,
+                      "EnumValues": null,
+                      "PossibleTypes": null,
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": null
                 }
@@ -4867,6 +5183,26 @@
               },
               "IsDeprecated": false,
               "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
+              "Name": "traits",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "__typename": "__Type",
+                "Name": "JSON",
+                "Kind": "Scalar",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
             }
           ],
           "InputFields": null,
@@ -5127,6 +5463,26 @@
               "Type": {
                 "__typename": "__Type",
                 "Name": "String",
+                "Kind": "Scalar",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
+              "Name": "traits",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "__typename": "__Type",
+                "Name": "JSON",
                 "Kind": "Scalar",
                 "Description": null,
                 "Fields": null,
@@ -5417,6 +5773,26 @@
                   "PossibleTypes": null,
                   "OfType": null
                 }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
+              "Name": "traits",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "__typename": "__Type",
+                "Name": "JSON",
+                "Kind": "Scalar",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": null
               },
               "IsDeprecated": false,
               "DeprecationReason": null
@@ -5830,6 +6206,18 @@
               "DeprecationReason": null
             }
           ],
+          "PossibleTypes": null,
+          "OfType": null
+        },
+        {
+          "__typename": "__Type",
+          "Name": "JSON",
+          "Kind": "Scalar",
+          "Description": null,
+          "Fields": null,
+          "InputFields": null,
+          "Interfaces": null,
+          "EnumValues": null,
           "PossibleTypes": null,
           "OfType": null
         },
@@ -6368,16 +6756,55 @@
         },
         {
           "__typename": "__Directive",
-          "Name": "export",
-          "Description": null,
+          "Name": "cost",
+          "Description": "The purpose of the `cost` directive is to define a `weight` for GraphQL types, fields, and arguments. Static analysis can use these weights when calculating the overall cost of a query or response.",
           "Args": [
             {
               "__typename": "__InputValue",
-              "Name": "as",
-              "Description": null,
+              "Name": "weight",
+              "Description": "The `weight` argument defines what value to add to the overall cost for every appearance, or possible appearance, of a type, field, argument, etc.",
               "Type": {
                 "__typename": "__Type",
-                "Name": "String",
+                "Name": null,
+                "Kind": "NonNull",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": {
+                  "__typename": "__Type",
+                  "Name": "String",
+                  "Kind": "Scalar",
+                  "Description": null,
+                  "Fields": null,
+                  "InputFields": null,
+                  "Interfaces": null,
+                  "EnumValues": null,
+                  "PossibleTypes": null,
+                  "OfType": null
+                }
+              },
+              "DefaultValue": null
+            }
+          ],
+          "OnOperation": false,
+          "OnFragment": false,
+          "OnField": false
+        },
+        {
+          "__typename": "__Directive",
+          "Name": "listSize",
+          "Description": "The purpose of the `@listSize` directive is to either inform the static analysis about the size of returned lists (if that information is statically available), or to point the analysis to where to find that information.",
+          "Args": [
+            {
+              "__typename": "__InputValue",
+              "Name": "assumedSize",
+              "Description": "The `assumedSize` argument can be used to statically define the maximum length of a list returned by a field.",
+              "Type": {
+                "__typename": "__Type",
+                "Name": "Int",
                 "Kind": "Scalar",
                 "Description": null,
                 "Fields": null,
@@ -6388,11 +6815,120 @@
                 "OfType": null
               },
               "DefaultValue": null
+            },
+            {
+              "__typename": "__InputValue",
+              "Name": "slicingArguments",
+              "Description": "The `slicingArguments` argument can be used to define which of the field's arguments with numeric type are slicing arguments, so that their value determines the size of the list returned by that field. It may specify a list of multiple slicing arguments.",
+              "Type": {
+                "__typename": "__Type",
+                "Name": null,
+                "Kind": "List",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": {
+                  "__typename": "__Type",
+                  "Name": null,
+                  "Kind": "NonNull",
+                  "Description": null,
+                  "Fields": null,
+                  "InputFields": null,
+                  "Interfaces": null,
+                  "EnumValues": null,
+                  "PossibleTypes": null,
+                  "OfType": {
+                    "__typename": "__Type",
+                    "Name": "String",
+                    "Kind": "Scalar",
+                    "Description": null,
+                    "Fields": null,
+                    "InputFields": null,
+                    "Interfaces": null,
+                    "EnumValues": null,
+                    "PossibleTypes": null,
+                    "OfType": null
+                  }
+                }
+              },
+              "DefaultValue": null
+            },
+            {
+              "__typename": "__InputValue",
+              "Name": "sizedFields",
+              "Description": "The `sizedFields` argument can be used to define that the value of the `assumedSize` argument or of a slicing argument does not affect the size of a list returned by a field itself, but that of a list returned by one of its sub-fields.",
+              "Type": {
+                "__typename": "__Type",
+                "Name": null,
+                "Kind": "List",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": {
+                  "__typename": "__Type",
+                  "Name": null,
+                  "Kind": "NonNull",
+                  "Description": null,
+                  "Fields": null,
+                  "InputFields": null,
+                  "Interfaces": null,
+                  "EnumValues": null,
+                  "PossibleTypes": null,
+                  "OfType": {
+                    "__typename": "__Type",
+                    "Name": "String",
+                    "Kind": "Scalar",
+                    "Description": null,
+                    "Fields": null,
+                    "InputFields": null,
+                    "Interfaces": null,
+                    "EnumValues": null,
+                    "PossibleTypes": null,
+                    "OfType": null
+                  }
+                }
+              },
+              "DefaultValue": null
+            },
+            {
+              "__typename": "__InputValue",
+              "Name": "requireOneSlicingArgument",
+              "Description": "The `requireOneSlicingArgument` argument can be used to inform the static analysis that it should expect that exactly one of the defined slicing arguments is present in a query. If that is not the case (i.e., if none or multiple slicing arguments are present), the static analysis may throw an error.",
+              "Type": {
+                "__typename": "__Type",
+                "Name": null,
+                "Kind": "NonNull",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": {
+                  "__typename": "__Type",
+                  "Name": "Boolean",
+                  "Kind": "Scalar",
+                  "Description": null,
+                  "Fields": null,
+                  "InputFields": null,
+                  "Interfaces": null,
+                  "EnumValues": null,
+                  "PossibleTypes": null,
+                  "OfType": null
+                }
+              },
+              "DefaultValue": "true"
             }
           ],
           "OnOperation": false,
           "OnFragment": false,
-          "OnField": true
+          "OnField": false
         }
       ]
     },

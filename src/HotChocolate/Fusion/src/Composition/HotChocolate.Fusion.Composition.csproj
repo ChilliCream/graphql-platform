@@ -3,19 +3,19 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Fusion.Composition</AssemblyName>
     <RootNamespace>HotChocolate.Fusion.Composition</RootNamespace>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup>
-    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <EnableTrimAnalyzer Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">true</EnableTrimAnalyzer>
   </PropertyGroup>
 
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Fusion.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Composition.Tests" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Abstractions\HotChocolate.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\Skimmed\src\Skimmed\Skimmed.csproj" />
     <ProjectReference Include="..\Abstractions\HotChocolate.Fusion.Abstractions.csproj" />
   </ItemGroup>

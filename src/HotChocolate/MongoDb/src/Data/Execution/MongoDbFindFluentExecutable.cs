@@ -1,6 +1,4 @@
-using System.Collections;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb;
@@ -9,37 +7,48 @@ namespace HotChocolate.Data.MongoDb;
 /// A executable that is based on <see cref="IFindFluent{TInput,TResult}"/>
 /// </summary>
 /// <typeparam name="T">The entity type</typeparam>
-public class MongoDbFindFluentExecutable<T> : MongoDbExecutable<T>
+public class MongoDbFindFluentExecutable<T>(IFindFluent<T, T> findFluent) : MongoDbExecutable<T>
 {
-    private readonly IFindFluent<T, T> _findFluent;
-
-    public MongoDbFindFluentExecutable(IFindFluent<T, T> findFluent)
-    {
-        _findFluent = findFluent;
-    }
+    /// <inheritdoc />
+    public override object Source => findFluent;
 
     /// <inheritdoc />
-    public override object Source => _findFluent;
-
-    /// <inheritdoc />
-    public override async ValueTask<IList> ToListAsync(CancellationToken cancellationToken) =>
+    public override async ValueTask<List<T>> ToListAsync(CancellationToken cancellationToken) =>
         await BuildPipeline()
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
 
     /// <inheritdoc />
-    public override async ValueTask<object?> FirstOrDefaultAsync(
+    public override async IAsyncEnumerable<T> ToAsyncEnumerable(
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var cursor = await BuildPipeline().ToCursorAsync(cancellationToken).ConfigureAwait(false);
+        while (await cursor.MoveNextAsync(cancellationToken).ConfigureAwait(false))
+        {
+            foreach (var document in cursor.Current)
+            {
+                yield return document;
+            }
+        }
+    }
+
+    /// <inheritdoc />
+    public override async ValueTask<T?> FirstOrDefaultAsync(
         CancellationToken cancellationToken) =>
         await BuildPipeline()
             .FirstOrDefaultAsync(cancellationToken)
             .ConfigureAwait(false);
 
     /// <inheritdoc />
-    public override async ValueTask<object?> SingleOrDefaultAsync(
+    public override async ValueTask<T?> SingleOrDefaultAsync(
         CancellationToken cancellationToken) =>
         await BuildPipeline()
             .SingleOrDefaultAsync(cancellationToken)
             .ConfigureAwait(false);
+
+    public override async ValueTask<int> CountAsync(
+        CancellationToken cancellationToken) =>
+        (int)await findFluent.CountDocumentsAsync(cancellationToken);
 
     /// <inheritdoc />
     public override string Print() => BuildPipeline().ToString() ?? "";
@@ -48,14 +57,14 @@ public class MongoDbFindFluentExecutable<T> : MongoDbExecutable<T>
     /// Applies filtering sorting and projections on the <see cref="IExecutable.Source"/>
     /// </summary>
     /// <returns>A find fluent including the configuration of this executable</returns>
-    public IFindFluent<T, T> BuildPipeline()
+    public virtual IFindFluent<T, T> BuildPipeline()
     {
-        var pipeline = _findFluent;
+        var pipeline = findFluent;
 
         if (Filters is not null)
         {
             pipeline.Filter =
-                new AndFilterDefinition(_findFluent.Filter.Wrap(), Filters)
+                new AndFilterDefinition(findFluent.Filter.Wrap(), Filters)
                     .ToFilterDefinition<T>();
         }
 

@@ -78,9 +78,7 @@ internal sealed class AzureHttpResponse : HttpResponse
 
     public override string? ContentType
     {
-#pragma warning disable CS8764
         get => Headers[HeaderNames.ContentType];
-#pragma warning restore CS8764
         set => Headers[HeaderNames.ContentType] = value;
     }
 

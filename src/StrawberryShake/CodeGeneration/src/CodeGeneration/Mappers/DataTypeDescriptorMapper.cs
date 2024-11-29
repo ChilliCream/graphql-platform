@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Descriptors;
@@ -91,8 +88,8 @@ public static class DataTypeDescriptorMapper
         public DataTypeInfo(string name, string? description)
         {
             Name = name;
-            Components = new HashSet<string>();
-            AbstractTypeParentName = new List<string>();
+            Components = [];
+            AbstractTypeParentName = [];
             Description = description;
         }
 

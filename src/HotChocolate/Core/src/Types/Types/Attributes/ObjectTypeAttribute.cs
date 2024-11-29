@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.Types.FieldBindingFlags;
@@ -61,4 +60,15 @@ public sealed class ObjectTypeAttribute
             definition.FieldBindingFlags = Instance | Static;
         }
     }
+}
+
+/// <summary>
+/// Specifies that the annotated class shall be
+/// interpreted as a GraphQL object type.
+/// This class is used by the Hot Chocolate source generator.
+/// </summary>
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
+public sealed class ObjectTypeAttribute<T> : Attribute
+{
+    public Type Type => typeof(T);
 }

@@ -1,6 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using static HotChocolate.Utilities.ThrowHelper;
@@ -9,7 +7,7 @@ using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
 
-public class InputFormatter
+public sealed class InputFormatter
 {
     private readonly ITypeConverter _converter;
 

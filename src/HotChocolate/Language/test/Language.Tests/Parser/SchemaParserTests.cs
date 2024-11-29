@@ -1,6 +1,4 @@
 using System.Text;
-using ChilliCream.Testing;
-using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Language;
@@ -142,6 +140,19 @@ public class SchemaParserTests
     {
         // arrange
         var sourceText = Encoding.UTF8.GetBytes(FileResource.Open("onegraph.graphql"));
+
+        // act
+        var document = Utf8GraphQLParser.Parse(sourceText);
+
+        // assert
+        document.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public void Parse_Directive_With_VariableDefinition()
+    {
+        // arrange
+        const string sourceText = "directive @foo(a: String) on VARIABLE_DEFINITION";
 
         // act
         var document = Utf8GraphQLParser.Parse(sourceText);

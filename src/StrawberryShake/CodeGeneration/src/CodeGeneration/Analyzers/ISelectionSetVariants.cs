@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace StrawberryShake.CodeGeneration.Analyzers;
 
 public class SelectionSetVariants
@@ -9,7 +7,7 @@ public class SelectionSetVariants
         IReadOnlyList<SelectionSet>? variants = null)
     {
         ReturnType = returnType;
-        Variants = variants ?? new [] { returnType };
+        Variants = variants ?? new [] { returnType, };
     }
 
     public SelectionSet ReturnType { get; }

@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Diagnostics;
 
 [Flags]
@@ -37,5 +35,6 @@ public enum ActivityScopes
         CoerceVariables |
         CompileOperation |
         ExecuteOperation |
-        ResolveFieldValue
+        ResolveFieldValue |
+        DataLoaderBatch,
 }

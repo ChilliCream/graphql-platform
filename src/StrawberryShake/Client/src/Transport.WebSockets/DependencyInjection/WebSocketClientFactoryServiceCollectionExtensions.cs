@@ -1,8 +1,4 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Options;
 using StrawberryShake.Transport.WebSockets;
 using StrawberryShake.Transport.WebSockets.Protocols;
 
@@ -57,7 +53,7 @@ public static class WebSocketClientFactoryServiceCollectionExtensions
     /// and providing the matching name.
     /// </para>
     /// <para>
-    /// Use <see cref="Options.DefaultName"/> as the name to configure the
+    /// Use <see cref="Microsoft.Extensions.Options.Options.DefaultName"/> as the name to configure the
     /// default client.
     /// </para>
     /// </remarks>
@@ -105,7 +101,7 @@ public static class WebSocketClientFactoryServiceCollectionExtensions
     /// the matching name.
     /// </para>
     /// <para>
-    /// Use <see cref="Options.DefaultName"/> as the name to configure
+    /// Use <see cref="Microsoft.Extensions.Options.Options.DefaultName"/> as the name to configure
     /// the default client.
     /// </para>
     /// </remarks>
@@ -161,7 +157,7 @@ public static class WebSocketClientFactoryServiceCollectionExtensions
     /// the matching name.
     /// </para>
     /// <para>
-    /// Use <see cref="Options.DefaultName"/> as the name to configure
+    /// Use <see cref="Microsoft.Extensions.Options.Options.DefaultName"/> as the name to configure
     /// the default client.
     /// </para>
     /// </remarks>
@@ -204,7 +200,7 @@ public static class WebSocketClientFactoryServiceCollectionExtensions
         services.TryAddSingleton<IEnumerable<ISocketProtocolFactory>>(
             new ISocketProtocolFactory[]
             {
-                new GraphQLWebSocketProtocolFactory()
+                new GraphQLWebSocketProtocolFactory(),
             });
         services.TryAddSingleton<DefaultSocketClientFactory>();
         services.TryAddSingleton<ISocketClientFactory>(sp =>

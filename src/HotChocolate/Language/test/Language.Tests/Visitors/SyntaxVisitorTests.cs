@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Xunit;
 using static HotChocolate.Language.Utf8GraphQLParser;
 using static HotChocolate.Language.Visitors.SyntaxVisitor;
@@ -29,7 +28,7 @@ public class SyntaxVisitorTests
 
                     return SyntaxVisitor.Continue;
                 },
-                options: new() { VisitArguments = true });
+                options: new() { VisitArguments = true, });
 
         // act
         visitor.Visit(schema, new NavigatorContext());

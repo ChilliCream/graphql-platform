@@ -1,9 +1,5 @@
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Types;
-using Snapshooter;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Resolvers;
 
@@ -32,8 +28,7 @@ public class ResolverTaskNullTests
             $"{{ {field}(name: {arg}) }}");
 
         // assert
-        result.ToJson().MatchSnapshot(SnapshotNameExtension.Create(
-            field, argument ?? "null"));
+        result.ToJson().MatchSnapshot(postFix: $"{field}_{argument ?? "null"}");
     }
 
     public class QueryType : ObjectType<Query>
@@ -70,7 +65,7 @@ public class ResolverTaskNullTests
         {
             if (name is null)
             {
-                return null;
+                return null!;
             }
             return Task.FromResult(name);
         }
@@ -82,7 +77,7 @@ public class ResolverTaskNullTests
         {
             if (name is null)
             {
-                return null;
+                return null!;
             }
             return Task.FromResult(name);
         }

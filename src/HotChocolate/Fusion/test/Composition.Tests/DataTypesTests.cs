@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Fusion.Shared;
 using HotChocolate.Skimmed.Serialization;
 using Xunit.Abstractions;
@@ -19,7 +18,7 @@ public class DataTypesTests(ITestOutputHelper output)
             schema {
               query: Query
             }
-            
+
             type Query {
               someData: SomeData
             }
@@ -33,7 +32,8 @@ public class DataTypesTests(ITestOutputHelper output)
             }
             """,
             Array.Empty<string>(),
-            new[] { new HttpClientConfiguration(new Uri("https://localhost:5001/graphql")) });
+            new[] { new HttpClientConfiguration(new Uri("https://localhost:5001/graphql")), },
+            null);
 
         var configB = new SubgraphConfiguration(
             "B",
@@ -41,7 +41,7 @@ public class DataTypesTests(ITestOutputHelper output)
             schema {
               query: Query
             }
-            
+
             type Query {
               someData: SomeData
             }
@@ -55,11 +55,12 @@ public class DataTypesTests(ITestOutputHelper output)
             }
             """,
             Array.Empty<string>(),
-            new[] { new HttpClientConfiguration(new Uri("https://localhost:5002/graphql")) });
+            new[] { new HttpClientConfiguration(new Uri("https://localhost:5002/graphql")), },
+            null);
 
         // act
         var composer = new FusionGraphComposer(logFactory: _logFactory);
-        var fusionConfig = await composer.ComposeAsync(new[] { configA, configB });
+        var fusionConfig = await composer.ComposeAsync(new[] { configA, configB, });
 
         SchemaFormatter
             .FormatAsString(fusionConfig)

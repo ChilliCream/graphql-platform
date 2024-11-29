@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -13,19 +12,15 @@ internal sealed class ObjectTypeFactory
 {
     public ObjectType Create(IDescriptorContext context, ObjectTypeDefinitionNode node)
     {
-        var preserveSyntaxNodes = context.Options.PreserveSyntaxNodes;
         var path = context.GetOrCreateDefinitionStack();
         path.Clear();
 
         var typeDefinition = new ObjectTypeDefinition(
             node.Name.Value,
-            node.Description?.Value);
-        typeDefinition.BindTo = node.GetBindingValue();
-
-        if (preserveSyntaxNodes)
+            node.Description?.Value)
         {
-            typeDefinition.SyntaxNode = node;
-        }
+            BindTo = node.GetBindingValue(),
+        };
 
         foreach (var typeNode in node.Interfaces)
         {
@@ -34,19 +29,20 @@ internal sealed class ObjectTypeFactory
 
         SdlToTypeSystemHelper.AddDirectives(context, typeDefinition, node, path);
 
-        DeclareFields(context, typeDefinition, node.Fields, path, preserveSyntaxNodes);
+        DeclareFields(context, typeDefinition, node.Fields, path);
 
         return ObjectType.CreateUnsafe(typeDefinition);
     }
 
     public ObjectTypeExtension Create(IDescriptorContext context, ObjectTypeExtensionNode node)
     {
-        var preserveSyntaxNodes = context.Options.PreserveSyntaxNodes;
         var path = context.GetOrCreateDefinitionStack();
         path.Clear();
 
-        var typeDefinition = new ObjectTypeDefinition(node.Name.Value);
-        typeDefinition.BindTo = node.GetBindingValue();
+        var typeDefinition = new ObjectTypeDefinition(node.Name.Value)
+        {
+            BindTo = node.GetBindingValue(),
+        };
 
         foreach (var typeNode in node.Interfaces)
         {
@@ -55,7 +51,7 @@ internal sealed class ObjectTypeFactory
 
         SdlToTypeSystemHelper.AddDirectives(context, typeDefinition, node, path);
 
-        DeclareFields(context, typeDefinition, node.Fields, path, preserveSyntaxNodes);
+        DeclareFields(context, typeDefinition, node.Fields, path);
 
         return ObjectTypeExtension.CreateUnsafe(typeDefinition);
     }
@@ -64,8 +60,7 @@ internal sealed class ObjectTypeFactory
         IDescriptorContext context,
         ObjectTypeDefinition parent,
         IReadOnlyCollection<FieldDefinitionNode> fields,
-        Stack<IDefinition> path,
-        bool preserveSyntaxNodes)
+        Stack<IDefinition> path)
     {
         path.Push(parent);
 
@@ -74,22 +69,19 @@ internal sealed class ObjectTypeFactory
             var fieldDefinition = new ObjectFieldDefinition(
                 field.Name.Value,
                 field.Description?.Value,
-                TypeReference.Create(field.Type));
-            fieldDefinition.BindTo = field.GetBindingValue();
-
-            if (preserveSyntaxNodes)
+                TypeReference.Create(field.Type))
             {
-                fieldDefinition.SyntaxNode = field;
-            }
+                BindTo = field.GetBindingValue(),
+            };
 
             SdlToTypeSystemHelper.AddDirectives(context, fieldDefinition, field, path);
 
-            if (field.DeprecationReason() is { Length: > 0 } reason)
+            if (field.DeprecationReason() is { Length: > 0, } reason)
             {
                 fieldDefinition.DeprecationReason = reason;
             }
 
-            DeclareFieldArguments(context, fieldDefinition, field, path, preserveSyntaxNodes);
+            DeclareFieldArguments(context, fieldDefinition, field, path);
 
             parent.Fields.Add(fieldDefinition);
         }
@@ -101,8 +93,7 @@ internal sealed class ObjectTypeFactory
         IDescriptorContext context,
         ObjectFieldDefinition parent,
         FieldDefinitionNode field,
-        Stack<IDefinition> path,
-        bool preserveSyntaxNodes)
+        Stack<IDefinition> path)
     {
         path.Push(parent);
 
@@ -112,15 +103,12 @@ internal sealed class ObjectTypeFactory
                 argument.Name.Value,
                 argument.Description?.Value,
                 TypeReference.Create(argument.Type),
-                argument.DefaultValue);
-            argumentDefinition.BindTo = argument.GetBindingValue();
-
-            if (preserveSyntaxNodes)
+                argument.DefaultValue)
             {
-                argumentDefinition.SyntaxNode = argument;
-            }
+                BindTo = argument.GetBindingValue(),
+            };
 
-            if (argument.DeprecationReason() is { Length: > 0 } reason)
+            if (argument.DeprecationReason() is { Length: > 0, } reason)
             {
                 argumentDefinition.DeprecationReason = reason;
             }

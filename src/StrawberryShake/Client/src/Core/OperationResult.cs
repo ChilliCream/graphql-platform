@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Reflection;
 using static StrawberryShake.Properties.Resources;
 
@@ -113,7 +110,7 @@ public static class OperationResult
             .MakeGenericMethod(dataType)
             .Invoke(
                 null,
-                new[] { data, dataInfo, dataFactory, errors, extensions, contextData })!;
+                [data, dataInfo, dataFactory, errors, extensions, contextData,])!;
     }
 
     public static IOperationResult<TData> Create<TData>(

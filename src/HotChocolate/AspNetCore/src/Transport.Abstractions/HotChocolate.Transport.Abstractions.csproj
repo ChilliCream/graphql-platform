@@ -1,10 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>$(LibraryTargetFrameworks)</TargetFrameworks>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <PackageId>HotChocolate.Transport.Abstractions</PackageId>
     <AssemblyName>HotChocolate.Transport.Abstractions</AssemblyName>
     <RootNamespace>HotChocolate.Transport</RootNamespace>
@@ -22,22 +18,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Collections.Immutable" Version="1.7.0" />
-    <PackageReference Include="System.Text.Json" Version="6.0.7" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="Properties\TransportAbstractionResoucrces.resx">
+    <EmbeddedResource Update="Properties\TransportAbstractionResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>TransportAbstractionResoucrces.Designer.cs</LastGenOutput>
+      <LastGenOutput>TransportAbstractionResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Properties\TransportAbstractionResoucrces.Designer.cs">
+    <Compile Update="Properties\TransportAbstractionResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>TransportAbstractionResoucrces.resx</DependentUpon>
+      <DependentUpon>TransportAbstractionResources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
 </Project>

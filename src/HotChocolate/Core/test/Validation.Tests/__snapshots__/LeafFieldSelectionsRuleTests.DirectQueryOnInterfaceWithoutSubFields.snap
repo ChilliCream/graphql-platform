@@ -1,6 +1,6 @@
-﻿[
+[
   {
-    "Message": "`pet` is an object, interface or union type field. Leaf selections on objects, interfaces, and unions without subfields are disallowed.",
+    "Message": "Field \"pet\" of type \"Human\" must have a selection of subfields. Did you mean \"pet { ... }\"?",
     "Code": null,
     "Path": null,
     "Locations": [
@@ -14,32 +14,8 @@
       "field": "pet",
       "type": "Human",
       "responseName": "pet",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "Field",
-      "Alias": null,
-      "Arguments": [],
-      "Required": null,
-      "SelectionSet": null,
-      "Location": {
-        "Start": 84,
-        "End": 105,
-        "Line": 3,
-        "Column": 21
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 84,
-          "End": 105,
-          "Line": 3,
-          "Column": 21
-        },
-        "Value": "pet"
-      },
-      "Directives": []
-    }
+    "Exception": null
   }
 ]

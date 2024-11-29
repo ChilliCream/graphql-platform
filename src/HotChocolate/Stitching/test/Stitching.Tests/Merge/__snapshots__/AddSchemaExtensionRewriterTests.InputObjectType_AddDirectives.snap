@@ -1,5 +1,0 @@
-input Foo @foo {
-  bar: String
-}
-
-directive @foo on INPUT_OBJECT

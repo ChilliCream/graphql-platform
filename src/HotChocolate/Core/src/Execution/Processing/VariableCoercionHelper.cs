@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
@@ -197,7 +195,7 @@ internal sealed class VariableCoercionHelper
             {
                 // if we detect a reference change we will create the fields list
                 // that contains all previous field values plus the changed field value.
-                fields = new List<ObjectFieldNode>();
+                fields = [];
 
                 for (var j = 0; j < i; j++)
                 {
@@ -243,7 +241,7 @@ internal sealed class VariableCoercionHelper
             {
                 // if we detect a reference change we will create the values list
                 // that contains all previous list values plus the changed list value.
-                values = new List<IValueNode>();
+                values = [];
 
                 for (var j = 0; j < i; j++)
                 {

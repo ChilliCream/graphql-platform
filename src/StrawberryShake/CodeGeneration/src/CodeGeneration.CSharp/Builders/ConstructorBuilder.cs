@@ -1,16 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace StrawberryShake.CodeGeneration.CSharp.Builders;
 
 public class ConstructorBuilder : ICodeBuilder
 {
     private AccessModifier _accessModifier = AccessModifier.Public;
     private string? _typeName;
-    private readonly List<ParameterBuilder> _parameters = new();
-    private readonly List<ICode> _lines = new();
-    private readonly List<ICode> _base = new();
+    private readonly List<ParameterBuilder> _parameters = [];
+    private readonly List<ICode> _lines = [];
+    private readonly List<ICode> _base = [];
 
     public static ConstructorBuilder New() => new ConstructorBuilder();
 

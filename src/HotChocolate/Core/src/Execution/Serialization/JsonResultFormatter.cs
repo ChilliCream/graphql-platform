@@ -1,13 +1,8 @@
-using System;
 using System.Buffers;
 using System.Collections;
-using System.Collections.Generic;
-using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Utilities;
 using static HotChocolate.Execution.Serialization.JsonNullIgnoreCondition;
@@ -16,9 +11,9 @@ using static HotChocolate.Execution.ThrowHelper;
 namespace HotChocolate.Execution.Serialization;
 
 /// <summary>
-/// The default JSON formatter for <see cref="IQueryResult"/>.
+/// The default JSON formatter for <see cref="IOperationResult"/>.
 /// </summary>
-public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecutionResultFormatter
+public sealed partial class JsonResultFormatter : IOperationResultFormatter, IExecutionResultFormatter
 {
     private readonly JsonWriterOptions _options;
     private readonly JsonSerializerOptions _serializerOptions;
@@ -45,14 +40,22 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
         Stream outputStream,
         CancellationToken cancellationToken = default)
     {
-        if (result.Kind is ExecutionResultKind.SingleResult)
+        switch (result)
         {
-            await FormatAsync((IQueryResult)result, outputStream, cancellationToken)
-                .ConfigureAwait(false);
-        }
-        else
-        {
-            throw JsonFormatter_ResultNotSupported(nameof(JsonResultFormatter));
+            case IOperationResult singleResult:
+                await FormatInternalAsync(singleResult, outputStream, cancellationToken).ConfigureAwait(false);
+                break;
+
+            case OperationResultBatch resultBatch:
+                await FormatInternalAsync(resultBatch, outputStream, cancellationToken).ConfigureAwait(false);
+                break;
+
+            case IResponseStream responseStream:
+                await FormatInternalAsync(responseStream, outputStream, cancellationToken).ConfigureAwait(false);
+                break;
+
+            default:
+                throw JsonFormatter_ResultNotSupported(nameof(JsonResultFormatter));
         }
     }
 
@@ -68,7 +71,7 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
     /// <exception cref="ArgumentNullException">
     /// <paramref name="result"/> is <c>null</c>.
     /// </exception>
-    public unsafe string Format(IQueryResult result)
+    public unsafe string Format(IOperationResult result)
     {
         if (result is null)
         {
@@ -98,7 +101,7 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
     /// <paramref name="result"/> is <c>null</c>.
     /// <paramref name="writer"/> is <c>null</c>.
     /// </exception>
-    public void Format(IQueryResult result, Utf8JsonWriter writer)
+    public void Format(IOperationResult result, Utf8JsonWriter writer)
     {
         if (result is null)
         {
@@ -176,8 +179,8 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
         writer.WriteEndArray();
     }
 
-    /// <inheritdoc cref="IQueryResultFormatter.Format"/>
-    public void Format(IQueryResult result, IBufferWriter<byte> writer)
+    /// <inheritdoc cref="IOperationResultFormatter.Format"/>
+    public void Format(IOperationResult result, IBufferWriter<byte> writer)
     {
         if (result is null)
         {
@@ -189,14 +192,19 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
             throw new ArgumentNullException(nameof(writer));
         }
 
+        FormatInternal(result, writer);
+    }
+
+    private void FormatInternal(IOperationResult result, IBufferWriter<byte> writer)
+    {
         using var jsonWriter = new Utf8JsonWriter(writer, _options);
         WriteResult(jsonWriter, result);
         jsonWriter.Flush();
     }
 
-    /// <inheritdoc cref="IQueryResultFormatter.FormatAsync"/>
+    /// <inheritdoc cref="IOperationResultFormatter.FormatAsync"/>
     public ValueTask FormatAsync(
-        IQueryResult result,
+        IOperationResult result,
         Stream outputStream,
         CancellationToken cancellationToken = default)
     {
@@ -214,23 +222,106 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
     }
 
     private async ValueTask FormatInternalAsync(
-        IQueryResult result,
+        IOperationResult result,
         Stream outputStream,
         CancellationToken cancellationToken = default)
     {
-        await using var writer = new Utf8JsonWriter(outputStream, _options);
+        using var buffer = new ArrayWriter();
+        FormatInternal(result, buffer);
 
-        WriteResult(writer, result);
+        await outputStream
+            .WriteAsync(buffer.GetWrittenMemory(), cancellationToken)
+            .ConfigureAwait(false);
 
-        await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
+        await outputStream.FlushAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    private void WriteResult(Utf8JsonWriter writer, IQueryResult result)
+    private async ValueTask FormatInternalAsync(
+        OperationResultBatch resultBatch,
+        Stream outputStream,
+        CancellationToken cancellationToken = default)
+    {
+        using var buffer = new ArrayWriter();
+
+        foreach (var result in resultBatch.Results)
+        {
+            switch (result)
+            {
+                case IOperationResult singleResult:
+                    FormatInternal(singleResult, buffer);
+                    break;
+
+                case IResponseStream batchResult:
+                {
+                    await foreach (var partialResult in batchResult.ReadResultsAsync()
+                        .WithCancellation(cancellationToken)
+                        .ConfigureAwait(false))
+                    {
+                        try
+                        {
+                            FormatInternal(partialResult, buffer);
+                        }
+                        finally
+                        {
+                            await partialResult.DisposeAsync().ConfigureAwait(false);
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
+        await outputStream
+            .WriteAsync(buffer.GetWrittenMemory(), cancellationToken)
+            .ConfigureAwait(false);
+
+        await outputStream.FlushAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    private async ValueTask FormatInternalAsync(
+        IResponseStream batchResult,
+        Stream outputStream,
+        CancellationToken cancellationToken = default)
+    {
+        using var buffer = new ArrayWriter();
+
+        await foreach (var partialResult in batchResult.ReadResultsAsync()
+            .WithCancellation(cancellationToken)
+            .ConfigureAwait(false))
+        {
+            try
+            {
+                FormatInternal(partialResult, buffer);
+            }
+            finally
+            {
+                await partialResult.DisposeAsync().ConfigureAwait(false);
+            }
+        }
+
+        await outputStream
+            .WriteAsync(buffer.GetWrittenMemory(), cancellationToken)
+            .ConfigureAwait(false);
+
+        await outputStream.FlushAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    private void WriteResult(Utf8JsonWriter writer, IOperationResult result)
     {
         writer.WriteStartObject();
 
+        if (result.RequestIndex.HasValue)
+        {
+            writer.WriteNumber(RequestIndex, result.RequestIndex.Value);
+        }
+
+        if (result.VariableIndex.HasValue)
+        {
+            writer.WriteNumber(VariableIndex, result.VariableIndex.Value);
+        }
+
         WriteErrors(writer, result.Errors);
-        WriteData(writer, result.Data);
+        WriteData(writer, result);
         WriteItems(writer, result.Items);
         WriteIncremental(writer, result.Incremental);
         WriteExtensions(writer, result.Extensions);
@@ -242,7 +333,7 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
 
     private static void WritePatchInfo(
         Utf8JsonWriter writer,
-        IQueryResult result)
+        IOperationResult result)
     {
         if (result.Label is not null)
         {
@@ -257,7 +348,7 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
 
     private static void WriteHasNext(
         Utf8JsonWriter writer,
-        IQueryResult result)
+        IOperationResult result)
     {
         if (result.HasNext.HasValue)
         {
@@ -267,26 +358,34 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
 
     private void WriteData(
         Utf8JsonWriter writer,
-        IReadOnlyDictionary<string, object?>? data)
+        IOperationResult result)
     {
-        if (data is not null)
+        if (!result.IsDataSet)
         {
-            writer.WritePropertyName(Data);
+            return;
+        }
 
-            if (data is ObjectResult resultMap)
-            {
-                WriteObjectResult(writer, resultMap);
-            }
-            else
-            {
-                WriteDictionary(writer, data);
-            }
+        if (result.Data is null)
+        {
+            writer.WriteNull(Data);
+            return;
+        }
+
+        writer.WritePropertyName(Data);
+
+        if (result.Data is ObjectResult resultMap)
+        {
+            WriteObjectResult(writer, resultMap);
+        }
+        else
+        {
+            WriteDictionary(writer, result.Data);
         }
     }
 
     private void WriteItems(Utf8JsonWriter writer, IReadOnlyList<object?>? items)
     {
-        if (items is { Count: > 0 })
+        if (items is { Count: > 0, })
         {
             writer.WritePropertyName(Items);
 
@@ -303,7 +402,7 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
 
     private void WriteErrors(Utf8JsonWriter writer, IReadOnlyList<IError>? errors)
     {
-        if (errors is { Count: > 0 })
+        if (errors is { Count: > 0, })
         {
             writer.WritePropertyName(Errors);
 
@@ -333,7 +432,7 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
 
     private static void WriteLocations(Utf8JsonWriter writer, IReadOnlyList<Location>? locations)
     {
-        if (locations is { Count: > 0 })
+        if (locations is { Count: > 0, })
         {
             writer.WritePropertyName(Locations);
 
@@ -411,16 +510,16 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
         Utf8JsonWriter writer,
         IReadOnlyDictionary<string, object?>? dict)
     {
-        if (dict is { Count: > 0 })
+        if (dict is { Count: > 0, })
         {
             writer.WritePropertyName(Extensions);
             WriteDictionary(writer, dict);
         }
     }
 
-    private void WriteIncremental(Utf8JsonWriter writer, IReadOnlyList<IQueryResult>? patches)
+    private void WriteIncremental(Utf8JsonWriter writer, IReadOnlyList<IOperationResult>? patches)
     {
-        if (patches is { Count: > 0 })
+        if (patches is { Count: > 0, })
         {
             writer.WritePropertyName(Incremental);
 
@@ -543,7 +642,6 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
         writer.WriteEndArray();
     }
 
-#if NET5_0_OR_GREATER
     private void WriteJsonElement(
         Utf8JsonWriter writer,
         JsonElement element)
@@ -622,7 +720,6 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
         writer.WriteEndArray();
     }
 
-#endif
     private void WriteFieldValue(
         Utf8JsonWriter writer,
         object? value)
@@ -643,7 +740,6 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
                 WriteListResult(writer, resultMapList);
                 break;
 
-#if NET6_0_OR_GREATER
             case JsonDocument doc:
                 WriteJsonElement(writer, doc.RootElement);
                 break;
@@ -655,7 +751,7 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
             case RawJsonValue rawJsonValue:
                 writer.WriteRawValue(rawJsonValue.Value.Span, true);
                 break;
-#endif
+
             case NeedsFormatting unformatted:
                 unformatted.FormatValue(writer, _serializerOptions);
                 break;

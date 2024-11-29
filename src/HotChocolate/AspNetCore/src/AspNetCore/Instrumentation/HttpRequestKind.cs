@@ -5,7 +5,6 @@ namespace HotChocolate.AspNetCore.Instrumentation;
 /// </summary>
 public enum HttpRequestKind
 {
-
     /// <summary>
     /// HTTP POST GraphQL Request.
     /// </summary>
@@ -29,5 +28,5 @@ public enum HttpRequestKind
     /// <summary>
     /// HTTP POST GraphQL-SSE
     /// </summary>
-    HttpSse
+    HttpSse,
 }

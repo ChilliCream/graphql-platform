@@ -1,13 +1,9 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+using GreenDonut;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace HotChocolate.Fetching;
 
@@ -17,7 +13,7 @@ public class InlineBatchDataLoaderTests
     public async Task LoadWithDifferentDataLoader()
     {
         // arrange
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query>()
@@ -35,7 +31,7 @@ public class InlineBatchDataLoaderTests
     public async Task LoadWithDifferentDataLoader_ShortHand()
     {
         // arrange
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query2>()
@@ -53,7 +49,7 @@ public class InlineBatchDataLoaderTests
     public async Task LoadWithSingleKeyDataLoader()
     {
         // arrange
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query>()
@@ -71,7 +67,7 @@ public class InlineBatchDataLoaderTests
     public async Task LoadWithSingleKeyDataLoader_ShortHand()
     {
         // arrange
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query2>()
@@ -95,13 +91,13 @@ public class InlineBatchDataLoaderTests
                         Task.FromResult<IReadOnlyDictionary<string, string>>(
                             keys.ToDictionary(t => t, _ => key)),
                     key)
-                .LoadAsync("abc", context.RequestAborted);
+                .LoadRequiredAsync("abc", context.RequestAborted);
         }
     }
 
     public class Query2
     {
-        public async Task<string> GetByKey(string key, IResolverContext context)
+        public async Task<string?> GetByKey(string key, IResolverContext context)
         {
             return await context.BatchAsync(FetchAsync, key);
 

@@ -1,7 +1,4 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
-
-#nullable enable
 
 namespace HotChocolate;
 
@@ -38,9 +35,7 @@ public readonly struct Optional<T>
     /// <summary>
     /// <c>true</c> if the optional was explicitly set.
     /// </summary>
-    #if NET5_0_OR_GREATER
     [MemberNotNullWhen(true, nameof(Value))]
-    #endif
     public bool HasValue { get; }
 
     /// <summary>
@@ -164,9 +159,9 @@ public readonly struct Optional<T>
     /// </summary>
     public static Optional<T> From(IOptional optional)
     {
-        if (optional.HasValue)
+        if (optional.HasValue || optional.Value != default)
         {
-            return new Optional<T>((T?)optional.Value);
+            return new Optional<T>((T?)optional.Value, optional.HasValue);
         }
 
         return new Optional<T>();

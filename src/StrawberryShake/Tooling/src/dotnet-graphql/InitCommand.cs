@@ -40,6 +40,11 @@ public static class InitCommand
             "Import schema from schema file.",
             CommandOptionType.NoValue);
 
+        var depthArg = init.Option(
+            "-d|--typeDepth",
+            "The type depth used for the introspection request.",
+            CommandOptionType.SingleOrNoValue);
+
         var authArguments = init.AddAuthArguments();
 
         init.OnExecuteAsync(cancellationToken =>
@@ -50,7 +55,8 @@ public static class InitCommand
                 nameArg,
                 authArguments,
                 headersArg,
-                fromFileArg);
+                fromFileArg,
+                depthArg);
             var handler = CommandTools.CreateHandler<InitCommandHandler>(jsonArg);
             return handler.ExecuteAsync(arguments, cancellationToken);
         });

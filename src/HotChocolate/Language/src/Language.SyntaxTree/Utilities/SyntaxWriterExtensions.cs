@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using static HotChocolate.Language.Properties.Resources;
 
 namespace HotChocolate.Language.Utilities;
@@ -87,7 +85,7 @@ public static class SyntaxWriterExtensions
                 {
                     throw new NotSupportedException(
                         string.Format(
-                            SyntaxWriterExtensions_WriteValue_ValueNodeNotSupported, 
+                            SyntaxWriterExtensions_WriteValue_ValueNodeNotSupported,
                             node.GetType().FullName));
                 }
                 break;
@@ -168,7 +166,7 @@ public static class SyntaxWriterExtensions
             writer.WriteNullValue();
             return;
         }
-        
+
         writer.Write('"');
         WriteEscapeCharacters(writer, value);
         writer.Write('"');

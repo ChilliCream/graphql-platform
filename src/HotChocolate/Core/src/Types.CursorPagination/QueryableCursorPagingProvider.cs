@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Internal;
 
@@ -38,7 +36,7 @@ public class QueryableCursorPagingProvider : CursorPagingProvider
 
         return (CursorPagingHandler)_createHandler
             .MakeGenericMethod(source.ElementType?.Source ?? source.Source)
-            .Invoke(null, new object[] { options })!;
+            .Invoke(null, [options,])!;
     }
 
     private static QueryableCursorPagingHandler<TEntity> CreateHandlerInternal<TEntity>(

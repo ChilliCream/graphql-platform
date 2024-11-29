@@ -1,4 +1,3 @@
-using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Resolvers;
@@ -19,26 +18,6 @@ public interface INodeDescriptor : IDescriptor
     /// The property or method that represents the id field.
     /// </param>
     INodeDescriptor IdField(MemberInfo propertyOrMethod);
-
-    /// <summary>
-    /// Specifies a delegate to resolve the node from its id.
-    /// </summary>
-    /// <param name="nodeResolver">
-    /// The delegate to resolve the node from its id.
-    /// </param>
-    [Obsolete("Use ResolveNode.")]
-    IObjectFieldDescriptor NodeResolver(
-        NodeResolverDelegate<object, object> nodeResolver);
-
-    /// <summary>
-    /// Specifies a delegate to resolve the node from its id.
-    /// </summary>
-    /// <param name="nodeResolver">
-    /// The delegate to resolve the node from its id.
-    /// </param>
-    [Obsolete("Use ResolveNode.")]
-    IObjectFieldDescriptor NodeResolver<TId>(
-        NodeResolverDelegate<object, TId> nodeResolver);
 
     /// <summary>
     /// Specifies a delegate to resolve the node from its id.

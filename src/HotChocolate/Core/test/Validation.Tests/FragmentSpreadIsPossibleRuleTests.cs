@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Xunit;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Validation;
 
@@ -25,9 +24,9 @@ public class FragmentSpreadIsPossibleRuleTests
                     name
                 }
             ",
-            t => Assert.Equal(t.Message,
-                "The parent type does not match the type condition on " +
-                "the fragment."));
+            t => Assert.Equal(
+                "The parent type does not match the type condition on the fragment.",
+                t.Message));
     }
 
     [Fact]
@@ -218,8 +217,8 @@ public class FragmentSpreadIsPossibleRuleTests
     {
         ExpectValid(@"
                 {
-                    dogOrHuman { 
-                        ...unionWithinUnion 
+                    dogOrHuman {
+                        ...unionWithinUnion
                     }
                 }
 
@@ -266,7 +265,7 @@ public class FragmentSpreadIsPossibleRuleTests
         ExpectValid(@"
                 {
                     human{
-                        pets { 
+                        pets {
                             ...interfaceWithinInterface
                         }
                     }
@@ -297,14 +296,14 @@ public class FragmentSpreadIsPossibleRuleTests
         ExpectErrors(@"
                 {
                     human{
-                        pets { 
+                        pets {
                             ...invalidObjectWithinObject
                         }
                     }
                 }
 
                 fragment invalidObjectWithinObject on Cat { ...dogFragment }
-                fragment dogFragment on Dog { barkVolume }    
+                fragment dogFragment on Dog { barkVolume }
             ");
     }
 
@@ -314,7 +313,7 @@ public class FragmentSpreadIsPossibleRuleTests
         ExpectErrors(@"
                 {
                     human{
-                        pets { 
+                        pets {
                             ...invalidObjectWithinObjectAnon
                         }
                     }
@@ -332,7 +331,7 @@ public class FragmentSpreadIsPossibleRuleTests
         ExpectErrors(@"
                 {
                     human{
-                        pets { 
+                        pets {
                             ...invalidObjectWithinInterface
                         }
                     }
@@ -379,7 +378,7 @@ public class FragmentSpreadIsPossibleRuleTests
         ExpectErrors(@"
                 {
                     human{
-                        pets { 
+                        pets {
                             ...invalidUnionWithinInterface
                         }
                     }
@@ -426,7 +425,7 @@ public class FragmentSpreadIsPossibleRuleTests
         ExpectErrors(@"
                 {
                     human{
-                        pets { 
+                        pets {
                             ...invalidInterfaceWithinInterface
                         }
                     }
@@ -445,7 +444,7 @@ public class FragmentSpreadIsPossibleRuleTests
         ExpectErrors(@"
                 {
                     human{
-                        pets { 
+                        pets {
                             ...invalidInterfaceWithinInterfaceAnon
                         }
                     }

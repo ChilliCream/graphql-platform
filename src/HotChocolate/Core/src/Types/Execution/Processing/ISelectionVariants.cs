@@ -1,6 +1,5 @@
 #nullable enable
 
-using System.Collections.Generic;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing;
@@ -16,10 +15,15 @@ public interface ISelectionVariants
     int Id { get; }
 
     /// <summary>
-    /// Gets all the possible return types of the field to which this variant belongs to. 
+    /// Gets the operation that declares this variant.
+    /// </summary>
+    IOperation DeclaringOperation { get; }
+
+    /// <summary>
+    /// Gets all the possible return types of the field to which this variant belongs to.
     /// </summary>
     IEnumerable<IObjectType> GetPossibleTypes();
-    
+
     /// <summary>
     /// Evaluates if the specified type context is a possible type for this variant.
     /// </summary>
@@ -42,6 +46,6 @@ public interface ISelectionVariants
     /// </returns>
     /// <exception cref="System.ArgumentException">
     /// Invalid field return type.
-    /// </exception> 
+    /// </exception>
     ISelectionSet GetSelectionSet(IObjectType typeContext);
 }

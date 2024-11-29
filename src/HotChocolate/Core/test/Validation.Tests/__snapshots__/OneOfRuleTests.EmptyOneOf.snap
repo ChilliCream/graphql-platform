@@ -20,19 +20,9 @@
     ],
     "Extensions": {
       "type": "PetInput",
-      "specifiedBy": "http://spec.graphql.org/draft/#sec-Oneof–Input-Objects-Have-Exactly-One-Field",
+      "specifiedBy": "https://spec.graphql.org/draft/#sec-OneOf-Input-Objects-Have-Exactly-One-Field",
       "rfc": "https://github.com/graphql/graphql-spec/pull/825"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "ObjectValue",
-      "Location": {
-        "Start": 67,
-        "End": 71,
-        "Line": 3,
-        "Column": 33
-      },
-      "Fields": []
-    }
+    "Exception": null
   }
 ]

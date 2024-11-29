@@ -1,5 +1,3 @@
-using System;
-using CookieCrumble;
 using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters;
@@ -28,7 +26,7 @@ public class ComparableOperationInputTests
                 .Type<StringType>()
                 .Resolve("foo")
                 .Argument("test", a => a.Type<FilterInputType<Foo>>()))
-            .AddFiltering(compatabilityMode: true)
+            .AddFiltering(compatibilityMode: true)
             .Create()
             .MatchSnapshot();
 
@@ -115,6 +113,6 @@ public class ComparableOperationInputTests
     public enum FooBar
     {
         Foo,
-        Bar
+        Bar,
     }
 }

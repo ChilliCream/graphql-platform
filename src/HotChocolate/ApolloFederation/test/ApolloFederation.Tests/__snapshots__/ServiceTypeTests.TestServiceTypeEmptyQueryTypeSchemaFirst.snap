@@ -1,3 +1,0 @@
-﻿type Address @key(fields: "matchCode") {
-  matchCode: String!
-}

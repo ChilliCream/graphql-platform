@@ -1,14 +1,11 @@
-using System;
-using System.Collections.Generic;
-
 namespace StrawberryShake.CodeGeneration.CSharp.Builders;
 
 public class IfBuilder : ICodeContainer<IfBuilder>
 {
-    private readonly List<ICode> _lines = new();
+    private readonly List<ICode> _lines = [];
     private ConditionBuilder? _condition;
 
-    private readonly List<IfBuilder> _ifElses = new();
+    private readonly List<IfBuilder> _ifElses = [];
     private ICode? _elseCode;
     private bool _writeIndents = true;
 

@@ -1,7 +1,5 @@
 #nullable enable
 
-using System;
-using System.Collections.Generic;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -628,10 +626,23 @@ public static partial class SchemaBuilderExtensions
             throw new ArgumentNullException(nameof(directiveType));
         }
 
-        if (directiveType == typeof(DirectiveType)
-            || (directiveType.IsGenericType
-            && directiveType.GetGenericTypeDefinition() ==
-            typeof(DirectiveType<>)))
+        bool IsDirectiveBaseType()
+        {
+            if (directiveType == typeof(DirectiveType))
+            {
+                return true;
+            }
+
+            if (directiveType.IsGenericType)
+            {
+                var genericType = directiveType.GetGenericTypeDefinition();
+                return genericType == typeof(DirectiveType<>);
+            }
+
+            return false;
+        }
+
+        if (IsDirectiveBaseType())
         {
             throw new ArgumentException(
                 TypeResources.SchemaBuilderExtensions_DirectiveTypeIsBaseType,

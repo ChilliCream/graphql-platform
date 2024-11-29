@@ -1,0 +1,10 @@
+{
+  "fusionTypePrefix": null,
+  "fusionTypeSelf": false,
+  "nodeField": { "enabled": true },
+  "tagDirective": {
+    "enabled": true,
+    "makePublic": false,
+    "exclude": ["internal"]
+  }
+}

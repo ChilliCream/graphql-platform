@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Xunit;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Validation;
 
@@ -31,11 +30,12 @@ public class FragmentSpreadsMustNotFormCyclesRuleTests
                     ...nameFragment
                 }
             ",
-            t => Assert.Equal(t.Message,
+            t => Assert.Equal(
                 "The graph of fragment spreads must not form any " +
                 "cycles including spreading itself. Otherwise an " +
                 "operation could infinitely spread or infinitely " +
-                "execute on cycles in the underlying data."));
+                "execute on cycles in the underlying data.",
+                t.Message));
     }
 
     [Fact]
@@ -68,11 +68,12 @@ public class FragmentSpreadsMustNotFormCyclesRuleTests
                     ...nameFragment
                 }
             ",
-            t => Assert.Equal(t.Message,
+            t => Assert.Equal(
                 "The graph of fragment spreads must not form any " +
                 "cycles including spreading itself. Otherwise an " +
                 "operation could infinitely spread or infinitely " +
-                "execute on cycles in the underlying data."));
+                "execute on cycles in the underlying data.",
+                t.Message));
     }
 
     [Fact]
@@ -99,11 +100,12 @@ public class FragmentSpreadsMustNotFormCyclesRuleTests
                     }
                 }
             ",
-            t => Assert.Equal(t.Message,
+            t => Assert.Equal(
                 "The graph of fragment spreads must not form any " +
                 "cycles including spreading itself. Otherwise an " +
                 "operation could infinitely spread or infinitely " +
-                "execute on cycles in the underlying data."));
+                "execute on cycles in the underlying data.",
+                t.Message));
     }
 
     [Fact]
@@ -167,7 +169,7 @@ public class FragmentSpreadsMustNotFormCyclesRuleTests
                         ...fragA
                     }
                 }
-                      
+
                 fragment fragA on Dog { ...fragB, ...fragC }
                 fragment fragB on Dog { ...fragC }
                 fragment fragC on Dog { name }
@@ -185,12 +187,12 @@ public class FragmentSpreadsMustNotFormCyclesRuleTests
                         }
                     }
                 }
-                      
+
                 fragment nameFragment on Pet {
                     ... on Dog { name }
                     ... on Cat { name }
                 }
-                
+
                 fragment spreadsInAnon on Pet {
                     ... on Dog { ...nameFragment }
                     ... on Cat { ...nameFragment }
@@ -201,13 +203,13 @@ public class FragmentSpreadsMustNotFormCyclesRuleTests
     [Fact]
     public void SpeardingRecursivelyWithinFieldFails()
     {
-        ExpectErrors(@" 
+        ExpectErrors(@"
                 {
-                    human { 
-                        ...fragA 
+                    human {
+                        ...fragA
                     }
                 }
-                
+
                 fragment fragA on Human { relatives { ...fragA } },
             ");
     }
@@ -221,7 +223,7 @@ public class FragmentSpreadsMustNotFormCyclesRuleTests
                         ...fragA
                     }
                 }
-                
+
                 fragment fragA on Dog { ...fragA }
             ");
     }
@@ -237,7 +239,7 @@ public class FragmentSpreadsMustNotFormCyclesRuleTests
                         }
                     }
                 }
-                
+
                 fragment fragA on Pet {
                     ... on Dog {
                     ...fragA
@@ -255,7 +257,7 @@ public class FragmentSpreadsMustNotFormCyclesRuleTests
                         ...fragA
                     }
                 }
-                
+
                 fragment fragA on Dog { ...fragB }
                 fragment fragB on Dog { ...fragA }
             ");
@@ -272,13 +274,13 @@ public class FragmentSpreadsMustNotFormCyclesRuleTests
                         }
                     }
                 }
-                
+
                 fragment fragA on Pet {
                     ... on Dog {
                         ...fragB
                     }
                 }
-                
+
                 fragment fragB on Pet {
                     ... on Dog {
                         ...fragA
@@ -296,7 +298,7 @@ public class FragmentSpreadsMustNotFormCyclesRuleTests
                         ...fragA
                     }
                 }
-                
+
                 fragment fragA on Dog { ...fragB }
                 fragment fragB on Dog { ...fragC }
                 fragment fragC on Dog { ...fragO }
@@ -317,7 +319,7 @@ public class FragmentSpreadsMustNotFormCyclesRuleTests
                         ...fragA
                     }
                 }
-                
+
                 fragment fragA on Dog { ...fragB, ...fragC }
                 fragment fragB on Dog { ...fragA }
                 fragment fragC on Dog { ...fragA }
@@ -333,7 +335,7 @@ public class FragmentSpreadsMustNotFormCyclesRuleTests
                         ...fragA
                     }
                 }
-                
+
                 fragment fragA on Dog { ...fragC }
                 fragment fragB on Dog { ...fragC }
                 fragment fragC on Dog { ...fragA, ...fragB }
@@ -349,7 +351,7 @@ public class FragmentSpreadsMustNotFormCyclesRuleTests
                         ...fragA
                     }
                 }
-                
+
                 fragment fragA on Dog { ...fragB }
                 fragment fragB on Dog { ...fragB, ...fragC }
                 fragment fragC on Dog { ...fragA, ...fragB }

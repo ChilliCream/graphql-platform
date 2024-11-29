@@ -1,4 +1,3 @@
-using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Configuration;
@@ -135,18 +134,6 @@ public class NodeDescriptor<TNode>
 
         throw new ArgumentException(NodeDescriptor_IdField_MustBePropertyOrMethod);
     }
-
-    /// <inheritdoc cref="INodeDescriptor{TNode}.NodeResolver"/>
-    public IObjectFieldDescriptor NodeResolver(
-        NodeResolverDelegate<TNode, object> nodeResolver) =>
-        ResolveNode<object>(
-            async (ctx, id) => (await nodeResolver(ctx, id).ConfigureAwait(false))!);
-
-    /// <inheritdoc cref="INodeDescriptor{TNode}.NodeResolver{TId}"/>
-    public IObjectFieldDescriptor NodeResolver<TId>(
-        NodeResolverDelegate<TNode, TId> nodeResolver) =>
-        ResolveNode<TId>(
-            async (ctx, id) => (await nodeResolver(ctx, id).ConfigureAwait(false))!);
 
     /// <inheritdoc cref="INodeDescriptor{TNode}.ResolveNode{TId}"/>
     public IObjectFieldDescriptor ResolveNode<TId>(

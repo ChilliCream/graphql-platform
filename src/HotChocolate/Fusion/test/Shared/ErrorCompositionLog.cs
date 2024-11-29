@@ -4,7 +4,7 @@ namespace HotChocolate.Fusion.Shared;
 
 public sealed class ErrorCompositionLog : ICompositionLog
 {
-    private readonly List<LogEntry> _errors = new();
+    private readonly List<LogEntry> _errors = [];
 
     public bool HasErrors => _errors.Count > 0;
 

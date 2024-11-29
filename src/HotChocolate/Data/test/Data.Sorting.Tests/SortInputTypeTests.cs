@@ -1,12 +1,7 @@
-using System.Collections.Generic;
-using System.Linq;
-using CookieCrumble;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Data.Sorting.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Types;
-
-using Xunit;
 
 namespace HotChocolate.Data.Tests;
 
@@ -249,7 +244,7 @@ public class SortInputTypeTest : SortTestBase
         public string Name { get; set; } = default!;
     }
 
-    public class ShouldNotBeVisible : SortInputType { }
+    public class ShouldNotBeVisible : SortInputType;
 
     public class IgnoreTestSortInputType : SortInputType<IgnoreTest>
     {
@@ -267,7 +262,7 @@ public class SortInputTypeTest : SortTestBase
         }
     }
 
-    public class FooDirective { }
+    public class FooDirective;
 
     public class Foo
     {

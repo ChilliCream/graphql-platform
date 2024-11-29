@@ -261,3 +261,5 @@ public IExecutable<Person> GetPersonById(
     return collection.Find(x => x.Id == id).AsExecutable();
 }
 ```
+
+<!-- spell-checker:ignore Shorton -->

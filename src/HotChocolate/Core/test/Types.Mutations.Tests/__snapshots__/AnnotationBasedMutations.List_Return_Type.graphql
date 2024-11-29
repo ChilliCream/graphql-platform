@@ -1,0 +1,24 @@
+schema {
+  query: Query
+  mutation: ListReturnMutation
+}
+
+type AddItemPayload {
+  resultItem: [ResultItem!]
+}
+
+type ListReturnMutation {
+  addItem(input: AddItemInput!): AddItemPayload!
+}
+
+type Query {
+  abc: String
+}
+
+type ResultItem {
+  name: String!
+}
+
+input AddItemInput {
+  count: Int!
+}

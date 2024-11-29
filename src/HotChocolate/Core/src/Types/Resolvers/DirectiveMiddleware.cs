@@ -10,6 +10,9 @@ namespace HotChocolate.Resolvers;
 /// The next field middleware that has to be invoked after the middleware that is
 /// created by this factory.
 /// </param>
+/// <param name="directive">
+/// The directive instance.
+/// </param>
 /// <returns>
 /// Returns the field middleware that is created by this factory.
 /// </returns>

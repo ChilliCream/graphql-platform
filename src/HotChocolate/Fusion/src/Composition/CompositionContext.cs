@@ -10,7 +10,7 @@ namespace HotChocolate.Fusion.Composition;
 /// </summary>
 internal sealed class CompositionContext
 {
-    private static readonly HashSet<SchemaCoordinate> _empty = new();
+    private static readonly HashSet<SchemaCoordinate> _empty = [];
     private readonly Dictionary<string, HashSet<SchemaCoordinate>> _taggedTypes =
         new(StringComparer.Ordinal);
 
@@ -50,7 +50,7 @@ internal sealed class CompositionContext
     /// Gets the subgraph configurations.
     /// </summary>
     public IReadOnlyList<SubgraphConfiguration> Configurations { get; }
-    
+
     /// <summary>
     /// Gets the composition features.
     /// </summary>
@@ -59,17 +59,17 @@ internal sealed class CompositionContext
     /// <summary>
     /// Gets the subgraph schemas.
     /// </summary>
-    public List<Schema> Subgraphs { get; } = new();
+    public List<SchemaDefinition> Subgraphs { get; } = [];
 
     /// <summary>
     /// Get the grouped subgraph entities.
     /// </summary>
-    public List<EntityGroup> Entities { get; } = new();
+    public List<EntityGroup> Entities { get; } = [];
 
     /// <summary>
     /// Gets the fusion graph schema.
     /// </summary>
-    public Schema FusionGraph { get; }
+    public SchemaDefinition FusionGraph { get; }
 
     /// <summary>
     /// Gets the fusion types.
@@ -90,7 +90,7 @@ internal sealed class CompositionContext
     /// Gets a set that can be used to calculate subgraph support of a component.
     /// </summary>
     public HashSet<string> SupportedBy { get; } = new(StringComparer.OrdinalIgnoreCase);
-    
+
     /// <summary>
     /// Gets a map that can be used to store custom context data.
     /// </summary>
@@ -105,7 +105,7 @@ internal sealed class CompositionContext
     /// <returns>
     /// Returns the subgraph schema.
     /// </returns>
-    public Schema GetSubgraphSchema(string subgraphName)
+    public SchemaDefinition GetSubgraphSchema(string subgraphName)
         => Subgraphs.First(t => t.Name.EqualsOrdinal(subgraphName));
 
     /// <summary>
@@ -130,11 +130,11 @@ internal sealed class CompositionContext
         string subgraphName,
         SchemaCoordinate coordinate,
         [NotNullWhen(true)] out T? member)
-        where T : ITypeSystemMember
+        where T : ITypeSystemMemberDefinition
         => GetSubgraphSchema(subgraphName).TryGetMember(coordinate, out member);
-    
+
     public IEnumerable<T> GetSubgraphMembers<T>(SchemaCoordinate coordinate)
-        where T : ITypeSystemMember
+        where T : ITypeSystemMemberDefinition
     {
         foreach (var subgraph in Subgraphs)
         {

@@ -10,14 +10,14 @@ public enum TransportFeatures
     /// Standard GraphQL over HTTP POST request.
     /// </summary>
     Standard = 0,
-    
+
     /// <summary>
     /// GraphQL multipart request.
     /// </summary>
     FileUpload = 1,
-    
+
     /// <summary>
     /// All Features.
     /// </summary>
-    All = Standard | FileUpload
+    All = Standard | FileUpload,
 }

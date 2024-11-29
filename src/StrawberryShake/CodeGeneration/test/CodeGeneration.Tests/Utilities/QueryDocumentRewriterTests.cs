@@ -1,11 +1,9 @@
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.StarWars;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace StrawberryShake.CodeGeneration.Utilities;
 
@@ -27,7 +25,7 @@ public class QueryDocumentRewriterTests
                 new GraphQLFile[]
                 {
                     new(schema.ToDocument()),
-                    new(Utf8GraphQLParser.Parse("extend schema @key(fields: \"id\")"))
+                    new(Utf8GraphQLParser.Parse("extend schema @key(fields: \"id\")")),
                 });
 
         var document =

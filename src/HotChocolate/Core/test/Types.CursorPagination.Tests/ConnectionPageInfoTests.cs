@@ -1,5 +1,3 @@
-﻿using Xunit;
-
 namespace HotChocolate.Types.Pagination;
 
 public class ConnectionPageInfoTests
@@ -13,8 +11,8 @@ public class ConnectionPageInfoTests
     public void CreatePageInfo_ArgumentsArePassedCorrectly(
         bool hasNextPage,
         bool hasPreviousPage,
-        string startCursor,
-        string endCursor)
+        string? startCursor,
+        string? endCursor)
     {
         // arrange
         // act

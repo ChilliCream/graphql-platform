@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Language;
 using Moq;
 using StrawberryShake.Transport.WebSockets.Messages;
@@ -97,7 +93,7 @@ public class SocketOperationTests
         const string id = "123";
         var operation = new SocketOperation(manager, id);
         await operation.DisposeAsync();
-        List<OperationMessage> messages = new();
+        List<OperationMessage> messages = [];
 
         // act
         await foreach (var elm in operation.ReadAsync())
@@ -116,7 +112,7 @@ public class SocketOperationTests
         var manager = new Mock<ISession>().Object;
         const string id = "123";
         var operation = new SocketOperation(manager, id);
-        List<OperationMessage> messages = new();
+        List<OperationMessage> messages = [];
 
         // act
         await operation.ReceiveMessageAsync(

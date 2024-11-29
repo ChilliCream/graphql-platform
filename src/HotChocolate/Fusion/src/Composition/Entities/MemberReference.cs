@@ -3,4 +3,4 @@ using HotChocolate.Skimmed;
 
 namespace HotChocolate.Fusion.Composition;
 
-internal sealed record MemberReference(InputField Argument, FieldNode Requirement);
+internal sealed record MemberReference(InputFieldDefinition Argument, FieldNode Requirement);

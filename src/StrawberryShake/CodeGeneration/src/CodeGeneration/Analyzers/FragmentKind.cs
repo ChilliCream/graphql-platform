@@ -4,5 +4,5 @@ public enum FragmentKind
 {
     Structure,
     Named,
-    Inline
+    Inline,
 }

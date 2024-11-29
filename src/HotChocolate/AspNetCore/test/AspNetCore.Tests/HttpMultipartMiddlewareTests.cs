@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using Newtonsoft.Json;
 
@@ -244,8 +243,8 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
                 Query = query,
                 Variables = new Dictionary<string, object?>
                 {
-                    { "upload", null }
-                }
+                    { "upload", null },
+                },
             });
 
         // act
@@ -281,8 +280,8 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
                 Query = query,
                 Variables = new Dictionary<string, object?>
                 {
-                    { "upload", null }
-                }
+                    { "upload", null },
+                },
             });
 
         // act
@@ -318,8 +317,8 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
                 Query = query,
                 Variables = new Dictionary<string, object?>
                 {
-                    { "input", new Dictionary<string, object?> { { "file", null } } }
-                }
+                    { "input", new Dictionary<string, object?> { { "file", null }, } },
+                },
             });
 
         // act
@@ -355,8 +354,8 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
                 Query = query,
                 Variables = new Dictionary<string, object?>
                 {
-                    { "upload", null }
-                }
+                    { "upload", null },
+                },
             });
 
         // act
@@ -392,8 +391,8 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
                 Query = query,
                 Variables = new Dictionary<string, object?>
                 {
-                    { "input", new Dictionary<string, object?> { { "file", null } } }
-                }
+                    { "input", new Dictionary<string, object?> { { "file", null }, } },
+                },
             });
 
         // act
@@ -429,8 +428,8 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
                 Query = query,
                 Variables = new Dictionary<string, object?>
                 {
-                    { "upload", null }
-                }
+                    { "upload", null },
+                },
             });
 
         // act
@@ -472,11 +471,11 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
                         {
                             new List<object>
                             {
-                                new Dictionary<string, object?> { { "file", null } }
-                            }
+                                new Dictionary<string, object?> { { "file", null }, },
+                            },
                         }
-                    }
-                }
+                    },
+                },
             });
 
         // act
@@ -512,8 +511,8 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
                 Query = query,
                 Variables = new Dictionary<string, object?>
                 {
-                    { "upload", null }
-                }
+                    { "upload", null },
+                },
             });
 
         var count = 1024 * 1024 * 129;

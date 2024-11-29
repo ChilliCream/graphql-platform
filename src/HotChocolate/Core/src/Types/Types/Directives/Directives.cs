@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types;
@@ -10,15 +8,15 @@ namespace HotChocolate.Types;
 public static class Directives
 {
     private static readonly HashSet<string> _directiveNames =
-        new()
-        {
-            WellKnownDirectives.Skip,
-            WellKnownDirectives.Include,
-            WellKnownDirectives.Deprecated,
-            WellKnownDirectives.Stream,
-            WellKnownDirectives.Defer,
-            WellKnownDirectives.OneOf
-        };
+    [
+        WellKnownDirectives.Skip,
+        WellKnownDirectives.Include,
+        WellKnownDirectives.Deprecated,
+        WellKnownDirectives.Stream,
+        WellKnownDirectives.Defer,
+        WellKnownDirectives.OneOf,
+        WellKnownDirectives.SemanticNonNull
+    ];
 
     internal static IReadOnlyList<TypeReference> CreateReferences(
         IDescriptorContext descriptorContext)
@@ -41,13 +39,22 @@ public static class Directives
             directiveTypes.Add(typeInspector.GetTypeRef(typeof(StreamDirectiveType)));
         }
 
+        if (descriptorContext.Options.EnableSemanticNonNull)
+        {
+            directiveTypes.Add(typeInspector.GetTypeRef(typeof(SemanticNonNullDirective)));
+        }
+
+        if (descriptorContext.Options.EnableTag)
+        {
+            directiveTypes.Add(typeInspector.GetTypeRef(typeof(Tag)));
+        }
+
         directiveTypes.Add(typeInspector.GetTypeRef(typeof(SkipDirectiveType)));
         directiveTypes.Add(typeInspector.GetTypeRef(typeof(IncludeDirectiveType)));
         directiveTypes.Add(typeInspector.GetTypeRef(typeof(DeprecatedDirectiveType)));
 
         return directiveTypes;
     }
-
 
     /// <summary>
     /// Checks if the specified directive represents a built-in directive.

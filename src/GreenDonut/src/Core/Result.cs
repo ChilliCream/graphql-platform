@@ -1,5 +1,3 @@
-using System;
-
 namespace GreenDonut;
 
 /// <summary>
@@ -7,7 +5,7 @@ namespace GreenDonut;
 /// error.
 /// </summary>
 /// <typeparam name="TValue">A value type.</typeparam>
-public readonly struct Result<TValue> : IEquatable<Result<TValue>>
+public readonly record struct Result<TValue>
 {
     /// <summary>
     /// Creates a new value result.
@@ -50,41 +48,36 @@ public readonly struct Result<TValue> : IEquatable<Result<TValue>>
     /// </summary>
     public Exception? Error { get; }
 
-    /// <inheritdoc />
-    public bool Equals(Result<TValue> other)
-        => Error == other.Error &&
-            Equals(Value, other.Value);
-
-    /// <inheritdoc />
-    public override bool Equals(object? obj)
-    {
-        if (ReferenceEquals(null, obj))
-        {
-            return false;
-        }
-
-        return obj is Result<TValue> result && Equals(result);
-    }
-
-    /// <inheritdoc />
-    public override int GetHashCode()
-        => Error is not null
-            ? Error.GetHashCode()
-            : Value?.GetHashCode() ?? 0;
-
     /// <summary>
     /// Creates a new error result.
     /// </summary>
     /// <param name="error">An arbitrary error.</param>
     /// <returns>An error result.</returns>
-    public static Result<TValue> Reject(Exception error) => new(error);
+    public static Result<TValue> Reject(Exception error)
+        => new(error);
+
+    /// <summary>
+    /// Creates a new error result.
+    /// </summary>
+    /// <param name="key">
+    /// The ket that could not be resolved.
+    /// </param>
+    /// <typeparam name="TKey">
+    /// The key type.
+    /// </typeparam>
+    /// <returns>
+    /// An error result.
+    /// </returns>
+    public static Result<TValue> Reject<TKey>(TKey key)
+        => new(new KeyNotFoundException($"The key {key} could not be resolved."));
 
     /// <summary>
     /// Creates a new value result.
     /// </summary>
     /// <param name="value">An arbitrary value.</param>
     /// <returns>A value result.</returns>
-    public static Result<TValue> Resolve(TValue value) => new(value);
+    public static Result<TValue> Resolve(TValue value)
+        => new(value);
 
     /// <summary>
     /// Creates a new error result or a null result.
@@ -114,3 +107,5 @@ public readonly struct Result<TValue> : IEquatable<Result<TValue>>
     public static implicit operator TValue(Result<TValue> result)
         => result.Value;
 }
+
+public class KeyNotFoundException(string message) : Exception(message);

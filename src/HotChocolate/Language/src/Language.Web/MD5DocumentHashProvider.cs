@@ -1,8 +1,5 @@
-using System;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
-using System.Threading;
-using static HotChocolate.Language.Properties.LangWebResources;
 
 namespace HotChocolate.Language;
 
@@ -18,7 +15,12 @@ public sealed class MD5DocumentHashProvider : DocumentHashProviderBase
 
     public override string Name => "md5Hash";
 
-#if NETCOREAPP3_1_OR_GREATER
+#if NETSTANDARD2_0
+    protected override byte[] ComputeHash(byte[] document, int length)
+    {
+        return _md5.Value!.ComputeHash(document, 0, length);
+    }
+#else
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected override string ComputeHash(ReadOnlySpan<byte> document, HashFormat format)
     {
@@ -32,17 +34,7 @@ public sealed class MD5DocumentHashProvider : DocumentHashProviderBase
             hashSpan = hashSpan.Slice(0, written);
         }
 
-        return format switch
-        {
-            HashFormat.Base64 => Convert.ToBase64String(hashSpan),
-            HashFormat.Hex => ToHexString(hashSpan),
-            _ => throw new NotSupportedException(ComputeHash_FormatNotSupported)
-        };
-    }
-#else
-    protected override byte[] ComputeHash(byte[] document, int length)
-    {
-        return _md5.Value!.ComputeHash(document, 0, length);
+        return FormatHash(hashSpan, format);
     }
 #endif
 }

@@ -1,10 +1,10 @@
-using CookieCrumble;
 using HotChocolate.Data.MongoDb.Filters;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using Squadron;
 
@@ -12,14 +12,14 @@ namespace HotChocolate.Data.MongoDb.Paging;
 
 public class MongoDbOffsetPagingFindFluentTests : IClassFixture<MongoResource>
 {
-    private readonly List<Foo> _foos = new()
-    {
-        new Foo { Bar = "a" },
-        new Foo { Bar = "b" },
-        new Foo { Bar = "d" },
-        new Foo { Bar = "e" },
-        new Foo { Bar = "f" }
-    };
+    private readonly List<Foo> _foos =
+    [
+        new Foo { Bar = "a", },
+        new Foo { Bar = "b", },
+        new Foo { Bar = "d", },
+        new Foo { Bar = "e", },
+        new Foo { Bar = "f", },
+    ];
 
     private readonly MongoResource _resource;
 
@@ -50,9 +50,9 @@ public class MongoDbOffsetPagingFindFluentTests : IClassFixture<MongoResource>
             }");
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), result)
+        await Snapshot
+            .Create()
+            .AddResult(result)
             .MatchAsync();
     }
 
@@ -77,9 +77,9 @@ public class MongoDbOffsetPagingFindFluentTests : IClassFixture<MongoResource>
             }");
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), result)
+        await Snapshot
+            .Create()
+            .AddResult(result)
             .MatchAsync();
     }
 
@@ -104,9 +104,9 @@ public class MongoDbOffsetPagingFindFluentTests : IClassFixture<MongoResource>
             }");
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), result)
+        await Snapshot
+            .Create()
+            .AddResult(result)
             .MatchAsync();
     }
 
@@ -131,9 +131,9 @@ public class MongoDbOffsetPagingFindFluentTests : IClassFixture<MongoResource>
             }");
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), result)
+        await Snapshot
+            .Create()
+            .AddResult(result)
             .MatchAsync();
     }
 
@@ -152,15 +152,16 @@ public class MongoDbOffsetPagingFindFluentTests : IClassFixture<MongoResource>
             }");
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), result)
+        await Snapshot
+            .Create()
+            .AddResult(result)
             .MatchAsync();
     }
 
     public class Foo
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public string Bar { get; set; } = default!;
@@ -202,7 +203,7 @@ public class MongoDbOffsetPagingFindFluentTests : IClassFixture<MongoResource>
                                 }
                             })
                         .UseOffsetPaging<ObjectType<Foo>>(
-                            options: new PagingOptions { IncludeTotalCount = true });
+                            options: new PagingOptions { IncludeTotalCount = true, });
                 })
             .UseRequest(
                 next => async context =>
@@ -211,10 +212,10 @@ public class MongoDbOffsetPagingFindFluentTests : IClassFixture<MongoResource>
                     if (context.ContextData.TryGetValue("query", out var queryString))
                     {
                         context.Result =
-                            QueryResultBuilder
-                                .FromResult(context.Result!.ExpectQueryResult())
+                            OperationResultBuilder
+                                .FromResult(context.Result!.ExpectOperationResult())
                                 .SetContextData("query", queryString)
-                                .Create();
+                                .Build();
                     }
                 })
             .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)

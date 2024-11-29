@@ -1,6 +1,6 @@
-using CookieCrumble;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using Squadron;
 
@@ -11,21 +11,21 @@ public class MongoDbFilterVisitorEnumTests
     , IClassFixture<MongoResource>
 {
     private static readonly Foo[] _fooEntities =
-    {
-        new() { BarEnum = FooEnum.BAR },
-        new() { BarEnum = FooEnum.BAZ },
-        new() { BarEnum = FooEnum.FOO },
-        new() { BarEnum = FooEnum.QUX }
-    };
+    [
+        new() { BarEnum = FooEnum.BAR, },
+        new() { BarEnum = FooEnum.BAZ, },
+        new() { BarEnum = FooEnum.FOO, },
+        new() { BarEnum = FooEnum.QUX, },
+    ];
 
     private static readonly FooNullable[] _fooNullableEntities =
-    {
-        new() { BarEnum = FooEnum.BAR },
-        new() { BarEnum = FooEnum.BAZ },
-        new() { BarEnum = FooEnum.FOO },
-        new() { BarEnum = null },
-        new() { BarEnum = FooEnum.QUX }
-    };
+    [
+        new() { BarEnum = FooEnum.BAR, },
+        new() { BarEnum = FooEnum.BAZ, },
+        new() { BarEnum = FooEnum.FOO, },
+        new() { BarEnum = null, },
+        new() { BarEnum = FooEnum.QUX, },
+    ];
 
     public MongoDbFilterVisitorEnumTests(MongoResource resource)
     {
@@ -40,26 +40,26 @@ public class MongoDbFilterVisitorEnumTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { eq: BAR } }) { barEnum } }")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barEnum: { eq: BAR } }) { barEnum } }")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { eq: FOO } }) { barEnum } }")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barEnum: { eq: FOO } }) { barEnum } }")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { eq: null } }) { barEnum } }")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barEnum: { eq: null } }) { barEnum } }")
+                .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "BAR"), res2, "FOO"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "BAR")
+            .AddResult(res2, "FOO")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -71,26 +71,26 @@ public class MongoDbFilterVisitorEnumTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { neq: BAR } }) { barEnum } }")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barEnum: { neq: BAR } }) { barEnum } }")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { neq: FOO } }) { barEnum } }")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barEnum: { neq: FOO } }) { barEnum } }")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { neq: null } }){ barEnum } }")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barEnum: { neq: null } }){ barEnum } }")
+                .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "BAR"), res2, "FOO"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "BAR")
+            .AddResult(res2, "FOO")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -102,26 +102,26 @@ public class MongoDbFilterVisitorEnumTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { in: [ BAR FOO ]}}){ barEnum}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barEnum: { in: [ BAR FOO ]}}){ barEnum}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { in: [ FOO ]}}){ barEnum}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barEnum: { in: [ FOO ]}}){ barEnum}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { in: [ null FOO ]}}){ barEnum}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barEnum: { in: [ null FOO ]}}){ barEnum}}")
+                .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "BarAndFoo"), res2, "FOO"), res3, "nullAndFoo")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "BarAndFoo")
+            .AddResult(res2, "FOO")
+            .AddResult(res3, "nullAndFoo")
             .MatchAsync();
     }
 
@@ -133,26 +133,26 @@ public class MongoDbFilterVisitorEnumTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { nin: [ BAR FOO ] } }) { barEnum } }")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barEnum: { nin: [ BAR FOO ] } }) { barEnum } }")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { nin: [ FOO ] } }) { barEnum } }")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barEnum: { nin: [ FOO ] } }) { barEnum } }")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { nin: [ null FOO ] } }) { barEnum } }")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barEnum: { nin: [ null FOO ] } }) { barEnum } }")
+                .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "BarAndFoo"), res2, "FOO"), res3, "nullAndFoo")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "BarAndFoo")
+            .AddResult(res2, "FOO")
+            .AddResult(res3, "nullAndFoo")
             .MatchAsync();
     }
 
@@ -164,26 +164,26 @@ public class MongoDbFilterVisitorEnumTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { eq: BAR } }) { barEnum } }")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barEnum: { eq: BAR } }) { barEnum } }")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { eq: FOO } }) { barEnum } }")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barEnum: { eq: FOO } }) { barEnum } }")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { eq: null } }){ barEnum } }")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barEnum: { eq: null } }){ barEnum } }")
+                .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "BAR"), res2, "FOO"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "BAR")
+            .AddResult(res2, "FOO")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -195,26 +195,26 @@ public class MongoDbFilterVisitorEnumTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { neq: BAR } }) { barEnum } }")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barEnum: { neq: BAR } }) { barEnum } }")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { neq: FOO } }) { barEnum } }")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barEnum: { neq: FOO } }) { barEnum } }")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { neq: null } }) { barEnum } }")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barEnum: { neq: null } }) { barEnum } }")
+                .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "BAR"), res2, "FOO"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "BAR")
+            .AddResult(res2, "FOO")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -226,26 +226,26 @@ public class MongoDbFilterVisitorEnumTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { in: [ BAR FOO ] } }) { barEnum } }")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barEnum: { in: [ BAR FOO ] } }) { barEnum } }")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { in: [ FOO ] } }) { barEnum } }")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barEnum: { in: [ FOO ] } }) { barEnum } }")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { in: [ null FOO ] } }) { barEnum } }")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barEnum: { in: [ null FOO ] } }) { barEnum } }")
+                .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "BarAndFoo"), res2, "FOO"), res3, "nullAndFoo")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "BarAndFoo")
+            .AddResult(res2, "FOO")
+            .AddResult(res3, "nullAndFoo")
             .MatchAsync();
     }
 
@@ -257,32 +257,33 @@ public class MongoDbFilterVisitorEnumTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { nin: [ BAR FOO ] } }){ barEnum } }")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barEnum: { nin: [ BAR FOO ] } }){ barEnum } }")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { nin: [ FOO ] } }) { barEnum } }")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barEnum: { nin: [ FOO ] } }) { barEnum } }")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { nin: [ null FOO ] } }) { barEnum } }")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barEnum: { nin: [ null FOO ] } }) { barEnum } }")
+                .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "BarAndFoo"), res2, "FOO"), res3, "nullAndFoo")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "BarAndFoo")
+            .AddResult(res2, "FOO")
+            .AddResult(res3, "nullAndFoo")
             .MatchAsync();
     }
 
     public class Foo
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public FooEnum BarEnum { get; set; }
@@ -291,6 +292,7 @@ public class MongoDbFilterVisitorEnumTests
     public class FooNullable
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public FooEnum? BarEnum { get; set; }
@@ -301,7 +303,7 @@ public class MongoDbFilterVisitorEnumTests
         FOO,
         BAR,
         BAZ,
-        QUX
+        QUX,
     }
 
     public class FooFilterType : FilterInputType<Foo>

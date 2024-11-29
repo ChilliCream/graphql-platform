@@ -1,0 +1,8 @@
+query IntrospectionQuery {
+  __type(name: "__Directive") {
+    fields
+    {
+      name
+    }
+  }
+}

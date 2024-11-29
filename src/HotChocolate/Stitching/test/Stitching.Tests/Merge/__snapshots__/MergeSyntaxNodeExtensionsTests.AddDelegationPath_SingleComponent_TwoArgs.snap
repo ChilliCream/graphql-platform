@@ -1,3 +1,0 @@
-﻿type Object {
-  foo: Type @delegate(schema: "schemName", path: "bar(baz: $qux:quux, value_arg: \"value\")")
-}

@@ -1,7 +1,4 @@
-using System;
 using System.Buffers.Text;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using HotChocolate.Language.Properties;
 using HotChocolate.Language.Utilities;
@@ -324,7 +321,7 @@ public sealed class IntValueNode : IValueNode<string>, IIntValueLiteral
     object IValueNode.Value => Value;
 
     /// <inheritdoc />
-    public IEnumerable<ISyntaxNode> GetNodes() => Enumerable.Empty<ISyntaxNode>();
+    public IEnumerable<ISyntaxNode> GetNodes() => [];
 
     /// <summary>
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
@@ -614,7 +611,7 @@ public sealed class IntValueNode : IValueNode<string>, IIntValueLiteral
             _intValue = _intValue,
             _longValue = _longValue,
             _sbyteValue = _sbyteValue,
-            _memory = _memory
+            _memory = _memory,
         };
 
     /// <summary>

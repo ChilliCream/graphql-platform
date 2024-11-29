@@ -1,11 +1,7 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Validation.Types;
 using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
-
-#nullable enable
 
 namespace HotChocolate.Validation;
 
@@ -15,7 +11,7 @@ public static class ValidationUtils
         => new()
         {
             Schema = schema ?? CreateSchema(),
-            ContextData = new Dictionary<string, object?>()
+            ContextData = new Dictionary<string, object?>(),
         };
 
     public static void Prepare(this IDocumentValidatorContext context, DocumentNode document)

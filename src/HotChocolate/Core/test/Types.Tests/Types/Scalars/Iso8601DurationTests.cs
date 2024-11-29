@@ -1,16 +1,12 @@
-using System;
-using System.Collections.Generic;
-using Xunit;
-
 namespace HotChocolate.Types;
 
 public class Iso8601DurationTests
 {
     public static IEnumerable<object[]> TryParseTests => new List<object[]>
     {
-        new object[] { "-P1D", TimeSpan.FromDays(-1) },
-        new object[] { "PT0.0000001S", TimeSpan.FromMilliseconds(1) / 1000 / 10 },
-        new object[] { "-PT0.0000001S", TimeSpan.FromMilliseconds(-1) / 1000 / 10 },
+        new object[] { "-P1D", TimeSpan.FromDays(-1), },
+        new object[] { "PT0.0000001S", TimeSpan.FromMilliseconds(1) / 1000 / 10, },
+        new object[] { "-PT0.0000001S", TimeSpan.FromMilliseconds(-1) / 1000 / 10, },
     };
 
     [Theory]

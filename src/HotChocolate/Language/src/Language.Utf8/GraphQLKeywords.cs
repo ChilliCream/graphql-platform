@@ -1,40 +1,38 @@
-using System;
-
 namespace HotChocolate.Language;
 
 internal static class GraphQLKeywords
 {
     // type system
-    public static ReadOnlySpan<byte> Schema => new[]
-    {
+    public static ReadOnlySpan<byte> Schema =>
+    [
         (byte)'s',
         (byte)'c',
         (byte)'h',
         (byte)'e',
         (byte)'m',
-        (byte)'a'
-    };
+        (byte)'a',
+    ];
 
-    public static ReadOnlySpan<byte> Scalar => new[]
-    {
+    public static ReadOnlySpan<byte> Scalar =>
+    [
         (byte)'s',
         (byte)'c',
         (byte)'a',
         (byte)'l',
         (byte)'a',
-        (byte)'r'
-    };
+        (byte)'r',
+    ];
 
-    public static ReadOnlySpan<byte> Type => new[]
-    {
+    public static ReadOnlySpan<byte> Type =>
+    [
         (byte)'t',
         (byte)'y',
         (byte)'p',
-        (byte)'e'
-    };
+        (byte)'e',
+    ];
 
-    public static ReadOnlySpan<byte> Interface => new[]
-    {
+    public static ReadOnlySpan<byte> Interface =>
+    [
         (byte)'i',
         (byte)'n',
         (byte)'t',
@@ -43,47 +41,47 @@ internal static class GraphQLKeywords
         (byte)'f',
         (byte)'a',
         (byte)'c',
-        (byte)'e'
-    };
+        (byte)'e',
+    ];
 
-    public static ReadOnlySpan<byte> Union => new[]
-    {
+    public static ReadOnlySpan<byte> Union =>
+    [
         (byte)'u',
         (byte)'n',
         (byte)'i',
         (byte)'o',
-        (byte)'n'
-    };
+        (byte)'n',
+    ];
 
-    public static ReadOnlySpan<byte> Enum => new[]
-    {
+    public static ReadOnlySpan<byte> Enum =>
+    [
         (byte)'e',
         (byte)'n',
         (byte)'u',
-        (byte)'m'
-    };
+        (byte)'m',
+    ];
 
-    public static ReadOnlySpan<byte> Input => new[]
-    {
+    public static ReadOnlySpan<byte> Input =>
+    [
         (byte)'i',
         (byte)'n',
         (byte)'p',
         (byte)'u',
-        (byte)'t'
-    };
+        (byte)'t',
+    ];
 
-    public static ReadOnlySpan<byte> Extend => new[]
-    {
+    public static ReadOnlySpan<byte> Extend =>
+    [
         (byte)'e',
         (byte)'x',
         (byte)'t',
         (byte)'e',
         (byte)'n',
-        (byte)'d'
-    };
+        (byte)'d',
+    ];
 
-    public static ReadOnlySpan<byte> Implements => new[]
-    {
+    public static ReadOnlySpan<byte> Implements =>
+    [
         (byte)'i',
         (byte)'m',
         (byte)'p',
@@ -93,11 +91,11 @@ internal static class GraphQLKeywords
         (byte)'e',
         (byte)'n',
         (byte)'t',
-        (byte)'s'
-    };
+        (byte)'s',
+    ];
 
-    public static ReadOnlySpan<byte> Repeatable => new[]
-    {
+    public static ReadOnlySpan<byte> Repeatable =>
+    [
         (byte)'r',
         (byte)'e',
         (byte)'p',
@@ -107,11 +105,11 @@ internal static class GraphQLKeywords
         (byte)'a',
         (byte)'b',
         (byte)'l',
-        (byte)'e'
-    };
+        (byte)'e',
+    ];
 
-    public static ReadOnlySpan<byte> Directive => new[]
-    {
+    public static ReadOnlySpan<byte> Directive =>
+    [
         (byte)'d',
         (byte)'i',
         (byte)'r',
@@ -120,21 +118,21 @@ internal static class GraphQLKeywords
         (byte)'t',
         (byte)'i',
         (byte)'v',
-        (byte)'e'
-    };
+        (byte)'e',
+    ];
 
     // query
-    public static ReadOnlySpan<byte> Query => new[]
-    {
+    public static ReadOnlySpan<byte> Query =>
+    [
         (byte)'q',
         (byte)'u',
         (byte)'e',
         (byte)'r',
-        (byte)'y'
-    };
+        (byte)'y',
+    ];
 
-    public static ReadOnlySpan<byte> Mutation => new[]
-    {
+    public static ReadOnlySpan<byte> Mutation =>
+    [
         (byte)'m',
         (byte)'u',
         (byte)'t',
@@ -142,11 +140,11 @@ internal static class GraphQLKeywords
         (byte)'t',
         (byte)'i',
         (byte)'o',
-        (byte)'n'
-    };
+        (byte)'n',
+    ];
 
-    public static ReadOnlySpan<byte> Subscription => new[]
-    {
+    public static ReadOnlySpan<byte> Subscription =>
+    [
         (byte)'s',
         (byte)'u',
         (byte)'b',
@@ -158,11 +156,11 @@ internal static class GraphQLKeywords
         (byte)'t',
         (byte)'i',
         (byte)'o',
-        (byte)'n'
-    };
+        (byte)'n',
+    ];
 
-    public static ReadOnlySpan<byte> Fragment => new[]
-    {
+    public static ReadOnlySpan<byte> Fragment =>
+    [
         (byte)'f',
         (byte)'r',
         (byte)'a',
@@ -170,38 +168,38 @@ internal static class GraphQLKeywords
         (byte)'m',
         (byte)'e',
         (byte)'n',
-        (byte)'t'
-    };
+        (byte)'t',
+    ];
 
     // general
-    public static ReadOnlySpan<byte> On => new[]
-    {
+    public static ReadOnlySpan<byte> On =>
+    [
         (byte)'o',
-        (byte)'n'
-    };
+        (byte)'n',
+    ];
 
-    public static ReadOnlySpan<byte> True => new[]
-    {
+    public static ReadOnlySpan<byte> True =>
+    [
         (byte)'t',
         (byte)'r',
         (byte)'u',
-        (byte)'e'
-    };
+        (byte)'e',
+    ];
 
-    public static ReadOnlySpan<byte> False => new[]
-    {
+    public static ReadOnlySpan<byte> False =>
+    [
         (byte)'f',
         (byte)'a',
         (byte)'l',
         (byte)'s',
-        (byte)'e'
-    };
+        (byte)'e',
+    ];
 
-    public static ReadOnlySpan<byte> Null => new[]
-    {
+    public static ReadOnlySpan<byte> Null =>
+    [
         (byte)'n',
         (byte)'u',
         (byte)'l',
-        (byte)'l'
-    };
+        (byte)'l',
+    ];
 }

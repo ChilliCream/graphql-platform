@@ -1,4 +1,5 @@
 using HotChocolate.Skimmed;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
 
@@ -26,10 +27,12 @@ internal sealed class ScalarTypeMergeHandler : ITypeMergeHandler
         // Merge each part of the scalar type.
         foreach (var part in typeGroup.Parts)
         {
-            var source = (ScalarType)part.Type;
+            var source = (ScalarTypeDefinition)part.Type;
 
             // Try to apply the source scalar type to the target scalar type.
             context.TryApplySource(source, part.Schema, target);
+
+            target.MergeDirectivesWith(source, context);
 
             // If the target scalar type has no description,
             // set it to the source scalar type's description.

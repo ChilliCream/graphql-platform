@@ -18,13 +18,13 @@ internal sealed class SubgraphConfigSetWebSocketCommand : Command
         var url = new Option<Uri>("--url")
         {
             Description = "The url of the graphql-ws endpoint.",
-            IsRequired = true
+            IsRequired = true,
         };
 
         var clientName = new Option<string>("--client-name")
         {
             Description = "The name of graphql-ws configuration.",
-            IsRequired = false
+            IsRequired = false,
         };
 
         var configFile = new SubgraphConfigFileOption();
@@ -61,7 +61,7 @@ internal sealed class SubgraphConfigSetWebSocketCommand : Command
                 SubgraphName,
                 new[]
                 {
-                    new WebSocketClientConfiguration(uri, clientName)
+                    new WebSocketClientConfiguration(uri, clientName),
                 });
             var configJson = FormatSubgraphConfig(config);
             await File.WriteAllTextAsync(configFile.FullName, configJson, cancellationToken);
@@ -69,26 +69,26 @@ internal sealed class SubgraphConfigSetWebSocketCommand : Command
         else if (configFile.Extension.EqualsOrdinal(".fsp"))
         {
             var config = await LoadSubgraphConfigFromSubgraphPackageAsync(configFile.FullName, cancellationToken);
-            
+
             var clients = config.Clients.ToList();
-            
+
             clients.RemoveAll(t => t is WebSocketClientConfiguration);
             clients.Add(new WebSocketClientConfiguration(uri, clientName));
 
             await ReplaceSubgraphConfigInSubgraphPackageAsync(
                 configFile.FullName,
-                config with { Clients = clients });
+                config with { Clients = clients, });
         }
         else
         {
             var config = await LoadSubgraphConfigAsync(configFile.FullName, cancellationToken);
 
             var clients = config.Clients.ToList();
-            
+
             clients.RemoveAll(t => t is WebSocketClientConfiguration);
             clients.Add(new WebSocketClientConfiguration(uri, clientName));
 
-            var configJson = FormatSubgraphConfig(config with { Clients = clients });
+            var configJson = FormatSubgraphConfig(config with { Clients = clients, });
             await File.WriteAllTextAsync(configFile.FullName, configJson, cancellationToken);
         }
     }

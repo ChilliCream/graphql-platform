@@ -1,7 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace HotChocolate.Transport.Sockets.Client.Protocols;
 
 internal sealed class ConnectionMessageObserver<TConnectMessage> : IObserver<IOperationMessage>

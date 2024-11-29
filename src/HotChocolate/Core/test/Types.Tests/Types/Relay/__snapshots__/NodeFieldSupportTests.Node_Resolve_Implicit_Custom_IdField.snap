@@ -1,7 +1,7 @@
 {
   "errors": [
     {
-      "message": "Could not resolve the actual object type from \u0060HotChocolate.Types.Relay.NodeFieldSupportTests\u002BBar2\u0060 for the abstract type \u0060node\u0060.",
+      "message": "Could not resolve the actual object type from `HotChocolate.Types.Relay.NodeFieldSupportTests+Bar2` for the abstract type `node`.",
       "locations": [
         {
           "line": 1,

@@ -1,92 +1,28 @@
-using System;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
-using CookieCrumble;
 
 namespace HotChocolate.Types.Relay;
 
 public class NodeFieldSupportTests
 {
-    [Obsolete]
-    [Fact]
-    public async Task NodeId_Is_Correctly_Formatted()
-    {
-        // arrange
-        var schema = SchemaBuilder.New()
-            .EnableRelaySupport()
-            .AddQueryType<Foo>()
-            .AddObjectType<Bar>(d => d
-                .AsNode()
-                .IdField(t => t.Id)
-                .NodeResolver((_, id) => Task.FromResult(new Bar { Id = id })))
-            .Create();
-
-        var executor = schema.MakeExecutable();
-
-        // act
-        var result = await executor.ExecuteAsync("{ bar { id } }");
-
-        // assert
-        result.MatchSnapshot();
-    }
-
-    [Obsolete]
-    [Fact]
-    public async Task Node_Type_Is_Correctly_In_Context()
-    {
-        // arrange
-        string type = null;
-
-        var schema = SchemaBuilder.New()
-            .EnableRelaySupport()
-            .AddQueryType<Foo>()
-            .AddObjectType<Bar>(d => d
-                .AsNode()
-                .IdField(t => t.Id)
-                .NodeResolver((_, id) => Task.FromResult(new Bar { Id = id })))
-            .Use(next => async ctx =>
-            {
-                await next(ctx);
-
-                if (ctx.LocalContextData.TryGetValue(
-                    WellKnownContextData.InternalTypeName,
-                    out var value))
-                {
-                    type = (string)value;
-                }
-            })
-            .Create();
-
-        var executor = schema.MakeExecutable();
-
-        // act
-        var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyCmQxMjM=\") { id } }");
-
-        // assert
-        Assert.Equal("Bar", type);
-        result.MatchSnapshot();
-    }
-
     [Fact]
     public async Task Node_Resolve_Separated_Resolver()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddGlobalObjectIdentification()
-            .AddQueryType<Foo>()
-            .AddObjectType<Bar>(d => d
-                .ImplementsNode()
-                .IdField(t => t.Id)
-                .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(default)))
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddQueryType<Foo>()
+                .AddObjectType<Bar>(d => d
+                    .ImplementsNode()
+                    .IdField(t => t.Id)
+                    .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(default)))
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyCmQxMjM=\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -96,20 +32,20 @@ public class NodeFieldSupportTests
     public async Task Nodes_Get_Single()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddGlobalObjectIdentification()
-            .AddQueryType<Foo>()
-            .AddObjectType<Bar>(d => d
-                .ImplementsNode()
-                .IdField(t => t.Id)
-                .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(default)))
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddQueryType<Foo>()
+                .AddObjectType<Bar>(d => d
+                    .ImplementsNode()
+                    .IdField(t => t.Id)
+                    .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(default)))
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ nodes(ids: \"QmFyCmQxMjM=\") { id } }");
+            "{ nodes(ids: \"QmFyOjEyMw==\") { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -119,21 +55,21 @@ public class NodeFieldSupportTests
     public async Task Tow_Many_Nodes()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddGlobalObjectIdentification()
-            .AddQueryType<Foo>()
-            .AddObjectType<Bar>(d => d
-                .ImplementsNode()
-                .IdField(t => t.Id)
-                .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(default)))
-            .ModifyOptions(o => o.MaxAllowedNodeBatchSize = 1)
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddQueryType<Foo>()
+                .AddObjectType<Bar>(d => d
+                    .ImplementsNode()
+                    .IdField(t => t.Id)
+                    .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(default)))
+                .ModifyOptions(o => o.MaxAllowedNodeBatchSize = 1)
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ nodes(ids: [\"QmFyCmQxMjM=\", \"QmFyCmQxMjM=\"]) { id } }");
+            "{ nodes(ids: [\"QmFyOjEyMw==\", \"QmFyOjEyMw==\"]) { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -143,20 +79,20 @@ public class NodeFieldSupportTests
     public async Task Nodes_Get_Many()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddGlobalObjectIdentification()
-            .AddQueryType<Foo>()
-            .AddObjectType<Bar>(d => d
-                .ImplementsNode()
-                .IdField(t => t.Id)
-                .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(default)))
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddQueryType<Foo>()
+                .AddObjectType<Bar>(d => d
+                    .ImplementsNode()
+                    .IdField(t => t.Id)
+                    .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(default)))
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ nodes(ids: [\"QmFyCmQxMjM=\", \"QmFyCmQxMjM=\"]) { id } }");
+            "{ nodes(ids: [\"QmFyOjEyMw==\", \"QmFyOjEyMw==\"]) { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -166,19 +102,19 @@ public class NodeFieldSupportTests
     public async Task Node_Resolve_Parent_Id()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddGlobalObjectIdentification()
-            .AddQueryType(
-                x => x.Name("Query")
-                    .Field("childs")
-                    .Resolve(new Child { Id = "123" }))
-            .AddObjectType<Child>(d => d
-                .ImplementsNode()
-                .IdField(t => t.Id)
-                .ResolveNode((_, id) => Task.FromResult(new Child { Id = id })))
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddQueryType(
+                    x => x.Name("Query")
+                        .Field("childs")
+                        .Resolve(new Child { Id = "123", }))
+                .AddObjectType<Child>(d => d
+                    .ImplementsNode()
+                    .IdField(t => t.Id)
+                    .ResolveNode((_, id) => Task.FromResult(new Child { Id = id, })))
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync("{ childs { id } }");
@@ -191,19 +127,19 @@ public class NodeFieldSupportTests
     public async Task Node_Resolve_Separated_Resolver_ImplicitId()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddGlobalObjectIdentification()
-            .AddQueryType<Foo>()
-            .AddObjectType<Bar>(d => d
-                .ImplementsNode()
-                .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(default)))
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddQueryType<Foo>()
+                .AddObjectType<Bar>(d => d
+                    .ImplementsNode()
+                    .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(default)))
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyCmQxMjM=\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -213,16 +149,16 @@ public class NodeFieldSupportTests
     public async Task Node_Resolve_Implicit()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddGlobalObjectIdentification()
-            .AddQueryType<Foo1>()
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddQueryType<Foo1>()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyCmQxMjM=\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -232,16 +168,16 @@ public class NodeFieldSupportTests
     public async Task Node_Resolve_Implicit_Resolver()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddGlobalObjectIdentification()
-            .AddQueryType<Bar5>()
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddQueryType<Bar5>()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyCmQxMjM=\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -251,16 +187,16 @@ public class NodeFieldSupportTests
     public async Task Node_Resolve_Implicit_Named_Resolver()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddGlobalObjectIdentification()
-            .AddQueryType<Foo2>()
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddQueryType<Foo2>()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyCmQxMjM=\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -270,16 +206,16 @@ public class NodeFieldSupportTests
     public async Task Node_Resolve_Implicit_Inherited_Resolver()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddGlobalObjectIdentification()
-            .AddQueryType<Foo6>()
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddQueryType<Foo6>()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyCmQxMjM=\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -289,16 +225,16 @@ public class NodeFieldSupportTests
     public async Task Node_Resolve_Implicit_External_Resolver()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddGlobalObjectIdentification()
-            .AddQueryType<Foo3>()
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddQueryType<Foo3>()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyCmQxMjM=\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -308,16 +244,16 @@ public class NodeFieldSupportTests
     public async Task Node_Resolve_Implicit_ExternalInheritedStatic_Resolver()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddGlobalObjectIdentification()
-            .AddQueryType<Foo7>()
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddQueryType<Foo7>()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyCmQxMjM=\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -327,16 +263,16 @@ public class NodeFieldSupportTests
     public async Task Node_Resolve_Implicit_ExternalInheritedInstance_Resolver()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddGlobalObjectIdentification()
-            .AddQueryType<Foo8>()
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddQueryType<Foo8>()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyCmQxMjM=\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -355,7 +291,7 @@ public class NodeFieldSupportTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyCmQxMjM=\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -365,16 +301,16 @@ public class NodeFieldSupportTests
     public async Task Node_Resolve_Implicit_Custom_IdField()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddGlobalObjectIdentification()
-            .AddQueryType<Foo4>()
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddQueryType<Foo4>()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyCmQxMjM=\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -382,7 +318,7 @@ public class NodeFieldSupportTests
 
     public class Foo
     {
-        public Bar Bar { get; set; } = new() { Id = "123" };
+        public Bar Bar { get; set; } = new() { Id = "123", };
     }
 
     public class Bar
@@ -392,12 +328,12 @@ public class NodeFieldSupportTests
 
     public class BarResolver
     {
-        public Task<Bar> GetBarAsync(string id) => Task.FromResult(new Bar { Id = id });
+        public Task<Bar> GetBarAsync(string id) => Task.FromResult(new Bar { Id = id, });
     }
 
     public class Foo1
     {
-        public Bar1 Bar { get; set; } = new() { Id = "123" };
+        public Bar1 Bar { get; set; } = new() { Id = "123", };
     }
 
     [ObjectType("Bar")]
@@ -406,12 +342,12 @@ public class NodeFieldSupportTests
     {
         public string Id { get; set; }
 
-        public static Bar1 GetBar1(string id) => new() { Id = id };
+        public static Bar1 GetBar1(string id) => new() { Id = id, };
     }
 
     public class Foo2
     {
-        public Bar2 Bar { get; set; } = new() { Id = "123" };
+        public Bar2 Bar { get; set; } = new() { Id = "123", };
     }
 
     [ObjectType("Bar")]
@@ -420,12 +356,12 @@ public class NodeFieldSupportTests
     {
         public string Id { get; set; }
 
-        public static Bar2 GetFoo(string id) => new() { Id = id };
+        public static Bar2 GetFoo(string id) => new() { Id = id, };
     }
 
     public class Foo3
     {
-        public Bar3 Bar { get; set; } = new() { Id = "123" };
+        public Bar3 Bar { get; set; } = new() { Id = "123", };
     }
 
     [ObjectType("Bar")]
@@ -437,12 +373,12 @@ public class NodeFieldSupportTests
 
     public static class Bar3Resolver
     {
-        public static Bar3 GetBar3(string id) => new() { Id = id };
+        public static Bar3 GetBar3(string id) => new() { Id = id, };
     }
 
     public class Foo4
     {
-        public Bar4 Bar { get; set; } = new() { Id1 = "123" };
+        public Bar4 Bar { get; set; } = new() { Id1 = "123", };
     }
 
     [ObjectType("Bar")]
@@ -453,7 +389,7 @@ public class NodeFieldSupportTests
     {
         public string Id1 { get; set; }
 
-        public static Bar2 GetFoo(string id) => new() { Id = id };
+        public static Bar2 GetFoo(string id) => new() { Id = id, };
     }
 
     [ObjectType("Bar")]
@@ -462,19 +398,19 @@ public class NodeFieldSupportTests
     {
         public string Id { get; set; }
 
-        public static Bar5 Get(string id) => new() { Id = id };
+        public static Bar5 Get(string id) => new() { Id = id, };
     }
 
     public class Foo6
     {
-        public Bar6 Bar { get; set; } = new() { Id = "123" };
+        public Bar6 Bar { get; set; } = new() { Id = "123", };
     }
 
     public abstract class Bar6Base<T> where T : Bar6Base<T>, new()
     {
         public string Id { get; set; }
 
-        public static T Get(string id) => new() { Id = id };
+        public static T Get(string id) => new() { Id = id, };
     }
 
     [ObjectType("Bar")]
@@ -485,7 +421,7 @@ public class NodeFieldSupportTests
 
     public class Foo7
     {
-        public Bar7 Bar { get; set; } = new() { Id = "123" };
+        public Bar7 Bar { get; set; } = new() { Id = "123", };
     }
 
     [ObjectType("Bar")]
@@ -497,7 +433,7 @@ public class NodeFieldSupportTests
 
     public abstract class Bar7ResolverBase
     {
-        public static Bar7 GetBar7(string id) => new() { Id = id };
+        public static Bar7 GetBar7(string id) => new() { Id = id, };
     }
 
     public class Bar7Resolver : Bar7ResolverBase
@@ -506,7 +442,7 @@ public class NodeFieldSupportTests
 
     public class Foo8
     {
-        public Bar8 Bar { get; set; } = new() { Id = "123" };
+        public Bar8 Bar { get; set; } = new() { Id = "123", };
     }
 
     [ObjectType("Bar")]
@@ -518,7 +454,7 @@ public class NodeFieldSupportTests
 
     public class Bar8ResolverBase
     {
-        public Bar8 GetBar8(string id) => new() { Id = id };
+        public Bar8 GetBar8(string id) => new() { Id = id, };
     }
 
     public class Bar8Resolver : Bar8ResolverBase
@@ -527,7 +463,7 @@ public class NodeFieldSupportTests
 
     public class Foo9
     {
-        public Bar9 Bar { get; set; } = new() { Id = "123" };
+        public Bar9 Bar { get; set; } = new() { Id = "123", };
     }
 
     [ObjectType("Bar")]
@@ -544,7 +480,7 @@ public class NodeFieldSupportTests
 
     public class Bar9Resolver : IBar9Resolver
     {
-        public Bar9 GetBar9(string id) => new() { Id = id };
+        public Bar9 GetBar9(string id) => new() { Id = id, };
     }
 
     public class Parent

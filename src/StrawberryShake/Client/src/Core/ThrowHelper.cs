@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using StrawberryShake.Properties;
 using StrawberryShake.Serialization;
 
@@ -24,7 +22,7 @@ internal static class ThrowHelper
             "For more information read: `https://www.graphql-scalars.com/date-time`.",
             extensions: new Dictionary<string, object?>
             {
-                    { "serializedValue", serializedValue }
+                    { "serializedValue", serializedValue },
             }));
 
     internal static GraphQLClientException DateSerializer_InvalidFormat(
@@ -33,16 +31,12 @@ internal static class ThrowHelper
             "The serialized format for Date must be `yyyy-MM-dd`.",
             extensions: new Dictionary<string, object?>
             {
-                    { "serializedValue", serializedValue }
+                    { "serializedValue", serializedValue },
             }));
 
     internal static GraphQLClientException UrlFormatter_CouldNotParseUri(string value) =>
         new(new ClientError(
             $"The URL serializer could not parse value{value}. Invalid format. "));
-
-    internal static GraphQLClientException UrlFormatter_DoesNotStartWithSlash(string uri) =>
-        new(new ClientError(
-            $"The relative uri {uri} does not start with '/'"));
 
     internal static GraphQLClientException TimeSpanSerializer_CouldNotParseValue(
         string value,

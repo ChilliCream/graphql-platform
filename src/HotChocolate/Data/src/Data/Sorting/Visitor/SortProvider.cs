@@ -1,12 +1,10 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Configuration;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using static HotChocolate.Data.DataResources;
 using static HotChocolate.Data.ThrowHelper;
+using static Microsoft.Extensions.DependencyInjection.ActivatorUtilities;
 
 namespace HotChocolate.Data.Sorting;
 
@@ -21,8 +19,8 @@ public abstract class SortProvider<TContext>
     , ISortProviderConvention
     where TContext : ISortVisitorContext
 {
-    private readonly List<ISortFieldHandler<TContext>> _fieldHandlers = new();
-    private readonly List<ISortOperationHandler<TContext>> _operationHandlers = new();
+    private readonly List<ISortFieldHandler<TContext>> _fieldHandlers = [];
+    private readonly List<ISortOperationHandler<TContext>> _operationHandlers = [];
 
     private Action<ISortProviderDescriptor<TContext>>? _configure;
 
@@ -88,56 +86,57 @@ public abstract class SortProvider<TContext>
             throw SortProvider_NoOperationHandlersConfigured(this);
         }
 
-        var services = new DictionaryServiceProvider(
-            (typeof(ISortProvider), this),
-            (typeof(IConventionContext), context),
-            (typeof(IDescriptorContext), context.DescriptorContext),
-            (typeof(ITypeInspector), context.DescriptorContext.TypeInspector))
-            .Include(context.Services);
+        var services = new CombinedServiceProvider(
+            new DictionaryServiceProvider(
+                (typeof(ISortProvider), this),
+                (typeof(IConventionContext), context),
+                (typeof(IDescriptorContext), context.DescriptorContext),
+                (typeof(ITypeInspector), context.DescriptorContext.TypeInspector)),
+            context.Services);
 
         foreach ((Type Type, ISortFieldHandler? Instance) handler in Definition.Handlers)
         {
-            switch (handler.Instance)
+            if (handler.Instance is ISortFieldHandler<TContext> field)
             {
-                case null when services.TryGetOrCreateService(
-                    handler.Type,
-                    out ISortFieldHandler<TContext>? service):
-                    _fieldHandlers.Add(service);
-                    break;
+                _fieldHandlers.Add(field);
+                continue;
+            }
 
-                case null:
-                    throw SortProvider_UnableToCreateFieldHandler(this, handler.Type);
-
-                case ISortFieldHandler<TContext> casted:
-                    _fieldHandlers.Add(casted);
-                    break;
+            try
+            {
+                field = (ISortFieldHandler<TContext>)GetServiceOrCreateInstance(services, handler.Type);
+                _fieldHandlers.Add(field);
+            }
+            catch
+            {
+                throw SortProvider_UnableToCreateFieldHandler(this, handler.Type);
             }
         }
 
         foreach ((Type Type, ISortOperationHandler? Instance) handler
             in Definition.OperationHandlers)
         {
-            switch (handler.Instance)
+            if (handler.Instance is ISortOperationHandler<TContext> op)
             {
-                case null when services.TryGetOrCreateService(
-                    handler.Type,
-                    out ISortOperationHandler<TContext>? service):
-                    _operationHandlers.Add(service);
-                    break;
+                _operationHandlers.Add(op);
+                continue;
+            }
 
-                case null:
-                    throw SortProvider_UnableToCreateOperationHandler(this, handler.Type);
-
-                case ISortOperationHandler<TContext> casted:
-                    _operationHandlers.Add(casted);
-                    break;
+            try
+            {
+                op = (ISortOperationHandler<TContext>)GetServiceOrCreateInstance(services, handler.Type);
+                _operationHandlers.Add(op);
+            }
+            catch
+            {
+                throw SortProvider_UnableToCreateOperationHandler(this, handler.Type);
             }
         }
     }
 
     /// <summary>
     /// This method is called on initialization of the provider but before the provider is
-    /// completed. The default implementation of this method does nothing. It can be overriden
+    /// completed. The default implementation of this method does nothing. It can be overridden
     /// by a derived class such that the provider can be further configured before it is
     /// completed
     /// </summary>
@@ -154,7 +153,7 @@ public abstract class SortProvider<TContext>
     /// </param>
     /// <typeparam name="TEntityType">The runtime type of the entity</typeparam>
     /// <returns>A middleware</returns>
-    public abstract FieldMiddleware CreateExecutor<TEntityType>(string argumentName);
+    public abstract IQueryBuilder CreateBuilder<TEntityType>(string argumentName);
 
     /// <summary>
     /// Is called on each field that sorting is applied to. This method can be used to

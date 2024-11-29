@@ -1,10 +1,6 @@
 #nullable enable
 
-using System;
 using System.Collections;
-using System.Threading;
-using System.Threading.Tasks;
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -72,7 +68,7 @@ public class CodeFirstTests
             .Create();
 
         // assert
-        var exists = schema.TryGetType("Url", out INamedType _);
+        var exists = schema.TryGetType<INamedType>("Url", out _);
         Assert.False(exists);
     }
 
@@ -209,6 +205,27 @@ public class CodeFirstTests
         schema.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task EnumerableArgs_Are_Inferred_As_List()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<QueryWithEnumerableArg>()
+                .BuildSchemaAsync();
+
+        schema.MatchInlineSnapshot(
+            """
+            schema {
+              query: QueryWithEnumerableArg
+            }
+
+            type QueryWithEnumerableArg {
+              foo(foo: [String!]!): String!
+            }
+            """);
+    }
+
     public class Query
     {
         public string SayHello(string name) =>
@@ -244,6 +261,12 @@ public class CodeFirstTests
             Greetings? arg6,
             CancellationToken cancellationToken) =>
             throw new NotImplementedException();
+    }
+
+    public class QueryWithEnumerableArg
+    {
+        public string GetFoo(IEnumerable<string> foo)
+            => "foo";
     }
 
     public class GenericWrapper<T>

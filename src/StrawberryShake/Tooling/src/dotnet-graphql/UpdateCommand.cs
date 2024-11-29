@@ -30,15 +30,16 @@ public static class UpdateCommand
             "Can be used multiple times. Example: --headers key1=value1 --headers key2=value2",
             CommandOptionType.MultipleValue);
 
+        var depthArg = update.Option(
+            "-d|--typeDepth",
+            "The type depth used for the introspection request.",
+            CommandOptionType.SingleOrNoValue);
+
         var authArguments = update.AddAuthArguments();
 
         update.OnExecuteAsync(cancellationToken =>
         {
-            var arguments = new UpdateCommandArguments(
-                urlArg,
-                pathArg,
-                authArguments,
-                headersArg);
+            var arguments = new UpdateCommandArguments(urlArg, pathArg, authArguments, headersArg, depthArg);
             var handler = CommandTools.CreateHandler<UpdateCommandHandler>(jsonArg);
             return handler.ExecuteAsync(arguments, cancellationToken);
         });

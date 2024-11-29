@@ -1,0 +1,20 @@
+{
+  "errors": [
+    {
+      "message": "Field \"error13\" of type \"Foo\" must have a selection of subfields. Did you mean \"error13 { ... }\"?",
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ],
+      "extensions": {
+        "declaringType": "Query",
+        "field": "error13",
+        "type": "Foo",
+        "responseName": "error13",
+        "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+      }
+    }
+  ]
+}

@@ -1,4 +1,3 @@
-using System;
 using System.Text.Json;
 using StrawberryShake.Internal;
 
@@ -21,6 +20,6 @@ internal static class ResponseHelper
         jsonWriter.WriteEndObject();
         jsonWriter.Flush();
 
-        return JsonDocument.Parse(bufferWriter.Body);
+        return JsonDocument.Parse(bufferWriter.GetWrittenMemory());
     }
 }

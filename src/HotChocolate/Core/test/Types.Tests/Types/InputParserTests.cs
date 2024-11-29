@@ -1,13 +1,8 @@
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using HotChocolate.Utilities;
 using HotChocolate.Tests;
+using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
-using Xunit;
 
 #nullable enable
 
@@ -29,7 +24,7 @@ public class InputParserTests
         var fieldData = new Dictionary<string, object?>
         {
             { "field1", "abc" },
-            { "field2", 123 }
+            { "field2", 123 },
         };
 
         // act
@@ -77,7 +72,7 @@ public class InputParserTests
         var fieldData = new Dictionary<string, object?>
         {
             { "field1", "abc" },
-            { "field2", 123 }
+            { "field2", 123 },
         };
 
         // act
@@ -124,7 +119,7 @@ public class InputParserTests
 
         var fieldData = new Dictionary<string, object?>
         {
-            { "field2", 123 }
+            { "field2", 123 },
         };
 
         // act
@@ -171,7 +166,7 @@ public class InputParserTests
         var fieldData = new Dictionary<string, object?>
         {
             { "field2", 123 },
-            { "field3", 123 }
+            { "field3", 123 },
         };
 
         // act
@@ -224,7 +219,7 @@ public class InputParserTests
         {
             { "field2", 123 },
             { "field3", 123 },
-            { "field4", 123 }
+            { "field4", 123 },
         };
 
         // act
@@ -261,6 +256,38 @@ public class InputParserTests
 
         // assert
         Assert.Throws<SerializationException>(Action).MatchSnapshot();
+    }
+
+    [Fact]
+    public void Parse_InputObject_AllIsSet_IgnoreAdditionalInputFields()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddInputObjectType<TestInput>()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
+
+        var type = schema.GetType<InputObjectType>("TestInput");
+
+        var fieldData = new ObjectValueNode(
+            new ObjectFieldNode("field1", "abc"),
+            new ObjectFieldNode("field2", 123),
+            new ObjectFieldNode("field3", 123),
+            new ObjectFieldNode("field4", 123));
+
+        var converter = new DefaultTypeConverter();
+
+        var options = new InputParserOptions
+        {
+            IgnoreAdditionalInputFields = true,
+        };
+
+        // act
+        var parser = new InputParser(converter, options);
+        var runtimeValue = parser.ParseLiteral(fieldData, type, Path.Root.Append("root"));
+
+        // assert
+        Assert.IsType<TestInput>(runtimeValue).MatchSnapshot();
     }
 
     [Fact]
@@ -349,13 +376,16 @@ public class InputParserTests
             .BuildRequestExecutorAsync();
 
         // act
-        var query = QueryRequestBuilder.Create(@"
-            {
-                loopback(input: {field2: 1}) {
-                    field1
-                    field2
+        var query =
+            OperationRequest.FromSourceText(
+                """
+                {
+                    loopback(input: {field2: 1}) {
+                        field1
+                        field2
+                    }
                 }
-            }");
+                """);
         var result = await executor.ExecuteAsync(query, CancellationToken.None);
 
         // assert
@@ -454,7 +484,7 @@ public class InputParserTests
 
         var fieldData = new Dictionary<string, object?>
         {
-            { "field1", "abc" }
+            { "field1", "abc" },
         };
 
         // act
@@ -499,7 +529,7 @@ public class InputParserTests
 
     public class FooInput
     {
-        public List<Bar?> Bars { get; set; } = new();
+        public List<Bar?> Bars { get; set; } = [];
     }
 
     public class Query4
@@ -517,7 +547,7 @@ public class InputParserTests
 
     public enum Bar
     {
-        Baz
+        Baz,
     }
 
     [OneOf]

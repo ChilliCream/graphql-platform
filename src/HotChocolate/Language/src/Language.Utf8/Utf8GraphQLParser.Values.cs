@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using static HotChocolate.Language.Properties.LangUtf8Resources;
 using static HotChocolate.Language.TokenPrinter;
@@ -9,7 +7,6 @@ namespace HotChocolate.Language;
 // Implements the parsing rules in the Values section.
 public ref partial struct Utf8GraphQLParser
 {
-    // note: this is internal for the stitching legacy layer
     /// <summary>
     /// Parses a value.
     /// <see cref="IValueNode" />:
@@ -30,7 +27,7 @@ public ref partial struct Utf8GraphQLParser
     /// Defines if only constant values are allowed;
     /// otherwise, variables are allowed.
     /// </param>
-    internal IValueNode ParseValueLiteral(bool isConstant)
+    private IValueNode ParseValueLiteral(bool isConstant)
     {
         if (_reader.Kind == TokenKind.LeftBracket)
         {
@@ -42,7 +39,7 @@ public ref partial struct Utf8GraphQLParser
             return ParseObject(isConstant);
         }
 
-        if (TokenHelper.IsScalarValue(in _reader))
+        if (TokenHelper.IsScalarValue(ref _reader))
         {
             return ParseScalarValue();
         }
@@ -93,7 +90,7 @@ public ref partial struct Utf8GraphQLParser
                 _reader,
                 ParseMany_InvalidOpenToken,
                 TokenKind.LeftBracket,
-                Print(in _reader));
+                Print(ref _reader));
         }
 
         var items = new List<IValueNode>();
@@ -138,7 +135,7 @@ public ref partial struct Utf8GraphQLParser
                 _reader,
                 ParseMany_InvalidOpenToken,
                 TokenKind.LeftBrace,
-                Print(in _reader));
+                Print(ref _reader));
         }
 
         var fields = new List<ObjectFieldNode>();
@@ -172,7 +169,7 @@ public ref partial struct Utf8GraphQLParser
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private IValueNode ParseScalarValue()
     {
-        if (TokenHelper.IsString(in _reader))
+        if (TokenHelper.IsString(ref _reader))
         {
             return ParseStringLiteral();
         }
@@ -180,7 +177,7 @@ public ref partial struct Utf8GraphQLParser
         var start = Start();
         var kind = _reader.Kind;
 
-        if (!TokenHelper.IsScalarValue(in _reader))
+        if (!TokenHelper.IsScalarValue(ref _reader))
         {
             throw new SyntaxException(_reader, Parser_InvalidScalarToken, _reader.Kind);
         }

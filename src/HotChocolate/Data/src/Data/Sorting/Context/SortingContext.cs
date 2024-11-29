@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -29,7 +26,7 @@ public class SortingContext : ISortingContext
             ? listValueNode.Items
                 .Select(x => new SortingInfo(type, x, inputParser))
                 .ToArray()
-            : new[] {new SortingInfo(type, valueNode, inputParser)};
+            : [new SortingInfo(type, valueNode, inputParser),];
         _context = context;
     }
 
@@ -47,8 +44,15 @@ public class SortingContext : ISortingContext
     }
 
     /// <inheritdoc />
+    public bool IsDefined => _value is not [{ ValueNode.Kind: SyntaxKind.NullValue, },];
+
+    /// <inheritdoc />
     public IReadOnlyList<IReadOnlyList<ISortingFieldInfo>> GetFields()
         => _value.Select(x => x.GetFields()).ToArray();
+
+    /// <inheritdoc />
+    public void OnAfterSortingApplied<T>(PostSortingAction<T> action)
+        => _context.LocalContextData = _context.LocalContextData.SetItem(PostSortingActionKey, action);
 
     /// <inheritdoc />
     public IList<IDictionary<string, object?>> ToList()

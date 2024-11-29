@@ -18,5 +18,5 @@ public enum RequestContentType
     /// <summary>
     /// multipart/mixed
     /// </summary>
-    Form
+    Form,
 }

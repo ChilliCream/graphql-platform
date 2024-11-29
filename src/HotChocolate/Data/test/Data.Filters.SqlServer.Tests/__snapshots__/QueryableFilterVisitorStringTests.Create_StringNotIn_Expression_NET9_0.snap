@@ -1,0 +1,73 @@
+testatestAndtestb Result:
+---------------
+{
+  "data": {
+    "root": []
+  }
+}
+---------------
+
+testatestAndtestb SQL:
+---------------
+.param set @__p_0 '["testatest","testbtest"]'
+
+SELECT "d"."Id", "d"."Bar"
+FROM "Data" AS "d"
+WHERE "d"."Bar" NOT IN (
+    SELECT "p"."value"
+    FROM json_each(@__p_0) AS "p"
+)
+---------------
+
+testbtestAndNull
+---------------
+{
+  "errors": [
+    {
+      "message": "The provided value for filter `nin` of type StringOperationFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 29
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "[String!]",
+        "filterType": "StringOperationFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": null
+  }
+}
+---------------
+
+testatest Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testbtest"
+      }
+    ]
+  }
+}
+---------------
+
+testatest SQL:
+---------------
+.param set @__p_0 '["testatest"]'
+
+SELECT "d"."Id", "d"."Bar"
+FROM "Data" AS "d"
+WHERE "d"."Bar" NOT IN (
+    SELECT "p"."value"
+    FROM json_each(@__p_0) AS "p"
+)
+---------------

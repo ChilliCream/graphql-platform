@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -59,7 +56,7 @@ internal sealed class TypeReferenceResolver
             throw new ArgumentNullException(nameof(typeRef));
         }
 
-        if (typeRef is SchemaTypeReference { Type: IType schemaType })
+        if (typeRef is SchemaTypeReference { Type: IType schemaType, })
         {
             type = schemaType;
             return true;

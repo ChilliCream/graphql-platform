@@ -21,11 +21,11 @@
       "event": [
         {
           "Name": "AddedOperationToCache",
-          "Tags": {}
+          "Tags": []
         },
         {
           "Name": "AddedDocumentToCache",
-          "Tags": {}
+          "Tags": []
         }
       ],
       "activities": [

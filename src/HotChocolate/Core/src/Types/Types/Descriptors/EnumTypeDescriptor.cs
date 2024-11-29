@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
@@ -41,6 +38,8 @@ public class EnumTypeDescriptor
     protected override void OnCreateDefinition(
         EnumTypeDefinition definition)
     {
+        Context.Descriptors.Push(this);
+
         if (!Definition.AttributesAreApplied && Definition.RuntimeType != typeof(object))
         {
             Context.TypeInspector.ApplyAttributes(
@@ -61,6 +60,8 @@ public class EnumTypeDescriptor
         }
 
         base.OnCreateDefinition(definition);
+
+        Context.Descriptors.Pop();
     }
 
     protected void AddImplicitValues(
@@ -84,13 +85,6 @@ public class EnumTypeDescriptor
         }
     }
 
-    public IEnumTypeDescriptor SyntaxNode(
-        EnumTypeDefinitionNode enumTypeDefinition)
-    {
-        Definition.SyntaxNode = enumTypeDefinition;
-        return this;
-    }
-
     public IEnumTypeDescriptor Name(string value)
     {
         Definition.Name = value;
@@ -102,11 +96,6 @@ public class EnumTypeDescriptor
         Definition.Description = value;
         return this;
     }
-
-    [Obsolete("Use `BindValues`.")]
-    public IEnumTypeDescriptor BindItems(
-        BindingBehavior behavior) =>
-        BindValues(behavior);
 
     public IEnumTypeDescriptor BindValues(
         BindingBehavior behavior)
@@ -132,9 +121,6 @@ public class EnumTypeDescriptor
         Definition.ValueComparer = comparer ?? throw new ArgumentNullException(nameof(comparer));
         return this;
     }
-
-    [Obsolete("Use `Value`.")]
-    public IEnumValueDescriptor Item<T>(T value) => Value(value);
 
     public IEnumValueDescriptor Value<T>(T value)
     {

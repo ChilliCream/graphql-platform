@@ -1,6 +1,4 @@
-using System;
 using System.Diagnostics;
-using System.Linq;
 using HotChocolate.Execution.Properties;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -17,6 +15,8 @@ public class Selection : ISelection
     private long[] _includeConditions;
     private long _streamIfCondition;
     private Flags _flags;
+    private FieldNode _syntaxNode;
+    private FieldNode[] _syntaxNodes;
 
     public Selection(
         int id,
@@ -36,14 +36,15 @@ public class Selection : ISelection
         DeclaringType = declaringType;
         Field = field;
         Type = type;
-        SyntaxNode = syntaxNode;
+        _syntaxNode = syntaxNode;
+        _syntaxNodes = [syntaxNode];
         ResponseName = responseName;
         Arguments = arguments ?? _emptyArguments;
         ResolverPipeline = resolverPipeline;
         PureResolver = pureResolver;
         Strategy = InferStrategy(!isParallelExecutable, pureResolver is not null);
 
-        _includeConditions = includeConditions ?? Array.Empty<long>();
+        _includeConditions = includeConditions ?? [];
 
         _flags = isInternal
             ? Flags.Internal
@@ -52,11 +53,6 @@ public class Selection : ISelection
         if (Type.IsType(TypeKind.List))
         {
             _flags |= Flags.List;
-        }
-
-        if (Field.HasStreamResult)
-        {
-            _flags |= Flags.StreamResult;
         }
     }
 
@@ -72,7 +68,8 @@ public class Selection : ISelection
         DeclaringType = selection.DeclaringType;
         Field = selection.Field;
         Type = selection.Type;
-        SyntaxNode = selection.SyntaxNode;
+        _syntaxNode = selection._syntaxNode;
+        _syntaxNodes = selection._syntaxNodes;
         ResponseName = selection.ResponseName;
         ResolverPipeline = selection.ResolverPipeline;
         PureResolver = selection.PureResolver;
@@ -81,14 +78,14 @@ public class Selection : ISelection
 
         _includeConditions =
             selection._includeConditions.Length == 0
-                ? Array.Empty<long>()
+                ? []
                 : selection._includeConditions.ToArray();
     }
 
     /// <inheritdoc />
     public int Id { get; }
 
-    internal CustomOptionsFlags CustomOptions { get; private set; }
+    public CustomOptionsFlags CustomOptions { get; private set; }
 
     /// <inheritdoc />
     public SelectionExecutionStrategy Strategy { get; private set; }
@@ -98,6 +95,8 @@ public class Selection : ISelection
 
     /// <inheritdoc />
     public ISelectionSet DeclaringSelectionSet { get; private set; } = default!;
+
+    public IOperation DeclaringOperation { get; private set; } = default!;
 
     /// <inheritdoc />
     public IObjectField Field { get; }
@@ -112,12 +111,15 @@ public class Selection : ISelection
     public bool IsList => (_flags & Flags.List) == Flags.List;
 
     /// <inheritdoc />
-    public FieldNode SyntaxNode { get; private set; }
+    public FieldNode SyntaxNode => _syntaxNode;
+
+    /// <inheritdoc />
+    public IReadOnlyList<FieldNode> SyntaxNodes => _syntaxNodes;
 
     public int SelectionSetId { get; private set; }
 
     /// <inheritdoc />
-    public SelectionSetNode? SelectionSet => SyntaxNode.SelectionSet;
+    public SelectionSetNode? SelectionSet => _syntaxNode.SelectionSet;
 
     /// <inheritdoc />
     public string ResponseName { get; }
@@ -132,12 +134,9 @@ public class Selection : ISelection
     public ArgumentMap Arguments { get; }
 
     /// <inheritdoc />
-    public bool HasStreamResult => (_flags & Flags.StreamResult) == Flags.StreamResult;
-
-    /// <inheritdoc />
     public bool HasStreamDirective(long includeFlags)
-        => (_flags & Flags.Stream) == Flags.Stream &&
-            (_streamIfCondition is 0 || (includeFlags & _streamIfCondition) != _streamIfCondition);
+        => (_flags & Flags.Stream) == Flags.Stream
+            && (_streamIfCondition is 0 || (includeFlags & _streamIfCondition) != _streamIfCondition);
 
     /// <summary>
     /// Specifies if the current selection is immutable.
@@ -162,7 +161,7 @@ public class Selection : ISelection
             return !IsInternal || allowInternals;
         }
 
-        // if there are flags in most cases we just have one so we can
+        // if there are flags in most cases we just have one, so we can
         // check the first and optimize for this.
         var includeCondition = _includeConditions[0];
 
@@ -192,7 +191,7 @@ public class Selection : ISelection
     }
 
     public override string ToString()
-        => SyntaxNode.ToString();
+        => _syntaxNode.ToString();
 
     internal void AddSelection(FieldNode selectionSyntax, long includeCondition = 0)
     {
@@ -205,20 +204,25 @@ public class Selection : ISelection
         {
             if (_includeConditions.Length > 0)
             {
-                _includeConditions = Array.Empty<long>();
+                _includeConditions = [];
             }
         }
-        else if (_includeConditions.Length > 0 &&
-            Array.IndexOf(_includeConditions, includeCondition) == -1)
+        else if (_includeConditions.Length > 0 && Array.IndexOf(_includeConditions, includeCondition) == -1)
         {
             var next = _includeConditions.Length;
             Array.Resize(ref _includeConditions, next + 1);
             _includeConditions[next] = includeCondition;
         }
 
-        if (!SyntaxNode.Equals(selectionSyntax, SyntaxComparison.Syntax))
+        if (!_syntaxNode.Equals(selectionSyntax, SyntaxComparison.Syntax))
         {
-            SyntaxNode = MergeField(SyntaxNode, selectionSyntax);
+            // enlarge the syntax nodes array and add the new syntax node.
+            var temp = new FieldNode[_syntaxNodes.Length + 1];
+            Array.Copy(_syntaxNodes, temp, _syntaxNodes.Length);
+            temp[_syntaxNodes.Length] = selectionSyntax;
+            _syntaxNodes = temp;
+
+            _syntaxNode = MergeField(_syntaxNode, selectionSyntax);
         }
     }
 
@@ -244,9 +248,9 @@ public class Selection : ISelection
                     temp[next++] = directives[i];
                 }
 
-                for (var i = 0; i < first.Directives.Count; i++)
+                for (var i = 0; i < other.Directives.Count; i++)
                 {
-                    temp[next++] = first.Directives[i];
+                    temp[next++] = other.Directives[i];
                 }
 
                 directives = temp;
@@ -258,8 +262,7 @@ public class Selection : ISelection
         if (selectionSet is not null && other.SelectionSet is not null)
         {
             var selections = new ISelectionNode[
-                selectionSet.Selections.Count +
-                other.SelectionSet.Selections.Count];
+                selectionSet.Selections.Count + other.SelectionSet.Selections.Count];
             var next = 0;
 
             for (var i = 0; i < selectionSet.Selections.Count; i++)
@@ -279,7 +282,6 @@ public class Selection : ISelection
             first.Location,
             first.Name,
             first.Alias,
-            first.Required,
             directives,
             first.Arguments,
             selectionSet);
@@ -320,7 +322,7 @@ public class Selection : ISelection
         _flags |= Flags.Stream;
     }
 
-    internal void SetOption(CustomOptionsFlags customOptions)
+    public void SetOption(CustomOptionsFlags customOptions)
     {
         if ((_flags & Flags.Sealed) == Flags.Sealed)
         {
@@ -333,13 +335,14 @@ public class Selection : ISelection
     /// <summary>
     /// Completes the selection without sealing it.
     /// </summary>
-    internal void Complete(ISelectionSet declaringSelectionSet)
+    internal void Complete(IOperation declaringOperation, ISelectionSet declaringSelectionSet)
     {
         Debug.Assert(declaringSelectionSet is not null);
 
         if ((_flags & Flags.Sealed) != Flags.Sealed)
         {
             DeclaringSelectionSet = declaringSelectionSet;
+            DeclaringOperation = declaringOperation;
         }
 
         Debug.Assert(
@@ -347,11 +350,12 @@ public class Selection : ISelection
             "Selections can only belong to a single selectionSet.");
     }
 
-    internal void Seal(ISelectionSet declaringSelectionSet)
+    internal void Seal(IOperation declaringOperation, ISelectionSet declaringSelectionSet)
     {
         if ((_flags & Flags.Sealed) != Flags.Sealed)
         {
             DeclaringSelectionSet = declaringSelectionSet;
+            DeclaringOperation = declaringOperation;
             _flags |= Flags.Sealed;
         }
 
@@ -385,19 +389,20 @@ public class Selection : ISelection
         Internal = 1,
         Sealed = 2,
         List = 4,
-        Stream = 8,
-        StreamResult = 16
+        Stream = 8
     }
 
     [Flags]
-    internal enum CustomOptionsFlags : byte
+    public enum CustomOptionsFlags : byte
     {
         None = 0,
         Option1 = 1,
         Option2 = 2,
         Option3 = 4,
         Option4 = 8,
-        Option5 = 16
+        Option5 = 16,
+        Option6 = 32,
+        Option7 = 64,
     }
 
     internal sealed class Sealed : Selection
@@ -426,6 +431,8 @@ public class Selection : ISelection
             isInternal,
             isParallelExecutable,
             resolverPipeline,
-            pureResolver) { }
+            pureResolver)
+        {
+        }
     }
 }

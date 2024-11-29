@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
@@ -47,13 +44,6 @@ public class InterfaceTypeDescriptor<T>
         base.OnCompleteFields(fields, handledMembers);
     }
 
-    public new IInterfaceTypeDescriptor<T> SyntaxNode(
-        InterfaceTypeDefinitionNode interfaceTypeDefinition)
-    {
-        base.SyntaxNode(interfaceTypeDefinition);
-        return this;
-    }
-
     public new IInterfaceTypeDescriptor<T> Name(string value)
     {
         base.Name(value);
@@ -78,20 +68,6 @@ public class InterfaceTypeDescriptor<T>
 
     public IInterfaceTypeDescriptor<T> BindFieldsImplicitly() =>
         BindFields(BindingBehavior.Implicit);
-
-    [Obsolete("Use Implements.")]
-    public new IInterfaceTypeDescriptor<T> Interface<TInterface>()
-        where TInterface : InterfaceType
-        => Implements<TInterface>();
-
-    [Obsolete("Use Implements.")]
-    public new IInterfaceTypeDescriptor<T> Interface<TInterface>(TInterface type)
-        where TInterface : InterfaceType
-        => Implements(type);
-
-    [Obsolete("Use Implements.")]
-    public new IInterfaceTypeDescriptor<T> Interface(NamedTypeNode type)
-        => Implements(type);
 
     public new IInterfaceTypeDescriptor<T> Implements<TInterface>()
         where TInterface : InterfaceType
@@ -139,6 +115,20 @@ public class InterfaceTypeDescriptor<T>
         throw new ArgumentException(
             InterfaceTypeDescriptor_MustBePropertyOrMethod,
             nameof(propertyOrMethod));
+    }
+
+    public IInterfaceFieldDescriptor Field(MemberInfo propertyOrMethod)
+    {
+        if (propertyOrMethod is not { MemberType: MemberTypes.Property or MemberTypes.Method })
+        {
+            throw new ArgumentException(
+                InterfaceTypeDescriptor_MustBePropertyOrMethod,
+                nameof(propertyOrMethod));
+        }
+
+        var fieldDescriptor = new InterfaceFieldDescriptor(Context, propertyOrMethod);
+        Fields.Add(fieldDescriptor);
+        return fieldDescriptor;
     }
 
     public new IInterfaceTypeDescriptor<T> ResolveAbstractType(

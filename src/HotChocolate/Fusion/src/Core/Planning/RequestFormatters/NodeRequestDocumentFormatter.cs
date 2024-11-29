@@ -15,8 +15,6 @@ internal sealed class NodeRequestDocumentFormatter(
     ISchema schema)
     : RequestDocumentFormatter(configuration)
 {
-    private readonly ISchema _schema = schema;
-
     internal RequestDocument CreateRequestDocument(
         QueryPlanContext context,
         SelectionExecutionStep executionStep,
@@ -24,7 +22,7 @@ internal sealed class NodeRequestDocumentFormatter(
         OperationType operationType = OperationType.Query)
     {
         var rootSelectionSetNode =
-            CreateRooSelectionSetNode(
+            CreateRootSelectionSetNode(
                 context,
                 executionStep,
                 entityTypeName);
@@ -43,11 +41,11 @@ internal sealed class NodeRequestDocumentFormatter(
             rootSelectionSetNode);
 
         return new RequestDocument(
-            new DocumentNode(new[] { operationDefinitionNode }),
+            new DocumentNode(new[] { operationDefinitionNode, }),
             path);
     }
 
-    private SelectionSetNode CreateRooSelectionSetNode(
+    private SelectionSetNode CreateRootSelectionSetNode(
         QueryPlanContext context,
         SelectionExecutionStep executionStep,
         string entityTypeName)
@@ -90,7 +88,9 @@ internal sealed class NodeRequestDocumentFormatter(
         var (selectionNode, _) = nodeSelection.Resolver.CreateSelection(
             context.VariableValues,
             selectionSetNode,
-            nodeSelection.Selection.ResponseName);
+            nodeSelection.Selection.ResponseName,
+            null,
+            nodeSelection.Selection.SyntaxNode.Directives);
 
         if (selectionNode is FieldNode fieldNode &&
             !nodeSelection.Selection.ResponseName.EqualsOrdinal(fieldNode.Name.Value))
@@ -111,7 +111,7 @@ internal sealed class NodeRequestDocumentFormatter(
     {
         var selectionNodes = new List<ISelectionNode>();
         var typeSelectionNodes = new List<ISelectionNode>();
-        var entityType = _schema.GetType<ObjectType>(entityTypeName);
+        var entityType = schema.GetType<ObjectType>(entityTypeName);
         var selectionSet = (SelectionSet)context.Operation.GetSelectionSet(parentSelection, entityType);
 
         CreateSelectionNodes(
@@ -157,7 +157,7 @@ internal sealed class NodeRequestDocumentFormatter(
                 Array.Empty<DirectiveNode>(),
                 new SelectionSetNode(typeSelectionNodes));
             selectionNodes.Add(inlineFragment);
-            typeSelectionNodes = new List<ISelectionNode>();
+            typeSelectionNodes = [];
         }
     }
 
@@ -187,12 +187,12 @@ internal sealed class NodeRequestDocumentFormatter(
                 onlyIntrospection = false;
             }
 
-            selectionNodes.Add(
-                CreateSelectionNode(
-                    context,
-                    executionStep,
-                    selection,
-                    typeContext.Fields[selection.Field.Name]));
+            AddSelectionNode(
+                context,
+                executionStep,
+                selection,
+                typeContext.Fields[selection.Field.Name],
+                selectionNodes);
 
             if (!selection.Arguments.IsFullyCoercedNoErrors)
             {

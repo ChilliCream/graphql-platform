@@ -12,23 +12,18 @@ using ThrowHelper = HotChocolate.Fusion.Utilities.ThrowHelper;
 
 namespace HotChocolate.Fusion.Planning;
 
-internal abstract class RequestDocumentFormatter
+internal abstract class RequestDocumentFormatter(FusionGraphConfiguration configuration)
 {
     protected static readonly FieldNode TypeNameField = new(
         null,
         new NameNode("__typename"),
         null,
-        null,
         Array.Empty<DirectiveNode>(),
         Array.Empty<ArgumentNode>(),
         null);
 
-    private readonly FusionGraphConfiguration _config;
-
-    protected RequestDocumentFormatter(FusionGraphConfiguration configuration)
-    {
-        _config = configuration ?? throw new ArgumentNullException(nameof(configuration));
-    }
+    private readonly FusionGraphConfiguration _config = configuration ??
+        throw new ArgumentNullException(nameof(configuration));
 
     protected FusionGraphConfiguration Configuration => _config;
 
@@ -49,13 +44,17 @@ internal abstract class RequestDocumentFormatter
                 executionStep.Resolver,
                 executionStep.Variables);
 
+            var unspecifiedArguments = GetUnspecifiedArguments(executionStep.ParentSelection);
+
             var (rootResolver, p) =
                 executionStep.Resolver.CreateSelection(
                     context.VariableValues,
                     rootSelectionSetNode,
+                    null,
+                    unspecifiedArguments,
                     null);
 
-            rootSelectionSetNode = new SelectionSetNode(new[] { rootResolver });
+            rootSelectionSetNode = new SelectionSetNode(new[] { rootResolver, });
             path = p;
         }
 
@@ -64,6 +63,7 @@ internal abstract class RequestDocumentFormatter
             executionStep.ParentSelectionPath is not null)
         {
             rootSelectionSetNode = CreateRootLevelQuery(
+                context,
                 executionStep.ParentSelectionPath,
                 rootSelectionSetNode);
         }
@@ -80,24 +80,43 @@ internal abstract class RequestDocumentFormatter
             rootSelectionSetNode);
 
         return new RequestDocument(
-            new DocumentNode(new[] { operationDefinitionNode }),
+            new DocumentNode(new[] { operationDefinitionNode, }),
             path);
     }
 
     private SelectionSetNode CreateRootLevelQuery(
-        SelectionPath path, 
+        QueryPlanContext context,
+        SelectionPath path,
         SelectionSetNode selectionSet)
     {
         var current = path;
 
         while (current is not null)
         {
-            selectionSet = new SelectionSetNode(
-                new[]
+            var selectionNode = current.Selection.SyntaxNode.WithSelectionSet(selectionSet);
+
+            // TODO: this is not good but will fix the include issue ...
+            // we need to rework the operation compiler for a proper fix.
+            if (selectionNode.Directives.Count > 0)
+            {
+                foreach (var directive in selectionNode.Directives)
                 {
-                    current.Selection.SyntaxNode.WithSelectionSet(selectionSet)
-                });
-            
+                    foreach (var argument in directive.Arguments)
+                    {
+                        if (argument.Value is not VariableNode variable)
+                        {
+                            continue;
+                        }
+
+                        var originalVarDef = context.Operation.Definition.VariableDefinitions
+                            .First(t => t.Variable.Equals(variable, SyntaxComparison.Syntax));
+                        context.ForwardedVariables.Add(originalVarDef);
+                    }
+                }
+            }
+
+            selectionSet = new SelectionSetNode(new[] { selectionNode, });
+
             current = current.Parent;
         }
 
@@ -109,6 +128,7 @@ internal abstract class RequestDocumentFormatter
         SelectionExecutionStep executionStep)
     {
         var selectionNodes = new List<ISelectionNode>();
+        var rootNodes = new List<ISelectionNode>();
         var selectionSet = context.Operation.GetSelectionSet(executionStep);
         var selectionSetType = executionStep.SelectionSetTypeMetadata;
         Debug.Assert(selectionSet is not null);
@@ -121,12 +141,9 @@ internal abstract class RequestDocumentFormatter
 
             if (rootSelection.Resolver is null)
             {
-                selectionNode =
-                    CreateSelectionNode(
-                        context,
-                        executionStep,
-                        rootSelection.Selection,
-                        field);
+                rootNodes.Clear();
+                AddSelectionNode(context, executionStep, rootSelection.Selection, field, rootNodes);
+                selectionNode = rootNodes[0];
 
                 if (!rootSelection.Selection.Arguments.IsFullyCoercedNoErrors)
                 {
@@ -165,10 +182,14 @@ internal abstract class RequestDocumentFormatter
                     rootSelection.Resolver,
                     executionStep.Variables);
 
+                var unspecifiedArguments = GetUnspecifiedArguments(rootSelection.Selection);
+
                 var (s, _) = rootSelection.Resolver.CreateSelection(
                     context.VariableValues,
                     selectionSetNode,
-                    rootSelection.Selection.ResponseName);
+                    rootSelection.Selection.ResponseName,
+                    unspecifiedArguments,
+                    rootSelection.Selection.SyntaxNode.Directives);
                 selectionNode = s;
             }
 
@@ -177,6 +198,26 @@ internal abstract class RequestDocumentFormatter
             {
                 selectionNode = fieldNode.WithAlias(
                     new NameNode(rootSelection.Selection.ResponseName));
+            }
+
+            // TODO: this is not good but will fix the include issue ...
+            // we need to rework the operation compiler for a proper fix.
+            if (selectionNode.Directives.Count > 0)
+            {
+                foreach (var directive in selectionNode.Directives)
+                {
+                    foreach (var argument in directive.Arguments)
+                    {
+                        if (argument.Value is not VariableNode variable)
+                        {
+                            continue;
+                        }
+
+                        var originalVarDef = context.Operation.Definition.VariableDefinitions
+                            .First(t => t.Variable.Equals(variable, SyntaxComparison.Syntax));
+                        context.ForwardedVariables.Add(originalVarDef);
+                    }
+                }
             }
 
             selectionNodes.Add(selectionNode);
@@ -191,11 +232,12 @@ internal abstract class RequestDocumentFormatter
         return new SelectionSetNode(selectionNodes);
     }
 
-    protected virtual ISelectionNode CreateSelectionNode(
+    protected virtual void AddSelectionNode(
         QueryPlanContext context,
         SelectionExecutionStep executionStep,
         ISelection selection,
-        ObjectFieldInfo fieldInfo)
+        ObjectFieldInfo fieldInfo,
+        List<ISelectionNode> selectionNodes)
     {
         SelectionSetNode? selectionSetNode = null;
 
@@ -214,14 +256,37 @@ internal abstract class RequestDocumentFormatter
             ? new NameNode(selection.ResponseName)
             : null;
 
-        return new FieldNode(
-            null,
-            new(binding.Name),
-            alias,
-            selection.SyntaxNode.Required,
-            Array.Empty<DirectiveNode>(), // todo : not sure if we should pass down directives.
-            selection.SyntaxNode.Arguments,
-            selectionSetNode);
+        // TODO: this is not good but will fix the include issue ...
+        // we need to rework the operation compiler for a proper fix.
+        foreach (var node in selection.SyntaxNodes)
+        {
+            if(node.Directives.Count > 0)
+            {
+                foreach (var directive in node.Directives)
+                {
+                    foreach (var argument in directive.Arguments)
+                    {
+                        if (argument.Value is not VariableNode variable)
+                        {
+                            continue;
+                        }
+
+                        var originalVarDef = context.Operation.Definition.VariableDefinitions
+                            .First(t => t.Variable.Equals(variable, SyntaxComparison.Syntax));
+                        context.ForwardedVariables.Add(originalVarDef);
+                    }
+                }
+            }
+
+            selectionNodes.Add(
+                new FieldNode(
+                    null,
+                    new(binding.Name),
+                    alias,
+                    node.Directives,
+                    node.Arguments,
+                    selectionSetNode));
+        }
     }
 
     protected virtual SelectionSetNode CreateSelectionSetNode(
@@ -259,27 +324,30 @@ internal abstract class RequestDocumentFormatter
 
             if (next && single)
             {
-                selectionNodes = new List<ISelectionNode>();
+                selectionNodes = [];
                 single = false;
             }
             else if (single && isAbstractType && !ReferenceEquals(parentType, possibleType))
             {
                 if (!onlyIntrospection)
                 {
-                    selectionNodes = new List<ISelectionNode>();
+                    selectionNodes = [];
                     single = false;
                 }
             }
 
-            if (!single)
+            if (single)
             {
-                if (needsTypeNameField)
-                {
-                    selectionNodes.Add(TypeNameField);
-                    needsTypeNameField = false;
-                }
-                AddInlineFragment(possibleType);
+                continue;
             }
+
+            if (needsTypeNameField)
+            {
+                selectionNodes.Add(TypeNameField);
+                needsTypeNameField = false;
+            }
+
+            AddInlineFragment(possibleType);
         }
 
         return new SelectionSetNode(selectionNodes);
@@ -297,7 +365,7 @@ internal abstract class RequestDocumentFormatter
                 Array.Empty<DirectiveNode>(),
                 new SelectionSetNode(typeSelectionNodes));
             selectionNodes.Add(inlineFragment);
-            typeSelectionNodes = new List<ISelectionNode>();
+            typeSelectionNodes = [];
         }
     }
 
@@ -314,7 +382,7 @@ internal abstract class RequestDocumentFormatter
         ref var selection = ref selectionSet.GetSelectionsReference();
         ref var end = ref Unsafe.Add(ref selection, selectionSet.Selections.Count);
 
-        while(Unsafe.IsAddressLessThan(ref selection, ref end))
+        while (Unsafe.IsAddressLessThan(ref selection, ref end))
         {
             if (!executionStep.AllSelections.Contains(selection) &&
                 !selection.Field.Name.EqualsOrdinal(IntrospectionFields.TypeName))
@@ -327,12 +395,12 @@ internal abstract class RequestDocumentFormatter
                 onlyIntrospection = false;
             }
 
-            selectionNodes.Add(
-                CreateSelectionNode(
-                    context,
-                    executionStep,
-                    selection,
-                    typeContext.Fields[selection.Field.Name]));
+            AddSelectionNode(
+                context,
+                executionStep,
+                selection,
+                typeContext.Fields[selection.Field.Name],
+                selectionNodes);
 
             if (!selection.Arguments.IsFullyCoercedNoErrors)
             {
@@ -428,6 +496,14 @@ internal abstract class RequestDocumentFormatter
                 }
 
                 var argumentValue = selection.Arguments[argumentVariable.ArgumentName];
+
+                if (argumentValue.IsDefaultValue)
+                {
+                    // We don't want to register and pass a value to an argument
+                    // that wasn't explicitly specified in the original operation.
+                    continue;
+                }
+
                 context.VariableValues.Add(variable.Name, argumentValue.ValueLiteral!);
                 TryForwardVariable(
                     context,
@@ -469,9 +545,9 @@ internal abstract class RequestDocumentFormatter
 
         foreach (var requirement in resolver.Requires)
         {
-            if (!context.VariableValues.ContainsKey(requirement))
+            if (!context.VariableValues.ContainsKey(requirement) &&
+                variableStateLookup.TryGetValue(requirement, out var stateKey))
             {
-                var stateKey = variableStateLookup[requirement];
                 context.VariableValues.Add(requirement, new VariableNode(stateKey));
             }
         }
@@ -510,7 +586,7 @@ internal abstract class RequestDocumentFormatter
                     .First(t => t.Variable.Equals(variable, SyntaxComparison.Syntax));
 
                 var typeNode = originalVarDef.Type;
-                var originalTypeName = typeNode.Name();
+                var originalTypeName = typeNode.NamedType().Name.Value;
                 var subgraphTypeName = _config.GetSubgraphTypeName(subgraphName, originalTypeName);
 
                 if (!subgraphTypeName.EqualsOrdinal(originalTypeName))
@@ -527,6 +603,22 @@ internal abstract class RequestDocumentFormatter
                         Array.Empty<DirectiveNode>()));
             }
         }
+    }
+
+    private static IReadOnlyList<string>? GetUnspecifiedArguments(ISelection selection)
+    {
+        List<string>? unspecifiedArguments = null;
+
+        foreach (var argument in selection.Arguments)
+        {
+            if (argument.IsDefaultValue)
+            {
+                unspecifiedArguments ??= [];
+                unspecifiedArguments.Add(argument.Name);
+            }
+        }
+
+        return unspecifiedArguments;
     }
 
     private sealed class VariableVisitor : SyntaxWalker<VariableVisitorContext>
@@ -548,7 +640,7 @@ internal abstract class RequestDocumentFormatter
         }
     }
 
-    private class VariableVisitorContext : ISyntaxVisitorContext
+    private sealed class VariableVisitorContext
     {
         public HashSet<VariableNode> VariableNodes { get; } = new(SyntaxComparer.BySyntax);
     }

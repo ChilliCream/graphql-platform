@@ -1,4 +1,4 @@
-﻿﻿schema {
+﻿schema {
   query: Query
 }
 

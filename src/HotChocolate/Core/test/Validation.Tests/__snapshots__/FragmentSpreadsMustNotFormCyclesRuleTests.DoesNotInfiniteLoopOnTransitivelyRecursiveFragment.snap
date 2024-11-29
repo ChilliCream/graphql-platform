@@ -20,29 +20,9 @@
     ],
     "Extensions": {
       "fragment": "fragA",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Fragment-spreads-must-not-form-cycles"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragment-spreads-must-not-form-cycles"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "FragmentSpread",
-      "Location": {
-        "Start": 361,
-        "End": 371,
-        "Line": 12,
-        "Column": 49
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 364,
-          "End": 371,
-          "Line": 12,
-          "Column": 52
-        },
-        "Value": "fragA"
-      },
-      "Directives": []
-    }
+    "Exception": null
   },
   {
     "Message": "The graph of fragment spreads must not form any cycles including spreading itself. Otherwise an operation could infinitely spread or infinitely execute on cycles in the underlying data.",
@@ -65,29 +45,9 @@
     ],
     "Extensions": {
       "fragment": "fragB",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Fragment-spreads-must-not-form-cycles"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragment-spreads-must-not-form-cycles"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "FragmentSpread",
-      "Location": {
-        "Start": 243,
-        "End": 253,
-        "Line": 10,
-        "Column": 49
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 246,
-          "End": 253,
-          "Line": 10,
-          "Column": 52
-        },
-        "Value": "fragB"
-      },
-      "Directives": []
-    }
+    "Exception": null
   },
   {
     "Message": "The graph of fragment spreads must not form any cycles including spreading itself. Otherwise an operation could infinitely spread or infinitely execute on cycles in the underlying data.",
@@ -110,28 +70,8 @@
     ],
     "Extensions": {
       "fragment": "fragC",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Fragment-spreads-must-not-form-cycles"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragment-spreads-must-not-form-cycles"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "FragmentSpread",
-      "Location": {
-        "Start": 302,
-        "End": 312,
-        "Line": 11,
-        "Column": 49
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 305,
-          "End": 312,
-          "Line": 11,
-          "Column": 52
-        },
-        "Value": "fragC"
-      },
-      "Directives": []
-    }
+    "Exception": null
   }
 ]

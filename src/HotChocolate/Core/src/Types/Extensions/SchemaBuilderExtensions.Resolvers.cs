@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Interceptors;
@@ -19,8 +15,8 @@ public static partial class SchemaBuilderExtensions
     /// <param name="builder">
     /// The <see cref="ISchemaBuilder"/>.
     /// </param>
-    /// <param name="field">
-    /// The field to which the resolver is bound.
+    /// <param name="fieldCoordinate">
+    /// The schema coordinate of the field to which the resolver is bound.
     /// </param>
     /// <param name="resolver">
     /// The resolver delegate.
@@ -33,7 +29,7 @@ public static partial class SchemaBuilderExtensions
     /// </returns>
     public static ISchemaBuilder AddResolver(
         this ISchemaBuilder builder,
-        FieldCoordinate field,
+        SchemaCoordinate fieldCoordinate,
         FieldResolverDelegate resolver,
         Type? resultType = null)
     {
@@ -42,19 +38,12 @@ public static partial class SchemaBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        if (!field.HasValue)
-        {
-            throw new ArgumentException(
-                TypeResources.SchemaBuilderExtensions_AddResolver_EmptyCooridnates,
-                nameof(builder));
-        }
-
         if (resolver is null)
         {
             throw new ArgumentNullException(nameof(resolver));
         }
 
-        return AddResolverConfigInternal(builder, field, resolver, resultType);
+        return AddResolverConfigInternal(builder, fieldCoordinate, resolver, resultType);
     }
 
     /// <summary>
@@ -584,8 +573,8 @@ public static partial class SchemaBuilderExtensions
             throw new ArgumentNullException(nameof(resolverType));
         }
 
-        if (resolverType is { IsClass: true, IsAbstract: false, IsPublic: true } or
-            { IsClass: true, IsAbstract: false, IsNestedPublic: true })
+        if (resolverType is { IsClass: true, IsAbstract: false, IsPublic: true, } or
+            { IsClass: true, IsAbstract: false, IsNestedPublic: true, })
         {
             if (string.IsNullOrEmpty(typeName))
             {
@@ -595,7 +584,6 @@ public static partial class SchemaBuilderExtensions
             }
 
             AddResolverTypeInternal(builder, typeName, resolverType);
-
 
             return builder;
         }
@@ -633,7 +621,7 @@ public static partial class SchemaBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        if (resolverType is { IsClass: true } or { IsInterface: true })
+        if (resolverType is { IsClass: true, } or { IsInterface: true, })
         {
             foreach (var property in resolverType.GetProperties())
             {
@@ -676,14 +664,14 @@ public static partial class SchemaBuilderExtensions
     {
         return AddResolverConfigInternal(
             builder,
-            new FieldCoordinate(typeName, fieldName),
+            new SchemaCoordinate(typeName, fieldName),
             resolver,
             null);
     }
 
     private static ISchemaBuilder AddResolverConfigInternal(
         ISchemaBuilder builder,
-        FieldCoordinate field,
+        SchemaCoordinate fieldCoordinate,
         FieldResolverDelegate resolver,
         Type? resultType)
     {
@@ -692,7 +680,7 @@ public static partial class SchemaBuilderExtensions
         if (builder.ContextData.TryGetValue(WellKnownContextData.ResolverConfigs, out var o) &&
             o is List<FieldResolverConfig> resolverConfigs)
         {
-            resolverConfigs.Add(new(field, resolver, null, resultType));
+            resolverConfigs.Add(new(fieldCoordinate, resolver, null, resultType));
         }
 
         return builder;

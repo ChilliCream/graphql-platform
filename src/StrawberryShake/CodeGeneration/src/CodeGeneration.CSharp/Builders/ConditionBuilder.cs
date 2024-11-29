@@ -1,10 +1,8 @@
-using System.Collections.Generic;
-
 namespace StrawberryShake.CodeGeneration.CSharp.Builders;
 
 public class ConditionBuilder : ICode
 {
-    private readonly List<ICode> _conditions = new();
+    private readonly List<ICode> _conditions = [];
     private bool _setReturn;
     private bool _determineStatement;
     public static ConditionBuilder New() => new();

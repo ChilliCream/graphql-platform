@@ -138,4 +138,7 @@
   <data name="ErrorHelper_TypeNameIsEmpty" xml:space="preserve">
     <value>The specified types argument is empty.</value>
   </data>
+  <data name="ErrorHelper_MultiPartRequestPreflightRequired" xml:space="preserve">
+    <value>Multi-part requests must include a GraphQL preflight header.</value>
+  </data>
 </root>

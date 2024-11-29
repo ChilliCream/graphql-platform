@@ -20,8 +20,9 @@ public sealed class Representation
     /// </param>
     public Representation(string typeName, ObjectValueNode data)
     {
+        ArgumentNullException.ThrowIfNull(data);
         TypeName = typeName.EnsureGraphQLName();
-        Data = data ?? throw new ArgumentNullException(nameof(data));
+        Data = data;
     }
 
     /// <summary>

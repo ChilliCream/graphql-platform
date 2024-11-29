@@ -1,6 +1,3 @@
-using System;
-using Xunit;
-
 namespace HotChocolate.Types;
 
 public class NativeTypeTests

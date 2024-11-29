@@ -1,12 +1,8 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO.Pipelines;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace StrawberryShake.Transport.WebSockets;
 
@@ -17,7 +13,7 @@ public sealed class SocketClientStub : ISocketClient
         new(TaskCreationOptions.None);
     private bool _isClosed = true;
 
-    public event EventHandler ReceiveFinished = default!;
+    public event EventHandler? OnConnectionClosed { add { } remove { } }
 
     public SemaphoreSlim Blocker { get; } = new(0);
 
@@ -116,7 +112,7 @@ public sealed class SocketClientStub : ISocketClient
 
     public void Increment(Expression<Action<ISocketClient>> member)
     {
-        if (member.Body is MethodCallExpression { Method: { } m })
+        if (member.Body is MethodCallExpression { Method: { } m, })
         {
             _callCount.AddOrUpdate(m, _ => 1, (m, c) => c + 1);
         }
@@ -124,7 +120,7 @@ public sealed class SocketClientStub : ISocketClient
 
     public int GetCallCount(Expression<Action<ISocketClient>> member)
     {
-        if (member.Body is MethodCallExpression { Method: { } m })
+        if (member.Body is MethodCallExpression { Method: { } m, })
         {
             _callCount.TryGetValue(m, out var counter);
             return counter;

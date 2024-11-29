@@ -5,12 +5,12 @@
     "Path": null,
     "Locations": [
       {
-        "Line": 4,
-        "Column": 25
+        "Line": 3,
+        "Column": 9
       },
       {
-        "Line": 7,
-        "Column": 25
+        "Line": 6,
+        "Column": 9
       }
     ],
     "Extensions": {
@@ -22,41 +22,8 @@
       "typeB": "String",
       "responseNameA": "x",
       "responseNameB": "x",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selection-Merging"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selection-Merging"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "Field",
-      "Alias": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 144,
-          "End": 146,
-          "Line": 7,
-          "Column": 25
-        },
-        "Value": "x"
-      },
-      "Arguments": [],
-      "Required": null,
-      "SelectionSet": null,
-      "Location": {
-        "Start": 144,
-        "End": 170,
-        "Line": 7,
-        "Column": 25
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 147,
-          "End": 170,
-          "Line": 7,
-          "Column": 28
-        },
-        "Value": "b"
-      },
-      "Directives": []
-    }
+    "Exception": null
   }
 ]

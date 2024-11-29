@@ -1,8 +1,10 @@
-using System;
+#nullable enable
+
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Factories;
 
@@ -24,7 +26,7 @@ internal sealed class SchemaSyntaxVisitor : SyntaxVisitor<SchemaSyntaxVisitorCon
         context.Types.Add(
             TypeReference.Create(
                 _objectTypeFactory.Create(
-                    context.DirectiveContext,
+                    context.DescriptorContext,
                     node)));
 
         return base.VisitChildren(node, context);
@@ -37,7 +39,7 @@ internal sealed class SchemaSyntaxVisitor : SyntaxVisitor<SchemaSyntaxVisitorCon
         context.Types.Add(
             TypeReference.Create(
                 _objectTypeFactory.Create(
-                    context.DirectiveContext,
+                    context.DescriptorContext,
                     node)));
 
         return base.VisitChildren(node, context);
@@ -50,7 +52,7 @@ internal sealed class SchemaSyntaxVisitor : SyntaxVisitor<SchemaSyntaxVisitorCon
         context.Types.Add(
             TypeReference.Create(
                 _interfaceTypeFactory.Create(
-                    context.DirectiveContext,
+                    context.DescriptorContext,
                     node)));
 
         return base.VisitChildren(node, context);
@@ -63,7 +65,7 @@ internal sealed class SchemaSyntaxVisitor : SyntaxVisitor<SchemaSyntaxVisitorCon
         context.Types.Add(
             TypeReference.Create(
                 _interfaceTypeFactory.Create(
-                    context.DirectiveContext,
+                    context.DescriptorContext,
                     node)));
 
         return base.VisitChildren(node, context);
@@ -76,7 +78,7 @@ internal sealed class SchemaSyntaxVisitor : SyntaxVisitor<SchemaSyntaxVisitorCon
         context.Types.Add(
             TypeReference.Create(
                 _unionTypeFactory.Create(
-                    context.DirectiveContext,
+                    context.DescriptorContext,
                     node)));
 
         return base.VisitChildren(node, context);
@@ -89,7 +91,7 @@ internal sealed class SchemaSyntaxVisitor : SyntaxVisitor<SchemaSyntaxVisitorCon
         context.Types.Add(
             TypeReference.Create(
                 _unionTypeFactory.Create(
-                    context.DirectiveContext,
+                    context.DescriptorContext,
                     node)));
 
         return base.VisitChildren(node, context);
@@ -102,7 +104,7 @@ internal sealed class SchemaSyntaxVisitor : SyntaxVisitor<SchemaSyntaxVisitorCon
         context.Types.Add(
             TypeReference.Create(
                 _inputObjectTypeFactory.Create(
-                    context.DirectiveContext,
+                    context.DescriptorContext,
                     node)));
 
         return base.VisitChildren(node, context);
@@ -115,7 +117,7 @@ internal sealed class SchemaSyntaxVisitor : SyntaxVisitor<SchemaSyntaxVisitorCon
         context.Types.Add(
             TypeReference.Create(
                 _inputObjectTypeFactory.Create(
-                    context.DirectiveContext,
+                    context.DescriptorContext,
                     node)));
 
         return base.VisitChildren(node, context);
@@ -128,7 +130,7 @@ internal sealed class SchemaSyntaxVisitor : SyntaxVisitor<SchemaSyntaxVisitorCon
         context.Types.Add(
             TypeReference.Create(
                 _enumTypeFactory.Create(
-                    context.DirectiveContext,
+                    context.DescriptorContext,
                     node)));
 
         return base.VisitChildren(node, context);
@@ -141,8 +143,20 @@ internal sealed class SchemaSyntaxVisitor : SyntaxVisitor<SchemaSyntaxVisitorCon
         context.Types.Add(
             TypeReference.Create(
                 _enumTypeFactory.Create(
-                    context.DirectiveContext,
+                    context.DescriptorContext,
                     node)));
+
+        return base.VisitChildren(node, context);
+    }
+
+    protected override ISyntaxVisitorAction VisitChildren(
+        ScalarTypeDefinitionNode node,
+        SchemaSyntaxVisitorContext context)
+    {
+        if (node.Directives.Count > 0)
+        {
+            context.ScalarDirectives[node.Name.Value] = node.Directives;
+        }
 
         return base.VisitChildren(node, context);
     }
@@ -151,12 +165,18 @@ internal sealed class SchemaSyntaxVisitor : SyntaxVisitor<SchemaSyntaxVisitorCon
         DirectiveDefinitionNode node,
         SchemaSyntaxVisitorContext context)
     {
+        if (context.DescriptorContext.Options.EnableTag &&
+            node.Name.Value.EqualsOrdinal(WellKnownDirectives.Tag))
+        {
+            goto EXIT;
+        }
+
         context.Types.Add(
             TypeReference.Create(
                 _directiveTypeFactory.Create(
-                    context.DirectiveContext,
+                    context.DescriptorContext,
                     node)));
-
+EXIT:
         return base.VisitChildren(node, context);
     }
 

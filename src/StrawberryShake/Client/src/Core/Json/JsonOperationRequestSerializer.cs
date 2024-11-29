@@ -35,7 +35,7 @@ public class JsonOperationRequestSerializer
 
     private static void WriteRequest(OperationRequest request, Utf8JsonWriter writer)
     {
-        if (request.Strategy == RequestStrategy.PersistedQuery)
+        if (request.Strategy == RequestStrategy.PersistedOperation)
         {
             writer.WriteString("id", request.Id);
         }
@@ -58,7 +58,7 @@ public class JsonOperationRequestSerializer
 
     private static void WriteExtensions(OperationRequest request, Utf8JsonWriter writer)
     {
-        if (request.GetExtensionsOrNull() is { Count: > 0 } extensions)
+        if (request.GetExtensionsOrNull() is { Count: > 0, } extensions)
         {
             writer.WritePropertyName("extensions");
             WriteDictionary(extensions, writer);

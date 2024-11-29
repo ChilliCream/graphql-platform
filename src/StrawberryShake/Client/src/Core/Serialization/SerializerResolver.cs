@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace StrawberryShake.Serialization;
 
 /// <summary>
@@ -19,7 +15,7 @@ public class SerializerResolver : ISerializerResolver
     /// A enumerable of <see cref="ISerializer"/> that shall be known to the resolver
     /// </param>
     /// <exception cref="ArgumentNullException">
-    /// In case <paramref name="serializers"></param> is null
+    /// In case <paramref name="serializers" /> is <c>null</c>
     /// </exception>
     public SerializerResolver(IEnumerable<ISerializer> serializers)
     {
@@ -30,10 +26,7 @@ public class SerializerResolver : ISerializerResolver
 
         foreach (var serializer in serializers)
         {
-            if (!_serializers.ContainsKey(serializer.TypeName))
-            {
-                _serializers[serializer.TypeName] = serializer;
-            }
+            _serializers.TryAdd(serializer.TypeName, serializer);
         }
 
         foreach (var serializer in

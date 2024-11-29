@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Resolvers;
 using HotChocolate.Subscriptions;
@@ -58,7 +56,7 @@ public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
                 (_, fieldDef) =>
                 {
                     var factory = _subscribeFactory.MakeGenericMethod(MessageType);
-                    factory.Invoke(null, new object[] { fieldDef, topicString });
+                    factory.Invoke(null, [fieldDef, topicString,]);
                 });
         }
         else

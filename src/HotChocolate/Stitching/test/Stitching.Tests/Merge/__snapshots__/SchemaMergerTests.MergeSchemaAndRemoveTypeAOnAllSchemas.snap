@@ -1,3 +1,0 @@
-type B @source(name: "B", schema: "A") @source(name: "B", schema: "B") {
-  c: String
-}

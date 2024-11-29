@@ -1,5 +1,3 @@
-using CookieCrumble;
-
 namespace HotChocolate.Data.Filters;
 
 [Collection(SchemaCacheCollectionFixture.DefinitionName)]
@@ -27,12 +25,9 @@ public class ConventionTests
     public class TypeWithList
     {
         public static TypeWithList[] Data =
-        {
-            new()
-            {
-                List = new List<ListItem>() { new() { Foo = "Foo" }, new() { Foo = "Bar" } }
-            }
-        };
+        [
+            new() { List = new List<ListItem>() { new() { Foo = "Foo", }, new() { Foo = "Bar", }, }, },
+        ];
 
         public string? Id { get; set; }
 

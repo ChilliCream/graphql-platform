@@ -1,5 +1,3 @@
-using System;
-
 #nullable enable
 
 namespace HotChocolate.Types;
@@ -28,5 +26,5 @@ public enum FieldBindingFlags
     /// <summary>
     /// Specifies that instance and static members shall be inferred as GraphQL fields.
     /// </summary>
-    InstanceAndStatic = Instance | Static
+    InstanceAndStatic = Instance | Static,
 }

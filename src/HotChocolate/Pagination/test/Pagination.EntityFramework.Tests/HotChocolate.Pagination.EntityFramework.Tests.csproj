@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>HotChocolate.Data</RootNamespace>
+    <NoWarn>$(NoWarn);GD0001</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\src\Pagination.Core\HotChocolate.Pagination.Core.csproj" />
+    <ProjectReference Include="..\..\src\Pagination.EntityFramework\HotChocolate.Pagination.EntityFramework.csproj" />
+    <ProjectReference Include="..\..\src\Pagination.Mappings\HotChocolate.Pagination.Mappings.csproj" />
+    <ProjectReference Include="..\..\src\Pagination.Primitives\HotChocolate.Pagination.Primitives.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Squadron.PostgreSql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\EfResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>EfResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>

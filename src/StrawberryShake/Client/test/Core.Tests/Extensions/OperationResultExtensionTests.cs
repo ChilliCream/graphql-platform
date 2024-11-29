@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace StrawberryShake.Extensions;
 
 public class OperationResultExtensionTests
@@ -130,7 +127,7 @@ public class OperationResultExtensionTests
 
         public ResultMock(IClientError error)
         {
-            Errors = new[] { error };
+            Errors = new[] { error, };
         }
 
         public object? Data => default!;

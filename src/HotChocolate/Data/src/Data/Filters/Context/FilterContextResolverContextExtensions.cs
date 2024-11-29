@@ -1,4 +1,3 @@
-using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -34,8 +33,7 @@ public static class FilterContextResolverContextExtensions
             return null;
         }
 
-        FilterContext filterContext =
-            new(context, filterInput, filter, context.Service<InputParser>());
+        var filterContext = new FilterContext(context, filterInput, filter, context.Service<InputParser>());
 
         // disable the execution of filtering by default
         filterContext.Handled(true);

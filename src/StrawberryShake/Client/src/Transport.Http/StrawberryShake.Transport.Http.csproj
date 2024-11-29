@@ -4,19 +4,18 @@
     <PackageId>StrawberryShake.Transport.Http</PackageId>
     <AssemblyName>StrawberryShake.Transport.Http</AssemblyName>
     <RootNamespace>StrawberryShake.Transport.Http</RootNamespace>
-    <Nullable>enable</Nullable>
     <Description>GraphQL over HTTP transport implementation for StrawberryShake GraphQL clients.</Description>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="3.1.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.0" />
-    <PackageReference Include="System.Net.Http.Json" Version="3.2.1" />
+    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Http" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Core\StrawberryShake.Core.csproj" />
+    <ProjectReference Include="..\..\..\..\HotChocolate\AspNetCore\src\Transport.Http\HotChocolate.Transport.Http.csproj" />
   </ItemGroup>
 
 </Project>

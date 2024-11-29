@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace StrawberryShake;
@@ -47,7 +45,7 @@ internal class StoredOperation<T>
             throw new ArgumentNullException(nameof(result));
         }
 
-        var updated = LastResult is null or { Data: null } ||
+        var updated = LastResult is null or { Data: null, } ||
             result.Data is null ||
             !result.Data.Equals(LastResult?.Data);
         LastResult = result;
@@ -77,7 +75,7 @@ internal class StoredOperation<T>
 
     public void UpdateResult(ulong version)
     {
-        if (LastResult is { DataInfo: { } dataInfo } result)
+        if (LastResult is { DataInfo: { } dataInfo, } result)
         {
             SetResult(
                 result.WithData(

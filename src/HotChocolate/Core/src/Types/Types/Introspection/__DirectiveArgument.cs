@@ -26,23 +26,23 @@ internal sealed class __DirectiveArgument : ObjectType<ArgumentNode>
 
         return new ObjectTypeDefinition(
             Names.__DirectiveArgument,
-            TypeResources.__DirectiveArgument_Description,
+            TypeResources.DirectiveArgument_Description,
             runtimeType: typeof(ArgumentNode))
         {
             Fields =
-                {
-                    new(Names.Name, type: nonNullStringType, pureResolver: Resolvers.Name),
-                    new(Names.Value, type: nonNullStringType, pureResolver: Resolvers.Value)
-                }
+            {
+                new(Names.Name, type: nonNullStringType, pureResolver: Resolvers.Name),
+                new(Names.Value, type: nonNullStringType, pureResolver: Resolvers.Value),
+            },
         };
     }
 
     private static class Resolvers
     {
-        public static string Name(IPureResolverContext context)
+        public static string Name(IResolverContext context)
             => context.Parent<ArgumentNode>().Name.Value;
 
-        public static string Value(IPureResolverContext context)
+        public static string Value(IResolverContext context)
             => context.Parent<ArgumentNode>().Value.Print(indented: false);
     }
 

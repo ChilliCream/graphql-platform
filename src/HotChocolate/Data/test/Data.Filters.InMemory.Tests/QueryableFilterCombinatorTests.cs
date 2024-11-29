@@ -1,5 +1,9 @@
-using System.Threading.Tasks;
-using CookieCrumble;
+// ReSharper disable UnusedMember.Global
+// ReSharper disable ClassNeverInstantiated.Global
+// ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable UnusedType.Global
+// ReSharper disable UnusedAutoPropertyAccessor.Global
+
 using HotChocolate.Execution;
 
 namespace HotChocolate.Data.Filters;
@@ -7,10 +11,10 @@ namespace HotChocolate.Data.Filters;
 public class QueryableFilterCombinatorTests
 {
     private static readonly Foo[] _fooEntities =
-    {
-        new() { Bar = true },
-        new() { Bar = false }
-    };
+    [
+        new Foo(bar: true),
+        new Foo(bar: false),
+    ];
 
     private readonly SchemaCache _cache = new();
 
@@ -23,17 +27,26 @@ public class QueryableFilterCombinatorTests
         // act
         // assert
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { }){ bar }}")
-                .Create());
+            """
+            {
+              root(where: { }) {
+                bar
+              }
+            }
+            """);
 
-        await Snapshot.Create()
-            .Add(res1)
-            .MatchAsync();
+        res1.MatchSnapshot();
     }
 
     public class Foo
     {
+        public Foo() { }
+
+        public Foo(bool bar)
+        {
+            Bar = bar;
+        }
+
         public int Id { get; set; }
 
         public bool Bar { get; set; }
@@ -46,13 +59,7 @@ public class QueryableFilterCombinatorTests
         public bool? Bar { get; set; }
     }
 
-    public class FooFilterInput
-        : FilterInputType<Foo>
-    {
-    }
+    public class FooFilterInput : FilterInputType<Foo>;
 
-    public class FooNullableFilterInput
-        : FilterInputType<FooNullable>
-    {
-    }
+    public class FooNullableFilterInput : FilterInputType<FooNullable>;
 }

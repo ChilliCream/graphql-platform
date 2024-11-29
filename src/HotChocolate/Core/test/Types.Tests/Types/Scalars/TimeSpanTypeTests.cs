@@ -1,9 +1,5 @@
-using System;
 using HotChocolate.Language;
-using Xunit;
-using Snapshooter.Xunit;
 using HotChocolate.Execution;
-using Snapshooter;
 using HotChocolate.Types.Descriptors;
 using System.Reflection;
 
@@ -277,7 +273,7 @@ public class TimeSpanTypeTests
             .MakeExecutable()
             .Execute("{ duration }")
             .ToJson()
-            .MatchSnapshot(new SnapshotNameExtension(format));
+            .MatchSnapshot(postFix: format);
     }
 
     [Fact]

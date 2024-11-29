@@ -1,40 +1,43 @@
-using CookieCrumble;
 using HotChocolate.Execution;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using Squadron;
 
 namespace HotChocolate.Data.MongoDb.Projections;
 
-public class MongoDbProjectionObjectTests : IClassFixture<MongoResource>
+public class MongoDbProjectionObjectTests(MongoResource resource) : IClassFixture<MongoResource>
 {
     private static readonly BarNullable[] _barWithoutRelation =
-    {
-        new()
-        {
-            Number = 2,
-            Foo = new FooNullable
+    [
+        new BarNullable(
+            number: 2,
+            foo: new FooNullable
             {
                 BarEnum = BarEnum.BAR,
                 BarShort = 15,
                 NestedObject = new BarNullableDeep
                 {
-                    Foo = new FooDeep { BarString = "Foo" }
-                }
-            }
-        },
-        new()
+                    Foo = new FooDeep
+                    {
+                        BarString = "Foo",
+                    },
+                },
+            }),
+        new BarNullable
         {
-            Number = 2, Foo = new FooNullable { BarEnum = BarEnum.FOO, BarShort = 14 }
+            Number = 2, Foo = new FooNullable
+            {
+                BarEnum = BarEnum.FOO,
+                BarShort = 14,
+            },
         },
-        new() { Number = 2 }
-    };
+        new BarNullable
+        {
+            Number = 2,
+        },
+    ];
 
-    private readonly SchemaCache _cache;
-
-    public MongoDbProjectionObjectTests(MongoResource resource)
-    {
-        _cache = new SchemaCache(resource);
-    }
+    private readonly SchemaCache _cache = new(resource);
 
     [Fact]
     public async Task Should_NotInitializeObject_When_ResultOfLeftJoinIsNull()
@@ -44,22 +47,21 @@ public class MongoDbProjectionObjectTests : IClassFixture<MongoResource>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
-                    @"{
-                        root {
-                            number
-                            foo {
-                               barEnum
-                            }
-                        }
-                    }")
-                .Create());
+            """
+            {
+              root {
+                number
+                foo {
+                  barEnum
+                }
+              }
+            }
+            """);
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -71,8 +73,8 @@ public class MongoDbProjectionObjectTests : IClassFixture<MongoResource>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     @"{
                         root {
                             number
@@ -81,12 +83,12 @@ public class MongoDbProjectionObjectTests : IClassFixture<MongoResource>
                             }
                         }
                     }")
-                .Create());
+                .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -98,8 +100,8 @@ public class MongoDbProjectionObjectTests : IClassFixture<MongoResource>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     @"{
                         root {
                             number
@@ -113,18 +115,19 @@ public class MongoDbProjectionObjectTests : IClassFixture<MongoResource>
                             }
                         }
                     }")
-                .Create());
+                .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
     public class Foo
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public short BarShort { get; set; }
@@ -143,6 +146,7 @@ public class MongoDbProjectionObjectTests : IClassFixture<MongoResource>
     public class FooDeep
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public short BarShort { get; set; }
@@ -153,6 +157,7 @@ public class MongoDbProjectionObjectTests : IClassFixture<MongoResource>
     public class FooNullable
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public short? BarShort { get; set; }
@@ -171,6 +176,7 @@ public class MongoDbProjectionObjectTests : IClassFixture<MongoResource>
     public class Bar
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public Foo Foo { get; set; } = default!;
@@ -181,6 +187,7 @@ public class MongoDbProjectionObjectTests : IClassFixture<MongoResource>
     public class BarDeep
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public FooDeep Foo { get; set; } = default!;
@@ -189,6 +196,7 @@ public class MongoDbProjectionObjectTests : IClassFixture<MongoResource>
     public class BarNullableDeep
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public FooDeep? Foo { get; set; }
@@ -198,7 +206,16 @@ public class MongoDbProjectionObjectTests : IClassFixture<MongoResource>
 
     public class BarNullable
     {
+        public BarNullable() { }
+
+        public BarNullable(int number, FooNullable? foo)
+        {
+            Number = number;
+            Foo = foo;
+        }
+
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public FooNullable? Foo { get; set; }
@@ -211,6 +228,6 @@ public class MongoDbProjectionObjectTests : IClassFixture<MongoResource>
         FOO,
         BAR,
         BAZ,
-        QUX
+        QUX,
     }
 }

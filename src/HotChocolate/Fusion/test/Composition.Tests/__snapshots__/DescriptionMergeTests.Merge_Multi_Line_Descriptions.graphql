@@ -1,0 +1,37 @@
+schema
+  @fusion(version: 1)
+  @transport(subgraph: "A", location: "https:\/\/localhost:5001\/graphql", kind: "HTTP")
+  @transport(subgraph: "B", location: "https:\/\/localhost:5002\/graphql", kind: "HTTP") {
+  query: Query
+}
+
+"""
+This is the
+query type
+"""
+type Query {
+  """
+  field
+  one
+  """
+  field1("""
+  This is an
+  arg
+  """ arg1: String """
+  This is
+  the 2nd arg
+  """ arg2: String): String!
+    @variable(subgraph: "A", name: "arg1", argument: "arg1")
+    @variable(subgraph: "A", name: "arg2", argument: "arg2")
+    @resolver(subgraph: "A", select: "{ field1(arg1: $arg1, arg2: $arg2) }", arguments: [ { name: "arg1", type: "String" }, { name: "arg2", type: "String" } ])
+    @variable(subgraph: "B", name: "arg1", argument: "arg1")
+    @variable(subgraph: "B", name: "arg2", argument: "arg2")
+    @resolver(subgraph: "B", select: "{ field1(arg1: $arg1, arg2: $arg2) }", arguments: [ { name: "arg1", type: "String" }, { name: "arg2", type: "String" } ])
+  """
+  field2
+  from subgraph 2
+  """
+  field2: String
+    @resolver(subgraph: "A", select: "{ field2 }")
+    @resolver(subgraph: "B", select: "{ field2 }")
+}

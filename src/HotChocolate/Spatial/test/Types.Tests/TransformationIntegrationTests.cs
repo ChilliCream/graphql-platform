@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -84,12 +83,12 @@ public class TransformationIntegrationTests
         // arrange
         var lineString = NtsGeometryServices.Instance
             .CreateGeometryFactory(4326)
-            .CreateLineString(new[]
-            {
-                    new Coordinate(30, 10),
+            .CreateLineString(
+            [
+                new Coordinate(30, 10),
                     new Coordinate(10, 30),
-                    new Coordinate(40, 40)
-            });
+                    new Coordinate(40, 40),
+            ]);
 
         var schema = SchemaBuilder.New()
             .AddDocumentFromString(
@@ -128,13 +127,13 @@ public class TransformationIntegrationTests
         // arrange
         var lineString = NtsGeometryServices.Instance
             .CreateGeometryFactory(4326)
-            .CreateLineString(new[]
-            {
-                    new Coordinate(30, 10),
+            .CreateLineString(
+            [
+                new Coordinate(30, 10),
                     new Coordinate(10, 30),
                     new CoordinateZM(10, 30, 12, 15),
-                    new Coordinate(40, 40)
-            });
+                    new Coordinate(40, 40),
+            ]);
 
         var schema = SchemaBuilder.New()
             .AddDocumentFromString(
@@ -174,13 +173,13 @@ public class TransformationIntegrationTests
         // arrange
         var lineString = NtsGeometryServices.Instance
             .CreateGeometryFactory(4326)
-            .CreateLineString(new[]
-            {
-                    new Coordinate(30, 10),
+            .CreateLineString(
+            [
+                new Coordinate(30, 10),
                     new Coordinate(10, 30),
                     new CoordinateM(10, 30, 12),
-                    new Coordinate(40, 40)
-            });
+                    new Coordinate(40, 40),
+            ]);
 
         var schema = SchemaBuilder.New()
             .AddDocumentFromString(
@@ -220,13 +219,13 @@ public class TransformationIntegrationTests
         // arrange
         var lineString = NtsGeometryServices.Instance
             .CreateGeometryFactory(4326)
-            .CreateLineString(new[]
-            {
-                    new Coordinate(30, 10),
+            .CreateLineString(
+            [
+                new Coordinate(30, 10),
                     new Coordinate(10, 30),
                     new CoordinateZ(10, 30, 12),
-                    new Coordinate(40, 40)
-            });
+                    new Coordinate(40, 40),
+            ]);
 
         var schema = SchemaBuilder.New()
             .AddDocumentFromString(
@@ -399,13 +398,13 @@ public class TransformationIntegrationTests
     public async Task Execute_CrsEmpty_TakeDefaultSrid()
     {
         // arrange
-        var lineString = new LineString(new[]
-        {
-                new Coordinate(30, 10),
+        var lineString = new LineString(
+        [
+            new Coordinate(30, 10),
                 new Coordinate(10, 30),
                 new CoordinateZ(10, 30, 12),
-                new Coordinate(40, 40)
-            });
+                new Coordinate(40, 40),
+        ]);
 
         var schema = SchemaBuilder.New()
             .AddDocumentFromString(
@@ -515,12 +514,12 @@ public class TransformationIntegrationTests
         // arrange
         var lineString = NtsGeometryServices.Instance
             .CreateGeometryFactory(4326)
-            .CreateLineString(new[]
-            {
-                    new Coordinate(30, 10),
+            .CreateLineString(
+            [
+                new Coordinate(30, 10),
                     new Coordinate(10, 30),
-                    new Coordinate(40, 40)
-            });
+                    new Coordinate(40, 40),
+            ]);
 
         var schema = SchemaBuilder.New()
             .AddDocumentFromString(
@@ -560,12 +559,12 @@ public class TransformationIntegrationTests
         // arrange
         var lineString = NtsGeometryServices.Instance
             .CreateGeometryFactory(4326)
-            .CreateLineString(new[]
-            {
-                    new Coordinate(30, 10),
+            .CreateLineString(
+            [
+                new Coordinate(30, 10),
                     new Coordinate(10, 30),
-                    new Coordinate(40, 40)
-            });
+                    new Coordinate(40, 40),
+            ]);
 
         var schema = SchemaBuilder.New()
             .AddDocumentFromString(

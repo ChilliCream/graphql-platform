@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
@@ -21,14 +20,6 @@ public class IdType : ScalarType<string>
     /// <summary>
     /// Initializes a new instance of the <see cref="IdType"/> class.
     /// </summary>
-    public IdType() : this(ScalarNames.ID, TypeResources.IdType_Description)
-    {
-
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="IdType"/> class.
-    /// </summary>
     public IdType(
         string name,
         string? description = null,
@@ -36,6 +27,14 @@ public class IdType : ScalarType<string>
         : base(name, bind)
     {
         Description = description;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="IdType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public IdType() : this(ScalarNames.ID, TypeResources.IdType_Description)
+    {
     }
 
     public override bool IsInstanceOfType(IValueNode literal)

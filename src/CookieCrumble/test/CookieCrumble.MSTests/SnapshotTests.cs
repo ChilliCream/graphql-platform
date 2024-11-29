@@ -112,15 +112,6 @@ public class SnapshotMSTests
         snapshot.Match();
     }
 
-    [TestMethod]
-    public void SnapshotBuilder_GraphQL_Segment()
-    {
-        var snapshot = new Snapshot();
-        snapshot.Add(new MyClass { Foo = "def" });
-        snapshot.Add(Utf8GraphQLParser.Parse("{ abc }"));
-        snapshot.Match();
-    }
-
     public class MyClass
     {
         public string Foo { get; set; } = "Bar";

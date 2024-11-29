@@ -1,9 +1,4 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using HotChocolate;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Options;
 using StrawberryShake.Transport.InMemory;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -35,7 +30,7 @@ public static class InMemoryClientFactoryServiceCollectionExtensions
     /// and providing the matching name.
     /// </para>
     /// <para>
-    /// Use <see cref="Options.DefaultName"/> as the name to configure the
+    /// Use <see cref="Microsoft.Extensions.Options.Options.DefaultName"/> as the name to configure the
     /// default client.
     /// </para>
     /// </remarks>
@@ -83,7 +78,7 @@ public static class InMemoryClientFactoryServiceCollectionExtensions
     /// the matching name.
     /// </para>
     /// <para>
-    /// Use <see cref="Options.DefaultName"/> as the name to configure
+    /// Use <see cref="Microsoft.Extensions.Options.Options.DefaultName"/> as the name to configure
     /// the default client.
     /// </para>
     /// </remarks>
@@ -139,7 +134,7 @@ public static class InMemoryClientFactoryServiceCollectionExtensions
     /// the matching name.
     /// </para>
     /// <para>
-    /// Use <see cref="Options.DefaultName"/> as the name to configure
+    /// Use <see cref="Microsoft.Extensions.Options.Options.DefaultName"/> as the name to configure
     /// the default client.
     /// </para>
     /// </remarks>
@@ -195,7 +190,7 @@ public static class InMemoryClientFactoryServiceCollectionExtensions
     /// the matching name.
     /// </para>
     /// <para>
-    /// Use <see cref="Options.DefaultName"/> as the name to configure
+    /// Use <see cref="Microsoft.Extensions.Options.Options.DefaultName"/> as the name to configure
     /// the default client.
     /// </para>
     /// </remarks>
@@ -251,7 +246,7 @@ public static class InMemoryClientFactoryServiceCollectionExtensions
     /// the matching name.
     /// </para>
     /// <para>
-    /// Use <see cref="Options.DefaultName"/> as the name to configure
+    /// Use <see cref="Microsoft.Extensions.Options.Options.DefaultName"/> as the name to configure
     /// the default client.
     /// </para>
     /// </remarks>

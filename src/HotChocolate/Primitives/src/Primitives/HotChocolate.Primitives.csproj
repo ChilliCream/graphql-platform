@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Primitives</PackageId>
+    <AssemblyName>HotChocolate.Primitives</AssemblyName>
+    <RootNamespace>HotChocolate</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Language\src\Language\HotChocolate.Language.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\PrimitiveResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AbstractionResources.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Properties\PrimitivesResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PrimitivesResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\PrimitivesResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>PrimitivesResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>

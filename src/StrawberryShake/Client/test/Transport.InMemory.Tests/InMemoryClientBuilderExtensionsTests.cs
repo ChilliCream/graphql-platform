@@ -1,7 +1,3 @@
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -405,7 +401,7 @@ public class InMemoryClientBuilderExtensionsTests
         public ValueTask OnCreateAsync(
             IServiceProvider serviceProvider,
             OperationRequest request,
-            IQueryRequestBuilder requestBuilder,
+            OperationRequestBuilder requestBuilder,
             CancellationToken cancellationToken)
         {
             return default;

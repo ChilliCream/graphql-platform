@@ -1,6 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 
 namespace StrawberryShake.Transport.InMemory;
@@ -34,6 +31,6 @@ public interface IInMemoryRequestInterceptor
     ValueTask OnCreateAsync(
         IServiceProvider serviceProvider,
         OperationRequest request,
-        IQueryRequestBuilder requestBuilder,
+        OperationRequestBuilder requestBuilder,
         CancellationToken cancellationToken);
 }

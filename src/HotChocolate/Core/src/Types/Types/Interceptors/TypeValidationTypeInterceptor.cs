@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
@@ -46,7 +45,7 @@ internal sealed class TypeValidationTypeInterceptor : TypeInterceptor
         ITypeDiscoveryContext context,
         InputObjectTypeDefinition? definition)
     {
-        if (definition is { RuntimeType: { } runtimeType } &&
+        if (definition is { RuntimeType: { } runtimeType, } &&
             IsTypeSystemType(definition.RuntimeType))
         {
             ReportRuntimeTypeError(context, runtimeType);
@@ -60,7 +59,7 @@ internal sealed class TypeValidationTypeInterceptor : TypeInterceptor
         ITypeDiscoveryContext context,
         DirectiveTypeDefinition? definition)
     {
-        if (definition is { RuntimeType: { } runtimeType } &&
+        if (definition is { RuntimeType: { } runtimeType, } &&
             IsTypeSystemType(definition.RuntimeType))
         {
             ReportRuntimeTypeError(context, runtimeType);
@@ -73,7 +72,7 @@ internal sealed class TypeValidationTypeInterceptor : TypeInterceptor
         ITypeDiscoveryContext context,
         UnionTypeDefinition? definition)
     {
-        if (definition is { RuntimeType: { } runtimeType } &&
+        if (definition is { RuntimeType: { } runtimeType, } &&
             IsTypeSystemType(definition.RuntimeType))
         {
             ReportRuntimeTypeError(context, runtimeType);
@@ -86,7 +85,7 @@ internal sealed class TypeValidationTypeInterceptor : TypeInterceptor
         ITypeDiscoveryContext context,
         ObjectTypeDefinition definition)
     {
-        if (definition is { RuntimeType: { } runtimeType } &&
+        if (definition is { RuntimeType: { } runtimeType, } &&
             IsTypeSystemType(definition.RuntimeType))
         {
             ReportRuntimeTypeError(context, runtimeType);
@@ -101,7 +100,7 @@ internal sealed class TypeValidationTypeInterceptor : TypeInterceptor
         ITypeDiscoveryContext context,
         InterfaceTypeDefinition? definition)
     {
-        if (definition is { RuntimeType: { } runtimeType } &&
+        if (definition is { RuntimeType: { } runtimeType, } &&
             IsTypeSystemType(definition.RuntimeType))
         {
             ReportRuntimeTypeError(context, runtimeType);

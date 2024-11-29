@@ -1,9 +1,7 @@
 #nullable enable
 
-using System;
-using System.Collections.Generic;
+using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using HotChocolate.Types;
 using static HotChocolate.Properties.TypeResources;
 
@@ -11,8 +9,8 @@ namespace HotChocolate;
 
 internal sealed class SchemaTypes
 {
-    private readonly Dictionary<string, INamedType> _types;
-    private readonly Dictionary<string, List<ObjectType>> _possibleTypes;
+    private readonly FrozenDictionary<string, INamedType> _types;
+    private readonly FrozenDictionary<string, List<ObjectType>> _possibleTypes;
 
     public SchemaTypes(SchemaTypesDefinition definition)
     {
@@ -28,8 +26,8 @@ internal sealed class SchemaTypes
                 nameof(definition));
         }
 
-        _types = definition.Types.ToDictionary(t => t.Name);
-        _possibleTypes = CreatePossibleTypeLookup(definition.Types);
+        _types = definition.Types.ToFrozenDictionary(t => t.Name, StringComparer.Ordinal);
+        _possibleTypes = CreatePossibleTypeLookup(definition.Types).ToFrozenDictionary(StringComparer.Ordinal);
         QueryType = definition.QueryType!;
         MutationType = definition.MutationType;
         SubscriptionType = definition.SubscriptionType;
@@ -104,17 +102,17 @@ internal sealed class SchemaTypes
     private static Dictionary<string, List<ObjectType>> CreatePossibleTypeLookup(
         IReadOnlyCollection<INamedType> types)
     {
-        var possibleTypes = new Dictionary<string, List<ObjectType>>();
+        var possibleTypes = new Dictionary<string, List<ObjectType>>(StringComparer.Ordinal);
 
         foreach (var objectType in types.OfType<ObjectType>())
         {
-            possibleTypes[objectType.Name] = new List<ObjectType> { objectType };
+            possibleTypes[objectType.Name] = [objectType,];
 
             foreach (var interfaceType in objectType.Implements)
             {
                 if (!possibleTypes.TryGetValue(interfaceType.Name, out var pt))
                 {
-                    pt = new List<ObjectType>();
+                    pt = [];
                     possibleTypes[interfaceType.Name] = pt;
                 }
 
@@ -129,7 +127,7 @@ internal sealed class SchemaTypes
                 if (!possibleTypes.TryGetValue(
                     unionType.Name, out var pt))
                 {
-                    pt = new List<ObjectType>();
+                    pt = [];
                     possibleTypes[unionType.Name] = pt;
                 }
 

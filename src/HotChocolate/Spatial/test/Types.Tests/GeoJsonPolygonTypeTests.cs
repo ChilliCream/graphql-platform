@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types.Descriptors;
 using NetTopologySuite.Geometries;
@@ -8,14 +7,14 @@ namespace HotChocolate.Types.Spatial;
 public class GeoJsonPolygonTypeTests
 {
     private readonly Polygon _geom = new(
-        new LinearRing(new[]
-        {
+        new LinearRing(
+        [
             new Coordinate(30, 10),
             new Coordinate(40, 40),
             new Coordinate(20, 40),
             new Coordinate(10, 20),
-            new Coordinate(30, 10)
-        }));
+            new Coordinate(30, 10),
+        ]));
 
     [Fact]
     public async Task Polygon_Execution_Output()

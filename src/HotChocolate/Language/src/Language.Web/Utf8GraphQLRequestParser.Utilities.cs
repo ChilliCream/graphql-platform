@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using static HotChocolate.Language.Properties.LangWebResources;
 
@@ -12,11 +10,16 @@ public ref partial struct Utf8GraphQLRequestParser
         switch (_reader.Kind)
         {
             case TokenKind.String:
+                if(_reader.Value.Length == 0)
                 {
-                    var value = _reader.GetString();
                     _reader.MoveNext();
-                    return value;
+                    return null;
                 }
+
+                var value = _reader.GetString();
+                _reader.MoveNext();
+                return value;
+
 
             case TokenKind.Name when _reader.Value.SequenceEqual(GraphQLKeywords.Null):
                 _reader.MoveNext();
@@ -43,7 +46,36 @@ public ref partial struct Utf8GraphQLRequestParser
         }
     }
 
-    private IReadOnlyDictionary<string, object?>? ParseVariables()
+    private IReadOnlyList<IReadOnlyDictionary<string, object?>>? ParseVariables()
+    {
+        switch (_reader.Kind)
+        {
+            case TokenKind.LeftBrace:
+                return new[] { ParseVariablesObject(), };
+
+            case TokenKind.LeftBracket:
+                var list = new List<IReadOnlyDictionary<string, object?>>();
+                _reader.Expect(TokenKind.LeftBracket);
+
+                while (_reader.Kind != TokenKind.RightBracket)
+                {
+                    list.Add(ParseObject());
+                }
+
+                _reader.Expect(TokenKind.RightBracket);
+
+                return list;
+
+            case TokenKind.Name when _reader.Value.SequenceEqual(GraphQLKeywords.Null):
+                _reader.MoveNext();
+                return null;
+
+            default:
+                throw ThrowHelper.ExpectedObjectOrNull(_reader);
+        }
+    }
+
+    private IReadOnlyDictionary<string, object?> ParseVariablesObject()
     {
         switch (_reader.Kind)
         {
@@ -60,7 +92,7 @@ public ref partial struct Utf8GraphQLRequestParser
                             _reader,
                             ParseMany_InvalidOpenToken,
                             TokenKind.String,
-                            TokenPrinter.Print(in _reader));
+                            TokenPrinter.Print(ref _reader));
                     }
 
                     var name = _reader.GetString();
@@ -74,10 +106,6 @@ public ref partial struct Utf8GraphQLRequestParser
                 _reader.Expect(TokenKind.RightBrace);
 
                 return obj;
-
-            case TokenKind.Name when _reader.Value.SequenceEqual(GraphQLKeywords.Null):
-                _reader.MoveNext();
-                return null;
 
             default:
                 throw ThrowHelper.ExpectedObjectOrNull(_reader);
@@ -125,7 +153,7 @@ public ref partial struct Utf8GraphQLRequestParser
                             _reader,
                             ParseMany_InvalidOpenToken,
                             TokenKind.String,
-                            TokenPrinter.Print(in _reader));
+                            TokenPrinter.Print(ref _reader));
                     }
 
                     var name = _reader.GetString();

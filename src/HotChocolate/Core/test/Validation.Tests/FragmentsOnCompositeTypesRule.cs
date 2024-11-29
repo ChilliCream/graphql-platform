@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Xunit;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Validation;
 
@@ -148,9 +147,9 @@ public class FragmentsOnCompositeTypesRuleTests
                     something
                 }
             ",
-            t => Assert.Equal(t.Message,
-                "Fragments can only be declared on unions, interfaces, " +
-                "and objects."));
+            t => Assert.Equal(
+                "Fragments can only be declared on unions, interfaces, and objects.",
+                t.Message));
     }
 
     [Fact]
@@ -169,8 +168,8 @@ public class FragmentsOnCompositeTypesRuleTests
                     }
                 }
             ",
-            t => Assert.Equal(t.Message,
-                "Fragments can only be declared on unions, interfaces, " +
-                "and objects."));
+            t => Assert.Equal(
+                "Fragments can only be declared on unions, interfaces, and objects.",
+                t.Message));
     }
 }

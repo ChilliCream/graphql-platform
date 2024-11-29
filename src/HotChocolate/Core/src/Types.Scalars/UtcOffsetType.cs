@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types;
@@ -14,16 +11,6 @@ public class UtcOffsetType : ScalarType<TimeSpan, StringValueNode>
     /// <summary>
     /// Initializes a new instance of the <see cref="UtcOffsetType"/> class.
     /// </summary>
-    public UtcOffsetType()
-        : this(
-            WellKnownScalarTypes.UtcOffset,
-            ScalarResources.UtcOffsetType_Description)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="UtcOffsetType"/> class.
-    /// </summary>
     public UtcOffsetType(
         string name,
         string? description = null,
@@ -33,6 +20,17 @@ public class UtcOffsetType : ScalarType<TimeSpan, StringValueNode>
         Description = description;
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UtcOffsetType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public UtcOffsetType()
+        : this(
+            WellKnownScalarTypes.UtcOffset,
+            ScalarResources.UtcOffsetType_Description)
+    {
+    }
+
     /// <inheritdoc />
     public override IValueNode ParseResult(object? resultValue)
     {
@@ -40,19 +38,19 @@ public class UtcOffsetType : ScalarType<TimeSpan, StringValueNode>
         {
             null => NullValueNode.Default,
 
-            string s when OffsetLookup.TryDeserialize(s, out TimeSpan timespan) =>
-                ParseValue(timespan),
+            string s when OffsetLookup.TryDeserialize(s, out var timeSpan) =>
+                ParseValue(timeSpan),
 
             TimeSpan ts => ParseValue(ts),
 
-            _ => throw ThrowHelper.UtcOffset_ParseValue_IsInvalid(this)
+            _ => throw ThrowHelper.UtcOffset_ParseValue_IsInvalid(this),
         };
     }
 
     /// <inheritdoc />
     protected override TimeSpan ParseLiteral(StringValueNode valueSyntax)
     {
-        if (OffsetLookup.TryDeserialize(valueSyntax.Value, out TimeSpan parsed))
+        if (OffsetLookup.TryDeserialize(valueSyntax.Value, out var parsed))
         {
             return parsed;
         }
@@ -96,7 +94,7 @@ public class UtcOffsetType : ScalarType<TimeSpan, StringValueNode>
             case null:
                 runtimeValue = null;
                 return true;
-            case string s when OffsetLookup.TryDeserialize(s, out TimeSpan timeSpan):
+            case string s when OffsetLookup.TryDeserialize(s, out var timeSpan):
                 runtimeValue = timeSpan;
                 return true;
             case TimeSpan timeSpan when OffsetLookup.TrySerialize(timeSpan, out _):
@@ -154,7 +152,7 @@ public class UtcOffsetType : ScalarType<TimeSpan, StringValueNode>
                     { new TimeSpan(12, 0, 0), "+12:00" },
                     { new TimeSpan(12, 45, 0), "+12:45" },
                     { new TimeSpan(13, 0, 0), "+13:00" },
-                    { new TimeSpan(14, 0, 0), "+14:00" }
+                    { new TimeSpan(14, 0, 0), "+14:00" },
                 };
 
             var offsetToTimeSpan = _timeSpanToOffset

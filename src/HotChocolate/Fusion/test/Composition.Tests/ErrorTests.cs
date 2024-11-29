@@ -1,6 +1,4 @@
-using CookieCrumble;
 using HotChocolate.Fusion.Shared;
-using HotChocolate.Skimmed.Serialization;
 using Xunit.Abstractions;
 
 namespace HotChocolate.Fusion.Composition;
@@ -51,7 +49,6 @@ public class ErrorTests(ITestOutputHelper output)
                 nextToken: String
             }
 
-
             type Mutation {
                 createReview(input: CreateReviewInput!): Review
                 deleteReview(input: DeleteReviewInput!): Review
@@ -83,8 +80,9 @@ public class ErrorTests(ITestOutputHelper output)
                     Array.Empty<string>(),
                     new IClientConfiguration[]
                     {
-                        new HttpClientConfiguration(new Uri("http://localhost"))
-                    })
+                        new HttpClientConfiguration(new Uri("http://localhost")),
+                    },
+                    null),
             });
 
         Assert.Null(fusionConfig);
@@ -95,7 +93,7 @@ public class ErrorTests(ITestOutputHelper output)
             {
                 Assert.Equal(
                     "The type `int` is not declared on subgraph Test123. " +
-                    "Check the subgraph schema for consistency.", 
+                    "Check the subgraph schema for consistency.",
                     a.Message);
                 Assert.Equal("HF0009", a.Code);
             });

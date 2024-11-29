@@ -11,22 +11,11 @@ internal static class JsonOptionDefaults
     /// Gets the default <see cref="JsonWriterOptions"/>.
     /// </summary>
     public static JsonWriterOptions WriterOptions { get; } =
-        new() { Indented = false };
+        new() { Indented = false, };
 
     /// <summary>
     /// Gets the default <see cref="JsonSerializerOptions"/>.
     /// </summary>
-#if NET6_0_OR_GREATER
     public static JsonSerializerOptions SerializerOptions { get; } =
         new(JsonSerializerDefaults.Web);
-#else
-    public static JsonSerializerOptions SerializerOptions { get; } =
-        new()
-        {
-            PropertyNameCaseInsensitive = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-#if NET6_0_OR_GREATER
-            NumberHandling = JsonNumberHandling.AllowReadingFromString
-#endif
-        };
-#endif
 }

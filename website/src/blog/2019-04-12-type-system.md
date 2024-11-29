@@ -48,11 +48,11 @@ With our new schema builder, we did a lot of work underneath and introduced the 
 
 **For what is that useful?**
 
-For one you can now register our new `INamingConverions` with the dependency injection and then the new `SchemaBuilder` will use your naming conventions instead of the built-in naming conventions.
+For one you can now register our new `INamingConventions` with the dependency injection and then the new `SchemaBuilder` will use your naming conventions instead of the built-in naming conventions.
 
 Also, you can register our new `ITypeInspector` and override how we infer schema types from POCOs. This will allow you for instance to add support for custom attributes, so no need to pollute your API with our attributes anymore.
 
-But fear not, you do not have to implement the whole `INamingConverions` interface for instance since you can override each part of our default implementation.
+But fear not, you do not have to implement the whole `INamingConventions` interface for instance since you can override each part of our default implementation.
 
 Since, in many cases we just want to tune existing naming conventions we can inherit from the default implementation `DefaultNamingConventions` and overwrite just what we want to change.
 
@@ -88,11 +88,11 @@ In order to register our conventions with the schema builder we can do the follo
 ```csharp
 public void ConfigureServices(IServiceCollection services)
 {
-    services.AddSingleton<INamingConverions, MyNamingConventions>();
+    services.AddSingleton<INamingConventions, MyNamingConventions>();
     services.AddGraphQL(sp => Schema.Create(c =>
     {
         c.RegisterServiceProvider(sp);
-        c.RegisterQuerType<Foo>();
+        c.RegisterQueryType<Foo>();
     }));
 
 }
@@ -103,7 +103,7 @@ Or we could do it like the following with the new schema builder:
 ```csharp
 public void ConfigureServices(IServiceCollection services)
 {
-    services.AddSingleton<INamingConverions, MyNamingConventions>();
+    services.AddSingleton<INamingConventions, MyNamingConventions>();
     services.AddGraphQL(sp => SchemaBuilder.New()
         .AddQueryType<Foo>()
         .AddServices(sp));
@@ -413,6 +413,3 @@ As you can see version 9 will bring quite a few improvements, so stay tuned for 
 With Hot Chocolate we are building a GraphQL server for the community, so join and help us along.
 
 We value any kind of contribution, whether you give us a star, a feedback, find a bug, a typo, or whether you contribute code. Every bit matters and makes our project better.
-
-[hot chocolate]: https://hotchocolate.io
-[hot chocolate source code]: https://github.com/ChilliCream/graphql-platform

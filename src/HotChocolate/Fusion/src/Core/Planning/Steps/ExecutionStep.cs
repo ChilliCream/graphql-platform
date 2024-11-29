@@ -64,7 +64,7 @@ internal abstract class ExecutionStep
     /// <summary>
     /// Gets the execution steps this execution step is depending on.
     /// </summary>
-    public HashSet<ExecutionStep> DependsOn { get; } = new();
+    public HashSet<ExecutionStep> DependsOn { get; } = [];
 
     private string GetDebuggerDisplay()
     {

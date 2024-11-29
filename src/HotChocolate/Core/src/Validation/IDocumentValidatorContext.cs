@@ -1,7 +1,5 @@
-using System.Collections.Generic;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 
 namespace HotChocolate.Validation;
@@ -10,7 +8,7 @@ namespace HotChocolate.Validation;
 /// This interface represents the document validation context that can
 /// be used by validation visitors to build up state.
 /// </summary>
-public interface IDocumentValidatorContext : ISyntaxVisitorContext
+public interface IDocumentValidatorContext
 {
     /// <summary>
     /// Gets the schema on which the validation is executed.
@@ -20,7 +18,7 @@ public interface IDocumentValidatorContext : ISyntaxVisitorContext
     /// <summary>
     /// Gets the unique document identifier.
     /// </summary>
-    string DocumentId { get; }
+    OperationDocumentId DocumentId { get; }
 
     /// <summary>
     /// Gets the current operation type.
@@ -156,9 +154,34 @@ public interface IDocumentValidatorContext : ISyntaxVisitorContext
     bool UnexpectedErrorsDetected { get; set; }
 
     /// <summary>
+    /// Defines that a fatal error was detected and that the analyzer will be aborted.
+    /// </summary>
+    bool FatalErrorDetected { get; set; }
+
+    /// <summary>
     /// A map to store arbitrary visitor data.
     /// </summary>
     IDictionary<string, object?> ContextData { get; }
+
+    /// <summary>
+    /// When processing field merging this list holds the field pairs that are processed.
+    /// </summary>
+    List<FieldInfoPair> CurrentFieldPairs { get; }
+
+    /// <summary>
+    /// When processing field merging this list holds the field pairs that are processed next.
+    /// </summary>
+    List<FieldInfoPair> NextFieldPairs { get; }
+
+    /// <summary>
+    /// When processing field merging this set represents the already processed field pairs.
+    /// </summary>
+    HashSet<FieldInfoPair> ProcessedFieldPairs { get; }
+
+    /// <summary>
+    /// Gets the field depth cycle tracker.
+    /// </summary>
+    FieldDepthCycleTracker FieldDepth { get; }
 
     /// <summary>
     /// Rents a list of field infos.

@@ -7,8 +7,6 @@ public interface IUnionTypeDescriptor
     : IDescriptor<UnionTypeDefinition>
     , IFluent
 {
-    IUnionTypeDescriptor SyntaxNode(UnionTypeDefinitionNode unionTypeDefinition);
-
     IUnionTypeDescriptor Name(string value);
 
     IUnionTypeDescriptor Description(string value);

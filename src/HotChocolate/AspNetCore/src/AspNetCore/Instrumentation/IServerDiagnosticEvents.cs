@@ -124,7 +124,7 @@ public interface IServerDiagnosticEvents
     /// <returns>
     /// A scope that will be disposed when GraphQL query result is written to the response stream.
     /// </returns>
-    IDisposable FormatHttpResponse(HttpContext context, IQueryResult result);
+    IDisposable FormatHttpResponse(HttpContext context, IOperationResult result);
 
     /// <summary>
     /// Called when starting to establish a GraphQL WebSocket session.
@@ -145,7 +145,7 @@ public interface IServerDiagnosticEvents
     /// <param name="context">
     /// The <see cref="HttpContext"/>.
     /// </param>
-    /// <param name="errors">
+    /// <param name="exception">
     /// The <see cref="Exception"/>.
     /// </param>
     void WebSocketSessionError(HttpContext context, Exception exception);

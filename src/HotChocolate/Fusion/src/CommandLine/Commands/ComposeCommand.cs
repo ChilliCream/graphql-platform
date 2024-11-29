@@ -1,4 +1,5 @@
 using System.CommandLine;
+using System.CommandLine.IO;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -17,10 +18,12 @@ namespace HotChocolate.Fusion.CommandLine.Commands;
 
 internal sealed class ComposeCommand : Command
 {
-    [RequiresUnreferencedCode("Calls HotChocolate.Fusion.CommandLine.Commands.ComposeCommand.ExecuteAsync(IConsole, FileInfo, List<String>, FileInfo, DirectoryInfo, Boolean?, CancellationToken)")]
+    [RequiresUnreferencedCode(
+        "Calls HotChocolate.Fusion.CommandLine.Commands.ComposeCommand.ExecuteAsync(IConsole, FileInfo, " +
+        "List<String>, List<String>, FileInfo, DirectoryInfo, Boolean?, CancellationToken)")]
     public ComposeCommand() : base("compose")
     {
-        var fusionPackageFile = new Option<FileInfo>("--package-file") { IsRequired = true };
+        var fusionPackageFile = new Option<FileInfo>("--package-file") { IsRequired = true, };
         fusionPackageFile.AddAlias("--package");
         fusionPackageFile.AddAlias("-p");
 
@@ -32,32 +35,40 @@ internal sealed class ComposeCommand : Command
         fusionPackageSettingsFile.AddAlias("--package-settings");
         fusionPackageSettingsFile.AddAlias("--settings");
 
+        var removeSubgraphs = new Option<List<string>?>("--remove");
+        removeSubgraphs.AddAlias("-r");
+
         var workingDirectory = new WorkingDirectoryOption();
-        
+
         var enableNodes = new Option<bool?>("--enable-nodes");
         enableNodes.Arity = ArgumentArity.Zero;
 
         AddOption(fusionPackageFile);
         AddOption(subgraphPackageFile);
+        AddOption(fusionPackageSettingsFile);
         AddOption(workingDirectory);
         AddOption(enableNodes);
+        AddOption(removeSubgraphs);
 
         this.SetHandler(
             ExecuteAsync,
             Bind.FromServiceProvider<IConsole>(),
             fusionPackageFile,
             subgraphPackageFile,
+            removeSubgraphs,
             fusionPackageSettingsFile,
             workingDirectory,
             enableNodes,
             Bind.FromServiceProvider<CancellationToken>());
     }
 
-    [RequiresUnreferencedCode("Calls System.Text.Json.JsonSerializer.SerializeToDocument<TValue>(TValue, JsonSerializerOptions)")]
-    private static async Task ExecuteAsync(
+    [RequiresUnreferencedCode(
+        "Calls System.Text.Json.JsonSerializer.SerializeToDocument<TValue>(TValue, JsonSerializerOptions)")]
+    private static async Task<int> ExecuteAsync(
         IConsole console,
         FileInfo packageFile,
         List<string>? subgraphPackageFiles,
+        List<string>? removeSubgraphs,
         FileInfo? settingsFile,
         DirectoryInfo workingDirectory,
         bool? enableNodes,
@@ -69,7 +80,7 @@ internal sealed class ComposeCommand : Command
             packageFile.Directory.Create();
         }
 
-        // Append file extension if not exists. 
+        // Append file extension if not exists.
         if (!packageFile.Extension.EqualsOrdinal(Extensions.FusionPackage) &&
             !packageFile.Extension.EqualsOrdinal(Extensions.ZipPackage))
         {
@@ -78,21 +89,33 @@ internal sealed class ComposeCommand : Command
 
         if (settingsFile is null)
         {
-            var settingsFileName = System.IO.Path.GetFileNameWithoutExtension(packageFile.FullName) + "-settings.json";
+            var settingsFileName = IOPath.GetFileNameWithoutExtension(packageFile.FullName) + "-settings.json";
 
             if (packageFile.DirectoryName is not null)
             {
-                settingsFileName = System.IO.Path.Combine(packageFile.DirectoryName, settingsFileName);
+                settingsFileName = IOPath.Combine(packageFile.DirectoryName, settingsFileName);
             }
 
             settingsFile = new FileInfo(settingsFileName);
         }
-        
-        
+
         await using var package = FusionGraphPackage.Open(packageFile.FullName);
 
+        if (removeSubgraphs is not null)
+        {
+            foreach (var subgraph in removeSubgraphs)
+            {
+                await package.RemoveSubgraphConfigurationAsync(subgraph, cancellationToken);
+            }
+        }
+
         var configs = (await package.GetSubgraphConfigurationsAsync(cancellationToken)).ToDictionary(t => t.Name);
-        await ResolveSubgraphPackagesAsync(workingDirectory, subgraphPackageFiles, configs, cancellationToken);
+
+        // resolve subgraph packages will scan the directory for FSPs. In case of remove we don't want to do that.
+        if (removeSubgraphs is not { Count: > 0, } || subgraphPackageFiles is { Count: > 0, })
+        {
+            await ResolveSubgraphPackagesAsync(workingDirectory, subgraphPackageFiles, configs, cancellationToken);
+        }
 
         using var settingsJson = settingsFile.Exists
             ? JsonDocument.Parse(await File.ReadAllTextAsync(settingsFile.FullName, cancellationToken))
@@ -102,10 +125,10 @@ internal sealed class ComposeCommand : Command
         if (settings is null)
         {
             console.WriteLine("Fusion graph settings are invalid.");
-            return;
+            return 1;
         }
-        
-        if(enableNodes.HasValue && enableNodes.Value)
+
+        if (enableNodes.HasValue && enableNodes.Value)
         {
             settings.NodeField.Enabled = true;
         }
@@ -122,13 +145,13 @@ internal sealed class ComposeCommand : Command
         if (fusionGraph is null)
         {
             console.WriteLine("Fusion graph composition failed.");
-            return;
+            return 1;
         }
 
         var fusionGraphDoc = Utf8GraphQLParser.Parse(SchemaFormatter.FormatAsString(fusionGraph));
         var typeNames = FusionTypeNames.From(fusionGraphDoc);
         var rewriter = new Metadata.FusionGraphConfigurationToSchemaRewriter();
-        var schemaDoc = (DocumentNode) rewriter.Rewrite(fusionGraphDoc, new(typeNames))!;
+        var schemaDoc = (DocumentNode)rewriter.Rewrite(fusionGraphDoc, new(typeNames))!;
         using var updateSettingsJson = JsonSerializer.SerializeToDocument(settings, new JsonSerializerOptions(Web));
 
         await package.SetFusionGraphAsync(fusionGraphDoc, cancellationToken);
@@ -141,6 +164,8 @@ internal sealed class ComposeCommand : Command
         }
 
         console.WriteLine("Fusion graph composed.");
+
+        return 0;
     }
 
     private static FusionFeatureCollection CreateFeatures(
@@ -148,10 +173,11 @@ internal sealed class ComposeCommand : Command
     {
         var features = new List<IFusionFeature>();
 
-        features.Add(new TransportFeature
-        {
-            DefaultClientName = settings.Transport.DefaultClientName
-        });
+        features.Add(
+            new TransportFeature
+            {
+                DefaultClientName = settings.Transport.DefaultClientName,
+            });
 
         if (settings.NodeField.Enabled)
         {
@@ -175,13 +201,13 @@ internal sealed class ComposeCommand : Command
     }
 
     private static async Task ResolveSubgraphPackagesAsync(
-        DirectoryInfo workingDirectory, 
+        DirectoryInfo workingDirectory,
         IReadOnlyList<string>? subgraphPackageFiles,
         IDictionary<string, SubgraphConfiguration> configs,
         CancellationToken cancellationToken)
     {
         var temp = new List<SubgraphConfiguration>();
-        
+
         // if no subgraph packages were specified we will try to find some by their extension in the
         // working directory.
         if (subgraphPackageFiles is null || subgraphPackageFiles.Count == 0)
@@ -213,12 +239,24 @@ internal sealed class ComposeCommand : Command
                         var schemaFile = IOPath.Combine(file, Defaults.SchemaFile);
                         var extensionFile = IOPath.Combine(file, Defaults.ExtensionFile);
 
-                        if (File.Exists(configFile) && File.Exists(schemaFile) && File.Exists(extensionFile))
+                        if (File.Exists(configFile) && File.Exists(schemaFile))
                         {
                             var conf = await LoadSubgraphConfigAsync(configFile, cancellationToken);
                             var schema = await File.ReadAllTextAsync(schemaFile, cancellationToken);
-                            var extensions = await File.ReadAllTextAsync(extensionFile, cancellationToken);
-                            temp.Add(new SubgraphConfiguration(conf.Name, schema, extensions, conf.Clients));
+                            var extensions = Array.Empty<string>();
+
+                            if (File.Exists(extensionFile))
+                            {
+                                extensions = [await File.ReadAllTextAsync(extensionFile, cancellationToken),];
+                            }
+
+                            temp.Add(
+                                new SubgraphConfiguration(
+                                    conf.Name,
+                                    schema,
+                                    extensions,
+                                    conf.Clients,
+                                    conf.Extensions));
                         }
                     }
                     else
@@ -243,16 +281,9 @@ internal sealed class ComposeCommand : Command
             configs[config.Name] = config;
         }
     }
-    
-    private sealed class ConsoleLog : ICompositionLog
+
+    private sealed class ConsoleLog(IConsole console) : ICompositionLog
     {
-        private readonly IConsole _console;
-
-        public ConsoleLog(IConsole console)
-        {
-            _console = console;
-        }
-
         public bool HasErrors { get; private set; }
 
         public void Write(LogEntry e)
@@ -262,17 +293,23 @@ internal sealed class ComposeCommand : Command
                 HasErrors = true;
             }
 
+            var writer = console.Out;
+            if (e.Severity == LogSeverity.Error)
+            {
+                writer = console.Error;
+            }
+
             if (e.Code is null)
             {
-                _console.WriteLine($"{e.Severity}: {e.Message}");
+                writer.WriteLine($"{e.Severity}: {e.Message}");
             }
             else if (e.Coordinate is null)
             {
-                _console.WriteLine($"{e.Severity}: {e.Code} {e.Message}");
+                writer.WriteLine($"{e.Severity}: {e.Code} {e.Message}");
             }
             else
             {
-                _console.WriteLine($"{e.Severity}: {e.Code} {e.Message} {e.Coordinate}");
+                writer.WriteLine($"{e.Severity}: {e.Code} {e.Message} {e.Coordinate}");
             }
         }
     }
@@ -342,7 +379,7 @@ internal sealed class ComposeCommand : Command
         [JsonPropertyOrder(101)]
         public string[] Exclude
         {
-            get => _exclude ?? Array.Empty<string>();
+            get => _exclude ?? [];
             set => _exclude = value;
         }
     }

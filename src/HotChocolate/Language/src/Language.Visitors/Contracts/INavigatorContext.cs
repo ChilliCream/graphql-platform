@@ -3,7 +3,7 @@ namespace HotChocolate.Language.Visitors;
 /// <summary>
 /// A visitor context that contains a syntax navigator.
 /// </summary>
-public interface INavigatorContext : ISyntaxVisitorContext
+public interface INavigatorContext
 {
     /// <summary>
     /// Gets the associated <see cref="ISyntaxNavigator" /> from the current context.

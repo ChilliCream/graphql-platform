@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -15,15 +14,15 @@ namespace HotChocolate.Data.MongoDb.Sorting;
 public class MongoDbAggregateFluentTests : IClassFixture<MongoResource>
 {
     private static readonly Foo[] _fooEntities =
-    {
-            new Foo { Bar = true }, new Foo { Bar = false }
-        };
+    [
+        new Foo { Bar = true, }, new Foo { Bar = false, },
+    ];
 
     private static readonly Bar[] _barEntities =
-    {
-            new Bar { Baz = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero) },
-            new Bar { Baz = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero) }
-        };
+    [
+        new Bar { Baz = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero), },
+            new Bar { Baz = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero), },
+    ];
 
     private readonly MongoResource _resource;
 
@@ -39,29 +38,27 @@ public class MongoDbAggregateFluentTests : IClassFixture<MongoResource>
         var tester = CreateSchema(
             () =>
             {
-                var collection =
-                    _resource.CreateCollection<Foo>("data_" + Guid.NewGuid().ToString("N"));
-
+                var collection = _resource.CreateCollection<Foo>("data_" + Guid.NewGuid().ToString("N"));
                 collection.InsertMany(_fooEntities);
                 return collection.Aggregate().AsExecutable();
             });
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: { bar: ASC}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(order: { bar: ASC}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: { bar: DESC}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(order: { bar: DESC}){ bar}}")
+                .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "ASC"), res2, "DESC")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "ASC")
+            .AddResult(res2, "DESC")
             .MatchAsync();
     }
 
@@ -86,26 +83,27 @@ public class MongoDbAggregateFluentTests : IClassFixture<MongoResource>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: { baz: ASC}){ baz}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(order: { baz: ASC}){ baz}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: { baz: DESC}){ baz}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(order: { baz: DESC}){ baz}}")
+                .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "ASC"), res2, "DESC")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "ASC")
+            .AddResult(res2, "DESC")
             .MatchAsync();
     }
 
     public class Foo
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         [BsonElement("renameTest")]
@@ -115,6 +113,7 @@ public class MongoDbAggregateFluentTests : IClassFixture<MongoResource>
     public class Bar
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public DateTimeOffset Baz { get; set; }
@@ -151,10 +150,10 @@ public class MongoDbAggregateFluentTests : IClassFixture<MongoResource>
                     if (context.ContextData.TryGetValue("query", out var queryString))
                     {
                         context.Result =
-                            QueryResultBuilder
-                                .FromResult(context.Result!.ExpectQueryResult())
+                            OperationResultBuilder
+                                .FromResult(context.Result!.ExpectOperationResult())
                                 .SetContextData("query", queryString)
-                                .Create();
+                                .Build();
                     }
                 })
             .UseDefaultPipeline()

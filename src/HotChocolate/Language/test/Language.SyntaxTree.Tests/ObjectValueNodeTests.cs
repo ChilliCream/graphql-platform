@@ -128,13 +128,13 @@ public class ObjectValueNodeTests
         // arrange
         var a = new ObjectValueNode(
             TestLocations.Location1,
-            new[] { new ObjectFieldNode("a", 1) });
+            new[] { new ObjectFieldNode("a", 1), });
         var b = new ObjectValueNode(
             TestLocations.Location1,
-            new[] { new ObjectFieldNode("a", 1) });
+            new[] { new ObjectFieldNode("a", 1), });
         var c = new ObjectValueNode(
             TestLocations.Location1,
-            new[] { new ObjectFieldNode("a", 2) });
+            new[] { new ObjectFieldNode("a", 2), });
 
         // act
         var abResult = SyntaxComparer.BySyntax.Equals(a, b);
@@ -155,13 +155,13 @@ public class ObjectValueNodeTests
         // arrange
         var a = new ObjectValueNode(
             TestLocations.Location1,
-            new[] { new ObjectFieldNode("a", 1) });
+            new[] { new ObjectFieldNode("a", 1), });
         var b = new ObjectValueNode(
             TestLocations.Location2,
-            new[] { new ObjectFieldNode("a", 1) });
+            new[] { new ObjectFieldNode("a", 1), });
         var c = new ObjectValueNode(
             TestLocations.Location1,
-            new[] { new ObjectFieldNode("a", 2) });
+            new[] { new ObjectFieldNode("a", 2), });
 
         // act
         var abResult = SyntaxComparer.BySyntax.Equals(a, b);
@@ -182,16 +182,16 @@ public class ObjectValueNodeTests
         // arrange
         var a = new ObjectValueNode(
             TestLocations.Location1,
-            new[] { new ObjectFieldNode("a", 1) });
+            new[] { new ObjectFieldNode("a", 1), });
         var b = new ObjectValueNode(
             TestLocations.Location2,
-            new[] { new ObjectFieldNode("a", 1) });
+            new[] { new ObjectFieldNode("a", 1), });
         var c = new ObjectValueNode(
             TestLocations.Location1,
-            new[] { new ObjectFieldNode("a", 2) });
+            new[] { new ObjectFieldNode("a", 2), });
         var d = new ObjectValueNode(
             TestLocations.Location2,
-            new[] { new ObjectFieldNode("a", 2) });
+            new[] { new ObjectFieldNode("a", 2), });
 
         // act
         var aHash = SyntaxComparer.BySyntax.GetHashCode(a);

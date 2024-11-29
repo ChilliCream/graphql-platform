@@ -1,8 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace HotChocolate.Types.Pagination;
 
 internal sealed class QueryableOffsetPagination<TEntity>
@@ -48,7 +43,7 @@ internal sealed class QueryableOffsetPagination<TEntity>
 
                         list.Add(item);
                     }
-                })
+                }, cancellationToken)
                 .ConfigureAwait(false);
         }
 

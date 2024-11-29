@@ -1,8 +1,6 @@
-using System;
-
 namespace HotChocolate.Language.Visitors;
 
-public class SyntaxVisitor : SyntaxVisitor<ISyntaxVisitorContext>
+public class SyntaxVisitor : SyntaxVisitor<object?>
 {
     public SyntaxVisitor(SyntaxVisitorOptions options = default)
         : base(options)
@@ -16,17 +14,17 @@ public class SyntaxVisitor : SyntaxVisitor<ISyntaxVisitorContext>
     {
     }
 
-    public static ISyntaxVisitor<ISyntaxVisitorContext> Create(
+    public static ISyntaxVisitor<object?> Create(
         Func<ISyntaxNode, ISyntaxVisitorAction>? enter = null,
         Func<ISyntaxNode, ISyntaxVisitorAction>? leave = null,
         ISyntaxVisitorAction? defaultAction = null,
         SyntaxVisitorOptions options = default)
-        => new DelegateSyntaxVisitor<ISyntaxVisitorContext>(
+        => new DelegateSyntaxVisitor<object?>(
             enter is not null
-                ? new VisitSyntaxNode<ISyntaxVisitorContext>((n, _) => enter(n))
+                ? new VisitSyntaxNode<object?>((n, _) => enter(n))
                 : null,
             leave is not null
-                ? new VisitSyntaxNode<ISyntaxVisitorContext>((n, _) => leave(n))
+                ? new VisitSyntaxNode<object?>((n, _) => leave(n))
                 : null,
             defaultAction,
             options);
@@ -36,7 +34,6 @@ public class SyntaxVisitor : SyntaxVisitor<ISyntaxVisitorContext>
         VisitSyntaxNode<TContext>? leave = null,
         ISyntaxVisitorAction? defaultAction = null,
         SyntaxVisitorOptions options = default)
-        where TContext : ISyntaxVisitorContext
     {
         defaultAction ??= Skip;
 
@@ -73,7 +70,7 @@ public class SyntaxVisitor : SyntaxVisitor<ISyntaxVisitorContext>
                 context.Navigator.Pop();
                 return leave(node, context);
             }
-            : (node, context) =>
+            : (_, context) =>
             {
                 context.Navigator.Pop();
                 return defaultAction;

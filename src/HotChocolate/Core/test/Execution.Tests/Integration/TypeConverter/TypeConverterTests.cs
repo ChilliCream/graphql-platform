@@ -1,8 +1,8 @@
-﻿using HotChocolate.Tests;
+using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Tests;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 using static HotChocolate.Tests.TestHelper;
 
 namespace HotChocolate.Execution.Integration.TypeConverter;
@@ -12,23 +12,27 @@ public class TypeConverterTests
     [Fact]
     public async Task VariablesAreCoercedToTypesOtherThanTheDefinedClrTypes()
     {
-        Snapshot.FullName();
         await ExpectValid(
                 @"
-                query foo($a: FooInput) {
+                query foo($a: FooInput!) {
                     foo(foo: $a) {
                         id
                         time
                         number
                     }
                 }",
-                request: r => r.AddVariableValue(
-                    "a",
-                    new Dictionary<string, object>
+                request: r => r.SetVariableValues(
+                    new Dictionary<string, object?>
                     {
-                        { "id", "934b987bc0d842bbabfd8a3b3f8b476e" },
-                        { "time", "2018-05-29T01:00Z" },
-                        { "number", (byte)123 }
+                        {
+                            "a",
+                            new Dictionary<string, object>
+                            {
+                                { "id", "934b987bc0d842bbabfd8a3b3f8b476e" },
+                                { "time", "2018-05-29T01:00:00Z" },
+                                { "number", (byte)123 },
+                            }
+                        }
                     }),
                 configure: c => c.AddQueryType<Query>())
             .MatchSnapshotAsync();
@@ -37,13 +41,13 @@ public class TypeConverterTests
     [Fact]
     public async Task VariableIsCoercedToTypesOtherThanTheDefinedClrTypes()
     {
-        Snapshot.FullName();
         await ExpectValid(
                 @"
                 query foo($time: DateTime) {
                     time(time: $time)
                 }",
-                request: r => r.AddVariableValue("time", "2018-05-29T01:00Z"),
+                request: r => r.SetVariableValues(
+                    new Dictionary<string, object?> { { "time", "2018-05-29T01:00:00Z" }, }),
                 configure: c => c.AddQueryType<QueryType>())
             .MatchSnapshotAsync();
     }
@@ -51,14 +55,13 @@ public class TypeConverterTests
     [Fact]
     public async Task VariableIsNotSerializedAndMustBeConvertedToClrType()
     {
-        Snapshot.FullName();
         var time = new DateTime(2018, 01, 01, 12, 10, 10, DateTimeKind.Utc);
         await ExpectValid(
                 @"
                 query foo($time: DateTime) {
                     time(time: $time)
                 }",
-                request: r => r.AddVariableValue("time", time),
+                request: r => r.SetVariableValues(new Dictionary<string, object?> { { "time", time }, }),
                 configure: c => c.AddQueryType<QueryType>())
             .MatchSnapshotAsync();
     }
@@ -66,23 +69,27 @@ public class TypeConverterTests
     [Fact]
     public async Task VariableIsPartlyNotSerializedAndMustBeConvertedToClrType()
     {
-        Snapshot.FullName();
         await ExpectValid(
                 @"
-                query foo($a: FooInput) {
+                query foo($a: FooInput!) {
                     foo(foo: $a) {
                         id
                         time
                         number
                     }
                 }",
-                request: r => r.AddVariableValue(
-                    "a",
-                    new Dictionary<string, object>
+                request: r => r.SetVariableValues(
+                    new Dictionary<string, object?>
                     {
-                        { "id", "934b987bc0d842bbabfd8a3b3f8b476e" },
-                        { "time", "2018-05-29T01:00Z" },
-                        { "number", (byte)123 }
+                        {
+                            "a",
+                            new Dictionary<string, object>
+                            {
+                                { "id", "934b987bc0d842bbabfd8a3b3f8b476e" },
+                                { "time", "2018-05-29T01:00:00Z" },
+                                { "number", (byte)123 },
+                            }
+                        },
                     }),
                 configure: c => c.AddQueryType<QueryType>())
             .MatchSnapshotAsync();
@@ -157,8 +164,7 @@ public class TypeConverterTests
                 .AddQueryType<QuerySet>()
                 .ExecuteRequestAsync("{ set(set: [\"abc\", \"abc\"]) }");
 
-        CookieCrumble.SnapshotExtensions.MatchInlineSnapshot(
-            result,
+        result.MatchInlineSnapshot(
             """
             {
               "data": {
@@ -179,8 +185,7 @@ public class TypeConverterTests
                 .AddQueryType<QuerySet>()
                 .ExecuteRequestAsync("{ set2(set: [\"abc\", \"abc\"]) }");
 
-        CookieCrumble.SnapshotExtensions.MatchInlineSnapshot(
-            result,
+        result.MatchInlineSnapshot(
             """
             {
               "data": {
@@ -239,7 +244,7 @@ public class TypeConverterTests
             Type source,
             Type target,
             ChangeTypeProvider root,
-            out ChangeType converter)
+            [NotNullWhen(true)] out ChangeType? converter)
         {
             if (source == typeof(int) && target == typeof(string))
             {

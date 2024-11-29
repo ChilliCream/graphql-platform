@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using NetTopologySuite.Geometries;
@@ -11,30 +10,30 @@ public class QueryableFilterVisitorIntersectsTests
     : SchemaCache
 {
     private static readonly Polygon _truePolygon =
-        new(new LinearRing(new[]
-        {
+        new(new LinearRing(
+        [
             new Coordinate(0, 0),
             new Coordinate(100, 0),
             new Coordinate(100, 100),
             new Coordinate(0, 100),
             new Coordinate(0, 0),
-        }));
+        ]));
 
     private static readonly Polygon _falsePolygon =
-        new(new LinearRing(new[]
-        {
+        new(new LinearRing(
+        [
             new Coordinate(1000, 1000),
             new Coordinate(100000, 1000),
             new Coordinate(100000, 100000),
             new Coordinate(1000, 100000),
             new Coordinate(1000, 1000),
-        }));
+        ]));
 
     private static readonly Foo[] _fooEntities =
-    {
-        new() { Id = 1, Bar = _truePolygon },
-        new() { Id = 2, Bar = _falsePolygon }
-    };
+    [
+        new() { Id = 1, Bar = _truePolygon, },
+        new() { Id = 2, Bar = _falsePolygon, },
+    ];
 
     public QueryableFilterVisitorIntersectsTests(PostgreSqlResource<PostgisConfig> resource)
         : base(resource)
@@ -49,8 +48,8 @@ public class QueryableFilterVisitorIntersectsTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     @"{
                         root(where: {
                             bar: {
@@ -73,11 +72,11 @@ public class QueryableFilterVisitorIntersectsTests
                             id
                         }
                     }")
-            .Create());
+            .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     @"{
                         root(where: {
                             bar: {
@@ -100,13 +99,13 @@ public class QueryableFilterVisitorIntersectsTests
                             id
                         }
                     }")
-            .Create());
+            .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "true"), res2, "false")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "true")
+            .AddResult(res2, "false")
             .MatchAsync();
     }
 

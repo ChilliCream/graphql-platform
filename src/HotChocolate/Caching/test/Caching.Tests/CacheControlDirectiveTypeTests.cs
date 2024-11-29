@@ -1,7 +1,5 @@
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Caching.Tests;
@@ -17,6 +15,7 @@ public class CacheControlDirectiveTypeTests
                 .Field("field")
                 .Type<StringType>())
             .AddDirectiveType<CacheControlDirectiveType>()
+            .ModifyOptions(o => o.RemoveUnusedTypeSystemDirectives = false)
             .Use(_ => _)
             .Create();
         var directive =
@@ -33,13 +32,24 @@ public class CacheControlDirectiveTypeTests
             },
             t =>
             {
-                Assert.Equal("scope", t.Name);
-                Assert.IsType<CacheControlScopeType>(t.Type);
+                Assert.Equal("sharedMaxAge", t.Name);
+                Assert.IsType<IntType>(t.Type);
             },
             t =>
             {
                 Assert.Equal("inheritMaxAge", t.Name);
                 Assert.IsType<BooleanType>(t.Type);
+            },
+            t =>
+            {
+                Assert.Equal("scope", t.Name);
+                Assert.IsType<CacheControlScopeType>(t.Type);
+            },
+            t =>
+            {
+                Assert.Equal("vary", t.Name);
+                Assert.IsType<ListType>(t.Type);
+                Assert.IsType<StringType>(t.Type.ElementType());
             });
         Assert.Collection(
             directive.Locations.AsEnumerable(),

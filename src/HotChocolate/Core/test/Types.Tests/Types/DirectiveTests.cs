@@ -1,8 +1,6 @@
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
-using CookieCrumble;
 
 namespace HotChocolate.Types;
 
@@ -14,7 +12,7 @@ public class DirectiveTests : TypeTestBase
         // arrange
         var schema = CreateSchema();
         var directiveType = schema.GetDirectiveType("Foo");
-        var fooDirective = new FooDirective { Bar = "123", Child = new FooChild { Bar = "456" } };
+        var fooDirective = new FooDirective { Bar = "123", Child = new FooChild { Bar = "456", }, };
 
         // act
         var directive = new Directive(
@@ -53,7 +51,7 @@ public class DirectiveTests : TypeTestBase
         // arrange
         var schema = CreateSchema();
         var directiveType = schema.GetDirectiveType("Foo");
-        var fooDirective = new FooDirective { Bar = "123", Child = new FooChild { Bar = "456" } };
+        var fooDirective = new FooDirective { Bar = "123", Child = new FooChild { Bar = "456", }, };
 
         // act
         var syntaxNode = directiveType.Format(fooDirective);
@@ -72,7 +70,7 @@ public class DirectiveTests : TypeTestBase
         // arrange
         var schema = CreateSchema();
         var directiveType = schema.GetDirectiveType("Foo");
-        var fooDirective = new FooDirective { Bar = "123", Child = new FooChild { Bar = "456" } };
+        var fooDirective = new FooDirective { Bar = "123", Child = new FooChild { Bar = "456", }, };
 
         // act
         var syntaxNode = directiveType.Format(fooDirective);
@@ -85,14 +83,13 @@ public class DirectiveTests : TypeTestBase
         Assert.Equal("456", runtimeValue.Child.Bar);
     }
 
-
     [Fact]
     public void Directive_AsValue_Same()
     {
         // arrange
         var schema = CreateSchema();
         var directiveType = schema.GetDirectiveType("Foo");
-        var fooDirective = new FooDirective { Bar = "123", Child = new FooChild { Bar = "456" } };
+        var fooDirective = new FooDirective { Bar = "123", Child = new FooChild { Bar = "456", }, };
 
         // act
         var directive = new Directive(
@@ -111,7 +108,7 @@ public class DirectiveTests : TypeTestBase
         // arrange
         var schema = CreateSchema();
         var directiveType = schema.GetDirectiveType("Foo");
-        var fooDirective = new FooDirective { Bar = "123", Child = new FooChild { Bar = "456" } };
+        var fooDirective = new FooDirective { Bar = "123", Child = new FooChild { Bar = "456", }, };
 
         // act
         var directive = new Directive(
@@ -168,6 +165,7 @@ public class DirectiveTests : TypeTestBase
             {
                 b.AddDirectiveType<FooDirectiveType>();
                 b.AddType<InputObjectType<FooChild>>();
+                b.ModifyOptions(o => o.RemoveUnusedTypeSystemDirectives = false);
             });
     }
 

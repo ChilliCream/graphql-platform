@@ -11,7 +11,8 @@ public class InitCommandArguments
         CommandOption name,
         AuthArguments authArguments,
         CommandOption customHeaders,
-        CommandOption fromFile)
+        CommandOption fromFile,
+        CommandOption typeDepth)
     {
         Uri = uri;
         Path = path;
@@ -19,6 +20,7 @@ public class InitCommandArguments
         AuthArguments = authArguments;
         CustomHeaders = customHeaders;
         FromFile = fromFile;
+        TypeDepth = typeDepth;
     }
 
     public CommandArgument Uri { get; }
@@ -27,5 +29,5 @@ public class InitCommandArguments
     public AuthArguments AuthArguments { get; }
     public CommandOption CustomHeaders { get; }
     public CommandOption FromFile { get; }
-
+    public CommandOption TypeDepth { get; }
 }

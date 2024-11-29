@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace HotChocolate.Utilities;
 
@@ -142,7 +139,6 @@ public class TypeConverterTests
         Assert.Null(output);
     }
 
-
     [Fact]
     public void Convert_NullableLong_Int()
     {
@@ -159,7 +155,6 @@ public class TypeConverterTests
         Assert.IsType<int>(output);
         Assert.Equal(55, output);
     }
-
 
     [InlineData("{2d84dcd6-3439-4ebe-8427-f4b1e1730c47}")]
     [InlineData("2d84dcd6-3439-4ebe-8427-f4b1e1730c47")]
@@ -271,7 +266,7 @@ public class TypeConverterTests
     public void Convert_ArrayOfString_ListOfString()
     {
         // arrange
-        string[] list = { "a", "b", "c" };
+        string[] list = ["a", "b", "c",];
 
         // act
         var success = DefaultTypeConverter.Default.TryConvert(
@@ -291,7 +286,7 @@ public class TypeConverterTests
     public void Convert_ArrayOfString_ListOfInt()
     {
         // arrange
-        string[] list = { "1", "2", "3" };
+        string[] list = ["1", "2", "3",];
 
         // act
         var success = DefaultTypeConverter.Default.TryConvert(
@@ -311,7 +306,7 @@ public class TypeConverterTests
     public void Convert_ArrayOfString_ArrayOfInt()
     {
         // arrange
-        string[] list = { "1", "2", "3" };
+        string[] list = ["1", "2", "3",];
 
         // act
         var success = DefaultTypeConverter.Default.TryConvert(
@@ -331,7 +326,7 @@ public class TypeConverterTests
     public void Convert_ArrayOfString_IListOfInt()
     {
         // arrange
-        string[] list = { "1", "2", "3" };
+        string[] list = ["1", "2", "3",];
 
         // act
         var success = DefaultTypeConverter.Default.TryConvert(
@@ -351,7 +346,7 @@ public class TypeConverterTests
     public void Convert_ArrayOfString_ICollectionOfInt()
     {
         // arrange
-        string[] list = { "1", "2", "3" };
+        string[] list = ["1", "2", "3",];
 
         // act
         var success = DefaultTypeConverter.Default.TryConvert(
@@ -371,7 +366,7 @@ public class TypeConverterTests
     public void Convert_ArrayOfString_String()
     {
         // arrange
-        var list = new[] { "1", "2", "3" };
+        var list = new[] { "1", "2", "3", };
 
         // act
         var success = DefaultTypeConverter.Default.TryConvert(
@@ -388,7 +383,7 @@ public class TypeConverterTests
     public void Convert_ArrayOfString_NullableListOfFooOrBar()
     {
         // arrange
-        var list = new[] { "Foo", "Bar" };
+        var list = new[] { "Foo", "Bar", };
 
         // act
         var success = DefaultTypeConverter.Default.TryConvert(
@@ -407,7 +402,7 @@ public class TypeConverterTests
     public void GenericTryConvert_ArrayOfString_NullableListOfFooOrBar()
     {
         // arrange
-        var list = new[] { "Foo", "Bar" };
+        var list = new[] { "Foo", "Bar", };
 
         // act
         var success =
@@ -427,7 +422,7 @@ public class TypeConverterTests
     public void GenericTryConvert_TypeconverterIsNull_ArgumentNullExc()
     {
         // arrange
-        var list = new[] { "Foo", "Bar" };
+        var list = new[] { "Foo", "Bar", };
 
         // act
         Action action = () =>
@@ -443,7 +438,7 @@ public class TypeConverterTests
     public void GenericConvert_TypeconverterIsNull_ArgumentNullExc()
     {
         // arrange
-        var list = new[] { "Foo", "Bar" };
+        var list = new[] { "Foo", "Bar", };
 
         // act
         Action action = () =>
@@ -476,6 +471,6 @@ public class TypeConverterTests
     public enum FooOrBar
     {
         Foo,
-        Bar
+        Bar,
     }
 }

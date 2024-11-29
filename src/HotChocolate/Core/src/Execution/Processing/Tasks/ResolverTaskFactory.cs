@@ -1,11 +1,7 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Types;
 using static HotChocolate.Execution.Processing.PathHelper;
 using static HotChocolate.Execution.Processing.ValueCompletion;
@@ -14,7 +10,7 @@ namespace HotChocolate.Execution.Processing.Tasks;
 
 internal static class ResolverTaskFactory
 {
-    private static List<ResolverTask>? _pooled = new();
+    private static List<ResolverTask>? _pooled = [];
 
     static ResolverTaskFactory() { }
 
@@ -33,7 +29,7 @@ internal static class ResolverTaskFactory
         var includeFlags = operationContext.IncludeFlags;
         var final = !selectionSet.IsConditional;
 
-        var bufferedTasks = Interlocked.Exchange(ref _pooled, null) ?? new();
+        var bufferedTasks = Interlocked.Exchange(ref _pooled, null) ?? [];
         Debug.Assert(bufferedTasks.Count == 0, "The buffer must be clean.");
 
         try
@@ -70,11 +66,7 @@ internal static class ResolverTaskFactory
             }
             else
             {
-                #if NET6_0_OR_GREATER
                 scheduler.Register(CollectionsMarshal.AsSpan(bufferedTasks));
-                #else
-                scheduler.Register(bufferedTasks);
-                #endif
             }
 
             if (selectionSet.Fragments.Count > 0)
@@ -107,7 +99,7 @@ internal static class ResolverTaskFactory
         IImmutableDictionary<string, object?> scopedContext)
     {
         var parentResult = operationContext.Result.RentObject(1);
-        var bufferedTasks = Interlocked.Exchange(ref _pooled, null) ?? new();
+        var bufferedTasks = Interlocked.Exchange(ref _pooled, null) ?? [];
         Debug.Assert(bufferedTasks.Count == 0, "The buffer must be clean.");
 
         var resolverTask =
@@ -134,11 +126,7 @@ internal static class ResolverTaskFactory
             // if we have child tasks we need to register them.
             if (bufferedTasks.Count > 0)
             {
-                #if NET6_0_OR_GREATER
                 operationContext.Scheduler.Register(CollectionsMarshal.AsSpan(bufferedTasks));
-                #else
-                operationContext.Scheduler.Register(bufferedTasks);
-                #endif
             }
         }
         finally
@@ -164,9 +152,9 @@ internal static class ResolverTaskFactory
         var result = operationContext.Result.RentObject(selectionsCount);
         var includeFlags = operationContext.IncludeFlags;
         var final = !selectionSet.IsConditional;
-        
+
         result.SetParent(parentResult, parentIndex);
-        
+
         ref var selection = ref ((SelectionSet)selectionSet).GetSelectionsReference();
         ref var end = ref Unsafe.Add(ref selection, selectionsCount);
 
@@ -176,7 +164,7 @@ internal static class ResolverTaskFactory
             {
                 return null;
             }
-            
+
             if (!final && !selection.IsIncluded(includeFlags))
             {
                 goto NEXT;
@@ -202,7 +190,7 @@ internal static class ResolverTaskFactory
                         responseIndex++,
                         context.ResolverContext.ScopedContextData));
             }
-            
+
             NEXT:
             selection = ref Unsafe.Add(ref selection, 1)!;
         }
@@ -233,7 +221,7 @@ internal static class ResolverTaskFactory
         var resolverContext = context.ResolverContext;
         var executedSuccessfully = false;
         object? resolverResult = null;
-        
+
         parentResult.InitValueUnsafe(responseIndex, selection);
 
         try

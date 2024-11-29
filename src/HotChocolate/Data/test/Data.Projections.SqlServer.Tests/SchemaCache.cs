@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -7,8 +6,8 @@ using Microsoft.EntityFrameworkCore;
 namespace HotChocolate.Data.Projections;
 
 public class SchemaCache
-    : ProjectionVisitorTestBase,
-      IDisposable
+    : ProjectionVisitorTestBase
+    , IDisposable
 {
     private readonly ConcurrentDictionary<(Type, object), IRequestExecutor> _cache = new();
 

@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.AspNetCore;
@@ -17,13 +18,14 @@ public class DefaultSocketSessionInterceptor : ISocketSessionInterceptor
     public virtual ValueTask OnRequestAsync(
         ISocketSession session,
         string operationSessionId,
-        IQueryRequestBuilder requestBuilder,
+        OperationRequestBuilder requestBuilder,
         CancellationToken cancellationToken = default)
     {
         var context = session.Connection.HttpContext;
         var userState = new UserState(context.User);
+        var serviceScopeFactory = session.Connection.RequestServices.GetService<IServiceScopeFactory>();
 
-        requestBuilder.TrySetServices(session.Connection.RequestServices);
+        requestBuilder.TryAddGlobalState(nameof(IServiceScopeFactory), serviceScopeFactory);
         requestBuilder.TryAddGlobalState(nameof(CancellationToken), session.Connection.RequestAborted);
         requestBuilder.TryAddGlobalState(nameof(HttpContext), context);
         requestBuilder.TryAddGlobalState(nameof(ISocketSession), session);
@@ -31,11 +33,6 @@ public class DefaultSocketSessionInterceptor : ISocketSessionInterceptor
 
         requestBuilder.TryAddGlobalState(nameof(ClaimsPrincipal), userState.User);
         requestBuilder.TryAddGlobalState(WellKnownContextData.UserState, userState);
-
-        if (context.IsTracingEnabled())
-        {
-            requestBuilder.TryAddGlobalState(EnableTracing, true);
-        }
 
         if (context.IncludeQueryPlan())
         {
@@ -45,10 +42,10 @@ public class DefaultSocketSessionInterceptor : ISocketSessionInterceptor
         return default;
     }
 
-    public virtual ValueTask<IQueryResult> OnResultAsync(
+    public virtual ValueTask<IOperationResult> OnResultAsync(
         ISocketSession session,
         string operationSessionId,
-        IQueryResult result,
+        IOperationResult result,
         CancellationToken cancellationToken = default)
         => new(result);
 
@@ -63,7 +60,6 @@ public class DefaultSocketSessionInterceptor : ISocketSessionInterceptor
         IOperationMessagePayload pingMessage,
         CancellationToken cancellationToken = default)
         => new(default(IReadOnlyDictionary<string, object?>?));
-
 
     public virtual ValueTask OnPongAsync(
         ISocketSession session,

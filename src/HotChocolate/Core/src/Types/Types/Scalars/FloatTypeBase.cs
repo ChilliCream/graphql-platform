@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
@@ -198,7 +197,7 @@ public abstract class FloatTypeBase<TRuntimeType>
     }
 
     /// <summary>
-    /// Creates the exception that will be thrown when <see cref="ParseValue"/>
+    /// Creates the exception that will be thrown when <see cref="ParseValue(object?)"/>
     /// encountered a invalid runtime value.
     /// </summary>
     /// <param name="runtimeValue">
@@ -211,7 +210,7 @@ public abstract class FloatTypeBase<TRuntimeType>
         => new(TypeResourceHelper.Scalar_Cannot_ParseResult(Name, runtimeValue.GetType()), this);
 
     /// <summary>
-    /// Creates the exception that will be thrown when <see cref="ParseLiteral"/> encountered an
+    /// Creates the exception that will be thrown when <see cref="ParseLiteral(IValueNode)"/> encountered an
     /// invalid <see cref="IValueNode "/>
     /// </summary>
     /// <param name="valueSyntax">

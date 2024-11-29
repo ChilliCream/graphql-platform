@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Diagnostics.CodeAnalysis;
 using static HotChocolate.Execution.Properties.Resources;
 
 // ReSharper disable once CheckNamespace
@@ -11,7 +8,7 @@ public static class ExecutionRequestExecutorExtensions
 {
     public static Task<IExecutionResult> ExecuteAsync(
         this IRequestExecutor executor,
-        IQueryRequest request)
+        IOperationRequest request)
     {
         if (executor is null)
         {
@@ -30,7 +27,7 @@ public static class ExecutionRequestExecutorExtensions
 
     public static Task<IExecutionResult> ExecuteAsync(
         this IRequestExecutor executor,
-        string query)
+        [StringSyntax("graphql")] string query)
     {
         if (executor is null)
         {
@@ -45,13 +42,13 @@ public static class ExecutionRequestExecutorExtensions
         }
 
         return executor.ExecuteAsync(
-            QueryRequestBuilder.New().SetQuery(query).Create(),
+            OperationRequestBuilder.New().SetDocument(query).Build(),
             CancellationToken.None);
     }
 
     public static Task<IExecutionResult> ExecuteAsync(
         this IRequestExecutor executor,
-        string query,
+        [StringSyntax("graphql")] string query,
         CancellationToken cancellationToken)
     {
         if (executor is null)
@@ -67,13 +64,13 @@ public static class ExecutionRequestExecutorExtensions
         }
 
         return executor.ExecuteAsync(
-            QueryRequestBuilder.New().SetQuery(query).Create(),
+            OperationRequestBuilder.New().SetDocument(query).Build(),
             cancellationToken);
     }
 
     public static Task<IExecutionResult> ExecuteAsync(
         this IRequestExecutor executor,
-        string query,
+        [StringSyntax("graphql")] string query,
         Dictionary<string, object?> variableValues)
     {
         if (executor is null)
@@ -94,16 +91,16 @@ public static class ExecutionRequestExecutorExtensions
         }
 
         return executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(query)
+            OperationRequestBuilder.New()
+                .SetDocument(query)
                 .SetVariableValues(variableValues)
-                .Create(),
+                .Build(),
             CancellationToken.None);
     }
 
     public static Task<IExecutionResult> ExecuteAsync(
         this IRequestExecutor executor,
-        string query,
+        [StringSyntax("graphql")] string query,
         IReadOnlyDictionary<string, object?> variableValues,
         CancellationToken cancellationToken)
     {
@@ -125,16 +122,16 @@ public static class ExecutionRequestExecutorExtensions
         }
 
         return executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(query)
+            OperationRequestBuilder.New()
+                .SetDocument(query)
                 .SetVariableValues(variableValues)
-                .Create(),
+                .Build(),
             cancellationToken);
     }
 
     public static IExecutionResult Execute(
         this IRequestExecutor executor,
-        IQueryRequest request)
+        IOperationRequest request)
     {
         if (executor is null)
         {
@@ -155,7 +152,7 @@ public static class ExecutionRequestExecutorExtensions
 
     public static IExecutionResult Execute(
         this IRequestExecutor executor,
-        string query)
+        [StringSyntax("graphql")] string query)
     {
         if (executor is null)
         {
@@ -170,14 +167,14 @@ public static class ExecutionRequestExecutorExtensions
         }
 
         return executor.Execute(
-            QueryRequestBuilder.New()
-                .SetQuery(query)
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument(query)
+                .Build());
     }
 
     public static IExecutionResult Execute(
         this IRequestExecutor executor,
-        string query,
+        [StringSyntax("graphql")] string query,
         IReadOnlyDictionary<string, object?> variableValues)
     {
         if (executor is null)
@@ -198,15 +195,15 @@ public static class ExecutionRequestExecutorExtensions
         }
 
         return executor.Execute(
-            QueryRequestBuilder.New()
-                .SetQuery(query)
+            OperationRequestBuilder.New()
+                .SetDocument(query)
                 .SetVariableValues(variableValues)
-                .Create());
+                .Build());
     }
 
     public static Task<IExecutionResult> ExecuteAsync(
         this IRequestExecutor executor,
-        Action<IQueryRequestBuilder> buildRequest,
+        Action<OperationRequestBuilder> buildRequest,
         CancellationToken cancellationToken)
     {
         if (executor is null)
@@ -219,17 +216,17 @@ public static class ExecutionRequestExecutorExtensions
             throw new ArgumentNullException(nameof(buildRequest));
         }
 
-        var builder = new QueryRequestBuilder();
+        var builder = new OperationRequestBuilder();
         buildRequest(builder);
 
         return executor.ExecuteAsync(
-            builder.Create(),
+            builder.Build(),
             cancellationToken);
     }
 
     public static Task<IExecutionResult> ExecuteAsync(
         this IRequestExecutor executor,
-        Action<IQueryRequestBuilder> buildRequest)
+        Action<OperationRequestBuilder> buildRequest)
     {
         if (executor is null)
         {

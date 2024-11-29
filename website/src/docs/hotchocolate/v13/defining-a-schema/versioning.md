@@ -17,12 +17,12 @@ type Query {
 
 ```
 
-# Deprecating fields
+# Deprecation
 
-Fields can be deprecated like the following.
+You can deprecate output fields, input fields, arguments and enum values.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Query
@@ -35,7 +35,9 @@ public class Query
 }
 ```
 
-</Annotation>
+> Note: .NET's `[Obsolete("reason")]` attribute is handled in the same way as `[GraphQLDeprecated("reason")]`.
+
+</Implementation>
 <Code>
 
 ```csharp
@@ -70,4 +72,4 @@ services
 </Schema>
 </ExampleTabs>
 
-> Note: It is currently not possible to deprecate input values, such as arguments.
+> Warning: You can not deprecate non-null arguments or input fields without a default value.

@@ -14,15 +14,15 @@ internal static class ContentType
     public const string Html = $"{Types.Text}/{SubTypes.Html}";
 
     private static readonly char[] _jsonArray =
-    {
-        'a', 'p', 'p', 'l', 'i', 'c', 'a', 't', 'i', 'o', 'n', '/', 'j', 's', 'o', 'n'
-    };
+    [
+        'a', 'p', 'p', 'l', 'i', 'c', 'a', 't', 'i', 'o', 'n', '/', 'j', 's', 'o', 'n',
+    ];
 
     private static readonly char[] _multiPartFormArray =
-    {
+    [
         'm', 'u', 'l', 't', 'i', 'p', 'a', 'r', 't', '/', 'f', 'o', 'r', 'm', '-', 'd', 'a',
-        't', 'a'
-    };
+        't', 'a',
+    ];
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ReadOnlySpan<char> JsonSpan() => _jsonArray;

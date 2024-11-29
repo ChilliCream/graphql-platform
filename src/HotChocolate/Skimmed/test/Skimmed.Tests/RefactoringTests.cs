@@ -1,6 +1,6 @@
 using System.Text;
-using CookieCrumble;
 using HotChocolate.Skimmed.Serialization;
+using HotChocolate.Types;
 
 namespace HotChocolate.Skimmed;
 
@@ -10,7 +10,7 @@ public class RefactoringTests
     public void Rename_ObjectType()
     {
         // arrange
-        var sdl =
+        const string sdl =
             """
             type Foo {
                 field: Bar
@@ -49,7 +49,7 @@ public class RefactoringTests
     public void Rename_UnionType()
     {
         // arrange
-        var sdl =
+        const string sdl =
             """
             union FooOrBar = Foo | Bar
 
@@ -100,7 +100,7 @@ public class RefactoringTests
     public void Rename_Member()
     {
         // arrange
-        var sdl =
+        const string sdl =
             """
             type Foo {
                 field: Bar
@@ -139,7 +139,7 @@ public class RefactoringTests
     public void AddDirective_To_Type()
     {
         // arrange
-        var sdl =
+        const string sdl =
             """
             type Foo {
                 field: Bar
@@ -153,17 +153,17 @@ public class RefactoringTests
             """;
 
         var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
-        var directiveType = new DirectiveType("source");
-        directiveType.Arguments.Add(new("name", new NonNullType(schema.Types["String"])));
+        var directiveType = new DirectiveDefinition("source");
+        directiveType.Arguments.Add(new("name", new NonNullTypeDefinition(schema.Types["String"])));
         directiveType.Locations = DirectiveLocation.TypeSystem;
-        schema.DirectiveTypes.Add(directiveType);
+        schema.DirectiveDefinitions.Add(directiveType);
 
         // act
         var success = schema.AddDirective(
             new SchemaCoordinate("Bar"),
             new Directive(
                 directiveType,
-                new Argument("name", "abc")));
+                new ArgumentAssignment("name", "abc")));
 
         // assert
         Assert.True(success);
@@ -189,7 +189,7 @@ public class RefactoringTests
     public void AddDirective_To_Field()
     {
         // arrange
-        var sdl =
+        const string sdl =
             """
             type Foo {
                 field: Bar
@@ -203,17 +203,17 @@ public class RefactoringTests
             """;
 
         var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
-        var directiveType = new DirectiveType("source");
-        directiveType.Arguments.Add(new("name", new NonNullType(schema.Types["String"])));
+        var directiveType = new DirectiveDefinition("source");
+        directiveType.Arguments.Add(new("name", new NonNullTypeDefinition(schema.Types["String"])));
         directiveType.Locations = DirectiveLocation.TypeSystem;
-        schema.DirectiveTypes.Add(directiveType);
+        schema.DirectiveDefinitions.Add(directiveType);
 
         // act
         var success = schema.AddDirective(
             new SchemaCoordinate("Bar", "field"),
             new Directive(
                 directiveType,
-                new Argument("name", "abc")));
+                new ArgumentAssignment("name", "abc")));
 
         // assert
         Assert.True(success);
@@ -239,7 +239,7 @@ public class RefactoringTests
     public void Remove_ObjectType()
     {
         // arrange
-        var sdl =
+        const string sdl =
             """
             type Foo {
                 field: Bar

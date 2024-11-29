@@ -1,7 +1,5 @@
-using System;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
-using Xunit;
 
 #nullable enable
 

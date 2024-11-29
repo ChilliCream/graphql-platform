@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace HotChocolate;
 
 public static class ErrorCodes
@@ -38,27 +36,33 @@ public static class ErrorCodes
         /// <summary>
         /// The operation complexity was exceeded.
         /// </summary>
-        public const string ComplexityExceeded = "HC0047";
+        public const string CostExceeded = "HC0047";
 
         /// <summary>
         /// The analyzer needs a documentId, operationId, document and coerced variables.
         /// </summary>
-        public const string ComplexityStateInvalid = "HC0048";
+        public const string CostStateInvalid = "HC0048";
+
+        /// <summary>
+        /// One slicing argument is required
+        /// </summary>
+        public const string OneSlicingArgumentRequired = "HC0082";
 
         public const string NonNullViolation = "HC0018";
+        public const string SemanticNonNullViolation = "HC0088";
         public const string MustBeInputType = "HC0017";
         public const string InvalidType = "HC0016";
         public const string QueryNotFound = "HC0015";
 
         /// <summary>
-        /// A persisted query was not found when using the active persisted query pipeline.
+        /// A persisted operation was not found when using the active persisted operation pipeline.
         /// </summary>
-        public const string PersistedQueryNotFound = "HC0020";
+        public const string PersistedOperationNotFound = "HC0020";
 
         /// <summary>
-        /// Only persisted queries are allowed.
+        /// Only persisted operations are allowed.
         /// </summary>
-        public const string OnlyPersistedQueriesAllowed = "HC0067";
+        public const string OnlyPersistedOperationsAllowed = "HC0067";
 
         public const string TaskProcessingError = "HC0008";
         public const string SyntaxError = "HC0014";
@@ -135,7 +139,7 @@ public static class ErrorCodes
         /// <summary>
         /// A key is referring to a file that was not provided.
         /// </summary>
-        public const string MultiPartFileMissing = "HC00038";
+        public const string MultiPartFileMissing = "HC0038";
 
         /// <summary>
         /// The variable path is referring to a variable that does not exist.
@@ -192,6 +196,11 @@ public static class ErrorCodes
         /// The request did not specify any supported accept media type.
         /// </summary>
         public const string InvalidAcceptHeaderValue = "HC0064";
+
+        /// <summary>
+        /// Multi-part requests must include a GraphQL preflight header.
+        /// </summary>
+        public const string MultiPartPreflightRequired = "HC0077";
     }
 
     public static class Schema
@@ -206,6 +215,7 @@ public static class ErrorCodes
         public const string InterfaceNotImplemented = "SCHEMA_INTERFACE_NO_IMPL";
         public const string DuplicateTypeName = "HC0065";
         public const string DuplicateMutationErrorTypeName = "HC0066";
+        public const string DuplicateFieldNames = "HCXXXX";
 
         /// <summary>
         /// The middleware order of a field pipeline is incorrect.
@@ -231,7 +241,7 @@ public static class ErrorCodes
         /// The schema building directive `@mutation`
         /// can only be applied on object fields.
         /// </summary>
-        public const string MutationConvDirectiveWrongLocation = "HC0070";
+        public const string MutationConventionDirectiveWrongLocation = "HC0070";
 
         /// <summary>
         /// A schema building directive had an argument with an unexpected value.
@@ -264,26 +274,12 @@ public static class ErrorCodes
         public const string FilterFieldDescriptorType = "FILTER_FIELD_DESCRIPTOR_TYPE";
     }
 
-    public static class Stitching
-    {
-        public const string HttpRequestException = "HC0006";
-
-        public const string UnknownRequestException = "HC0007";
-
-        public const string ArgumentNotDefined = "STITCHING_ARG_NOT_DEFINED";
-        public const string FieldNotDefined = "STITCHING_FLD_NOT_DEFINED";
-        public const string VariableNotDefined = "STITCHING_VAR_NOT_DEFINED";
-        public const string ScopeNotDefined = "STITCHING_SCOPE_NOT_DEFINED";
-        public const string TypeNotDefined = "STITCHING_TYPE_NOT_DEFINED";
-        public const string ArgumentNotFound = "STITCHING_DEL_ARGUMENT_NOT_FOUND";
-    }
-
     public static class Spatial
     {
         /// <summary>
         /// The coordinate reference system is not supported by this server
         /// </summary>
-        public const string UnknowCrs = "HC0029";
+        public const string UnknownCrs = "HC0029";
 
         /// <summary>
         /// Coordinates with M values cannot be reprojected
@@ -315,10 +311,20 @@ public static class ErrorCodes
         /// The introspection is not allowed for the current request
         /// </summary>
         public const string IntrospectionNotAllowed = "HC0046";
+
+        /// <summary>
+        /// The maximum allowed introspection depth was exceeded.
+        /// </summary>
+        public const string MaxIntrospectionDepthOverflow = "HC0086";
+
+        /// <summary>
+        /// The maximum allowed coordinate cycle depth was exceeded.
+        /// </summary>
+        public const string MaxCoordinateCycleDepthOverflow = "HC0087";
     }
 
     /// <summary>
-    /// Error codes related to paging compinents
+    /// Error codes related to paging components
     /// </summary>
     public static class Paging
     {
@@ -346,5 +352,15 @@ public static class ErrorCodes
         /// You must provide a `first` or `last` value to properly paginate the connection.
         /// </summary>
         public const string NoPagingBoundaries = "HC0052";
+
+        /// <summary>
+        /// The requested number of values per page must be at least 0.
+        /// </summary>
+        public const string MinPaginationItems = "HC0079";
+
+        /// <summary>
+        /// The cursor format is invalid.
+        /// </summary>
+        public const string InvalidCursor = "HC0078";
     }
 }

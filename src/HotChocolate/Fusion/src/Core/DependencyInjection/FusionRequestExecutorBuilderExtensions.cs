@@ -1,11 +1,16 @@
 using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Execution.Errors;
+using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Pipeline;
+using HotChocolate.Fusion;
 using HotChocolate.Fusion.Clients;
+using HotChocolate.Fusion.Execution.Diagnostic;
 using HotChocolate.Fusion.Execution.Pipeline;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Planning;
+using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -26,7 +31,7 @@ public static class FusionRequestExecutorBuilderExtensions
     /// The name of the fusion graph.
     /// </param>
     /// <returns>
-    /// Returns the <see cref="IRequestExecutorBuilder"/> that can be used to configure the Gateway.
+    /// Returns the <see cref="FusionGatewayBuilder"/> that can be used to configure the Gateway.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="services"/> is <c>null</c> or
@@ -35,10 +40,7 @@ public static class FusionRequestExecutorBuilderExtensions
         this IServiceCollection services,
         string? graphName = null)
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         services.TryAddSingleton<IWebSocketConnectionFactory>(
             _ => new DefaultWebSocketConnectionFactory());
@@ -51,7 +53,7 @@ public static class FusionRequestExecutorBuilderExtensions
                 sp.GetRequiredService<IWebSocketConnectionFactory>()));
 
         var builder = services
-            .AddGraphQLServer(graphName)
+            .AddGraphQLServer(graphName, disableDefaultSecurity: true)
             .UseField(next => next)
             .AddOperationCompilerOptimizer<OperationQueryPlanCompiler>()
             .AddOperationCompilerOptimizer<FieldFlagsOptimizer>()
@@ -74,10 +76,70 @@ public static class FusionRequestExecutorBuilderExtensions
                                 sp => CreateGraphQLClientFactory(sp, fusionGraphConfig));
                             sc.TryAddSingleton(fusionGraphConfig);
                             sc.TryAddSingleton<QueryPlanner>();
+                            sc.TryAddSingleton<NodeIdParser, DefaultNodeIdParser>();
+
+                            sc.TryAddSingleton(GetFusionOptions);
+                            sc.TryAddFusionDiagnosticEvents();
                         });
                 });
 
         return new FusionGatewayBuilder(builder);
+    }
+
+    public static FusionGatewayBuilder AddDiagnosticEventListener<T>(
+        this FusionGatewayBuilder builder)
+        where T : class, IFusionDiagnosticEventListener
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        builder.Services.TryAddSingleton<T>();
+        builder.CoreBuilder.ConfigureSchemaServices(
+            s => s.AddSingleton(
+                sp => (IFusionDiagnosticEventListener)sp.GetApplicationService<T>()));
+
+        return builder;
+    }
+
+    internal static IServiceCollection TryAddFusionDiagnosticEvents(
+        this IServiceCollection services)
+    {
+        services.TryAddSingleton<IFusionDiagnosticEvents>(sp =>
+        {
+            var listeners = sp.GetServices<IFusionDiagnosticEventListener>().ToArray();
+            return listeners.Length switch
+            {
+                0 => new NoopFusionDiagnosticEvents(),
+                1 => listeners[0],
+                _ => new AggregateFusionDiagnosticEvents(listeners),
+            };
+        });
+        return services;
+    }
+
+    /// <summary>
+    /// Adds a custom ID parser to the gateway.
+    /// </summary>
+    /// <returns>
+    /// Returns the <see cref="FusionGatewayBuilder"/> that can be used to configure the Gateway.
+    /// </returns>
+    public static FusionGatewayBuilder AddNodeIdParser<T>(
+        this FusionGatewayBuilder builder)
+        where T : NodeIdParser
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        builder.CoreBuilder.Configure(
+            c => c.OnConfigureSchemaServicesHooks.Add(
+                (_, sc) =>
+                {
+                    sc.RemoveAll<NodeIdParser>();
+                    sc.AddSingleton<NodeIdParser, T>();
+                }));
+
+        return builder;
     }
 
     /// <summary>
@@ -94,7 +156,7 @@ public static class FusionRequestExecutorBuilderExtensions
     /// the schema is rebuild whenever the file changes.
     /// </param>
     /// <returns>
-    /// Returns the <see cref="IRequestExecutorBuilder"/> that can be used to configure the Gateway.
+    /// Returns the <see cref="FusionGatewayBuilder"/> that can be used to configure the Gateway.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="builder"/> is <c>null</c> or
@@ -140,7 +202,7 @@ public static class FusionRequestExecutorBuilderExtensions
     /// The fusion gateway configuration document.
     /// </param>
     /// <returns>
-    /// Returns the <see cref="IRequestExecutorBuilder"/> that can be used to configure the Gateway.
+    /// Returns the <see cref="FusionGatewayBuilder"/> that can be used to configure the Gateway.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="builder"/> is <c>null</c> or
@@ -174,7 +236,9 @@ public static class FusionRequestExecutorBuilderExtensions
     /// <param name="factory">
     /// The factory that creates the observable Gateway configuration.
     /// </param>
-    /// <returns></returns>
+    /// <returns>
+    /// Returns the <see cref="FusionGatewayBuilder"/> that can be used to configure the Gateway.
+    /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="builder"/> is <c>null</c> or
     /// <paramref name="factory"/> is <c>null</c>.
@@ -200,6 +264,147 @@ public static class FusionRequestExecutorBuilderExtensions
     }
 
     /// <summary>
+    /// Rewrites the gateway configuration to use the service discovery for HTTP clients.
+    /// </summary>
+    /// <param name="builder">
+    /// The gateway builder.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="FusionGatewayBuilder"/> that can be used to configure the Gateway.
+    /// </returns>
+    public static FusionGatewayBuilder AddServiceDiscoveryRewriter(
+        this FusionGatewayBuilder builder)
+    {
+        builder.Services.AddSingleton<IConfigurationRewriter, ServiceDiscoveryConfigurationRewriter>();
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds a delegate that will be used to modify the <see cref="RequestExecutorOptions"/>.
+    /// </summary>
+    /// <param name="builder">
+    /// The gateway builder.
+    /// </param>
+    /// <param name="modify">
+    /// A delegate that is used to modify the <see cref="RequestExecutorOptions"/>.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="FusionGatewayBuilder"/> that can be used to configure the Gateway.
+    /// </returns>
+    public static FusionGatewayBuilder ModifyRequestOptions(
+        this FusionGatewayBuilder builder,
+        Action<RequestExecutorOptions> modify)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (modify is null)
+        {
+            throw new ArgumentNullException(nameof(modify));
+        }
+
+        builder.CoreBuilder.Configure(options => options.OnConfigureRequestExecutorOptionsHooks.Add(
+            new OnConfigureRequestExecutorOptionsAction(
+                (_, opt) => modify(opt))));
+
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds a delegate that will be used to modify the <see cref="FusionOptions"/>.
+    /// </summary>
+    /// <param name="builder">
+    /// The gateway builder.
+    /// </param>
+    /// <param name="modify">
+    /// A delegate that is used to modify the <see cref="FusionOptions"/>.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="FusionGatewayBuilder"/> that can be used to configure the Gateway.
+    /// </returns>
+    public static FusionGatewayBuilder ModifyFusionOptions(
+        this FusionGatewayBuilder builder,
+        Action<FusionOptions> modify)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (modify is null)
+        {
+            throw new ArgumentNullException(nameof(modify));
+        }
+
+        builder.CoreBuilder.Configure(options => options.OnConfigureSchemaServicesHooks.Add(
+            (ctx, sc) => sc.AddSingleton(modify)));
+
+        return builder;
+    }
+
+    public static FusionGatewayBuilder AddErrorFilter(
+        this FusionGatewayBuilder builder,
+        Func<IError, IError> errorFilter)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (errorFilter is null)
+        {
+            throw new ArgumentNullException(nameof(errorFilter));
+        }
+
+        builder.CoreBuilder.ConfigureSchemaServices(
+            s => s.AddSingleton<IErrorFilter>(
+                new FuncErrorFilterWrapper(errorFilter)));
+
+        return builder;
+    }
+
+    public static FusionGatewayBuilder AddErrorFilter<T>(
+        this FusionGatewayBuilder builder,
+        Func<IServiceProvider, T> factory)
+        where T : class, IErrorFilter
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (factory is null)
+        {
+            throw new ArgumentNullException(nameof(factory));
+        }
+
+        builder.CoreBuilder.ConfigureSchemaServices(
+            s => s.AddSingleton<IErrorFilter, T>(
+                sp => factory(sp.GetCombinedServices())));
+
+        return builder;
+    }
+
+    public static FusionGatewayBuilder AddErrorFilter<T>(
+        this FusionGatewayBuilder builder)
+        where T : class, IErrorFilter
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        builder.Services.TryAddSingleton<T>();
+        builder.CoreBuilder.ConfigureSchemaServices(
+            s => s.AddSingleton<IErrorFilter, T>(
+                sp => sp.GetApplicationService<T>()));
+
+        return builder;
+    }
+
+    /// <summary>
     /// Uses the default fusion gateway pipeline.
     /// </summary>
     /// <param name="builder"></param>
@@ -218,7 +423,7 @@ public static class FusionRequestExecutorBuilderExtensions
     }
 
     /// <summary>
-    /// Uses the persisted query pipeline with the Fusion gateway.
+    /// Uses the persisted operation pipeline with the Fusion gateway.
     /// </summary>
     /// <param name="builder">
     /// The gateway builder.
@@ -229,7 +434,7 @@ public static class FusionRequestExecutorBuilderExtensions
     /// <exception cref="ArgumentNullException">
     /// <paramref name="builder"/> is <c>null</c>.
     /// </exception>
-    public static FusionGatewayBuilder UsePersistedQueryPipeline(
+    public static FusionGatewayBuilder UsePersistedOperationPipeline(
         this FusionGatewayBuilder builder)
     {
         if (builder is null)
@@ -237,12 +442,12 @@ public static class FusionRequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        builder.CoreBuilder.UseFusionPersistedQueryPipeline();
+        builder.CoreBuilder.UseFusionPersistedOperationPipeline();
         return builder;
     }
 
     /// <summary>
-    /// Uses the automatic persisted query pipeline with the Fusion gateway.
+    /// Uses the automatic persisted operation pipeline with the Fusion gateway.
     /// </summary>
     /// <param name="builder">
     /// The gateway builder.
@@ -253,7 +458,7 @@ public static class FusionRequestExecutorBuilderExtensions
     /// <exception cref="ArgumentNullException">
     /// <paramref name="builder"/> is <c>null</c>.
     /// </exception>
-    public static FusionGatewayBuilder UseAutomaticPersistedQueryPipeline(
+    public static FusionGatewayBuilder UseAutomaticPersistedOperationPipeline(
         this FusionGatewayBuilder builder)
     {
         if (builder is null)
@@ -261,7 +466,89 @@ public static class FusionRequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        builder.CoreBuilder.UseFusionAutomaticPersistedQueryPipeline();
+        builder.CoreBuilder.UseFusionAutomaticPersistedOperationPipeline();
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds a type that will be used to create a middleware for the execution pipeline.
+    /// </summary>
+    /// <param name="builder">
+    /// The gateway builder.
+    /// </param>
+    /// <returns>
+    /// Returns the gateway builder for configuration chaining.
+    /// </returns>
+    public static FusionGatewayBuilder UseRequest<TMiddleware>(
+        this FusionGatewayBuilder builder)
+        where TMiddleware : class
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        builder.CoreBuilder.UseRequest<TMiddleware>();
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds a delegate that will be used to create a middleware for the execution pipeline.
+    /// </summary>
+    /// <param name="builder">
+    /// The gateway builder.
+    /// </param>
+    /// <param name="middleware">
+    /// A delegate that is used to create a middleware for the execution pipeline.
+    /// </param>
+    /// <returns>
+    /// Returns the gateway builder for configuration chaining.
+    /// </returns>
+    public static FusionGatewayBuilder UseRequest(
+        this FusionGatewayBuilder builder,
+        RequestCoreMiddleware middleware)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (middleware is null)
+        {
+            throw new ArgumentNullException(nameof(middleware));
+        }
+
+        builder.CoreBuilder.UseRequest(middleware);
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds a delegate that will be used to create a middleware for the execution pipeline.
+    /// </summary>
+    /// <param name="builder">
+    /// The gateway builder.
+    /// </param>
+    /// <param name="middleware">
+    /// A delegate that is used to create a middleware for the execution pipeline.
+    /// </param>
+    /// <returns>
+    /// Returns the gateway builder for configuration chaining.
+    /// </returns>
+    public static FusionGatewayBuilder UseRequest(
+        this FusionGatewayBuilder builder,
+        RequestMiddleware middleware)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (middleware is null)
+        {
+            throw new ArgumentNullException(nameof(middleware));
+        }
+
+        builder.CoreBuilder.UseRequest(middleware);
         return builder;
     }
 
@@ -276,13 +563,12 @@ public static class FusionRequestExecutorBuilderExtensions
             .UseDocumentParser()
             .UseDocumentValidation()
             .UseOperationCache()
-            .UseOperationComplexityAnalyzer()
             .UseOperationResolver()
             .UseOperationVariableCoercion()
             .UseDistributedOperationExecution();
     }
 
-    private static IRequestExecutorBuilder UseFusionPersistedQueryPipeline(
+    private static IRequestExecutorBuilder UseFusionPersistedOperationPipeline(
         this IRequestExecutorBuilder builder)
     {
         if (builder is null)
@@ -295,19 +581,18 @@ public static class FusionRequestExecutorBuilderExtensions
             .UseExceptions()
             .UseTimeout()
             .UseDocumentCache()
-            .UseReadPersistedQuery()
-            .UsePersistedQueryNotFound()
-            .UseOnlyPersistedQueriesAllowed()
+            .UseReadPersistedOperation()
+            .UsePersistedOperationNotFound()
+            .UseOnlyPersistedOperationAllowed()
             .UseDocumentParser()
             .UseDocumentValidation()
             .UseOperationCache()
-            .UseOperationComplexityAnalyzer()
             .UseOperationResolver()
             .UseOperationVariableCoercion()
             .UseDistributedOperationExecution();
     }
 
-    private static IRequestExecutorBuilder UseFusionAutomaticPersistedQueryPipeline(
+    private static IRequestExecutorBuilder UseFusionAutomaticPersistedOperationPipeline(
         this IRequestExecutorBuilder builder)
     {
         if (builder is null)
@@ -320,13 +605,12 @@ public static class FusionRequestExecutorBuilderExtensions
             .UseExceptions()
             .UseTimeout()
             .UseDocumentCache()
-            .UseReadPersistedQuery()
-            .UseAutomaticPersistedQueryNotFound()
-            .UseWritePersistedQuery()
+            .UseReadPersistedOperation()
+            .UseAutomaticPersistedOperationNotFound()
+            .UseWritePersistedOperation()
             .UseDocumentParser()
             .UseDocumentValidation()
             .UseOperationCache()
-            .UseOperationComplexityAnalyzer()
             .UseOperationResolver()
             .UseOperationVariableCoercion()
             .UseDistributedOperationExecution();
@@ -340,22 +624,21 @@ public static class FusionRequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        return builder.UseRequest<DistributedOperationExecutionMiddleware>();
+        return builder.UseRequest(DistributedOperationExecutionMiddleware.Create());
     }
 
     internal static void AddDefaultPipeline(this IList<RequestCoreMiddleware> pipeline)
     {
-        pipeline.Add(RequestClassMiddlewareFactory.Create<InstrumentationMiddleware>());
-        pipeline.Add(RequestClassMiddlewareFactory.Create<ExceptionMiddleware>());
-        pipeline.Add(RequestClassMiddlewareFactory.Create<TimeoutMiddleware>());
-        pipeline.Add(RequestClassMiddlewareFactory.Create<DocumentCacheMiddleware>());
-        pipeline.Add(RequestClassMiddlewareFactory.Create<DocumentParserMiddleware>());
-        pipeline.Add(RequestClassMiddlewareFactory.Create<DocumentValidationMiddleware>());
-        pipeline.Add(RequestClassMiddlewareFactory.Create<OperationCacheMiddleware>());
-        pipeline.Add(RequestClassMiddlewareFactory.Create<OperationComplexityMiddleware>());
-        pipeline.Add(RequestClassMiddlewareFactory.Create<OperationResolverMiddleware>());
-        pipeline.Add(RequestClassMiddlewareFactory.Create<OperationVariableCoercionMiddleware>());
-        pipeline.Add(RequestClassMiddlewareFactory.Create<DistributedOperationExecutionMiddleware>());
+        pipeline.Add(InstrumentationMiddleware.Create());
+        pipeline.Add(ExceptionMiddleware.Create());
+        pipeline.Add(TimeoutMiddleware.Create());
+        pipeline.Add(DocumentCacheMiddleware.Create());
+        pipeline.Add(DocumentParserMiddleware.Create());
+        pipeline.Add(DocumentValidationMiddleware.Create());
+        pipeline.Add(OperationCacheMiddleware.Create());
+        pipeline.Add(OperationResolverMiddleware.Create());
+        pipeline.Add(OperationVariableCoercionMiddleware.Create());
+        pipeline.Add(DistributedOperationExecutionMiddleware.Create());
     }
 
     private static GraphQLClientFactory CreateGraphQLClientFactory(
@@ -437,4 +720,17 @@ public static class FusionRequestExecutorBuilderExtensions
         string? graphName = default,
         CancellationToken cancellationToken = default)
         => builder.CoreBuilder.BuildSchemaAsync(graphName, cancellationToken);
+
+    private static FusionOptions GetFusionOptions(IServiceProvider sp)
+    {
+        var configures = sp.GetServices<Action<FusionOptions>>();
+        var options = new FusionOptions();
+
+        foreach (var configure in configures)
+        {
+            configure(options);
+        }
+
+        return options;
+    }
 }

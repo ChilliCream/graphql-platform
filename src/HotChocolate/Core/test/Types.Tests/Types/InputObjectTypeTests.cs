@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 #nullable enable
 
@@ -96,7 +91,6 @@ public class InputObjectTypeTests : TypeTestBase
             t => Assert.Equal("name", t.Name));
     }
 
-
     [Fact]
     public void Initialize_UnignoreProperty_PropertyIsInSchemaType()
     {
@@ -156,7 +150,6 @@ public class InputObjectTypeTests : TypeTestBase
         // assert
         fooType = CreateType(fooType,
             b => b.AddDirectiveType<FooDirectiveType>());
-
 
         Assert.NotEmpty(fooType.Directives["foo"]);
         Assert.NotEmpty(fooType.Fields["id"].Directives["foo"]);
@@ -446,8 +439,8 @@ public class InputObjectTypeTests : TypeTestBase
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryType>()
-            .AddTypeConverter<Baz, Bar>(from => new Bar { Text = from.Text })
-            .AddTypeConverter<Bar, Baz>(from => new Baz { Text = from.Text })
+            .AddTypeConverter<Baz, Bar>(from => new Bar { Text = from.Text, })
+            .AddTypeConverter<Bar, Baz>(from => new Baz { Text = from.Text, })
             .BuildRequestExecutorAsync();
 
         // act
@@ -559,7 +552,6 @@ public class InputObjectTypeTests : TypeTestBase
             .AddQueryType<QueryWithInterfaceInput>()
             .AddType<InputWithInterfaceType>()
             .BuildSchemaAsync();
-
 
         // assert
         schema.ToString().MatchSnapshot();
@@ -821,7 +813,7 @@ public class InputObjectTypeTests : TypeTestBase
     public class SerializationInputObject2
     {
         public List<SerializationInputObject1?>? FooList { get; set; } =
-            new() { new SerializationInputObject1() };
+            [new SerializationInputObject1(),];
     }
 
     public class FooDirectiveType : DirectiveType<FooDirective>
@@ -836,7 +828,7 @@ public class InputObjectTypeTests : TypeTestBase
         }
     }
 
-    public class FooDirective { }
+    public class FooDirective;
 
     public class QueryType : ObjectType
     {
@@ -895,7 +887,7 @@ public class InputObjectTypeTests : TypeTestBase
             {
                 IsBarSet = input.Bar.HasValue,
                 Bar = input.Bar,
-                Baz = input.Baz
+                Baz = input.Baz,
             };
         }
     }
@@ -982,6 +974,6 @@ public class InputObjectTypeTests : TypeTestBase
     public enum FooEnum
     {
         Bar,
-        Baz
+        Baz,
     }
 }

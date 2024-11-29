@@ -28,155 +28,156 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
 
         foreach (var step in context.Steps)
         {
-            if (step is SelectionExecutionStep currentStep &&
-                currentStep.ParentSelection is { } parent &&
-                currentStep.Resolver is not null)
+            if (step is not SelectionExecutionStep { ParentSelection: { } parent, Resolver: not null } currentStep)
             {
-                siblingsToRemove.Clear();
-                roots.Clear();
+                continue;
+            }
 
-                var declaringType = currentStep.SelectionSetType;
-                var selectionSet = context.Operation.GetSelectionSet(parent, declaringType);
-                var siblingExecutionSteps = context.GetSiblingExecutionSteps(selectionSet);
+            schemas.Clear();
+            siblingsToRemove.Clear();
+            roots.Clear();
 
-                // remove the execution step for which we try to resolve dependencies.
-                siblingExecutionSteps.Remove(currentStep);
+            var declaringType = currentStep.SelectionSetType;
+            var selectionSet = context.Operation.GetSelectionSet(parent, declaringType);
+            var siblingExecutionSteps = context.GetSiblingExecutionSteps(selectionSet);
 
-                // remove all execution steps that depend on the current execution step.
-                foreach (var siblingExecutionStep in siblingExecutionSteps)
+            // remove the execution step for which we try to resolve dependencies.
+            siblingExecutionSteps.Remove(currentStep);
+
+            // remove all execution steps that depend on the current execution step.
+            foreach (var siblingExecutionStep in siblingExecutionSteps)
+            {
+                if (siblingExecutionStep.DependsOn.Contains(currentStep))
                 {
-                    if (siblingExecutionStep.DependsOn.Contains(currentStep))
-                    {
-                        siblingsToRemove.Add(siblingExecutionStep);
-                    }
+                    siblingsToRemove.Add(siblingExecutionStep);
+                }
+            }
+
+            foreach (var siblingToRemove in siblingsToRemove)
+            {
+                siblingExecutionSteps.Remove(siblingToRemove);
+            }
+
+            // clean and fill the schema execution step lookup
+            foreach (var siblingExecutionStep in siblingExecutionSteps)
+            {
+                if (siblingExecutionStep.ParentSelection is null)
+                {
+                    roots.Add(siblingExecutionStep.SubgraphName);
                 }
 
-                foreach (var siblingToRemove in siblingsToRemove)
+                // Tracks the most recent execution step (by query plan step order) targeting a given subgraph
+                // Replacing a previous execution step if necessary.
+                schemas[siblingExecutionStep.SubgraphName] = siblingExecutionStep;
+            }
+
+            // clean and fill requires set
+            InitializeSet(requires, currentStep.Requires);
+
+            // first we need to check if the selectionSet from which we want to do the
+            // exports already is exporting the required variables
+            // if so we just need to refer to it.
+            foreach (var requirement in requires)
+            {
+                if (context.Exports.TryGetStateKey(
+                    selectionSet,
+                    requirement,
+                    out var stateKey,
+                    out var providingExecutionStep) &&
+                    providingExecutionStep != currentStep)
                 {
-                    siblingExecutionSteps.Remove(siblingToRemove);
+                    currentStep.DependsOn.Add(providingExecutionStep);
+                    currentStep.Variables.TryAdd(requirement, stateKey);
+                    requires.Remove(requirement);
                 }
+            }
 
-                // clean and fill the schema execution step lookup
-                foreach (var siblingExecutionStep in siblingExecutionSteps)
+            // if we still have requirements unfulfilled, we will try to resolve them
+            // from sibling execution steps.
+            // we prime the variables list with the variables from execution steps that the current step
+            // already depends on.
+            var variables = OrderByUsage(step.SelectionSetTypeMetadata.Variables, currentStep);
+
+            // if we have root steps as siblings we will prefer to fulfill the requirements
+            // from these steps.
+            if (roots.Count > 0 && requires.Count > 0)
+            {
+                foreach (var variable in variables)
                 {
-                    if (siblingExecutionStep.ParentSelection is null)
+                    if (requires.Contains(variable.Name) &&
+                        roots.Contains(variable.SubgraphName) &&
+                        schemas.TryGetValue(variable.SubgraphName, out var providingExecutionStep))
                     {
-                        roots.Add(siblingExecutionStep.SubgraphName);
-                    }
+                        requires.Remove(variable.Name);
 
-                    // Tracks the most recent execution step (by query plan step order) targeting a given subgraph
-                    // Replacing a previous execution step if necessary. 
-                    schemas[siblingExecutionStep.SubgraphName] = siblingExecutionStep;
-                }
+                        var stateKey = context.Exports.Register(
+                            selectionSet,
+                            variable,
+                            providingExecutionStep);
 
-                // clean and fill requires set
-                InitializeSet(requires, currentStep.Requires);
-
-                // first we need to check if the selectionSet from which we want to do the
-                // exports already is exporting the required variables
-                // if so we just need to refer to it.
-                foreach (var requirement in requires)
-                {
-                    if (context.Exports.TryGetStateKey(
-                        selectionSet,
-                        requirement,
-                        out var stateKey,
-                        out var providingExecutionStep) &&
-                        providingExecutionStep != currentStep)
-                    {
                         currentStep.DependsOn.Add(providingExecutionStep);
-                        currentStep.Variables.TryAdd(requirement, stateKey);
-                        requires.Remove(requirement);
+                        currentStep.Variables.TryAdd(variable.Name, stateKey);
+                    }
+
+                    if (requires.Count == 0)
+                    {
+                        break;
                     }
                 }
+            }
 
-                // if we still have requirements unfulfilled, we will try to resolve them
-                // from sibling execution steps.
-                // we prime the variables list with the variables from execution steps that the current step
-                // already depends on.
-                var variables = OrderByUsage(step.SelectionSetTypeMetadata.Variables, currentStep);
-
-                // if we have root steps as siblings we will prefer to fulfill the requirements
-                // from these steps.
-                if (roots.Count > 0 && requires.Count > 0)
+            if (requires.Count > 0)
+            {
+                foreach (var variable in variables)
                 {
-                    foreach (var variable in variables)
+                    if (requires.Contains(variable.Name) &&
+                        schemas.TryGetValue(variable.SubgraphName, out var providingExecutionStep))
                     {
-                        if (requires.Contains(variable.Name) &&
-                            roots.Contains(variable.SubgraphName) &&
-                            schemas.TryGetValue(variable.SubgraphName, out var providingExecutionStep))
-                        {
-                            requires.Remove(variable.Name);
+                        requires.Remove(variable.Name);
 
-                            var stateKey = context.Exports.Register(
-                                selectionSet,
-                                variable,
-                                providingExecutionStep);
+                        var stateKey = context.Exports.Register(
+                            selectionSet,
+                            variable,
+                            providingExecutionStep);
 
-                            currentStep.DependsOn.Add(providingExecutionStep);
-                            currentStep.Variables.TryAdd(variable.Name, stateKey);
-                        }
+                        currentStep.DependsOn.Add(providingExecutionStep);
+                        currentStep.Variables.TryAdd(variable.Name, stateKey);
+                    }
 
-                        if (requires.Count == 0)
-                        {
-                            break;
-                        }
+                    if (requires.Count == 0)
+                    {
+                        break;
                     }
                 }
+            }
 
-                if (requires.Count > 0)
+            // it could happen that the existing execution steps cannot fulfill our needs
+            // and that we have to introduce a fetch to another remote schema to get the
+            // required value for the current execution step. In this case we will have
+            // to evaluate the schemas that we did skip for efficiency reasons.
+            if (requires.Count > 0)
+            {
+                // if the schema meta data are not consistent we could end up with no way to
+                // execute the current execution step. In this case we will fail here.
+                throw new InvalidOperationException("The schema metadata are not consistent.");
+            }
+
+            foreach (var (name, type) in currentStep.Resolver.ArgumentTypes)
+            {
+                currentStep.ArgumentTypes.TryAdd(name, type);
+            }
+
+            // if we do by key batching the current execution step must
+            // re-export its requirements so we know where entities belong to.
+            if (currentStep.Resolver.Kind is ResolverKind.Batch)
+            {
+                foreach (var variable in step.SelectionSetTypeMetadata.Variables)
                 {
-                    foreach (var variable in variables)
+                    if (currentStep.Requires.Contains(variable.Name) &&
+                        currentStep.SubgraphName.EqualsOrdinal(variable.SubgraphName) &&
+                        currentStep.Variables.TryGetValue(variable.Name, out var stateKey))
                     {
-                        if (requires.Contains(variable.Name) &&
-                            schemas.TryGetValue(variable.SubgraphName, out var providingExecutionStep))
-                        {
-                            requires.Remove(variable.Name);
-
-                            var stateKey = context.Exports.Register(
-                                selectionSet,
-                                variable,
-                                providingExecutionStep);
-
-                            currentStep.DependsOn.Add(providingExecutionStep);
-                            currentStep.Variables.TryAdd(variable.Name, stateKey);
-                        }
-
-                        if (requires.Count == 0)
-                        {
-                            break;
-                        }
-                    }
-                }
-
-                // it could happen that the existing execution steps cannot fulfill our needs
-                // and that we have to introduce a fetch to another remote schema to get the
-                // required value for the current execution step. In this case we will have
-                // to evaluate the schemas that we did skip for efficiency reasons.
-                if (requires.Count > 0)
-                {
-                    // if the schema meta data are not consistent we could end up with no way to
-                    // execute the current execution step. In this case we will fail here.
-                    throw new InvalidOperationException("The schema metadata are not consistent.");
-                }
-
-                foreach (var (name, type) in currentStep.Resolver.ArgumentTypes)
-                {
-                    currentStep.ArgumentTypes.TryAdd(name, type);
-                }
-
-                // if we do by key batching the current execution step must
-                // re-export its requirements so we know where entities belong to.
-                if (currentStep.Resolver.Kind is ResolverKind.Batch)
-                {
-                    foreach (var variable in step.SelectionSetTypeMetadata.Variables)
-                    {
-                        if (currentStep.Requires.Contains(variable.Name) &&
-                            currentStep.SubgraphName.EqualsOrdinal(variable.SubgraphName) &&
-                            currentStep.Variables.TryGetValue(variable.Name, out var stateKey))
-                        {
-                            context.Exports.RegisterAdditionExport(variable, currentStep, stateKey);
-                        }
+                        context.Exports.RegisterAdditionExport(variable, currentStep, stateKey);
                     }
                 }
             }
@@ -201,7 +202,7 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
 
         foreach (var step in executionStep.DependsOn)
         {
-            if (step is SelectionExecutionStep { SubgraphName: { } subgraphName })
+            if (step is SelectionExecutionStep { SubgraphName: { } subgraphName, })
             {
                 dependsOnSubgraph.Add(subgraphName);
             }

@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Types;
 
 #nullable enable
@@ -41,7 +40,7 @@ internal sealed partial class ExtendedType
                             return new ExtendedType(
                                 type,
                                 ExtendedTypeKind.Schema,
-                                typeArguments: new[] { elementType },
+                                typeArguments: new[] { elementType, },
                                 source: source,
                                 definition: typeof(ListType<>),
                                 isNullable: nullable,

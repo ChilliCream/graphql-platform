@@ -137,7 +137,7 @@ public class Query
 Per default scoped services are scoped to the current request. If you want to resolve the services for a particular resolver using a dedicated [`IServiceScope`](https://docs.microsoft.com/dotnet/api/microsoft.extensions.dependencyinjection.iservicescope), you can use the `UseServiceScope` middleware.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Query
@@ -148,7 +148,7 @@ public class Query
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -166,7 +166,7 @@ descriptor.Field("foo")
 </Code>
 <Schema>
 
-Take a look at the Annotation-based or Code-first example.
+Take a look at the implementation-first or code-first example.
 
 </Schema>
 </ExampleTabs>

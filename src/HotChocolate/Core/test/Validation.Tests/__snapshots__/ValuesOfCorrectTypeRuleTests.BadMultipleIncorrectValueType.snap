@@ -27,20 +27,9 @@
       "argument": "x",
       "argumentValue": "\"two\"",
       "locationType": "Int!",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "StringValue",
-      "Location": {
-        "Start": 91,
-        "End": 99,
-        "Line": 4,
-        "Column": 41
-      },
-      "Value": "two",
-      "Block": false
-    }
+    "Exception": null
   },
   {
     "Message": "The specified argument value does not match the argument type.",
@@ -70,19 +59,8 @@
       "argument": "y",
       "argumentValue": "\"one\"",
       "locationType": "Int!",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "StringValue",
-      "Location": {
-        "Start": 101,
-        "End": 107,
-        "Line": 4,
-        "Column": 51
-      },
-      "Value": "one",
-      "Block": false
-    }
+    "Exception": null
   }
 ]

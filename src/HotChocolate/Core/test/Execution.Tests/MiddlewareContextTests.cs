@@ -1,8 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using CookieCrumble;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,10 +23,10 @@ public class MiddlewareContextTests
                     ctx.Variables.GetVariable<string>("abc"))
             .Create();
 
-        var request = QueryRequestBuilder.New()
-            .SetQuery("query abc($abc: String){ foo(bar: $abc) }")
-            .SetVariableValue("abc", "def")
-            .Create();
+        var request = OperationRequestBuilder.New()
+            .SetDocument("query abc($abc: String){ foo(bar: $abc) }")
+            .SetVariableValues(new Dictionary<string, object?> { {"abc", "def" }, })
+            .Build();
 
         // act
         var result = await schema.MakeExecutable().ExecuteAsync(request);
@@ -54,10 +49,10 @@ public class MiddlewareContextTests
                     ctx.Variables.GetVariable<string>("abc"))
             .Create();
 
-        var request = QueryRequestBuilder.New()
-            .SetQuery("query abc($def: String){ foo(bar: $def) }")
-            .SetVariableValue("def", "ghi")
-            .Create();
+        var request = OperationRequestBuilder.New()
+            .SetDocument("query abc($def: String){ foo(bar: $def) }")
+            .SetVariableValues(new Dictionary<string, object?> { {"def", "ghi" }, })
+            .Build();
 
         // act
         var result =
@@ -75,18 +70,19 @@ public class MiddlewareContextTests
 
         var schema = SchemaBuilder.New()
             .AddDocumentFromString(
-                @"
-                    type Query {
-                        foo: Foo
-                    }
+                """
+                type Query {
+                    foo: Foo
+                }
 
-                    type Foo {
-                        bar: Bar
-                    }
+                type Foo {
+                    bar: Bar
+                }
 
-                    type Bar {
-                        baz: String
-                    }")
+                type Bar {
+                    baz: String
+                }
+                """)
             .Use(
                 _ => context =>
                 {
@@ -219,7 +215,7 @@ public class MiddlewareContextTests
                         .Use(
                             next => async context =>
                             {
-                                var original = context.ReplaceArguments(_ => null);
+                                var original = context.ReplaceArguments(_ => null!);
 
                                 await next(context);
 
@@ -340,7 +336,7 @@ public class MiddlewareContextTests
             }
 
             Assert.NotNull(queryResult.Incremental?[0].ContextData);
-            Assert.True(queryResult.Incremental[0].ContextData.TryGetValue("abc", out var value));
+            Assert.True(queryResult.Incremental[0].ContextData!.TryGetValue("abc", out var value));
             Assert.Equal(2, value);
         }
     }

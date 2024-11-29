@@ -12,7 +12,26 @@ internal sealed partial class ResolverDefinition
         {
             var result = base.RewriteField(node, context);
 
-            if (result is not null && context.PlaceholderFound)
+            if (result is null)
+            {
+                return null;
+            }
+
+            if (context.Directives?.Count > 0)
+            {
+                result = result.WithDirectives(context.Directives);
+            }
+
+            if (context.UnspecifiedArguments?.Count > 0)
+            {
+                var explicitlyDefinedArguments = result.Arguments
+                    .ExceptBy(context.UnspecifiedArguments, a => a.Name.Value)
+                    .ToList();
+
+                result = result.WithArguments(explicitlyDefinedArguments);
+            }
+
+            if (context.PlaceholderFound)
             {
                 context.PlaceholderFound = false;
 
@@ -50,7 +69,7 @@ internal sealed partial class ResolverDefinition
                         var path = context.Path.ToArray();
                         context.SelectionPath = path;
                         context.PlaceholderFound = true;
-                        rewrittenList = new List<ISelectionNode>();
+                        rewrittenList = [];
 
                         if (context.ResponseName is not null)
                         {

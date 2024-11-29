@@ -1,27 +1,34 @@
 #nullable enable
 
-using System;
 using System.Buffers;
 using System.Collections;
-using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
 
-public class InputParser
+public sealed class InputParser
 {
     private static readonly Path _root = Path.Root.Append("root");
     private readonly ITypeConverter _converter;
     private readonly DictionaryToObjectConverter _dictToObjConverter;
+    private readonly bool _ignoreAdditionalInputFields;
 
     public InputParser() : this(new DefaultTypeConverter()) { }
 
     public InputParser(ITypeConverter converter)
     {
         _converter = converter ?? throw new ArgumentNullException(nameof(converter));
-        _dictToObjConverter = new(converter);
+        _dictToObjConverter = new DictionaryToObjectConverter(converter);
+        _ignoreAdditionalInputFields = false;
+    }
+
+    public InputParser(ITypeConverter converter, InputParserOptions options)
+    {
+        _converter = converter ?? throw new ArgumentNullException(nameof(converter));
+        _dictToObjConverter = new DictionaryToObjectConverter(converter);
+        _ignoreAdditionalInputFields = options.IgnoreAdditionalInputFields;
     }
 
     public object? ParseLiteral(IValueNode value, IInputFieldInfo field, Type? targetType = null)
@@ -146,7 +153,8 @@ public class InputParser
                     var item = items[i];
                     var itemPath = path.Append(i);
 
-                    if (item.Kind != SyntaxKind.ListValue)
+                    if (item.Kind != SyntaxKind.ListValue
+                        && item.Kind != SyntaxKind.NullValue)
                     {
                         throw ParseNestedList_InvalidSyntaxKind(type, item.Kind, itemPath);
                     }
@@ -264,12 +272,12 @@ public class InputParser
                     }
                     else
                     {
-                        invalidFieldNames ??= new List<string>();
+                        invalidFieldNames ??= [];
                         invalidFieldNames.Add(fieldValue.Name.Value);
                     }
                 }
 
-                if (invalidFieldNames?.Count > 0)
+                if (!_ignoreAdditionalInputFields && invalidFieldNames?.Count > 0)
                 {
                     throw InvalidInputFieldNames(type, invalidFieldNames, path);
                 }
@@ -320,7 +328,7 @@ public class InputParser
 
             var error = ErrorBuilder.FromError(ex.Errors[0])
                 .SetPath(path)
-                .SetExtension(nameof(field), field.Coordinate.ToString())
+                .SetFieldCoordinate(field.Coordinate)
                 .SetExtension("fieldType", type.Name)
                 .Build();
 
@@ -412,7 +420,7 @@ public class InputParser
                 }
                 else
                 {
-                    invalidFieldNames ??= new List<string>();
+                    invalidFieldNames ??= [];
                     invalidFieldNames.Add(fieldValue.Name.Value);
                 }
             }
@@ -467,8 +475,8 @@ public class InputParser
 
             return null;
         }
-        
-        if(type.Kind == TypeKind.NonNull)
+
+        if (type.Kind == TypeKind.NonNull)
         {
             type = ((NonNullType)type).Type;
         }
@@ -579,7 +587,7 @@ public class InputParser
                 }
             }
 
-            if (consumed < map.Count)
+            if (!_ignoreAdditionalInputFields && consumed < map.Count)
             {
                 var invalidFieldNames = new List<string>();
 
@@ -635,7 +643,7 @@ public class InputParser
 
             var error = ErrorBuilder.FromError(ex.Errors[0])
                 .SetPath(path)
-                .SetExtension(nameof(field), field.Coordinate.ToString())
+                .SetFieldCoordinate(field.Coordinate)
                 .SetExtension("fieldType", type.Name)
                 .Build();
 

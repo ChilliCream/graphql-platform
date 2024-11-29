@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -18,10 +17,10 @@ public class QueryableFilterVisitorEnumTests : FilterVisitorTestBase
         var func = tester.Build<Foo>(value);
 
         // assert
-        var a = new Foo { BarEnum = FooEnum.BAR };
+        var a = new Foo { BarEnum = FooEnum.BAR, };
         Assert.True(func(a));
 
-        var b = new Foo { BarEnum = FooEnum.BAZ };
+        var b = new Foo { BarEnum = FooEnum.BAZ, };
         Assert.False(func(b));
     }
 
@@ -36,12 +35,11 @@ public class QueryableFilterVisitorEnumTests : FilterVisitorTestBase
         // act
         var func = tester.Build<Foo>(value);
 
-
         // assert
-        var a = new Foo { BarEnum = FooEnum.BAZ };
+        var a = new Foo { BarEnum = FooEnum.BAZ, };
         Assert.True(func(a));
 
-        var b = new Foo { BarEnum = FooEnum.BAR };
+        var b = new Foo { BarEnum = FooEnum.BAR, };
         Assert.False(func(b));
     }
 
@@ -57,10 +55,10 @@ public class QueryableFilterVisitorEnumTests : FilterVisitorTestBase
         var func = tester.Build<Foo>(value);
 
         // assert
-        var a = new Foo { BarEnum = FooEnum.BAZ };
+        var a = new Foo { BarEnum = FooEnum.BAZ, };
         Assert.True(func(a));
 
-        var b = new Foo { BarEnum = FooEnum.BAR };
+        var b = new Foo { BarEnum = FooEnum.BAR, };
         Assert.False(func(b));
     }
 
@@ -76,10 +74,10 @@ public class QueryableFilterVisitorEnumTests : FilterVisitorTestBase
         var func = tester.Build<Foo>(value);
 
         // assert
-        var a = new Foo { BarEnum = FooEnum.BAR };
+        var a = new Foo { BarEnum = FooEnum.BAR, };
         Assert.True(func(a));
 
-        var b = new Foo { BarEnum = FooEnum.BAZ };
+        var b = new Foo { BarEnum = FooEnum.BAZ, };
         Assert.False(func(b));
     }
 
@@ -95,13 +93,13 @@ public class QueryableFilterVisitorEnumTests : FilterVisitorTestBase
         var func = tester.Build<FooNullable>(value);
 
         // assert
-        var a = new FooNullable { BarEnum = FooEnum.BAR };
+        var a = new FooNullable { BarEnum = FooEnum.BAR, };
         Assert.True(func(a));
 
-        var b = new FooNullable { BarEnum = FooEnum.BAZ };
+        var b = new FooNullable { BarEnum = FooEnum.BAZ, };
         Assert.False(func(b));
 
-        var c = new FooNullable { BarEnum = null };
+        var c = new FooNullable { BarEnum = null, };
         Assert.False(func(c));
     }
 
@@ -118,13 +116,13 @@ public class QueryableFilterVisitorEnumTests : FilterVisitorTestBase
         var func = tester.Build<FooNullable>(value);
 
         // assert
-        var a = new FooNullable { BarEnum = FooEnum.BAZ };
+        var a = new FooNullable { BarEnum = FooEnum.BAZ, };
         Assert.True(func(a));
 
-        var b = new FooNullable { BarEnum = FooEnum.BAR };
+        var b = new FooNullable { BarEnum = FooEnum.BAR, };
         Assert.False(func(b));
 
-        var c = new FooNullable { BarEnum = null };
+        var c = new FooNullable { BarEnum = null, };
         Assert.True(func(c));
     }
 
@@ -140,13 +138,13 @@ public class QueryableFilterVisitorEnumTests : FilterVisitorTestBase
         var func = tester.Build<FooNullable>(value);
 
         // assert
-        var a = new FooNullable { BarEnum = FooEnum.BAZ };
+        var a = new FooNullable { BarEnum = FooEnum.BAZ, };
         Assert.True(func(a));
 
-        var b = new FooNullable { BarEnum = FooEnum.BAR };
+        var b = new FooNullable { BarEnum = FooEnum.BAR, };
         Assert.False(func(b));
 
-        var c = new FooNullable { BarEnum = null };
+        var c = new FooNullable { BarEnum = null, };
         Assert.False(func(c));
     }
 
@@ -162,13 +160,13 @@ public class QueryableFilterVisitorEnumTests : FilterVisitorTestBase
         var func = tester.Build<FooNullable>(value);
 
         // assert
-        var a = new FooNullable { BarEnum = FooEnum.BAR };
+        var a = new FooNullable { BarEnum = FooEnum.BAR, };
         Assert.True(func(a));
 
-        var b = new FooNullable { BarEnum = FooEnum.BAZ };
+        var b = new FooNullable { BarEnum = FooEnum.BAZ, };
         Assert.False(func(b));
 
-        var c = new FooNullable { BarEnum = null };
+        var c = new FooNullable { BarEnum = null, };
         Assert.True(func(c));
     }
 
@@ -184,13 +182,13 @@ public class QueryableFilterVisitorEnumTests : FilterVisitorTestBase
         var func = tester.Build<AttributeTest>(value);
 
         // assert
-        var a = new AttributeTest { NonNullOnNullableTypes = TestEnum.Third };
+        var a = new AttributeTest { NonNullOnNullableTypes = TestEnum.Third, };
         Assert.True(func(a));
 
-        var b = new AttributeTest { NonNullOnNullableTypes = TestEnum.First };
+        var b = new AttributeTest { NonNullOnNullableTypes = TestEnum.First, };
         Assert.False(func(b));
 
-        var c = new AttributeTest { NonNullOnNullableTypes = null };
+        var c = new AttributeTest { NonNullOnNullableTypes = null, };
         Assert.False(func(c));
     }
 
@@ -206,13 +204,13 @@ public class QueryableFilterVisitorEnumTests : FilterVisitorTestBase
         var func = tester.Build<AttributeTest>(value);
 
         // assert
-        var a = new AttributeTest { NonNullOnNullable = TestEnum.Third };
+        var a = new AttributeTest { NonNullOnNullable = TestEnum.Third, };
         Assert.True(func(a));
 
-        var b = new AttributeTest { NonNullOnNullable = TestEnum.First };
+        var b = new AttributeTest { NonNullOnNullable = TestEnum.First, };
         Assert.False(func(b));
 
-        var c = new AttributeTest { NonNullOnNullable = null };
+        var c = new AttributeTest { NonNullOnNullable = null, };
         Assert.False(func(c));
     }
 
@@ -242,7 +240,7 @@ public class QueryableFilterVisitorEnumTests : FilterVisitorTestBase
         FOO,
         BAR,
         BAZ,
-        QUX
+        QUX,
     }
 
     public class FooFilterInput : FilterInputType<Foo>
@@ -269,7 +267,7 @@ public class QueryableFilterVisitorEnumTests : FilterVisitorTestBase
         None,
         First,
         Second,
-        Third
+        Third,
     }
 
     public class AttributeTest

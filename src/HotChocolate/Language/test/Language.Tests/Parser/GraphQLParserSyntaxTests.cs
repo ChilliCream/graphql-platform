@@ -1,5 +1,4 @@
 using System.Text;
-using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Language;

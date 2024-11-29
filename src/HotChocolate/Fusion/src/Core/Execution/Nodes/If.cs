@@ -13,7 +13,7 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// </param>
 internal sealed class If(int id) : QueryPlanNode(id)
 {
-    private readonly List<Branch> _branches = new();
+    private readonly List<Branch> _branches = [];
 
     /// <summary>
     /// Gets the kind of this node.
@@ -44,7 +44,7 @@ internal sealed class If(int id) : QueryPlanNode(id)
         {
             if(contextData.TryGetValue(branch.Key, out var value) && branch.Value.Equals(value))
             {
-                (tasks ??= new()).Add(branch.Node.ExecuteAsync(context, cancellationToken));
+                (tasks ??= []).Add(branch.Node.ExecuteAsync(context, cancellationToken));
             }
         }
 

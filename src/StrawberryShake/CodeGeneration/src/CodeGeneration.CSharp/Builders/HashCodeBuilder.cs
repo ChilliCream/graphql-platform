@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Generators;
@@ -8,7 +7,7 @@ internal class HashCodeBuilder : ICode
     public const string VariableName = "hash";
     public const int Prime = 397;
 
-    private readonly List<ICode> _code = new();
+    private readonly List<ICode> _code = [];
 
     public static HashCodeBuilder New() => new();
 

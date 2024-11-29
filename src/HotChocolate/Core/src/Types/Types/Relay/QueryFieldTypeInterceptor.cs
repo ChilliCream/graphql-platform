@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
@@ -14,16 +12,16 @@ namespace HotChocolate.Types.Relay;
 internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
 {
     private const string _defaultFieldName = "query";
-    private readonly HashSet<string> _payloads = new();
+    private readonly HashSet<string> _payloads = [];
 
     private ITypeCompletionContext _context = default!;
     private ObjectType? _queryType;
     private ObjectFieldDefinition _queryField = default!;
     private ObjectTypeDefinition? _mutationDefinition;
 
-    internal override void OnAfterResolveRootType(
+    public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition,
+        ObjectTypeDefinition definition,
         OperationType operationType)
     {
         _context ??= completionContext;
@@ -48,18 +46,18 @@ internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
 
             TypeReference queryType = TypeReference.Parse($"{_queryType.Name}!");
 
-            _queryField= new ObjectFieldDefinition(
+            _queryField = new ObjectFieldDefinition(
                 options.QueryFieldName ?? _defaultFieldName,
                 type: queryType,
                 resolver: ctx => new(ctx.GetQueryRoot<object>()));
-            _queryField.CustomSettings.Add(MutationQueryField);
+            _queryField.Flags |= FieldFlags.MutationQueryField;
 
             foreach (var field in _mutationDefinition.Fields)
             {
-                if (!field.IsIntrospectionField &&
-                    _context.TryGetType(field.Type!, out IType? returnType) &&
-                    returnType.NamedType() is ObjectType payloadType &&
-                    options.MutationPayloadPredicate.Invoke(payloadType))
+                if (!field.IsIntrospectionField
+                    && _context.TryGetType(field.Type!, out IType? returnType)
+                    && returnType.NamedType() is ObjectType payloadType
+                    && options.MutationPayloadPredicate.Invoke(payloadType))
                 {
                     _payloads.Add(payloadType.Name);
                 }
@@ -71,9 +69,9 @@ internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         DefinitionBase definition)
     {
-        if (completionContext.Type is ObjectType objectType &&
-            definition is ObjectTypeDefinition objectTypeDef &&
-            _payloads.Contains(objectType.Name))
+        if (completionContext.Type is ObjectType objectType
+            && definition is ObjectTypeDefinition objectTypeDef
+            && _payloads.Contains(objectType.Name))
         {
             if (objectTypeDef.Fields.Any(t => t.Name.EqualsOrdinal(_queryField.Name)))
             {

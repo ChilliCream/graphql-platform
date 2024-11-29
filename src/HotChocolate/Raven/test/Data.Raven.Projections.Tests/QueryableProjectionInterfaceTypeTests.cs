@@ -1,10 +1,7 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Raven.Client.Documents;
-using Raven.Client.Documents.Linq.Indexing;
 using static HotChocolate.Data.Raven.ProjectionVisitorTestBase;
 
 namespace HotChocolate.Data.Raven;
@@ -13,36 +10,36 @@ namespace HotChocolate.Data.Raven;
 public class QueryableProjectionInterfaceTypeTests
 {
     private static readonly AbstractType[] _barEntities =
-    {
-        new Bar { Name = "Bar", BarProp = "BarProp" },
-        new Foo { Name = "Foo", FooProp = "FooProp" }
-    };
+    [
+        new Bar { Name = "Bar", BarProp = "BarProp", },
+        new Foo { Name = "Foo", FooProp = "FooProp", },
+    ];
 
     private static readonly NestedObject[] _barNestedEntities =
-    {
-        new() { Nested = new Bar { Name = "Bar", BarProp = "BarProp" } },
-        new() { Nested = new Foo { Name = "Foo", FooProp = "FooProp" } },
-    };
+    [
+        new() { Nested = new Bar { Name = "Bar", BarProp = "BarProp", }, },
+        new() { Nested = new Foo { Name = "Foo", FooProp = "FooProp", }, },
+    ];
 
     private static readonly NestedList[] _barListEntities =
-    {
+    [
         new()
         {
-            List = new()
-            {
-                new Foo { Name = "Foo", FooProp = "FooProp" },
-                new Bar { Name = "Bar", BarProp = "BarProp" }
-            }
+            List =
+            [
+                new Foo { Name = "Foo", FooProp = "FooProp", },
+                new Bar { Name = "Bar", BarProp = "BarProp", },
+            ],
         },
         new()
         {
-            List = new()
-            {
-                new Bar { Name = "Bar", BarProp = "BarProp" },
-                new Foo { Name = "Foo", FooProp = "FooProp" }
-            }
+            List =
+            [
+                new Bar { Name = "Bar", BarProp = "BarProp", },
+                new Foo { Name = "Foo", FooProp = "FooProp", },
+            ],
         },
-    };
+    ];
 
     private readonly SchemaCache _cache;
 
@@ -60,8 +57,8 @@ public class QueryableProjectionInterfaceTypeTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -74,7 +71,7 @@ public class QueryableProjectionInterfaceTypeTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -106,8 +103,8 @@ public class QueryableProjectionInterfaceTypeTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -122,7 +119,7 @@ public class QueryableProjectionInterfaceTypeTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -140,8 +137,8 @@ public class QueryableProjectionInterfaceTypeTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -156,7 +153,7 @@ public class QueryableProjectionInterfaceTypeTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -174,8 +171,8 @@ public class QueryableProjectionInterfaceTypeTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -190,7 +187,7 @@ public class QueryableProjectionInterfaceTypeTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -212,8 +209,8 @@ public class QueryableProjectionInterfaceTypeTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -228,7 +225,7 @@ public class QueryableProjectionInterfaceTypeTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -250,8 +247,8 @@ public class QueryableProjectionInterfaceTypeTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -266,7 +263,7 @@ public class QueryableProjectionInterfaceTypeTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -284,8 +281,8 @@ public class QueryableProjectionInterfaceTypeTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -294,7 +291,7 @@ public class QueryableProjectionInterfaceTypeTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot

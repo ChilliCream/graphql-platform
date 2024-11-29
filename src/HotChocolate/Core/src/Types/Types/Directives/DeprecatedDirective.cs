@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 
@@ -72,11 +71,11 @@ public sealed class DeprecatedDirective
 
         var arguments = reason is null
             ? Array.Empty<ArgumentNode>()
-            : new[] { new ArgumentNode(DeprecatedDirectiveType.Names.Reason, reason) };
+            : [new ArgumentNode(WellKnownDirectives.DeprecationReasonArgument, reason),];
 
         return new DirectiveNode(
             null,
-            new NameNode(DeprecatedDirectiveType.Names.Deprecated),
+            new NameNode(WellKnownDirectives.Deprecated),
             arguments);
     }
 }

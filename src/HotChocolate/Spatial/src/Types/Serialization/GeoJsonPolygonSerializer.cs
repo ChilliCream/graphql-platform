@@ -1,7 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
@@ -128,7 +125,7 @@ internal class GeoJsonPolygonSerializer
                             type,
                             GeoJsonGeometryType.Polygon)),
                     new(CoordinatesFieldName, ParseCoordinateValue(type, geometry)),
-                    new(CrsFieldName, new IntValueNode(geometry.SRID))
+                    new(CrsFieldName, new IntValueNode(geometry.SRID)),
                 };
 
             return new ObjectValueNode(list);
@@ -136,7 +133,6 @@ internal class GeoJsonPolygonSerializer
 
         throw Serializer_CouldNotParseValue(type);
     }
-
 
     public override IValueNode ParseCoordinateValue(IType type, object? runtimeValue)
     {

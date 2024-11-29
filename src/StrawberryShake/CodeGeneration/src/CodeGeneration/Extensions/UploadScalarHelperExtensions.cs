@@ -7,6 +7,6 @@ public static class UploadScalarHelperExtensions
 {
     public static bool HasUpload(this ITypeDescriptor descriptor)
         => descriptor.NamedType()
-            is InputObjectTypeDescriptor { HasUpload: true }
-            or ScalarTypeDescriptor { Name: "Upload" };
+            is InputObjectTypeDescriptor { HasUpload: true, }
+            or ScalarTypeDescriptor { Name: "Upload", };
 }

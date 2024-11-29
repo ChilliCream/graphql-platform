@@ -1,0 +1,25 @@
+﻿schema {
+  query: QueryType
+  mutation: Mutation
+}
+
+"The node interface is implemented by entities that have a global unique identifier."
+interface Node {
+  id: ID!
+}
+
+type FooPayload {
+  query: QueryType!
+}
+
+type Mutation {
+  foo: FooPayload
+}
+
+type QueryType {
+  some: Some
+}
+
+type Some implements Node {
+  id: ID!
+}

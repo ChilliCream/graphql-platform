@@ -10,4 +10,8 @@
     <ProjectReference Include="..\..\src\ApolloFederation\HotChocolate.ApolloFederation.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="System.ComponentModel.Annotations" />
+  </ItemGroup>
+
 </Project>

@@ -1,5 +1,4 @@
 using System.Text;
-using CookieCrumble;
 using Xunit;
 using static CookieCrumble.Formatters.SnapshotValueFormatters;
 
@@ -33,26 +32,6 @@ public class KitchenSinkParserTests
         // arrange
         var querySource =
             FileResource.Open("kitchen-sink.graphql")
-                .NormalizeLineBreaks();
-        var parser = new Utf8GraphQLParser(
-            Encoding.UTF8.GetBytes(querySource));
-
-        // act
-        var document = parser.Parse();
-
-        // assert
-        var snapshot = new Snapshot();
-        snapshot.Add(document, "SDL:");
-        snapshot.Add(document, "AST:", Json);
-        snapshot.Match();
-    }
-
-    [Fact]
-    public void ParseFacebookKitchenSinkQueryNullability()
-    {
-        // arrange
-        var querySource =
-            FileResource.Open("kitchen-sink-nullability.graphql")
                 .NormalizeLineBreaks();
         var parser = new Utf8GraphQLParser(
             Encoding.UTF8.GetBytes(querySource));

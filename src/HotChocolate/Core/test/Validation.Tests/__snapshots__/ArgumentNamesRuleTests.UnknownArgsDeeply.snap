@@ -22,38 +22,9 @@
       "type": "Dog",
       "field": "doesKnowCommand",
       "argument": "unknown",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Required-Arguments"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "Argument",
-      "Location": {
-        "Start": 85,
-        "End": 99,
-        "Line": 4,
-        "Column": 41
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 85,
-          "End": 93,
-          "Line": 4,
-          "Column": 41
-        },
-        "Value": "unknown"
-      },
-      "Value": {
-        "Kind": "BooleanValue",
-        "Location": {
-          "Start": 94,
-          "End": 99,
-          "Line": 4,
-          "Column": 50
-        },
-        "Value": true
-      }
-    }
+    "Exception": null
   },
   {
     "Message": "The argument `dogCommand` is required.",
@@ -78,62 +49,8 @@
       "type": "Dog",
       "field": "doesKnowCommand",
       "argument": "dogCommand",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Required-Arguments"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "Field",
-      "Alias": null,
-      "Arguments": [
-        {
-          "Kind": "Argument",
-          "Location": {
-            "Start": 85,
-            "End": 99,
-            "Line": 4,
-            "Column": 41
-          },
-          "Name": {
-            "Kind": "Name",
-            "Location": {
-              "Start": 85,
-              "End": 93,
-              "Line": 4,
-              "Column": 41
-            },
-            "Value": "unknown"
-          },
-          "Value": {
-            "Kind": "BooleanValue",
-            "Location": {
-              "Start": 94,
-              "End": 99,
-              "Line": 4,
-              "Column": 50
-            },
-            "Value": true
-          }
-        }
-      ],
-      "Required": null,
-      "SelectionSet": null,
-      "Location": {
-        "Start": 69,
-        "End": 121,
-        "Line": 4,
-        "Column": 25
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 69,
-          "End": 85,
-          "Line": 4,
-          "Column": 25
-        },
-        "Value": "doesKnowCommand"
-      },
-      "Directives": []
-    }
+    "Exception": null
   }
 ]

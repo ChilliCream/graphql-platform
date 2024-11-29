@@ -11,15 +11,16 @@ internal static class InputObjectMergeExtensions
     // This extension method creates a new InputField instance by replacing any
     // named types in the source field's type with the equivalent type in the target
     // schema. This is used to create a new merged field in the target schema.
-    public static InputField CreateField(
+    public static InputFieldDefinition CreateField(
         this CompositionContext context,
-        InputField source,
-        Schema targetSchema)
+        InputFieldDefinition source,
+        SchemaDefinition targetSchema)
     {
         var targetFieldType = source.Type.ReplaceNameType(n => targetSchema.Types[n]);
-        var target = new InputField(source.Name, targetFieldType);
+        var target = new InputFieldDefinition(source.Name, targetFieldType);
         target.MergeDescriptionWith(source);
         target.MergeDeprecationWith(source);
+        target.MergeDirectivesWith(source, context);
         target.DefaultValue = source.DefaultValue;
         return target;
     }
@@ -31,9 +32,9 @@ internal static class InputObjectMergeExtensions
     // from the source to the target.
     public static void MergeField(
         this CompositionContext context,
-        InputObjectType type,
-        InputField source,
-        InputField target)
+        InputObjectTypeDefinition type,
+        InputFieldDefinition source,
+        InputFieldDefinition target)
     {
         var mergedInputType = MergeInputType(source.Type, target.Type);
 
@@ -47,7 +48,7 @@ internal static class InputObjectMergeExtensions
                     source.Type));
             return;
         }
-                
+
         if(!target.Type.Equals(mergedInputType, TypeComparison.Structural))
         {
             target.Type = mergedInputType;
@@ -55,5 +56,6 @@ internal static class InputObjectMergeExtensions
 
         target.MergeDescriptionWith(source);
         target.MergeDeprecationWith(source);
+        target.MergeDirectivesWith(source, context);
     }
 }

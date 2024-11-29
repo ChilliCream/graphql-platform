@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Properties;
 
@@ -11,7 +9,7 @@ namespace HotChocolate.Utilities;
 public partial class DefaultTypeConverter : ITypeConverter
 {
     private readonly ConcurrentDictionary<(Type, Type), ChangeType> _converters = new();
-    private readonly List<IChangeTypeProvider> _changeTypeProvider = new();
+    private readonly List<IChangeTypeProvider> _changeTypeProvider = [];
 
     public DefaultTypeConverter(IEnumerable<IChangeTypeProvider>? providers = null)
     {
@@ -33,7 +31,7 @@ public partial class DefaultTypeConverter : ITypeConverter
         {
             throw new NotSupportedException(
                 string.Format(
-                    TypeResources.TypeConvertion_ConvertNotSupported,
+                    TypeResources.TypeConversion_ConvertNotSupported,
                     from.Name,
                     to.Name));
         }

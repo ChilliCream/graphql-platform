@@ -1,4 +1,3 @@
-﻿using System;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 
@@ -154,10 +153,9 @@ public class EnumTypeDescriptorTests : DescriptorTestBase
             });
     }
 
-
     private enum FooEnum
     {
         Bar1,
-        Bar2
+        Bar2,
     }
 }

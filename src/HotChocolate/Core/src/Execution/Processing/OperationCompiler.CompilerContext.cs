@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -8,17 +7,11 @@ namespace HotChocolate.Execution.Processing;
 
 public sealed partial class OperationCompiler
 {
-    internal sealed class CompilerContext
+    internal sealed class CompilerContext(ISchema schema, DocumentNode document)
     {
-        public CompilerContext(ISchema schema, DocumentNode document)
-        {
-            Schema = schema;
-            Document = document;
-        }
+        public ISchema Schema { get; } = schema;
 
-        public ISchema Schema { get; }
-
-        public DocumentNode Document { get; }
+        public DocumentNode Document { get; } = document;
 
         public ObjectType Type { get; private set; } = default!;
 
@@ -26,28 +19,26 @@ public sealed partial class OperationCompiler
 
         public SelectionPath Path { get; private set; } = SelectionPath.Root;
 
-        public Dictionary<string, Selection> Fields { get; } =
-            new(Ordinal);
+        public Dictionary<string, Selection> Fields { get; } = new(Ordinal);
 
-        public List<Fragment> Fragments { get; } = new();
+        public List<Fragment> Fragments { get; } = [];
 
         public SelectionVariants SelectionVariants { get; private set; } = default!;
 
-        public IImmutableList<ISelectionSetOptimizer> Optimizers { get; private set; } =
-            ImmutableList<ISelectionSetOptimizer>.Empty;
+        public ImmutableArray<ISelectionSetOptimizer> Optimizers { get; private set; }
 
         public void Initialize(
             ObjectType type,
             SelectionVariants selectionVariants,
             SelectionSetInfo[] selectionInfos,
             SelectionPath path,
-            IImmutableList<ISelectionSetOptimizer>? optimizers = null)
+            ImmutableArray<ISelectionSetOptimizer>? optimizers = null)
         {
             Type = type;
             SelectionVariants = selectionVariants;
             SelectionInfos = selectionInfos;
             Path = path;
-            Optimizers = optimizers ?? ImmutableList<ISelectionSetOptimizer>.Empty;
+            Optimizers = optimizers ?? ImmutableArray<ISelectionSetOptimizer>.Empty;
             Fields.Clear();
             Fragments.Clear();
         }

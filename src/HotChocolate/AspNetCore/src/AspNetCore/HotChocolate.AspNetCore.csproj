@@ -4,8 +4,7 @@
     <PackageId>HotChocolate.AspNetCore</PackageId>
     <AssemblyName>HotChocolate.AspNetCore</AssemblyName>
     <RootNamespace>HotChocolate.AspNetCore</RootNamespace>
-    <Description>This package contains the GraphQL ASP.NET Core middleware for Hot Chocolate. Moreover, this package includes the Banana Cake Pop middleware, which provides you with our beloved GraphQL IDE middleware.</Description>
-    <ImplicitUsings>enable</ImplicitUsings>
+    <Description>This package contains the GraphQL ASP.NET Core middleware for Hot Chocolate. Moreover, this package includes the Nitro middleware, which provides you with our beloved GraphQL IDE middleware.</Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,11 +18,12 @@
     <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Subscriptions.InMemory\HotChocolate.Subscriptions.InMemory.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Types.Scalars.Upload\HotChocolate.Types.Scalars.Upload.csproj" />
+    <ProjectReference Include="..\..\..\Utilities\src\Utilities.DependencyInjection\HotChocolate.Utilities.DependencyInjection.csproj" />
     <ProjectReference Include="..\Transport.Sockets\HotChocolate.Transport.Sockets.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BananaCakePop.Middleware" Version="$(BananaCakePopVersion)" />
+    <PackageReference Include="ChilliCream.Nitro.App" />
   </ItemGroup>
 
   <ItemGroup>

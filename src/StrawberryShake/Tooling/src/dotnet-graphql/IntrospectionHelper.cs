@@ -1,7 +1,5 @@
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Utilities.Introspection;
+using static HotChocolate.Utilities.Introspection.IntrospectionClient;
 using HCErrorBuilder = HotChocolate.ErrorBuilder;
 
 namespace StrawberryShake.Tools;
@@ -13,16 +11,14 @@ public static class IntrospectionHelper
         IFileSystem fileSystem,
         IActivity activity,
         string fileName,
+        int typeDepth,
         CancellationToken cancellationToken)
     {
         try
         {
-            var introspectionClient = new IntrospectionClient();
-            await fileSystem.WriteToAsync(
-                    fileName,
-                    stream => introspectionClient.DownloadSchemaAsync(
-                        client, stream, cancellationToken))
-                .ConfigureAwait(false);
+            var options = new IntrospectionOptions { TypeDepth = typeDepth, };
+            var document = await IntrospectServerAsync(client, options, cancellationToken).ConfigureAwait(false);
+            await fileSystem.WriteTextAsync(fileName, document.ToString(true)).ConfigureAwait(false);
             return true;
         }
         catch (IntrospectionException ex)

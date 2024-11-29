@@ -27,18 +27,8 @@
       "argument": "booleanArg",
       "argumentValue": "BAR",
       "locationType": "Boolean",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "EnumValue",
-      "Location": {
-        "Start": 103,
-        "End": 107,
-        "Line": 4,
-        "Column": 53
-      },
-      "Value": "BAR"
-    }
+    "Exception": null
   }
 ]

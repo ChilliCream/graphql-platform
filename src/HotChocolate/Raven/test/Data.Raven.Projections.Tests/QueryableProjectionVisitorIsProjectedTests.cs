@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-using CookieCrumble;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Data.Raven;
@@ -8,22 +6,22 @@ namespace HotChocolate.Data.Raven;
 public class QueryableProjectionVisitorIsProjectedTests
 {
     private static readonly Foo[] _fooEntities =
-    {
-        new() { IsProjectedTrue = true, IsProjectedFalse = false },
-        new() { IsProjectedTrue = true, IsProjectedFalse = false }
-    };
+    [
+        new() { IsProjectedTrue = true, IsProjectedFalse = false, },
+        new() { IsProjectedTrue = true, IsProjectedFalse = false, },
+    ];
 
     private static readonly MultipleFoo[] _fooMultipleEntities =
-    {
-        new() { IsProjectedTrue1 = true, IsProjectedFalse = false },
-        new() { IsProjectedTrue1 = true, IsProjectedFalse = false }
-    };
+    [
+        new() { IsProjectedTrue1 = true, IsProjectedFalse = false, },
+        new() { IsProjectedTrue1 = true, IsProjectedFalse = false, },
+    ];
 
     private static readonly Bar[] _barEntities =
-    {
-        new() { IsProjectedFalse = false },
-        new() { IsProjectedFalse = false }
-    };
+    [
+        new() { IsProjectedFalse = false, },
+        new() { IsProjectedFalse = false, },
+    ];
 
     private readonly SchemaCache _cache;
 
@@ -40,9 +38,9 @@ public class QueryableProjectionVisitorIsProjectedTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root { isProjectedFalse }}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root { isProjectedFalse }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -59,9 +57,9 @@ public class QueryableProjectionVisitorIsProjectedTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root { isProjectedFalse isProjectedTrue  }}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root { isProjectedFalse isProjectedTrue  }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -78,9 +76,9 @@ public class QueryableProjectionVisitorIsProjectedTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root { isProjectedFalse }}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root { isProjectedFalse }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -97,9 +95,9 @@ public class QueryableProjectionVisitorIsProjectedTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root { isProjectedFalse }}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root { isProjectedFalse }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -116,9 +114,9 @@ public class QueryableProjectionVisitorIsProjectedTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root { isProjectedFalse }}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root { isProjectedFalse }}")
+                .Build());
 
         // assert
         await Snapshot

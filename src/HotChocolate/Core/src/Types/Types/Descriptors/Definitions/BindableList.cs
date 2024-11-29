@@ -1,7 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
 
 #nullable enable
@@ -10,9 +7,7 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 
 public sealed class BindableList<T> : IBindableList<T>
 {
-#if NET6_0_OR_GREATER
-    private static readonly T[] _empty = new T[0];
-#endif
+    private static readonly T[] _empty = [];
 
     private List<T>? _list;
 
@@ -24,13 +19,13 @@ public sealed class BindableList<T> : IBindableList<T>
 
     public void Add(T item)
     {
-        _list ??= new List<T>();
+        _list ??= [];
         _list.Add(item);
     }
 
     public void AddRange(IEnumerable<T> items)
     {
-        _list ??= new List<T>();
+        _list ??= [];
         _list.AddRange(items);
     }
 
@@ -75,7 +70,7 @@ public sealed class BindableList<T> : IBindableList<T>
 
     public void Insert(int index, T item)
     {
-        _list ??= new List<T>();
+        _list ??= [];
         _list.Insert(index, item);
     }
 
@@ -93,12 +88,11 @@ public sealed class BindableList<T> : IBindableList<T>
 
         set
         {
-            _list ??= new List<T>();
+            _list ??= [];
             _list[index] = value;
         }
     }
 
-#if NET6_0_OR_GREATER
     internal ReadOnlySpan<T> AsSpan()
     {
         if (_list is null)
@@ -108,7 +102,6 @@ public sealed class BindableList<T> : IBindableList<T>
 
         return CollectionsMarshal.AsSpan(_list);
     }
-#endif
 
     public IEnumerator<T> GetEnumerator()
     {

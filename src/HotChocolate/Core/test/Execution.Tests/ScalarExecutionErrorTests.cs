@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Tests;
-using Xunit;
-
-#nullable enable
 
 namespace HotChocolate.Execution;
 
@@ -27,7 +21,7 @@ public class ScalarExecutionErrorTests
             "{ stringToName(name: \"  \") }");
 
         // assert
-        await result.MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -45,7 +39,7 @@ public class ScalarExecutionErrorTests
             "{ stringToFoo(name: \"  \") }");
 
         // assert
-        await result.MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -63,7 +57,7 @@ public class ScalarExecutionErrorTests
             "{ nameToString(name: \"  \") }");
 
         // assert
-        await result.MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -81,11 +75,11 @@ public class ScalarExecutionErrorTests
             "query a($a: Foo) { fooToString(name: $a) }",
             new Dictionary<string, object?>
             {
-                {"a", " "}
+                {"a", " "},
             });
 
         // assert
-        await result.MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     public class Query
@@ -142,7 +136,7 @@ public class ScalarExecutionErrorTests
                 return true;
             }
 
-            return literal is StringValueNode { Value: "a" };
+            return literal is StringValueNode { Value: "a", };
         }
 
         public override bool IsInstanceOfType(object? value)
@@ -167,7 +161,7 @@ public class ScalarExecutionErrorTests
                 return null;
             }
 
-            if (literal is StringValueNode { Value: "a" })
+            if (literal is StringValueNode { Value: "a", })
             {
                 return "a";
             }

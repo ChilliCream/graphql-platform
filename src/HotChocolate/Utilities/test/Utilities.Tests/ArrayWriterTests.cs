@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using Xunit;
 
 namespace HotChocolate.Utilities;
@@ -144,7 +142,6 @@ public class ArrayWriterTests
     [Fact]
     public void GetMemory_ShouldThrowWhenNegativeSizeHint()
     {
-
         // Arrange
         using var writer = new ArrayWriter();
 
@@ -178,7 +175,7 @@ public class ArrayWriterTests
     {
         // Arrange
         using var writer = new ArrayWriter();
-        var testData = new byte[] { 1, 2, 3, 4 };
+        var testData = new byte[] { 1, 2, 3, 4, };
 
         // Act
         var span = writer.GetSpan(4);
@@ -196,7 +193,7 @@ public class ArrayWriterTests
     {
         // Arrange
         using var writer = new ArrayWriter();
-        var testData = new byte[] { 1, 2, 3, 4 };
+        var testData = new byte[] { 1, 2, 3, 4, };
 
         // Act
         var memory = writer.GetMemory(4);
@@ -247,5 +244,19 @@ public class ArrayWriterTests
         writer.GetSpan (0x3000) ;
         writer.Advance (0x2000) ;
         writer.GetSpan (0x7000) ;
+    }
+
+    [Fact]
+    public void ShouldResetCapacity()
+    {
+        // Arrange
+        using var writer = new ArrayWriter();
+
+        // Act
+        writer.GetSpan(1000);
+        writer.Advance(1000);
+        writer.Reset();
+        writer.GetSpan(2000);
+        writer.Advance(2000);
     }
 }

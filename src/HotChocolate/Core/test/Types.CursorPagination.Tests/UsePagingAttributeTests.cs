@@ -1,12 +1,7 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using HotChocolate.Types.Relay;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types.Pagination;
 
@@ -15,8 +10,6 @@ public class UsePagingAttributeTests
     [Fact]
     public async Task UsePagingAttribute_Infer_Types()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
@@ -29,8 +22,6 @@ public class UsePagingAttributeTests
     [Fact]
     public async Task UsePagingAttribute_Execute_Query()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
@@ -43,8 +34,6 @@ public class UsePagingAttributeTests
     [Fact]
     public async Task UsePagingAttribute_Infer_Types_On_Interface()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddType<IHasFoos>()
@@ -58,8 +47,6 @@ public class UsePagingAttributeTests
     [Fact]
     public async Task UsePagingAttribute_On_Extension_Infer_Types()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryType>()
@@ -73,8 +60,6 @@ public class UsePagingAttributeTests
     [Fact]
     public async Task UsePagingAttribute_On_Extension_Execute_Query()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryType>()
@@ -88,8 +73,6 @@ public class UsePagingAttributeTests
     [Fact]
     public async Task Ensure_Attributes_Are_Applied_Once()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query1>()
@@ -101,8 +84,6 @@ public class UsePagingAttributeTests
     [Fact]
     public async Task Ensure_Attributes_Are_Applied_Once_Execute_Query()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query1>()
@@ -114,8 +95,6 @@ public class UsePagingAttributeTests
     [Fact]
     public async Task UnknownNodeType()
     {
-        Snapshot.FullName();
-
         try
         {
             await new ServiceCollection()
@@ -129,7 +108,7 @@ public class UsePagingAttributeTests
             new
             {
                 ex.Errors[0].Message,
-                ex.Errors[0].Code
+                ex.Errors[0].Code,
             }.MatchSnapshot();
         }
     }
@@ -159,8 +138,8 @@ public class UsePagingAttributeTests
         {
             return new List<Foo>
             {
-                new Foo { Bar = "first" },
-                new Foo { Bar = "second" },
+                new(bar: "first"),
+                new(bar: "second"),
             }.AsQueryable();
         }
     }
@@ -171,8 +150,8 @@ public class UsePagingAttributeTests
         {
             return new List<Foo>
             {
-                new Foo { Bar = "first" },
-                new Foo { Bar = "second" },
+                new(bar: "first"),
+                new(bar: "second"),
             }.AsQueryable();
         }
     }
@@ -187,8 +166,8 @@ public class UsePagingAttributeTests
         {
             return new List<Foo>
             {
-                new Foo { Bar = "first" },
-                new Foo { Bar = "second" },
+                new(bar: "first"),
+                new(bar: "second"),
             }.AsQueryable();
         }
 
@@ -202,9 +181,9 @@ public class UsePagingAttributeTests
     {
     }
 
-    public class Foo
+    public class Foo(string bar)
     {
-        public string Bar { get; set; }
+        public string Bar { get; set; } = bar;
     }
 
     public interface IHasFoos

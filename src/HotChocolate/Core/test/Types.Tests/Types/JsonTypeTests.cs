@@ -1,8 +1,6 @@
-using System.Collections.Generic;
 using System.Numerics;
 using System.Text.Json;
-using System.Threading.Tasks;
-using CookieCrumble;
+using CookieCrumble.Xunit.Attributes;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -126,6 +124,7 @@ public class JsonTypeTests
     }
 
     [Theory]
+    [UseCulture("en-US")]
     [InlineData(0)]
     [InlineData(-15)]
     [InlineData(-10.5)]
@@ -275,15 +274,15 @@ public class JsonTypeTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .ExecuteRequestAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.New()
+                        .SetDocument(
                             """
                             query($input: JSON!) {
                                 inputJson(input: $input)
                             }
                             """)
-                        .SetVariableValue("input", input)
-                        .Create());
+                        .SetVariableValues(new Dictionary<string, object> { {"input", input }, })
+                        .Build());
 
         result.MatchInlineSnapshot(
             """

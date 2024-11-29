@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Squadron;
@@ -39,11 +38,11 @@ public class RedisIntegrationTests : SubscriptionIntegrationTestBase, IClassFixt
     [Fact]
     public override Task Subscribe_Topic_With_2_Arguments()
         => base.Subscribe_Topic_With_2_Arguments();
-    
+
     [Fact]
     public override Task Subscribe_And_Complete_Topic()
         => base.Subscribe_And_Complete_Topic();
-    
+
     [Fact]
     public override Task Subscribe_And_Complete_Topic_With_ValueTypeMessage()
         => base.Subscribe_And_Complete_Topic_With_ValueTypeMessage();

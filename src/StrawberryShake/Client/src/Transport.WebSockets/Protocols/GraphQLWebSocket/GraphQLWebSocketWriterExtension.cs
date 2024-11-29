@@ -1,4 +1,3 @@
-using System;
 using System.Text.Json;
 using StrawberryShake.Json;
 using static StrawberryShake.Transport.WebSockets.Protocols.GraphQLWebSocketMessageTypeSpans;
@@ -106,7 +105,7 @@ internal static class GraphQLWebSocketWriterExtension
         GraphQLWebSocketMessageType type)
     {
         writer.Writer.WritePropertyName("type");
-        ReadOnlySpan<byte> typeToWriter = type switch
+        var typeToWriter = type switch
         {
             GraphQLWebSocketMessageType.ConnectionInit => ConnectionInitialize,
             GraphQLWebSocketMessageType.ConnectionAccept => ConnectionAccept,
@@ -118,7 +117,7 @@ internal static class GraphQLWebSocketWriterExtension
             GraphQLWebSocketMessageType.Error => Error,
             GraphQLWebSocketMessageType.Complete => Complete,
             GraphQLWebSocketMessageType.Stop => Stop,
-            _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+            _ => throw new ArgumentOutOfRangeException(nameof(type), type, null),
         };
 
         writer.Writer.WriteStringValue(typeToWriter);

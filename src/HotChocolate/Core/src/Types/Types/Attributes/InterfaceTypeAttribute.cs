@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 
@@ -9,19 +8,14 @@ namespace HotChocolate.Types;
 [AttributeUsage(
     AttributeTargets.Class |
     AttributeTargets.Interface)]
-public sealed class InterfaceTypeAttribute
+public sealed class InterfaceTypeAttribute(string? name = null)
     : InterfaceTypeDescriptorAttribute
     , ITypeAttribute
 {
-    public InterfaceTypeAttribute(string? name = null)
-    {
-        Name = name;
-    }
-
     /// <summary>
     /// Gets or sets the GraphQL type name.
     /// </summary>
-    public string? Name { get; set; }
+    public string? Name { get; set; } = name;
 
     /// <summary>
     /// Defines if this attribute is inherited. The default is <c>false</c>.
@@ -44,4 +38,15 @@ public sealed class InterfaceTypeAttribute
 
         descriptor.Extend().Definition.Fields.BindingBehavior = BindingBehavior.Implicit;
     }
+}
+
+/// <summary>
+/// Specifies that the annotated class shall be
+/// interpreted as a GraphQL interface type.
+/// This class is used by the Hot Chocolate source generator.
+/// </summary>
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class InterfaceTypeAttribute<T> : Attribute
+{
+    public Type Type => typeof(T);
 }

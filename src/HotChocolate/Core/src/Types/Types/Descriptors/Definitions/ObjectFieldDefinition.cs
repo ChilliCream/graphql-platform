@@ -1,8 +1,7 @@
-using System;
 using System.Buffers;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Execution;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
@@ -20,7 +19,6 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
     private List<FieldMiddlewareDefinition>? _middlewareDefinitions;
     private List<ResultFormatterDefinition>? _resultConverters;
     private List<IParameterExpressionBuilder>? _expressionBuilders;
-    private List<object>? _customSettings;
     private bool _middlewareDefinitionsCleaned;
     private bool _resultConvertersCleaned;
 
@@ -120,6 +118,11 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
     public SubscribeResolverDelegate? SubscribeResolver { get; set; }
 
     /// <summary>
+    /// Gets or sets the result post processor that shall be applied to the resolver result.
+    /// </summary>
+    public IResolverResultPostProcessor? ResultPostProcessor { get; set; }
+
+    /// <summary>
     /// A list of middleware components which will be used to form the field pipeline.
     /// </summary>
     public IList<FieldMiddlewareDefinition> MiddlewareDefinitions
@@ -127,7 +130,7 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
         get
         {
             _middlewareDefinitionsCleaned = false;
-            return _middlewareDefinitions ??= new List<FieldMiddlewareDefinition>();
+            return _middlewareDefinitions ??= [];
         }
     }
 
@@ -139,7 +142,7 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
         get
         {
             _resultConvertersCleaned = false;
-            return _resultConverters ??= new List<ResultFormatterDefinition>();
+            return _resultConverters ??= [];
         }
     }
 
@@ -151,16 +154,9 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
     {
         get
         {
-            return _expressionBuilders ??= new List<IParameterExpressionBuilder>();
+            return _expressionBuilders ??= [];
         }
     }
-
-    /// <summary>
-    /// A list of custom settings objects that can be used in the type interceptors.
-    /// Custom settings are not copied to the actual type system object.
-    /// </summary>
-    public IList<object> CustomSettings
-        => _customSettings ??= new List<object>();
 
     /// <summary>
     /// Defines if this field configuration represents an introspection field.
@@ -199,6 +195,11 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
             }
         }
     }
+
+    /// <summary>
+    /// Defines in which DI scope this field is executed.
+    /// </summary>
+    public DependencyInjectionScope? DependencyInjectionScope { get; set; }
 
     /// <summary>
     /// Defines that the resolver pipeline returns an
@@ -264,20 +265,6 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
         return _expressionBuilders;
     }
 
-    /// <summary>
-    /// A list of custom settings objects that can be user in the type interceptors.
-    /// Custom settings are not copied to the actual type system object.
-    /// </summary>
-    internal IReadOnlyList<object> GetCustomSettings()
-    {
-        if (_customSettings is null)
-        {
-            return Array.Empty<object>();
-        }
-
-        return _customSettings;
-    }
-
     private FieldResolverDelegates GetResolvers()
         => new(Resolver, PureResolver);
 
@@ -285,26 +272,21 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
     {
         base.CopyTo(target);
 
-        if (_middlewareDefinitions is { Count: > 0 })
+        if (_middlewareDefinitions is { Count: > 0, })
         {
-            target._middlewareDefinitions = new(_middlewareDefinitions);
+            target._middlewareDefinitions = [.._middlewareDefinitions,];
             _middlewareDefinitionsCleaned = false;
         }
 
-        if (_resultConverters is { Count: > 0 })
+        if (_resultConverters is { Count: > 0, })
         {
-            target._resultConverters = new(_resultConverters);
+            target._resultConverters = [.._resultConverters,];
             _resultConvertersCleaned = false;
         }
 
-        if (_expressionBuilders is { Count: > 0 })
+        if (_expressionBuilders is { Count: > 0, })
         {
-            target._expressionBuilders = new(_expressionBuilders);
-        }
-
-        if (_customSettings is { Count: > 0 })
-        {
-            target._customSettings = new(_customSettings);
+            target._expressionBuilders = [.._expressionBuilders,];
         }
 
         target.SourceType = SourceType;
@@ -319,43 +301,44 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
         target.SubscribeResolver = SubscribeResolver;
         target.IsIntrospectionField = IsIntrospectionField;
         target.IsParallelExecutable = IsParallelExecutable;
+        target.DependencyInjectionScope = DependencyInjectionScope;
         target.HasStreamResult = HasStreamResult;
         target.SubscribeWith = SubscribeWith;
+        target.ResultPostProcessor = ResultPostProcessor;
     }
 
     internal void MergeInto(ObjectFieldDefinition target)
     {
         base.MergeInto(target);
 
-        if (_middlewareDefinitions is { Count: > 0 })
+        if (_middlewareDefinitions is { Count: > 0, })
         {
-            target._middlewareDefinitions ??= new List<FieldMiddlewareDefinition>();
+            target._middlewareDefinitions ??= [];
             target._middlewareDefinitions.AddRange(_middlewareDefinitions);
             _middlewareDefinitionsCleaned = false;
         }
 
-        if (_resultConverters is { Count: > 0 })
+        if (_resultConverters is { Count: > 0, })
         {
-            target._resultConverters ??= new List<ResultFormatterDefinition>();
+            target._resultConverters ??= [];
             target._resultConverters.AddRange(_resultConverters);
             _resultConvertersCleaned = false;
         }
 
-        if (_expressionBuilders is { Count: > 0 })
+        if (_expressionBuilders is { Count: > 0, })
         {
-            target._expressionBuilders ??= new List<IParameterExpressionBuilder>();
+            target._expressionBuilders ??= [];
             target._expressionBuilders.AddRange(_expressionBuilders);
-        }
-
-        if (_customSettings is { Count: > 0 })
-        {
-            target._customSettings ??= new List<object>();
-            target._customSettings.AddRange(_customSettings);
         }
 
         if (!IsParallelExecutable)
         {
             target.IsParallelExecutable = false;
+        }
+
+        if(DependencyInjectionScope.HasValue)
+        {
+            target.DependencyInjectionScope = DependencyInjectionScope;
         }
 
         if (!HasStreamResult)
@@ -407,6 +390,11 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
         {
             target.SubscribeWith = SubscribeWith;
         }
+
+        if (ResultPostProcessor is not null)
+        {
+            target.ResultPostProcessor = ResultPostProcessor;
+        }
     }
 
     private static void CleanMiddlewareDefinitions<T>(
@@ -440,14 +428,13 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
                 definitionsCleaned = true;
             }
 
-
             if (!definitionsCleaned)
             {
                 var nonRepeatable = 0;
 
                 foreach (var def in definitions)
                 {
-                    if (def is { IsRepeatable: false, Key: not null })
+                    if (def is { IsRepeatable: false, Key: not null, })
                     {
                         nonRepeatable++;
                     }
@@ -493,7 +480,4 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
             }
         }
     }
-
-    internal bool CustomSettingExists(object value)
-        => _customSettings is not null && _customSettings.Contains(value);
 }

@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types.Pagination;
 
@@ -15,11 +10,11 @@ public class EdgeTests
     [InlineData("cde", null)]
     [Theory]
     public void CreateEdge_ArgumentsArePassedCorrectly(
-        string cursor, string node)
+        string cursor, string? node)
     {
         // arrange
         // act
-        var edge = new Edge<string>(node, cursor);
+        var edge = new Edge<string>(node!, cursor);
 
         // assert
         Assert.Equal(cursor, edge.Cursor);
@@ -36,7 +31,7 @@ public class EdgeTests
         // assert
         Assert.Throws<ArgumentNullException>(Action);
     }
-    
+
     [Fact]
     public void CreateEdge_CursorIsNull_ArgumentNullException_2()
     {
@@ -62,8 +57,6 @@ public class EdgeTests
     [Fact]
     public async Task Extend_Edge_Type_And_Inject_Edge_Value_Schema()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
@@ -75,8 +68,6 @@ public class EdgeTests
     [Fact]
     public async Task Extend_Edge_Type_And_Inject_Edge_Value_Request()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
@@ -88,7 +79,7 @@ public class EdgeTests
     public class Query
     {
         [UsePaging]
-        public IEnumerable<User> GetUsers() => new[] { new User { Name = "Hello" } };
+        public IEnumerable<User> GetUsers() => new[] { new User(name: "Hello"), };
     }
 
     [ExtendObjectType("UsersEdge")]
@@ -100,8 +91,8 @@ public class EdgeTests
         }
     }
 
-    public class User
+    public class User(string name)
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = name;
     }
 }

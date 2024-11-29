@@ -1,4 +1,3 @@
-using System;
 using System.Globalization;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.MongoDb.Filters;

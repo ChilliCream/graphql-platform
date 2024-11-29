@@ -1,13 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Text;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders;
 
 public class CodeBlockBuilder : ICode
 {
-    private readonly List<ICodeBuilder> _blockParts = new List<ICodeBuilder>();
+    private readonly List<ICodeBuilder> _blockParts = [];
 
     public static CodeBlockBuilder New() => new CodeBlockBuilder();
 
@@ -27,7 +24,6 @@ public class CodeBlockBuilder : ICode
             {
                 builder.AddCode(CodeLineBuilder.From(line));
             }
-
         } while (line is not null);
 
         return builder;

@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
@@ -18,15 +16,6 @@ public interface IObjectFieldDescriptor
     , IFluent
 {
     /// <summary>
-    /// Associates the specified <paramref name="fieldDefinition"/>
-    /// with the <see cref="ObjectField"/>.
-    /// </summary>
-    /// <param name="fieldDefinition">
-    /// The <see cref="FieldDefinitionNode"/> of a parsed schema.
-    /// </param>
-    IObjectFieldDescriptor SyntaxNode(FieldDefinitionNode? fieldDefinition);
-
-    /// <summary>
     /// Defines the name of the <see cref="ObjectField"/>.
     /// </summary>
     /// <param name="value">The object field name.</param>
@@ -42,13 +31,6 @@ public interface IObjectFieldDescriptor
     /// </summary>
     /// <param name="value">The object field description.</param>
     IObjectFieldDescriptor Description(string? value);
-
-    /// <summary>
-    /// Specifies a deprecation reason for this field.
-    /// </summary>
-    /// <param name="reason">The reason why this field is deprecated.</param>
-    [Obsolete("Use `Deprecated`.")]
-    IObjectFieldDescriptor DeprecationReason(string? reason);
 
     /// <summary>
     /// Deprecates the object field.
@@ -119,74 +101,6 @@ public interface IObjectFieldDescriptor
     /// The value specifying if this field shall be ignored by the type initialization.
     /// </param>
     IObjectFieldDescriptor Ignore(bool ignore = true);
-
-    /// <summary>
-    /// Adds a resolver to the field. A resolver is a method that resolves the value for a
-    /// field. The resolver can access parent object, arguments, services and more through the
-    /// <see cref="IResolverContext"/>.
-    /// </summary>
-    /// <param name="fieldResolver">The resolver of the field</param>
-    /// <example>
-    /// Resolver accessing the parent
-    /// <code>
-    /// <![CDATA[
-    /// descriptor
-    ///     .Field(x => x.Foo)
-    ///     .Resolve(context => context.Parent<Example>().Foo);
-    /// ]]>
-    /// </code>
-    /// Resolver with static value
-    /// <code>
-    /// <![CDATA[
-    /// descriptor
-    ///     .Field(x => x.Foo)
-    ///     .Resolve("Static Value");
-    /// ]]>
-    /// </code>
-    /// Resolver accessing service
-    /// <code>
-    /// <![CDATA[
-    /// descriptor
-    ///     .Field(x => x.Foo)
-    ///     .Resolve(context => context.Service<ISomeService>().GetFoo());
-    /// ]]>
-    /// </code>
-    /// Resolver accessing argument
-    /// <code>
-    /// <![CDATA[
-    /// descriptor
-    ///     .Field(x => x.Foo)
-    ///     .Argument("arg1", x => x.Type<StringType>())
-    ///     .Resolve(context => context.ArgumentValue<string>("arg1"));
-    /// ]]>
-    /// </code>
-    /// </example>
-    /// <returns></returns>
-    [Obsolete("Use Resolve(...)")]
-    IObjectFieldDescriptor Resolver(FieldResolverDelegate fieldResolver);
-
-    /// <summary>
-    /// Adds a resolver to the field. A resolver is a method that resolves the value for a
-    /// field. The resolver can access parent object, arguments, services and more through the
-    /// <see cref="IResolverContext"/>.
-    /// </summary>
-    /// <param name="fieldResolver">The resolver of the field</param>
-    /// <param name="resultType">The result type of the resolver</param>
-    /// <example>
-    /// Resolver accessing the parent
-    /// <code>
-    /// <![CDATA[
-    /// descriptor
-    ///     .Field(x => x.Foo)
-    ///     .Resolve(context => context.Parent<Example>().Foo, typeof(string));
-    /// ]]>
-    /// </code>
-    /// </example>
-    /// <returns></returns>
-    [Obsolete("Use Resolve(...)")]
-    IObjectFieldDescriptor Resolver(
-        FieldResolverDelegate fieldResolver,
-        Type resultType);
 
     /// <summary>
     /// Adds a resolver to the field. A resolver is a method that resolves the value for a
@@ -307,7 +221,7 @@ public interface IObjectFieldDescriptor
     /// }
     /// ]]>
     /// </code>
-    /// The GetFoo method cann be mapped like:
+    /// The GetFoo method can be mapped like:
     /// <code>
     /// <![CDATA[
     /// descriptor
@@ -405,4 +319,26 @@ public interface IObjectFieldDescriptor
     /// <param name="arguments">The arguments of the directive</param>
     /// <returns>The descriptor</returns>
     IObjectFieldDescriptor Directive(string name, params ArgumentNode[] arguments);
+
+    /// <summary>
+    /// Specifies the requirements for the parent object.
+    /// </summary>
+    /// <param name="requires">
+    /// The requirements for the parent object.
+    /// </param>
+    /// <returns>
+    /// Returns the descriptor to chain further configuration.
+    /// </returns>
+    IObjectFieldDescriptor ParentRequires<TParent>(string? requires);
+
+    /// <summary>
+    /// Specifies the requirements for the parent object.
+    /// </summary>
+    /// <param name="requires">
+    /// The requirements for the parent object.
+    /// </param>
+    /// <returns>
+    /// Returns the descriptor to chain further configuration.
+    /// </returns>
+    IObjectFieldDescriptor ParentRequires(string? requires);
 }

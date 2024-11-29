@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace CookieCrumble;
 
 /// <summary>
@@ -5,31 +7,16 @@ namespace CookieCrumble;
 /// </summary>
 public static class TestEnvironment
 {
-#if NETCOREAPP3_1
-    /// <summary>
-    /// The target framework identifier.
-    /// </summary>
-    public const string TargetFramework = "NETCOREAPP3_1";
-#elif NET5_0
-    /// <summary>
-    /// The target framework identifier.
-    /// </summary>
-    public const string TargetFramework = "NET5_0";
-#elif NET6_0
-    /// <summary>
-    /// The target framework identifier.
-    /// </summary>
-    public const string TargetFramework = "NET6_0";
-#elif NET7_0
-    /// <summary>
-    /// The target framework identifier.
-    /// </summary>
-    public const string TargetFramework = "NET7_0";
-#elif NET8_0
+#if NET8_0
     /// <summary>
     /// The target framework identifier.
     /// </summary>
     public const string TargetFramework = "NET8_0";
+#elif NET9_0
+    /// <summary>
+    /// The target framework identifier.
+    /// </summary>
+    public const string TargetFramework = "NET9_0";
 #endif
 
     public static bool IsLocalEnvironment()
@@ -43,5 +30,15 @@ public static class TestEnvironment
             Environment.GetEnvironmentVariable("CI_BUILD"),
             out var result) &&
             result;
+    }
+
+    public static CancellationTokenSource CreateCancellationTokenSource(TimeSpan? timeSpan = null)
+    {
+        if (Debugger.IsAttached)
+        {
+            return new CancellationTokenSource();
+        }
+
+        return new CancellationTokenSource(timeSpan ?? TimeSpan.FromSeconds(10));
     }
 }

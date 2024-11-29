@@ -1,11 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using GreenDonut;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Execution.Integration.DataLoader;
 
@@ -22,7 +16,7 @@ public class UseDataLoaderTests
                     .AddQueryType<Query>(x => x
                         .BindFieldsExplicitly()
                         .Field(y => y.Single)
-                        .UseDataloader(typeof(Foo)))
+                        .UseDataLoader(typeof(Foo)))
                     .Create());
 
         // assert
@@ -38,7 +32,7 @@ public class UseDataLoaderTests
             .AddQueryType<Query>(x => x
                 .BindFieldsExplicitly()
                 .Field(y => y.Single)
-                .UseDataloader<TestBatchLoader>())
+                .UseDataLoader<TestBatchLoader>())
             .Create();
 
         // assert
@@ -54,7 +48,7 @@ public class UseDataLoaderTests
             .AddQueryType<Query>(x => x
                 .BindFieldsExplicitly()
                 .Field(y => y.Multiple)
-                .UseDataloader<TestBatchLoader>())
+                .UseDataLoader<TestBatchLoader>())
             .Create();
 
         // assert
@@ -70,7 +64,7 @@ public class UseDataLoaderTests
             .AddQueryType<Query>(x => x
                 .BindFieldsExplicitly()
                 .Field(y => y.Single)
-                .UseDataloader<TestGroupedLoader>())
+                .UseDataLoader<TestGroupedLoader>())
             .Create();
 
         // assert
@@ -86,7 +80,7 @@ public class UseDataLoaderTests
             .AddQueryType<Query>(x => x
                 .BindFieldsExplicitly()
                 .Field(y => y.Multiple)
-                .UseDataloader<TestGroupedLoader>())
+                .UseDataLoader<TestGroupedLoader>())
             .Create();
 
         // assert
@@ -161,13 +155,13 @@ public class UseDataLoaderTests
             .AddQueryType<Query>(
                 x => x.BindFieldsExplicitly()
                     .Field(y => y.Single)
-                    .UseDataloader<TestBatchLoader>())
+                    .UseDataLoader<TestBatchLoader>())
             .Create()
             .MakeExecutable();
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.Create(@"{ single { id }}"));
+            OperationRequest.FromSourceText("{ single { id }}"));
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -181,13 +175,13 @@ public class UseDataLoaderTests
             .AddQueryType<Query>(
                 x => x.BindFieldsExplicitly()
                     .Field(y => y.Multiple)
-                    .UseDataloader<TestBatchLoader>())
+                    .UseDataLoader<TestBatchLoader>())
             .Create()
             .MakeExecutable();
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.Create(@"{ multiple { id }}"));
+            OperationRequest.FromSourceText("{ multiple { id }}"));
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -201,13 +195,13 @@ public class UseDataLoaderTests
             .AddQueryType<Query>(
                 x => x.BindFieldsExplicitly()
                     .Field(y => y.Single)
-                    .UseDataloader<TestGroupedLoader>())
+                    .UseDataLoader<TestGroupedLoader>())
             .Create()
             .MakeExecutable();
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.Create(@"{ single { id }}"));
+            OperationRequest.FromSourceText("{ single { id }}"));
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -221,13 +215,13 @@ public class UseDataLoaderTests
             .AddQueryType<Query>(
                 x => x.BindFieldsExplicitly()
                     .Field(y => y.Multiple)
-                    .UseDataloader<TestGroupedLoader>())
+                    .UseDataLoader<TestGroupedLoader>())
             .Create()
             .MakeExecutable();
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.Create(@"{ multiple { id }}"));
+            OperationRequest.FromSourceText("{ multiple { id }}"));
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -237,7 +231,7 @@ public class UseDataLoaderTests
     {
         public int Single { get; } = 1;
 
-        public int[] Multiple { get; } = { 1, 2, 3, 4 };
+        public int[] Multiple { get; } = [1, 2, 3, 4,];
     }
 
     public class BatchQuery
@@ -246,7 +240,7 @@ public class UseDataLoaderTests
         public int Single { get; } = 1;
 
         [UseDataLoader(typeof(TestBatchLoader))]
-        public int[] Multiple { get; } = { 1, 2, 3, 4 };
+        public int[] Multiple { get; } = [1, 2, 3, 4,];
     }
 
     public class GroupedQuery
@@ -255,14 +249,14 @@ public class UseDataLoaderTests
         public int Single { get; } = 1;
 
         [UseDataLoader(typeof(TestGroupedLoader))]
-        public int[] Multiple { get; } = { 1, 2, 3, 4 };
+        public int[] Multiple { get; } = [1, 2, 3, 4,];
     }
 
     public class TestGroupedLoader : GroupedDataLoader<int, Foo>
     {
         public TestGroupedLoader(
             IBatchScheduler batchScheduler,
-            DataLoaderOptions options = null)
+            DataLoaderOptions? options = null)
             : base(batchScheduler, options)
         {
         }
@@ -279,7 +273,7 @@ public class UseDataLoaderTests
     {
         public TestBatchLoader(
             IBatchScheduler batchScheduler,
-            DataLoaderOptions options = null)
+            DataLoaderOptions options)
             : base(batchScheduler, options)
         {
         }

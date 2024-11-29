@@ -1,6 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -50,22 +48,25 @@ internal sealed class ListTypeConverter : IChangeTypeProvider
                 return true;
             }
 
-            if (target.IsGenericType && target.GetGenericTypeDefinition() == typeof(Dictionary<,>))
+            if (target.IsGenericType
+                && (target.GetGenericTypeDefinition() == typeof(Dictionary<,>)
+                    || target.GetGenericTypeDefinition() == typeof(IDictionary<,>)
+                    || target.GetGenericTypeDefinition() == typeof(IReadOnlyDictionary<,>)))
             {
                 var converterMethod =
                     _dictionaryConvert.MakeGenericMethod(targetElement.GetGenericArguments());
-                converter = s => converterMethod.Invoke(null, new[] { s, elementConverter });
+                converter = s => converterMethod.Invoke(null, [s, elementConverter,]);
                 return true;
             }
 
-            if (target is { IsGenericType: true, IsInterface: true })
+            if (target is { IsGenericType: true, IsInterface: true, })
             {
                 var typeDefinition = target.GetGenericTypeDefinition();
 
                 if (typeDefinition == typeof(ISet<>))
                 {
                     var converterMethod = _setConvert.MakeGenericMethod(targetElement);
-                    converter = s => converterMethod.Invoke(null, new[] { s, elementConverter });
+                    converter = s => converterMethod.Invoke(null, [s, elementConverter,]);
                     return true;
                 }
 
@@ -81,18 +82,18 @@ internal sealed class ListTypeConverter : IChangeTypeProvider
                 }
             }
 
-            if (target is { IsGenericType: true, IsClass: true } &&
+            if (target is { IsGenericType: true, IsClass: true, } &&
                 typeof(ICollection).IsAssignableFrom(target))
             {
                 converter = s => GenericListConverter((ICollection?)s, target, elementConverter);
                 return true;
             }
 
-            if (target is { IsGenericType: true, IsClass: true } &&
+            if (target is { IsGenericType: true, IsClass: true, } &&
                 IsGenericCollection(target))
             {
                 var converterMethod = _collectionConvert.MakeGenericMethod(targetElement);
-                converter = s => converterMethod.Invoke(null, new[] { s, target, elementConverter });
+                converter = s => converterMethod.Invoke(null, [s, target, elementConverter,]);
                 return true;
             }
         }
@@ -197,11 +198,7 @@ internal sealed class ListTypeConverter : IChangeTypeProvider
     private static bool IsGenericCollection(Type type)
     {
         var interfaces = type.GetInterfaces();
-#if NET6_0_OR_GREATER
         ref var start = ref MemoryMarshal.GetArrayDataReference(interfaces);
-#else
-        ref var start = ref MemoryMarshal.GetReference(interfaces.AsSpan());
-#endif
 
         for (var i = 0; i < interfaces.Length; i++)
         {

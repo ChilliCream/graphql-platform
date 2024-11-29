@@ -1,0 +1,21 @@
+schema
+  @fusion(version: 1)
+  @transport(subgraph: "A", location: "https:\/\/localhost:5001\/graphql", kind: "HTTP")
+  @transport(subgraph: "B", location: "https:\/\/localhost:5002\/graphql", kind: "HTTP") {
+  query: Query
+}
+
+type Query {
+  brand: Brand
+    @resolver(subgraph: "A", select: "{ brand }")
+    @resolver(subgraph: "B", select: "{ brand }")
+}
+
+type Brand {
+  name(includeFirstName: Boolean
+    @deprecated(reason: "Some reason")): String!
+    @source(subgraph: "A")
+    @variable(subgraph: "A", name: "includeFirstName", argument: "includeFirstName")
+    @source(subgraph: "B")
+    @variable(subgraph: "B", name: "includeFirstName", argument: "includeFirstName")
+}

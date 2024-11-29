@@ -5,5 +5,5 @@ public enum SyntaxVisitorActionKind
     Continue,
     Skip,
     Break,
-    SkipAndLeave
+    SkipAndLeave,
 }

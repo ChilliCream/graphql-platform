@@ -1,26 +1,21 @@
-using System.Net;
 using System.Net.Http.Json;
-using CookieCrumble;
-using CookieCrumble.Formatters;
+using CookieCrumble.HotChocolate.Formatters;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Serialization;
+using HotChocolate.Transport.Http;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
 using static HotChocolate.Execution.Serialization.JsonNullIgnoreCondition;
 
 namespace HotChocolate.AspNetCore;
 
-public class HttpPostMiddlewareTests : ServerTestBase
+public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTestBase(serverFactory)
 {
     private static readonly Uri _url = new("http://localhost:5000/graphql");
-
-    public HttpPostMiddlewareTests(TestServerFactory serverFactory)
-        : base(serverFactory) { }
 
     [Fact]
     public async Task Simple_IsAlive_Test()
@@ -30,7 +25,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // act
         var result = await server.PostAsync(
-            new ClientQueryRequest { Query = "{ __typename }" });
+            new ClientQueryRequest { Query = "{ __typename }", });
 
         // assert
         result.MatchSnapshot();
@@ -47,7 +42,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // act
         var result = await server.PostAsync(
-            new ClientQueryRequest { Query = "{ s: __typename }" });
+            new ClientQueryRequest { Query = "{ s: __typename }", });
 
         // assert
         result.MatchSnapshot();
@@ -64,7 +59,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // act
         var result = await server.PostAsync(
-            new ClientQueryRequest { Query = "{ s: __typename t: __typename }" });
+            new ClientQueryRequest { Query = "{ s: __typename t: __typename }", });
 
         // assert
         result.MatchSnapshot();
@@ -78,22 +73,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // act
         var result = await server.PostAsync(
-            new ClientQueryRequest { Query = "{ __typename }" });
-
-        // assert
-        result.MatchSnapshot();
-    }
-
-    [Fact(Skip = "We are currently reworking the query plans.")]
-    public async Task Include_Query_Plan()
-    {
-        // arrange
-        var server = CreateStarWarsServer();
-
-        // act
-        var result = await server.PostAsync(
-            new ClientQueryRequest { Query = "{ __typename }" },
-            includeQueryPlan: true);
+            new ClientQueryRequest { Query = "{ __typename }", });
 
         // assert
         result.MatchSnapshot();
@@ -108,7 +88,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // act
         var result = await server.PostRawAsync(
-            new ClientQueryRequest { Query = "{ __typename }" });
+            new ClientQueryRequest { Query = "{ __typename }", });
 
         // assert
         result.MatchSnapshot();
@@ -123,7 +103,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // act
         var result = await server.PostRawAsync(
-            new ClientQueryRequest { Query = "{ __typename }" });
+            new ClientQueryRequest { Query = "{ __typename }", });
 
         // assert
         result.MatchSnapshot();
@@ -137,7 +117,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // act
         var result = await server.PostAsync(
-            new ClientQueryRequest { Query = "{ __typename }" },
+            new ClientQueryRequest { Query = "{ __typename }", },
             "/foo");
 
         // assert
@@ -160,7 +140,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                         hero {
                             name
                         }
-                    }"
+                    }",
                 });
 
         // assert
@@ -183,36 +163,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                         HERO: hero {
                             name
                         }
-                    }"
-                });
-
-        // assert
-        result.MatchSnapshot();
-    }
-
-    [Fact]
-    public async Task Complexity_Exceeded()
-    {
-        // arrange
-        var server = CreateStarWarsServer(
-            configureServices: c => c.AddGraphQLServer().ModifyRequestOptions(
-                o =>
-                {
-                    o.Complexity.Enable = true;
-                    o.Complexity.MaximumAllowed = 1;
-                }));
-
-        // act
-        var result =
-            await server.PostAsync(
-                new ClientQueryRequest
-                {
-                    Query = @"
-                    {
-                        HERO: hero {
-                            name
-                        }
-                    }"
+                    }",
                 });
 
         // assert
@@ -236,7 +187,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             name
                         }
                     }",
-                    Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } }
+                    Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" }, },
                 });
 
         // assert
@@ -261,7 +212,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             name
                         }
                     }",
-                    Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } }
+                    Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" }, },
                 });
 
         // assert
@@ -280,7 +231,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
     private class CustomFormatter : DefaultHttpResponseFormatter
     {
         protected override void OnWriteResponseHeaders(
-            IQueryResult result,
+            IOperationResult result,
             FormatInfo format,
             IHeaderDictionary headers)
         {
@@ -305,7 +256,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             name
                         }
                     }",
-                    Variables = new Dictionary<string, object?> { { "id", "1000" } }
+                    Variables = new Dictionary<string, object?> { { "id", "1000" }, },
                 });
 
         // assert
@@ -336,7 +287,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                                 id
                             }
                         }
-                    }"
+                    }",
                 });
 
         // assert
@@ -371,7 +322,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             id
                         }
                     }
-                }"
+                }",
             });
 
         // assert
@@ -408,39 +359,12 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             id
                         }
                     }
-                }"
+                }",
             });
 
         // assert
         Assert.True(listenerA.Triggered);
         Assert.True(listenerB.Triggered);
-    }
-
-    [Fact]
-    public async Task Apollo_Tracing_Invalid_Field()
-    {
-        // arrange
-        var server = CreateStarWarsServer(
-            configureServices: s => s
-                .AddGraphQLServer()
-                .AddApolloTracing());
-
-        // act
-        var response = await server.PostRawAsync(
-            new ClientQueryRequest
-            {
-                Query =
-                    @"{
-                        hero123(episode: NEW_HOPE)
-                        {
-                            name
-                        }
-                    }"
-            },
-            enableApolloTracing: true);
-
-        // assert
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
@@ -467,11 +391,11 @@ public class HttpPostMiddlewareTests : ServerTestBase
                                 id
                             }
                         }
-                    }"
+                    }",
                 });
 
         // assert
-        result.MatchInlineSnapshot(
+        new GraphQLHttpResponse(result).MatchInlineSnapshot(
             """
             {
               "data": {
@@ -482,8 +406,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                 "wait": true
               }
             }
-            """,
-            formatter: SnapshotValueFormatters.GraphQLHttp);
+            """);
     }
 
     [Fact]
@@ -511,7 +434,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             }
                         }
                     }",
-                    Variables = new Dictionary<string, object?> { ["if"] = true }
+                    Variables = new Dictionary<string, object?> { ["if"] = true, },
                 });
 
         // assert
@@ -540,7 +463,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             }
                         }
                     }",
-                    Variables = new Dictionary<string, object?> { ["if"] = false }
+                    Variables = new Dictionary<string, object?> { ["if"] = false, },
                 });
 
         // assert
@@ -565,17 +488,17 @@ public class HttpPostMiddlewareTests : ServerTestBase
                         hero(episode: NEW_HOPE)
                         {
                             name
-                            friends {
+                            friends(first: 10) {
                                 nodes @stream(initialCount: 1 label: ""foo"") {
                                     name
                                 }
                             }
                         }
-                    }"
+                    }",
             });
 
         // assert
-        result.MatchInlineSnapshot(
+        new GraphQLHttpResponse(result).MatchInlineSnapshot(
             """
             {
               "data": {
@@ -598,8 +521,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                 "wait": true
               }
             }
-            """,
-            formatter: SnapshotValueFormatters.GraphQLHttp);
+            """);
     }
 
     [Fact]
@@ -631,8 +553,8 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             {
                                 { "stars", 5 }, { "commentary", "This is a great movie!" },
                             }
-                        }
-                    }
+                        },
+                    },
                 });
 
         // assert
@@ -667,8 +589,8 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             {
                                 { "stars", 5 }, { "commentary", "This is a great movie!" },
                             }
-                        }
-                    }
+                        },
+                    },
                 });
 
         // assert
@@ -703,8 +625,8 @@ public class HttpPostMiddlewareTests : ServerTestBase
                     {
                         { "ep", "EMPIRE" },
                         { "stars", 5 },
-                        { "commentary", "This is a great movie!" }
-                    }
+                        { "commentary", "This is a great movie!" },
+                    },
                 });
 
         // assert
@@ -740,8 +662,8 @@ public class HttpPostMiddlewareTests : ServerTestBase
                     {
                         { "ep", "EMPIRE" },
                         { "stars", 5 },
-                        { "commentary", "This is a great movie!" }
-                    }
+                        { "commentary", "This is a great movie!" },
+                    },
                 });
 
         // assert
@@ -774,7 +696,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             name
                         }
                     }",
-                    OperationName = operationName
+                    OperationName = operationName,
                 });
 
         // assert
@@ -798,7 +720,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             name
                         }
                     }",
-                    Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } }
+                    Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" }, },
                 });
 
         // assert
@@ -821,7 +743,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                         ähero {
                             name
                         }
-                    }"
+                    }",
                 });
 
         // assert
@@ -843,7 +765,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             query ($d: Float) {
                                  double_arg(d: $d)
                             }",
-                    Variables = new Dictionary<string, object?> { { "d", 1.539 } }
+                    Variables = new Dictionary<string, object?> { { "d", 1.539 }, },
                 },
                 "/arguments");
 
@@ -866,12 +788,12 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             query ($d: Float) {
                                  double_arg(d: $d)
                             }",
-                    Variables = new Dictionary<string, object?> { { "d", double.MaxValue } }
+                    Variables = new Dictionary<string, object?> { { "d", double.MaxValue }, },
                 },
                 "/arguments");
 
         // assert
-        new { double.MaxValue, result }.MatchSnapshot();
+        new { double.MaxValue, result, }.MatchSnapshot();
     }
 
     [Fact]
@@ -889,12 +811,12 @@ public class HttpPostMiddlewareTests : ServerTestBase
                         query ($d: Float) {
                              double_arg(d: $d)
                         }",
-                    Variables = new Dictionary<string, object?> { { "d", double.MinValue } }
+                    Variables = new Dictionary<string, object?> { { "d", double.MinValue }, },
                 },
                 "/arguments");
 
         // assert
-        new { double.MinValue, result }.MatchSnapshot();
+        new { double.MinValue, result, }.MatchSnapshot();
     }
 
     [Fact]
@@ -912,12 +834,12 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             query ($d: Decimal) {
                                  decimal_arg(d: $d)
                             }",
-                    Variables = new Dictionary<string, object?> { { "d", decimal.MaxValue } }
+                    Variables = new Dictionary<string, object?> { { "d", decimal.MaxValue }, },
                 },
                 "/arguments");
 
         // assert
-        new { decimal.MaxValue, result }.MatchSnapshot();
+        new { decimal.MaxValue, result, }.MatchSnapshot();
     }
 
     [Fact]
@@ -935,12 +857,12 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             query ($d: Decimal) {
                                  decimal_arg(d: $d)
                             }",
-                    Variables = new Dictionary<string, object?> { { "d", decimal.MinValue } }
+                    Variables = new Dictionary<string, object?> { { "d", decimal.MinValue }, },
                 },
                 "/arguments");
 
         // assert
-        new { decimal.MinValue, result }.MatchSnapshot();
+        new { decimal.MinValue, result, }.MatchSnapshot();
     }
 
     [Fact]
@@ -1017,286 +939,6 @@ public class HttpPostMiddlewareTests : ServerTestBase
     }
 
     [Fact]
-    public async Task BatchRequest_GetHero_And_GetHuman()
-    {
-        // arrange
-        var server = CreateStarWarsServer();
-
-        // act
-        var result =
-            await server.PostAsync(
-                new List<ClientQueryRequest>
-                {
-                    new ClientQueryRequest
-                    {
-                        Query = @"
-                            query getHero {
-                                hero(episode: EMPIRE) {
-                                    id @export
-                                }
-                            }"
-                    },
-                    new ClientQueryRequest
-                    {
-                        Query = @"
-                            query getHuman {
-                                human(id: $id) {
-                                    name
-                                }
-                            }"
-                    }
-                });
-
-        // assert
-        result.MatchSnapshot();
-    }
-
-    [Fact]
-    public async Task BatchRequest_GetHero_And_GetHuman_MultiPart()
-    {
-        // arrange
-        var server = CreateStarWarsServer(
-            configureServices: sp => sp.AddHttpResponseFormatter());
-
-        // act
-        var response =
-            await server.SendPostRequestAsync(
-                JsonConvert.SerializeObject(
-                    new List<ClientQueryRequest>
-                    {
-                        new ClientQueryRequest
-                        {
-                            Query = @"
-                            query getHero {
-                                hero(episode: EMPIRE) {
-                                    id @export
-                                }
-                            }"
-                        },
-                        new ClientQueryRequest
-                        {
-                            Query = @"
-                            query getHuman {
-                                human(id: $id) {
-                                    name
-                                }
-                            }"
-                        }
-                    }),
-                "/graphql");
-
-        if (response.StatusCode == HttpStatusCode.NotFound)
-        {
-            throw new Exception("GraphQL endpoint not found.");
-        }
-
-        var result = await response.Content.ReadAsStringAsync();
-
-        // assert
-        result.MatchSnapshot();
-    }
-
-    [Fact]
-    public async Task OperationBatchRequest_GetHero_And_GetHuman()
-    {
-        // arrange
-        var server = CreateStarWarsServer();
-
-        // act
-        var result =
-            await server.PostOperationAsync(
-                new ClientQueryRequest
-                {
-                    Query =
-                        @"query getHero {
-                            hero(episode: EMPIRE) {
-                                id @export
-                            }
-                        }
-
-                        query getHuman {
-                            human(id: $id) {
-                                name
-                            }
-                        }"
-                },
-                "getHero, getHuman");
-
-        // assert
-        result.MatchSnapshot();
-    }
-
-    [Fact]
-    public async Task BatchRequest_GetHero_And_GetHuman_MultiPart_Batching_Disabled()
-    {
-        // arrange
-        var server = CreateStarWarsServer(
-            configureServices: sp => sp.AddHttpResponseFormatter());
-
-        // act
-        var response =
-            await server.SendPostRequestAsync(
-                JsonConvert.SerializeObject(
-                    new List<ClientQueryRequest>
-                    {
-                        new ClientQueryRequest
-                        {
-                            Query = @"
-                            query getHero {
-                                hero(episode: EMPIRE) {
-                                    id @export
-                                }
-                            }"
-                        },
-                        new ClientQueryRequest
-                        {
-                            Query = @"
-                            query getHuman {
-                                human(id: $id) {
-                                    name
-                                }
-                            }"
-                        }
-                    }),
-                path: "/batching");
-
-        if (response.StatusCode == HttpStatusCode.NotFound)
-        {
-            throw new Exception("GraphQL endpoint not found.");
-        }
-
-        var result = await response.Content.ReadAsStringAsync();
-
-        // assert
-        result.MatchSnapshot();
-    }
-
-    [Fact]
-    public async Task OperationBatchRequest_GetHero_And_GetHuman_Batching_Disabled()
-    {
-        // arrange
-        var server = CreateStarWarsServer();
-
-        // act
-        var result =
-            await server.PostOperationAsync(
-                new ClientQueryRequest
-                {
-                    Query =
-                        @"query getHero {
-                            hero(episode: EMPIRE) {
-                                id @export
-                            }
-                        }
-
-                        query getHuman {
-                            human(id: $id) {
-                                name
-                            }
-                        }"
-                },
-                "getHero, getHuman",
-                path: "/batching");
-
-        // assert
-        result.MatchSnapshot();
-    }
-
-    [Fact]
-    public async Task OperationBatchRequest_Invalid_BatchingParameter_1()
-    {
-        // arrange
-        var server = CreateStarWarsServer();
-
-        // act
-        var result =
-            await server.PostOperationAsync(
-                new ClientQueryRequest
-                {
-                    Query =
-                        @"
-                        query getHero {
-                            hero(episode: EMPIRE) {
-                                id @export
-                            }
-                        }
-
-                        query getHuman {
-                            human(id: $id) {
-                                name
-                            }
-                        }"
-                },
-                "getHero",
-                createOperationParameter: s => "batchOperations=" + s);
-
-        // assert
-        result.MatchSnapshot();
-    }
-
-    [Fact]
-    public async Task OperationBatchRequest_Invalid_BatchingParameter_2()
-    {
-        // arrange
-        var server = CreateStarWarsServer();
-
-        // act
-        var result =
-            await server.PostOperationAsync(
-                new ClientQueryRequest
-                {
-                    Query = @"
-                            query getHero {
-                                hero(episode: EMPIRE) {
-                                    id @export
-                                }
-                            }
-
-                            query getHuman {
-                                human(id: $id) {
-                                    name
-                                }
-                            }"
-                },
-                "getHero, getHuman",
-                createOperationParameter: s => "batchOperations=[" + s);
-
-        // assert
-        result.MatchSnapshot();
-    }
-
-    [Fact]
-    public async Task OperationBatchRequest_Invalid_BatchingParameter_3()
-    {
-        // arrange
-        var server = CreateStarWarsServer();
-
-        // act
-        var result =
-            await server.PostOperationAsync(
-                new ClientQueryRequest
-                {
-                    Query = @"
-                            query getHero {
-                                hero(episode: EMPIRE) {
-                                    id @export
-                                }
-                            }
-
-                            query getHuman {
-                                human(id: $id) {
-                                    name
-                                }
-                            }"
-                },
-                "getHero, getHuman",
-                createOperationParameter: s => "batchOperations=" + s);
-
-        // assert
-        result.MatchSnapshot();
-    }
-
-    [Fact]
     public async Task Throw_Custom_GraphQL_Error()
     {
         // arrange
@@ -1314,7 +956,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                         hero {
                             name
                         }
-                    }"
+                    }",
                 });
 
         // assert
@@ -1328,14 +970,20 @@ public class HttpPostMiddlewareTests : ServerTestBase
         var server = CreateStarWarsServer(
             configureServices: s => s.AddHttpResponseFormatter(
                 _ => new DefaultHttpResponseFormatter(
-                    new() { Json = new() { NullIgnoreCondition = Fields } })));
+                    new HttpResponseFormatterOptions
+                    {
+                        Json = new JsonResultFormatterOptions
+                        {
+                            NullIgnoreCondition = Fields,
+                        }
+                    })));
         var client = server.CreateClient();
 
         // act
         using var request = new HttpRequestMessage(HttpMethod.Post, _url)
         {
             Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ __schema { description } }" })
+                new ClientQueryRequest { Query = "{ __schema { description } }", }),
         };
 
         using var response = await client.SendAsync(request);
@@ -1363,7 +1011,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
             configureServices: s => s.AddHttpResponseFormatter(
                 new HttpResponseFormatterOptions
                 {
-                    Json = new JsonResultFormatterOptions { NullIgnoreCondition = Fields }
+                    Json = new JsonResultFormatterOptions { NullIgnoreCondition = Fields, },
                 }));
         var client = server.CreateClient();
 
@@ -1371,7 +1019,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
         using var request = new HttpRequestMessage(HttpMethod.Post, _url)
         {
             Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ __schema { description } }" })
+                new ClientQueryRequest { Query = "{ __schema { description } }", }),
         };
 
         using var response = await client.SendAsync(request);
@@ -1405,7 +1053,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                 .AddHttpResponseFormatter(
                     new HttpResponseFormatterOptions
                     {
-                        Json = new JsonResultFormatterOptions { NullIgnoreCondition = Lists }
+                        Json = new JsonResultFormatterOptions { NullIgnoreCondition = Lists, },
                     }));
         var client = server.CreateClient();
 
@@ -1413,7 +1061,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
         using var request = new HttpRequestMessage(HttpMethod.Post, url)
         {
             Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ nullValues }" })
+                new ClientQueryRequest { Query = "{ nullValues }", }),
         };
 
         using var response = await client.SendAsync(request);
@@ -1438,7 +1086,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
         public override ValueTask OnCreateAsync(
             HttpContext context,
             IRequestExecutor requestExecutor,
-            IQueryRequestBuilder requestBuilder,
+            OperationRequestBuilder requestBuilder,
             CancellationToken cancellationToken)
         {
             throw new GraphQLException("MyCustomError");
@@ -1458,6 +1106,6 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
     public class NullListQuery
     {
-        public List<string?> NullValues => new() { null, "abc", null };
+        public List<string?> NullValues => [null, "abc", null,];
     }
 }

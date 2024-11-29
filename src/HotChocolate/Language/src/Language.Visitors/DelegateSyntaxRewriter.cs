@@ -1,10 +1,6 @@
-using System;
-
 namespace HotChocolate.Language.Visitors;
 
-internal sealed class DelegateSyntaxRewriter<TContext>
-    : SyntaxRewriter<TContext>
-    where TContext : ISyntaxVisitorContext
+internal sealed class DelegateSyntaxRewriter<TContext> : SyntaxRewriter<TContext>
 {
     private readonly RewriteSyntaxNode<TContext> _rewrite;
     private readonly Func<ISyntaxNode, TContext, TContext> _enter;
@@ -15,9 +11,9 @@ internal sealed class DelegateSyntaxRewriter<TContext>
         Func<ISyntaxNode, TContext, TContext>? enter = null,
         Action<ISyntaxNode?, TContext>? leave = null)
     {
-        _rewrite = rewrite ?? new RewriteSyntaxNode<TContext>(static (node, _) => node);
-        _enter = enter ?? new Func<ISyntaxNode, TContext, TContext>(static (_, ctx) => ctx);
-        _leave = leave ?? new Action<ISyntaxNode?, TContext>(static (_, _) => { });
+        _rewrite = rewrite ?? (static (node, _) => node);
+        _enter = enter ?? (static (_, ctx) => ctx);
+        _leave = leave ?? (static (_, _) => { });
     }
 
     protected override TContext OnEnter(

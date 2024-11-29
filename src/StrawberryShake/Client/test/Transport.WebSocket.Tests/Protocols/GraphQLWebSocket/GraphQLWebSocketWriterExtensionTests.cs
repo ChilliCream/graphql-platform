@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Text;
-using System.Threading.Tasks;
-using CookieCrumble;
 
 namespace StrawberryShake.Transport.WebSockets.Protocols;
 
@@ -16,8 +12,7 @@ public class GraphQlWsSocketWriterExtensionTests
         var operationId = "12f90cc5-2905-4d10-b33a-cb6d8f98a810";
         var request = new OperationRequest("Foo",
             GetHeroQueryDocument.Instance,
-            new Dictionary<string, object?>() { { "Var1", "Value1" } });
-
+            new Dictionary<string, object?>() { { "Var1", "Value1" }, });
 
         // act
         writer.WriteStartOperationMessage(operationId, request);
@@ -33,8 +28,7 @@ public class GraphQlWsSocketWriterExtensionTests
         await using var writer = new SocketMessageWriter();
         var request = new OperationRequest("Foo",
             GetHeroQueryDocument.Instance,
-            new Dictionary<string, object?>() { { "Var1", "Value1" } });
-
+            new Dictionary<string, object?>() { { "Var1", "Value1" }, });
 
         // act
         var ex =
@@ -50,7 +44,6 @@ public class GraphQlWsSocketWriterExtensionTests
         // arrange
         await using var writer = new SocketMessageWriter();
         var operationId = "12f90cc5-2905-4d10-b33a-cb6d8f98a810";
-
 
         // act
         var ex =
@@ -121,7 +114,7 @@ public class GraphQlWsSocketWriterExtensionTests
         await using var writer = new SocketMessageWriter();
 
         // act
-        writer.WriteInitializeMessage(new Dictionary<string, object> { ["Key"] = "Value" });
+        writer.WriteInitializeMessage(new Dictionary<string, object> { ["Key"] = "Value", });
 
         // assert
         Encoding.UTF8.GetString(writer.Body.Span).MatchSnapshot();

@@ -1,9 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Threading.Tasks;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -16,6 +12,10 @@ namespace HotChocolate.Data.Filters.Expressions;
 /// </summary>
 [return: NotNullIfNotNull("input")]
 public delegate object? ApplyFiltering(IResolverContext context, object? input);
+
+public delegate Expression<Func<TEntityType, bool>>? AsPredicate<TEntityType>(
+    IResolverContext context,
+    bool isInMemory);
 
 /// <summary>
 /// Visit the value node and returns the populated <see cref="QueryableFilterContext"/>
@@ -52,6 +52,12 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
 
     /// <summary>
     /// The key for <see cref="IHasContextData.ContextData"/> on <see cref="IResolverContext"/>
+    /// that defines if the filter should be applied as a predicate
+    /// </summary>
+    public static readonly string ContextAsPredicateKey = nameof(AsPredicate);
+
+    /// <summary>
+    /// The key for <see cref="IHasContextData.ContextData"/> on <see cref="IResolverContext"/>
     /// that defines if filtering is already applied and should be skipped
     /// </summary>
     public static readonly string SkipFilteringKey = "SkipFiltering";
@@ -65,9 +71,7 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
     /// <summary>
     /// Creates a new instance
     /// </summary>
-    public QueryableFilterProvider()
-    {
-    }
+    public QueryableFilterProvider() { }
 
     /// <summary>
     /// Creates a new instance
@@ -86,29 +90,22 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
         new(new QueryableCombinator());
 
     /// <inheritdoc />
-    public override FieldMiddleware CreateExecutor<TEntityType>(string argumentName)
-    {
-        var applyFilter = CreateApplicator<TEntityType>(argumentName);
-
-        return next => context => ExecuteAsync(next, context);
-
-        async ValueTask ExecuteAsync(FieldDelegate next, IMiddlewareContext context)
-        {
-            context.LocalContextData =
-                context.LocalContextData.SetItem(ContextApplyFilteringKey, applyFilter);
-
-            // first we let the pipeline run and produce a result.
-            await next(context).ConfigureAwait(false);
-
-            context.Result = applyFilter(context, context.Result);
-        }
-    }
+    public override IQueryBuilder CreateBuilder<TEntityType>(string argumentName)
+        => new QueryableQueryBuilder<TEntityType>(
+            CreateApplicator<TEntityType>(argumentName),
+            (ctx, inMemory) => AsPredicate<TEntityType>(ctx, argumentName, inMemory));
 
     /// <inheritdoc />
     public override void ConfigureField(
         string argumentName,
         IObjectFieldDescriptor descriptor)
     {
+        var contextData = descriptor.Extend().Definition.ContextData;
+        var argumentKey = (VisitFilterArgument)VisitFilterArgumentExecutor;
+        contextData[ContextVisitFilterArgumentKey] = argumentKey;
+        contextData[ContextArgumentNameKey] = argumentName;
+        return;
+
         QueryableFilterContext VisitFilterArgumentExecutor(
             IValueNode valueNode,
             IFilterInputType filterInput,
@@ -121,11 +118,6 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
 
             return visitorContext;
         }
-
-        var contextData = descriptor.Extend().Definition.ContextData;
-        var argumentKey = (VisitFilterArgument)VisitFilterArgumentExecutor;
-        contextData[ContextVisitFilterArgumentKey] = argumentKey;
-        contextData[ContextArgumentNameKey] = argumentName;
     }
 
     /// <inheritdoc />
@@ -134,22 +126,22 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
         IFilterInputTypeDefinition typeDefinition,
         IFilterFieldDefinition fieldDefinition)
     {
-        if (fieldDefinition.Expression is not null)
+        if (fieldDefinition.Expression is null)
         {
-            if (fieldDefinition.Expression is not LambdaExpression lambda ||
-                lambda.Parameters.Count != 1 ||
-                lambda.Parameters[0].Type != typeDefinition.EntityType)
-            {
-                throw ThrowHelper.QueryableFilterProvider_ExpressionParameterInvalid(
-                    context.Type,
-                    typeDefinition,
-                    fieldDefinition);
-            }
-
-            return new ExpressionFilterMetadata(fieldDefinition.Expression);
+            return null;
         }
 
-        return null;
+        if (fieldDefinition.Expression is not LambdaExpression lambda ||
+            lambda.Parameters.Count != 1 ||
+            lambda.Parameters[0].Type != typeDefinition.EntityType)
+        {
+            throw ThrowHelper.QueryableFilterProvider_ExpressionParameterInvalid(
+                context.Type,
+                typeDefinition,
+                fieldDefinition);
+        }
+
+        return new ExpressionFilterMetadata(fieldDefinition.Expression);
     }
 
     /// <summary>
@@ -165,12 +157,9 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
     /// </returns>
     protected virtual bool IsInMemoryQuery<TEntityType>(object? input)
     {
-        if (input is QueryableExecutable<TEntityType> { InMemory: var inMemory })
-        {
-            return inMemory;
-        }
-
-        return input is not IQueryable || input is EnumerableQuery;
+        return input is IQueryableExecutable<TEntityType> { IsInMemory: var inMemory, }
+            ? inMemory
+            : input is not IQueryable or EnumerableQuery;
     }
 
     /// <summary>
@@ -187,65 +176,97 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
         {
             IQueryable<TEntityType> q => q.Where(where),
             IEnumerable<TEntityType> q => q.AsQueryable().Where(where),
-            QueryableExecutable<TEntityType> q => q.WithSource(q.Source.Where(where)),
-            _ => input
+            IQueryableExecutable<TEntityType> q => q.WithSource(q.Source.Where(where)),
+            _ => input,
         };
 
     private ApplyFiltering CreateApplicator<TEntityType>(string argumentName)
-    {
-        return (context, input) =>
+        => (context, input) =>
         {
-            // next we get the filter argument. If the filter argument is already on the context
-            // we use this. This enabled overriding the context with LocalContextData
-            var argument = context.Selection.Field.Arguments[argumentName];
-            var filter = context.LocalContextData.ContainsKey(ContextValueNodeKey) &&
-                context.LocalContextData[ContextValueNodeKey] is IValueNode node
-                    ? node
-                    : context.ArgumentLiteral<IValueNode>(argumentName);
+            var inMemory = IsInMemoryQuery<TEntityType>(input);
 
             // if no filter is defined we can stop here and yield back control.
-            var skipFiltering =
-                context.LocalContextData.TryGetValue(SkipFilteringKey, out var skip) &&
-                skip is true;
+            var skipFiltering = context.GetLocalStateOrDefault<bool>(SkipFilteringKey);
 
             // ensure filtering is only applied once
-            context.LocalContextData =
-                context.LocalContextData.SetItem(SkipFilteringKey, true);
+            context.SetLocalState(SkipFilteringKey, true);
 
-            if (filter.IsNull() || skipFiltering)
+            if (skipFiltering)
             {
                 return input;
             }
 
-            if (argument.Type is IFilterInputType filterInput &&
-                context.Selection.Field.ContextData
-                    .TryGetValue(ContextVisitFilterArgumentKey, out var executorObj) &&
-                executorObj is VisitFilterArgument executor)
+            var predicate = AsPredicate<TEntityType>(context, argumentName, inMemory);
+
+            if (predicate is not null)
             {
-                var inMemory = IsInMemoryQuery<TEntityType>(input);
-
-                var visitorContext = executor(filter, filterInput, inMemory);
-
-                // compile expression tree
-                if (visitorContext.TryCreateLambda(
-                        out Expression<Func<TEntityType, bool>>? where))
-                {
-                    input = ApplyToResult(input, where);
-                }
-                else
-                {
-                    if (visitorContext.Errors.Count > 0)
-                    {
-                        input = Array.Empty<TEntityType>();
-                        foreach (var error in visitorContext.Errors)
-                        {
-                            context.ReportError(error.WithPath(context.Path));
-                        }
-                    }
-                }
+                input = ApplyToResult(input, predicate);
             }
 
             return input;
         };
+
+    private Expression<Func<TEntityType, bool>>? AsPredicate<TEntityType>(
+        IResolverContext context,
+        string argumentName,
+        bool isInMemory)
+    {
+        // next we get the filter argument. If the filter argument is already on the context
+        // we use this. This enabled overriding the context with LocalContextData
+        var argument = context.Selection.Field.Arguments[argumentName];
+        var filter = context.GetLocalStateOrDefault<IValueNode>(ContextValueNodeKey) ??
+            context.ArgumentLiteral<IValueNode>(argumentName);
+
+        if (filter.IsNull())
+        {
+            return null;
+        }
+
+        if (argument.Type is IFilterInputType filterInput &&
+            context.Selection.Field.ContextData.TryGetValue(ContextVisitFilterArgumentKey,
+                out var executorObj) &&
+            executorObj is VisitFilterArgument executor)
+        {
+            var visitorContext = executor(filter, filterInput, isInMemory);
+
+            // compile expression tree
+            if (visitorContext.Errors.Count == 0)
+            {
+                // if we have an empty filter object it might be that there is no lambda that needs to be applied.
+                // this depends on the provider implementation.
+                if (visitorContext.TryCreateLambda(out Expression<Func<TEntityType, bool>>? where))
+                {
+                    return where;
+                }
+            }
+            else
+            {
+                var exceptions = new List<GraphQLException>(visitorContext.Errors.Count);
+
+                foreach (var error in visitorContext.Errors)
+                {
+                    exceptions.Add(new GraphQLException(error));
+                }
+
+                throw new AggregateException(exceptions);
+            }
+        }
+
+        return null;
+    }
+
+    private sealed class QueryableQueryBuilder<T>(
+        ApplyFiltering applicator,
+        AsPredicate<T> asPredicate)
+        : IQueryBuilder
+    {
+        public void Prepare(IMiddlewareContext context)
+        {
+            context.SetLocalState(ContextApplyFilteringKey, applicator);
+            context.SetLocalState(ContextAsPredicateKey, asPredicate);
+        }
+
+        public void Apply(IMiddlewareContext context)
+            => context.Result = applicator(context, context.Result);
     }
 }

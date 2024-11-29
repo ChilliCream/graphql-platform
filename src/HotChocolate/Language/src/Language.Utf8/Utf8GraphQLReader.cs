@@ -1,4 +1,3 @@
-using System;
 using System.Runtime.CompilerServices;
 using static HotChocolate.Language.Properties.LangUtf8Resources;
 
@@ -113,7 +112,7 @@ public ref partial struct Utf8GraphQLReader
 
         if (_position == 0)
         {
-            SkipBoml();
+            SkipBom();
         }
 
         SkipWhitespaces();
@@ -339,9 +338,9 @@ public ref partial struct Utf8GraphQLReader
 
     /// <summary>
     /// Reads int tokens as specified in
-    /// http://facebook.github.io/graphql/October2016/#IntValue
+    /// http://facebook.github.io/graphql/October2021/#IntValue
     /// or a float tokens as specified in
-    /// http://facebook.github.io/graphql/October2016/#FloatValue
+    /// http://facebook.github.io/graphql/October2021/#FloatValue
     /// from the current lexer state.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -378,7 +377,8 @@ public ref partial struct Utf8GraphQLReader
             code = ReadDigits(code);
         }
 
-        if ((code | 0x20) is GraphQLConstants.E)
+        const byte lowerCaseBit = 0x20;
+        if ((code | lowerCaseBit) is GraphQLConstants.E)
         {
             isFloat = true;
             _floatFormat = Language.FloatFormat.Exponential;
@@ -388,7 +388,18 @@ public ref partial struct Utf8GraphQLReader
             {
                 code = _graphQLData[++_position];
             }
-            ReadDigits(code);
+            code = ReadDigits(code);
+        }
+
+        // Lookahead for NameStart.
+        // https://github.com/graphql/graphql-spec/pull/601
+        // NOTE:
+        // Not checking for Digit because there is no situation
+        // where that hasn't been consumed at this point.
+        if (code.IsLetterOrUnderscore() ||
+            code == GraphQLConstants.Dot)
+        {
+            throw new SyntaxException(this, DisallowedNameCharacterAfterNumber, (char)code, code);
         }
 
         _kind = isFloat
@@ -722,7 +733,7 @@ public ref partial struct Utf8GraphQLReader
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void SkipBoml()
+    private void SkipBom()
     {
         var code = _graphQLData[_position];
 

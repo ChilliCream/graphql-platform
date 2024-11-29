@@ -1,13 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
+using static HotChocolate.Utilities.ErrorHelper;
 
 #nullable enable
 
@@ -19,16 +16,22 @@ public static class FieldInitHelper
         ITypeCompletionContext context,
         ArgumentDefinition argumentDefinition,
         IInputType argumentType,
-        FieldCoordinate argumentCoordinate)
+        SchemaCoordinate argumentCoordinate)
     {
+        var defaultValue = argumentDefinition.DefaultValue;
+
         try
         {
-            return argumentDefinition.RuntimeDefaultValue != null
-                ? context.DescriptorContext.InputFormatter.FormatValue(
-                    argumentDefinition.RuntimeDefaultValue,
-                    argumentType,
-                    Path.Root)
-                : argumentDefinition.DefaultValue;
+            if(defaultValue is null && argumentDefinition.RuntimeDefaultValue is not null)
+            {
+                defaultValue =
+                    context.DescriptorContext.InputFormatter.FormatValue(
+                        argumentDefinition.RuntimeDefaultValue,
+                        argumentType,
+                        Path.Root);
+            }
+
+            return defaultValue;
         }
         catch (Exception ex)
         {
@@ -38,7 +41,6 @@ public static class FieldInitHelper
                     argumentCoordinate)
                 .SetCode(ErrorCodes.Schema.MissingType)
                 .SetTypeSystemObject(context.Type)
-                .AddSyntaxNode(argumentDefinition.SyntaxNode)
                 .SetException(ex)
                 .Build());
             return NullValueNode.Default;
@@ -50,7 +52,7 @@ public static class FieldInitHelper
         ITypeSystemMember declaringMember,
         IReadOnlyList<TFieldDefinition> fieldDefs,
         Func<TFieldDefinition, int, TField> fieldFactory)
-        where TFieldDefinition : FieldDefinitionBase, IHasSyntaxNode
+        where TFieldDefinition : FieldDefinitionBase
         where TField : class, IField
     {
         if (context is null)
@@ -87,7 +89,7 @@ public static class FieldInitHelper
         IEnumerable<TFieldDefinition> fieldDefs,
         Func<TFieldDefinition, int, TField> fieldFactory,
         int maxFieldCount)
-        where TFieldDefinition : FieldDefinitionBase, IHasSyntaxNode
+        where TFieldDefinition : FieldDefinitionBase
         where TField : class, IField
     {
         if (context is null)
@@ -107,7 +109,7 @@ public static class FieldInitHelper
 
         if (fieldFactory is null)
         {
-            throw new ArgumentNullException(nameof(fieldDefs));
+            throw new ArgumentNullException(nameof(fieldFactory));
         }
 
         if (maxFieldCount < 1)
@@ -156,7 +158,7 @@ public static class FieldInitHelper
         IEnumerable<TFieldDefinition> fieldDefinitions,
         Func<TFieldDefinition, int, TField> fieldFactory,
         int fieldCount)
-        where TFieldDefinition : FieldDefinitionBase, IHasSyntaxNode
+        where TFieldDefinition : FieldDefinitionBase
         where TField : class, IField
     {
         var fieldDefs = fieldDefinitions.Where(t => !t.Ignore);
@@ -191,16 +193,7 @@ public static class FieldInitHelper
     {
         if (declaringMember is IType type && fields.Length == 0)
         {
-            context.ReportError(SchemaErrorBuilder.New()
-                .SetMessage(string.Format(
-                    CultureInfo.InvariantCulture,
-                    TypeResources.FieldInitHelper_NoFields,
-                    type.Kind.ToString(),
-                    context.Type.Name))
-                .SetCode(ErrorCodes.Schema.MissingType)
-                .SetTypeSystemObject(context.Type)
-                .AddSyntaxNode((type as IHasSyntaxNode)?.SyntaxNode)
-                .Build());
+            context.ReportError(NoFields(context.Type, type));
             return FieldCollection<TField>.Empty;
         }
 
@@ -209,7 +202,18 @@ public static class FieldInitHelper
             ((IFieldCompletion)field).CompleteField(context, declaringMember);
         }
 
-        return new FieldCollection<TField>(fields);
+        var collection =  FieldCollection<TField>.TryCreate(fields, out var duplicateFieldNames);
+
+        if (duplicateFieldNames?.Count > 0)
+        {
+           context.ReportError(
+               DuplicateFieldName(
+                   context.Type,
+                   declaringMember,
+                   duplicateFieldNames));
+        }
+
+        return collection;
     }
 
     internal static Type CompleteRuntimeType(IType type, Type? runtimeType)

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace StrawberryShake.Tools;
 
 public class DownloadCommandContext
@@ -10,13 +7,15 @@ public class DownloadCommandContext
         string fileName,
         string? token,
         string? scheme,
-        Dictionary<string, IEnumerable<string>> customHeaders)
+        Dictionary<string, IEnumerable<string>> customHeaders,
+        int typeDepth)
     {
         Uri = uri;
         FileName = fileName;
         Token = token;
         Scheme = scheme;
         CustomHeaders = customHeaders;
+        TypeDepth = typeDepth;
     }
 
     public Uri Uri { get; }
@@ -24,4 +23,5 @@ public class DownloadCommandContext
     public string? Token { get; }
     public string? Scheme { get; }
     public Dictionary<string, IEnumerable<string>> CustomHeaders { get; }
+    public int TypeDepth { get; }
 }

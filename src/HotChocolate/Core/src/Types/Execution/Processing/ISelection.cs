@@ -1,7 +1,5 @@
 #nullable enable
 
-using System;
-using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -54,9 +52,19 @@ public interface ISelection : IOptionalSelection
     ISelectionSet DeclaringSelectionSet { get; }
 
     /// <summary>
-    /// Gets the field selection syntax node.
+    /// Gets the operation that declares this selection.
+    /// </summary>
+    IOperation DeclaringOperation { get; }
+
+    /// <summary>
+    /// Gets the merged field selection syntax node.
     /// </summary>
     FieldNode SyntaxNode { get; }
+
+    /// <summary>
+    /// Gets the field selection syntax node.
+    /// </summary>
+    IReadOnlyList<FieldNode> SyntaxNodes { get; }
 
     /// <summary>
     /// If this selection selects a field that returns a composite type
@@ -87,12 +95,6 @@ public interface ISelection : IOptionalSelection
     /// The arguments that have been pre-coerced for this field selection.
     /// </summary>
     ArgumentMap Arguments { get; }
-
-    /// <summary>
-    /// Defines that the resolver pipeline returns an
-    /// <see cref="IAsyncEnumerable{T}"/> as its result.
-    /// </summary>
-    bool HasStreamResult { get; }
 
     /// <summary>
     /// Defines if this selection is annotated with the stream directive.

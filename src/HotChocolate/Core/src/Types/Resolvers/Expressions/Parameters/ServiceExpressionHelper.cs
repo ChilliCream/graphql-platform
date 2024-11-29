@@ -1,9 +1,5 @@
-using System;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using HotChocolate.Types.Descriptors;
-using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -12,66 +8,28 @@ namespace HotChocolate.Resolvers.Expressions.Parameters;
 /// <summary>
 /// Provides helpers for service expression builders.
 /// </summary>
-public static class ServiceExpressionHelper
+internal static class ServiceExpressionHelper
 {
-    private const string _service = nameof(IPureResolverContext.Service);
-    private const string _fromServicesAttribute = "FromServicesAttribute";
+    private const string _serviceResolver = nameof(GetService);
+    private const string _keyedServiceResolver = nameof(GetKeyedService);
+    private static readonly Expression _true = Expression.Constant(true);
+    private static readonly Expression _false = Expression.Constant(false);
 
     private static readonly MethodInfo _getServiceMethod =
-        ParameterExpressionBuilderHelpers.PureContextType.GetMethods().First(
-            method => method.Name.Equals(_service, StringComparison.Ordinal) &&
-                method.IsGenericMethod);
+        typeof(ServiceExpressionHelper).GetMethods().First(
+            method => method.Name.Equals(_serviceResolver, StringComparison.Ordinal));
 
-    private static readonly PropertyInfo _contextData =
-        ParameterExpressionBuilderHelpers.ContextType.GetProperty(
-            nameof(IResolverContext.LocalContextData))!;
-
-    private static readonly MethodInfo _getScopedState =
-        typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.GetScopedState))!;
-
-    private static readonly MethodInfo _getScopedStateWithDefault =
-        typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.GetScopedStateWithDefault))!;
+    private static readonly MethodInfo _getKeyedServiceMethod =
+        typeof(ServiceExpressionHelper).GetMethods().First(
+            method => method.Name.Equals(_keyedServiceResolver, StringComparison.Ordinal));
 
     /// <summary>
-    /// Applies the service configurations.
+    /// Builds the service expression.
     /// </summary>
-    public static void ApplyConfiguration(
+    public static Expression Build(
         ParameterInfo parameter,
-        ObjectFieldDescriptor descriptor,
-        ServiceKind serviceKind)
-    {
-        if (parameter is null)
-        {
-            throw new ArgumentNullException(nameof(parameter));
-        }
-
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        switch (serviceKind)
-        {
-            case ServiceKind.Default:
-                return;
-
-            case ServiceKind.Synchronized:
-                descriptor.Extend().Definition.IsParallelExecutable = false;
-                break;
-
-            case ServiceKind.Pooled:
-                ServiceHelper.UsePooledService(descriptor.Definition, parameter.ParameterType);
-                break;
-
-            case ServiceKind.Resolver:
-                ServiceHelper.UseResolverService(descriptor.Definition, parameter.ParameterType);
-                return;
-
-            default:
-                throw new NotSupportedException(
-                    $"Service kind `{serviceKind}` is not supported.");
-        }
-    }
+        Expression context)
+        => BuildDefaultService(parameter, context);
 
     /// <summary>
     /// Builds the service expression.
@@ -79,79 +37,48 @@ public static class ServiceExpressionHelper
     public static Expression Build(
         ParameterInfo parameter,
         Expression context,
-        ServiceKind serviceKind)
-    {
-        if (parameter is null)
-        {
-            throw new ArgumentNullException(nameof(parameter));
-        }
-
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        return serviceKind is ServiceKind.Default or ServiceKind.Synchronized
-            ? BuildDefaultService(parameter, context)
-            : BuildLocalService(parameter, context);
-    }
+        string key)
+        => BuildDefaultService(parameter, context, key);
 
     private static Expression BuildDefaultService(ParameterInfo parameter, Expression context)
     {
         var parameterType = parameter.ParameterType;
         var argumentMethod = _getServiceMethod.MakeGenericMethod(parameterType);
-        return Expression.Call(context, argumentMethod);
+        var nullabilityContext = new NullabilityInfoContext();
+        var nullabilityInfo = nullabilityContext.Create(parameter);
+        var isRequired = nullabilityInfo.ReadState == NullabilityState.NotNull;
+        return Expression.Call(argumentMethod, context, isRequired ? _true : _false);
     }
 
-    private static Expression BuildLocalService(ParameterInfo parameter, Expression context)
+    private static Expression BuildDefaultService(ParameterInfo parameter, Expression context, string key)
     {
-        var key = Expression.Constant(
-            parameter.ParameterType.FullName ??
-            parameter.ParameterType.Name,
-            typeof(string));
-
-        var contextData = Expression.Property(context, _contextData);
-
-        var getScopedState =
-            parameter.HasDefaultValue
-                ? _getScopedStateWithDefault.MakeGenericMethod(parameter.ParameterType)
-                : _getScopedState.MakeGenericMethod(parameter.ParameterType);
-
-        return parameter.HasDefaultValue
-            ? Expression.Call(
-                getScopedState,
-                context,
-                contextData,
-                key,
-                Expression.Constant(true, typeof(bool)),
-                Expression.Constant(parameter.RawDefaultValue, parameter.ParameterType))
-            : Expression.Call(
-                getScopedState,
-                context,
-                contextData,
-                key,
-                Expression.Constant(
-                    new NullableHelper(parameter.ParameterType)
-                        .GetFlags(parameter).FirstOrDefault() ?? false,
-                    typeof(bool)));
+        var parameterType = parameter.ParameterType;
+        var argumentMethod = _getKeyedServiceMethod.MakeGenericMethod(parameterType);
+        var keyExpression = Expression.Constant(key, typeof(object));
+        var nullabilityContext = new NullabilityInfoContext();
+        var nullabilityInfo = nullabilityContext.Create(parameter);
+        var isRequired = nullabilityInfo.ReadState == NullabilityState.NotNull;
+        return Expression.Call(argumentMethod, context, keyExpression, isRequired ? _true : _false);
     }
 
-    public static bool TryGetServiceKind(ParameterInfo parameter, out ServiceKind kind)
+    public static TService? GetService<TService>(
+        IResolverContext context,
+        bool required)
+        where TService : notnull
     {
-        if (parameter.IsDefined(typeof(ServiceAttribute)))
-        {
-            kind = parameter.GetCustomAttribute<ServiceAttribute>()!.Kind;
-            return true;
-        }
+        return required
+            ? context.Services.GetRequiredService<TService>()
+            : context.Services.GetService<TService>();
+    }
 
-        if (parameter.GetCustomAttributesData()
-            .Any(t => t.AttributeType.Name.EqualsOrdinal(_fromServicesAttribute)))
-        {
-            kind = ServiceKind.Default;
-            return true;
-        }
-
-        kind = default;
-        return false;
+    public static TService? GetKeyedService<TService>(
+        IResolverContext context,
+        object? key,
+        bool required)
+        where TService : notnull
+    {
+        return required
+            ? context.Services.GetRequiredKeyedService<TService>(key)
+            : context.Services.GetKeyedService<TService>(key);
     }
 }

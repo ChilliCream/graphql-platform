@@ -34,5 +34,5 @@ public class MartenQueryableSortProvider : QueryableSortProvider
 
     protected override bool IsInMemoryQuery<TEntityType>(object? input)
         => base.IsInMemoryQuery<TEntityType>(input) &&
-            input is not IMartenQueryable<TEntityType> and not IMartenQueryable;
+            input is not IMartenQueryable<TEntityType>;
 }

@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Utilities.CompilerServices;
 
@@ -64,7 +61,7 @@ internal readonly struct NullableHelper
             {
                 Nullable.Yes => true,
                 Nullable.No => false,
-                _ => null
+                _ => null,
             };
         }
         return parent;
@@ -96,13 +93,13 @@ internal readonly struct NullableHelper
                 {
                     Nullable.Yes => true,
                     Nullable.No => false,
-                    _ => null
+                    _ => null,
                 };
             }
 
             return flags;
         }
-        return Array.Empty<bool?>();
+        return [];
     }
 
     private static NullableContextAttribute? GetNullableContextAttribute(

@@ -1,12 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Configuration;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types;
 
@@ -291,14 +288,8 @@ public class EnumTypeTests : TypeTestBase
             .Create();
 
         // assert
-#if NETCOREAPP2_1
-            Assert.Throws<SchemaException>(Action)
-                .Errors.Single().Message.MatchSnapshot(
-                    new SnapshotNameExtension("NETCOREAPP2_1"));
-#else
         Assert.Throws<SchemaException>(Action)
             .Errors.Single().Message.MatchSnapshot();
-#endif
     }
 
     [Fact]
@@ -359,7 +350,7 @@ public class EnumTypeTests : TypeTestBase
             .AddEnumType(d => d
                 .Name("Foo")
                 .Value("baz")
-                .Directive("bar", Array.Empty<ArgumentNode>()))
+                .Directive("bar", []))
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
@@ -665,27 +656,72 @@ public class EnumTypeTests : TypeTestBase
         Assert.True(type.IsInstanceOfType("ANYTHING WILL DO"));
     }
 
+    [Fact]
+    public async Task EnsureEnumValueOrder()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryWithEnum>()
+                .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task EnsureEnumValueOrder_With_Introspection()
+    {
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryWithEnum>()
+                .BuildRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                __type(name: "CriticalityLevel") {
+                    enumValues {
+                        name
+                    }
+                }
+            }
+            """);
+
+        result.MatchMarkdownSnapshot();
+    }
+
     public enum Foo
     {
         Bar1,
-        Bar2
+        Bar2,
     }
 
-    public class Bar { }
+    public class Bar;
 
     public enum FooObsolete
     {
         Bar1,
 
-        [Obsolete]
-        Bar2
+        [Obsolete] Bar2,
     }
 
     public enum FooIgnore
     {
         Bar1,
-        [GraphQLIgnore]
-        Bar2
+        [GraphQLIgnore] Bar2,
+    }
+
+    public enum CriticalityLevel
+    {
+        Info,
+        Warning,
+        Critical
+    }
+
+    public class QueryWithEnum
+    {
+        public CriticalityLevel GetCriticalityLevel() => CriticalityLevel.Critical;
     }
 
     public class FooIgnoredType : EnumType<Foo>
@@ -707,21 +743,19 @@ public class EnumTypeTests : TypeTestBase
     public enum FooDeprecated
     {
         Bar1,
-        [GraphQLDeprecated("Baz.")]
-        Bar2
+        [GraphQLDeprecated("Baz.")] Bar2,
     }
 
     [GraphQLName("Foo")]
     public enum FooName
     {
         Bar1,
-        [GraphQLName("BAR_2")]
-        Bar2
+        [GraphQLName("BAR_2")] Bar2,
     }
 
     public enum FooUnderline
     {
-        Creating_Instance = 1
+        Creating_Instance = 1,
     }
 
     public class SomeQueryType : ObjectType
@@ -748,7 +782,7 @@ public class EnumTypeTests : TypeTestBase
     public enum DescriptionTestEnum
     {
         Foo,
-        Bar
+        Bar,
     }
 
     public class ValueComparer : IEqualityComparer<object>

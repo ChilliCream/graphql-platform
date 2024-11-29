@@ -1,0 +1,5 @@
+<Project>
+  <Target Name="BuildGateway" BeforeTargets="AfterBuild" Condition="'$(DisableFusionAnalyzerBuild)' ==''">
+    <Exec Command="dotnet run --project $(MSBuildProjectFullPath) --no-restore --no-build -- compose" />
+  </Target>
+</Project>

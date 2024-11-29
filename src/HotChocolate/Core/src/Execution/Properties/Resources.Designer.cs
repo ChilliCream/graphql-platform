@@ -285,9 +285,9 @@ namespace HotChocolate.Execution.Properties {
             }
         }
         
-        internal static string RequestExecutorBuilder_Convention_NotSuppported {
+        internal static string RequestExecutorBuilder_Convention_NotSupported {
             get {
-                return ResourceManager.GetString("RequestExecutorBuilder_Convention_NotSuppported", resourceCulture);
+                return ResourceManager.GetString("RequestExecutorBuilder_Convention_NotSupported", resourceCulture);
             }
         }
         
@@ -312,18 +312,6 @@ namespace HotChocolate.Execution.Properties {
         internal static string ResultHelper_BuildResult_InvalidResult {
             get {
                 return ResourceManager.GetString("ResultHelper_BuildResult_InvalidResult", resourceCulture);
-            }
-        }
-        
-        internal static string ErrorHelper_MaxComplexityReached {
-            get {
-                return ResourceManager.GetString("ErrorHelper_MaxComplexityReached", resourceCulture);
-            }
-        }
-        
-        internal static string ErrorHelper_StateInvalidForComplexityAnalyzer_Message {
-            get {
-                return ResourceManager.GetString("ErrorHelper_StateInvalidForComplexityAnalyzer_Message", resourceCulture);
             }
         }
         
@@ -429,15 +417,15 @@ namespace HotChocolate.Execution.Properties {
             }
         }
         
-        internal static string ErrorHelper_PersistedQueryNotFound {
+        internal static string ErrorHelper_PersistedOperationNotFound {
             get {
-                return ResourceManager.GetString("ErrorHelper_PersistedQueryNotFound", resourceCulture);
+                return ResourceManager.GetString("ErrorHelper_PersistedOperationNotFound", resourceCulture);
             }
         }
         
-        internal static string ErrorHelper_OnlyPersistedQueriesAreAllowed {
+        internal static string ErrorHelper_OnlyPersistedOperationsAreAllowed {
             get {
-                return ResourceManager.GetString("ErrorHelper_OnlyPersistedQueriesAreAllowed", resourceCulture);
+                return ResourceManager.GetString("ErrorHelper_OnlyPersistedOperationsAreAllowed", resourceCulture);
             }
         }
         
@@ -468,12 +456,6 @@ namespace HotChocolate.Execution.Properties {
         internal static string SelectionSetOptimizerContext_AddSelection_ResponseNameNotTheSame {
             get {
                 return ResourceManager.GetString("SelectionSetOptimizerContext_AddSelection_ResponseNameNotTheSame", resourceCulture);
-            }
-        }
-        
-        internal static string ComplexityAnalyzerCompiler_Enter_OnlyOperations {
-            get {
-                return ResourceManager.GetString("ComplexityAnalyzerCompiler_Enter_OnlyOperations", resourceCulture);
             }
         }
     }

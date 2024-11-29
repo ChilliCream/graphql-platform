@@ -8,7 +8,7 @@ Because of these capabilities, they also allow for better organization of our ty
 
 Type extensions are especially useful if we want to modify third-party types, such as types that live in a separate assembly and are therefore not directly modifiable by us.
 
-> Warning: Type extensions do not produce the [extend type syntax that GraphQL offers](http://spec.graphql.org/draft/#sec-Object-Extensions), since it would unnecessarily complicate the resulting schema. Instead, Hot Chocolate's type extensions are directly merged with the original type definition to create a single type at runtime.
+> Warning: Type extensions do not produce the [extend type syntax that GraphQL offers](https://spec.graphql.org/draft/#sec-Object-Extensions), since it would unnecessarily complicate the resulting schema. Instead, Hot Chocolate's type extensions are directly merged with the original type definition to create a single type at runtime.
 
 # Object Types
 
@@ -30,7 +30,7 @@ public class Book
 We can easily add new fields to our existing `Book` type.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 [ExtendObjectType(typeof(Book))]
@@ -76,7 +76,7 @@ public class Startup
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -148,7 +148,7 @@ Simply add a new field to the existing type.
 We can also ignore fields of the type we are extending.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 [ExtendObjectType(typeof(Book),
@@ -168,7 +168,7 @@ public class Startup
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 **This is currently not working ([#3776](https://github.com/ChilliCream/graphql-platform/issues/3776))**
@@ -208,7 +208,7 @@ We might have an `Id` field, which we want to replace with a field that resolves
 In this example we replace the `authorId` field with an `author` field.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 [ExtendObjectType(typeof(Book))]
@@ -232,7 +232,7 @@ public class Startup
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 **This is currently not working ([#3776](https://github.com/ChilliCream/graphql-platform/issues/3776))**
@@ -279,7 +279,7 @@ Simply replace the field on the existing type.
 If we can not reference a type, we can still extend it by specifying its name.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 [ExtendObjectType("Foo")]
@@ -289,7 +289,7 @@ public class FooExtensions
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp

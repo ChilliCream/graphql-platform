@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
@@ -17,7 +14,7 @@ internal sealed class TypeRegistry
     private readonly Dictionary<ExtendedTypeReference, TypeReference> _runtimeTypeRefs =
         new(new ExtendedTypeRefEqualityComparer());
     private readonly Dictionary<string, TypeReference> _nameRefs = new(StringComparer.Ordinal);
-    private readonly List<RegisteredType> _types = new();
+    private readonly List<RegisteredType> _types = [];
     private readonly TypeInterceptor _typeRegistryInterceptor;
 
     public TypeRegistry(TypeInterceptor typeRegistryInterceptor)
@@ -47,9 +44,10 @@ internal sealed class TypeRegistry
             return true;
         }
 
-        if (typeReference is ExtendedTypeReference extendedTypeRef)
+        if (typeReference is ExtendedTypeReference extendedTypeRef &&
+            _runtimeTypeRefs.TryGetValue(extendedTypeRef, out var reference))
         {
-            return _runtimeTypeRefs.ContainsKey(extendedTypeRef);
+            return _typeRegister.ContainsKey(reference);
         }
 
         return false;
@@ -158,7 +156,7 @@ internal sealed class TypeRegistry
         if (!registeredType.IsExtension)
         {
             if (registeredType.IsNamedType &&
-                registeredType.Type is IHasTypeDefinition { Definition: { } typeDef } &&
+                registeredType.Type is IHasTypeDefinition { Definition: { } typeDef, } &&
                 !_nameRefs.ContainsKey(typeDef.Name))
             {
                 _nameRefs.Add(typeDef.Name, registeredType.References[0]);
@@ -206,7 +204,7 @@ internal sealed class TypeRegistry
             return;
         }
 
-        if (registeredType is { IsNamedType: false, IsDirectiveType: false })
+        if (registeredType is { IsNamedType: false, IsDirectiveType: false, })
         {
             return;
         }

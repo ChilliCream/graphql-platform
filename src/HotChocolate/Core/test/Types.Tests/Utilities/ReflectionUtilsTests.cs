@@ -1,5 +1,3 @@
-﻿using Xunit;
-
 namespace HotChocolate.Utilities;
 
 public class ReflectionUtilsTests

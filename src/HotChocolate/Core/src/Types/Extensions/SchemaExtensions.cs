@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -27,7 +26,7 @@ public static class SchemaExtensions
             OperationType.Query => schema.QueryType,
             OperationType.Mutation => schema.MutationType,
             OperationType.Subscription => schema.SubscriptionType,
-            _ => throw new NotSupportedException()
+            _ => throw new NotSupportedException(),
         };
 
     /// <summary>

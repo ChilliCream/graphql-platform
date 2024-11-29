@@ -13,5 +13,5 @@ public enum ObjectFieldBindingType
     /// <summary>
     /// Binds to a GraphQL field
     /// </summary>
-    Field
+    Field,
 }

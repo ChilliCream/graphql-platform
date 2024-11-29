@@ -1,10 +1,6 @@
-using System;
-using System.Threading.Tasks;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Execution.Pipeline;
 
@@ -54,8 +50,6 @@ public class TransactionScopeHandlerTests
     [Fact]
     public async Task DefaultTransactionScopeHandler_Creates_SystemTransactionScope()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
@@ -68,8 +62,6 @@ public class TransactionScopeHandlerTests
     [Fact]
     public async Task By_Default_There_Is_No_TransactionScope()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
@@ -93,52 +85,22 @@ public class TransactionScopeHandlerTests
             System.Transactions.Transaction.Current is not null;
     }
 
-    public class MockTransactionScopeHandler : ITransactionScopeHandler
+    public class MockTransactionScopeHandler(Action complete, Action dispose) : ITransactionScopeHandler
     {
-        private readonly Action _complete;
-        private readonly Action _dispose;
-
-        public MockTransactionScopeHandler(
-            Action complete,
-            Action dispose)
-        {
-            _complete = complete;
-            _dispose = dispose;
-        }
-
         public ITransactionScope Create(IRequestContext context)
-        {
-            return new MockTransactionScope(_complete, _dispose, context);
-        }
+            => new MockTransactionScope(complete, dispose, context);
     }
 
-    public class MockTransactionScope : ITransactionScope
+    public class MockTransactionScope(Action complete, Action dispose, IRequestContext context) : ITransactionScope
     {
-        private readonly Action _complete;
-        private readonly Action _dispose;
-        private readonly IRequestContext _context;
-
-        public MockTransactionScope(
-            Action complete,
-            Action dispose,
-            IRequestContext context)
-        {
-            _complete = complete;
-            _dispose = dispose;
-            _context = context;
-        }
-
         public void Complete()
         {
-            if(_context.Result is IQueryResult { Data: not null, Errors: null or { Count: 0 } })
+            if(context.Result is IOperationResult { Data: not null, Errors: null or { Count: 0, }, })
             {
-                _complete();
+                complete();
             }
         }
 
-        public void Dispose()
-        {
-            _dispose();
-        }
+        public void Dispose() => dispose();
     }
 }

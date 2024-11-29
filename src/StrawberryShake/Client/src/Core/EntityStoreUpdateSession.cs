@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using StrawberryShake.Properties;
 
 namespace StrawberryShake;
@@ -28,7 +26,7 @@ internal sealed class EntityStoreUpdateSession : IEntityStoreUpdateSession
 
     public EntityStoreSnapshot CurrentSnapshot { get; }
 
-    public HashSet<EntityId> UpdatedEntityIds { get; } = new();
+    public HashSet<EntityId> UpdatedEntityIds { get; } = [];
 
     IEntityStoreSnapshot IEntityStoreUpdateSession.CurrentSnapshot => CurrentSnapshot;
 

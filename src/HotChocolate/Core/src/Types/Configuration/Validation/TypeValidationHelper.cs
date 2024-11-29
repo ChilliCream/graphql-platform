@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Types;
 using static HotChocolate.Utilities.ErrorHelper;
 
@@ -10,7 +7,7 @@ namespace HotChocolate.Configuration.Validation;
 
 internal static class TypeValidationHelper
 {
-    private const char _underscore = '_';
+    private const char _prefixCharacter = '_';
 
     public static void EnsureTypeHasFields(
         IComplexOutputType type,
@@ -31,7 +28,7 @@ internal static class TypeValidationHelper
         {
             var field = type.Fields[i];
 
-            if (field.IsDeprecated && field.Type.IsNonNullType())
+            if (field.IsDeprecated && field.Type.IsNonNullType() && field.DefaultValue is null)
             {
                 errors.Add(RequiredFieldCannotBeDeprecated(type, field));
             }
@@ -49,7 +46,7 @@ internal static class TypeValidationHelper
             {
                 var argument = field.Arguments[j];
 
-                if (argument.IsDeprecated && argument.Type.IsNonNullType())
+                if (argument.IsDeprecated && argument.Type.IsNonNullType() && argument.DefaultValue is null)
                 {
                     errors.Add(RequiredArgumentCannotBeDeprecated(type, field, argument));
                 }
@@ -64,7 +61,7 @@ internal static class TypeValidationHelper
         for (var i = 0; i < type.Arguments.Count; i++)
         {
             var argument = type.Arguments[i];
-            if (argument.IsDeprecated && argument.Type.IsNonNullType())
+            if (argument.IsDeprecated && argument.Type.IsNonNullType() && argument.DefaultValue is null)
             {
                 errors.Add(RequiredArgumentCannotBeDeprecated(type, argument));
             }
@@ -152,7 +149,7 @@ internal static class TypeValidationHelper
         }
     }
 
-    // http://spec.graphql.org/draft/#IsValidImplementation()
+    // https://spec.graphql.org/draft/#IsValidImplementation()
     private static void ValidateImplementation(
         IComplexOutputType type,
         IInterfaceType implementedType,
@@ -235,7 +232,7 @@ internal static class TypeValidationHelper
         return true;
     }
 
-    // http://spec.graphql.org/draft/#IsValidImplementationFieldType()
+    // https://spec.graphql.org/draft/#IsValidImplementationFieldType()
     private static bool IsValidImplementationFieldType(
         IOutputType fieldType,
         IOutputType implementedType)
@@ -287,8 +284,8 @@ internal static class TypeValidationHelper
         {
             var firstTwoLetters = name.AsSpan().Slice(0, 2);
 
-            if (firstTwoLetters[0] == _underscore &&
-                firstTwoLetters[1] == _underscore)
+            if (firstTwoLetters[0] == _prefixCharacter &&
+                firstTwoLetters[1] == _prefixCharacter)
             {
                 return true;
             }

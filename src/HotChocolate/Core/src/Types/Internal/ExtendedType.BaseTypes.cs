@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Types;
 
 #nullable enable
@@ -10,8 +8,8 @@ internal sealed partial class ExtendedType
 {
     private static class BaseTypes
     {
-        private static readonly HashSet<Type> _baseTypes = new()
-        {
+        private static readonly HashSet<Type> _baseTypes =
+        [
             typeof(ScalarType),
             typeof(InputObjectType),
             typeof(InputObjectTypeExtension),
@@ -30,8 +28,8 @@ internal sealed partial class ExtendedType
             typeof(UnionTypeExtension),
             typeof(UnionType<>),
             typeof(DirectiveType),
-            typeof(DirectiveType<>)
-        };
+            typeof(DirectiveType<>),
+        ];
 
         /// <summary>
         /// Defines if the specified type is a named type that can be instantiated.
@@ -66,8 +64,7 @@ internal sealed partial class ExtendedType
                 throw new ArgumentNullException(nameof(type));
             }
 
-            if (type.IsGenericType &&
-                _baseTypes.Contains(type.GetGenericTypeDefinition()))
+            if (type.IsGenericType && _baseTypes.Contains(type.GetGenericTypeDefinition()))
             {
                 return true;
             }

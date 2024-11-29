@@ -1,13 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-
 namespace StrawberryShake.CodeGeneration.CSharp.Builders;
 
 public class XmlCommentBuilder : ICodeBuilder
 {
     private string? _summary;
-    private List<string> _code = new();
+    private List<string> _code = [];
 
     public XmlCommentBuilder SetSummary(string summary)
     {
@@ -23,10 +19,6 @@ public class XmlCommentBuilder : ICodeBuilder
 
     public static XmlCommentBuilder New() => new();
 
-    /// <summary>
-    ///
-    /// </summary>
-    /// <param name="writer"></param>
     public void Build(CodeWriter writer)
     {
         if (_summary is not null)

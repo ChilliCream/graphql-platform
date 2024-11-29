@@ -1,7 +1,4 @@
-using System;
 using HotChocolate.Types.Descriptors;
-using Snapshooter.Xunit;
-using Xunit;
 
 #nullable enable
 
@@ -38,9 +35,9 @@ public class UnionTypeAttributeTests
     }
 
     [SetName]
-    public interface IUnion1 { }
+    public interface IUnion1;
 
-    public class Foo : IUnion1 { }
+    public class Foo : IUnion1;
 
     public class SetNameAttribute : UnionTypeDescriptorAttribute
     {
@@ -54,8 +51,8 @@ public class UnionTypeAttributeTests
     }
 
     [UnionType(Name = "Union")]
-    public interface IUnion2 { }
+    public interface IUnion2;
 
     [ObjectType(Name = "Type")]
-    public class Union2Type1 : IUnion2 { }
+    public class Union2Type1 : IUnion2;
 }

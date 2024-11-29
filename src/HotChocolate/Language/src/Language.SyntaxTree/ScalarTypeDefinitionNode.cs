@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
@@ -14,6 +13,27 @@ namespace HotChocolate.Language;
 /// </summary>
 public sealed class ScalarTypeDefinitionNode : NamedSyntaxNode, ITypeDefinitionNode
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="ScalarTypeDefinitionNode"/>.
+    /// </summary>
+    /// <param name="name">
+    /// The name of the scalar.
+    /// </param>
+    /// <param name="description">
+    /// The description of the scalar.
+    /// </param>
+    /// <param name="directives">
+    /// The applied directives.
+    /// </param>
+    public ScalarTypeDefinitionNode(
+        NameNode name,
+        StringValueNode? description,
+        IReadOnlyList<DirectiveNode> directives)
+        : base(null, name, directives)
+    {
+        Description = description;
+    }
+
     /// <summary>
     /// Initializes a new instance of <see cref="ScalarTypeDefinitionNode"/>.
     /// </summary>
@@ -100,7 +120,7 @@ public sealed class ScalarTypeDefinitionNode : NamedSyntaxNode, ITypeDefinitionN
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
-    /// <see cref="Name" /> with <paramref name="name" />.
+    /// <see cref="NamedSyntaxNode.Name" /> with <paramref name="name" />.
     /// </summary>
     /// <param name="name">
     /// The name that shall be used to replace the current name.

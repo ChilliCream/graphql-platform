@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -41,9 +37,9 @@ public class Query
     [UseSorting]
     public IEnumerable<Foo> Foos() => new[]
     {
-        new Foo { CreatedUtc = new DateTime(2000, 1, 1, 1, 1, 1) },
-        new Foo { CreatedUtc = new DateTime(2010, 1, 1, 1, 1, 1) },
-        new Foo { CreatedUtc = new DateTime(2020, 1, 1, 1, 1, 1) }
+        new Foo { CreatedUtc = new DateTime(2000, 1, 1, 1, 1, 1), },
+        new Foo { CreatedUtc = new DateTime(2010, 1, 1, 1, 1, 1), },
+        new Foo { CreatedUtc = new DateTime(2020, 1, 1, 1, 1, 1), },
     };
 }
 

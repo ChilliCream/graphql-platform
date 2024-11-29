@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Text;
 using HotChocolate.Language;
 
@@ -8,9 +5,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders;
 
 public class TypeReferenceBuilder : ICode
 {
-    private readonly List<TypeKindToken> _buildOrder = new();
+    private readonly List<TypeKindToken> _buildOrder = [];
     private string? _name;
-    private readonly List<string> _genericTypeArguments = new();
+    private readonly List<string> _genericTypeArguments = [];
     private bool _skipTrailingSpace;
 
     public static TypeReferenceBuilder New()
@@ -59,7 +56,7 @@ public class TypeReferenceBuilder : ICode
     private enum TypeKindToken
     {
         List,
-        Nullable
+        Nullable,
     }
 
     public override string ToString()

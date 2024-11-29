@@ -1,4 +1,3 @@
-using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
@@ -39,8 +38,8 @@ public partial class JsonResultBuilderGenerator
                 .AddCode(
                     AssignmentBuilder
                         .New()
-                        .SetLefthandSide($"var {GetParameterName(_entityIds)}")
-                        .SetRighthandSide(MethodCallBuilder
+                        .SetLeftHandSide($"var {GetParameterName(_entityIds)}")
+                        .SetRightHandSide(MethodCallBuilder
                             .Inline()
                             .SetNew()
                             .SetMethodName(TypeNames.HashSet)
@@ -48,8 +47,8 @@ public partial class JsonResultBuilderGenerator
                 .AddCode(
                     AssignmentBuilder
                         .New()
-                        .SetLefthandSide($"{TypeNames.IEntityStoreSnapshot} {_snapshot}")
-                        .SetRighthandSide("default!"));
+                        .SetLeftHandSide($"{TypeNames.IEntityStoreSnapshot} {_snapshot}")
+                        .SetRightHandSide("default!"));
         }
 
         buildDataMethod.AddEmptyLine();
@@ -66,25 +65,25 @@ public partial class JsonResultBuilderGenerator
                 buildDataMethod
                     .AddCode(AssignmentBuilder
                         .New()
-                        .SetLefthandSide(CodeBlockBuilder
+                        .SetLeftHandSide(CodeBlockBuilder
                             .New()
                             .AddCode(property.Type.ToStateTypeReference())
                             .AddCode(variableName))
-                        .SetRighthandSide("default!"));
+                        .SetRightHandSide("default!"));
 
                 storeUpdateBody
                     .AddCode(AssignmentBuilder
                         .New()
-                        .SetLefthandSide(variableName)
-                        .SetRighthandSide(BuildUpdateMethodCall(property)));
+                        .SetLeftHandSide(variableName)
+                        .SetRightHandSide(BuildUpdateMethodCall(property)));
             }
 
             storeUpdateBody
                 .AddEmptyLine()
                 .AddCode(AssignmentBuilder
                     .New()
-                    .SetLefthandSide(_snapshot)
-                    .SetRighthandSide($"{_session}.CurrentSnapshot"));
+                    .SetLeftHandSide(_snapshot)
+                    .SetRightHandSide($"{_session}.CurrentSnapshot"));
 
             buildDataMethod
                 .AddCode(MethodCallBuilder

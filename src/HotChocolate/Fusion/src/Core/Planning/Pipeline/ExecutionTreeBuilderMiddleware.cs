@@ -36,7 +36,6 @@ internal sealed class ExecutionTreeBuilderMiddleware(ISchema schema) : IQueryPla
         next(context);
     }
 
-
     private void ProcessBacklog(
         QueryPlanContext context,
         Queue<BacklogItem> backlog)
@@ -103,7 +102,7 @@ internal sealed class ExecutionTreeBuilderMiddleware(ISchema schema) : IQueryPla
 
             if (batch.Length > 0)
             {
-                backlog.Enqueue(next with { Batch = batch });
+                backlog.Enqueue(next with { Batch = batch, });
             }
         }
 
@@ -129,7 +128,7 @@ internal sealed class ExecutionTreeBuilderMiddleware(ISchema schema) : IQueryPla
 
             if (!map.TryGetValue(selectionSet, out var set))
             {
-                set = new HashSet<ExecutionStep>();
+                set = [];
                 map.Add(selectionSet, set);
             }
 
@@ -252,14 +251,14 @@ internal sealed class ExecutionTreeBuilderMiddleware(ISchema schema) : IQueryPla
         QueryPlanContext context,
         ExecutionStep executionStep)
     {
-        if (executionStep is SelectionExecutionStep selectionExecStep && 
+        if (executionStep is SelectionExecutionStep selectionExecStep &&
             selectionExecStep.Resolver is null &&
             selectionExecStep.SelectionResolvers.Count == 0 &&
             selectionExecStep.ParentSelectionPath is not null)
         {
             return context.Operation.RootSelectionSet;
         }
-        
+
         return executionStep.ParentSelection is null
             ? context.Operation.RootSelectionSet
             : context.Operation.GetSelectionSet(

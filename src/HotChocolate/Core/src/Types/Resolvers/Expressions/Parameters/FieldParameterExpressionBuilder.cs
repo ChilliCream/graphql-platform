@@ -7,14 +7,11 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
-internal sealed class FieldParameterExpressionBuilder
-    : LambdaParameterExpressionBuilder<IPureResolverContext, IObjectField>
+internal sealed class FieldParameterExpressionBuilder()
+    : LambdaParameterExpressionBuilder<IObjectField>(ctx => ctx.Selection.Field, isPure: true)
+    , IParameterBindingFactory
+    , IParameterBinding
 {
-    public FieldParameterExpressionBuilder()
-        : base(ctx => ctx.Selection.Field)
-    {
-    }
-
     public override ArgumentKind Kind => ArgumentKind.Field;
 
     public override bool CanHandle(ParameterInfo parameter)
@@ -29,4 +26,10 @@ internal sealed class FieldParameterExpressionBuilder
             ? Expression.Convert(expression, parameter.ParameterType)
             : expression;
     }
+
+    public IParameterBinding Create(ParameterBindingContext context)
+        => this;
+
+    public T Execute<T>(IResolverContext context)
+        => (T)context.Selection.Field;
 }

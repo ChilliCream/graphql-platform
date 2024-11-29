@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
@@ -115,7 +112,7 @@ public partial class TypeMapperGenerator
             else if (prop.Type.IsNonNull())
             {
                 if (prop.Type.InnerType() is ILeafTypeDescriptor
-                        { RuntimeType: { IsValueType: true } })
+                        { RuntimeType: { IsValueType: true, }, })
                 {
                     block
                         .AddCode(IfBuilder
@@ -145,8 +142,8 @@ public partial class TypeMapperGenerator
 
         block.AddCode(AssignmentBuilder
             .New()
-            .SetLefthandSide(variableName)
-            .SetRighthandSide(constructorCall));
+            .SetLeftHandSide(variableName)
+            .SetRightHandSide(constructorCall));
 
         return IfBuilder
             .New()

@@ -1,8 +1,4 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using GreenDonut;
-using Xunit;
 
 namespace HotChocolate.Fetching;
 

@@ -1,4 +1,0 @@
-type Foo {
-  bar: String
-  baz: Int
-}

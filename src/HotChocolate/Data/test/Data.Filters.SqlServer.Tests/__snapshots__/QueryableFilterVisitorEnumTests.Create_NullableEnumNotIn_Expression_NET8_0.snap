@@ -19,9 +19,14 @@ BarAndFoo Result:
 
 BarAndFoo SQL:
 ---------------
+.param set @__p_0 '[1,0]'
+
 SELECT "d"."Id", "d"."BarEnum"
 FROM "Data" AS "d"
-WHERE "d"."BarEnum" NOT IN (1, 0) OR "d"."BarEnum" IS NULL
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM json_each(@__p_0) AS "p"
+    WHERE "p"."value" = "d"."BarEnum" OR ("p"."value" IS NULL AND "d"."BarEnum" IS NULL))
 ---------------
 
 FOO Result:
@@ -48,9 +53,14 @@ FOO Result:
 
 FOO SQL:
 ---------------
+.param set @__p_0 '[0]'
+
 SELECT "d"."Id", "d"."BarEnum"
 FROM "Data" AS "d"
-WHERE "d"."BarEnum" <> 0 OR "d"."BarEnum" IS NULL
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM json_each(@__p_0) AS "p"
+    WHERE "p"."value" = "d"."BarEnum" OR ("p"."value" IS NULL AND "d"."BarEnum" IS NULL))
 ---------------
 
 nullAndFoo Result:
@@ -74,7 +84,12 @@ nullAndFoo Result:
 
 nullAndFoo SQL:
 ---------------
+.param set @__p_0 '[null,0]'
+
 SELECT "d"."Id", "d"."BarEnum"
 FROM "Data" AS "d"
-WHERE "d"."BarEnum" IS NOT NULL AND "d"."BarEnum" <> 0
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM json_each(@__p_0) AS "p"
+    WHERE "p"."value" = "d"."BarEnum" OR ("p"."value" IS NULL AND "d"."BarEnum" IS NULL))
 ---------------

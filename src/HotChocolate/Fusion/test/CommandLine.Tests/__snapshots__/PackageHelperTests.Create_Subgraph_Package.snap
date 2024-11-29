@@ -23,6 +23,7 @@ type Query {
   users: [User!]!
   userById(id: ID!): User
   usersById(ids: [ID!]!): [User!]!
+  errorField: String
   viewer: Viewer!
 }
 
@@ -33,16 +34,17 @@ type Mutation {
 "The `Date` scalar represents an ISO-8601 compliant date type."
 scalar Date
 
+type Viewer {
+  user: User
+  data: SomeData!
+}
+
 type User implements Node {
+  errorField: String
   id: ID!
   name: String!
   birthdate: Date!
   username: String!
-}
-
-type Viewer {
-  user: User
-  data: SomeData!
 }
 
 type SomeData {

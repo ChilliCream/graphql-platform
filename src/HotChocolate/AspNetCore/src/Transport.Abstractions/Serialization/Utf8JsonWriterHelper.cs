@@ -1,6 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Language;
@@ -13,21 +11,90 @@ namespace HotChocolate.Transport.Serialization;
 /// </summary>
 internal static class Utf8JsonWriterHelper
 {
+    public static void WriteOperationRequest(Utf8JsonWriter writer, OperationBatchRequest batchRequest)
+    {
+        writer.WriteStartArray();
+
+        foreach (var request in batchRequest.Requests)
+        {
+            switch (request)
+            {
+                case OperationRequest operationRequest:
+                    WriteOperationRequest(writer, operationRequest);
+                    break;
+
+                case VariableBatchRequest variableBatchRequest:
+                    WriteOperationRequest(writer, variableBatchRequest);
+                    break;
+
+                default:
+                    throw new NotSupportedException(
+                        "The operation request type is not supported.");
+            }
+        }
+
+        writer.WriteEndArray();
+    }
+
     public static void WriteOperationRequest(Utf8JsonWriter writer, OperationRequest request)
     {
         writer.WriteStartObject();
 
-        if (request.Id is not null)
+        if (!string.IsNullOrWhiteSpace(request.Id))
         {
             writer.WriteString(Utf8GraphQLRequestProperties.IdProp, request.Id);
         }
 
-        if (request.Query is not null)
+        if (!string.IsNullOrWhiteSpace(request.Query))
         {
             writer.WriteString(Utf8GraphQLRequestProperties.QueryProp, request.Query);
         }
 
-        if (request.OperationName is not null)
+        if (!string.IsNullOrWhiteSpace(request.OperationName))
+        {
+            writer.WriteString(Utf8GraphQLRequestProperties.OperationNameProp, request.OperationName);
+        }
+
+        if (request.ExtensionsNode is not null)
+        {
+            writer.WritePropertyName(Utf8GraphQLRequestProperties.ExtensionsProp);
+            WriteFieldValue(writer, request.ExtensionsNode);
+        }
+        else if (request.Extensions is not null)
+        {
+            writer.WritePropertyName(Utf8GraphQLRequestProperties.ExtensionsProp);
+            WriteFieldValue(writer, request.Extensions);
+        }
+
+        if (request.VariablesNode is not null)
+        {
+            writer.WritePropertyName(Utf8GraphQLRequestProperties.VariablesProp);
+            WriteFieldValue(writer, request.VariablesNode);
+        }
+        else if (request.Variables is not null)
+        {
+            writer.WritePropertyName(Utf8GraphQLRequestProperties.VariablesProp);
+            WriteFieldValue(writer, request.Variables);
+        }
+
+        writer.WriteEndObject();
+    }
+
+    public static void WriteOperationRequest(Utf8JsonWriter writer, VariableBatchRequest request)
+    {
+        writer.WriteStartObject();
+
+        if (!string.IsNullOrWhiteSpace(request.Id))
+        {
+            writer.WriteString(Utf8GraphQLRequestProperties.IdProp, request.Id);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Query))
+        {
+            writer.WriteString(Utf8GraphQLRequestProperties.QueryProp, request.Query);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.OperationName))
         {
             writer.WriteString(Utf8GraphQLRequestProperties.OperationNameProp, request.OperationName);
         }
@@ -116,8 +183,24 @@ internal static class Utf8JsonWriterHelper
                 WriteDictionary(writer, dict);
                 break;
 
+            case byte[] bytes:
+                writer.WriteBase64StringValue(bytes);
+                break;
+
+            case IReadOnlyList<IReadOnlyDictionary<string, object?>> list:
+                WriteList(writer, list);
+                break;
+
             case IList list:
                 WriteList(writer, list);
+                break;
+
+            case JsonDocument doc:
+                doc.RootElement.WriteTo(writer);
+                break;
+
+            case JsonElement element:
+                element.WriteTo(writer);
                 break;
 
             case string s:
@@ -186,16 +269,25 @@ internal static class Utf8JsonWriterHelper
 
         foreach (var item in dict)
         {
-            if (item.Value is null)
-            {
-                continue;
-            }
-
             writer.WritePropertyName(item.Key);
             WriteFieldValue(writer, item.Value);
         }
 
         writer.WriteEndObject();
+    }
+
+    private static void WriteList<T>(
+        Utf8JsonWriter writer,
+        IReadOnlyList<T> list)
+    {
+        writer.WriteStartArray();
+
+        for (var i = 0; i < list.Count; i++)
+        {
+            WriteFieldValue(writer, list[i]);
+        }
+
+        writer.WriteEndArray();
     }
 
     private static void WriteList(
@@ -206,14 +298,7 @@ internal static class Utf8JsonWriterHelper
 
         for (var i = 0; i < list.Count; i++)
         {
-            var element = list[i];
-
-            if (element is null)
-            {
-                continue;
-            }
-
-            WriteFieldValue(writer, element);
+            WriteFieldValue(writer, list[i]);
         }
 
         writer.WriteEndArray();
@@ -221,82 +306,88 @@ internal static class Utf8JsonWriterHelper
 
     internal static IReadOnlyList<FileReferenceInfo> WriteFilesMap(
         Utf8JsonWriter writer,
-        OperationRequest operationRequest,
+        IRequestBody requestBody,
         int? operation = null)
     {
-        if (operationRequest.VariablesNode is not null)
+        Dictionary<FileReference, FilePath[]>? files = null;
+        CollectFiles(requestBody, ref files);
+
+        if (files is null)
         {
-            Dictionary<FileReference, FilePath[]>? files = null;
-            CollectFiles(operationRequest.VariablesNode, FilePath.Root, ref files);
-
-            if (files is not null)
-            {
-                var fileInfos = new List<FileReferenceInfo>();
-                var index = 0;
-
-                writer.WriteStartObject();
-
-                foreach (var item in files)
-                {
-                    var name = index.ToString();
-                    fileInfos.Add(new FileReferenceInfo(item.Key, name));
-
-                    writer.WritePropertyName(name);
-                    writer.WriteStartArray();
-
-                    foreach (var path in item.Value)
-                    {
-                        writer.WriteStringValue(path.ToString(operation));
-                    }
-
-                    writer.WriteEndArray();
-
-                    index++;
-                }
-
-                writer.WriteEndObject();
-
-                return fileInfos;
-            }
+            return Array.Empty<FileReferenceInfo>();
         }
 
-        if (operationRequest.Variables is not null)
+        var fileInfos = new List<FileReferenceInfo>();
+        var index = 0;
+
+        writer.WriteStartObject();
+
+        foreach (var item in files)
         {
-            Dictionary<FileReference, FilePath[]>? files = null;
-            CollectFiles(operationRequest.Variables, FilePath.Root, ref files);
+            var name = index.ToString();
+            fileInfos.Add(new FileReferenceInfo(item.Key, name));
 
-            if (files is not null)
+            writer.WritePropertyName(name);
+            writer.WriteStartArray();
+
+            foreach (var path in item.Value)
             {
-                var fileInfos = new List<FileReferenceInfo>();
-                var index = 0;
-
-                writer.WriteStartObject();
-
-                foreach (var item in files)
-                {
-                    var name = index.ToString();
-                    fileInfos.Add(new FileReferenceInfo(item.Key, name));
-
-                    writer.WritePropertyName(name);
-                    writer.WriteStartArray();
-
-                    foreach (var path in item.Value)
-                    {
-                        writer.WriteStringValue(path.ToString(operation));
-                    }
-
-                    writer.WriteEndArray();
-
-                    index++;
-                }
-
-                writer.WriteEndObject();
-
-                return fileInfos;
+                writer.WriteStringValue(path.ToString(operation));
             }
+
+            writer.WriteEndArray();
+
+            index++;
         }
 
-        return Array.Empty<FileReferenceInfo>();
+        writer.WriteEndObject();
+
+        return fileInfos;
+    }
+
+    private static void CollectFiles(IRequestBody requestBody, ref Dictionary<FileReference, FilePath[]>? files)
+    {
+        switch (requestBody)
+        {
+            case OperationRequest operationRequest:
+                if (operationRequest.Variables is not null)
+                {
+                    CollectFiles(operationRequest.Variables, FilePath.Root, ref files);
+                    break;
+                }
+
+                if (operationRequest.VariablesNode is not null)
+                {
+                    CollectFiles(operationRequest.VariablesNode, FilePath.Root, ref files);
+                }
+                break;
+
+            case VariableBatchRequest variableBatchRequest:
+                if (variableBatchRequest.Variables is not null)
+                {
+                    foreach (var variableSet in variableBatchRequest.Variables)
+                    {
+                        CollectFiles(variableSet, FilePath.Root, ref files);
+                    }
+                    break;
+                }
+
+                if (variableBatchRequest.VariablesNode is not null)
+                {
+                    foreach (var variableSet in variableBatchRequest.VariablesNode)
+                    {
+                        CollectFiles(variableSet, FilePath.Root, ref files);
+                    }
+                }
+                break;
+
+            case OperationBatchRequest batchRequest:
+                foreach (var request in batchRequest.Requests)
+                {
+                    CollectFiles(request, ref files);
+                }
+                break;
+        }
     }
 
     private static void CollectFiles(
@@ -405,7 +496,7 @@ internal static class Utf8JsonWriterHelper
             }
 
             var current = path.Append(i);
-            CollectFiles(item.Value, current, ref files);
+            CollectFiles(item, current, ref files);
         }
     }
 
@@ -423,19 +514,14 @@ internal static class Utf8JsonWriterHelper
         }
         else
         {
-            list = new[] { path };
+            list = [path,];
             files.Add(file, list);
         }
     }
 
-    private abstract class FilePath
+    private abstract class FilePath(FilePath? parent)
     {
-        protected FilePath(FilePath? parent)
-        {
-            Parent = parent;
-        }
-
-        public FilePath? Parent { get; }
+        public FilePath? Parent { get; } = parent;
 
         public FilePath Append(string name) => new NameFilePath(this, name);
 
@@ -491,28 +577,17 @@ internal static class Utf8JsonWriterHelper
         }
     }
 
-    private sealed class RootFilePath : FilePath
+    private sealed class RootFilePath() : FilePath(null);
+
+    private sealed class NameFilePath(FilePath? parent, string name)
+        : FilePath(parent)
     {
-        public RootFilePath() : base(null) { }
+        public string Name { get; } = name;
     }
 
-    private sealed class NameFilePath : FilePath
+    private sealed class IndexFilePath(FilePath? parent, int index)
+        : FilePath(parent)
     {
-        public NameFilePath(FilePath? parent, string name) : base(parent)
-        {
-            Name = name;
-        }
-
-        public string Name { get; }
-    }
-
-    private sealed class IndexFilePath : FilePath
-    {
-        public IndexFilePath(FilePath? parent, int index) : base(parent)
-        {
-            Index = index;
-        }
-
-        public int Index { get; }
+        public int Index { get; } = index;
     }
 }

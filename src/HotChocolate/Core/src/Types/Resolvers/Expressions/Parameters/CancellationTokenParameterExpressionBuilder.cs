@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Threading;
 using HotChocolate.Internal;
 using static HotChocolate.Resolvers.Expressions.Parameters.ParameterExpressionBuilderHelpers;
 
@@ -9,7 +8,10 @@ using static HotChocolate.Resolvers.Expressions.Parameters.ParameterExpressionBu
 
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
-internal sealed class CancellationTokenParameterExpressionBuilder : IParameterExpressionBuilder
+internal sealed class CancellationTokenParameterExpressionBuilder
+    : IParameterExpressionBuilder
+    , IParameterBindingFactory
+    , IParameterBinding
 {
     private static readonly PropertyInfo _cancellationToken =
         ContextType.GetProperty(nameof(IResolverContext.RequestAborted))!;
@@ -30,4 +32,10 @@ internal sealed class CancellationTokenParameterExpressionBuilder : IParameterEx
 
     public Expression Build(ParameterExpressionBuilderContext context)
         => Expression.Property(context.ResolverContext, _cancellationToken);
+
+    public IParameterBinding Create(ParameterBindingContext context)
+        => this;
+
+    public T Execute<T>(IResolverContext context)
+        => (T)(object)context.RequestAborted;
 }

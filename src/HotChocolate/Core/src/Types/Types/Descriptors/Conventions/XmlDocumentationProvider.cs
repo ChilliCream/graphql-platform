@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -25,6 +22,8 @@ public class XmlDocumentationProvider : IDocumentationProvider
     private const string _cref = "cref";
     private const string _href = "href";
     private const string _code = "code";
+    private const string _paramref = "paramref";
+    private const string _name = "name";
 
     private readonly IXmlDocumentationFileResolver _fileResolver;
     private readonly ObjectPool<StringBuilder> _stringBuilderPool;
@@ -157,11 +156,25 @@ public class XmlDocumentationProvider : IDocumentationProvider
 
         foreach (var node in element.Nodes())
         {
-            var currentElement = node as XElement;
-            if (currentElement is null)
+            if (node is not XElement currentElement)
             {
-                description.Append(node);
+                if (node is XText text)
+                {
+                    description.Append(text.Value);
+                }
+
                 continue;
+            }
+
+            if (currentElement.Name == _paramref)
+            {
+                var nameAttribute = currentElement.Attribute(_name);
+
+                if (nameAttribute != null)
+                {
+                    description.Append(nameAttribute.Value);
+                    continue;
+                }
             }
 
             if (currentElement.Name != _see)
@@ -370,7 +383,7 @@ public class XmlDocumentationProvider : IDocumentationProvider
         char prefixCode;
 
         var memberName =
-            member is Type { FullName: { Length: > 0 } } memberType
+            member is Type { FullName: { Length: > 0, }, } memberType
             ? memberType.FullName
             : member.DeclaringType is null
                 ? member.Name
@@ -392,7 +405,8 @@ public class XmlDocumentationProvider : IDocumentationProvider
                             "(`[0-9]+)|(, .*?PublicKeyToken=[0-9a-z]*)",
                             string.Empty)
                         .Replace("[[", "{")
-                        .Replace("]]", "}"))
+                        .Replace("]]", "}")
+                        .Replace("],[", ","))
                     .ToArray());
 
                 if (!string.IsNullOrEmpty(paramTypesList))

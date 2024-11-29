@@ -93,20 +93,13 @@ internal sealed class WebSocketSession : ISocketSession
         }
     }
 
-    private sealed class ProtocolMessageHandler : IMessageHandler
+    private sealed class ProtocolMessageHandler(ISocketSession session) : IMessageHandler
     {
-        private readonly ISocketSession _session;
-        private readonly IProtocolHandler _protocol;
-
-        public ProtocolMessageHandler(ISocketSession session)
-        {
-            _session = session;
-            _protocol = session.Protocol;
-        }
+        private readonly IProtocolHandler _protocol = session.Protocol;
 
         public ValueTask OnReceiveAsync(
             ReadOnlySequence<byte> message,
             CancellationToken cancellationToken = default)
-            => _protocol.OnReceiveAsync(_session, message, cancellationToken);
+            => _protocol.OnReceiveAsync(session, message, cancellationToken);
     }
 }

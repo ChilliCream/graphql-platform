@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Text.Json;
 using static StrawberryShake.Properties.Resources;
 
@@ -9,7 +7,7 @@ public static class JsonErrorParser
 {
     public static IReadOnlyList<IClientError>? ParseErrors(JsonElement result)
     {
-        if (result is { ValueKind: JsonValueKind.Array } errors)
+        if (result is { ValueKind: JsonValueKind.Array, } errors)
         {
             var array = new IClientError[errors.GetArrayLength()];
             var i = 0;
@@ -54,7 +52,7 @@ public static class JsonErrorParser
 
     private static IReadOnlyList<object>? ParsePath(this JsonElement error)
     {
-        if (error.GetPropertyOrNull("path") is { ValueKind: JsonValueKind.Array } path)
+        if (error.GetPropertyOrNull("path") is { ValueKind: JsonValueKind.Array, } path)
         {
             var array = new object[path.GetArrayLength()];
             var i = 0;
@@ -65,7 +63,7 @@ public static class JsonErrorParser
                 {
                     JsonValueKind.String => element.GetString()!,
                     JsonValueKind.Number => element.GetInt32(),
-                    _ => "NOT_SUPPORTED_VALUE"
+                    _ => "NOT_SUPPORTED_VALUE",
                 };
             }
 
@@ -77,7 +75,7 @@ public static class JsonErrorParser
 
     private static IReadOnlyList<Location>? ParseLocations(this JsonElement error)
     {
-        if (error.GetPropertyOrNull("locations") is { ValueKind: JsonValueKind.Array } locations)
+        if (error.GetPropertyOrNull("locations") is { ValueKind: JsonValueKind.Array, } locations)
         {
             var array = new Location[locations.GetArrayLength()];
             var i = 0;
@@ -97,7 +95,7 @@ public static class JsonErrorParser
 
     private static IReadOnlyDictionary<string, object?>? ParseExtensions(this JsonElement error)
     {
-        if (error.GetPropertyOrNull("extensions") is { ValueKind: JsonValueKind.Object } ext)
+        if (error.GetPropertyOrNull("extensions") is { ValueKind: JsonValueKind.Object, } ext)
         {
             return (IReadOnlyDictionary<string, object?>?)ParseValue(ext);
         }
@@ -111,7 +109,7 @@ public static class JsonErrorParser
     {
         // if we have a top level code property we will take this.
         // While this is not spec compliant with the 2018 spec many people still do this.
-        if (error.GetPropertyOrNull("code") is { ValueKind: JsonValueKind.String } code)
+        if (error.GetPropertyOrNull("code") is { ValueKind: JsonValueKind.String, } code)
         {
             return code.GetString();
         }
@@ -151,7 +149,6 @@ public static class JsonErrorParser
                 }
 
                 return array;
-
 
             case JsonValueKind.String:
                 return element.GetString();

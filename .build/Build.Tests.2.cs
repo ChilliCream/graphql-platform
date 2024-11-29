@@ -49,6 +49,10 @@ partial class Build
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Core" / "HotChocolate.Core.sln"));
 
+    Target TestHotChocolateCostAnalysis => _ => _
+        .Produces(TestResultDirectory / "*.trx")
+        .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "CostAnalysis" / "HotChocolate.CostAnalysis.sln"));
+
     Target TestHotChocolateData => _ => _
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Data" / "HotChocolate.Data.sln"));
@@ -56,10 +60,6 @@ partial class Build
     Target TestHotChocolateDiagnostics => _ => _
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Diagnostics" / "HotChocolate.Diagnostics.sln"));
-
-    Target TestHotChocolateFilters => _ => _
-        .Produces(TestResultDirectory / "*.trx")
-        .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Filters" / "HotChocolate.Filters.sln"));
 
     Target TestHotChocolateFusion => _ => _
         .Produces(TestResultDirectory / "*.trx")
@@ -77,13 +77,13 @@ partial class Build
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "MongoDb" / "HotChocolate.MongoDb.sln"));
 
-    Target TestHotChocolateNeo4J => _ => _
+    Target TestHotChocolateOpenApi => _ => _
         .Produces(TestResultDirectory / "*.trx")
-        .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Neo4J" / "HotChocolate.Neo4J.sln"));
+        .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "OpenApi" / "HotChocolate.OpenApi.sln"));
 
-    Target TestHotChocolatePersistedQueries => _ => _
+    Target TestHotChocolatePersistedOperations => _ => _
         .Produces(TestResultDirectory / "*.trx")
-        .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "PersistedQueries" / "HotChocolate.PersistedQueries.sln"));
+        .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "PersistedOperations" / "HotChocolate.PersistedOperations.sln"));
 
     Target TestHotChocolateRaven => _ => _
         .Produces(TestResultDirectory / "*.trx")
@@ -96,10 +96,6 @@ partial class Build
     Target TestHotChocolateSpatial => _ => _
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Spatial" / "HotChocolate.Spatial.sln"));
-
-    Target TestHotChocolateStitching => _ => _
-        .Produces(TestResultDirectory / "*.trx")
-        .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Stitching" / "HotChocolate.Stitching.sln"));
 
     Target TestHotChocolateUtilities => _ => _
         .Produces(TestResultDirectory / "*.trx")
@@ -137,7 +133,6 @@ partial class Build
             .GetProjects("*.Tests")
             .Where(t => t.Path.ToString().StartsWith(testDirectory))
             .ToArray();
-
 
         Console.WriteLine("╬============================================");
         Console.WriteLine("║ Prepared Tests:");

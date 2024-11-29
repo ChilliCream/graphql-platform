@@ -4,7 +4,7 @@ testatest
   "data": {
     "root": [
       {
-        "bar": "Rm9vCmR0ZXN0YnRlc3Q="
+        "bar": "Rm9vOnRlc3RidGVzdA=="
       }
     ]
   }
@@ -17,7 +17,7 @@ testbtest
   "data": {
     "root": [
       {
-        "bar": "Rm9vCmR0ZXN0YXRlc3Q="
+        "bar": "Rm9vOnRlc3RhdGVzdA=="
       }
     ]
   }
@@ -29,7 +29,7 @@ null
 {
   "errors": [
     {
-      "message": "The provided value for filter \u0060neq\u0060 of type IdOperationFilterInput is invalid. Null values are not supported.",
+      "message": "The provided value for filter `neq` of type IdOperationFilterInput is invalid. Null values are not supported.",
       "locations": [
         {
           "line": 1,
@@ -47,7 +47,7 @@ null
     }
   ],
   "data": {
-    "root": []
+    "root": null
   }
 }
 ---------------

@@ -1,14 +1,12 @@
-using System;
-using System.Collections.Generic;
 using StrawberryShake.Properties;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders;
 
 public class CodeFileBuilder : ICodeBuilder
 {
-    private readonly List<string> _usings = new();
+    private readonly List<string> _usings = [];
     private string? _namespace;
-    private readonly List<ITypeBuilder> _types = new();
+    private readonly List<ITypeBuilder> _types = [];
 
     public static CodeFileBuilder New() => new();
 

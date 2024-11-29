@@ -7,9 +7,8 @@ namespace HotChocolate.AspNetCore.Tests.Utilities;
 [ExtendObjectType("Query")]
 public class QueryExtension
 {
-    private readonly DateTime _time = DateTime.UtcNow;
-
-    public long Time() => _time.Ticks;
+    public long Time(Schema schema)
+        => schema.CreatedAt.Ticks;
 
     public bool Evict([FromServices] IRequestExecutorResolver executorResolver, ISchema schema)
     {
@@ -22,4 +21,10 @@ public class QueryExtension
         await Task.Delay(m, ct);
         return true;
     }
+
+    [GraphQLDeprecated("use something else")]
+    public string SomeDeprecatedField(
+        [GraphQLDeprecated("use something else")]
+        string deprecatedArg = "foo")
+        => "foo";
 }

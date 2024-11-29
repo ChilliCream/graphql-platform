@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Language;
 using HotChocolate.Types.MongoDb.Resources;
 using MongoDB.Bson;

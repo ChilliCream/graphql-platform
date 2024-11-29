@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Text.Json;
 
 namespace StrawberryShake;
@@ -32,7 +30,7 @@ public class OperationResultBuilderTests
         var b = (IReadOnlyDictionary<string, object?>?)result.Extensions["b"];
 
         Assert.NotNull(b);
-        Assert.Equal("Strawberry", b["c"]);
+        Assert.Equal("Strawberry", b?["c"]);
 
         Assert.Equal(3.14, result.Extensions["d"]);
     }

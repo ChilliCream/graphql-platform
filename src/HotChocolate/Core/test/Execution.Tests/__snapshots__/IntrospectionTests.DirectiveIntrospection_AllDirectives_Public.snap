@@ -152,6 +152,9 @@
             },
             {
               "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
             }
           ]
         },
@@ -191,7 +194,7 @@
                   "args": [
                     {
                       "name": "baz",
-                      "value": "\u0022ABC\u0022"
+                      "value": "\"ABC\""
                     }
                   ]
                 },
@@ -209,7 +212,7 @@
                   "args": [
                     {
                       "name": "quox",
-                      "value": "{ a: \u0022ABC\u0022 }"
+                      "value": "{ a: \"ABC\" }"
                     }
                   ]
                 },
@@ -218,7 +221,7 @@
                   "args": [
                     {
                       "name": "quox",
-                      "value": "{ a: \u0022DEF\u0022 }"
+                      "value": "{ a: \"DEF\" }"
                     }
                   ]
                 },

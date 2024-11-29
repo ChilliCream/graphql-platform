@@ -1,10 +1,6 @@
 #nullable enable
 
-using System.Collections.Generic;
-#if NET5_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
-#endif
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -22,7 +18,7 @@ namespace HotChocolate.Types.Relay;
 /// </summary>
 internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
 {
-    private readonly List<IDictionary<string, object?>> _nodes = new();
+    private readonly List<IDictionary<string, object?>> _nodes = [];
 
     internal override uint Position => uint.MaxValue - 101;
 
@@ -32,26 +28,23 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
 
     private ObjectTypeDefinition? TypeDef { get; set; }
 
-#if NET5_0_OR_GREATER
     [MemberNotNullWhen(true, nameof(QueryType), nameof(TypeDef), nameof(CompletionContext))]
-#endif
     private bool IsInitialized
         => QueryType is not null &&
             TypeDef is not null &&
             CompletionContext is not null;
 
-    internal override void OnAfterResolveRootType(
+    public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition,
+        ObjectTypeDefinition definition,
         OperationType operationType)
     {
         // we are only interested in the query type to infer node resolvers.
         if (operationType is OperationType.Query &&
-            definition is ObjectTypeDefinition typeDef &&
             completionContext.Type is ObjectType queryType)
         {
             CompletionContext = completionContext;
-            TypeDef = typeDef;
+            TypeDef = definition;
             QueryType = queryType;
         }
     }

@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Language;
@@ -7,8 +5,10 @@ using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Factories;
 using HotChocolate.Types.Interceptors;
 using HotChocolate.Types.Introspection;
+using HotChocolate.Types.Pagination;
 using HotChocolate.Utilities;
 
 #nullable enable
@@ -23,22 +23,24 @@ public partial class SchemaBuilder : ISchemaBuilder
     private delegate TypeReference CreateRef(ITypeInspector typeInspector);
 
     private readonly Dictionary<string, object?> _contextData = new();
-    private readonly List<FieldMiddleware> _globalComponents = new();
-    private readonly List<LoadSchemaDocument> _documents = new();
-    private readonly List<CreateRef> _types = new();
+    private readonly List<FieldMiddleware> _globalComponents = [];
+    private readonly List<LoadSchemaDocument> _documents = [];
+    private readonly List<CreateRef> _types = [];
     private readonly Dictionary<OperationType, CreateRef> _operations = new();
     private readonly Dictionary<(Type, string?), List<CreateConvention>> _conventions = new();
     private readonly Dictionary<Type, (CreateRef, CreateRef)> _clrTypes = new();
+    private SchemaFirstTypeInterceptor? _schemaFirstTypeInterceptor;
 
-    private readonly List<object> _typeInterceptors = new()
-    {
+    private readonly List<object> _typeInterceptors =
+    [
         typeof(IntrospectionTypeInterceptor),
         typeof(InterfaceCompletionTypeInterceptor),
-        typeof(CostTypeInterceptor),
-        typeof(MiddlewareValidationTypeInterceptor)
-    };
+        typeof(MiddlewareValidationTypeInterceptor),
+        typeof(SemanticNonNullTypeInterceptor),
+    ];
 
     private SchemaOptions _options = new();
+    private PagingOptions _pagingOptions = new();
     private IsOfTypeFallback? _isOfType;
     private IServiceProvider? _services;
     private CreateRef? _schema;
@@ -101,6 +103,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     }
 
     /// <inheritdoc />
+    [Obsolete("Use ModifyOptions instead.")]
     public ISchemaBuilder SetOptions(IReadOnlySchemaOptions options)
     {
         if (options is null)
@@ -125,6 +128,26 @@ public partial class SchemaBuilder : ISchemaBuilder
     }
 
     /// <inheritdoc />
+    [Obsolete("Use ModifyPagingOptions instead.")]
+    public ISchemaBuilder SetPagingOptions(PagingOptions options)
+    {
+        _pagingOptions = options;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public ISchemaBuilder ModifyPagingOptions(Action<PagingOptions> configure)
+    {
+        if (configure is null)
+        {
+            throw new ArgumentNullException(nameof(configure));
+        }
+
+        configure(_pagingOptions);
+        return this;
+    }
+
+    /// <inheritdoc />
     public ISchemaBuilder Use(FieldMiddleware middleware)
     {
         if (middleware is null)
@@ -144,6 +167,7 @@ public partial class SchemaBuilder : ISchemaBuilder
             throw new ArgumentNullException(nameof(loadSchemaDocument));
         }
 
+        _schemaFirstTypeInterceptor ??= new SchemaFirstTypeInterceptor();
         _documents.Add(loadSchemaDocument);
         return this;
     }
@@ -200,7 +224,7 @@ public partial class SchemaBuilder : ISchemaBuilder
             (convention, scope),
             out var factories))
         {
-            factories = new List<CreateConvention>();
+            factories = [];
             _conventions[(convention, scope)] = factories;
         }
 
@@ -208,11 +232,6 @@ public partial class SchemaBuilder : ISchemaBuilder
 
         return this;
     }
-
-    /// <inheritdoc />
-    [Obsolete]
-    public ISchemaBuilder BindClrType(Type clrType, Type schemaType)
-        => BindRuntimeType(clrType, schemaType);
 
     /// <inheritdoc />
     public ISchemaBuilder BindRuntimeType(Type runtimeType, Type schemaType)
@@ -264,6 +283,16 @@ public partial class SchemaBuilder : ISchemaBuilder
 
         _types.Add(_ => TypeReference.Create(typeExtension));
         return this;
+    }
+
+    internal void AddTypeReference(TypeReference typeReference)
+    {
+        if (typeReference is null)
+        {
+            throw new ArgumentNullException(nameof(typeReference));
+        }
+
+        _types.Add(_ => typeReference);
     }
 
     /// <inheritdoc />
@@ -379,7 +408,7 @@ public partial class SchemaBuilder : ISchemaBuilder
             throw new ArgumentNullException(nameof(services));
         }
 
-        _services = _services is null ? services : _services.Include(services);
+        _services = _services is null ? services : new CombinedServiceProvider(_services, services);
 
         return this;
     }
@@ -410,7 +439,7 @@ public partial class SchemaBuilder : ISchemaBuilder
         if (!typeof(TypeInterceptor).IsAssignableFrom(interceptor))
         {
             throw new ArgumentException(
-                TypeResources.SchemaBuilder_Interceptor_NotSuppported,
+                TypeResources.SchemaBuilder_Interceptor_NotSupported,
                 nameof(interceptor));
         }
 

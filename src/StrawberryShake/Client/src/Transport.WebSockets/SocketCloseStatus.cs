@@ -14,5 +14,5 @@ public enum SocketCloseStatus
     PolicyViolation,
     MessageTooBig,
     MandatoryExtension,
-    InternalServerError
+    InternalServerError,
 }

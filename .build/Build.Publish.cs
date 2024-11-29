@@ -41,32 +41,25 @@ partial class Build
             */
         });
 
-
     Target PackLocal => _ => _
         .Produces(PackageDirectory / "*.nupkg")
         .Produces(PackageDirectory / "*.snupkg")
         .Executes(() =>
         {
-            var projFile = File.ReadAllText(StarWarsProj);
-            File.WriteAllText(StarWarsProj, projFile.Replace("11.1.0", SemVersion));
-
-            projFile = File.ReadAllText(EmptyServerProj);
-            File.WriteAllText(EmptyServerProj, projFile.Replace("11.1.0", SemVersion));
-
-            projFile = File.ReadAllText(EmptyServer12Proj);
-            File.WriteAllText(EmptyServer12Proj, projFile.Replace("11.1.0", SemVersion));
+            var projFile = File.ReadAllText(EmptyServer12Proj);
+            File.WriteAllText(EmptyServer12Proj, projFile.Replace("14.0.0-preview.build.0", SemVersion));
 
             projFile = File.ReadAllText(EmptyAzf12Proj);
-            File.WriteAllText(EmptyAzf12Proj, projFile.Replace("11.1.0", SemVersion));
-
-            projFile = File.ReadAllText(EmptyAzfUp12Proj);
-            File.WriteAllText(EmptyAzfUp12Proj, projFile.Replace("11.1.0", SemVersion));
+            File.WriteAllText(EmptyAzf12Proj, projFile.Replace("14.0.0-preview.build.0", SemVersion));
 
             projFile = File.ReadAllText(Gateway13Proj);
-            File.WriteAllText(Gateway13Proj, projFile.Replace("11.1.0", SemVersion));
+            File.WriteAllText(Gateway13Proj, projFile.Replace("14.0.0-preview.build.0", SemVersion));
 
             projFile = File.ReadAllText(GatewayManaged13Proj);
-            File.WriteAllText(GatewayManaged13Proj, projFile.Replace("11.1.0", SemVersion));
+            File.WriteAllText(GatewayManaged13Proj, projFile.Replace("14.0.0-preview.build.0", SemVersion));
+
+            projFile = File.ReadAllText(GatewayAspire13Proj);
+            File.WriteAllText(GatewayAspire13Proj, projFile.Replace("14.0.0-preview.build.0", SemVersion));
 
             DotNetBuildSonarSolution(
                 PackSolutionFile,
@@ -100,10 +93,7 @@ partial class Build
                 .SetVersion(SemVersion)
                 .SetOutputDirectory(PackageDirectory)
                 .SetConfiguration(Configuration)
-                .CombineWith(
-                    t => t.SetTargetPath(StarWarsTemplateNuSpec),
-                    t => t.SetTargetPath(EmptyServerTemplateNuSpec),
-                    t => t.SetTargetPath(TemplatesNuSpec)));
+                .CombineWith(t => t.SetTargetPath(TemplatesNuSpec)));
         });
 
     Target Publish => _ => _

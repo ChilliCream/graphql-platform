@@ -1,6 +1,6 @@
 schema {
-  query: FirstOrDefaulQuery
-  mutation: FirstOrDefaultMutation_ManyToMany
+  query: FirstOrDefaultQuery
+  mutation: FirstOrDefaultMutationManyToMany
 }
 
 type Author {
@@ -18,12 +18,12 @@ type Book {
   publisher: Publisher
 }
 
-type FirstOrDefaulQuery {
-  books(book: BookInput!): Book
+type FirstOrDefaultMutationManyToMany {
+  addPublisher(publisher: PublisherInput!): Author
 }
 
-type FirstOrDefaultMutation_ManyToMany {
-  addPublisher(publisher: PublisherInput!): Author
+type FirstOrDefaultQuery {
+  books(book: BookInput!): Book
 }
 
 type Publisher {

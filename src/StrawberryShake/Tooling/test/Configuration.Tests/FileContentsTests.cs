@@ -1,14 +1,12 @@
-using Snapshooter.Xunit;
 using Xunit;
 
-namespace StrawberryShake.Tools.Configuration
+namespace StrawberryShake.Tools.Configuration;
+
+public class FileContentsTests
 {
-    public class FileContentsTests
+    [Fact]
+    public void Ensure_Extensions_Are_Correct()
     {
-        [Fact]
-        public void Ensure_Extensions_Are_Correct()
-        {
-            FileContents.SchemaExtensionFileContent.MatchSnapshot();
-        }
+        FileContents.SchemaExtensionFileContent.MatchSnapshot();
     }
 }

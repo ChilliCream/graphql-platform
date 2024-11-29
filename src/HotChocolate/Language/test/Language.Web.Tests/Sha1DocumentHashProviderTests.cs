@@ -1,7 +1,3 @@
-using System.Text;
-using CookieCrumble;
-using Xunit;
-
 namespace HotChocolate.Language;
 
 public class Sha1DocumentHashProviderTests
@@ -9,7 +5,7 @@ public class Sha1DocumentHashProviderTests
     [Fact]
     public void HashAsBase64()
     {
-        var content = Encoding.UTF8.GetBytes("abc");
+        var content = "abc"u8.ToArray();
         var hashProvider = new Sha1DocumentHashProvider(HashFormat.Base64);
 
         var hash = hashProvider.ComputeHash(content);
@@ -17,13 +13,13 @@ public class Sha1DocumentHashProviderTests
         Snapshot
             .Create()
             .Add(hash)
-            .MatchInline("qZk+NkcGgWq6PiVxeFDCbJzQ2J0=");
+            .MatchInline("qZk-NkcGgWq6PiVxeFDCbJzQ2J0");
     }
 
     [Fact]
     public void HashAsHex()
     {
-        var content = Encoding.UTF8.GetBytes("abc");
+        var content = "abc"u8.ToArray();
         var hashProvider = new Sha1DocumentHashProvider(HashFormat.Hex);
 
         var hash = hashProvider.ComputeHash(content);

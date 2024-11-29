@@ -1,11 +1,8 @@
-using System;
 using System.Text;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Configuration.Validation;
 
-public class TypeValidationTestBase
+public abstract class TypeValidationTestBase
 {
     public static void ExpectValid(string schema)
     {
@@ -25,7 +22,7 @@ public class TypeValidationTestBase
                 .Use(_ => _ => default)
                 .ModifyOptions(o => o.EnableOneOf = true)
                 .Create();
-            Assert.False(true, "Expected error!");
+            Assert.Fail("Expected error!");
         }
         catch (SchemaException ex)
         {

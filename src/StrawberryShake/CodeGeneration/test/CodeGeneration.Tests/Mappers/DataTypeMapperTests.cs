@@ -1,9 +1,5 @@
-using System.Linq;
-using System.Threading.Tasks;
 using HotChocolate.Language;
-using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Extensions;
-using Xunit;
 using RequestStrategyGen = StrawberryShake.Tools.Configuration.RequestStrategy;
 using static StrawberryShake.CodeGeneration.Mappers.TestDataHelper;
 
@@ -44,7 +40,7 @@ public class DataTypeMapperTests
             RequestStrategyGen.Default,
             new[]
             {
-                TransportProfile.Default
+                TransportProfile.Default,
             });
 
         TypeDescriptorMapper.Map(
@@ -125,7 +121,7 @@ public class DataTypeMapperTests
             RequestStrategyGen.Default,
             new[]
             {
-                TransportProfile.Default
+                TransportProfile.Default,
             });
         TypeDescriptorMapper.Map(
             clientModel,
@@ -202,7 +198,6 @@ public class DataTypeMapperTests
             });
     }
 
-
     [Fact]
     public void MapDataTypeDescriptors_DataInterfaceType()
     {
@@ -219,7 +214,7 @@ public class DataTypeMapperTests
             RequestStrategyGen.Default,
             new[]
             {
-                TransportProfile.Default
+                TransportProfile.Default,
             });
         TypeDescriptorMapper.Map(
             clientModel,

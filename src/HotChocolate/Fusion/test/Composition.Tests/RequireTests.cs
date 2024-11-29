@@ -1,18 +1,12 @@
-using CookieCrumble;
 using HotChocolate.Fusion.Shared;
 using HotChocolate.Skimmed.Serialization;
 using Xunit.Abstractions;
 
 namespace HotChocolate.Fusion.Composition;
 
-public class RequireTests
+public class RequireTests(ITestOutputHelper output)
 {
-    private readonly Func<ICompositionLog> _logFactory;
-
-    public RequireTests(ITestOutputHelper output)
-    {
-        _logFactory = () => new TestCompositionLog(output);
-    }
+    private readonly Func<ICompositionLog> _logFactory = () => new TestCompositionLog(output);
 
     [Fact]
     public async Task Require_Scalar_Arguments_No_Overloads()

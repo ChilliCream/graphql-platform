@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
@@ -11,9 +9,7 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 /// <summary>
 /// Defines the properties of a GraphQL directive.
 /// </summary>
-public class DirectiveTypeDefinition
-    : DefinitionBase<DirectiveDefinitionNode>
-    , IHasRuntimeType
+public class DirectiveTypeDefinition : DefinitionBase, IHasRuntimeType
 {
     private Type _clrType = typeof(object);
     private List<DirectiveMiddleware>? _middlewareComponents;
@@ -66,7 +62,7 @@ public class DirectiveTypeDefinition
     /// Gets or the associated middleware components.
     /// </summary>
     public IList<DirectiveMiddleware> MiddlewareComponents =>
-        _middlewareComponents ??= new List<DirectiveMiddleware>();
+        _middlewareComponents ??= [];
 
     /// <summary>
     /// Defines the location on which a directive can be annotated.
@@ -77,13 +73,12 @@ public class DirectiveTypeDefinition
     /// Gets the directive arguments.
     /// </summary>
     public IBindableList<DirectiveArgumentDefinition> Arguments
-        => _arguments ??= new BindableList<DirectiveArgumentDefinition>();
+        => _arguments ??= [];
 
     /// <summary>
     /// Specifies if this directive definition has an arguments.
     /// </summary>
-    public bool HasArguments => _arguments is { Count: > 0 };
-
+    public bool HasArguments => _arguments is { Count: > 0, };
 
     /// <summary>
     /// Gets or sets the input object runtime value factory delegate.
@@ -94,6 +89,16 @@ public class DirectiveTypeDefinition
     /// Gets or sets the delegate to extract the field values from the runtime value.
     /// </summary>
     public Action<object, object?[]>? GetFieldData { get; set; }
+
+    /// <summary>
+    /// Gets or sets the delegate to parse a directive literal to an instance of this directive.
+    /// </summary>
+    public Func<DirectiveNode, object>? Parse { get; set; }
+
+    /// <summary>
+    /// Gets or sets the delegate to format an instance of this directive to a directive literal.
+    /// </summary>
+    public Func<object, DirectiveNode>? Format { get; set; }
 
     public override IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
     {

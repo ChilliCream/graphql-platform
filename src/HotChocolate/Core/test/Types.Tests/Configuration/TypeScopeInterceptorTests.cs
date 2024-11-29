@@ -1,11 +1,7 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Configuration;
 
@@ -74,7 +70,7 @@ public class TypeScopeInterceptorTests
     public class TypeScopeInterceptor : TypeInterceptor
     {
         private readonly ICollection<ITypeSystemMember> _types;
-        private readonly List<ITypeDiscoveryContext> _contexts = new();
+        private readonly List<ITypeDiscoveryContext> _contexts = [];
 
         public TypeScopeInterceptor(ICollection<ITypeSystemMember> types)
         {
@@ -85,7 +81,7 @@ public class TypeScopeInterceptorTests
             ITypeDiscoveryContext discoveryContext,
             DefinitionBase definition)
         {
-            if (discoveryContext is { Scope: { } } && definition is ObjectTypeDefinition def)
+            if (discoveryContext is { Scope: { }, } && definition is ObjectTypeDefinition def)
             {
                 _contexts.Add(discoveryContext);
 
@@ -103,7 +99,7 @@ public class TypeScopeInterceptorTests
             ITypeCompletionContext completionContext,
             DefinitionBase definition)
         {
-            if (completionContext is { Scope: { } })
+            if (completionContext is { Scope: { }, })
             {
                 definition.Name = completionContext.Scope + "_" + definition.Name;
             }

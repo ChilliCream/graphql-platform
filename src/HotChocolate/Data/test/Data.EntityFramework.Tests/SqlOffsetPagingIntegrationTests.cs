@@ -1,19 +1,16 @@
-using System;
-using System.Threading.Tasks;
-using CookieCrumble;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Data;
 
 public class SqlOffsetPagingIntegrationTests : SqlLiteOffsetTestBase
 {
-    public TestData[] Data => new[]
-    {
+    public TestData[] Data =>
+    [
         new TestData(Guid.NewGuid(), "A"),
         new TestData(Guid.NewGuid(), "B"),
         new TestData(Guid.NewGuid(), "C"),
-        new TestData(Guid.NewGuid(), "D")
-    };
+        new TestData(Guid.NewGuid(), "D"),
+    ];
 
     [Fact]
     public async Task Simple_StringList_Default_Items()

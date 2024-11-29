@@ -1,126 +1,97 @@
-using System;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types.Relay;
 
 public class RelaySchemaTests
 {
-    [Obsolete]
     [Fact]
-    public void EnableRelay_Node_Field_On_Query_Exists()
+    public async Task AddGlobalObjectIdentification_Node_Field_On_Query_Exists()
     {
-        // arrange
-        // act
-        var schema = SchemaBuilder.New()
-            .AddQueryType<QueryType>()
-            .EnableRelaySupport()
-            .Create();
-
-        // assert
-        schema.ToString().MatchSnapshot();
-    }
-
-    [Obsolete]
-    [Fact]
-    public async Task EnableRelay_AddQueryToMutationPayloads()
-    {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryType>()
-            .AddMutationType<Mutation>()
-            .EnableRelaySupport(new RelayOptions { AddQueryFieldToMutationPayloads = true })
+            .AddGlobalObjectIdentification()
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }
 
-    [Obsolete]
     [Fact]
-    public async Task EnableRelay_AddQueryToMutationPayloads_With_Extensions()
+    public async Task AddQueryFieldToMutationPayloads_QueryField_On_MutationPayload_Exists()
     {
-        Snapshot.FullName();
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryType>()
+            .AddMutationType<Mutation>()
+            .AddQueryFieldToMutationPayloads()
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
 
+    [Fact]
+    public async Task AddQueryFieldToMutationPayloads_With_Extensions()
+    {
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryType>()
             .AddMutationType(d => d.Name("Mutation"))
             .AddTypeExtension<MutationExtension>()
-            .EnableRelaySupport(new RelayOptions { AddQueryFieldToMutationPayloads = true })
+            .AddQueryFieldToMutationPayloads()
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }
 
-    [Obsolete]
     [Fact]
-    public async Task EnableRelay_AddQueryToMutationPayloads_With_Different_FieldName()
+    public async Task AddQueryFieldToMutationPayloads_With_Different_FieldName()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryType>()
             .AddMutationType<Mutation>()
-            .EnableRelaySupport(new RelayOptions
-            {
-                AddQueryFieldToMutationPayloads = true,
-                QueryFieldName = "rootQuery"
-            })
+            .AddQueryFieldToMutationPayloads(o => o.QueryFieldName = "rootQuery")
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }
 
-    [Obsolete]
     [Fact]
-    public async Task EnableRelay_AddQueryToMutationPayloads_With_Different_PayloadPredicate()
+    public async Task AddQueryFieldToMutationPayloads_With_Different_PayloadPredicate()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryType>()
             .AddMutationType<Mutation2>()
-            .EnableRelaySupport(new RelayOptions
+            .AddQueryFieldToMutationPayloads(o =>
             {
-                AddQueryFieldToMutationPayloads = true,
-                MutationPayloadPredicate = type => type.Name.EndsWith("Result")
+                o.MutationPayloadPredicate = type => type.Name.EndsWith("Result");
             })
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }
 
-    [Obsolete]
     [Fact]
-    public async Task EnableRelay_AddQueryToMutationPayloads_Refetch_SomeId()
+    public async Task AddQueryFieldToMutationPayloads_Refetch_SomeId()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryType>()
             .AddMutationType<Mutation>()
-            .EnableRelaySupport(new RelayOptions { AddQueryFieldToMutationPayloads = true })
+            .AddQueryFieldToMutationPayloads()
+            .AddGlobalObjectIdentification()
             .ExecuteRequestAsync("mutation { foo { query { some { id } } } }")
             .MatchSnapshotAsync();
     }
 
-    [Obsolete]
     [Fact]
-    public async Task EnableRelay_AddQueryToMutationPayloads_Refetch_SomeId_With_Query_Inst()
+    public async Task AddQueryFieldToMutationPayloads_Refetch_SomeId_With_Query_Inst()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddMutationType<Mutation>()
-            .EnableRelaySupport(new RelayOptions { AddQueryFieldToMutationPayloads = true })
+            .AddQueryFieldToMutationPayloads()
+            .AddGlobalObjectIdentification()
             .ExecuteRequestAsync("mutation { foo { query { some { id } } } }")
             .MatchSnapshotAsync();
     }
@@ -128,14 +99,12 @@ public class RelaySchemaTests
     [Fact]
     public async Task Relay_ShouldReturnNonNullError_When_IdIsNull()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(d => d
                 .Field("user")
                 .Type<UserType>()
-                .Resolve(_ => new User { Name = "TEST" }))
+                .Resolve(_ => new User { Name = "TEST", }))
             .AddGlobalObjectIdentification()
             .ExecuteRequestAsync("query { user { id name } } ")
             .MatchSnapshotAsync();
@@ -160,7 +129,7 @@ public class RelaySchemaTests
 
         private Task<User> ResolveNode(IResolverContext context, string id)
         {
-            return Task.FromResult(new User { Name = "TEST" });
+            return Task.FromResult(new User { Name = "TEST", });
         }
     }
 

@@ -1,0 +1,20 @@
+schema
+  @fusion(version: 1)
+  @transport(subgraph: "A", location: "https:\/\/localhost:5001\/graphql", kind: "HTTP")
+  @transport(subgraph: "B", location: "https:\/\/localhost:5002\/graphql", kind: "HTTP") {
+  query: Query
+}
+
+type Query {
+  value: OrderStatus
+    @resolver(subgraph: "A", select: "{ value }")
+    @resolver(subgraph: "B", select: "{ value }")
+}
+
+enum OrderStatus {
+  SENT_OUT
+    @source(subgraph: "A")
+    @deprecated(reason: "Some reason")
+  SHIPPED
+    @source(subgraph: "B")
+}

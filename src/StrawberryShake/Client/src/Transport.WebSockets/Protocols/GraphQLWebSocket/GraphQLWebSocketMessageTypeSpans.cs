@@ -1,11 +1,9 @@
-using System;
-
 namespace StrawberryShake.Transport.WebSockets.Protocols;
 
 public static class GraphQLWebSocketMessageTypeSpans
 {
-    public static ReadOnlySpan<byte> ConnectionInitialize => new[]
-    {
+    public static ReadOnlySpan<byte> ConnectionInitialize =>
+    [
         (byte)'c',
         (byte)'o',
         (byte)'n',
@@ -20,11 +18,11 @@ public static class GraphQLWebSocketMessageTypeSpans
         (byte)'i',
         (byte)'n',
         (byte)'i',
-        (byte)'t'
-    };
+        (byte)'t',
+    ];
 
-    public static ReadOnlySpan<byte> ConnectionAccept => new[]
-    {
+    public static ReadOnlySpan<byte> ConnectionAccept =>
+    [
         (byte)'c',
         (byte)'o',
         (byte)'n',
@@ -38,11 +36,11 @@ public static class GraphQLWebSocketMessageTypeSpans
         (byte)'_',
         (byte)'a',
         (byte)'c',
-        (byte)'k'
-    };
+        (byte)'k',
+    ];
 
-    public static ReadOnlySpan<byte> ConnectionError => new[]
-    {
+    public static ReadOnlySpan<byte> ConnectionError =>
+    [
         (byte)'c',
         (byte)'o',
         (byte)'n',
@@ -58,17 +56,17 @@ public static class GraphQLWebSocketMessageTypeSpans
         (byte)'r',
         (byte)'r',
         (byte)'o',
-        (byte)'r'
-    };
+        (byte)'r',
+    ];
 
-    public static ReadOnlySpan<byte> KeepAlive => new[]
-    {
+    public static ReadOnlySpan<byte> KeepAlive =>
+    [
         (byte)'k',
-        (byte)'a'
-    };
+        (byte)'a',
+    ];
 
-    public static ReadOnlySpan<byte> ConnectionTerminate => new[]
-    {
+    public static ReadOnlySpan<byte> ConnectionTerminate =>
+    [
         (byte)'c',
         (byte)'o',
         (byte)'n',
@@ -88,37 +86,37 @@ public static class GraphQLWebSocketMessageTypeSpans
         (byte)'n',
         (byte)'a',
         (byte)'t',
-        (byte)'e'
-    };
+        (byte)'e',
+    ];
 
-    public static ReadOnlySpan<byte> Start => new[]
-    {
+    public static ReadOnlySpan<byte> Start =>
+    [
         (byte)'s',
         (byte)'t',
         (byte)'a',
         (byte)'r',
-        (byte)'t'
-    };
+        (byte)'t',
+    ];
 
-    public static ReadOnlySpan<byte> Data => new[]
-    {
+    public static ReadOnlySpan<byte> Data =>
+    [
         (byte)'d',
         (byte)'a',
         (byte)'t',
-        (byte)'a'
-    };
+        (byte)'a',
+    ];
 
-    public static ReadOnlySpan<byte> Error => new[]
-    {
+    public static ReadOnlySpan<byte> Error =>
+    [
         (byte)'e',
         (byte)'r',
         (byte)'r',
         (byte)'o',
-        (byte)'r'
-    };
+        (byte)'r',
+    ];
 
-    public static ReadOnlySpan<byte> Complete => new[]
-    {
+    public static ReadOnlySpan<byte> Complete =>
+    [
         (byte)'c',
         (byte)'o',
         (byte)'m',
@@ -126,14 +124,14 @@ public static class GraphQLWebSocketMessageTypeSpans
         (byte)'l',
         (byte)'e',
         (byte)'t',
-        (byte)'e'
-    };
+        (byte)'e',
+    ];
 
-    public static ReadOnlySpan<byte> Stop => new[]
-    {
+    public static ReadOnlySpan<byte> Stop =>
+    [
         (byte)'s',
         (byte)'t',
         (byte)'o',
-        (byte)'p'
-    };
+        (byte)'p',
+    ];
 }

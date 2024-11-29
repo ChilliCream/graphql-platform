@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Globalization;
 using static HotChocolate.Language.Properties.LangUtf8Resources;
 
@@ -8,8 +6,8 @@ namespace HotChocolate.Language;
 // Implements the parsing rules in the Operations section.
 public ref partial struct Utf8GraphQLParser
 {
-    private static readonly List<VariableDefinitionNode> _emptyVariableDefinitions = new();
-    private static readonly List<ArgumentNode> _emptyArguments = new();
+    private static readonly List<VariableDefinitionNode> _emptyVariableDefinitions = [];
+    private static readonly List<ArgumentNode> _emptyArguments = [];
 
     /// <summary>
     /// Parses an operation definition.
@@ -27,19 +25,17 @@ public ref partial struct Utf8GraphQLParser
         var selectionSet = ParseSelectionSet();
         var location = CreateLocation(in start);
 
-        return new OperationDefinitionNode
-        (
+        return new OperationDefinitionNode(
             location,
             name,
             operation,
             variableDefinitions,
             directives,
-            selectionSet
-        );
+            selectionSet);
     }
 
     /// <summary>
-    /// Parses a short-hand form operation definition.
+    /// Parses a shorthand form operation definition.
     /// <see cref="OperationDefinitionNode" />:
     /// SelectionSet
     /// </summary>
@@ -49,15 +45,13 @@ public ref partial struct Utf8GraphQLParser
         var selectionSet = ParseSelectionSet();
         var location = CreateLocation(in start);
 
-        return new OperationDefinitionNode
-        (
+        return new OperationDefinitionNode(
             location,
-            null,
+            name: null,
             OperationType.Query,
             Array.Empty<VariableDefinitionNode>(),
             Array.Empty<DirectiveNode>(),
-            selectionSet
-        );
+            selectionSet);
     }
 
     /// <summary>
@@ -133,18 +127,16 @@ public ref partial struct Utf8GraphQLParser
             ? ParseValueLiteral(true)
             : null;
         var directives =
-            ParseDirectives(true);
+            ParseDirectives(isConstant: true);
 
         var location = CreateLocation(in start);
 
-        return new VariableDefinitionNode
-        (
+        return new VariableDefinitionNode(
             location,
             variable,
             type,
             defaultValue,
-            directives
-        );
+            directives);
     }
 
     /// <summary>
@@ -159,11 +151,9 @@ public ref partial struct Utf8GraphQLParser
         var name = ParseName();
         var location = CreateLocation(in start);
 
-        return new VariableNode
-        (
+        return new VariableNode(
             location,
-            name
-        );
+            name);
     }
 
     /// <summary>
@@ -182,7 +172,7 @@ public ref partial struct Utf8GraphQLParser
                     CultureInfo.InvariantCulture,
                     ParseMany_InvalidOpenToken,
                     TokenKind.LeftBrace,
-                    TokenPrinter.Print(in _reader)));
+                    TokenPrinter.Print(ref _reader)));
         }
 
         var selections = new List<ISelectionNode>();
@@ -190,7 +180,8 @@ public ref partial struct Utf8GraphQLParser
         // skip opening token
         MoveNext();
 
-        while (_reader.Kind != TokenKind.RightBrace)
+        while (_reader.Kind != TokenKind.RightBrace
+            && _reader.Kind != TokenKind.EndOfFile)
         {
             selections.Add(ParseSelection());
         }
@@ -200,11 +191,9 @@ public ref partial struct Utf8GraphQLParser
 
         var location = CreateLocation(in start);
 
-        return new SelectionSetNode
-        (
+        return new SelectionSetNode(
             location,
-            selections
-        );
+            selections);
     }
 
     /// <summary>
@@ -251,7 +240,6 @@ public ref partial struct Utf8GraphQLParser
         }
 
         var arguments = ParseArguments(false);
-        var required = ParseRequiredStatus();
         var directives = ParseDirectives(false);
         var selectionSet = _reader.Kind == TokenKind.LeftBrace
             ? ParseSelectionSet()
@@ -259,59 +247,13 @@ public ref partial struct Utf8GraphQLParser
 
         var location = CreateLocation(in start);
 
-        return new FieldNode
-        (
+        return new FieldNode(
             location,
             name,
             alias,
-            required,
             directives,
             arguments,
-            selectionSet
-        );
-    }
-
-    private INullabilityNode? ParseRequiredStatus()
-    {
-        var list = ParseListNullability();
-        var modifier = ParseModifier(list);
-        return modifier ?? list;
-    }
-
-    private ListNullabilityNode? ParseListNullability()
-    {
-        if (_reader.Kind == TokenKind.LeftBracket)
-        {
-            var start = Start();
-            _reader.Skip(TokenKind.LeftBracket);
-            var element = ParseRequiredStatus();
-            _reader.Expect(TokenKind.RightBracket);
-            var location = CreateLocation(in start);
-            return new ListNullabilityNode(location, element);
-        }
-
-        return null;
-    }
-
-    private INullabilityNode? ParseModifier(ListNullabilityNode? listNullabilityNode)
-    {
-        if (_reader.Kind == TokenKind.QuestionMark)
-        {
-            var start = Start();
-            _reader.Skip(TokenKind.QuestionMark);
-            var location = CreateLocation(in start);
-            return new OptionalModifierNode(location, listNullabilityNode);
-        }
-
-        if (_reader.Kind == TokenKind.Bang)
-        {
-            var start = Start();
-            _reader.Skip(TokenKind.Bang);
-            var location = CreateLocation(in start);
-            return new RequiredModifierNode(location, listNullabilityNode);
-        }
-
-        return listNullabilityNode;
+            selectionSet);
     }
 
     /// <summary>
@@ -341,7 +283,6 @@ public ref partial struct Utf8GraphQLParser
         return _emptyArguments;
     }
 
-
     /// <summary>
     /// Parses an argument.
     /// <see cref="ArgumentNode" />:
@@ -357,11 +298,9 @@ public ref partial struct Utf8GraphQLParser
 
         var location = CreateLocation(in start);
 
-        return new ArgumentNode
-        (
+        return new ArgumentNode(
             location,
             name,
-            value
-        );
+            value);
     }
 }

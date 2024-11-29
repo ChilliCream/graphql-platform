@@ -1,12 +1,7 @@
-using System;
 using System.Buffers;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Transport.Http;
@@ -17,7 +12,7 @@ internal static class GraphQLHttpEventStreamProcessor
     private static ReadOnlySpan<byte> Next => "next\n"u8;
     private static ReadOnlySpan<byte> Complete => "complete\n"u8;
     private static ReadOnlySpan<byte> Data => "data:"u8;
-    
+
     public static IAsyncEnumerable<OperationResult> ReadStream(Stream stream, CancellationToken ct)
     {
         var pipe = new Pipe();
@@ -32,50 +27,42 @@ internal static class GraphQLHttpEventStreamProcessor
     {
         const int bufferSize = 64;
         var buffer = new byte[bufferSize];
-#if NET6_0_OR_GREATER
         var bufferMemory = new Memory<byte>(buffer);
-#endif
 
-        try
+        await using var tokenRegistration = ct.Register(
+            static writer => ((PipeWriter)writer!).CancelPendingFlush(),
+            state: writer,
+            useSynchronizationContext: false);
+
+        while (true)
         {
-            while (true)
+            try
             {
-                try
-                {
-#if NET6_0_OR_GREATER
-                    var bytesRead = await stream.ReadAsync(bufferMemory, ct).ConfigureAwait(false);
-#else
-                    var bytesRead = await stream.ReadAsync(buffer, 0, bufferSize, ct).ConfigureAwait(false);
-#endif
+                var bytesRead = await stream.ReadAsync(bufferMemory, ct).ConfigureAwait(false);
 
-                    if (bytesRead == 0)
-                    {
-                        break;
-                    }
-
-                    var memory = writer.GetMemory(bytesRead);
-                    buffer.AsSpan().CopyTo(memory.Span);
-                    writer.Advance(bytesRead);
-                }
-                catch
+                if (bytesRead == 0)
                 {
                     break;
                 }
 
-                var result = await writer.FlushAsync(ct).ConfigureAwait(false);
-
-                if (result.IsCompleted)
-                {
-                    break;
-                }
+                var memory = writer.GetMemory(bytesRead);
+                buffer.AsSpan()[..bytesRead].CopyTo(memory.Span);
+                writer.Advance(bytesRead);
+            }
+            catch
+            {
+                break;
             }
 
-            await writer.CompleteAsync().ConfigureAwait(false);
+            // ReSharper disable once RedundantArgumentDefaultValue
+            var result = await writer.FlushAsync(default).ConfigureAwait(false);
+            if (result.IsCompleted || result.IsCanceled)
+            {
+                break;
+            }
         }
-        catch (OperationCanceledException)
-        {
-            // we were canceled and stop executing.
-        }
+
+        await writer.CompleteAsync().ConfigureAwait(false);
     }
 
     private static async IAsyncEnumerable<OperationResult> ReadMessagesPipeAsync(
@@ -84,17 +71,18 @@ internal static class GraphQLHttpEventStreamProcessor
     {
         using var message = new ArrayWriter();
 
+        await using var tokenRegistration = ct.Register(
+            static reader => ((PipeReader)reader!).CancelPendingRead(),
+            state: reader,
+            useSynchronizationContext: false);
+
         while (true)
         {
-            ReadResult result;
-
-            try
+            // ReSharper disable once RedundantArgumentDefaultValue
+            var result = await reader.ReadAsync(default).ConfigureAwait(false);
+            if (result.IsCanceled)
             {
-                result = await reader.ReadAsync(ct).ConfigureAwait(false);
-            }
-            catch (OperationCanceledException)
-            {
-                yield break;
+                break;
             }
 
             var buffer = result.Buffer;
@@ -104,24 +92,26 @@ internal static class GraphQLHttpEventStreamProcessor
             {
                 position = buffer.PositionOf((byte) '\n');
 
-                if (position != null)
+                if (position == null)
                 {
-                    WriteToMessage(message, buffer.Slice(0, position.Value));
+                    continue;
+                }
 
-                    if (IsMessageComplete(message))
+                WriteToMessage(message, buffer.Slice(0, position.Value));
+
+                if (IsMessageComplete(message))
+                {
+                    if (!TryReadMessage(message.GetWrittenMemory(), out var operationResult))
                     {
-                        if (!TryReadMessage(message.GetWrittenMemory(), out var operationResult))
-                        {
-                            await reader.CompleteAsync().ConfigureAwait(false);
-                            yield break;
-                        }
-                        
-                        message.Reset();
-                        yield return operationResult;
+                        await reader.CompleteAsync().ConfigureAwait(false);
+                        yield break;
                     }
 
-                    buffer = buffer.Slice(buffer.GetPosition(1, position.Value));
+                    message.Reset();
+                    yield return operationResult;
                 }
+
+                buffer = buffer.Slice(buffer.GetPosition(1, position.Value));
             } while (position != null);
 
             reader.AdvanceTo(buffer.Start, buffer.End);
@@ -154,7 +144,7 @@ internal static class GraphQLHttpEventStreamProcessor
             {
                 var size = segment.Span.Length;
                 var span = message.GetSpan(size);
-                buffer.First.Span.CopyTo(span);
+                segment.Span.CopyTo(span);
                 message.Advance(size);
             }
         }
@@ -213,7 +203,7 @@ internal static class GraphQLHttpEventStreamProcessor
     }
 
     private static bool TryReadMessage(
-        ReadOnlyMemory<byte> message, 
+        ReadOnlyMemory<byte> message,
         [NotNullWhen(true)] out OperationResult? result)
     {
         var span = message.Span;
@@ -228,7 +218,7 @@ internal static class GraphQLHttpEventStreamProcessor
         result = null;
         return false;
     }
-    
+
     private static EventType ParseEventType(ref ReadOnlySpan<byte> span)
     {
         if (ExpectEvent(ref span))
@@ -257,7 +247,7 @@ internal static class GraphQLHttpEventStreamProcessor
 
         throw new InvalidOperationException("Invalid Message Format.");
     }
-    
+
     private static bool ExpectEvent(ref ReadOnlySpan<byte> span)
     {
         if (span.Slice(0, 6).SequenceEqual(Event))
@@ -265,7 +255,7 @@ internal static class GraphQLHttpEventStreamProcessor
             span = span.Slice(6);
             return true;
         }
-        
+
         return false;
     }
 
@@ -282,11 +272,11 @@ internal static class GraphQLHttpEventStreamProcessor
 
         return true;
     }
-    
+
     private static bool ExpectComplete(ref ReadOnlySpan<byte> span)
     {
         SkipWhitespaces(ref span);
-        
+
         if (!span.Slice(0, 9).SequenceEqual(Complete))
         {
             return false;
@@ -296,7 +286,7 @@ internal static class GraphQLHttpEventStreamProcessor
 
         return true;
     }
-    
+
     private static bool ExpectData(ref ReadOnlySpan<byte> span)
     {
         if (span.Slice(0, 5).SequenceEqual(Data))
@@ -304,19 +294,19 @@ internal static class GraphQLHttpEventStreamProcessor
             span = span.Slice(5);
             return true;
         }
-        
+
         return false;
     }
 
     private static ReadOnlySpan<byte> ReadData(ref ReadOnlySpan<byte> span)
     {
         var linebreak = span.IndexOf((byte) '\n');
-        
+
         if (linebreak == -1)
         {
             throw new InvalidOperationException("Invalid Message Format.");
         }
-            
+
         var data = span.Slice(0, linebreak);
         span = span.Slice(linebreak + 1);
         return data;
@@ -331,8 +321,8 @@ internal static class GraphQLHttpEventStreamProcessor
     }
 
     private enum EventType
-    { 
+    {
         Next,
-        Complete
+        Complete,
     }
 }

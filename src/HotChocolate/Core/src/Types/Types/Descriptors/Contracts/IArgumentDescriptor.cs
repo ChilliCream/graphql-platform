@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -8,12 +7,6 @@ public interface IArgumentDescriptor
     : IDescriptor<ArgumentDefinition>
     , IFluent
 {
-    /// <summary>
-    /// Associates the argument with a syntax node of the parsed GraphQL SDL.
-    /// </summary>
-    /// <param name="inputValueDefinition">The syntax node</param>
-    IArgumentDescriptor SyntaxNode(InputValueDefinitionNode inputValueDefinition);
-
     /// <summary>
     /// Marks the argument as deprecated
     /// <remarks>
@@ -36,7 +29,7 @@ public interface IArgumentDescriptor
     /// <summary>
     /// Marks the argument as deprecated
     /// <remarks>
-    /// The argument must be nullable. Non-Nullable arguments cannot be deprecated
+    /// The argument must be nullable or have a default value. Otherwise the argument cannot be deprecated
     /// </remarks>
     /// <example>
     /// <code lang="csharp">

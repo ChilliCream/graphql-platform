@@ -284,5 +284,11 @@ namespace HotChocolate.AspNetCore.Properties {
                 return ResourceManager.GetString("ErrorHelper_TypeNameIsEmpty", resourceCulture);
             }
         }
+        
+        internal static string ErrorHelper_MultiPartRequestPreflightRequired {
+            get {
+                return ResourceManager.GetString("ErrorHelper_MultiPartRequestPreflightRequired", resourceCulture);
+            }
+        }
     }
 }

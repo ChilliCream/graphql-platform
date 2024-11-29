@@ -1,0 +1,7 @@
+query IntrospectionQuery {
+    __type(name: "__Schema") {
+        fields {
+            name
+        }
+    }
+}

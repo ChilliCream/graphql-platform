@@ -5,7 +5,6 @@ namespace HotChocolate.Types;
 /// </summary>
 public enum ApplyConfigurationOn
 {
-
     /// <summary>
     /// Before the type is created.
     /// </summary>
@@ -29,5 +28,5 @@ public enum ApplyConfigurationOn
     /// <summary>
     /// After the type is completed.
     /// </summary>
-    AfterCompletion
+    AfterCompletion,
 }

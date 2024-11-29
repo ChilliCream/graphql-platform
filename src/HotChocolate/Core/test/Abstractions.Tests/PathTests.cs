@@ -1,5 +1,3 @@
-﻿using Snapshooter.Xunit;
-
 namespace HotChocolate.Execution.Instrumentation;
 
 public class PathExtensionsTests
@@ -10,13 +8,13 @@ public class PathExtensionsTests
         var path = Path.Root.Append("hero");
         Assert.NotEqual(0, path.GetHashCode());
     }
-    
+
     [Fact]
     public void GetHashCode_Root_Test()
     {
         Assert.Equal(0, Path.Root.GetHashCode());
     }
-    
+
     [Fact]
     public void Path_ToString()
     {
@@ -54,7 +52,7 @@ public class PathExtensionsTests
     {
         // arrange
         var hero = Path.Root.Append("hero");
-        Path friends = null;
+        Path? friends = null;
 
         // act
         var areEqual = hero.Equals(friends);

@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.Data.DataResources;
@@ -112,7 +110,7 @@ public class FilterConventionDescriptor : IFilterConventionDescriptor
                 typeReference,
                 out var configurations))
         {
-            configurations = new List<ConfigureFilterInputType>();
+            configurations = [];
             Definition.Configurations.Add(typeReference, configurations);
         }
 

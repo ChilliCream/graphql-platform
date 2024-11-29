@@ -3,25 +3,18 @@
   <PropertyGroup>
     <PackageId>StrawberryShake.Persistence.SQLite</PackageId>
     <RootNamespace>StrawberryShake.Persistence.SQLite</RootNamespace>
-    <Nullable>enable</Nullable>
     <Description>A SQLite store persistence layer.</Description>
     <AssemblyName>StrawberryShake.Persistence.SQLite</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="5.0.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
-    <PackageReference Include="System.Reactive" Version="5.0.0" />
+    <InternalsVisibleTo Include="StrawberryShake.Persistence.SQLite.Tests" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="System.Threading.Channels" Version="6.0.0" />
-    <PackageReference Include="System.Text.Json" Version="6.0.7" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
-    <PackageReference Include="System.Threading.Channels" Version="6.0.0" />
-    <PackageReference Include="System.Text.Json" Version="6.0.7" />
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite.Core" />
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="System.Reactive" />
   </ItemGroup>
 
   <ItemGroup>

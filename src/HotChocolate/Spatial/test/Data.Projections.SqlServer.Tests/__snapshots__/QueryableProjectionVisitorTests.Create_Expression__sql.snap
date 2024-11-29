@@ -1,2 +1,0 @@
-﻿SELECT d."Id", d."Bar"
-FROM "Data" AS d

@@ -12,12 +12,8 @@ internal static class HttpResponseExtensions
     private const string _contentDepositionValue = "attachment; filename=\"{0}\"";
     private static readonly JsonSerializerOptions _serializerOptions = new()
     {
-#if NETCOREAPP3_1
-        IgnoreNullValues = true,
-#else
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-#endif
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
 
     internal static Task WriteAsJsonAsync<TValue>(

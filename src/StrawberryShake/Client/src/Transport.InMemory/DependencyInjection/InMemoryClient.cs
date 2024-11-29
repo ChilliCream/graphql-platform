@@ -1,10 +1,5 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -61,23 +56,23 @@ public class InMemoryClient : IInMemoryClient
             throw ThrowHelper.InMemoryClient_NoExecutorConfigured(_name);
         }
 
-        var requestBuilder = new QueryRequestBuilder();
+        var requestBuilder = new OperationRequestBuilder();
 
         if (request.Document.Body.Length > 0)
         {
-            requestBuilder.SetQuery(Utf8GraphQLParser.Parse(request.Document.Body));
+            requestBuilder.SetDocument(Utf8GraphQLParser.Parse(request.Document.Body));
         }
         else
         {
-            requestBuilder.SetQueryId(request.Id);
+            requestBuilder.SetDocumentId(request.Id);
         }
 
-        requestBuilder.SetOperation(request.Name);
+        requestBuilder.SetOperationName(request.Name);
         requestBuilder.SetVariableValues(CreateVariables(request));
         requestBuilder.SetExtensions(request.GetExtensionsOrNull());
-        requestBuilder.InitializeGlobalState(request.GetContextDataOrNull());
+        requestBuilder.SetGlobalState(request.GetContextDataOrNull());
 
-        IServiceProvider applicationService = Executor.Services.GetApplicationServices();
+        var applicationService = Executor.Services.GetApplicationServices();
         foreach (var interceptor in RequestInterceptors)
         {
             await interceptor
@@ -86,7 +81,7 @@ public class InMemoryClient : IInMemoryClient
         }
 
         return await Executor
-            .ExecuteAsync(requestBuilder.Create(), cancellationToken)
+            .ExecuteAsync(requestBuilder.Build(), cancellationToken)
             .ConfigureAwait(false);
     }
 
@@ -97,7 +92,7 @@ public class InMemoryClient : IInMemoryClient
             var unflattened = MapFilesToLookup(request.Files);
             var response = new Dictionary<string, object?>();
 
-            foreach (KeyValuePair<string, object?> pair in variables)
+            foreach (var pair in variables)
             {
                 unflattened.TryGetValue(pair.Key, out var fileValue);
                 response[pair.Key] = CreateVariableValue(pair.Value, fileValue);
@@ -154,7 +149,7 @@ public class InMemoryClient : IInMemoryClient
         {
             (Dictionary<string, object?> s, string prop) when s.ContainsKey(prop) => s[prop],
             (List<object> l, int i) when i < l.Count => l[i],
-            _ => null
+            _ => null,
         };
     }
 
@@ -175,7 +170,7 @@ public class InMemoryClient : IInMemoryClient
             {
                 var segment = path[i];
 
-                string? nextSegment = i + 1 == path.Length ? null : path[i + 1];
+                var nextSegment = i + 1 == path.Length ? null : path[i + 1];
 
                 if (char.IsDigit(segment[0]))
                 {

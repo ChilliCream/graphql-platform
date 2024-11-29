@@ -1,4 +1,4 @@
-﻿namespace HotChocolate.Execution.Integration.HelloWorldCodeFirst;
+namespace HotChocolate.Execution.Integration.HelloWorldCodeFirst;
 
 public class QueryHelloWorldClr
 {
@@ -9,7 +9,7 @@ public class QueryHelloWorldClr
         _dataStore = dataStore;
     }
 
-    public string GetHello(string to)
+    public string GetHello(string? to)
     {
         return to ?? "world";
     }

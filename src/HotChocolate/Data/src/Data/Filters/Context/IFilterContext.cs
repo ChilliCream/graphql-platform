@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System.Linq.Expressions;
 
 namespace HotChocolate.Data.Filters;
 
@@ -16,7 +16,17 @@ public interface IFilterContext : IFilterInfo
     void Handled(bool isHandled);
 
     /// <summary>
+    /// Specifies if a filter was defined.
+    /// </summary>
+    bool IsDefined { get; }
+
+    /// <summary>
     /// Serializes the input object to a dictionary
     /// </summary>
     IDictionary<string, object?>? ToDictionary();
+
+    /// <summary>
+    /// Creates a predicate expression for the filter context.
+    /// </summary>
+    Expression<Func<T, bool>>? AsPredicate<T>();
 }

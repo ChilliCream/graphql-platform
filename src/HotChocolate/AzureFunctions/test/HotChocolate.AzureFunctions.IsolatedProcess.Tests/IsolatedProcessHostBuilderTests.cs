@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.AzureFunctions.IsolatedProcess.Tests.Helpers;
 using HotChocolate.Types;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;

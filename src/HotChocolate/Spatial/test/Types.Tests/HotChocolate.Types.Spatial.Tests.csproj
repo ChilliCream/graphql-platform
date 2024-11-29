@@ -1,9 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <AssemblyName>HotChocolate.Types.Spatial.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Types.Spatial</RootNamespace>
-    <TargetFrameworks>$(TestTargetFrameworks)</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>

@@ -15,17 +15,7 @@ public abstract class JsonOperationMessage
     {
     }
 
-#if NET6_0_OR_GREATER
     /// <inheritdoc />
     public T? As<T>() where T : class
         => Payload?.Deserialize<T>(SerializerOptions);
-#else
-    /// <inheritdoc />
-    public T? As<T>() where T : class
-    {
-        return Payload is null
-            ? null
-            : JsonSerializer.Deserialize<T>(Payload.Value.GetRawText(), SerializerOptions);
-    }
-#endif
 }

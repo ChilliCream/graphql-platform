@@ -43,6 +43,6 @@ public sealed class SyntaxTokenInfo
     /// </summary>
     public int Column { get; }
 
-    public static SyntaxTokenInfo FromReader(in Utf8GraphQLReader reader)
+    public static SyntaxTokenInfo FromReader(Utf8GraphQLReader reader)
         => new(reader.Kind, reader.Start, reader.End, reader.Line, reader.Column);
 }

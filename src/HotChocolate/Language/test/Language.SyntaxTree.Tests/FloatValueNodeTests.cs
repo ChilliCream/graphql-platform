@@ -225,7 +225,7 @@ public class FloatValueNodeTests
     {
         // act
         var a = new FloatValueNode(2.5);
-        FloatValueNode b = a.WithValue(a.AsSpan(), FloatFormat.FixedPoint);
+        var b = a.WithValue(a.AsSpan(), FloatFormat.FixedPoint);
         var c = b.Value;
 
         // assert

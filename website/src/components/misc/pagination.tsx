@@ -2,7 +2,7 @@ import { Link } from "gatsby";
 import React, { FC } from "react";
 import styled from "styled-components";
 
-import { THEME_COLORS } from "@/shared-style";
+import { FONT_FAMILY_HEADING, THEME_COLORS } from "@/style";
 
 export interface PaginationProps {
   readonly currentPage: number;
@@ -27,11 +27,13 @@ export const Pagination: FC<PaginationProps> = ({
   return (
     <Container>
       {items.map((item) => (
-        <Page
-          key={`page-${item.page}`}
-          className={item.page === currentPage ? "active" : undefined}
-        >
-          <PageLink to={item.link}>{item.page}</PageLink>
+        <Page key={`page-${item.page}`}>
+          <PageLink
+            to={item.link}
+            className={item.page === currentPage ? "active" : undefined}
+          >
+            {item.page}
+          </PageLink>
         </Page>
       ))}
     </Container>
@@ -39,6 +41,8 @@ export const Pagination: FC<PaginationProps> = ({
 };
 
 const Container = styled.ol`
+  display: flex;
+  gap: 8px;
   margin: 0 0 60px;
   padding: 0;
   list-style-type: none;
@@ -46,23 +50,36 @@ const Container = styled.ol`
 
 const Page = styled.li`
   display: inline-block;
-  margin: 0 5px;
-  border-radius: var(--border-radius);
+  margin: 0;
   padding: 0;
-  background-color: ${THEME_COLORS.primary};
-
-  &.active,
-  &:hover {
-    background-color: ${THEME_COLORS.secondary};
-  }
 `;
 
 const PageLink = styled(Link)`
   display: flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
   width: 30px;
   height: 30px;
   line-height: 30px;
-  color: ${THEME_COLORS.textContrast};
+  border: 2px solid ${THEME_COLORS.primaryButtonBorder};
+  border-radius: var(--button-border-radius);
+  font-family: ${FONT_FAMILY_HEADING};
+  font-size: 1rem;
+  font-weight: 500;
+  text-decoration: none;
+  color: ${THEME_COLORS.primaryButtonText};
+  background-color: ${THEME_COLORS.primaryButton};
+  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out,
+    color 0.2s ease-in-out;
+
+  &.active {
+    color: ${THEME_COLORS.background};
+  }
+
+  :hover {
+    border-color: ${THEME_COLORS.primaryButtonBorder};
+    color: ${THEME_COLORS.primaryButtonHoverText};
+    background-color: ${THEME_COLORS.primaryButtonHover};
+  }
 `;

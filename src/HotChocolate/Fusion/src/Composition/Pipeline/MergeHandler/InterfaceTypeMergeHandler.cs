@@ -1,4 +1,5 @@
 using HotChocolate.Skimmed;
+using HotChocolate.Types;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
@@ -22,12 +23,12 @@ internal sealed class InterfaceTypeMergeHandler : ITypeMergeHandler
         }
 
         // Get the target interface type from the fusion graph.
-        var target = (InterfaceType)context.FusionGraph.Types[typeGroup.Name];
+        var target = (InterfaceTypeDefinition)context.FusionGraph.Types[typeGroup.Name];
 
         // Merge the parts of the interface type group into the target interface type.
         foreach (var part in typeGroup.Parts)
         {
-            var source = (InterfaceType)part.Type;
+            var source = (InterfaceTypeDefinition)part.Type;
             MergeType(context, source, part.Schema, target);
         }
 
@@ -36,9 +37,9 @@ internal sealed class InterfaceTypeMergeHandler : ITypeMergeHandler
 
     private static void MergeType(
         CompositionContext context,
-        InterfaceType source,
-        Schema sourceSchema,
-        InterfaceType target)
+        InterfaceTypeDefinition source,
+        SchemaDefinition sourceSchema,
+        InterfaceTypeDefinition target)
     {
         // Apply the source type to the target type.
         context.TryApplySource(source, sourceSchema, target);
@@ -46,12 +47,14 @@ internal sealed class InterfaceTypeMergeHandler : ITypeMergeHandler
         // If the target type does not have a description, use the source type's description.
         target.MergeDescriptionWith(source);
 
+        target.MergeDirectivesWith(source, context);
+
         // Add all of the interfaces that the source type implements to the target type.
         foreach (var interfaceType in source.Implements)
         {
             if (!target.Implements.Any(t => t.Name.EqualsOrdinal(interfaceType.Name)))
             {
-                target.Implements.Add((InterfaceType)context.FusionGraph.Types[interfaceType.Name]);
+                target.Implements.Add((InterfaceTypeDefinition)context.FusionGraph.Types[interfaceType.Name]);
             }
         }
 

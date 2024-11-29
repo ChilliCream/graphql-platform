@@ -1,5 +1,5 @@
-using System;
 using System.Linq.Expressions;
+using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -9,17 +9,6 @@ public interface IInterfaceTypeDescriptor<T>
     : IDescriptor<InterfaceTypeDefinition>
     , IFluent
 {
-    /// <summary>
-    /// Associates the specified
-    /// <paramref name="interfaceTypeDefinition"/>
-    /// with the <see cref="InterfaceType"/>.
-    /// </summary>
-    /// <param name="interfaceTypeDefinition">
-    /// The <see cref="InterfaceTypeDefinitionNode"/> of a parsed schema.
-    /// </param>
-    IInterfaceTypeDescriptor<T> SyntaxNode(
-        InterfaceTypeDefinitionNode interfaceTypeDefinition);
-
     /// <summary>
     /// Defines the name of the <see cref="InterfaceType"/>.
     /// </summary>
@@ -36,34 +25,6 @@ public interface IInterfaceTypeDescriptor<T>
     /// </summary>
     /// <param name="value">The interface type description.</param>
     IInterfaceTypeDescriptor<T> Description(string value);
-
-    /// <summary>
-    /// Specifies an interface that is implemented by the
-    /// <see cref="InterfaceType"/>.
-    /// </summary>
-    /// <typeparam name="TInterface">The interface that is being implemented.</typeparam>
-    [Obsolete("Use Implements.")]
-    IInterfaceTypeDescriptor<T> Interface<TInterface>()
-        where TInterface : InterfaceType;
-
-    /// <summary>
-    /// Specifies an interface that is implemented by the
-    /// <see cref="InterfaceType"/>.
-    /// </summary>
-    /// <typeparam name="TInterface">The interface that is being implemented.</typeparam>
-    [Obsolete("Use Implements.")]
-    IInterfaceTypeDescriptor<T> Interface<TInterface>(TInterface type)
-        where TInterface : InterfaceType;
-
-    /// <summary>
-    /// Specifies an interface that is implemented by the
-    /// <see cref="InterfaceType"/>.
-    /// </summary>
-    /// <param name="type">
-    /// A syntax node representing an interface type.
-    /// </param>
-    [Obsolete("Use Implements.")]
-    IInterfaceTypeDescriptor<T> Interface(NamedTypeNode type);
 
     /// <summary>
     /// Specifies an interface that is implemented by the
@@ -127,6 +88,9 @@ public interface IInterfaceTypeDescriptor<T>
 
     IInterfaceFieldDescriptor Field(
         Expression<Func<T, object>> propertyOrMethod);
+
+    IInterfaceFieldDescriptor Field(
+        MemberInfo propertyOrMethod);
 
     IInterfaceFieldDescriptor Field(string name);
 

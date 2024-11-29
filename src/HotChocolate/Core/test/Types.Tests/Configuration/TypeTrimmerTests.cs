@@ -1,7 +1,5 @@
 using HotChocolate.Language;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
-using Xunit;
 using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 
 namespace HotChocolate.Configuration;

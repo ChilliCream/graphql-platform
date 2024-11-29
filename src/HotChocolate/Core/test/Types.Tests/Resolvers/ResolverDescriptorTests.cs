@@ -1,6 +1,4 @@
-using System.Linq;
 using HotChocolate.Resolvers.Expressions;
-using Xunit;
 
 namespace HotChocolate.Resolvers;
 

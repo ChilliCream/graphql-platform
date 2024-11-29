@@ -1,9 +1,7 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using Xunit;
+#if NET8_0
 using HotChocolate.Execution;
+#endif
 using HotChocolate.Language;
 
 namespace HotChocolate;
@@ -29,9 +27,9 @@ public class ErrorBuilderTests
         // arrange
         IError error = new Error (
             "123",
-            extensions: new OrderedDictionary<string, object>
+            extensions: new OrderedDictionary<string, object?>
             {
-                {"foo", "bar"}
+                {"foo", "bar"},
             });
 
         // act
@@ -51,9 +49,9 @@ public class ErrorBuilderTests
         IError error = new Error
         (
             "123",
-            extensions: new OrderedDictionary<string, object>
+            extensions: new OrderedDictionary<string, object?>
             {
-                {"foo", "bar"}
+                {"foo", "bar"},
             }
         );
 
@@ -72,10 +70,10 @@ public class ErrorBuilderTests
         IError error = new Error
         (
             "123",
-            extensions: new OrderedDictionary<string, object>
+            extensions: new OrderedDictionary<string, object?>
             {
                 {"foo", "bar"},
-                {"bar", "foo"}
+                {"bar", "foo"},
             }
         );
 
@@ -108,7 +106,8 @@ public class ErrorBuilderTests
 
         // assert
         Assert.Equal("123", error.Message);
-        Assert.Collection(error.Locations,
+        Assert.Collection(
+            error.Locations!,
             t => Assert.Equal(1, t.Line));
     }
 
@@ -137,7 +136,7 @@ public class ErrorBuilderTests
     {
         // arrange
         // act
-        Action action = () => ErrorBuilder.FromError(null);
+        Action action = () => ErrorBuilder.FromError(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -148,7 +147,7 @@ public class ErrorBuilderTests
     {
         // arrange
         // act
-        Action action = () => ErrorBuilder.New().SetMessage(null);
+        Action action = () => ErrorBuilder.New().SetMessage(null!);
 
         // assert
         Assert.Throws<ArgumentException>(action);
@@ -190,7 +189,7 @@ public class ErrorBuilderTests
         // act
         var error = ErrorBuilder.New()
             .SetMessage("bar")
-            .SetPath(new List<object> { "foo" })
+            .SetPath(new List<object> { "foo", })
             .Build();
 
         // assert
@@ -222,7 +221,8 @@ public class ErrorBuilderTests
             .Build();
 
         // assert
-        Assert.Collection(error.Locations,
+        Assert.Collection(
+            error.Locations!,
             t => Assert.Equal(2, t.Line));
     }
 
@@ -238,7 +238,8 @@ public class ErrorBuilderTests
             .Build();
 
         // assert
-        Assert.Collection(error.Locations,
+        Assert.Collection(
+            error.Locations!,
             t => Assert.Equal(2, t.Line),
             t => Assert.Equal(4, t.Line));
     }
@@ -255,7 +256,8 @@ public class ErrorBuilderTests
             .Build();
 
         // assert
-        Assert.Collection(error.Locations,
+        Assert.Collection(
+            error.Locations!,
             t => Assert.Equal(2, t.Line),
             t => Assert.Equal(4, t.Line));
     }
@@ -276,7 +278,8 @@ public class ErrorBuilderTests
             .Build();
 
         // assert
-        Assert.Collection(error.Locations,
+        Assert.Collection(
+            error.Locations!,
             t => Assert.Equal(3, t.Line));
     }
 
@@ -349,7 +352,8 @@ public class ErrorBuilderTests
             .Build();
 
         // assert
-        Assert.Collection(error.Extensions.OrderBy(t => t.Key),
+        Assert.Collection(
+            error.Extensions!.OrderBy(t => t.Key),
             t => Assert.Equal("c", t.Value),
             t => Assert.Equal("d", t.Value));
     }

@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
@@ -12,17 +11,23 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="HotChocolate.Types.Mutations" />
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
     <InternalsVisibleTo Include="HotChocolate.AspNetCore.Tests" />
-    <InternalsVisibleTo Include="HotChocolate.Data" />
-    <InternalsVisibleTo Include="HotChocolate.Data.Raven" />
-    <InternalsVisibleTo Include="HotChocolate.Fusion" />
-    <InternalsVisibleTo Include="HotChocolate.Fusion.Tests" />
-    <InternalsVisibleTo Include="StrawberryShake.CodeGeneration" />
     <InternalsVisibleTo Include="HotChocolate.Caching" />
+    <InternalsVisibleTo Include="HotChocolate.CostAnalysis" />
+    <InternalsVisibleTo Include="HotChocolate.Data.Raven" />
+    <InternalsVisibleTo Include="HotChocolate.Data" />
+    <InternalsVisibleTo Include="HotChocolate.Execution.Benchmarks" />
+    <InternalsVisibleTo Include="HotChocolate.Execution.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion" />
+    <InternalsVisibleTo Include="HotChocolate.Types.Mutations" />
+    <InternalsVisibleTo Include="StrawberryShake.CodeGeneration" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Pagination\src\Pagination.Batching\HotChocolate.Pagination.Batching.csproj" />
+    <ProjectReference Include="..\..\..\Utilities\src\Utilities.DependencyInjection\HotChocolate.Utilities.DependencyInjection.csproj" />
     <ProjectReference Include="..\Abstractions\HotChocolate.Abstractions.csproj" />
     <ProjectReference Include="..\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />
     <ProjectReference Include="..\Fetching\HotChocolate.Fetching.csproj" />
@@ -31,9 +36,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DiagnosticAdapter" Version="3.1.4" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.4" />
-    <PackageReference Include="System.Threading.Channels" Version="4.7.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="System.IO.Pipelines" />
   </ItemGroup>
 
   <ItemGroup>
@@ -132,9 +136,6 @@
     <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.Optimizer.cs">
       <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
     </Compile>
-    <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.ResolverCompiler.cs">
-      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
-    </Compile>
     <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.TransactionScope.cs">
       <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
     </Compile>
@@ -194,6 +195,18 @@
     </Compile>
     <Compile Update="Processing\ValueCompletionContext.cs">
       <DependentUpon>ValueCompletion.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Batching\BatchExecutor.Enumerable.cs">
+      <DependentUpon>BatchExecutor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.InputParser.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.TypeDiscovery.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.Services.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
     </Compile>
   </ItemGroup>
 

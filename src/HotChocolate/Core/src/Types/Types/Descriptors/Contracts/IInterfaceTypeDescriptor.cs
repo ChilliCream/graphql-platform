@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -8,17 +7,6 @@ public interface IInterfaceTypeDescriptor
     : IDescriptor<InterfaceTypeDefinition>
     , IFluent
 {
-    /// <summary>
-    /// Associates the specified
-    /// <paramref name="interfaceTypeDefinition"/>
-    /// with the <see cref="InterfaceType"/>.
-    /// </summary>
-    /// <param name="interfaceTypeDefinition">
-    /// The <see cref="InterfaceTypeDefinitionNode"/> of a parsed schema.
-    /// </param>
-    IInterfaceTypeDescriptor SyntaxNode(
-        InterfaceTypeDefinitionNode interfaceTypeDefinition);
-
     /// <summary>
     /// Defines the name of the <see cref="InterfaceType"/>.
     /// </summary>
@@ -35,34 +23,6 @@ public interface IInterfaceTypeDescriptor
     /// </summary>
     /// <param name="value">The interface type description.</param>
     IInterfaceTypeDescriptor Description(string value);
-
-    /// <summary>
-    /// Specifies an interface that is implemented by the
-    /// <see cref="InterfaceType"/>.
-    /// </summary>
-    /// <typeparam name="T">The interface type.</typeparam>
-    [Obsolete("Use Implements.")]
-    IInterfaceTypeDescriptor Interface<T>()
-        where T : InterfaceType;
-
-    /// <summary>
-    /// Specifies an interface that is implemented by the
-    /// <see cref="InterfaceType"/>.
-    /// </summary>
-    /// <typeparam name="T">The interface type.</typeparam>
-    [Obsolete("Use Implements.")]
-    IInterfaceTypeDescriptor Interface<T>(T type)
-        where T : InterfaceType;
-
-    /// <summary>
-    /// Specifies an interface that is implemented by the
-    /// <see cref="InterfaceType"/>.
-    /// </summary>
-    /// <param name="type">
-    /// A syntax node representing an interface type.
-    /// </param>
-    [Obsolete("Use Implements.")]
-    IInterfaceTypeDescriptor Interface(NamedTypeNode type);
 
     /// <summary>
     /// Specifies an interface that is implemented by the

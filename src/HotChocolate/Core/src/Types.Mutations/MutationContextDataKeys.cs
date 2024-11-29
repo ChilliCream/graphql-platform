@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace HotChocolate.Types;
 
 internal static class MutationContextDataKeys

@@ -1,0 +1,69 @@
+a Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testbtest"
+      },
+      {
+        "bar": null
+      }
+    ]
+  }
+}
+---------------
+
+a SQL:
+---------------
+select d.id, d.data from public.mt_doc_queryablefiltervisitorstringtests_foonullable as d where (d.data ->> 'Bar' is null or NOT(d.data ->> 'Bar' LIKE :p0));
+---------------
+
+b Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testatest"
+      },
+      {
+        "bar": null
+      }
+    ]
+  }
+}
+---------------
+
+b SQL:
+---------------
+select d.id, d.data from public.mt_doc_queryablefiltervisitorstringtests_foonullable as d where (d.data ->> 'Bar' is null or NOT(d.data ->> 'Bar' LIKE :p0));
+---------------
+
+null
+---------------
+{
+  "errors": [
+    {
+      "message": "The provided value for filter `ncontains` of type StringOperationFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 35
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "String!",
+        "filterType": "StringOperationFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": null
+  }
+}
+---------------

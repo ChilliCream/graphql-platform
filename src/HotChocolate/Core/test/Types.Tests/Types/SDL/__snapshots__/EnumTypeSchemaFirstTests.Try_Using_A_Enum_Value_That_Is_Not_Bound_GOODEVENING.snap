@@ -1,4 +1,4 @@
-﻿{
+{
   "errors": [
     {
       "message": "The specified argument value does not match the argument type.",
@@ -13,9 +13,9 @@
       ],
       "extensions": {
         "argument": "greetings",
-        "argumentValue": "\u0022GOODEVENING\u0022",
+        "argumentValue": "\"GOODEVENING\"",
         "locationType": "Greetings",
-        "specifiedBy": "http://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
+        "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
       }
     }
   ]

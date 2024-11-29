@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Descriptors;
@@ -77,8 +74,8 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
 
         var assignment = AssignmentBuilder
             .New()
-            .SetLefthandSide(GetPropertyName(_resultDataFactory))
-            .SetRighthandSide(GetParameterName(_resultDataFactory))
+            .SetLeftHandSide(GetPropertyName(_resultDataFactory))
+            .SetRightHandSide(GetParameterName(_resultDataFactory))
             .SetAssertNonNull();
 
         constructorBuilder
@@ -123,8 +120,8 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
                             .Inline(TypeNames.ArgumentException)
                             .AddArgument(
                                 $"\"No serializer for type `{valueParser.Name}` found.\""))
-                    .SetLefthandSide(parserFieldName)
-                    .SetRighthandSide(getLeaveValueParser));
+                    .SetLeftHandSide(parserFieldName)
+                    .SetRightHandSide(getLeaveValueParser));
         }
 
         AddBuildDataMethod(settings, resultTypeDescriptor, classBuilder);
@@ -225,6 +222,20 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
                 .AddCode(jsonElementNullCheck)
                 .AddEmptyLine();
 
+            // When deserializing arrays of nullable values (e.g. [User] => [ { ... }, null, { ... }]) the second
+            // element will be not null, but instead a JSON element of kind JsonValueKind.Null.
+            var jsonElementNullValueKindCheck = IfBuilder
+                .New()
+                .SetCondition($"{_obj}.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null")
+                .AddCode(
+            typeReference.IsNonNull()
+                ? ExceptionBuilder.New(TypeNames.ArgumentNullException)
+                : CodeLineBuilder.From("return null;"));
+
+            methodBuilder
+                .AddCode(jsonElementNullValueKindCheck)
+                .AddEmptyLine();
+
             AddDeserializeMethodBody(classBuilder, methodBuilder, typeReference, processed);
         }
     }
@@ -241,11 +252,11 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
                 AddArrayHandler(classBuilder, methodBuilder, listTypeDescriptor, processed);
                 break;
 
-            case ILeafTypeDescriptor { Kind: TypeKind.Leaf } d:
+            case ILeafTypeDescriptor { Kind: TypeKind.Leaf, } d:
                 AddScalarTypeDeserializerMethod(methodBuilder, d);
                 break;
 
-            case ComplexTypeDescriptor { Kind: TypeKind.EntityOrData } d:
+            case ComplexTypeDescriptor { Kind: TypeKind.EntityOrData, } d:
                 AddEntityOrDataTypeDeserializerMethod(
                     classBuilder,
                     methodBuilder,
@@ -253,15 +264,15 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
                     processed);
                 break;
 
-            case ComplexTypeDescriptor { Kind: TypeKind.AbstractData } d:
+            case ComplexTypeDescriptor { Kind: TypeKind.AbstractData, } d:
                 AddDataTypeDeserializerMethod(classBuilder, methodBuilder, d, processed);
                 break;
 
-            case ComplexTypeDescriptor { Kind: TypeKind.Data } d:
+            case ComplexTypeDescriptor { Kind: TypeKind.Data, } d:
                 AddDataTypeDeserializerMethod(classBuilder, methodBuilder, d, processed);
                 break;
 
-            case INamedTypeDescriptor { Kind: TypeKind.Entity } d:
+            case INamedTypeDescriptor { Kind: TypeKind.Entity, } d:
                 AddUpdateEntityMethod(classBuilder, methodBuilder, d, processed);
                 break;
 
@@ -348,10 +359,10 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
             InterfaceTypeDescriptor
             {
                 ImplementedBy.Count: > 1,
-                ParentRuntimeType: { } parentRuntimeType
+                ParentRuntimeType: { } parentRuntimeType,
             } => parentRuntimeType.Name,
 
-            INamedTypeDescriptor { Kind: TypeKind.Entity } d =>
+            INamedTypeDescriptor { Kind: TypeKind.Entity, } d =>
                 CreateEntityType(
                         d.RuntimeType.Name,
                         d.RuntimeType.NamespaceWithoutGlobal)
@@ -367,7 +378,7 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
                 ? BuildDeserializeMethodName(nonNullTypeDescriptor.InnerType) + "NonNullable"
                 : "NonNullable" + BuildDeserializeMethodName(nonNullTypeDescriptor.InnerType),
 
-            _ => throw new ArgumentOutOfRangeException(nameof(typeDescriptor))
+            _ => throw new ArgumentOutOfRangeException(nameof(typeDescriptor)),
         };
     }
 }

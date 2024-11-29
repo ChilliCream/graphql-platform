@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate;
 
 /// <summary>
@@ -21,5 +19,5 @@ public enum ModuleOptions
     /// <summary>
     /// Register DataLoader with the source generated module.
     /// </summary>
-    RegisterDataLoader = 2
+    RegisterDataLoader = 2,
 }

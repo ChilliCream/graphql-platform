@@ -1,1 +1,1 @@
-{"errors":[{"message":"The type \u0060Xyz\u0060 does not exist.","extensions":{"typeName":"Xyz","code":"HC0060"}}]}
+{"errors":[{"message":"The type `Xyz` does not exist.","extensions":{"typeName":"Xyz","code":"HC0060"}}]}

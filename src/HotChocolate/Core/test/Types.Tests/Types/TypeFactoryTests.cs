@@ -1,7 +1,3 @@
-using System.Linq;
-using Snapshooter.Xunit;
-using Xunit;
-
 namespace HotChocolate.Types;
 
 public class TypeFactoryTests : TypeTestBase
@@ -19,7 +15,7 @@ public class TypeFactoryTests : TypeTestBase
 
         var resolvers = new
         {
-            Simple = new { A = "hello", B = new[] { "hello" } }
+            Simple = new { A = "hello", B = new[] { "hello", }, },
         };
 
         // act

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Configuration;

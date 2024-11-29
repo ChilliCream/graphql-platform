@@ -1,9 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Execution;
 using StrawberryShake.Internal;
@@ -82,21 +78,20 @@ public class InMemoryConnection : IInMemoryConnection
 
             switch (executionResult)
             {
-                case IQueryResult queryResult:
+                case HotChocolate.Execution.IOperationResult queryResult:
                 {
                     queryResult.WriteTo(writer);
-                    yield return new Response<JsonDocument>(Parse(writer.Body), null);
+                    yield return new Response<JsonDocument>(Parse(writer.GetWrittenMemory()), null);
                     break;
                 }
 
                 case HotChocolate.Execution.ResponseStream streamResult:
                 {
-                    await foreach (var result in
-                        streamResult.ReadResultsAsync().WithCancellation(cancellationToken))
+                    await foreach (var result in streamResult.ReadResultsAsync().WithCancellation(cancellationToken))
                     {
                         result.WriteTo(writer);
-                        var document = Parse(writer.Body);
-                        writer.Clear();
+                        var document = Parse(writer.GetWrittenMemory());
+                        writer.Reset();
 
                         yield return new Response<JsonDocument>(document, null);
                     }

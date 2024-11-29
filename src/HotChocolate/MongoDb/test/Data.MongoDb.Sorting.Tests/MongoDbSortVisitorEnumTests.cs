@@ -1,6 +1,6 @@
-using CookieCrumble;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using Squadron;
 
@@ -11,21 +11,21 @@ public class MongoDbSortVisitorEnumTests
       IClassFixture<MongoResource>
 {
     private static readonly Foo[] _fooEntities =
-    {
-        new() { BarEnum = FooEnum.BAR },
-        new() { BarEnum = FooEnum.BAZ },
-        new() { BarEnum = FooEnum.FOO },
-        new() { BarEnum = FooEnum.QUX }
-    };
+    [
+        new() { BarEnum = FooEnum.BAR, },
+        new() { BarEnum = FooEnum.BAZ, },
+        new() { BarEnum = FooEnum.FOO, },
+        new() { BarEnum = FooEnum.QUX, },
+    ];
 
     private static readonly FooNullable[] _fooNullableEntities =
-    {
-        new() { BarEnum = FooEnum.BAR },
-        new() { BarEnum = FooEnum.BAZ },
-        new() { BarEnum = FooEnum.FOO },
-        new() { BarEnum = null },
-        new() { BarEnum = FooEnum.QUX }
-    };
+    [
+        new() { BarEnum = FooEnum.BAR, },
+        new() { BarEnum = FooEnum.BAZ, },
+        new() { BarEnum = FooEnum.FOO, },
+        new() { BarEnum = null, },
+        new() { BarEnum = FooEnum.QUX, },
+    ];
 
     public MongoDbSortVisitorEnumTests(MongoResource resource)
     {
@@ -40,20 +40,20 @@ public class MongoDbSortVisitorEnumTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: { barEnum: ASC}){ barEnum}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(order: { barEnum: ASC}){ barEnum}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: { barEnum: DESC}){ barEnum}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(order: { barEnum: DESC}){ barEnum}}")
+                .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "ASC"), res2, "DESC")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "ASC")
+            .AddResult(res2, "DESC")
             .MatchAsync();
     }
 
@@ -66,26 +66,27 @@ public class MongoDbSortVisitorEnumTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: { barEnum: ASC}){ barEnum}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(order: { barEnum: ASC}){ barEnum}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: { barEnum: DESC}){ barEnum}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(order: { barEnum: DESC}){ barEnum}}")
+                .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "ASC"), res2, "DESC")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "ASC")
+            .AddResult(res2, "DESC")
             .MatchAsync();
     }
 
     public class Foo
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public FooEnum BarEnum { get; set; }
@@ -94,6 +95,7 @@ public class MongoDbSortVisitorEnumTests
     public class FooNullable
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public FooEnum? BarEnum { get; set; }
@@ -104,7 +106,7 @@ public class MongoDbSortVisitorEnumTests
         FOO,
         BAR,
         BAZ,
-        QUX
+        QUX,
     }
 
     public class FooSortType : SortInputType<Foo>

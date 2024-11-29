@@ -9,5 +9,5 @@ internal sealed class SubgraphInfo
 
     public string Name { get; }
 
-    public List<string> Entities { get; } = new();
+    public List<string> Entities { get; } = [];
 }

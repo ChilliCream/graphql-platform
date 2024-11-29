@@ -6,4 +6,4 @@ namespace HotChocolate.Types;
 ///
 /// Spec: https://spec.graphql.org/draft/#sec-Input-and-Output-Types
 /// </summary>
-public interface IInputType : IType, IHasRuntimeType { }
+public interface IInputType : IType, IHasRuntimeType;

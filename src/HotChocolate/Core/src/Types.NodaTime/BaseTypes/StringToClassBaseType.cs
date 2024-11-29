@@ -16,7 +16,7 @@ public abstract class StringToClassBaseType<TRuntimeType>
     where TRuntimeType : class
 {
     /// <summary>
-    /// Initializes a new instance of <see cref="StringToClassBaseType"/>.
+    /// Initializes a new instance of <see cref="StringToClassBaseType{TRuntimeType}"/>.
     /// </summary>
     /// <param name="name">
     /// The name of the scalar.
@@ -29,7 +29,7 @@ public abstract class StringToClassBaseType<TRuntimeType>
     /// <inheritdoc />
     protected override TRuntimeType ParseLiteral(StringValueNode literal)
     {
-        if (TryDeserialize(literal.Value, out TRuntimeType? value))
+        if (TryDeserialize(literal.Value, out var value))
         {
             return value;
         }
@@ -105,7 +105,7 @@ public abstract class StringToClassBaseType<TRuntimeType>
             return true;
         }
 
-        if (resultValue is string s && TryDeserialize(s, out TRuntimeType? val))
+        if (resultValue is string s && TryDeserialize(s, out var val))
         {
             runtimeValue = val;
             return true;

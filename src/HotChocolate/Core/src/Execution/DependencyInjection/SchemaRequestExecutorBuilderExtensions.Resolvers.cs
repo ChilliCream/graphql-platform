@@ -1,8 +1,5 @@
-using System;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Internal;
@@ -556,7 +553,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// Adds a custom parameter expression builder to the resolver compiler.
     /// </summary>
     /// <param name="builder">
-    /// The <see cref="IResolverCompilerBuilder"/>.
+    /// The <see cref="IResolverCompiler"/>.
     /// </param>
     /// <param name="expression">
     /// A expression that resolves the data for the custom parameter.
@@ -569,7 +566,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// The parameter result type.
     /// </typeparam>
     /// <returns>
-    /// An <see cref="IResolverCompilerBuilder"/> that can be used to configure to
+    /// An <see cref="IResolverCompiler"/> that can be used to configure to
     /// chain in more configuration.
     /// </returns>
     public static IRequestExecutorBuilder AddParameterExpressionBuilder<T>(

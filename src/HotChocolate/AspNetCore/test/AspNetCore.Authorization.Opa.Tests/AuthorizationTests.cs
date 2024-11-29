@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Opa.Native;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.AspNetCore.Authorization;
 
@@ -41,12 +40,11 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
             {
                 configure(builder);
                 builder.Services.AddAuthorization();
-
             },
             SetUpHttpContext);
 
         // act
-        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ age }" });
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ age }", });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -64,7 +62,6 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
             {
                 configure(builder);
                 builder.Services.AddAuthorization();
-
             },
             SetUpHttpContext + (Action<HttpContext>)(c =>
             {
@@ -74,7 +71,7 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
             }));
 
         var hasAgeDefinedPolicy = await File.ReadAllTextAsync("policies/has_age_defined.rego");
-        using var client = new HttpClient { BaseAddress = new Uri("http://127.0.0.1:8181") };
+        using var client = new HttpClient { BaseAddress = new Uri("http://127.0.0.1:8181"), };
 
         var putPolicyResponse = await client.PutAsync(
             "/v1/policies/has_age_defined",
@@ -82,7 +79,7 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
         putPolicyResponse.EnsureSuccessStatusCode();
 
         // act
-        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ age }" });
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ age }", });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -100,7 +97,6 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
             {
                 configure(builder);
                 builder.Services.AddAuthorization();
-
             },
             SetUpHttpContext + (Action<HttpContext>)(c =>
             {
@@ -111,7 +107,7 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
             }));
 
         var hasAgeDefinedPolicy = await File.ReadAllTextAsync("policies/has_age_defined.rego");
-        using var client = new HttpClient { BaseAddress = new Uri("http://127.0.0.1:8181") };
+        using var client = new HttpClient { BaseAddress = new Uri("http://127.0.0.1:8181"), };
 
         var putPolicyResponse = await client.PutAsync(
             "/v1/policies/has_age_defined",
@@ -119,7 +115,7 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
         putPolicyResponse.EnsureSuccessStatusCode();
 
         // act
-        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ age }" });
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ age }", });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);

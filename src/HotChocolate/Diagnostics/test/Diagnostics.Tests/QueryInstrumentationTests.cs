@@ -1,11 +1,6 @@
 using System.Diagnostics;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using ChilliCream.Testing;
 using HotChocolate.Execution;
-using Snapshooter;
-using Snapshooter.Xunit;
-using Xunit;
 using static HotChocolate.Diagnostics.ActivityTestHelper;
 
 namespace HotChocolate.Diagnostics;
@@ -26,11 +21,7 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("{ sayHello }");
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -47,11 +38,7 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("{ dataLoader(key: \"abc\") }");
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -68,11 +55,7 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("{ dataLoader(key: \"abc\") }");
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -135,7 +118,8 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("{ abc123 }");
 
             // assert
-            Assert.Equal("CaptureActivities: Begin Validate Document", Activity.Current!.DisplayName);
+            Assert.Equal("CaptureActivities: Begin Validate Document",
+                Activity.Current!.DisplayName);
         }
     }
 
@@ -156,11 +140,7 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("{ a: sayHello }");
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -181,11 +161,7 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("query GetA { a: sayHello }");
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -206,11 +182,7 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("{ a: sayHello b: sayHello c: sayHello }");
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -231,11 +203,7 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("{ a: sayHello b: sayHello c: sayHello d: sayHello }");
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -252,11 +220,7 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("{ sayHello }");
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -273,11 +237,7 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("query SayHelloOperation { sayHello }");
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -298,11 +258,7 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("query SayHelloOperation { sayHello }");
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -323,11 +279,7 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("query SayHelloOperation { sayHello_ }");
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -348,16 +300,12 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("query SayHelloOperation { causeFatalError }");
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
     [Fact]
-    public async Task MaxComplexity_Not_Reached()
+    public async Task Cause_a_resolver_error_that_deletes_the_whole_result_deep()
     {
         using (CaptureActivities(out var activities))
         {
@@ -369,86 +317,24 @@ public partial class QueryInstrumentationTests
                     o.Scopes = ActivityScopes.All;
                     o.IncludeDocument = true;
                 })
-                .AddDocumentFromString(FileResource.Open("CostSchema.graphql"))
-                .UseField(_ => _ => default)
-                .ConfigureSchema(s => s.AddCostDirectiveType())
-                .ModifyRequestOptions(o =>
-                {
-                    o.Complexity.Enable = true;
-                    o.Complexity.MaximumAllowed = 9;
-                })
-                .ExecuteRequestAsync(@"
-                    {
-                        foo {
-                            ... on Foo {
-                                ... on Foo {
-                                    field
-                                    ... on Bar {
-                                        baz {
-                                            foo {
-                                                field
-                                            }
-                                        }
+                .AddQueryType<SimpleQuery>()
+                .ExecuteRequestAsync(
+                    """
+                    query SayHelloOperation {
+                        deep {
+                            deeper {
+                                deeps {
+                                    deeper {
+                                        causeFatalError
                                     }
                                 }
                             }
                         }
-                    }");
+                    }
+                    """);
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
-        }
-    }
-
-    [Fact]
-    public async Task MaxComplexity_Reached()
-    {
-        using (CaptureActivities(out var activities))
-        {
-            // arrange & act
-            await new ServiceCollection()
-                .AddGraphQL()
-                .AddInstrumentation(o =>
-                {
-                    o.Scopes = ActivityScopes.All;
-                    o.IncludeDocument = true;
-                })
-                .AddDocumentFromString(FileResource.Open("CostSchema.graphql"))
-                .UseField(_ => _ => default)
-                .ConfigureSchema(s => s.AddCostDirectiveType())
-                .ModifyRequestOptions(o =>
-                {
-                    o.Complexity.Enable = true;
-                    o.Complexity.MaximumAllowed = 2;
-                })
-                .ExecuteRequestAsync(@"
-                    {
-                        foo {
-                            ... on Foo {
-                                ... on Foo {
-                                    field
-                                    ... on Bar {
-                                        baz {
-                                            foo {
-                                                field
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }");
-
-            // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
-            activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -458,7 +344,21 @@ public partial class QueryInstrumentationTests
 
         public string CauseFatalError() => throw new GraphQLException("fail");
 
-        public Task<string> DataLoader(CustomDataLoader dataLoader, string key)
+        public Deep Deep() => new();
+
+        public Task<string?> DataLoader(CustomDataLoader dataLoader, string key)
             => dataLoader.LoadAsync(key);
+    }
+
+    public class Deep
+    {
+        public Deeper Deeper() => new();
+
+        public string CauseFatalError() => throw new GraphQLException("fail");
+    }
+
+    public class Deeper
+    {
+        public Deep[] Deeps() => [new Deep()];
     }
 }

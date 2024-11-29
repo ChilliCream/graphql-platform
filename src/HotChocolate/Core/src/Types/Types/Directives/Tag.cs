@@ -1,11 +1,12 @@
-using System;
+#nullable enable
+
 using HotChocolate.Properties;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types;
 
 /// <summary>
-/// The @tag directive is used to applies arbitrary string
+/// The @tag directive is used to apply arbitrary string
 /// metadata to a schema location. Custom tooling can use
 /// this metadata during any step of the schema delivery flow,
 /// including composition, static analysis, and documentation.
@@ -32,6 +33,20 @@ namespace HotChocolate.Types;
     DirectiveLocation.EnumValue |
     DirectiveLocation.Schema,
     IsRepeatable = true)]
+[TagDirectiveConfig]
+[GraphQLDescription(
+    """
+    The @tag directive is used to apply arbitrary string
+    metadata to a schema location. Custom tooling can use
+    this metadata during any step of the schema delivery flow,
+    including composition, static analysis, and documentation.
+
+    interface Book {
+      id: ID! @tag(name: "your-value")
+      title: String!
+      author: String!
+    }
+    """)]
 public sealed class Tag
 {
     /// <summary>
@@ -54,9 +69,10 @@ public sealed class Tag
 
         Name = name;
     }
-    
+
     /// <summary>
     /// The name of the tag.
     /// </summary>
+    [GraphQLDescription("The name of the tag.")]
     public string Name { get; }
 }

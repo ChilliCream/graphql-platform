@@ -3,18 +3,18 @@
     "createRecord": {
       "foo": [
         {
-          "id": "Rm9vCmRB",
+          "id": "Rm9vOkE=",
           "fieldOfFoo": "fieldOfFoo"
         },
         {
-          "id": "Rm9vCmRC",
+          "id": "Rm9vOkI=",
           "fieldOfFoo": "fieldOfFoo"
         }
       ],
       "errors": null,
       "query": {
         "node": {
-          "id": "QmFyCmRB",
+          "id": "QmFyOkE=",
           "__typename": "Bar",
           "fieldOfBar": "fieldOfBar"
         }

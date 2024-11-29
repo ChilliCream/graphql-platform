@@ -11,7 +11,7 @@ internal class MergeEntityMiddleware : IMergeMiddleware
     {
         foreach (var entity in context.Entities)
         {
-            var entityType = (ObjectType)context.FusionGraph.Types[entity.Name];
+            var entityType = (ObjectTypeDefinition)context.FusionGraph.Types[entity.Name];
 
             foreach (var part in entity.Parts)
             {
@@ -30,20 +30,19 @@ internal class MergeEntityMiddleware : IMergeMiddleware
 
 file static class MergeEntitiesMiddlewareExtensions
 {
-    public static void Merge(this CompositionContext context, EntityPart source, ObjectType target)
+    public static void Merge(this CompositionContext context, EntityPart source, ObjectTypeDefinition target)
     {
         context.TryApplySource(source.Type, source.Schema, target);
 
-        if (string.IsNullOrEmpty(target.Description))
-        {
-            target.Description = source.Type.Description;
-        }
+        target.MergeDescriptionWith(source.Type);
+
+        target.MergeDirectivesWith(source.Type, context);
 
         foreach (var interfaceType in source.Type.Implements)
         {
             if (!target.Implements.Any(t => t.Name.EqualsOrdinal(interfaceType.Name)))
             {
-                target.Implements.Add((InterfaceType)context.FusionGraph.Types[interfaceType.Name]);
+                target.Implements.Add((InterfaceTypeDefinition)context.FusionGraph.Types[interfaceType.Name]);
             }
         }
 
@@ -74,7 +73,7 @@ file static class MergeEntitiesMiddlewareExtensions
 
     public static void ApplyResolvers(
         this CompositionContext context,
-        ObjectType entityType,
+        ObjectTypeDefinition entityType,
         EntityGroup entity)
     {
         var variables = new HashSet<string>();

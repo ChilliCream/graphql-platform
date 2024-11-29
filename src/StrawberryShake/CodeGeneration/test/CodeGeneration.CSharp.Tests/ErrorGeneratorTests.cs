@@ -1,6 +1,4 @@
-using System.IO;
 using ChilliCream.Testing;
-using Xunit;
 using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
 
 namespace StrawberryShake.CodeGeneration.CSharp;
@@ -28,7 +26,7 @@ public class ErrorGeneratorTests
             {
                 Assert.Equal("SS0001", error.Code);
                 Assert.Equal(
-                    "Expected a `Name`-token, but found a `EndOfFile`-token.",
+                    "Expected a `RightBrace`-token, but found a `EndOfFile`-token.",
                     error.Message);
             });
     }

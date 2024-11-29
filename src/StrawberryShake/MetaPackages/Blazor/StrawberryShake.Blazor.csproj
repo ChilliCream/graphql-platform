@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 
   <PropertyGroup>
     <PackageId>StrawberryShake.Blazor</PackageId>
@@ -24,9 +24,8 @@
     <None Include="$(MSBuildThisFileDirectory)..\Common\MSBuild\StrawberryShake.MSBuild.ContentType.xaml" Pack="true" PackagePath="build/StrawberryShake.MSBuild.ContentType.xaml" Visible="false" />
     <None Include="$(MSBuildThisFileDirectory)..\Common\MSBuild\StrawberryShake.MSBuild.xaml" Pack="true" PackagePath="build/StrawberryShake.MSBuild.xaml" Visible="false" />
     <None Include="$(MSBuildThisFileDirectory)..\Common\MSBuild\global.json" Pack="true" PackagePath="build/global.json" Visible="false" />
-    <None Include="$(MSBuildThisFileDirectory)..\..\Tooling\src\dotnet-graphql\bin\$(Configuration)\net6.0\**\*.*" Pack="true" PackagePath="tools/net6" Visible="false" />
-    <None Include="$(MSBuildThisFileDirectory)..\..\Tooling\src\dotnet-graphql\bin\$(Configuration)\net7.0\**\*.*" Pack="true" PackagePath="tools/net7" Visible="false" />
     <None Include="$(MSBuildThisFileDirectory)..\..\Tooling\src\dotnet-graphql\bin\$(Configuration)\net8.0\**\*.*" Pack="true" PackagePath="tools/net8" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\..\Tooling\src\dotnet-graphql\bin\$(Configuration)\net9.0\**\*.*" Pack="true" PackagePath="tools/net9" Visible="false" />
   </ItemGroup>
 
 </Project>

@@ -1,4 +1,3 @@
-using System;
 using Xunit;
 
 namespace HotChocolate.Language;
@@ -48,4 +47,25 @@ public class ValueParserTests
 
     private static IValueNode ParseValue(string value)
         => Utf8GraphQLParser.Syntax.ParseValueLiteral(value, true);
+
+    // https://github.com/graphql/graphql-spec/pull/601#issuecomment-518954455
+    // Int
+    [InlineData("0xF1")]
+    [InlineData("0b10")]
+    [InlineData("123abc")]
+    [InlineData("1_234")]
+    // Float
+    [InlineData("1.23f")]
+    [InlineData("1.234_5")]
+    [InlineData("1.2e3.")]
+    [Theory]
+    public void NameStartFollowingNumberIsNotAllowed(string input)
+    {
+        // arrange
+        // act
+        void Action() => ParseValue(input);
+
+        // assert
+        Assert.Throws<SyntaxException>(Action);
+    }
 }

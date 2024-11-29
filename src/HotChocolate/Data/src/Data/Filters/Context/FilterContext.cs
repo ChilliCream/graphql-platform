@@ -1,6 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Linq.Expressions;
+using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -9,7 +8,7 @@ using static HotChocolate.Data.Filters.Expressions.QueryableFilterProvider;
 namespace HotChocolate.Data.Filters;
 
 /// <summary>
-/// Encapuslates all filter specific information
+/// Encapsulates all filter specific information
 /// </summary>
 public class FilterContext : IFilterContext
 {
@@ -43,6 +42,9 @@ public class FilterContext : IFilterContext
     }
 
     /// <inheritdoc />
+    public bool IsDefined => _value.ValueNode.Kind is not SyntaxKind.NullValue;
+
+    /// <inheritdoc />
     public IReadOnlyList<IFilterFieldInfo> GetFields() => _value.GetFields();
 
     /// <inheritdoc />
@@ -52,7 +54,20 @@ public class FilterContext : IFilterContext
     public IDictionary<string, object?>? ToDictionary()
         => Serialize(_value) as IDictionary<string, object?>;
 
-    private object? Serialize(IFilterValueNode? value)
+    public Expression<Func<T, bool>>? AsPredicate<T>()
+    {
+        var localContextData = _context.LocalContextData;
+
+        if (localContextData.TryGetValue(ContextAsPredicateKey, out var asPredicateObj) &&
+            asPredicateObj is AsPredicate<T> asPredicate)
+        {
+            return asPredicate(_context, false);
+        }
+
+        return null;
+    }
+
+    private static object? Serialize(IFilterValueNode? value)
     {
         switch (value)
         {

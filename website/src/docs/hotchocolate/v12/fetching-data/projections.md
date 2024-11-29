@@ -49,7 +49,7 @@ are members of a type will be projected. Fields that define a customer resolver 
 to the database. If the middleware encounters a field that specifies `UseProjection()` this field will be skipped.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Query
@@ -60,7 +60,7 @@ public class Query
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -198,7 +198,7 @@ related data from another service. With projections, this resolver could only wo
 for the `email` field. To ensure a field is always projected you have to use `IsProjected(true)`.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class User
@@ -211,7 +211,7 @@ public class User
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -256,7 +256,7 @@ The projections middleware skips a field in two cases. Either the visitor encoun
 itself, or it defines `IsProjected(false)`.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class User
@@ -269,7 +269,7 @@ public class User
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp

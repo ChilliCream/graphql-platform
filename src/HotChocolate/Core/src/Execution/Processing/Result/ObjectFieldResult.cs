@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Execution.Processing;
 
 public sealed class ObjectFieldResult
@@ -26,7 +24,7 @@ public sealed class ObjectFieldResult
     internal bool TrySetNull()
     {
         _value = null;
-        
+
         if ((_flags & Flags.InitializedAndNullable) == Flags.InitializedAndNullable)
         {
             return true;
@@ -47,6 +45,6 @@ public sealed class ObjectFieldResult
     {
         Initialized = 1,
         Nullable = 2,
-        InitializedAndNullable = Initialized | Nullable
+        InitializedAndNullable = Initialized | Nullable,
     }
 }

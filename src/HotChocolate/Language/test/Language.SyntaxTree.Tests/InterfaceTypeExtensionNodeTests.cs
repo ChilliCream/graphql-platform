@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Xunit;
 
 namespace HotChocolate.Language.SyntaxTree;
@@ -24,7 +23,7 @@ public class InterfaceTypeExtensionNodeTests
         var c = new InterfaceTypeExtensionNode(
             new Location(1, 1, 1, 1),
             new NameNode("aa"),
-            new List<DirectiveNode> { new("bb") },
+            new List<DirectiveNode> { new("bb"), },
             new List<NamedTypeNode>(0),
             new List<FieldDefinitionNode>(0));
 
@@ -60,7 +59,7 @@ public class InterfaceTypeExtensionNodeTests
         var c = new InterfaceTypeExtensionNode(
             new Location(3, 3, 3, 3),
             new NameNode("aa"),
-            new List<DirectiveNode> { new("bb") },
+            new List<DirectiveNode> { new("bb"), },
             new List<NamedTypeNode>(0),
             new List<FieldDefinitionNode>(0));
 
@@ -96,13 +95,13 @@ public class InterfaceTypeExtensionNodeTests
         var c = new InterfaceTypeExtensionNode(
             new Location(1, 1, 1, 1),
             new NameNode("aa"),
-            new List<DirectiveNode> { new("bb") },
+            new List<DirectiveNode> { new("bb"), },
             new List<NamedTypeNode>(0),
             new List<FieldDefinitionNode>(0));
         var d = new InterfaceTypeExtensionNode(
             new Location(2, 2, 2, 2),
             new NameNode("aa"),
-            new List<DirectiveNode> { new("bb") },
+            new List<DirectiveNode> { new("bb"), },
             new List<NamedTypeNode>(0),
             new List<FieldDefinitionNode>(0));
 

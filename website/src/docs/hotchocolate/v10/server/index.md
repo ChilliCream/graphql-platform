@@ -259,3 +259,5 @@ We have a added some helper extension to swap the default serializer out:
 ```csharp
 services.AddResponseStreamSerializer<CustomResponseStreamSerializer>();
 ```
+
+<!-- spell-checker:ignore Cbnia, Yero -->

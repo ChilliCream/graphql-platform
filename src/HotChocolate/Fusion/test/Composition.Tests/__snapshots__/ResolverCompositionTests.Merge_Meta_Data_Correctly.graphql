@@ -1,0 +1,69 @@
+schema
+  @fusion(version: 1)
+  @transport(subgraph: "A", location: "https:\/\/localhost:5001\/graphql", kind: "HTTP") {
+  query: Query
+}
+
+type Query {
+  userById(id: ID!): User
+    @variable(subgraph: "A", name: "id", argument: "id")
+    @resolver(subgraph: "A", select: "{ userById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
+  userByUsername(username: String!): User
+    @variable(subgraph: "A", name: "username", argument: "username")
+    @resolver(subgraph: "A", select: "{ userByUsername(username: $username) }", arguments: [ { name: "username", type: "String!" } ])
+  users(after: String before: String first: Int last: Int): UsersConnection
+    @variable(subgraph: "A", name: "after", argument: "after")
+    @variable(subgraph: "A", name: "before", argument: "before")
+    @variable(subgraph: "A", name: "first", argument: "first")
+    @variable(subgraph: "A", name: "last", argument: "last")
+    @resolver(subgraph: "A", select: "{ users(after: $after, before: $before, first: $first, last: $last) }", arguments: [ { name: "after", type: "String" }, { name: "before", type: "String" }, { name: "first", type: "Int" }, { name: "last", type: "Int" } ])
+}
+
+type PageInfo {
+  endCursor: String
+    @source(subgraph: "A")
+  hasNextPage: Boolean!
+    @source(subgraph: "A")
+  hasPreviousPage: Boolean!
+    @source(subgraph: "A")
+  startCursor: String
+    @source(subgraph: "A")
+}
+
+type User implements Node
+  @variable(subgraph: "A", name: "User_name", select: "name")
+  @variable(subgraph: "A", name: "User_id", select: "id")
+  @resolver(subgraph: "A", select: "{ userByUsername(username: $User_name) }", arguments: [ { name: "User_name", type: "String!" } ])
+  @resolver(subgraph: "A", select: "{ userById(id: $User_id) }", arguments: [ { name: "User_id", type: "ID!" } ])
+  @resolver(subgraph: "A", select: "{ nodes(ids: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH") {
+  birthdate: String!
+    @source(subgraph: "A")
+  id: ID!
+    @source(subgraph: "A")
+  name: String!
+    @source(subgraph: "A")
+  username: String!
+    @source(subgraph: "A")
+}
+
+type UsersConnection {
+  edges: [UsersEdge!]
+    @source(subgraph: "A")
+  nodes: [User!]
+    @source(subgraph: "A")
+  pageInfo: PageInfo!
+    @source(subgraph: "A")
+}
+
+type UsersEdge {
+  cursor: String!
+    @source(subgraph: "A")
+  node: User!
+    @source(subgraph: "A")
+}
+
+interface Node {
+  id: ID!
+}
+
+scalar DateTime

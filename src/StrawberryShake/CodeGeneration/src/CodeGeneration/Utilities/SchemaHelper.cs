@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -14,7 +11,7 @@ namespace StrawberryShake.CodeGeneration.Utilities;
 
 public static class SchemaHelper
 {
-    private static string _typeInfosKey = "StrawberryShake.CodeGeneration.Utilities.TypeInfos";
+    private const string _typeInfosKey = "StrawberryShake.CodeGeneration.Utilities.TypeInfos";
 
     public static ISchema Load(
         IReadOnlyCollection<GraphQLFile> schemaFiles,
@@ -77,6 +74,10 @@ public static class SchemaHelper
                     {
                         builder.AddType(new AnyType());
                     }
+                    else if (scalar.Name.Value == ScalarNames.JSON)
+                    {
+                        builder.AddType(new JsonType());
+                    }
                 }
 
                 builder.AddDocument(document);
@@ -91,6 +92,9 @@ public static class SchemaHelper
                 {
                     o.EnableDefer = true;
                     o.EnableStream = true;
+                    o.EnableTag = false;
+                    o.EnableOneOf = false;
+                    o.EnableFlagEnums = false;
                 })
             .SetSchema(d => d.Extend().OnBeforeCreate(
                 c => c.ContextData.Add(_typeInfosKey, typeInfos)))
@@ -115,9 +119,7 @@ public static class SchemaHelper
     {
         foreach (var scalarTypeExtension in scalarTypeExtensions)
         {
-            if (!leafTypes.TryGetValue(
-                    scalarTypeExtension.Name.Value,
-                    out var scalarInfo))
+            if (!leafTypes.TryGetValue(scalarTypeExtension.Name.Value, out var scalarInfo))
             {
                 var runtimeType = GetRuntimeType(scalarTypeExtension);
                 var serializationType = GetSerializationType(scalarTypeExtension);
@@ -176,14 +178,14 @@ public static class SchemaHelper
         var directive = hasDirectives.Directives.FirstOrDefault(
             t => directiveName.EqualsOrdinal(t.Name.Value));
 
-        if (directive is { Arguments.Count: > 0 })
+        if (directive is { Arguments.Count: > 0, })
         {
             var name = directive.Arguments.FirstOrDefault(
                 t => t.Name.Value.Equals("name"));
             var valueType = directive.Arguments.FirstOrDefault(
                 t => t.Name.Value.Equals("valueType"));
 
-            if (name is { Value: StringValueNode stringValue })
+            if (name is { Value: StringValueNode stringValue, })
             {
                 var valueTypeValue = valueType?.Value as BooleanValueNode;
                 return new(stringValue.Value, valueTypeValue?.Value);
@@ -215,12 +217,9 @@ public static class SchemaHelper
     {
         foreach (var objectTypeExtension in objectTypeExtensions)
         {
-            if (TryGetKeys(objectTypeExtension, out var selectionSet) &&
-                !entityPatterns.ContainsKey(objectTypeExtension.Name.Value))
+            if (TryGetKeys(objectTypeExtension, out var selectionSet))
             {
-                entityPatterns.Add(
-                    objectTypeExtension.Name.Value,
-                    selectionSet);
+                entityPatterns.TryAdd(objectTypeExtension.Name.Value, selectionSet);
             }
         }
     }
@@ -256,7 +255,17 @@ public static class SchemaHelper
         TryAddLeafType(
             leafTypes,
             typeName: ScalarNames.Any,
-            runtimeType: TypeNames.JsonDocument,
+            runtimeType: TypeNames.JsonElement,
+            serializationType: TypeNames.JsonElement);
+        TryAddLeafType(
+            leafTypes,
+            typeName: ScalarNames.JSON,
+            runtimeType: TypeNames.JsonElement,
+            serializationType: TypeNames.JsonElement);
+        TryAddLeafType(
+            leafTypes,
+            typeName: "Json",
+            runtimeType: TypeNames.JsonElement,
             serializationType: TypeNames.JsonElement);
         TryAddLeafType(
             leafTypes,
@@ -293,8 +302,8 @@ public static class SchemaHelper
         DirectiveNode directive,
         [NotNullWhen(true)] out SelectionSetNode? selectionSet)
     {
-        if (directive is { Arguments: { Count: 1 } } &&
-            directive.Arguments[0] is { Name: { Value: "fields" }, Value: StringValueNode sv })
+        if (directive is { Arguments: { Count: 1, }, } &&
+            directive.Arguments[0] is { Name: { Value: "fields", }, Value: StringValueNode sv, })
         {
             selectionSet = Utf8GraphQLParser.Syntax.ParseSelectionSet($"{{{sv.Value}}}");
             return true;

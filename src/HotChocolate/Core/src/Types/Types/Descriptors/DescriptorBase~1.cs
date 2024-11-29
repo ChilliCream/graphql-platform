@@ -1,5 +1,3 @@
-using System;
-using System.Buffers;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -7,19 +5,15 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Descriptors;
 
-public abstract class DescriptorBase<T>
+public abstract class DescriptorBase<T>(IDescriptorContext context)
     : IDescriptor<T>
     , IDescriptorExtension<T>
     , IDescriptorExtension
     , IDefinitionFactory<T>
     where T : DefinitionBase
 {
-    protected DescriptorBase(IDescriptorContext context)
-    {
-        Context = context ?? throw new ArgumentNullException(nameof(context));
-    }
-
-    protected internal IDescriptorContext Context { get; }
+    protected internal IDescriptorContext Context { get; } =
+        context ?? throw new ArgumentNullException(nameof(context));
 
     IDescriptorContext IHasDescriptorContext.Context => Context;
 
@@ -28,6 +22,18 @@ public abstract class DescriptorBase<T>
     T IDescriptorExtension<T>.Definition => Definition;
 
     public IDescriptorExtension<T> Extend() => this;
+
+    public IDescriptorExtension<T> ExtendWith(
+        Action<IDescriptorExtension<T>> configure)
+    {
+        if (configure is null)
+        {
+            throw new ArgumentNullException(nameof(configure));
+        }
+
+        configure(this);
+        return this;
+    }
 
     public T CreateDefinition()
     {
@@ -40,7 +46,7 @@ public abstract class DescriptorBase<T>
 
             do
             {
-                if (configurations[i] is { On: ApplyConfigurationOn.Create } config)
+                if (configurations[i] is { On: ApplyConfigurationOn.Create, } config)
                 {
                     configurations.RemoveAt(i);
                     ((CreateConfiguration)config).Configure(Context);

@@ -1,7 +1,4 @@
-using ChilliCream.Testing;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
-using Xunit;
 
 #nullable enable
 
@@ -334,7 +331,6 @@ public class SchemaCoordinateTests
         // assert
         Assert.Throws<InvalidSchemaCoordinateException>(Fail).Message.MatchSnapshot();
     }
-
 
     [Fact]
     public void GetMember_Invalid_DirectiveName()
@@ -710,8 +706,9 @@ public class SchemaCoordinateTests
                 {
                     o.StrictValidation = false;
                     o.RemoveUnreachableTypes = false;
+                    o.RemoveUnusedTypeSystemDirectives = false;
                 })
-            .Use(next => context => default)
+            .Use(_ => _ => default)
             .Create();
     }
 }

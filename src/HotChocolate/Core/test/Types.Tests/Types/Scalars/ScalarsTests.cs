@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using Xunit;
-
 namespace HotChocolate.Types;
 
 public class ScalarsTests
@@ -46,8 +42,8 @@ public class ScalarsTests
         // arrange
         var type = typeof(Nullable<>).MakeGenericType(value.GetType());
         var constructor =
-            type.GetConstructor(new[] { value.GetType() });
-        var nullableValue = constructor!.Invoke(new[] { value });
+            type.GetConstructor([value.GetType(),]);
+        var nullableValue = constructor!.Invoke([value,]);
 
         // act
         var isScalar = Scalars.TryGetKind(
@@ -143,6 +139,6 @@ public class ScalarsTests
 
     public enum Foo
     {
-        Bar
+        Bar,
     }
 }

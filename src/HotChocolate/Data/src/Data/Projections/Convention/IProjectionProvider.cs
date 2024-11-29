@@ -1,5 +1,4 @@
 using HotChocolate.Execution.Processing;
-using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Data.Projections;
@@ -10,17 +9,15 @@ namespace HotChocolate.Data.Projections;
 public interface IProjectionProvider : IConvention
 {
     /// <summary>
-    /// Creates a middleware that represents the filter execution logic
-    /// for the specified entity type.
+    /// Creates a query builder that builds up the selection clause.
     /// </summary>
     /// <typeparam name="TEntityType">
-    /// The entity type for which an filter executor shall be created.
+    /// The entity type for which query builder shall be created.
     /// </typeparam>
     /// <returns>
-    /// Returns a field middleware which represents the filter execution logic
-    /// for the specified entity type.
+    /// Returns a query builder that builds up the selection clause.
     /// </returns>
-    FieldMiddleware CreateExecutor<TEntityType>();
+    IQueryBuilder CreateBuilder<TEntityType>();
 
     /// <summary>
     /// Rewrites a selection optimized for projection

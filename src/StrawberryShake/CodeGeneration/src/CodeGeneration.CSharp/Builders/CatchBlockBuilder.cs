@@ -1,12 +1,10 @@
-using System.Collections.Generic;
-
 namespace StrawberryShake.CodeGeneration.CSharp.Builders;
 
 public class CatchBlockBuilder : ICode
 {
     private string? _exception;
     private string? _exceptionVariable;
-    private readonly List<ICode> _code = new();
+    private readonly List<ICode> _code = [];
 
     public static CatchBlockBuilder New() => new();
 

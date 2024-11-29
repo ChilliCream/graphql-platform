@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace StrawberryShake.CodeGeneration.CSharp.Builders;
 
 public class MethodBuilder : ICodeContainer<MethodBuilder>
@@ -13,8 +10,8 @@ public class MethodBuilder : ICodeContainer<MethodBuilder>
     private bool _is;
     private TypeReferenceBuilder _returnType = TypeReferenceBuilder.New().SetName("void");
     private string? _name;
-    private readonly List<ParameterBuilder> _parameters = new();
-    private readonly List<ICode> _lines = new();
+    private readonly List<ParameterBuilder> _parameters = [];
+    private readonly List<ICode> _lines = [];
     private bool _isAsync;
     private string? _interface;
 

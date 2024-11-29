@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Types.Relay.Descriptors;
 
 namespace HotChocolate.Types;
@@ -26,14 +25,4 @@ public static class NodeObjectTypeExtensions
 
         return new NodeDescriptor<T>(descriptor);
     }
-
-    [Obsolete("Use ImplementsNode.")]
-    public static INodeDescriptor AsNode(
-        this IObjectTypeDescriptor descriptor) =>
-        ImplementsNode(descriptor);
-
-    [Obsolete("Use ImplementsNode.")]
-    public static INodeDescriptor<T> AsNode<T>(
-        this IObjectTypeDescriptor<T> descriptor) =>
-        ImplementsNode<T>(descriptor);
 }

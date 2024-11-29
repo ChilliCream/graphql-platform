@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Types.Helpers;
 
 internal static class DirectiveHelper
@@ -19,7 +17,7 @@ internal static class DirectiveHelper
             IOutputField => DirectiveLocation.FieldDefinition,
             InputField => DirectiveLocation.InputFieldDefinition,
             Argument => DirectiveLocation.ArgumentDefinition,
-            _ => throw new NotSupportedException()
+            _ => throw new NotSupportedException(),
         };
     }
 }

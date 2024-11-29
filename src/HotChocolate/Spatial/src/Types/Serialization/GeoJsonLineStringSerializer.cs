@@ -1,6 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
 using static HotChocolate.Types.Spatial.ThrowHelper;
@@ -26,9 +24,7 @@ internal class GeoJsonLineStringSerializer : GeoJsonInputObjectSerializer<LineSt
 
         if (coordinates is List<Coordinate> list)
         {
-            coordinates = list.Count == 0
-                ? Array.Empty<Coordinate>()
-                : list.ToArray();
+            coordinates = list.Count == 0 ? [] : list.ToArray();
         }
 
         if (coordinates is not IList coordsObject ||

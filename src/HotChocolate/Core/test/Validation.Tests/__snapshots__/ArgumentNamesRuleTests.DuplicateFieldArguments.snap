@@ -13,38 +13,8 @@
       "type": "Query",
       "field": "fieldWithArg",
       "argument": "arg1",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Argument-Uniqueness"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Argument-Uniqueness"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "Argument",
-      "Location": {
-        "Start": 74,
-        "End": 88,
-        "Line": 3,
-        "Column": 49
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 74,
-          "End": 79,
-          "Line": 3,
-          "Column": 49
-        },
-        "Value": "arg1"
-      },
-      "Value": {
-        "Kind": "StringValue",
-        "Location": {
-          "Start": 80,
-          "End": 88,
-          "Line": 3,
-          "Column": 55
-        },
-        "Value": "value",
-        "Block": false
-      }
-    }
+    "Exception": null
   }
 ]

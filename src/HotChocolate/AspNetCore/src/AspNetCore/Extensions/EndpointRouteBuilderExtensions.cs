@@ -1,9 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
+using ChilliCream.Nitro.App;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Routing.Patterns;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Extensions;
-using BananaCakePop.Middleware;
 using static HotChocolate.AspNetCore.MiddlewareRoutingType;
 using static Microsoft.AspNetCore.Routing.Patterns.RoutePatternFactory;
 
@@ -19,6 +20,7 @@ public static class EndpointRouteBuilderExtensions
     private const string _graphQLWebSocketPath = "/graphql/ws";
     private const string _graphQLSchemaPath = "/graphql/sdl";
     private const string _graphQLToolPath = "/graphql/ui";
+    private const string _graphQLPersistedOperationPath = "/graphql/persisted";
     private const string _graphQLToolRelativeRequestPath = "..";
 
     /// <summary>
@@ -73,29 +75,64 @@ public static class EndpointRouteBuilderExtensions
         }
 
         path = path.ToString().TrimEnd('/');
-
+        var schemaNameOrDefault = schemaName ?? Schema.DefaultName;
         var pattern = Parse(path + "/{**slug}");
         var requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
-        var schemaNameOrDefault = schemaName ?? Schema.DefaultName;
-
-        requestPipeline
-            .UseCancellation()
-            .UseMiddleware<WebSocketSubscriptionMiddleware>(schemaNameOrDefault)
-            .UseMiddleware<HttpPostMiddleware>(schemaNameOrDefault)
-            .UseMiddleware<HttpMultipartMiddleware>(schemaNameOrDefault)
-            .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault)
-            .UseMiddleware<HttpGetSchemaMiddleware>(schemaNameOrDefault, Integrated)
-            .UseBananaCakePop(path)
-            .Use(_ => context =>
-            {
-                context.Response.StatusCode = 404;
-                return Task.CompletedTask;
-            });
+        requestPipeline.MapGraphQL(path, schemaNameOrDefault);
 
         return new GraphQLEndpointConventionBuilder(
             endpointRouteBuilder
                 .Map(pattern, requestPipeline.Build())
                 .WithDisplayName("Hot Chocolate GraphQL Pipeline"));
+    }
+
+    /// <summary>
+    /// Adds a GraphQL endpoint to the endpoint configurations.
+    /// </summary>
+    /// <param name="applicationBuilder">
+    /// The <see cref="IApplicationBuilder"/>.
+    /// </param>
+    /// <param name="path">
+    /// The path to which the GraphQL endpoint shall be mapped.
+    /// </param>
+    /// <param name="schemaName">
+    /// The name of the schema that shall be used by this endpoint.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IEndpointConventionBuilder"/> so that
+    /// configuration can be chained.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="applicationBuilder" /> is <c>null</c>.
+    /// </exception>
+    public static IApplicationBuilder MapGraphQL(
+        this IApplicationBuilder applicationBuilder,
+        PathString path,
+        string schemaName)
+    {
+        if (applicationBuilder is null)
+        {
+            throw new ArgumentNullException(nameof(applicationBuilder));
+        }
+
+        path = path.ToString().TrimEnd('/');
+
+        applicationBuilder
+            .UseCancellation()
+            .UseMiddleware<WebSocketSubscriptionMiddleware>(schemaName)
+            .UseMiddleware<HttpPostMiddleware>(schemaName)
+            .UseMiddleware<HttpMultipartMiddleware>(schemaName)
+            .UseMiddleware<HttpGetMiddleware>(schemaName)
+            .UseMiddleware<HttpGetSchemaMiddleware>(schemaName, path, Integrated)
+            .UseNitroApp(path)
+            .Use(
+                _ => context =>
+                {
+                    context.Response.StatusCode = 404;
+                    return Task.CompletedTask;
+                });
+
+        return applicationBuilder;
     }
 
     /// <summary>
@@ -165,11 +202,12 @@ public static class EndpointRouteBuilderExtensions
             .UseMiddleware<HttpPostMiddleware>(schemaNameOrDefault)
             .UseMiddleware<HttpMultipartMiddleware>(schemaNameOrDefault)
             .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault)
-            .Use(_ => context =>
-            {
-                context.Response.StatusCode = 404;
-                return Task.CompletedTask;
-            });
+            .Use(
+                _ => context =>
+                {
+                    context.Response.StatusCode = 404;
+                    return Task.CompletedTask;
+                });
 
         return new GraphQLHttpEndpointConventionBuilder(
             endpointRouteBuilder
@@ -242,11 +280,12 @@ public static class EndpointRouteBuilderExtensions
         requestPipeline
             .UseCancellation()
             .UseMiddleware<WebSocketSubscriptionMiddleware>(schemaNameOrDefault)
-            .Use(_ => context =>
-            {
-                context.Response.StatusCode = 404;
-                return Task.CompletedTask;
-            });
+            .Use(
+                _ => context =>
+                {
+                    context.Response.StatusCode = 404;
+                    return Task.CompletedTask;
+                });
 
         var builder = new GraphQLEndpointConventionBuilder(
             endpointRouteBuilder
@@ -320,12 +359,13 @@ public static class EndpointRouteBuilderExtensions
 
         requestPipeline
             .UseCancellation()
-            .UseMiddleware<HttpGetSchemaMiddleware>(schemaNameOrDefault, Explicit)
-            .Use(_ => context =>
-            {
-                context.Response.StatusCode = 404;
-                return Task.CompletedTask;
-            });
+            .UseMiddleware<HttpGetSchemaMiddleware>(schemaNameOrDefault, PathString.Empty, Explicit)
+            .Use(
+                _ => context =>
+                {
+                    context.Response.StatusCode = 404;
+                    return Task.CompletedTask;
+                });
 
         return new GraphQLEndpointConventionBuilder(
             endpointRouteBuilder
@@ -334,13 +374,13 @@ public static class EndpointRouteBuilderExtensions
     }
 
     /// <summary>
-    /// Adds a Banana Cake Pop endpoint to the endpoint configurations.
+    /// Adds a Nitro endpoint to the endpoint configurations.
     /// </summary>
     /// <param name="endpointRouteBuilder">
     /// The <see cref="IEndpointConventionBuilder"/>.
     /// </param>
     /// <param name="toolPath">
-    /// The path to which Banana Cake Pop is mapped.
+    /// The path to which Nitro is mapped.
     /// </param>
     /// <param name="relativeRequestPath">
     /// The relative path on which the server is listening for GraphQL requests.
@@ -349,20 +389,20 @@ public static class EndpointRouteBuilderExtensions
     /// Returns the <see cref="IEndpointConventionBuilder"/> so that
     /// configuration can be chained.
     /// </returns>
-    public static BananaCakePopEndpointConventionBuilder MapBananaCakePop(
+    public static NitroAppEndpointConventionBuilder MapNitroApp(
         this IEndpointRouteBuilder endpointRouteBuilder,
         string toolPath = _graphQLToolPath,
         string? relativeRequestPath = _graphQLToolRelativeRequestPath)
-        => MapBananaCakePop(endpointRouteBuilder, new PathString(toolPath), relativeRequestPath);
+        => MapNitroApp(endpointRouteBuilder, new PathString(toolPath), relativeRequestPath);
 
     /// <summary>
-    /// Adds a Banana Cake Pop endpoint to the endpoint configurations.
+    /// Adds a Nitro endpoint to the endpoint configurations.
     /// </summary>
     /// <param name="endpointRouteBuilder">
     /// The <see cref="IEndpointConventionBuilder"/>.
     /// </param>
     /// <param name="toolPath">
-    /// The path to which Banana Cake Pop is mapped.
+    /// The path to which Nitro is mapped.
     /// </param>
     /// <param name="relativeRequestPath">
     /// The relative path on which the server is listening for GraphQL requests.
@@ -371,7 +411,7 @@ public static class EndpointRouteBuilderExtensions
     /// Returns the <see cref="IEndpointConventionBuilder"/> so that
     /// configuration can be chained.
     /// </returns>
-    public static BananaCakePopEndpointConventionBuilder MapBananaCakePop(
+    public static NitroAppEndpointConventionBuilder MapNitroApp(
         this IEndpointRouteBuilder endpointRouteBuilder,
         PathString toolPath,
         string? relativeRequestPath = _graphQLToolRelativeRequestPath)
@@ -388,19 +428,76 @@ public static class EndpointRouteBuilderExtensions
         var requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
 
         requestPipeline
-            .UseBananaCakePop(toolPath)
-            .Use(_ => context =>
-            {
-                context.Response.StatusCode = 404;
-                return Task.CompletedTask;
-            });
+            .UseNitroApp(toolPath)
+            .Use(
+                _ => context =>
+                {
+                    context.Response.StatusCode = 404;
+                    return Task.CompletedTask;
+                });
 
         var builder = endpointRouteBuilder
             .Map(pattern, requestPipeline.Build())
-            .WithDisplayName("Banana Cake Pop Pipeline")
-            .WithMetadata(new BananaCakePopOptions { GraphQLEndpoint = relativeRequestPath });
+            .WithDisplayName("Nitro Pipeline")
+            .WithMetadata(new NitroAppOptions { GraphQLEndpoint = relativeRequestPath, });
 
-        return new BananaCakePopEndpointConventionBuilder(builder);
+        return new NitroAppEndpointConventionBuilder(builder);
+    }
+
+    /// <summary>
+    /// Adds a persisted operation endpoint to the endpoint configurations.
+    /// </summary>
+    /// <param name="endpointRouteBuilder">
+    /// The <see cref="IEndpointRouteBuilder"/>.
+    /// </param>
+    /// <param name="path">
+    /// The path to which the persisted operation endpoint shall be mapped.
+    /// </param>
+    /// <param name="schemaName">
+    /// The name of the schema that shall be used by this endpoint.
+    /// </param>
+    /// <param name="requireOperationName">
+    /// Specifies if its required to provide the operation name as part of the URI.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IEndpointConventionBuilder"/> so that
+    /// </returns>
+    public static IEndpointConventionBuilder MapGraphQLPersistedOperations(
+        this IEndpointRouteBuilder endpointRouteBuilder,
+        [StringSyntax("Route")] string path = _graphQLPersistedOperationPath,
+        string? schemaName = default,
+        bool requireOperationName = false)
+        => MapGraphQLPersistedOperations(endpointRouteBuilder, Parse(path), schemaName, requireOperationName);
+
+    /// <summary>
+    /// Adds a persisted operation endpoint to the endpoint configurations.
+    /// </summary>
+    /// <param name="endpointRouteBuilder">
+    /// The <see cref="IEndpointRouteBuilder"/>.
+    /// </param>
+    /// <param name="path">
+    /// The path to which the persisted operation endpoint shall be mapped.
+    /// </param>
+    /// <param name="schemaName">
+    /// The name of the schema that shall be used by this endpoint.
+    /// </param>
+    /// <param name="requireOperationName">
+    /// Specifies if its required to provide the operation name as part of the URI.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IEndpointConventionBuilder"/> so that
+    /// </returns>
+    public static IEndpointConventionBuilder MapGraphQLPersistedOperations(
+        this IEndpointRouteBuilder endpointRouteBuilder,
+        RoutePattern path,
+        string? schemaName = default,
+        bool requireOperationName = false)
+    {
+        var schemaNameOrDefault = schemaName ?? Schema.DefaultName;
+
+        var group = endpointRouteBuilder.MapGroup(path);
+        group.MapPersistedOperationMiddleware(schemaNameOrDefault, requireOperationName);
+        return group;
     }
 
     /// <summary>
@@ -418,10 +515,10 @@ public static class EndpointRouteBuilderExtensions
     /// </returns>
     public static GraphQLEndpointConventionBuilder WithOptions(
         this GraphQLEndpointConventionBuilder builder,
-        GraphQLServerOptions serverOptions) 
+        GraphQLServerOptions serverOptions)
         => builder
             .WithMetadata(serverOptions)
-            .WithMetadata(serverOptions.Tool.ToBcpOptions());
+            .WithMetadata(serverOptions.Tool.ToNitroAppOptions());
 
     /// <summary>
     /// Specifies the GraphQL HTTP request options.
@@ -439,31 +536,32 @@ public static class EndpointRouteBuilderExtensions
     public static GraphQLHttpEndpointConventionBuilder WithOptions(
         this GraphQLHttpEndpointConventionBuilder builder,
         GraphQLHttpOptions httpOptions) =>
-        builder.WithMetadata(new GraphQLServerOptions
-        {
-            AllowedGetOperations = httpOptions.AllowedGetOperations,
-            EnableGetRequests = httpOptions.EnableGetRequests,
-            EnableMultipartRequests = httpOptions.EnableMultipartRequests
-        });
+        builder.WithMetadata(
+            new GraphQLServerOptions
+            {
+                AllowedGetOperations = httpOptions.AllowedGetOperations,
+                EnableGetRequests = httpOptions.EnableGetRequests,
+                EnableMultipartRequests = httpOptions.EnableMultipartRequests,
+            });
 
     /// <summary>
-    /// Specifies the Banana Cake Pop tooling options.
+    /// Specifies the Nitro tooling options.
     /// </summary>
     /// <param name="builder">
-    /// The <see cref="BananaCakePopEndpointConventionBuilder"/>.
+    /// The <see cref="NitroAppEndpointConventionBuilder"/>.
     /// </param>
     /// <param name="toolOptions">
-    /// The Banana Cake Pop tooling options.
+    /// The Nitro tooling options.
     /// </param>
     /// <returns>
-    /// Returns the <see cref="BananaCakePopEndpointConventionBuilder"/> so that
+    /// Returns the <see cref="NitroAppEndpointConventionBuilder"/> so that
     /// configuration can be chained.
     /// </returns>
-    public static BananaCakePopEndpointConventionBuilder WithOptions(
-        this BananaCakePopEndpointConventionBuilder builder,
+    public static NitroAppEndpointConventionBuilder WithOptions(
+        this NitroAppEndpointConventionBuilder builder,
         GraphQLToolOptions toolOptions)
     {
-        builder.Add(c => c.Metadata.Add(toolOptions.ToBcpOptions()));
+        builder.Add(c => c.Metadata.Add(toolOptions.ToNitroAppOptions()));
         return builder;
     }
 
@@ -483,22 +581,23 @@ public static class EndpointRouteBuilderExtensions
     public static WebSocketEndpointConventionBuilder WithOptions(
         this WebSocketEndpointConventionBuilder builder,
         GraphQLSocketOptions socketOptions) =>
-        builder.WithMetadata(new GraphQLServerOptions { Sockets = socketOptions });
+        builder.WithMetadata(new GraphQLServerOptions { Sockets = socketOptions, });
 
     private static IApplicationBuilder UseCancellation(this IApplicationBuilder builder)
-        => builder.Use(next => async context =>
-        {
-            try
+        => builder.Use(
+            next => async context =>
             {
-                await next(context);
-            }
-            catch (OperationCanceledException)
-            {
-                // we just catch cancellations here and do nothing.
-            }
-        });
+                try
+                {
+                    await next(context);
+                }
+                catch (OperationCanceledException)
+                {
+                    // we just catch cancellations here and do nothing.
+                }
+            });
 
-    internal static BananaCakePopOptions ToBcpOptions(this GraphQLToolOptions options)
+    internal static NitroAppOptions ToNitroAppOptions(this GraphQLToolOptions options)
         => new()
         {
             ServeMode = ServeMode.Version(options.ServeMode.Mode),

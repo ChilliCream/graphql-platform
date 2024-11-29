@@ -63,11 +63,11 @@ internal sealed class ResolveNode(int id, Selection selection) : QueryPlanNode(i
             return;
         }
 
-        IdValue idValue;
+        string typeName;
 
         try
         {
-            idValue = context.ParseId(formattedId.Value);
+            typeName = context.ParseTypeNameFromId(formattedId.Value);
         }
         catch (IdSerializationException ex)
         {
@@ -75,7 +75,7 @@ internal sealed class ResolveNode(int id, Selection selection) : QueryPlanNode(i
             return;
         }
 
-        if(!_fetchNodes.TryGetValue(idValue.TypeName, out var fetchNode))
+        if(!_fetchNodes.TryGetValue(typeName, out var fetchNode))
         {
             context.Result.AddError(InvalidNodeFormat(_selection), _selection);
             return;

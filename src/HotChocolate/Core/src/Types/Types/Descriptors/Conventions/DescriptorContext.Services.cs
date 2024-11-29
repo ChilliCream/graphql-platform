@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
 using System.Text;
 using HotChocolate.Internal;
 using HotChocolate.Utilities;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 
 #nullable enable

@@ -1,23 +1,23 @@
-using System;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Data.Filters;
 
-public class FilterInputType<T>
-    : FilterInputType
+public class FilterInputType<T> : FilterInputType
 {
     private Action<IFilterInputTypeDescriptor<T>>? _configure;
-
-    public FilterInputType()
-    {
-        _configure = Configure;
-    }
 
     public FilterInputType(Action<IFilterInputTypeDescriptor<T>> configure)
     {
         _configure = configure ??
             throw new ArgumentNullException(nameof(configure));
+    }
+
+    [ActivatorUtilitiesConstructor]
+    public FilterInputType()
+    {
+        _configure = Configure;
     }
 
     protected override InputObjectTypeDefinition CreateDefinition(

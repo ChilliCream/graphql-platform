@@ -1,6 +1,6 @@
-using System;
-using System.Linq;
+using System.Collections.Frozen;
 using HotChocolate.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -30,6 +30,8 @@ public partial class Schema
 
         _configure(descriptor);
 
+        context.DescriptorContext.ApplySchemaConfigurations(descriptor);
+
         return descriptor.CreateDefinition();
     }
 
@@ -43,7 +45,7 @@ public partial class Schema
         // if we do not do this all the instances used during initialization will be kept in memory
         // until the schema is phased out.
         // We do this in OnAfterInitialized because after this point the schema is marked as
-        // initialized. This means that a subsequent call to Initialize will throw anyway and
+        // initialized. This means that a subsequent call to Initialize will throw anyway, and
         // therefore we do not need to keep the configuration delegate.
         _configure = null;
     }
@@ -74,11 +76,9 @@ public partial class Schema
     {
         base.OnCompleteType(context, definition);
 
-        Directives = DirectiveCollection.CreateAndComplete(
-            context,
-            this,
-            definition.GetDirectives());
+        Directives = DirectiveCollection.CreateAndComplete(context, this, definition.GetDirectives());
         Services = context.Services;
+        Features = definition.Features.ToReadOnly();
     }
 
     internal void CompleteSchema(SchemaTypesDefinition schemaTypesDefinition)
@@ -102,7 +102,7 @@ public partial class Schema
 
         DirectiveTypes = schemaTypesDefinition.DirectiveTypes;
         _types = new SchemaTypes(schemaTypesDefinition);
-        _directiveTypes = DirectiveTypes.ToDictionary(t => t.Name);
+        _directiveTypes = DirectiveTypes.ToFrozenDictionary(t => t.Name, StringComparer.Ordinal);
         _sealed = true;
     }
 }

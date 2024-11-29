@@ -1,25 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace StrawberryShake.Transport.WebSockets;
 
 /// <inheritdoc />
-internal sealed class SessionPool
-    : ISessionPool
+internal sealed class SessionPool(ISocketClientFactory socketClientFactory) : ISessionPool
 {
     private readonly SemaphoreSlim _semaphoreSlim = new(1, 1);
     private readonly Dictionary<string, SessionInfo> _sessions = new();
-    private readonly ISocketClientFactory _socketClientFactory;
+    private readonly ISocketClientFactory _socketClientFactory = socketClientFactory
+        ?? throw new ArgumentNullException(nameof(socketClientFactory));
 
     private bool _disposed;
-
-    public SessionPool(ISocketClientFactory socketClientFactory)
-    {
-        _socketClientFactory = socketClientFactory
-                               ?? throw new ArgumentNullException(nameof(socketClientFactory));
-    }
 
     /// <inheritdoc />
     public async Task<ISession> CreateAsync(
@@ -30,13 +19,13 @@ internal sealed class SessionPool
 
         try
         {
-            if (_sessions.TryGetValue(name, out SessionInfo? sessionInfo))
+            if (_sessions.TryGetValue(name, out var sessionInfo))
             {
                 sessionInfo.Rentals++;
             }
             else
             {
-                ISocketClient client = _socketClientFactory.CreateClient(name);
+                var client = _socketClientFactory.CreateClient(name);
 
                 sessionInfo = SessionInfo.From(client, this);
                 _sessions.Add(name, sessionInfo);
@@ -50,7 +39,7 @@ internal sealed class SessionPool
         }
         catch
         {
-            if (_sessions.TryGetValue(name, out SessionInfo? sessionInfo))
+            if (_sessions.TryGetValue(name, out var sessionInfo))
             {
                 await RemoveAndDisposeAsync(
                         sessionInfo.Session,
@@ -70,7 +59,7 @@ internal sealed class SessionPool
     {
         if (!_disposed)
         {
-            foreach (SessionInfo connection in _sessions.Values)
+            foreach (var connection in _sessions.Values)
             {
                 await connection.Session.DisposeAsync();
             }
@@ -93,7 +82,7 @@ internal sealed class SessionPool
 
         try
         {
-            if (_sessions.TryGetValue(session.Name, out SessionInfo? connectionInfo))
+            if (_sessions.TryGetValue(session.Name, out var connectionInfo))
             {
                 connectionInfo.Rentals--;
             }
@@ -161,43 +150,35 @@ internal sealed class SessionPool
         }
     }
 
-    private sealed class SessionProxy : ISession
+    private sealed class SessionProxy(
+        Session session,
+        SessionPool pool)
+        : ISession
     {
-        private readonly Session _session;
-        private readonly SessionPool _pool;
-
-        public SessionProxy(
-            Session session,
-            SessionPool pool)
-        {
-            _pool = pool;
-            _session = session;
-        }
-
-        public string Name => _session.Name;
+        public string Name => session.Name;
 
         public Task OpenSessionAsync(CancellationToken cancellationToken = default)
         {
-            return _session.OpenSessionAsync(cancellationToken);
+            return session.OpenSessionAsync(cancellationToken);
         }
 
         public Task<ISocketOperation> StartOperationAsync(
             OperationRequest request,
             CancellationToken cancellationToken = default)
         {
-            return _session.StartOperationAsync(request, cancellationToken);
+            return session.StartOperationAsync(request, cancellationToken);
         }
 
         public Task StopOperationAsync(
             string operationId,
             CancellationToken cancellationToken = default)
         {
-            return _session.StopOperationAsync(operationId, cancellationToken);
+            return session.StopOperationAsync(operationId, cancellationToken);
         }
 
         public async ValueTask DisposeAsync()
         {
-            await _pool.ReturnAsync(_session);
+            await pool.ReturnAsync(session);
         }
     }
 }

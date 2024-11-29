@@ -1,113 +1,107 @@
 using HotChocolate.Execution;
 using NodaTime.Text;
-using Xunit;
 
-namespace HotChocolate.Types.NodaTime.Tests
+namespace HotChocolate.Types.NodaTime.Tests;
+
+public class OffsetTimeTypeExtendedIntegrationTests
 {
-    public class OffsetTimeTypeExtendedIntegrationTests
+    private readonly IRequestExecutor _testExecutor =
+        SchemaBuilder.New()
+            .AddQueryType<OffsetTimeTypeIntegrationTests.Schema.Query>()
+            .AddMutationType<OffsetTimeTypeIntegrationTests.Schema.Mutation>()
+            .AddNodaTime(typeof(OffsetTimeType))
+            .AddType(new OffsetTimeType(OffsetTimePattern.ExtendedIso))
+            .Create()
+            .MakeExecutable();
+
+    [Fact]
+    public void QueryReturns()
     {
-        private readonly IRequestExecutor testExecutor;
+        var result = _testExecutor.Execute("query { test: hours }");
 
-        public OffsetTimeTypeExtendedIntegrationTests()
-        {
-            testExecutor = SchemaBuilder.New()
-                .AddQueryType<OffsetTimeTypeIntegrationTests.Schema.Query>()
-                .AddMutationType<OffsetTimeTypeIntegrationTests.Schema.Mutation>()
-                .AddNodaTime(typeof(OffsetTimeType))
-                .AddType(new OffsetTimeType(OffsetTimePattern.ExtendedIso))
-                .Create()
-                .MakeExecutable();
-        }
+        Assert.Equal("18:30:13.010011234+02", result.ExpectOperationResult().Data!["test"]);
+    }
 
-        [Fact]
-        public void QueryReturns()
-        {
-            IExecutionResult result = testExecutor.Execute("query { test: hours }");
+    [Fact]
+    public void QueryReturnsWithMinutes()
+    {
+        var result = _testExecutor.Execute("query { test: hoursAndMinutes }");
 
-            Assert.Equal("18:30:13.010011234+02", result.ExpectQueryResult().Data!["test"]);
-        }
+        Assert.Equal("18:30:13.010011234+02:35", result.ExpectOperationResult().Data!["test"]);
+    }
 
-        [Fact]
-        public void QueryReturnsWithMinutes()
-        {
-            IExecutionResult result = testExecutor.Execute("query { test: hoursAndMinutes }");
+    [Fact]
+    public void ParsesVariable()
+    {
+        var result = _testExecutor
+            .Execute(OperationRequestBuilder.New()
+                .SetDocument("mutation($arg: OffsetTime!) { test(arg: $arg) }")
+                .SetVariableValues(new Dictionary<string, object?> { {"arg", "18:30:13.010011234+02" }, })
+                .Build());
 
-            Assert.Equal("18:30:13.010011234+02:35", result.ExpectQueryResult().Data!["test"]);
-        }
+        Assert.Equal("18:30:13.010011234+02", result.ExpectOperationResult().Data!["test"]);
+    }
 
-        [Fact]
-        public void ParsesVariable()
-        {
-            IExecutionResult result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: OffsetTime!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "18:30:13.010011234+02")
-                    .Create());
+    [Fact]
+    public void ParsesVariableWithMinutes()
+    {
+        var result = _testExecutor
+            .Execute(OperationRequestBuilder.New()
+                .SetDocument("mutation($arg: OffsetTime!) { test(arg: $arg) }")
+                .SetVariableValues(new Dictionary<string, object?> { {"arg", "18:30:13.010011234+02:35" }, })
+                .Build());
 
-            Assert.Equal("18:30:13.010011234+02", result.ExpectQueryResult().Data!["test"]);
-        }
+        Assert.Equal("18:30:13.010011234+02:35", result.ExpectOperationResult().Data!["test"]);
+    }
 
-        [Fact]
-        public void ParsesVariableWithMinutes()
-        {
-            IExecutionResult result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: OffsetTime!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "18:30:13.010011234+02:35")
-                    .Create());
+    [Fact]
+    public void DoesntParseAnIncorrectVariable()
+    {
+        var result = _testExecutor
+            .Execute(OperationRequestBuilder.New()
+                .SetDocument("mutation($arg: OffsetTime!) { test(arg: $arg) }")
+                .SetVariableValues(new Dictionary<string, object?> { {"arg", "18:30:13.010011234" }, })
+                .Build());
 
-            Assert.Equal("18:30:13.010011234+02:35", result.ExpectQueryResult().Data!["test"]);
-        }
+        Assert.Null(result.ExpectOperationResult().Data);
+        Assert.Single(result.ExpectOperationResult().Errors!);
+    }
 
-        [Fact]
-        public void DoesntParseAnIncorrectVariable()
-        {
-            IExecutionResult result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: OffsetTime!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "18:30:13.010011234")
-                    .Create());
+    [Fact]
+    public void ParsesLiteral()
+    {
+        var result = _testExecutor
+            .Execute(OperationRequestBuilder.New()
+                .SetDocument("mutation { test(arg: \"18:30:13.010011234+02\") }")
+                .Build());
 
-            Assert.Null(result.ExpectQueryResult().Data);
-            Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
-        }
+        Assert.Equal("18:30:13.010011234+02", result.ExpectOperationResult().Data!["test"]);
+    }
 
-        [Fact]
-        public void ParsesLiteral()
-        {
-            IExecutionResult result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"18:30:13.010011234+02\") }")
-                    .Create());
+    [Fact]
+    public void ParsesLiteralWithMinutes()
+    {
+        var result = _testExecutor
+            .Execute(OperationRequestBuilder.New()
+                .SetDocument("mutation { test(arg: \"18:30:13.010011234+02:35\") }")
+                .Build());
 
-            Assert.Equal("18:30:13.010011234+02", result.ExpectQueryResult().Data!["test"]);
-        }
+        Assert.Equal("18:30:13.010011234+02:35", result.ExpectOperationResult().Data!["test"]);
+    }
 
-        [Fact]
-        public void ParsesLiteralWithMinutes()
-        {
-            IExecutionResult result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"18:30:13.010011234+02:35\") }")
-                    .Create());
+    [Fact]
+    public void DoesntParseIncorrectLiteral()
+    {
+        var result = _testExecutor
+            .Execute(OperationRequestBuilder.New()
+                .SetDocument("mutation { test(arg: \"18:30:13.010011234\") }")
+                .Build());
 
-            Assert.Equal("18:30:13.010011234+02:35", result.ExpectQueryResult().Data!["test"]);
-        }
-
-        [Fact]
-        public void DoesntParseIncorrectLiteral()
-        {
-            IExecutionResult result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"18:30:13.010011234\") }")
-                    .Create());
-
-            Assert.Null(result.ExpectQueryResult().Data);
-            Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
-            Assert.Null(result.ExpectQueryResult().Errors![0].Code);
-            Assert.Equal(
-                "Unable to deserialize string to OffsetTime",
-                result.ExpectQueryResult().Errors![0].Message);
-        }
+        Assert.Null(result.ExpectOperationResult().Data);
+        Assert.Single(result.ExpectOperationResult().Errors!);
+        Assert.Null(result.ExpectOperationResult().Errors![0].Code);
+        Assert.Equal(
+            "Unable to deserialize string to OffsetTime",
+            result.ExpectOperationResult().Errors![0].Message);
     }
 }

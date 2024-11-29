@@ -1,13 +1,12 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <AssemblyName>HotChocolate.Data.Projections.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Data</RootNamespace>
-    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Types.Mutations\HotChocolate.Types.Mutations.csproj" />
     <ProjectReference Include="..\..\src\Data\HotChocolate.Data.csproj" />
   </ItemGroup>
 

@@ -99,4 +99,7 @@
   <data name="ThrowHelper_RequestFormatter_ArgumentVariableExpected_Message" xml:space="preserve">
     <value>The variable must be an argument variable.</value>
   </data>
+  <data name="DefaultIdParser_ParseTypeName_InvalidFormat" xml:space="preserve">
+    <value>Unable to decode the node id value.</value>
+  </data>
 </root>

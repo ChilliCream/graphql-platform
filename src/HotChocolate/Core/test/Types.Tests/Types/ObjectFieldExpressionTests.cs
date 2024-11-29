@@ -1,10 +1,4 @@
-
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Execution;
-using Snapshooter;
-using Snapshooter.Xunit;
-using Xunit;
 
 #nullable enable
 
@@ -20,17 +14,11 @@ public class ObjectFieldExpressionTests
             {
                 d.Name("Query");
                 d.Field(t => t.Bar.Text);
-#if !NETCOREAPP2_1 && !NETCOREAPP3_1
                 d.Field(t => t.Bars.Select(t => t.Text)).Name("texts");
-#endif
             })
             .Create()
             .ToString()
-#if NETCOREAPP2_1 || NETCOREAPP3_1
-                .MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
-#else
             .MatchSnapshot();
-#endif
     }
 
     [Fact]
@@ -69,7 +57,7 @@ public class ObjectFieldExpressionTests
 
     public class Foo
     {
-        public IEnumerable<Bar> Bars => new[] { new Bar() };
+        public IEnumerable<Bar> Bars => new[] { new Bar(), };
 
         public Bar Bar => new Bar();
 

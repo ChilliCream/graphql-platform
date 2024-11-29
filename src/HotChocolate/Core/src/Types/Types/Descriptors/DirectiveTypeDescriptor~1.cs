@@ -1,9 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -49,13 +45,6 @@ public class DirectiveTypeDescriptor<T>
         }
 
         base.OnCompleteArguments(arguments, handledProperties);
-    }
-
-    public new IDirectiveTypeDescriptor<T> SyntaxNode(
-        DirectiveDefinitionNode directiveDefinitionNode)
-    {
-        base.SyntaxNode(directiveDefinitionNode);
-        return this;
     }
 
     public new IDirectiveTypeDescriptor<T> Name(string value)
@@ -136,30 +125,6 @@ public class DirectiveTypeDescriptor<T>
         where TMiddleware : class
     {
         base.Use(factory);
-        return this;
-    }
-
-    [Obsolete("Replace Middleware with `Use`.")]
-    public new IDirectiveTypeDescriptor<T> Middleware(
-        DirectiveMiddleware middleware)
-    {
-        base.Middleware(middleware);
-        return this;
-    }
-
-    [Obsolete("Replace Middleware with `Use`.", true)]
-    public new IDirectiveTypeDescriptor<T> Middleware<TMiddleware>(
-        Expression<Func<TMiddleware, object>> method)
-    {
-        base.Middleware(method);
-        return this;
-    }
-
-    [Obsolete("Replace Middleware with `Use`.", true)]
-    public new IDirectiveTypeDescriptor<T> Middleware<TMiddleware>(
-        Expression<Action<TMiddleware>> method)
-    {
-        base.Middleware(method);
         return this;
     }
 

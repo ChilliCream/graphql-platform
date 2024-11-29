@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -61,10 +58,10 @@ public class CombinedServiceProviderTests
         motivate changes to the subject-under-test (i.e. CombinedServiceProvider).
         ***/
         IServiceProvider stringServices = new DictionaryServiceProvider(
-            (typeof(IEnumerable<string>), new List<string>(new[] { "one", "two" })));
+            (typeof(IEnumerable<string>), new List<string>(new[] { "one", "two", })));
 
         IServiceProvider numberServices = new DictionaryServiceProvider(
-            (typeof(IEnumerable<int>), new List<int>(new[] { 1, 2, 3, 4, 5 })));
+            (typeof(IEnumerable<int>), new List<int>(new[] { 1, 2, 3, 4, 5, })));
 
         IServiceProvider services = new CombinedServiceProvider(stringServices, numberServices);
 
@@ -79,11 +76,11 @@ public class CombinedServiceProviderTests
         }
     }
 
-    private interface IService { }
+    private interface IService;
 
-    private sealed class ServiceA : IService { }
+    private sealed class ServiceA : IService;
 
-    private sealed class ServiceB : IService { }
+    private sealed class ServiceB : IService;
 
-    private sealed class ServiceC : IService { }
+    private sealed class ServiceC : IService;
 }

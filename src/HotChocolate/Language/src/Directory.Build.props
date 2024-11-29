@@ -3,10 +3,11 @@
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Nullable.props', '$(MSBuildThisFileDirectory)..\'))" />
 
   <PropertyGroup>
-    <TargetFrameworks>$(LibraryTargetFrameworks)</TargetFrameworks>
-    <Nullable>enable</Nullable>
-    <IsTrimmable>true</IsTrimmable>
-    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <TargetFrameworks>$(ExtendedTargetFrameworks)</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
 </Project>

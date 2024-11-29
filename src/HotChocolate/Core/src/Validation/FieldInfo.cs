@@ -7,19 +7,19 @@ namespace HotChocolate.Validation;
 /// The validation field info provides access to the field node and the type
 /// information of the referenced field.
 /// </summary>
-public readonly struct FieldInfo
+public readonly struct FieldInfo : IEquatable<FieldInfo>
 {
     /// <summary>
     /// Initializes a new instance of <see cref="FieldInfo"/>
     /// </summary>
-    public FieldInfo(IType declaringType, IType type, FieldNode field)
+    public FieldInfo(IType declaringType, IType type, FieldNode syntaxNode)
     {
         DeclaringType = declaringType;
         Type = type;
-        Field = field;
-        ResponseName = Field.Alias is null
-            ? Field.Name.Value
-            : Field.Alias.Value;
+        SyntaxNode = syntaxNode;
+        ResponseName = SyntaxNode.Alias is null
+            ? SyntaxNode.Name.Value
+            : SyntaxNode.Alias.Value;
     }
 
     /// <summary>
@@ -38,7 +38,42 @@ public readonly struct FieldInfo
     public IType Type { get; }
 
     /// <summary>
-    /// Gets the field selection.
+    /// Gets the field selection syntax node.
     /// </summary>
-    public FieldNode Field { get; }
+    public FieldNode SyntaxNode { get; }
+
+    /// <summary>
+    /// Compares this field info to another field info.
+    /// </summary>
+    /// <param name="other">
+    /// The other field info.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the field infos are equal.
+    /// </returns>
+    public bool Equals(FieldInfo other)
+        => SyntaxNode.Equals(other.SyntaxNode) &&
+            DeclaringType.Equals(other.DeclaringType) &&
+            Type.Equals(other.Type);
+
+    /// <summary>
+    /// Compares this field info to another object.
+    /// </summary>
+    /// <param name="obj">
+    /// The other object.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the field infos are equal.
+    /// </returns>
+    public override bool Equals(object? obj)
+        => obj is FieldInfo other && Equals(other);
+
+    /// <summary>
+    /// Returns the hash code of this instance.
+    /// </summary>
+    /// <returns>
+    /// The hash code of this instance.
+    /// </returns>
+    public override int GetHashCode()
+        => HashCode.Combine(SyntaxNode, DeclaringType, Type);
 }

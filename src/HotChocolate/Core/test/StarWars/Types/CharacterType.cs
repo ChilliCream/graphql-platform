@@ -1,4 +1,4 @@
-﻿using HotChocolate.Types;
+using HotChocolate.Types;
 using HotChocolate.StarWars.Models;
 
 namespace HotChocolate.StarWars.Types;
@@ -20,6 +20,9 @@ public class CharacterType : InterfaceType<ICharacter>
 
         descriptor.Field(f => f.AppearsIn)
             .Type<ListType<EpisodeType>>();
+
+        descriptor.Field(f => f.Traits)
+            .Type<JsonType>();
 
         descriptor.Field(f => f.Height)
             .Type<FloatType>()

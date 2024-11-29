@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Xunit;
 
 namespace HotChocolate.Language.SyntaxTree;
@@ -52,7 +51,7 @@ public class FragmentSpreadNodeTests
             new("aa"),
             new List<DirectiveNode>
             {
-                new("bb")
+                new("bb"),
             });
 
         // act

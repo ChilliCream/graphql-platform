@@ -2,7 +2,7 @@
   "message": "The object type `Foo` has to at least define one field in order to be valid.",
   "type": "Foo",
   "extensions": {
-    "specifiedBy": "http://spec.graphql.org/October2021/#sec-Objects.Type-Validation"
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Objects.Type-Validation"
   }
 }
 

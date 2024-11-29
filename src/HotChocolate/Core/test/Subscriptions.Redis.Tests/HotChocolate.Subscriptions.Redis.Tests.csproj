@@ -3,7 +3,6 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Subscriptions.Redis.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Subscriptions.Redis</RootNamespace>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,9 +12,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Squadron.Redis" Version="0.15.0" />
+    <PackageReference Include="Squadron.Redis" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <None Update="$(MSBuildProjectDirectory)\__resources__\*.*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

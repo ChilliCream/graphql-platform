@@ -1,17 +1,15 @@
-using System;
 using System.Collections.Immutable;
-using System.Threading.Tasks;
 using static HotChocolate.Execution.Processing.Tasks.ResolverTaskFactory;
 
 namespace HotChocolate.Execution.Processing;
 
 internal sealed class QueryExecutor
 {
-    public Task<IQueryResult> ExecuteAsync(
-        OperationContext operationContext) =>
-        ExecuteAsync(operationContext, ImmutableDictionary<string, object?>.Empty);
+    public Task<IOperationResult> ExecuteAsync(
+        OperationContext operationContext)
+        => ExecuteAsync(operationContext, ImmutableDictionary<string, object?>.Empty);
 
-    public Task<IQueryResult> ExecuteAsync(
+    public Task<IOperationResult> ExecuteAsync(
         OperationContext operationContext,
         IImmutableDictionary<string, object?> scopedContext)
     {
@@ -28,7 +26,7 @@ internal sealed class QueryExecutor
         return ExecuteInternalAsync(operationContext, scopedContext);
     }
 
-    private static async Task<IQueryResult> ExecuteInternalAsync(
+    private static async Task<IOperationResult> ExecuteInternalAsync(
         OperationContext operationContext,
         IImmutableDictionary<string, object?> scopedContext)
     {

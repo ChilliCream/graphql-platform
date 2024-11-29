@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Types;
-using Xunit;
 
 #nullable enable
 
@@ -37,7 +32,7 @@ public class NestedOptionalInt_2114
         var result = await executor.ExecuteAsync(Query);
 
         // assert
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
         Verify(input);
     }
 
@@ -75,7 +70,7 @@ public class NestedOptionalInt_2114
                             "complexAssigned",
                             new Dictionary<string, object?>
                             {
-                                { "value", 3 }
+                                { "value", 3 },
                             }
                         },
                         { "complexAssignedNull", null} ,
@@ -83,15 +78,15 @@ public class NestedOptionalInt_2114
                             "complexList",
                             new List<Dictionary<string, object?>>
                             {
-                                new() { { "value", 2 } }
+                                new() { { "value", 2 }, },
                             }
-                        }
+                        },
                     }
-                }
+                },
             });
 
         // assert
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
         Verify(input);
     }
 

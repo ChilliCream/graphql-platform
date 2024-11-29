@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Composition;
@@ -66,24 +65,24 @@ public class UnionTests
         var input = new Dictionary<string, object?>()
         {
             ["productId"] = 1,
-            ["file"] = new StreamFile("abc", () => new MemoryStream("abc"u8.ToArray()))
+            ["file"] = new StreamFile("abc", () => new MemoryStream("abc"u8.ToArray())),
         };
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
+            OperationRequestBuilder
                 .New()
-                .SetQuery(request)
-                .SetVariableValue("input", input)
-                .Create(),
+                .SetDocument(request)
+                .SetVariableValues(new Dictionary<string, object?> { {"input", input }, })
+                .Build(),
             cts.Token);
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync(cts.Token);
+        CollectSnapshotData(snapshot, request, result);
+        await snapshot.MatchMarkdownAsync(cts.Token);
     }
-    
+
     [Fact]
     public async Task Error_Union_With_Inline_Fragment_Errors_Not_Null()
     {
@@ -128,22 +127,22 @@ public class UnionTests
         var input = new Dictionary<string, object?>()
         {
             ["productId"] = 0,
-            ["file"] = new StreamFile("abc", () => new MemoryStream("abc"u8.ToArray()))
+            ["file"] = new StreamFile("abc", () => new MemoryStream("abc"u8.ToArray())),
         };
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
+            OperationRequestBuilder
                 .New()
-                .SetQuery(request)
-                .SetVariableValue("input", input)
-                .Create(),
+                .SetDocument(request)
+                .SetVariableValues(new Dictionary<string, object?> { {"input", input}, })
+                .Build(),
             cts.Token);
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync(cts.Token);
+        CollectSnapshotData(snapshot, request, result);
+        await snapshot.MatchMarkdownAsync(cts.Token);
     }
 
     [Fact]
@@ -187,22 +186,22 @@ public class UnionTests
         var input = new Dictionary<string, object?>()
         {
             ["productId"] = 1,
-            ["file"] = new StreamFile("abc", () => new MemoryStream("abc"u8.ToArray()))
+            ["file"] = new StreamFile("abc", () => new MemoryStream("abc"u8.ToArray())),
         };
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
+            OperationRequestBuilder
                 .New()
-                .SetQuery(request)
-                .SetVariableValue("input", input)
-                .Create(),
+                .SetDocument(request)
+                .SetVariableValues(new Dictionary<string, object?> { {"input", input}, })
+                .Build(),
             cts.Token);
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync(cts.Token);
+        CollectSnapshotData(snapshot, request, result);
+        await snapshot.MatchMarkdownAsync(cts.Token);
     }
 
     [Fact]
@@ -246,22 +245,22 @@ public class UnionTests
         var input = new Dictionary<string, object?>()
         {
             ["productId"] = 0,
-            ["file"] = new StreamFile("abc", () => new MemoryStream("abc"u8.ToArray()))
+            ["file"] = new StreamFile("abc", () => new MemoryStream("abc"u8.ToArray())),
         };
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
+            OperationRequestBuilder
                 .New()
-                .SetQuery(request)
-                .SetVariableValue("input", input)
-                .Create(),
+                .SetDocument(request)
+                .SetVariableValues(new Dictionary<string, object?> { {"input", input}, })
+                .Build(),
             cts.Token);
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync(cts.Token);
+        CollectSnapshotData(snapshot, request, result);
+        await snapshot.MatchMarkdownAsync(cts.Token);
     }
 
     private sealed class NoWebSockets : IWebSocketConnectionFactory

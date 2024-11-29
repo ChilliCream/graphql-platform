@@ -30,6 +30,9 @@ public sealed class ParserOptions
     ///
     /// To prevent this you can set a maximum number of tokens allowed within a document.
     /// </param>
+    /// <param name="maxAllowedFields">
+    /// The maximum number of fields allowed within a query document.
+    /// </param>
     public ParserOptions(
         bool noLocations = false,
         bool allowFragmentVariables = false,

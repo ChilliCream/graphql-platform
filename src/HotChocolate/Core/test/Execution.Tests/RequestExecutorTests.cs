@@ -1,11 +1,6 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Execution;
 
@@ -76,16 +71,16 @@ public class RequestExecutorTests
                     catch (OperationCanceledException)
                     {
                         tokenWasCorrectlyPassedToResolver = true;
-                        throw new QueryException("CancellationRaised");
+                        throw new GraphQLException("CancellationRaised");
                     }
                 }))
             .Create();
 
         var executor = schema.MakeExecutable();
 
-        var request = QueryRequestBuilder.New()
-            .SetQuery("{ foo }")
-            .Create();
+        var request = OperationRequestBuilder.New()
+            .SetDocument("{ foo }")
+            .Build();
 
         // act
         var result = await executor.ExecuteAsync(request, cts.Token);
@@ -102,8 +97,6 @@ public class RequestExecutorTests
     [Fact]
     public async Task Ensure_Errors_Do_Not_Result_In_Timeouts()
     {
-        Snapshot.FullName();
-
         using var cts = new CancellationTokenSource(1000);
 
         await new ServiceCollection()
@@ -135,9 +128,9 @@ public class RequestExecutorTests
         }
     }
 
-    public class TestMutationPayload
+    public class TestMutationPayload(Test test)
     {
-        public Test Test { get; set; }
+        public Test Test { get; set; } = test;
     }
 
     public class Test

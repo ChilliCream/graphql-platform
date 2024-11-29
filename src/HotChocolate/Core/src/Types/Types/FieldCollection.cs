@@ -1,6 +1,5 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
+using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
@@ -10,18 +9,19 @@ namespace HotChocolate.Types;
 
 public sealed class FieldCollection<T> : IFieldCollection<T> where T : class, IField
 {
-    private readonly Dictionary<string, T> _fieldsLookup;
+    private readonly FrozenDictionary<string, T> _fieldsLookup;
     private readonly T[] _fields;
 
     internal FieldCollection(T[] fields)
     {
         _fields = fields ?? throw new ArgumentNullException(nameof(fields));
-        _fieldsLookup = new Dictionary<string, T>(_fields.Length, StringComparer.Ordinal);
+        _fieldsLookup = _fields.ToFrozenDictionary(t => t.Name, StringComparer.Ordinal);
+    }
 
-        foreach (var field in _fields)
-        {
-            _fieldsLookup.Add(field.Name, field);
-        }
+    private FieldCollection(Dictionary<string, T> fieldsLookup, T[] fields)
+    {
+        _fieldsLookup = fieldsLookup.ToFrozenDictionary(StringComparer.Ordinal);
+        _fields = fields;
     }
 
     public T this[string fieldName] => _fieldsLookup[fieldName];
@@ -60,11 +60,7 @@ public sealed class FieldCollection<T> : IFieldCollection<T> where T : class, IF
     internal ReadOnlySpan<T> AsSpan() => _fields;
 
     internal ref T GetReference()
-#if NET6_0_OR_GREATER
         => ref MemoryMarshal.GetArrayDataReference(_fields);
-#else
-        => ref MemoryMarshal.GetReference(_fields.AsSpan());
-#endif
 
     public IEnumerator<T> GetEnumerator()
         => _fields.Length == 0
@@ -73,17 +69,35 @@ public sealed class FieldCollection<T> : IFieldCollection<T> where T : class, IF
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    public static FieldCollection<T> Empty { get; } = new(Array.Empty<T>());
+    public static FieldCollection<T> Empty { get; } = new([]);
 
-    private sealed class FieldEnumerator : IEnumerator<T>
+    internal static FieldCollection<T> TryCreate(T[] fields, out IReadOnlyCollection<string>? duplicateFieldNames)
     {
-        private readonly T[] _fields;
-        private int _index = -1;
+        var internalFields = fields ?? throw new ArgumentNullException(nameof(fields));
+        var internalLookup = new Dictionary<string, T>(internalFields.Length, StringComparer.Ordinal);
+        HashSet<string>? duplicates = null;
 
-        public FieldEnumerator(T[] fields)
+        foreach (var field in internalFields)
         {
-            _fields = fields;
+            if (!internalLookup.TryAdd(field.Name, field))
+            {
+                (duplicates ??= []).Add(field.Name);
+            }
         }
+
+        if (duplicates?.Count > 0)
+        {
+            duplicateFieldNames = duplicates;
+            return Empty;
+        }
+
+        duplicateFieldNames = null;
+        return new FieldCollection<T>(internalLookup, fields);
+    }
+
+    private sealed class FieldEnumerator(T[] fields) : IEnumerator<T>
+    {
+        private int _index = -1;
 
         public T Current { get; private set; } = default!;
 
@@ -93,9 +107,9 @@ public sealed class FieldCollection<T> : IFieldCollection<T> where T : class, IF
         {
             _index++;
 
-            if (_index < _fields.Length)
+            if (_index < fields.Length)
             {
-                Current = _fields[_index];
+                Current = fields[_index];
                 return true;
             }
 

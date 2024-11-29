@@ -10,7 +10,7 @@ public sealed class ReviewsSubscription
         var authors = new Author[]
         {
             new Author(1, "@ada"),
-            new Author(2, "@complete")
+            new Author(2, "@complete"),
         };
 
         var reviews = new Review[]
@@ -18,17 +18,30 @@ public sealed class ReviewsSubscription
             new Review(1, authors[0], new Product(1), "Love it!"),
             new Review(2, authors[1], new Product(2), "Too expensive."),
             new Review(3, authors[0], new Product(3), "Could be better."),
-            new Review(4, authors[1], new Product(1), "Prefer something else.")
+            new Review(4, authors[1], new Product(1), "Prefer something else."),
         };
 
         foreach (var review in reviews)
         {
-            await Task.Delay(200);
+            await Task.Delay(400);
             yield return review;
         }
     }
 
     [Subscribe(With = nameof(CreateOnNewReviewStream))]
     public Review OnNewReview([EventMessage] Review review)
+        => review;
+
+    public async IAsyncEnumerable<Review> OnErrorStream()
+    {
+        await Task.Delay(200);
+
+        yield return new Review(1, new Author(1, "@ada"), new Product(1), "Love it!");
+
+        throw new Exception("Boom!");
+    }
+
+    [Subscribe(With = nameof(OnErrorStream))]
+    public Review OnError([EventMessage] Review review)
         => review;
 }

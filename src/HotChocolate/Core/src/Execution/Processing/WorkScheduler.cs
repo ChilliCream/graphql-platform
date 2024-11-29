@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Execution.Processing.Tasks;
 
 namespace HotChocolate.Execution.Processing;
@@ -34,34 +32,6 @@ internal sealed partial class WorkScheduler
         lock (_sync)
         {
             work.Push(task);
-        }
-
-        _pause.TryContinue();
-    }
-
-    /// <summary>
-    /// Registers work with the task backlog.
-    /// </summary>
-    public void Register(IReadOnlyList<IExecutionTask> tasks)
-    {
-        AssertNotPooled();
-
-        lock (_sync)
-        {
-            for (var i = 0; i < tasks.Count; i++)
-            {
-                var task = tasks[i];
-                task.IsRegistered = true;
-
-                if (task.IsSerial)
-                {
-                    _serial.Push(task);
-                }
-                else
-                {
-                    _work.Push(task);
-                }
-            }
         }
 
         _pause.TryContinue();

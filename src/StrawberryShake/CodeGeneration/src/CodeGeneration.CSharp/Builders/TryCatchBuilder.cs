@@ -1,12 +1,9 @@
-using System;
-using System.Collections.Generic;
-
 namespace StrawberryShake.CodeGeneration.CSharp.Builders;
 
 public class TryCatchBuilder : ICode
 {
-    private readonly List<ICode> _try = new();
-    private readonly List<CatchBlockBuilder> _catch = new();
+    private readonly List<ICode> _try = [];
+    private readonly List<CatchBlockBuilder> _catch = [];
 
     public static TryCatchBuilder New() => new();
 

@@ -1,4 +1,3 @@
-using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
@@ -16,16 +15,6 @@ public interface IObjectTypeDescriptor
     , IFluent
 {
     /// <summary>
-    /// Associates the specified <paramref name="objectTypeDefinition"/>
-    /// with the <see cref="ObjectType"/>.
-    /// </summary>
-    /// <param name="objectTypeDefinition">
-    /// The <see cref="ObjectTypeDefinitionNode"/> of a parsed schema.
-    /// </param>
-    IObjectTypeDescriptor SyntaxNode(
-        ObjectTypeDefinitionNode? objectTypeDefinition);
-
-    /// <summary>
     /// Defines the name of the <see cref="ObjectType"/>.
     /// </summary>
     /// <param name="value">The object type name.</param>
@@ -41,34 +30,6 @@ public interface IObjectTypeDescriptor
     /// </summary>
     /// <param name="value">The object type description.</param>
     IObjectTypeDescriptor Description(string? value);
-
-    /// <summary>
-    /// Specifies an interface that is implemented by the
-    /// <see cref="ObjectType"/>.
-    /// </summary>
-    /// <typeparam name="T">The interface type.</typeparam>
-    [Obsolete("Use Implements.")]
-    IObjectTypeDescriptor Interface<T>()
-        where T : InterfaceType;
-
-    /// <summary>
-    /// Specifies an interface that is implemented by the
-    /// <see cref="ObjectType"/>.
-    /// </summary>
-    /// <typeparam name="T">The interface type.</typeparam>
-    [Obsolete("Use Implements.")]
-    IObjectTypeDescriptor Interface<T>(T type)
-        where T : InterfaceType;
-
-    /// <summary>
-    /// Specifies an interface that is implemented by the
-    /// <see cref="ObjectType"/>.
-    /// </summary>
-    /// <param name="type">
-    /// A syntax node representing an interface type.
-    /// </param>
-    [Obsolete("Use Implements.")]
-    IObjectTypeDescriptor Interface(NamedTypeNode type);
 
     /// <summary>
     /// Specifies an interface that is implemented by the

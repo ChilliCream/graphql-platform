@@ -1,24 +1,31 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 
   <PropertyGroup>
     <PackageId>HotChocolate.Abstractions</PackageId>
     <AssemblyName>HotChocolate.Abstractions</AssemblyName>
     <RootNamespace>HotChocolate</RootNamespace>
     <Description>Contains common abstractions used between the Hot Chocolate GraphQL type system and the GraphQL query execution engine.</Description>
-    <Nullable>enable</Nullable>
-    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
-    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <EnableTrimAnalyzer Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">true</EnableTrimAnalyzer>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="1.1.0" />
-    <PackageReference Include="System.Collections.Immutable" Version="1.7.0" />
+    <InternalsVisibleTo Include="HotChocolate.Abstractions.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Core.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.CostAnalysis" />
+    <InternalsVisibleTo Include="HotChocolate.Types.Tests" />
+
+    <!-- Legacy -->
+    <InternalsVisibleTo Include="HotChocolate.Execution" />
+    <InternalsVisibleTo Include="HotChocolate.Types" />
+    <InternalsVisibleTo Include="HotChocolate.Validation" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Language\src\Language\HotChocolate.Language.csproj" />
+    <ProjectReference Include="..\..\..\Primitives\src\Primitives\HotChocolate.Primitives.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -26,9 +33,6 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>AbstractionResources.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Execution\IQueryRequestBuilder.cs">
-      <DependentUpon>IQueryResult.cs</DependentUpon>
     </Compile>
     <Compile Update="IndexerPathSegment.cs">
       <DependentUpon>Path.cs</DependentUpon>

@@ -28,5 +28,5 @@ public enum AuthorizeResult
     /// <summary>
     /// The specified authorization policy was not found.
     /// </summary>
-    PolicyNotFound
+    PolicyNotFound,
 }

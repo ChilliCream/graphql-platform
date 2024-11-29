@@ -19,12 +19,24 @@ internal static class GeneratorHelpers
 
     public static string[] GetGraphQLDocuments(
         string path,
-        string pattern,
-        IReadOnlyList<string> buildArtifacts)
+        string[] patterns,
+        IReadOnlyList<string> buildArtifacts,
+        string schemaPath)
     {
-        var files = Files(path, pattern).Select(t => Combine(path, t)).ToHashSet();
-        files.ExceptWith(buildArtifacts);
-        return files.ToArray();
+        IEnumerable<string> files =
+        [
+            ..
+            patterns
+                .SelectMany(pattern => Files(path, pattern))
+                .Select(t => Combine(path, t)),
+            Combine(path, schemaPath)
+        ];
+
+        return files
+            .Select(GetFullPath)
+            .Distinct()
+            .ExceptBy(buildArtifacts, GetFullPath)
+            .ToArray();
     }
 
     public static IReadOnlyList<string> GetBuildArtifacts(string path)
@@ -87,7 +99,7 @@ internal static class GeneratorHelpers
         {
             "public" => AccessModifier.Public,
             "internal" => AccessModifier.Internal,
-            _ => throw new NotSupportedException($"The access modifier `{accessModifier}` is not supported.")
+            _ => throw new NotSupportedException($"The access modifier `{accessModifier}` is not supported."),
         };
     }
 
@@ -98,7 +110,7 @@ internal static class GeneratorHelpers
             "sha1" => new Sha1DocumentHashProvider(HashFormat.Hex),
             "sha256" => new Sha256DocumentHashProvider(HashFormat.Hex),
             _ => throw new NotSupportedException(
-                $"The hash algorithm `{hashAlgorithm}` is not supported.")
+                $"The hash algorithm `{hashAlgorithm}` is not supported."),
         };
 
     private static List<TransportProfile> MapTransportProfiles(

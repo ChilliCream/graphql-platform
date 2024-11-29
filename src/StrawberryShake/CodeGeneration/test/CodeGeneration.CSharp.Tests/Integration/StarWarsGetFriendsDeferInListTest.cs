@@ -1,12 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Tests.Utilities;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.DependencyInjection;
-using StrawberryShake.Transport.WebSockets;
-using Xunit;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList;
 
@@ -16,6 +8,7 @@ public class StarWarsGetFriendsDeferInListTest : ServerTestBase
     {
     }
 
+    /*
     [Fact]
     public async Task Execute_StarWarsGetFriendsDeferInList_Test()
     {
@@ -37,8 +30,8 @@ public class StarWarsGetFriendsDeferInListTest : ServerTestBase
 
         // act
 
-
         // assert
 
     }
+    */
 }

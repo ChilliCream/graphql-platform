@@ -7,12 +7,6 @@
     <Description>Contains a Redis implementation for a Hot Chocolate GraphQL subscription provider.</Description>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <TargetFrameworks>$(Library2TargetFrameworks)</TargetFrameworks>
-  </PropertyGroup>
-
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Subscriptions.Redis.Tests" />
   </ItemGroup>
@@ -23,8 +17,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.4" />
-    <PackageReference Include="StackExchange.Redis" Version="2.6.80" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="StackExchange.Redis" />
   </ItemGroup>
 
   <ItemGroup>

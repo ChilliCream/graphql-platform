@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using CookieCrumble;
 using HotChocolate.Execution;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,7 +6,7 @@ namespace HotChocolate.Data.Projections;
 public class QueryableSingleOrDefaultTests
 {
     private static readonly Bar[] _barEntities =
-    {
+    [
         new()
         {
             Foo = new Foo
@@ -21,13 +18,13 @@ public class QueryableSingleOrDefaultTests
                 NestedObject =
                     new BarDeep
                     {
-                        Foo = new FooDeep { BarShort = 12, BarString = "a" }
+                        Foo = new FooDeep { BarShort = 12, BarString = "a", },
                     },
                 ObjectArray = new List<BarDeep>
                 {
-                    new() { Foo = new FooDeep { BarShort = 12, BarString = "a" } }
-                }
-            }
+                    new() { Foo = new FooDeep { BarShort = 12, BarString = "a", }, },
+                },
+            },
         },
         new()
         {
@@ -40,18 +37,18 @@ public class QueryableSingleOrDefaultTests
                 NestedObject =
                     new BarDeep
                     {
-                        Foo = new FooDeep { BarShort = 12, BarString = "d" }
+                        Foo = new FooDeep { BarShort = 12, BarString = "d", },
                     },
                 ObjectArray = new List<BarDeep>
                 {
-                    new() { Foo = new FooDeep { BarShort = 14, BarString = "d" } }
-                }
-            }
-        }
-    };
+                    new() { Foo = new FooDeep { BarShort = 14, BarString = "d", }, },
+                },
+            },
+        },
+    ];
 
     private static readonly BarNullable[] _barNullableEntities =
-    {
+    [
         new()
         {
             Foo = new FooNullable
@@ -62,9 +59,9 @@ public class QueryableSingleOrDefaultTests
                 BarString = "testatest",
                 ObjectArray = new List<BarNullableDeep?>
                 {
-                    new() { Foo = new FooDeep { BarShort = 12 } }
-                }
-            }
+                    new() { Foo = new FooDeep { BarShort = 12, }, },
+                },
+            },
         },
         new()
         {
@@ -76,9 +73,9 @@ public class QueryableSingleOrDefaultTests
                 BarString = "testbtest",
                 ObjectArray = new List<BarNullableDeep?>
                 {
-                    new() { Foo = new FooDeep { BarShort = 9 } }
-                }
-            }
+                    new() { Foo = new FooDeep { BarShort = 9, }, },
+                },
+            },
         },
         new()
         {
@@ -90,9 +87,9 @@ public class QueryableSingleOrDefaultTests
                 BarString = "testctest",
                 ObjectArray = new List<BarNullableDeep?>
                 {
-                    new() { Foo = new FooDeep { BarShort = 14 } }
-                }
-            }
+                    new() { Foo = new FooDeep { BarShort = 14, }, },
+                },
+            },
         },
         new()
         {
@@ -102,10 +99,10 @@ public class QueryableSingleOrDefaultTests
                 BarBool = false,
                 BarEnum = BarEnum.FOO,
                 BarString = "testdtest",
-                ObjectArray = null
-            }
-        }
-    };
+                ObjectArray = null,
+            },
+        },
+    ];
 
     private readonly SchemaCache _cache = new();
 
@@ -117,8 +114,8 @@ public class QueryableSingleOrDefaultTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -132,7 +129,7 @@ public class QueryableSingleOrDefaultTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -149,8 +146,8 @@ public class QueryableSingleOrDefaultTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     @"
                         {
                             rootExecutable {
@@ -164,7 +161,7 @@ public class QueryableSingleOrDefaultTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -181,8 +178,8 @@ public class QueryableSingleOrDefaultTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -197,7 +194,7 @@ public class QueryableSingleOrDefaultTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -214,8 +211,8 @@ public class QueryableSingleOrDefaultTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -229,7 +226,7 @@ public class QueryableSingleOrDefaultTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -246,8 +243,8 @@ public class QueryableSingleOrDefaultTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -262,7 +259,7 @@ public class QueryableSingleOrDefaultTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -356,6 +353,6 @@ public class QueryableSingleOrDefaultTests
         FOO,
         BAR,
         BAZ,
-        QUX
+        QUX,
     }
 }

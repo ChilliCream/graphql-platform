@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-using CookieCrumble;
 using HotChocolate.Execution;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,10 +6,10 @@ namespace HotChocolate.Data.Projections;
 public class QueryableProjectionNestedTests
 {
     private static readonly Bar[] _barEntities =
-    {
-        new() { Foo = new Foo { BarString = "testatest", } },
-        new() { Foo = new Foo { BarString = "testbtest", } }
-    };
+    [
+        new() { Foo = new Foo { BarString = "testatest", }, },
+        new() { Foo = new Foo { BarString = "testbtest", }, },
+    ];
 
     private readonly SchemaCache _cache = new SchemaCache();
 
@@ -23,8 +21,8 @@ public class QueryableProjectionNestedTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -33,7 +31,7 @@ public class QueryableProjectionNestedTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -50,8 +48,8 @@ public class QueryableProjectionNestedTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -60,7 +58,7 @@ public class QueryableProjectionNestedTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -77,8 +75,8 @@ public class QueryableProjectionNestedTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -87,7 +85,7 @@ public class QueryableProjectionNestedTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -104,8 +102,8 @@ public class QueryableProjectionNestedTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -114,7 +112,7 @@ public class QueryableProjectionNestedTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -131,8 +129,8 @@ public class QueryableProjectionNestedTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -141,7 +139,7 @@ public class QueryableProjectionNestedTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -170,12 +168,12 @@ public class QueryableProjectionNestedTests
 
         public Foo Foo { get; set; } = default!;
 
-        public Foo NotSettable { get; } = new() { BarString = "Worked" };
+        public Foo NotSettable { get; } = new() { BarString = "Worked", };
 
-        public Foo Method() => new() { BarString = "Worked" };
+        public Foo Method() => new() { BarString = "Worked", };
 
-        public Foo[] NotSettableList { get; } = { new() { BarString = "Worked" } };
+        public Foo[] NotSettableList { get; } = [new() { BarString = "Worked", },];
 
-        public Foo[] MethodList() => new[] { new Foo { BarString = "Worked" } };
+        public Foo[] MethodList() => [new Foo { BarString = "Worked", },];
     }
 }

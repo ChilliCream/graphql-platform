@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
@@ -36,13 +33,6 @@ public class InputObjectTypeDescriptor<T>
     {
         InferFieldsFromFieldBindingType(fields, handledMembers);
         base.OnCompleteFields(fields, handledMembers);
-    }
-
-    public new IInputObjectTypeDescriptor<T> SyntaxNode(
-        InputObjectTypeDefinitionNode inputObjectTypeDefinition)
-    {
-        base.SyntaxNode(inputObjectTypeDefinition);
-        return this;
     }
 
     public new IInputObjectTypeDescriptor<T> Name(string value)

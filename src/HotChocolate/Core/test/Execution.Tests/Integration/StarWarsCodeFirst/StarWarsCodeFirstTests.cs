@@ -1,14 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using ChilliCream.Testing;
 using HotChocolate.Language;
 using HotChocolate.Tests;
-using Snapshooter;
-using Snapshooter.Xunit;
 using Xunit.Abstractions;
-using Snapshot = Snapshooter.Xunit.Snapshot;
 using static HotChocolate.Tests.TestHelper;
 
 namespace HotChocolate.Execution.Integration.StarWarsCodeFirst;
@@ -38,7 +31,6 @@ public class StarWarsCodeFirstTests
     [Fact]
     public async Task GetHeroName()
     {
-        Snapshot.FullName();
         await ExpectValid(
                 @"
                 {
@@ -52,7 +44,6 @@ public class StarWarsCodeFirstTests
     [Fact]
     public async Task GraphQLOrgFieldExample()
     {
-        Snapshot.FullName();
         await ExpectValid(
                 @"
                 {
@@ -72,7 +63,6 @@ public class StarWarsCodeFirstTests
     [Fact]
     public async Task GraphQLOrgFieldArgumentExample1()
     {
-        Snapshot.FullName();
         await ExpectValid(
                 @"
                 {
@@ -87,7 +77,6 @@ public class StarWarsCodeFirstTests
     [Fact]
     public async Task GraphQLOrgFieldArgumentExample2()
     {
-        Snapshot.FullName();
         await ExpectValid(
                 @"
                 {
@@ -102,7 +91,6 @@ public class StarWarsCodeFirstTests
     [Fact]
     public async Task GraphQLOrgAliasExample()
     {
-        Snapshot.FullName();
         await ExpectValid(
                 @"
                 {
@@ -119,7 +107,6 @@ public class StarWarsCodeFirstTests
     [Fact]
     public async Task GraphQLOrgFragmentExample()
     {
-        Snapshot.FullName();
         await ExpectValid(
                 @"{
                 leftComparison: hero(episode: EMPIRE) {
@@ -145,7 +132,6 @@ public class StarWarsCodeFirstTests
     [Fact]
     public async Task GraphQLOrgOperationNameExample()
     {
-        Snapshot.FullName();
         await ExpectValid(
                 @"
                 query HeroNameAndFriends {
@@ -164,7 +150,6 @@ public class StarWarsCodeFirstTests
     [Fact]
     public async Task GraphQLOrgVariableExample()
     {
-        Snapshot.FullName();
         await ExpectValid(
                 @"
                 query HeroNameAndFriends($episode: Episode) {
@@ -177,14 +162,14 @@ public class StarWarsCodeFirstTests
                         }
                     }
                 }",
-                request: c => c.SetVariableValue("episode", new EnumValueNode("JEDI")))
+                request: c => c.SetVariableValues(
+                    new Dictionary<string, object?> { { "episode", new EnumValueNode("JEDI") }, }))
             .MatchSnapshotAsync();
     }
 
     [Fact]
     public async Task GraphQLOrgVariableWithDefaultValueExample()
     {
-        Snapshot.FullName();
         await ExpectValid(
                 @"
                 query HeroNameAndFriends($episode: Episode = JEDI) {
@@ -203,7 +188,6 @@ public class StarWarsCodeFirstTests
     [Fact]
     public async Task GraphQLOrgDirectiveIncludeExample1()
     {
-        Snapshot.FullName();
         await ExpectValid(
                 @"
                 query Hero($episode: Episode, $withFriends: Boolean!) {
@@ -216,16 +200,18 @@ public class StarWarsCodeFirstTests
                         }
                     }
                 }",
-                request: c => c
-                    .SetVariableValue("episode", new EnumValueNode("JEDI"))
-                    .SetVariableValue("withFriends", new BooleanValueNode(false)))
+                request: c => c.SetVariableValues(
+                    new Dictionary<string, object?>
+                    {
+                        { "episode", new EnumValueNode("JEDI") },
+                        { "withFriends", new BooleanValueNode(false) },
+                    }))
             .MatchSnapshotAsync();
     }
 
     [Fact]
     public async Task GraphQLOrgDirectiveIncludeExample2()
     {
-        Snapshot.FullName();
         await ExpectValid(
                 @"
                 query Hero($episode: Episode, $withFriends: Boolean!) {
@@ -238,16 +224,18 @@ public class StarWarsCodeFirstTests
                         }
                     }
                 }",
-                request: r => r
-                    .SetVariableValue("episode", new EnumValueNode("JEDI"))
-                    .SetVariableValue("withFriends", new BooleanValueNode(true)))
+                request: r => r.SetVariableValues(
+                    new Dictionary<string, object?>
+                    {
+                        { "episode", new EnumValueNode("JEDI") },
+                        { "withFriends", new BooleanValueNode(true) },
+                    }))
             .MatchSnapshotAsync();
     }
 
     [Fact]
     public async Task GraphQLOrgDirectiveSkipExample1()
     {
-        Snapshot.FullName();
         await ExpectValid(
                 @"
                 query Hero($episode: Episode, $withFriends: Boolean!) {
@@ -260,16 +248,18 @@ public class StarWarsCodeFirstTests
                         }
                     }
                 }",
-                request: r => r
-                    .SetVariableValue("episode", new EnumValueNode("JEDI"))
-                    .SetVariableValue("withFriends", new BooleanValueNode(false)))
+                request: r => r.SetVariableValues(
+                    new Dictionary<string, object?>
+                    {
+                        { "episode", new EnumValueNode("JEDI") },
+                        { "withFriends", new BooleanValueNode(false) },
+                    }))
             .MatchSnapshotAsync();
     }
 
     [Fact]
     public async Task GraphQLOrgDirectiveSkipExample2()
     {
-        Snapshot.FullName();
         await ExpectValid(
                 @"
                 query Hero($episode: Episode, $withFriends: Boolean!) {
@@ -282,16 +272,18 @@ public class StarWarsCodeFirstTests
                         }
                     }
                 }",
-                request: r => r
-                    .SetVariableValue("episode", new EnumValueNode("JEDI"))
-                    .SetVariableValue("withFriends", new BooleanValueNode(true)))
+                request: r => r.SetVariableValues(
+                    new Dictionary<string, object?>
+                    {
+                        { "episode", new EnumValueNode("JEDI") },
+                        { "withFriends", new BooleanValueNode(true) },
+                    }))
             .MatchSnapshotAsync();
     }
 
     [Fact]
     public async Task GraphQLOrgDirectiveSkipExample1WithPlainClrVarTypes()
     {
-        Snapshot.FullName();
         await ExpectValid(
                 @"
                 query Hero($episode: Episode, $withFriends: Boolean!) {
@@ -304,16 +296,18 @@ public class StarWarsCodeFirstTests
                         }
                     }
                 }",
-                request: r => r
-                    .SetVariableValue("episode", "JEDI")
-                    .SetVariableValue("withFriends", false))
+                request: r => r.SetVariableValues(
+                    new Dictionary<string, object?>
+                    {
+                        { "episode", new EnumValueNode("JEDI") },
+                        { "withFriends", new BooleanValueNode(false) },
+                    }))
             .MatchSnapshotAsync();
     }
 
     [Fact]
     public async Task GraphQLOrgMutationExample()
     {
-        Snapshot.FullName();
         await ExpectValid(
                 @"
                 mutation CreateReviewForEpisode(
@@ -324,21 +318,63 @@ public class StarWarsCodeFirstTests
                     }
                 }",
                 request: r => r
-                    .SetVariableValue("ep", new EnumValueNode("JEDI"))
-                    .SetVariableValue(
-                        "review",
-                        new ObjectValueNode(
-                            new ObjectFieldNode("stars", new IntValueNode(5)),
-                            new ObjectFieldNode(
-                                "commentary",
-                                new StringValueNode("This is a great movie!")))))
+                    .SetVariableValues(
+                        new Dictionary<string, object?>
+                        {
+                            { "ep", new EnumValueNode("JEDI") },
+                            {
+                                "review",
+                                new ObjectValueNode(
+                                    new ObjectFieldNode("stars", new IntValueNode(5)),
+                                    new ObjectFieldNode(
+                                        "commentary",
+                                        new StringValueNode("This is a great movie!")))
+                            },
+                        }))
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task GraphQLOrgMutationIgnoreAdditionalInputFieldsExample()
+    {
+        await ExpectValid(
+                @"
+                mutation CreateReviewForEpisode(
+                    $ep: Episode!, $review: ReviewInput!) {
+                    createReview(episode: $ep, review: $review) {
+                        stars
+                        commentary
+                    }
+                }",
+                configure: c =>
+                {
+                    c.AddInputParser(options => { options.IgnoreAdditionalInputFields = true; });
+                    AddDefaultConfiguration(c);
+                },
+                request: r => r
+                    .SetVariableValues(
+                        new Dictionary<string, object?>
+                        {
+                            { "ep", new EnumValueNode("JEDI") },
+                            {
+                                "review",
+                                new ObjectValueNode(
+                                    // Invalid fields
+                                    new ObjectFieldNode("foo", new IntValueNode(1)),
+                                    new ObjectFieldNode("ignoreMe", new StringValueNode("ignored")),
+                                    // Valid fields
+                                    new ObjectFieldNode("stars", new IntValueNode(5)),
+                                    new ObjectFieldNode(
+                                        "commentary",
+                                        new StringValueNode("This is a great movie!")))
+                            },
+                        }))
             .MatchSnapshotAsync();
     }
 
     [Fact]
     public async Task GraphQLOrgTwoMutationsExample()
     {
-        Snapshot.FullName();
         await ExpectValid(
                 @"
                 mutation CreateReviewForEpisode(
@@ -353,24 +389,28 @@ public class StarWarsCodeFirstTests
                     }
                 }",
                 request: r => r
-                    .SetVariableValue("ep", new EnumValueNode("JEDI"))
-                    .SetVariableValue("ep2", new EnumValueNode("JEDI"))
-                    .SetVariableValue(
-                        "review",
-                        new ObjectValueNode(
-                            new ObjectFieldNode("stars", new IntValueNode(5)),
-                            new ObjectFieldNode(
-                                "commentary",
-                                new StringValueNode("This is a great movie!")))))
+                    .SetVariableValues(
+                        new Dictionary<string, object?>
+                        {
+                            { "ep", new EnumValueNode("JEDI") },
+                            { "ep2", new EnumValueNode("JEDI") },
+                            {
+                                "review",
+                                new ObjectValueNode(
+                                    new ObjectFieldNode("stars", new IntValueNode(5)),
+                                    new ObjectFieldNode(
+                                        "commentary",
+                                        new StringValueNode("This is a great movie!")))
+                            },
+                        }))
             .MatchSnapshotAsync();
     }
 
     [Fact]
     public async Task GraphQLOrgMutationExample_With_ValueVariables()
     {
-        Snapshot.FullName();
         await ExpectValid(
-                @"
+                """
                 mutation CreateReviewForEpisode(
                     $ep: Episode!
                     $stars: Int!
@@ -381,20 +421,24 @@ public class StarWarsCodeFirstTests
                         stars
                         commentary
                     }
-                }",
+                }
+                """,
                 request: r => r
-                    .SetVariableValue("ep", new EnumValueNode("JEDI"))
-                    .SetVariableValue("stars", new IntValueNode(5))
-                    .SetVariableValue("commentary", new StringValueNode("This is a great movie!")))
+                    .SetVariableValues(
+                        new Dictionary<string, object?>
+                        {
+                            { "ep", new EnumValueNode("JEDI") },
+                            { "stars", new IntValueNode(5) },
+                            { "commentary", new StringValueNode("This is a great movie!") },
+                        }))
             .MatchSnapshotAsync();
     }
 
     [Fact]
     public async Task GraphQLOrgInlineFragmentExample1()
     {
-        Snapshot.FullName();
         await ExpectValid(
-                @"
+                """
                 query HeroForEpisode($ep: Episode!) {
                     hero(episode: $ep) {
                         name
@@ -405,17 +449,18 @@ public class StarWarsCodeFirstTests
                             height
                         }
                     }
-                }",
-                request: r => r.SetVariableValue("ep", new EnumValueNode("JEDI")))
+                }
+                """,
+                request: r => r.SetVariableValues(
+                    new Dictionary<string, object?> { { "ep", new EnumValueNode("JEDI") }, }))
             .MatchSnapshotAsync();
     }
 
     [Fact]
     public async Task GraphQLOrgInlineFragmentExample2()
     {
-        Snapshot.FullName();
         await ExpectValid(
-                @"
+                """
                 query HeroForEpisode($ep: Episode!) {
                     hero(episode: $ep) {
                         name
@@ -426,19 +471,20 @@ public class StarWarsCodeFirstTests
                             height
                         }
                     }
-                }",
-                request: r => r.SetVariableValue("ep", new EnumValueNode("EMPIRE")))
+                }
+                """,
+                request: r => r.SetVariableValues(
+                    new Dictionary<string, object?> { { "ep", new EnumValueNode("EMPIRE") }, }))
             .MatchSnapshotAsync();
     }
 
     [Fact]
     public async Task GraphQLOrgMetaFieldAndUnionExample()
     {
-        Snapshot.FullName();
         await ExpectValid(
-                @"
+                """
                 {
-                    search(text: ""an"") {
+                    search(text: "an") {
                         __typename
                         ... on Human {
                             name
@@ -453,33 +499,36 @@ public class StarWarsCodeFirstTests
                             length
                         }
                     }
-                }")
+                }
+                """)
             .MatchSnapshotAsync();
     }
 
     [Fact]
     public async Task NonNullListVariableValues()
     {
-        Snapshot.FullName();
         await ExpectValid(
-                @"
+                """
                 query op($ep: [Episode!]!)
                 {
                     heroes(episodes: $ep) {
                         name
                     }
-                }",
-                request: r => r
-                    .SetVariableValue("ep", new ListValueNode(new EnumValueNode("EMPIRE"))))
+                }
+                """,
+                request: r => r.SetVariableValues(
+                    new Dictionary<string, object?>
+                    {
+                        { "ep", new ListValueNode(new EnumValueNode("EMPIRE")) },
+                    }))
             .MatchSnapshotAsync();
     }
 
     [Fact]
     public async Task ConditionalInlineFragment()
     {
-        Snapshot.FullName();
         await ExpectValid(
-                @"
+                """
                 {
                     heroes(episodes: [EMPIRE]) {
                         name
@@ -487,45 +536,45 @@ public class StarWarsCodeFirstTests
                             height
                         }
                     }
-                }")
+                }
+                """)
             .MatchSnapshotAsync();
     }
 
     [Fact]
     public async Task NonNullEnumsSerializeCorrectlyFromVariables()
     {
-        Snapshot.FullName();
         await ExpectValid(
-                @"
+                """
                 query getHero($episode: Episode!) {
                     hero(episode: $episode) {
                         name
                     }
-                }",
-                request: r => r.SetVariableValue("episode", "NEW_HOPE"))
+                }
+                """,
+                request: r => r.SetVariableValues(new Dictionary<string, object?> { { "episode", "NEW_HOPE" }, }))
             .MatchSnapshotAsync();
     }
 
     [Fact]
     public async Task EnumValueIsCoercedToListValue()
     {
-        Snapshot.FullName();
         await ExpectValid(
-                @"
+                """
                 {
                     heroes(episodes: EMPIRE) {
                         name
                     }
-                }")
+                }
+                """)
             .MatchSnapshotAsync();
     }
 
     [Fact]
     public async Task TypeNameFieldIsCorrectlyExecutedOnInterfaces()
     {
-        Snapshot.FullName();
         await ExpectValid(
-                @"
+                """
                 query foo {
                     hero(episode: NEW_HOPE) {
                         __typename
@@ -553,25 +602,26 @@ public class StarWarsCodeFirstTests
                             }
                         }
                     }
-                }")
+                }
+                """)
             .MatchSnapshotAsync();
     }
 
     [Fact]
     public async Task Execute_ListWithNullValues_ResultContainsNullElement()
     {
-        Snapshot.FullName();
         await ExpectValid(
-                @"
+                """
                 query {
-                    human(id: ""1001"") {
+                    human(id: "1001") {
                         id
                         name
                         otherHuman {
                             name
                         }
                     }
-                }")
+                }
+                """)
             .MatchSnapshotAsync();
     }
 
@@ -584,23 +634,29 @@ public class StarWarsCodeFirstTests
         // act
         var subscriptionResult =
             (IResponseStream)await executor.ExecuteAsync(
-                "subscription { onReview(episode: NEW_HOPE) " +
-                "{ stars } }");
+                """
+                subscription {
+                  onReview(episode: NEW_HOPE) {
+                    stars
+                  }
+                }
+                """);
 
         var results = subscriptionResult.ReadResultsAsync();
 
         // assert
         await executor.ExecuteAsync(
-            @"
-                mutation {
-                    createReview(episode: NEW_HOPE,
-                        review: { stars: 5 commentary: ""foo"" }) {
-                        stars
-                        commentary
-                    }
-                }");
+            """
+            mutation {
+                createReview(episode: NEW_HOPE,
+                    review: { stars: 5 commentary: "foo" }) {
+                    stars
+                    commentary
+                }
+            }
+            """);
 
-        IQueryResult eventResult = null;
+        IOperationResult? eventResult = null;
 
         using (var cts = new CancellationTokenSource(2000))
         {
@@ -624,26 +680,29 @@ public class StarWarsCodeFirstTests
         // act
         var subscriptionResult =
             (IResponseStream)await executor.ExecuteAsync(
-                @"subscription {
-                        onReview(episode: NEW_HOPE) {
-                            ... on Review {
-                                stars
-                            }
+                """
+                subscription {
+                    onReview(episode: NEW_HOPE) {
+                        ... on Review {
+                            stars
                         }
-                    }");
+                    }
+                }
+                """);
 
         // assert
         await executor.ExecuteAsync(
-            @"
-                mutation {
-                    createReview(episode: NEW_HOPE,
-                        review: { stars: 5 commentary: ""foo"" }) {
-                        stars
-                        commentary
-                    }
-                }");
+            """
+            mutation {
+                createReview(episode: NEW_HOPE,
+                    review: { stars: 5 commentary: "foo" }) {
+                    stars
+                    commentary
+                }
+            }
+            """);
 
-        IQueryResult eventResult = null;
+        IOperationResult? eventResult = null;
 
         using (var cts = new CancellationTokenSource(2000))
         {
@@ -667,28 +726,31 @@ public class StarWarsCodeFirstTests
         // act
         var subscriptionResult =
             (IResponseStream)await executor.ExecuteAsync(
-                @"subscription {
-                        onReview(episode: NEW_HOPE) {
-                            ... SomeFrag
-                        }
+                """
+                subscription {
+                    onReview(episode: NEW_HOPE) {
+                        ... SomeFrag
                     }
+                }
 
-                    fragment SomeFrag on Review {
-                        stars
-                    }");
+                fragment SomeFrag on Review {
+                    stars
+                }
+                """);
 
         // assert
         await executor.ExecuteAsync(
-            @"
-                mutation {
-                    createReview(episode: NEW_HOPE,
-                        review: { stars: 5 commentary: ""foo"" }) {
-                        stars
-                        commentary
-                    }
-                }");
+            """
+            mutation {
+                createReview(episode: NEW_HOPE,
+                    review: { stars: 5 commentary: "foo" }) {
+                    stars
+                    commentary
+                }
+            }
+            """);
 
-        IQueryResult eventResult = null;
+        IOperationResult? eventResult = null;
 
         using (var cts = new CancellationTokenSource(2000))
         {
@@ -712,26 +774,29 @@ public class StarWarsCodeFirstTests
         // act
         var subscriptionResult =
             (IResponseStream)await executor.ExecuteAsync(
-                @"subscription ($ep: Episode!) {
-                        onReview(episode: $ep) {
-                            stars
-                        }
-                    }",
-                new Dictionary<string, object> { { "ep", "NEW_HOPE" } },
+                """
+                subscription ($ep: Episode!) {
+                    onReview(episode: $ep) {
+                        stars
+                    }
+                }
+                """,
+                new Dictionary<string, object?> { { "ep", "NEW_HOPE" }, },
                 CancellationToken.None);
 
         // assert
         await executor.ExecuteAsync(
-            @"
-                mutation {
-                    createReview(episode: NEW_HOPE,
-                        review: { stars: 5 commentary: ""foo"" }) {
-                        stars
-                        commentary
-                    }
-                }");
+            """
+            mutation {
+                createReview(episode: NEW_HOPE,
+                    review: { stars: 5 commentary: "foo" }) {
+                    stars
+                    commentary
+                }
+            }
+            """);
 
-        IQueryResult eventResult = null;
+        IOperationResult? eventResult = null;
 
         using (var cts = new CancellationTokenSource(2000))
         {
@@ -755,7 +820,6 @@ public class StarWarsCodeFirstTests
     [Fact]
     public async Task ExecutionDepthShouldNotLeadToEmptyObjects()
     {
-        Snapshot.FullName();
         await ExpectError(
             @"query ExecutionDepthShouldNotLeadToEmptyObjects {
                 hero(episode: NEW_HOPE) {
@@ -805,7 +869,6 @@ public class StarWarsCodeFirstTests
     [Fact]
     public async Task OverrideExecutionDepth()
     {
-        Snapshot.FullName();
         await ExpectValid(
             @"query ExecutionDepthShouldNotLeadToEmptyObjects {
                 hero(episode: NEW_HOPE) {
@@ -845,10 +908,7 @@ public class StarWarsCodeFirstTests
                     }
                 }
             }",
-            request: r =>
-            {
-                r.SetMaximumAllowedExecutionDepth(100);
-            },
+            request: r => { r.SetMaximumAllowedExecutionDepth(100); },
             configure: c =>
             {
                 AddDefaultConfiguration(c);
@@ -859,7 +919,6 @@ public class StarWarsCodeFirstTests
     [Fact]
     public async Task SkipExecutionDepth()
     {
-        Snapshot.FullName();
         await ExpectValid(
             @"query ExecutionDepthShouldNotLeadToEmptyObjects {
                 hero(episode: NEW_HOPE) {
@@ -899,10 +958,7 @@ public class StarWarsCodeFirstTests
                     }
                 }
             }",
-            request: r =>
-            {
-                r.SkipExecutionDepthAnalysis();
-            },
+            request: r => { r.SkipExecutionDepthAnalysis(); },
             configure: c =>
             {
                 AddDefaultConfiguration(c);
@@ -910,7 +966,7 @@ public class StarWarsCodeFirstTests
             });
     }
 
-    // this test ensures that overriden depth validations are not cached.
+    // this test ensures that overridden depth validations are not cached.
     [Fact]
     public async Task Depth_Analysis_Overrides_Are_Not_Cached()
     {
@@ -957,16 +1013,11 @@ public class StarWarsCodeFirstTests
 
         var configurationA = new TestConfiguration
         {
-            ConfigureRequest = r =>
-            {
-                r.SkipExecutionDepthAnalysis();
-            }
+            ConfigureRequest = r => { r.SkipExecutionDepthAnalysis(); },
         };
         var configurationB = new TestConfiguration
         {
-            ConfigureRequest = _ =>
-            {
-            }
+            ConfigureRequest = _ => { },
         };
         var executor = await CreateExecutorAsync(
             c =>
@@ -982,14 +1033,13 @@ public class StarWarsCodeFirstTests
         var resultB = await executor.ExecuteAsync(requestB);
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(resultA).Errors);
-        Assert.NotNull(Assert.IsType<QueryResult>(resultB).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(resultA).Errors);
+        Assert.NotNull(Assert.IsType<OperationResult>(resultB).Errors);
     }
 
     [Fact]
     public async Task Execution_Depth_Is_Skipped_For_Introspection()
     {
-        Snapshot.FullName();
         await ExpectValid(
             @"query {
                 __schema {
@@ -1027,16 +1077,16 @@ public class StarWarsCodeFirstTests
     [Theory]
     public async Task Include_With_Literal(string ifValue)
     {
-        Snapshot.FullName(new SnapshotNameExtension(ifValue));
         await ExpectValid(
-                $@"
-                {{
-                    human(id: ""1000"") {{
-                        name @include(if: {ifValue})
-                        height
-                    }}
-                }}")
-            .MatchSnapshotAsync();
+                $$"""
+                  {
+                      human(id: "1000") {
+                          name @include(if: {{ifValue}})
+                          height
+                      }
+                  }
+                  """)
+            .MatchSnapshotAsync(postFix: ifValue);
     }
 
     [InlineData(true)]
@@ -1044,17 +1094,17 @@ public class StarWarsCodeFirstTests
     [Theory]
     public async Task Include_With_Variable(bool ifValue)
     {
-        Snapshot.FullName(new SnapshotNameExtension(ifValue));
         await ExpectValid(
-                $@"
-                query ($if: Boolean!) {{
-                    human(id: ""1000"") {{
+                """
+                query ($if: Boolean!) {
+                    human(id: "1000") {
                         name @include(if: $if)
                         height
-                    }}
-                }}",
-                request: r => r.SetVariableValue("if", ifValue))
-            .MatchSnapshotAsync();
+                    }
+                }
+                """,
+                request: r => r.SetVariableValues(new Dictionary<string, object?> { { "if", ifValue }, }))
+            .MatchSnapshotAsync(postFix: ifValue);
     }
 
     [InlineData("true")]
@@ -1062,16 +1112,16 @@ public class StarWarsCodeFirstTests
     [Theory]
     public async Task Skip_With_Literal(string ifValue)
     {
-        Snapshot.FullName(new SnapshotNameExtension(ifValue));
         await ExpectValid(
-                $@"
-                {{
-                    human(id: ""1000"") {{
-                        name @skip(if: {ifValue})
-                        height
-                    }}
-                }}")
-            .MatchSnapshotAsync();
+                $$"""
+                  {
+                      human(id: "1000") {
+                          name @skip(if: {{ifValue}})
+                          height
+                      }
+                  }
+                  """)
+            .MatchSnapshotAsync(postFix: ifValue);
     }
 
     [InlineData(true)]
@@ -1079,105 +1129,100 @@ public class StarWarsCodeFirstTests
     [Theory]
     public async Task Skip_With_Variable(bool ifValue)
     {
-        Snapshot.FullName(new SnapshotNameExtension(ifValue));
         await ExpectValid(
-                @"
+                """
                 query ($if: Boolean!) {
-                    human(id: ""1000"") {
+                    human(id: "1000") {
                         name @skip(if: $if)
                         height
                     }
-                }",
-                request: r => r.SetVariableValue("if", ifValue))
-            .MatchSnapshotAsync();
+                }
+                """,
+                request: r => r.SetVariableValues(new Dictionary<string, object?> { { "if", ifValue }, }))
+            .MatchSnapshotAsync(postFix: ifValue);
     }
 
     [Fact]
     public async Task SkipAll()
     {
-        Snapshot.FullName();
-
         await ExpectValid(
-                @"
+                """
                 query ($if: Boolean!) {
-                    human(id: ""1000"") @skip(if: $if) {
+                    human(id: "1000") @skip(if: $if) {
                         name
                         height
                     }
-                }",
-                request: r => r.SetVariableValue("if", true))
+                }
+                """,
+                request: r => r.SetVariableValues(new Dictionary<string, object?> { { "if", true }, }))
             .MatchSnapshotAsync();
     }
 
     [Fact]
     public async Task SkipAll_Default_False()
     {
-        Snapshot.FullName();
-
         await ExpectValid(
-                @"
+                """
                 query ($if: Boolean! = false) {
-                    human(id: ""1000"") @skip(if: $if) {
+                    human(id: "1000") @skip(if: $if) {
                         name
                         height
                     }
-                }")
+                }
+                """)
             .MatchSnapshotAsync();
     }
 
     [Fact]
     public async Task SkipAll_Default_True()
     {
-        Snapshot.FullName();
-
         await ExpectValid(
-                @"
+                """
                 query ($if: Boolean! = true) {
-                    human(id: ""1000"") @skip(if: $if) {
+                    human(id: "1000") @skip(if: $if) {
                         name
                         height
                     }
-                }")
+                }
+                """)
             .MatchSnapshotAsync();
     }
 
     [Fact]
     public async Task SkipAllSecondLevelFields()
     {
-        Snapshot.FullName();
-
         await ExpectValid(
-                @"
+                """
                 query ($if: Boolean!) {
-                    human(id: ""1000"")  {
+                    human(id: "1000")  {
                         name @skip(if: $if)
                     }
-                }",
-                request: r => r.SetVariableValue("if", true))
+                }
+                """,
+                request: r => r.SetVariableValues(new Dictionary<string, object?> { { "if", true }, }))
             .MatchSnapshotAsync();
     }
 
     [Fact]
     public async Task Ensure_Type_Introspection_Returns_Null_If_Type_Not_Found()
     {
-        Snapshot.FullName();
         await ExpectValid(
-                @"
+                """
                 query {
-                    a: __type(name: ""Foo"") {
+                    a: __type(name: "Foo") {
                         name
                     }
-                    b: __type(name: ""Query"") {
+                    b: __type(name: "Query") {
                         name
                     }
-                }")
+                }
+                """)
             .MatchSnapshotAsync();
     }
 
     [Fact]
     public async Task Ensure_Benchmark_Query_GetHeroQuery()
     {
-        Snapshot.FullName();
         var query = FileResource.Open("GetHeroQuery.graphql");
         await ExpectValid(query).MatchSnapshotAsync();
     }
@@ -1185,7 +1230,6 @@ public class StarWarsCodeFirstTests
     [Fact]
     public async Task Ensure_Benchmark_Query_GetHeroWithFriendsQuery()
     {
-        Snapshot.FullName();
         var query = FileResource.Open("GetHeroWithFriendsQuery.graphql");
         await ExpectValid(query).MatchSnapshotAsync();
     }
@@ -1193,7 +1237,6 @@ public class StarWarsCodeFirstTests
     [Fact]
     public async Task Ensure_Benchmark_Query_GetTwoHerosWithFriendsQuery()
     {
-        Snapshot.FullName();
         var query = FileResource.Open("GetTwoHerosWithFriendsQuery.graphql");
         await ExpectValid(query).MatchSnapshotAsync();
     }
@@ -1201,7 +1244,6 @@ public class StarWarsCodeFirstTests
     [Fact]
     public async Task Ensure_Benchmark_Query_LargeQuery()
     {
-        Snapshot.FullName();
         var query = FileResource.Open("LargeQuery.graphql");
         await ExpectValid(query).MatchSnapshotAsync();
     }
@@ -1209,51 +1251,51 @@ public class StarWarsCodeFirstTests
     [Fact]
     public async Task NestedFragmentsWithNestedObjectFieldsAndSkip()
     {
-        Snapshot.FullName();
-
         await ExpectValid(
-                @"query ($if: Boolean!) {
-                human(id: ""1000"") {
-                    ... Human1 @include(if: $if)
-                    ... Human2 @skip(if: $if)
-                }
-            }
-            fragment Human1 on Human {
-                friends {
-                    edges {
-                        ... FriendEdge1
+                """
+                query ($if: Boolean!) {
+                    human(id: "1000") {
+                        ... Human1 @include(if: $if)
+                        ... Human2 @skip(if: $if)
                     }
                 }
-            }
-            fragment FriendEdge1 on FriendsEdge {
-                node {
-                    __typename
+                fragment Human1 on Human {
                     friends {
-                        nodes {
-                            __typename
-                            ... Human3
+                        edges {
+                            ... FriendEdge1
                         }
                     }
                 }
-            }
-            fragment Human2 on Human {
-                friends {
-                    edges {
-                        node {
-                            __typename
-                            ... Human3
+                fragment FriendEdge1 on FriendsEdge {
+                    node {
+                        __typename
+                        friends {
+                            nodes {
+                                __typename
+                                ... Human3
+                            }
                         }
                     }
                 }
-            }
-            fragment Human3 on Human {
-                name
-                otherHuman {
-                  __typename
-                  name
+                fragment Human2 on Human {
+                    friends {
+                        edges {
+                            node {
+                                __typename
+                                ... Human3
+                            }
+                        }
+                    }
                 }
-            }",
-                request: r => r.SetVariableValue("if", true))
+                fragment Human3 on Human {
+                    name
+                    otherHuman {
+                      __typename
+                      name
+                    }
+                }
+                """,
+                request: r => r.SetVariableValues(new Dictionary<string, object?> { { "if", true }, }))
             .MatchSnapshotAsync();
     }
 }

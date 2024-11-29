@@ -135,4 +135,7 @@
   <data name="ResponseEnumerator_HttpNoSuccessStatusCode" xml:space="preserve">
     <value>Response status code does not indicate success: {0} ({1}).</value>
   </data>
+  <data name="HttpConnection_FileMapDoesNotMatch" xml:space="preserve">
+    <value>Could not map the file uploads to the variables. The data structures did not match. Could not find path {0} in the variables.</value>
+  </data>
 </root>

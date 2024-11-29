@@ -60,4 +60,3 @@ For more information on what other bugs we fixed head over to our [changelog](ht
 ## Version 9 Development
 
 We have made a lot of headway with the new type system that is coming with version 9. Also, we are working on the `@defer` directive at the moment. We will give a more detailed update on the next major version in a separate blog post. Version 9 is really shaping up to become our biggest release so far.
-

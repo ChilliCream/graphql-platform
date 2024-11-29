@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -37,7 +36,7 @@ public class MutationTests
     public async Task Ensure_Mutations_Child_Fields_Are_Scoped_To_Its_Parent()
     {
         using var cts = new CancellationTokenSource(5_000);
-        
+
         var result =
             await new ServiceCollection()
                 .AddGraphQLServer()
@@ -115,6 +114,7 @@ public class MutationTests
     {
         private bool _a;
         private bool _b;
+        // ReSharper disable once InconsistentNaming
         internal readonly object _sync = new();
 
         public bool IsExecutingA => _a;

@@ -1,4 +1,3 @@
-using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Language.SyntaxTree.Utilities;
@@ -10,7 +9,7 @@ public class SchemaSyntaxPrinterTests
     {
         // arrange
         var schema = "type Foo { bar: String baz: [Int] }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -24,7 +23,7 @@ public class SchemaSyntaxPrinterTests
     {
         // arrange
         var schema = "type Foo { bar: String baz: [Int] }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString();
@@ -38,7 +37,7 @@ public class SchemaSyntaxPrinterTests
     {
         // arrange
         var schema = "type Foo { bar(a: Int = 1 b: Int): String }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -52,7 +51,7 @@ public class SchemaSyntaxPrinterTests
     {
         // arrange
         var schema = "type Foo { bar(a: Int = 1 b: Int): String }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString();
@@ -68,7 +67,7 @@ public class SchemaSyntaxPrinterTests
         var schema = "type Foo @a(x: \"y\") { bar: String baz: [Int] } " +
             "type Foo @a @b { bar: String @foo " +
             "baz(a: String = \"abc\"): [Int] @foo @bar }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -84,7 +83,7 @@ public class SchemaSyntaxPrinterTests
         var schema = "type Foo @a(x: \"y\") { bar: String baz: [Int] } " +
             "type Foo @a @b { bar: String @foo " +
             "baz(a: String = \"abc\"): [Int] @foo @bar }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString();
@@ -101,7 +100,7 @@ public class SchemaSyntaxPrinterTests
             "\"abc\" baz: [Int] } " +
             "\"abc\" type Foo @a @b { \"abc\" bar: String @foo " +
             "\"abc\" baz(\"abc\" a: String = \"abc\"): [Int] @foo @bar }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -118,7 +117,7 @@ public class SchemaSyntaxPrinterTests
             "\"abc\" baz: [Int] } " +
             "\"abc\" type Foo @a @b { \"abc\" bar: String @foo " +
             "\"abc\" baz(\"abc\" a: String = \"abc\"): [Int] @foo @bar }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString();
@@ -133,7 +132,7 @@ public class SchemaSyntaxPrinterTests
         // arrange
         var schema = "type Foo implements X & Y & Z " +
             "{ bar: String baz: [Int] }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -148,7 +147,7 @@ public class SchemaSyntaxPrinterTests
         // arrange
         var schema = "type Foo implements X & Y & Z " +
             "{ bar: String baz: [Int] }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString();
@@ -162,7 +161,7 @@ public class SchemaSyntaxPrinterTests
     {
         // arrange
         var schema = "extend type Foo { bar: String baz: [Int] }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -176,7 +175,7 @@ public class SchemaSyntaxPrinterTests
     {
         // arrange
         var schema = "interface Foo { bar: String baz: [Int] }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -190,7 +189,7 @@ public class SchemaSyntaxPrinterTests
     {
         // arrange
         var schema = "interface Foo { bar: String baz: [Int] }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString();
@@ -204,7 +203,7 @@ public class SchemaSyntaxPrinterTests
     {
         // arrange
         var schema = "interface Foo { bar(a: Int = 1 b: Int): String }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -218,7 +217,7 @@ public class SchemaSyntaxPrinterTests
     {
         // arrange
         var schema = "interface Foo { bar(a: Int = 1 b: Int): String }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString();
@@ -234,7 +233,7 @@ public class SchemaSyntaxPrinterTests
         var schema = "interface Foo @a(x: \"y\") { bar: String baz: [Int] } " +
             "interface Foo @a @b { bar: String @foo " +
             "baz(a: String = \"abc\"): [Int] @foo @bar }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -250,7 +249,7 @@ public class SchemaSyntaxPrinterTests
         var schema = "interface Foo @a(x: \"y\") { bar: String baz: [Int] } " +
             "interface Foo @a @b { bar: String @foo " +
             "baz(a: String = \"abc\"): [Int] @foo @bar }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString();
@@ -267,7 +266,7 @@ public class SchemaSyntaxPrinterTests
             "\"abc\" baz: [Int] } " +
             "\"abc\" interface Foo @a @b { \"abc\" bar: String @foo " +
             "\"abc\" baz(\"abc\" a: String = \"abc\"): [Int] @foo @bar }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -284,7 +283,7 @@ public class SchemaSyntaxPrinterTests
             "\"abc\" baz: [Int] } " +
             "\"abc\" interface Foo @a @b { \"abc\" bar: String @foo " +
             "\"abc\" baz(\"abc\" a: String = \"abc\"): [Int] @foo @bar }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString();
@@ -299,7 +298,7 @@ public class SchemaSyntaxPrinterTests
         // arrange
         var schema = "interface Foo implements X & Y & Z " +
             "{ bar: String baz: [Int] }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -314,7 +313,7 @@ public class SchemaSyntaxPrinterTests
         // arrange
         var schema = "interface Foo implements X & Y & Z " +
             "{ bar: String baz: [Int] }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString();
@@ -328,7 +327,7 @@ public class SchemaSyntaxPrinterTests
     {
         // arrange
         var schema = "extend interface Foo { bar: String baz: [Int] }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -342,7 +341,7 @@ public class SchemaSyntaxPrinterTests
     {
         // arrange
         var schema = "union A = B | C";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -356,7 +355,7 @@ public class SchemaSyntaxPrinterTests
     {
         // arrange
         var schema = "union A = B | C";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -370,7 +369,7 @@ public class SchemaSyntaxPrinterTests
     {
         // arrange
         var schema = "union A @a = B | C union A @a @b = B | C";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -384,7 +383,7 @@ public class SchemaSyntaxPrinterTests
     {
         // arrange
         var schema = "union A @a = B | C union A @a @b = B | C";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -398,7 +397,7 @@ public class SchemaSyntaxPrinterTests
     {
         // arrange
         var schema = "\"abc\" union A = B | C";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -412,7 +411,7 @@ public class SchemaSyntaxPrinterTests
     {
         // arrange
         var schema = "\"abc\"union A = B | C";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -426,7 +425,7 @@ public class SchemaSyntaxPrinterTests
     {
         // arrange
         var schema = "extend union A = B | C";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -440,7 +439,7 @@ public class SchemaSyntaxPrinterTests
     {
         // arrange
         var schema = "enum A { B C }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -454,7 +453,7 @@ public class SchemaSyntaxPrinterTests
     {
         // arrange
         var schema = "enum A { B C }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -468,7 +467,7 @@ public class SchemaSyntaxPrinterTests
     {
         // arrange
         var schema = "enum A @a @b(c: 1) { B @a @b(c: 1) C @a @b(c: 1) }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -482,7 +481,7 @@ public class SchemaSyntaxPrinterTests
     {
         // arrange
         var schema = "enum A @a @b(c: 1) { B @a @b(c: 1) C @a @b(c: 1) }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -496,7 +495,7 @@ public class SchemaSyntaxPrinterTests
     {
         // arrange
         var schema = "\"abc\" enum A { \"def\" B \"ghi\" C }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -510,7 +509,7 @@ public class SchemaSyntaxPrinterTests
     {
         // arrange
         var schema = "\"abc\" enum A { \"def\" B \"ghi\" C }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -524,7 +523,7 @@ public class SchemaSyntaxPrinterTests
     {
         // arrange
         var schema = "extend enum A { B C }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -538,7 +537,7 @@ public class SchemaSyntaxPrinterTests
     {
         // arrange
         var schema = "input A { b: String c: [String!]! d: Int = 1 }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -552,7 +551,7 @@ public class SchemaSyntaxPrinterTests
     {
         // arrange
         var schema = "input A { b: String c: [String!]! d: Int = 1 }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -567,7 +566,7 @@ public class SchemaSyntaxPrinterTests
         // arrange
         var schema = "input A @a @b(c: 1) { b: String @a @b(c: 1) " +
             "c: [String!]! @a @b(c: 1) d: Int = 1 @a @b(c: 1) }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -582,7 +581,7 @@ public class SchemaSyntaxPrinterTests
         // arrange
         var schema = "input A @a @b(c: 1) { b: String @a @b(c: 1) " +
             "c: [String!]! @a @b(c: 1) d: Int = 1 @a @b(c: 1) }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -596,7 +595,7 @@ public class SchemaSyntaxPrinterTests
     {
         // arrange
         var schema = "\"abc\" input A { \"abc\" b: String }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -610,7 +609,7 @@ public class SchemaSyntaxPrinterTests
     {
         // arrange
         var schema = "\"abc\" input A { \"abc\" b: String }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -624,7 +623,7 @@ public class SchemaSyntaxPrinterTests
     {
         // arrange
         var schema = "extend input A { b: String }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -638,7 +637,7 @@ public class SchemaSyntaxPrinterTests
     {
         // arrange
         var schema = "scalar A";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -652,7 +651,7 @@ public class SchemaSyntaxPrinterTests
     {
         // arrange
         var schema = "scalar A @a @b(c: 1)";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -666,7 +665,7 @@ public class SchemaSyntaxPrinterTests
     {
         // arrange
         var schema = "\"abc\" scalar A @a @b(c: 1)";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -680,7 +679,7 @@ public class SchemaSyntaxPrinterTests
     {
         // arrange
         var schema = "\"abc\" scalar A @a @b(c: 1)";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString();
@@ -694,7 +693,7 @@ public class SchemaSyntaxPrinterTests
     {
         // arrange
         var schema = "extend scalar A @a @b(c: 1)";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -708,7 +707,7 @@ public class SchemaSyntaxPrinterTests
     {
         // arrange
         var schema = "schema { query: A }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -722,7 +721,7 @@ public class SchemaSyntaxPrinterTests
     {
         // arrange
         var schema = "schema { query: A }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -736,7 +735,7 @@ public class SchemaSyntaxPrinterTests
     {
         // arrange
         var schema = "schema @a @b(c: 1) { query: A }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -750,7 +749,7 @@ public class SchemaSyntaxPrinterTests
     {
         // arrange
         var schema = "schema @a @b(c: 1) { query: A }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);
@@ -764,7 +763,7 @@ public class SchemaSyntaxPrinterTests
     {
         // arrange
         var schema = "extend schema { query: A }";
-        DocumentNode document = Utf8GraphQLParser.Parse(schema);
+        var document = Utf8GraphQLParser.Parse(schema);
 
         // act
         var result = document.ToString(false);

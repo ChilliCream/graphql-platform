@@ -1,0 +1,11 @@
+schema
+  @fusion(version: 1)
+  @transport(subgraph: "Subgraph_1", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP")
+  @transport(subgraph: "Subgraph_2", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP") {
+  query: Query
+}
+
+type Query {
+  field: String!
+    @resolver(subgraph: "Subgraph_2", select: "{ field }")
+}

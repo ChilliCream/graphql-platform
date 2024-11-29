@@ -1,0 +1,10 @@
+query IntrospectionQuery {
+    __type(name: "__Field") {
+        fields {
+            name
+            args {
+                name
+            }
+        }
+    }
+}

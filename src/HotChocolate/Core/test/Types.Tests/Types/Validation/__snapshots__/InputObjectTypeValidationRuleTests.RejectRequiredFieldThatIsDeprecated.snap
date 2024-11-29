@@ -4,7 +4,7 @@
   "extensions": {
     "field": "field",
     "rfc": "https://github.com/graphql/graphql-spec/pull/805",
-    "specifiedBy": "http://spec.graphql.org/October2021/#sec-Input-Objects.Type-Validation"
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Input-Objects.Type-Validation"
   }
 }
 

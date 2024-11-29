@@ -1,7 +1,5 @@
 #nullable enable
 
-using System;
-using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using HotChocolate.Types;
@@ -121,7 +119,7 @@ public readonly ref struct TypeDiscoveryInfo
 
         foreach (var attr in runtimeType.GetCustomAttributes(typeof(DescriptorAttribute), true))
         {
-            if (attr is ITypeAttribute { Inherited: true } typeAttribute)
+            if (attr is ITypeAttribute { Inherited: true, } typeAttribute)
             {
                 return typeAttribute;
             }
@@ -140,7 +138,6 @@ public readonly ref struct TypeDiscoveryInfo
             unresolvedType.Type.IsClass &&
             unresolvedType.Type != typeof(string);
 
-#if NET6_0_OR_GREATER
         var isComplexValueType =
             isPublic &&
             unresolvedType.Type is
@@ -148,7 +145,7 @@ public readonly ref struct TypeDiscoveryInfo
                 IsValueType: true,
                 IsPrimitive: false,
                 IsEnum: false,
-                IsByRefLike: false
+                IsByRefLike: false,
             };
 
         if (isComplexValueType && unresolvedType.IsGeneric)
@@ -158,15 +155,6 @@ public readonly ref struct TypeDiscoveryInfo
         }
 
         return isComplexClass || isComplexValueType;
-#else
-        if (!isComplexClass && unresolvedType.IsGeneric)
-        {
-            var typeDefinition = unresolvedType.Definition;
-            return typeDefinition == typeof(KeyValuePair<,>);
-        }
-
-        return isComplexClass;
-#endif
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

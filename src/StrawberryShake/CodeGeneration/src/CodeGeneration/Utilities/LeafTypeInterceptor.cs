@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -11,7 +9,7 @@ namespace StrawberryShake.CodeGeneration.Utilities;
 public class LeafTypeInterceptor : TypeInterceptor
 {
     private readonly Dictionary<string, LeafTypeInfo> _scalarInfos;
-    private readonly List<LeafType> _leafTypes = new();
+    private readonly List<LeafType> _leafTypes = [];
 
     public LeafTypeInterceptor(Dictionary<string, LeafTypeInfo> scalarInfos)
     {

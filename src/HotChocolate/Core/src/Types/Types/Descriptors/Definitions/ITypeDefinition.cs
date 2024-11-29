@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Types.Descriptors.Definitions;
 
 /// <summary>
@@ -7,7 +5,6 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 /// </summary>
 public interface ITypeDefinition
     : IDefinition
-    , IHasSyntaxNode
     , IHasRuntimeType
     , IHasDirectiveDefinition
     , IHasExtendsType

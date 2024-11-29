@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using HotChocolate.Types.Relay;
@@ -145,7 +140,18 @@ public class IntegrationTests
             .AddProjections()
             .BuildRequestExecutorAsync();
 
-        var result = await executor.ExecuteAsync(@"{ node(id: ""Rm9vCmRB"") { id __typename } }");
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              node(id: "Rm9vOkE=") {
+                id
+                __typename
+                ... on Baz { fieldOfBaz }
+                ... on Foo { fieldOfFoo }
+                ... on Bar { fieldOfBar }
+              }
+            }
+            """);
 
         result.MatchSnapshot();
     }
@@ -166,7 +172,7 @@ public class IntegrationTests
         var result = await executor
             .ExecuteAsync("""
                 {
-                    node(id: "Rm9vCmRB") {
+                    node(id: "Rm9vOkE=") {
                         id
                         __typename
                         ... on Baz { fieldOfBaz }
@@ -191,18 +197,18 @@ public class IntegrationTests
             .AddProjections()
             .BuildRequestExecutorAsync();
 
-        var result = await executor
-            .ExecuteAsync("""
-                {
-                    node(id: "QmFyCmRB") {
-                        id
-                        __typename
-                        ... on Baz { fieldOfBaz }
-                        ... on Foo { fieldOfFoo }
-                        ... on Bar { fieldOfBar }
-                    }
-                }
-                """);
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              node(id: "QmFyOkE=") {
+                id
+                __typename
+                ... on Baz { fieldOfBaz }
+                ... on Foo { fieldOfFoo }
+                ... on Bar { fieldOfBar }
+              }
+            }
+            """);
 
         result.MatchSnapshot();
     }
@@ -220,7 +226,7 @@ public class IntegrationTests
             .AddProjections()
             .BuildRequestExecutorAsync();
 
-        var result = await executor.ExecuteAsync(@"{ nodes(ids: ""Rm9vCmRB"") { id __typename } }");
+        var result = await executor.ExecuteAsync(@"{ nodes(ids: ""Rm9vOkE="") { id __typename } }");
 
         result.MatchSnapshot();
     }
@@ -241,7 +247,7 @@ public class IntegrationTests
         var result = await executor
             .ExecuteAsync("""
                 {
-                    nodes(ids: "Rm9vCmRB") {
+                    nodes(ids: "Rm9vOkE=") {
                         id
                         __typename
                         ... on Baz { fieldOfBaz }
@@ -269,7 +275,7 @@ public class IntegrationTests
         var result = await executor
             .ExecuteAsync("""
                 {
-                    nodes(ids: "QmFyCmRB") {
+                    nodes(ids: "QmFyOkE=") {
                         id
                         __typename
                         ... on Baz { fieldOfBaz }
@@ -441,7 +447,7 @@ public class IntegrationTests
                         }
                     }
                     query {
-                        node(id: "QmFyCmRB") {
+                        node(id: "QmFyOkE=") {
                             id
                             __typename
                             ... on Baz { fieldOfBaz }
@@ -461,7 +467,7 @@ public class Query
 {
     [UseProjection]
     public IQueryable<Foo> Foos
-        => new Foo[] { new() { Bar = "A" }, new() { Bar = "B" } }.AsQueryable();
+        => new Foo[] { new() { Bar = "A", }, new() { Bar = "B", }, }.AsQueryable();
 }
 
 public class Mutation
@@ -470,31 +476,32 @@ public class Mutation
     [UseProjection]
     public IQueryable<Foo> Modify()
     {
-        return new Foo[] { new() { Bar = "A" }, new() { Bar = "B" } }.AsQueryable();
+        return new Foo[] { new() { Bar = "A", }, new() { Bar = "B", }, }.AsQueryable();
     }
 
     [UseMutationConvention]
     [UseSingleOrDefault]
     [UseProjection]
     public IQueryable<Foo> ModifySingleOrDefault()
-    {
-        return new Foo[] { new() { Bar = "A" } }.AsQueryable();
-    }
+        => new Foo[] { new() { Bar = "A", }, }.AsQueryable();
 
     [Error<AnError>]
     [UseMutationConvention]
     [UseProjection]
     public IQueryable<Foo> CreateRecord(bool throwError)
     {
-        if (throwError) throw new AnError("this is only a test");
-        return new Foo[] { new() { Bar = "A" }, new() { Bar = "B" } }.AsQueryable();
+        if (throwError)
+        {
+            throw new AnError("this is only a test");
+        }
+
+        return new Foo[] { new() { Bar = "A", }, new() { Bar = "B", }, }.AsQueryable();
     }
 
     public class AnError : Exception
     {
         public AnError(string message) : base(message)
         {
-
         }
     }
 }
@@ -504,11 +511,11 @@ public class FooExtensions
 {
     public string Baz => "baz";
 
-    public IEnumerable<string> Qux => new[] { "baz" };
+    public IEnumerable<string> Qux => new[] { "baz", };
 
-    public IEnumerable<Foo> NestedList => new[] { new Foo() { Bar = "C" } };
+    public IEnumerable<Foo> NestedList => new[] { new Foo() { Bar = "C", }, };
 
-    public Foo Nested => new() { Bar = "C" };
+    public Foo Nested => new() { Bar = "C", };
 }
 
 public class Foo
@@ -535,20 +542,20 @@ public class QueryWithNodeResolvers
 {
     [UseProjection]
     public IQueryable<Foo> All()
-        => new Foo[] { new() { Bar = "A" }, }.AsQueryable();
+        => new Foo[] { new() { Bar = "A", }, }.AsQueryable();
 
     [NodeResolver]
     [UseSingleOrDefault]
     [UseProjection]
     public IQueryable<Foo> GetById(string id)
-        => new Foo[] { new() { Bar = "A" }, }.AsQueryable();
+        => new Foo[] { new() { Bar = "A", }, }.AsQueryable();
 
     [NodeResolver]
     [UseSingleOrDefault]
     [UseProjection]
     public IQueryable<Baz> GetBazById(string id)
-        => new Baz[] { new() { Bar2 = "A" }, }.AsQueryable();
+        => new Baz[] { new() { Bar2 = "A", }, }.AsQueryable();
 
     [NodeResolver]
-    public Bar GetBarById(string id) => new() { IdOfBar = "A" };
+    public Bar GetBarById(string id) => new() { IdOfBar = "A", };
 }

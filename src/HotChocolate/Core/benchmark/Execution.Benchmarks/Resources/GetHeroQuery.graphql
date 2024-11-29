@@ -1,5 +1,0 @@
-query getHero {
-  hero(episode: NEW_HOPE) {
-    name
-  }
-}

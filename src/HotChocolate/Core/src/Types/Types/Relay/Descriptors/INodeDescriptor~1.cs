@@ -1,4 +1,3 @@
-using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Resolvers;
@@ -22,26 +21,6 @@ public interface INodeDescriptor<TNode> : IDescriptor
         Expression<Func<TNode, TId>> propertyOrMethod);
 
     INodeDescriptor<TNode> IdField(MemberInfo propertyOrMethod);
-
-    /// <summary>
-    /// Specifies a delegate to resolve the node from its id.
-    /// </summary>
-    /// <param name="nodeResolver">
-    /// The delegate to resolve the node from its id.
-    /// </param>
-    [Obsolete("Use ResolveNode.")]
-    IObjectFieldDescriptor NodeResolver(
-        NodeResolverDelegate<TNode, object> nodeResolver);
-
-    /// <summary>
-    /// Specifies a delegate to resolve the node from its id.
-    /// </summary>
-    /// <param name="nodeResolver">
-    /// The delegate to resolve the node from its id.
-    /// </param>
-    [Obsolete("Use ResolveNode.")]
-    IObjectFieldDescriptor NodeResolver<TId>(
-        NodeResolverDelegate<TNode, TId> nodeResolver);
 
     /// <summary>
     /// Specifies a delegate to resolve the node from its id.

@@ -1,7 +1,5 @@
 #nullable enable
 
-using System;
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -38,14 +36,15 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
     {
         var nodeDescriptor = new NodeDescriptor(descriptor, type);
 
-        descriptor.Extend().OnBeforeCreate(definition =>
-        {
-            // since we bind the id field late we need to hint to the type discovery
-            // that we will need the ID scalar.
-            definition.Dependencies.Add(
-                TypeDependency.FromSchemaType(
-                    context.TypeInspector.GetType(typeof(IdType))));
-        });
+        descriptor.Extend().OnBeforeCreate(
+            definition =>
+            {
+                // since we bind the id field late we need to hint to the type discovery
+                // that we will need the ID scalar.
+                definition.Dependencies.Add(
+                    TypeDependency.FromSchemaType(
+                        context.TypeInspector.GetType(typeof(IdType))));
+            });
 
         descriptor.Extend().OnBeforeNaming(
             (completionContext, definition) =>

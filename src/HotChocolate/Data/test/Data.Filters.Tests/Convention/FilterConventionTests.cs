@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using CookieCrumble;
 using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -42,10 +38,10 @@ public class FilterConventionTests
         var func = executor.Build<Foo>(value);
 
         // assert
-        var a = new Foo { Bar = "a" };
+        var a = new Foo { Bar = "a", };
         Assert.True(func(a));
 
-        var b = new Foo { Bar = "b" };
+        var b = new Foo { Bar = "b", };
         Assert.False(func(b));
     }
 
@@ -245,10 +241,10 @@ public class FilterConventionTests
         var func = executor.Build<Foo>(value);
 
         // assert
-        var a = new Foo { Bar = "a" };
+        var a = new Foo { Bar = "a", };
         Assert.True(func(a));
 
-        var b = new Foo { Bar = "b" };
+        var b = new Foo { Bar = "b", };
         Assert.False(func(b));
     }
 
@@ -283,10 +279,10 @@ public class FilterConventionTests
         var func = executor.Build<Foo>(value);
 
         // assert
-        var a = new Foo { Bar = "a" };
+        var a = new Foo { Bar = "a", };
         Assert.True(func(a));
 
-        var b = new Foo { Bar = "b" };
+        var b = new Foo { Bar = "b", };
         Assert.False(func(b));
     }
 
@@ -324,10 +320,10 @@ public class FilterConventionTests
         var func = executor.Build<Foo>(value);
 
         // assert
-        var a = new Foo { Bar = "a" };
+        var a = new Foo { Bar = "a", };
         Assert.True(func(a));
 
-        var b = new Foo { Bar = "b" };
+        var b = new Foo { Bar = "b", };
         Assert.False(func(b));
     }
 
@@ -532,6 +528,5 @@ public class FilterConventionTests
 
     public class CustomFooFilterInput : FilterInputType<Foo>
     {
-
     }
 }

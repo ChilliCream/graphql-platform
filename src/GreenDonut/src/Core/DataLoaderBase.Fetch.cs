@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace GreenDonut;
 
 public abstract partial class DataLoaderBase<TKey, TValue>
@@ -18,13 +13,15 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     /// The resolved values which need to be in the exact same
     /// order as the keys were provided.
     /// </param>
+    /// <param name="context">Represents the immutable fetch context.</param>
     /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>
     /// A list of results which are in the exact same order as the provided
     /// keys.
     /// </returns>
-    protected abstract ValueTask FetchAsync(
+    protected internal abstract ValueTask FetchAsync(
         IReadOnlyList<TKey> keys,
-        Memory<Result<TValue>> results,
+        Memory<Result<TValue?>> results,
+        DataLoaderFetchContext<TValue> context,
         CancellationToken cancellationToken);
 }

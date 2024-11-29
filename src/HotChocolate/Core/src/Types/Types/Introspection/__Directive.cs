@@ -1,6 +1,4 @@
 #pragma warning disable IDE1006 // Naming Styles
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -42,9 +40,9 @@ internal sealed class __Directive : ObjectType<DirectiveType>
                         new(Names.IncludeDeprecated, type: booleanType)
                         {
                             DefaultValue = BooleanValueNode.False,
-                            RuntimeDefaultValue = false
-                        }
-                    }
+                            RuntimeDefaultValue = false,
+                        },
+                    },
                 },
                 new(Names.IsRepeatable,
                     type: nonNullBooleanType,
@@ -53,42 +51,42 @@ internal sealed class __Directive : ObjectType<DirectiveType>
                     type: nonNullBooleanType,
                     pureResolver: Resolvers.OnOperation)
                 {
-                    DeprecationReason = TypeResources.Directive_UseLocation
+                    DeprecationReason = TypeResources.Directive_UseLocation,
                 },
                 new(Names.OnFragment,
                     type: nonNullBooleanType,
                     pureResolver: Resolvers.OnFragment)
                 {
-                    DeprecationReason = TypeResources.Directive_UseLocation
+                    DeprecationReason = TypeResources.Directive_UseLocation,
                 },
                 new(Names.OnField,
                     type: nonNullBooleanType,
                     pureResolver: Resolvers.OnField)
                 {
-                    DeprecationReason = TypeResources.Directive_UseLocation
-                }
-            }
+                    DeprecationReason = TypeResources.Directive_UseLocation,
+                },
+            },
         };
     }
 
     private static class Resolvers
     {
-        public static string Name(IPureResolverContext context)
+        public static string Name(IResolverContext context)
             => context.Parent<DirectiveType>().Name;
 
-        public static object? Description(IPureResolverContext context)
+        public static object? Description(IResolverContext context)
             => context.Parent<DirectiveType>().Description;
 
-        public static object IsRepeatable(IPureResolverContext context)
+        public static object IsRepeatable(IResolverContext context)
             => context.Parent<DirectiveType>().IsRepeatable;
 
-        public static object Locations(IPureResolverContext context)
+        public static object Locations(IResolverContext context)
         {
             var locations = context.Parent<DirectiveType>().Locations;
             return locations.AsEnumerable();
         }
 
-        public static object Arguments(IPureResolverContext context)
+        public static object Arguments(IResolverContext context)
         {
             var directive = context.Parent<DirectiveType>();
             return context.ArgumentValue<bool>(Names.IncludeDeprecated)
@@ -96,19 +94,19 @@ internal sealed class __Directive : ObjectType<DirectiveType>
                 : directive.Arguments.Where(t => !t.IsDeprecated);
         }
 
-        public static object OnOperation(IPureResolverContext context)
+        public static object OnOperation(IResolverContext context)
         {
             var locations = context.Parent<DirectiveType>().Locations;
             return (locations & DirectiveLocation.Operation) != 0;
         }
 
-        public static object OnFragment(IPureResolverContext context)
+        public static object OnFragment(IResolverContext context)
         {
             var locations = context.Parent<DirectiveType>().Locations;
             return (locations & DirectiveLocation.Fragment) != 0;
         }
 
-        public static object OnField(IPureResolverContext context)
+        public static object OnField(IResolverContext context)
         {
             var locations = context.Parent<DirectiveType>().Locations;
             return (locations & DirectiveLocation.Field) != 0;

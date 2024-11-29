@@ -18,5 +18,5 @@ public enum TypeDependencyFulfilled
     /// <summary>
     /// The dependency instance needs to be fully completed.
     /// </summary>
-    Completed
+    Completed,
 }

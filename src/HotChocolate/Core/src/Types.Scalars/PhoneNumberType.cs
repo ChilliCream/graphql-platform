@@ -1,4 +1,3 @@
-using System;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 
@@ -8,37 +7,15 @@ namespace HotChocolate.Types;
 /// The `PhoneNumber` scalar type scalar type represents a value that conforms to the standard
 /// E.164 format. <a href="https://en.wikipedia.org/wiki/E.164">See More</a>.
 /// </summary>
-#if NET7_0_OR_GREATER
 public partial class PhoneNumberType : RegexType
-#else
-public class PhoneNumberType : RegexType
-#endif
 {
     /// <summary>
     /// Regex that validates the standard E.164 format
     /// </summary>
     private const string _validationPattern = "^\\+[1-9]\\d{1,14}$";
 
-#if NET7_0_OR_GREATER
     [GeneratedRegex(_validationPattern, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegex();
-#else
-    private static Regex CreateRegex()
-        => new Regex(
-            _validationPattern,
-            RegexOptions.Compiled | RegexOptions.IgnoreCase,
-            TimeSpan.FromMilliseconds(DefaultRegexTimeoutInMs));
-#endif
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="PhoneNumberType"/> class.
-    /// </summary>
-    public PhoneNumberType()
-        : this(
-            WellKnownScalarTypes.PhoneNumber,
-            ScalarResources.PhoneNumberType_Description)
-    {
-    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PhoneNumberType"/>
@@ -52,6 +29,17 @@ public class PhoneNumberType : RegexType
             CreateRegex(),
             description,
             bind)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PhoneNumberType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public PhoneNumberType()
+        : this(
+            WellKnownScalarTypes.PhoneNumber,
+            ScalarResources.PhoneNumberType_Description)
     {
     }
 

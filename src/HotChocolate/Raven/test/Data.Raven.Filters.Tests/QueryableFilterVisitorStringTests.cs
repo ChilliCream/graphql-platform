@@ -1,7 +1,4 @@
-using CookieCrumble;
 using HotChocolate.Execution;
-using Microsoft.Extensions.DependencyInjection;
-using Raven.Client.Documents;
 
 namespace HotChocolate.Data.Filters;
 
@@ -9,17 +6,17 @@ namespace HotChocolate.Data.Filters;
 public class QueryableFilterVisitorStringTests
 {
     private static readonly Foo[] _fooEntities =
-    {
-        new() { Bar = "testatest" },
-        new() { Bar = "testbtest" }
-    };
+    [
+        new() { Bar = "testatest", },
+        new() { Bar = "testbtest", },
+    ];
 
     private static readonly FooNullable[] _fooNullableEntities =
-    {
-        new() { Bar = "testatest" },
-        new() { Bar = "testbtest" },
-        new() { Bar = null }
-    };
+    [
+        new() { Bar = "testatest", },
+        new() { Bar = "testbtest", },
+        new() { Bar = null, },
+    ];
 
     private readonly SchemaCache _cache;
 
@@ -36,19 +33,19 @@ public class QueryableFilterVisitorStringTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: \"testatest\"}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { eq: \"testatest\"}}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: \"testbtest\"}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { eq: \"testbtest\"}}){ bar}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: null}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { eq: null}}){ bar}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -67,19 +64,19 @@ public class QueryableFilterVisitorStringTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { neq: \"testatest\"}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { neq: \"testatest\"}}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { neq: \"testbtest\"}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { neq: \"testbtest\"}}){ bar}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { neq: null}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { neq: null}}){ bar}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -98,20 +95,20 @@ public class QueryableFilterVisitorStringTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { bar: { in: [ \"testatest\"  \"testbtest\" ]}}){ bar}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { in: [\"testbtest\" null]}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { in: [\"testbtest\" null]}}){ bar}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { in: [ \"testatest\" ]}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { in: [ \"testatest\" ]}}){ bar}}")
+                .Build());
 
         // assert
         await Snapshot.Create().AddResult(res1, "testatestAndtestb").AddResult(
@@ -130,20 +127,20 @@ public class QueryableFilterVisitorStringTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { bar: { nin: [ \"testatest\"  \"testbtest\" ]}}){ bar}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { nin: [\"testbtest\" null]}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { nin: [\"testbtest\" null]}}){ bar}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { nin: [ \"testatest\" ]}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { nin: [ \"testatest\" ]}}){ bar}}")
+                .Build());
 
         // assert
         await Snapshot.Create().AddResult(res1, "testatestAndtestb").AddResult(
@@ -162,19 +159,19 @@ public class QueryableFilterVisitorStringTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { contains: \"a\" }}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { contains: \"a\" }}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { contains: \"b\" }}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { contains: \"b\" }}){ bar}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { contains: null }}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { contains: null }}){ bar}}")
+                .Build());
 
         // assert
         await Snapshot.Create().AddResult(res1, "a").AddResult(
@@ -193,19 +190,19 @@ public class QueryableFilterVisitorStringTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { ncontains: \"a\" }}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { ncontains: \"a\" }}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { ncontains: \"b\" }}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { ncontains: \"b\" }}){ bar}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { ncontains: null }}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { ncontains: null }}){ bar}}")
+                .Build());
 
         // assert
         await Snapshot.Create().AddResult(res1, "a").AddResult(
@@ -225,19 +222,19 @@ public class QueryableFilterVisitorStringTests
         // act
         // assert
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { startsWith: \"testa\" }}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { startsWith: \"testa\" }}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { startsWith: \"testb\" }}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { startsWith: \"testb\" }}){ bar}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { startsWith: null }}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { startsWith: null }}){ bar}}")
+                .Build());
 
         // assert
         await Snapshot.Create().AddResult(res1, "testa").AddResult(
@@ -256,19 +253,19 @@ public class QueryableFilterVisitorStringTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { nstartsWith: \"testa\" }}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { nstartsWith: \"testa\" }}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { nstartsWith: \"testb\" }}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { nstartsWith: \"testb\" }}){ bar}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { nstartsWith: null }}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { nstartsWith: null }}){ bar}}")
+                .Build());
 
         // assert
         await Snapshot.Create().AddResult(res1, "testa").AddResult(
@@ -287,19 +284,19 @@ public class QueryableFilterVisitorStringTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { endsWith: \"atest\" }}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { endsWith: \"atest\" }}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { endsWith: \"btest\" }}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { endsWith: \"btest\" }}){ bar}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { endsWith: null }}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { endsWith: null }}){ bar}}")
+                .Build());
 
         // assert
         await Snapshot.Create().AddResult(res1, "atest").AddResult(
@@ -318,19 +315,19 @@ public class QueryableFilterVisitorStringTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { nendsWith: \"atest\" }}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { nendsWith: \"atest\" }}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { nendsWith: \"btest\" }}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { nendsWith: \"btest\" }}){ bar}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { nendsWith: null }}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { nendsWith: null }}){ bar}}")
+                .Build());
 
         // assert
         await Snapshot.Create().AddResult(res1, "atest").AddResult(
@@ -349,19 +346,19 @@ public class QueryableFilterVisitorStringTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: \"testatest\"}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { eq: \"testatest\"}}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: \"testbtest\"}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { eq: \"testbtest\"}}){ bar}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: null}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { eq: null}}){ bar}}")
+                .Build());
 
         // assert
         await Snapshot.Create().AddResult(res1, "testatest").AddResult(
@@ -381,19 +378,19 @@ public class QueryableFilterVisitorStringTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { neq: \"testatest\"}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { neq: \"testatest\"}}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { neq: \"testbtest\"}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { neq: \"testbtest\"}}){ bar}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { neq: null}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { neq: null}}){ bar}}")
+                .Build());
 
         // assert
         await Snapshot.Create().AddResult(res1, "testatest").AddResult(
@@ -412,20 +409,20 @@ public class QueryableFilterVisitorStringTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { bar: { in: [ \"testatest\"  \"testbtest\" ]}}){ bar}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { in: [\"testbtest\" null]}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { in: [\"testbtest\" null]}}){ bar}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { in: [ \"testatest\" ]}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { in: [ \"testatest\" ]}}){ bar}}")
+                .Build());
 
         // assert
         await Snapshot.Create().AddResult(res1, "testatestAndtestb").AddResult(
@@ -445,20 +442,20 @@ public class QueryableFilterVisitorStringTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     "{ root(where: { bar: { nin: [ \"testatest\"  \"testbtest\" ]}}){ bar}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { nin: [\"testbtest\" null]}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { nin: [\"testbtest\" null]}}){ bar}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { nin: [ \"testatest\" ]}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { nin: [ \"testatest\" ]}}){ bar}}")
+                .Build());
 
         // assert
         await Snapshot.Create().AddResult(res1, "testatestAndtestb").AddResult(
@@ -478,19 +475,19 @@ public class QueryableFilterVisitorStringTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { contains: \"a\" }}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { contains: \"a\" }}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { contains: \"b\" }}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { contains: \"b\" }}){ bar}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { contains: null }}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { contains: null }}){ bar}}")
+                .Build());
 
         // assert
         await Snapshot.Create().AddResult(res1, "a").AddResult(
@@ -509,19 +506,19 @@ public class QueryableFilterVisitorStringTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { ncontains: \"a\" }}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { ncontains: \"a\" }}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { ncontains: \"b\" }}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { ncontains: \"b\" }}){ bar}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { ncontains: null }}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { ncontains: null }}){ bar}}")
+                .Build());
 
         // assert
         await Snapshot.Create().AddResult(res1, "a").AddResult(
@@ -541,19 +538,19 @@ public class QueryableFilterVisitorStringTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { startsWith: \"testa\" }}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { startsWith: \"testa\" }}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { startsWith: \"testb\" }}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { startsWith: \"testb\" }}){ bar}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { startsWith: null }}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { startsWith: null }}){ bar}}")
+                .Build());
 
         // assert
         await Snapshot.Create().AddResult(res1, "testa").AddResult(
@@ -573,19 +570,19 @@ public class QueryableFilterVisitorStringTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { nstartsWith: \"testa\" }}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { nstartsWith: \"testa\" }}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { nstartsWith: \"testb\" }}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { nstartsWith: \"testb\" }}){ bar}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { nstartsWith: null }}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { nstartsWith: null }}){ bar}}")
+                .Build());
 
         // assert
         await Snapshot.Create().AddResult(res1, "testa").AddResult(
@@ -605,19 +602,19 @@ public class QueryableFilterVisitorStringTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { endsWith: \"atest\" }}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { endsWith: \"atest\" }}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { endsWith: \"btest\" }}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { endsWith: \"btest\" }}){ bar}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { endsWith: null }}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { endsWith: null }}){ bar}}")
+                .Build());
 
         // assert
         await Snapshot.Create().AddResult(res1, "atest").AddResult(
@@ -638,19 +635,19 @@ public class QueryableFilterVisitorStringTests
         // act
         // assert
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { nendsWith: \"atest\" }}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { nendsWith: \"atest\" }}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { nendsWith: \"btest\" }}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { nendsWith: \"btest\" }}){ bar}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { nendsWith: null }}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { nendsWith: null }}){ bar}}")
+                .Build());
 
         // assert
         await Snapshot.Create().AddResult(res1, "atest").AddResult(

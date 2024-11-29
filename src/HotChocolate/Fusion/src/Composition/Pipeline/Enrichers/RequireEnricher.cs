@@ -38,7 +38,7 @@ internal sealed class RequireEnricher : IEntityEnricher
 
                     if (!entity.Metadata.DependantFields.TryGetValue(field.Name, out var deps))
                     {
-                        deps = new List<FieldDependency>();
+                        deps = [];
                         entity.Metadata.DependantFields.Add(field.Name, deps);
                     }
 

@@ -1,10 +1,8 @@
-using System.Collections.Generic;
-using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 
 namespace HotChocolate.Data.Sorting;
 
-public interface ISortVisitorContext : ISyntaxVisitorContext
+public interface ISortVisitorContext
 {
     Stack<IType> Types { get; }
 

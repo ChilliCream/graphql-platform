@@ -1,6 +1,3 @@
-﻿using System;
-using Xunit;
-
 namespace HotChocolate.Types;
 
 public class NonNullTypeTests
@@ -17,7 +14,6 @@ public class NonNullTypeTests
         // assert
         Assert.Equal(innerType, type.Type);
     }
-
 
     [Fact]
     public void EnsureNativeTypeIsCorrectlyDetected()

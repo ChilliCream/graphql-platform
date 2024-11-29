@@ -1,7 +1,3 @@
-using System.Linq;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using McMaster.Extensions.CommandLineUtils;
 using HCErrorBuilder = HotChocolate.ErrorBuilder;
 
@@ -41,15 +37,15 @@ public sealed class AuthArguments
         IConsoleOutput output,
         CancellationToken cancellationToken)
     {
+        string? scheme = null;
+
+        if (!NoScheme.HasValue())
+        {
+            scheme = Scheme.HasValue() ? Scheme.Value()!.Trim() : _defaultScheme;
+        }
+
         if (Token.HasValue())
         {
-            string? scheme = null;
-
-            if (!NoScheme.HasValue())
-            {
-                scheme = Scheme.HasValue() ? Scheme.Value()!.Trim() : _defaultScheme;
-            }
-
             return new AccessToken(
                 Token.Value()!.Trim(),
                 scheme);
@@ -61,7 +57,7 @@ public sealed class AuthArguments
             ValidateOAuthArguments(activity);
             var scopes = Scopes.HasValue()
                 ? Scopes.Values.Where(t => t is { }).OfType<string>()
-                : Enumerable.Empty<string>();
+                : [];
             var token = await TokenClient.GetTokenAsync(
                     TokenEndpoint.Value()!.Trim(),
                     ClientId.Value()!.Trim(),
@@ -69,7 +65,7 @@ public sealed class AuthArguments
                     scopes,
                     cancellationToken)
                 .ConfigureAwait(false);
-            return new AccessToken(token, _defaultScheme);
+            return new AccessToken(token, scheme);
         }
 
         return null;

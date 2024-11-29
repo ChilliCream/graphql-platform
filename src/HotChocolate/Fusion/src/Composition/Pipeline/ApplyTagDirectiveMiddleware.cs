@@ -1,102 +1,100 @@
 using HotChocolate.Fusion.Composition.Features;
 using HotChocolate.Language;
 using HotChocolate.Skimmed;
-using DirectiveLocation = HotChocolate.Skimmed.DirectiveLocation;
-using IHasDirectives = HotChocolate.Skimmed.IHasDirectives;
+using IDirectivesProvider = HotChocolate.Skimmed.IDirectivesProvider;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
 
 internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
 {
-    public async ValueTask InvokeAsync(CompositionContext context, MergeDelegate next)
+    public ValueTask InvokeAsync(CompositionContext context, MergeDelegate next)
     {
-        if (context.Features.MakeTagsPublic())
-        {
-            Rewrite(context);
-        }
-
-        if (!context.Log.HasErrors)
-        {
-            await next(context);
-        }
+        Rewrite(context, context.Features.MakeTagsPublic());
+        return !context.Log.HasErrors
+            ? next(context)
+            : ValueTask.CompletedTask;
     }
 
     private static void Rewrite(
-        CompositionContext context)
+        CompositionContext context,
+        bool makePublic)
     {
         var needsDirectiveType = false;
 
-        if (!context.FusionGraph.DirectiveTypes.TryGetDirective(WellKnownDirectives.Tag, out var tagDirectiveType))
+        if (!context.FusionGraph.DirectiveDefinitions.TryGetDirective(
+                WellKnownDirectives.Tag,
+                out var tagDirectiveType))
         {
-            tagDirectiveType = new DirectiveType(WellKnownDirectives.Tag)
+            tagDirectiveType = new DirectiveDefinition(WellKnownDirectives.Tag)
             {
-                Locations = DirectiveLocation.Object |
-                    DirectiveLocation.Interface |
-                    DirectiveLocation.Union |
-                    DirectiveLocation.InputObject |
-                    DirectiveLocation.Enum |
-                    DirectiveLocation.Scalar |
-                    DirectiveLocation.FieldDefinition |
-                    DirectiveLocation.InputFieldDefinition |
-                    DirectiveLocation.ArgumentDefinition |
-                    DirectiveLocation.EnumValue |
-                    DirectiveLocation.Schema,
+                Locations = Types.DirectiveLocation.Object |
+                    Types.DirectiveLocation.Interface |
+                    Types.DirectiveLocation.Union |
+                    Types.DirectiveLocation.InputObject |
+                    Types.DirectiveLocation.Enum |
+                    Types.DirectiveLocation.Scalar |
+                    Types.DirectiveLocation.FieldDefinition |
+                    Types.DirectiveLocation.InputFieldDefinition |
+                    Types.DirectiveLocation.ArgumentDefinition |
+                    Types.DirectiveLocation.EnumValue |
+                    Types.DirectiveLocation.Schema,
                 IsRepeatable = true,
                 Arguments =
                 {
-                    new InputField(
+                    new InputFieldDefinition(
                         WellKnownDirectives.Name,
-                        new NonNullType(context.FusionGraph.Types["String"]))
-                }
+                        new NonNullTypeDefinition(context.FusionGraph.Types["String"])),
+                },
             };
 
             needsDirectiveType = true;
         }
 
         var tags = new HashSet<string>();
-        Rewrite(context, tagDirectiveType, tags);
+        Rewrite(context, tagDirectiveType, tags, makePublic);
 
         if (context.GetTagContext().HasTags && needsDirectiveType)
         {
-            context.FusionGraph.DirectiveTypes.Add(tagDirectiveType);
+            context.FusionGraph.DirectiveDefinitions.Add(tagDirectiveType);
         }
     }
 
     private static void Rewrite(
         CompositionContext context,
-        DirectiveType tagDirectiveType,
-        HashSet<string> tags)
+        DirectiveDefinition tagDirectiveType,
+        HashSet<string> tags,
+        bool makePublic)
     {
         var tagContext = context.GetTagContext();
-        
-        ApplyDirectives(tagContext, context.FusionGraph, context.Subgraphs, tagDirectiveType, tags);
+
+        ApplyDirectives(tagContext, context.FusionGraph, context.Subgraphs, tagDirectiveType, tags, makePublic);
 
         foreach (var type in context.FusionGraph.Types)
         {
             switch (type)
             {
-                case ObjectType objectType:
-                    Rewrite(context, tagContext, objectType, tagDirectiveType, tags);
+                case ObjectTypeDefinition objectType:
+                    Rewrite(context, tagContext, objectType, tagDirectiveType, tags, makePublic);
                     break;
 
-                case InterfaceType interfaceType:
-                    Rewrite(context, tagContext, interfaceType, tagDirectiveType, tags);
+                case InterfaceTypeDefinition interfaceType:
+                    Rewrite(context, tagContext, interfaceType, tagDirectiveType, tags, makePublic);
                     break;
 
-                case UnionType unionType:
-                    Rewrite(context, tagContext, unionType, tagDirectiveType, tags);
+                case UnionTypeDefinition unionType:
+                    Rewrite(context, tagContext, unionType, tagDirectiveType, tags, makePublic);
                     break;
 
-                case InputObjectType inputObjectType:
-                    Rewrite(context, tagContext, inputObjectType, tagDirectiveType, tags);
+                case InputObjectTypeDefinition inputObjectType:
+                    Rewrite(context, tagContext, inputObjectType, tagDirectiveType, tags, makePublic);
                     break;
 
-                case EnumType enumType:
-                    Rewrite(context, tagContext, enumType, tagDirectiveType, tags);
+                case EnumTypeDefinition enumType:
+                    Rewrite(context, tagContext, enumType, tagDirectiveType, tags, makePublic);
                     break;
 
-                case ScalarType scalarType:
-                    Rewrite(context, tagContext, scalarType, tagDirectiveType, tags);
+                case ScalarTypeDefinition scalarType:
+                    Rewrite(context, tagContext, scalarType, tagDirectiveType, tags, makePublic);
                     break;
 
                 default:
@@ -104,128 +102,136 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
             }
         }
 
-        foreach (var directiveType in context.FusionGraph.DirectiveTypes)
+        foreach (var directiveType in context.FusionGraph.DirectiveDefinitions)
         {
-            Rewrite(context, tagContext, directiveType, tagDirectiveType, tags);
+            Rewrite(context, tagContext, directiveType, tagDirectiveType, tags, makePublic);
         }
     }
 
     private static void Rewrite(
         CompositionContext context,
         TagContext tagContext,
-        ComplexType type,
-        DirectiveType tagDirectiveType,
-        HashSet<string> tags)
+        ComplexTypeDefinition type,
+        DirectiveDefinition tagDirectiveType,
+        HashSet<string> tags,
+        bool makePublic)
     {
         var coordinate = new SchemaCoordinate(type.Name);
 
-        ApplyDirectives(context, tagContext, type, coordinate, tagDirectiveType, tags);
+        ApplyDirectives(context, tagContext, type, coordinate, tagDirectiveType, tags, makePublic);
 
         foreach (var field in type.Fields)
         {
-            Rewrite(context, tagContext, field, coordinate, tagDirectiveType, tags);
+            Rewrite(context, tagContext, field, coordinate, tagDirectiveType, tags, makePublic);
         }
     }
 
     private static void Rewrite(
         CompositionContext context,
         TagContext tagContext,
-        UnionType type,
-        DirectiveType tagDirectiveType,
-        HashSet<string> tags)
-        => ApplyDirectives(context, tagContext, type, new SchemaCoordinate(type.Name), tagDirectiveType, tags);
+        UnionTypeDefinition type,
+        DirectiveDefinition tagDirectiveType,
+        HashSet<string> tags,
+        bool makePublic)
+        => ApplyDirectives(context, tagContext, type, new(type.Name), tagDirectiveType, tags, makePublic);
 
     private static void Rewrite(
         CompositionContext context,
         TagContext tagContext,
-        InputObjectType type,
-        DirectiveType tagDirectiveType,
-        HashSet<string> tags)
+        InputObjectTypeDefinition type,
+        DirectiveDefinition tagDirectiveType,
+        HashSet<string> tags,
+        bool makePublic)
     {
         var coordinate = new SchemaCoordinate(type.Name);
 
-        ApplyDirectives(context, tagContext, type, coordinate, tagDirectiveType, tags);
+        ApplyDirectives(context, tagContext, type, coordinate, tagDirectiveType, tags, makePublic);
 
         foreach (var field in type.Fields)
         {
-            Rewrite(context, tagContext, field, coordinate, tagDirectiveType, tags);
+            Rewrite(context, tagContext, field, coordinate, tagDirectiveType, tags, makePublic);
         }
     }
 
     private static void Rewrite(
         CompositionContext context,
         TagContext tagContext,
-        EnumType type,
-        DirectiveType tagDirectiveType,
-        HashSet<string> tags)
+        EnumTypeDefinition type,
+        DirectiveDefinition tagDirectiveType,
+        HashSet<string> tags,
+        bool makePublic)
     {
         var coordinate = new SchemaCoordinate(type.Name);
 
-        ApplyDirectives(context, tagContext, type, coordinate, tagDirectiveType, tags);
+        ApplyDirectives(context, tagContext, type, coordinate, tagDirectiveType, tags, makePublic);
 
         foreach (var field in type.Values)
         {
-            Rewrite(context, tagContext, field, coordinate, tagDirectiveType, tags);
+            Rewrite(context, tagContext, field, coordinate, tagDirectiveType, tags, makePublic);
         }
     }
 
     private static void Rewrite(
         CompositionContext context,
         TagContext tagContext,
-        ScalarType type,
-        DirectiveType tagDirectiveType,
-        HashSet<string> tags)
-        => ApplyDirectives(context, tagContext, type, new SchemaCoordinate(type.Name), tagDirectiveType, tags);
+        ScalarTypeDefinition type,
+        DirectiveDefinition tagDirectiveType,
+        HashSet<string> tags,
+        bool makePublic)
+        => ApplyDirectives(context, tagContext, type, new(type.Name), tagDirectiveType, tags, makePublic);
 
     private static void Rewrite(
         CompositionContext context,
         TagContext tagContext,
-        DirectiveType type,
-        DirectiveType tagDirectiveType,
-        HashSet<string> tags)
+        DirectiveDefinition type,
+        DirectiveDefinition tagDirectiveType,
+        HashSet<string> tags,
+        bool makePublic)
     {
         var coordinate = new SchemaCoordinate(type.Name, ofDirective: true);
 
         foreach (var field in type.Arguments)
         {
-            Rewrite(context, tagContext, field, coordinate, tagDirectiveType, tags);
+            Rewrite(context, tagContext, field, coordinate, tagDirectiveType, tags, makePublic);
         }
     }
 
     private static void Rewrite(
         CompositionContext context,
         TagContext tagContext,
-        OutputField field,
+        OutputFieldDefinition field,
         SchemaCoordinate parent,
-        DirectiveType tagDirectiveType,
-        HashSet<string> tags)
+        DirectiveDefinition tagDirectiveType,
+        HashSet<string> tags,
+        bool makePublic)
     {
         var coordinate = new SchemaCoordinate(parent.Name, field.Name);
 
-        ApplyDirectives(context, tagContext, field, coordinate, tagDirectiveType, tags);
+        ApplyDirectives(context, tagContext, field, coordinate, tagDirectiveType, tags, makePublic);
 
         foreach (var argument in field.Arguments)
         {
-            Rewrite(context, tagContext, argument, coordinate, tagDirectiveType, tags);
+            Rewrite(context, tagContext, argument, coordinate, tagDirectiveType, tags, makePublic);
         }
     }
 
     private static void Rewrite(
         CompositionContext context,
         TagContext tagContext,
-        InputField field,
+        InputFieldDefinition field,
         SchemaCoordinate parent,
-        DirectiveType tagDirectiveType,
-        HashSet<string> tags)
+        DirectiveDefinition tagDirectiveType,
+        HashSet<string> tags,
+        bool makePublic)
     {
         var coordinate = parent switch
         {
-            { OfDirective: true } => new SchemaCoordinate(parent.Name, argumentName: field.Name, ofDirective: true),
-            { MemberName: null } => new SchemaCoordinate(parent.Name, field.Name),
-            { MemberName: not null } => new SchemaCoordinate(parent.Name, parent.MemberName, field.Name),
+            { OfDirective: true, } => new SchemaCoordinate(parent.Name, argumentName: field.Name, ofDirective: true),
+            { MemberName: null, } => new SchemaCoordinate(parent.Name, field.Name),
+            { MemberName: not null, } => new SchemaCoordinate(parent.Name, parent.MemberName, field.Name),
         };
 
-        ApplyDirectives(context, tagContext, field, coordinate, tagDirectiveType, tags);
+        ApplyDirectives(context, tagContext, field, coordinate, tagDirectiveType, tags, makePublic);
     }
 
     private static void Rewrite(
@@ -233,27 +239,30 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
         TagContext tagContext,
         EnumValue value,
         SchemaCoordinate parent,
-        DirectiveType tagDirectiveType,
-        HashSet<string> tags)
+        DirectiveDefinition tagDirectiveType,
+        HashSet<string> tags,
+        bool makePublic)
         => ApplyDirectives(
             context,
             tagContext,
             value,
             new SchemaCoordinate(parent.Name, value.Name),
             tagDirectiveType,
-            tags);
+            tags,
+            makePublic);
 
     private static void ApplyDirectives<T>(
         CompositionContext context,
         TagContext tagContext,
         T merged,
         SchemaCoordinate coordinate,
-        DirectiveType tagDirectiveType,
-        HashSet<string> tags)
-        where T : ITypeSystemMember, IHasDirectives
+        DirectiveDefinition tagDirectiveType,
+        HashSet<string> tags,
+        bool makePublic)
+        where T : ITypeSystemMemberDefinition, IDirectivesProvider
     {
         var parts = context.GetSubgraphMembers<T>(coordinate);
-        ApplyDirectives(tagContext, merged, parts, tagDirectiveType, tags);
+        ApplyDirectives(tagContext, merged, parts, tagDirectiveType, tags, makePublic);
 
         foreach (var tag in tags)
         {
@@ -265,9 +274,10 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
         TagContext tagContext,
         T merged,
         IEnumerable<T> parts,
-        DirectiveType tagDirectiveType,
-        HashSet<string> tags)
-        where T : ITypeSystemMember, IHasDirectives
+        DirectiveDefinition tagDirectiveType,
+        HashSet<string> tags,
+        bool makePublic)
+        where T : ITypeSystemMemberDefinition, IDirectivesProvider
     {
         tags.Clear();
 
@@ -288,10 +298,15 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
                     value is StringValueNode name &&
                     tags.Add(name.Value))
                 {
+                    if (!makePublic)
+                    {
+                        continue;
+                    }
+
                     merged.Directives.Add(
                         new Directive(
                             tagDirectiveType,
-                            new Argument(WellKnownDirectives.Name, name)));
+                            new ArgumentAssignment(WellKnownDirectives.Name, name)));
                     tagContext.HasTags = true;
                 }
             }

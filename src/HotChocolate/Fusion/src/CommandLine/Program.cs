@@ -1,5 +1,16 @@
-﻿var builder = App.CreateBuilder();
+using System.Diagnostics.CodeAnalysis;
 
-var app = builder.Build();
+namespace HotChocolate.Fusion.CommandLine;
 
-await app.InvokeAsync(args);
+public static class Program
+{
+    [RequiresUnreferencedCode("HotChocolate.Fusion is not trim compatible.")]
+    public static async Task<int> Main(string[] args)
+    {
+        var builder = App.CreateBuilder();
+
+        var app = builder.Build();
+
+        return await app.InvokeAsync(args);
+    }
+}

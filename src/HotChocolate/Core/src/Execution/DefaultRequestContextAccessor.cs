@@ -1,6 +1,3 @@
-using System;
-using System.Threading;
-
 namespace HotChocolate.Execution;
 
 internal sealed class DefaultRequestContextAccessor : IRequestContextAccessor
@@ -16,7 +13,7 @@ internal sealed class DefaultRequestContextAccessor : IRequestContextAccessor
         }
         set
         {
-            RequestContextHolder? holder = _requestContextCurrent.Value;
+            var holder = _requestContextCurrent.Value;
 
             if (holder is null)
             {

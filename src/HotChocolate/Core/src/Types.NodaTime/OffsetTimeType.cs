@@ -17,13 +17,6 @@ public class OffsetTimeType : StringToStructBaseType<OffsetTime>
     /// <summary>
     /// Initializes a new instance of <see cref="OffsetTimeType"/>.
     /// </summary>
-    public OffsetTimeType() : this(OffsetTimePattern.GeneralIso)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of <see cref="OffsetTimeType"/>.
-    /// </summary>
     public OffsetTimeType(params IPattern<OffsetTime>[] allowedPatterns) : base("OffsetTime")
     {
         if (allowedPatterns.Length == 0)
@@ -33,7 +26,19 @@ public class OffsetTimeType : StringToStructBaseType<OffsetTime>
 
         _allowedPatterns = allowedPatterns;
         _serializationPattern = _allowedPatterns[0];
-        Description = NodaTimeResources.OffsetTimeType_Description;
+
+        Description = CreateDescription(
+            allowedPatterns,
+            NodaTimeResources.OffsetTimeType_Description,
+            NodaTimeResources.OffsetTimeType_Description_Extended);
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="OffsetTimeType"/>.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public OffsetTimeType() : this(OffsetTimePattern.GeneralIso)
+    {
     }
 
     /// <inheritdoc />
@@ -46,4 +51,18 @@ public class OffsetTimeType : StringToStructBaseType<OffsetTime>
         string resultValue,
         [NotNullWhen(true)] out OffsetTime? runtimeValue)
         => _allowedPatterns.TryParse(resultValue, out runtimeValue);
+
+    protected override Dictionary<IPattern<OffsetTime>, string> PatternMap => new()
+    {
+        { OffsetTimePattern.GeneralIso, "hh:mm:ss±hh:mm" },
+        { OffsetTimePattern.ExtendedIso, "hh:mm:ss.sssssssss±hh:mm" },
+        { OffsetTimePattern.Rfc3339, "hh:mm:ss.sssssssss±hh:mm" }
+    };
+
+    protected override Dictionary<IPattern<OffsetTime>, string> ExampleMap => new()
+    {
+        { OffsetTimePattern.GeneralIso, "20:00:00Z" },
+        { OffsetTimePattern.ExtendedIso, "20:00:00.999Z" },
+        { OffsetTimePattern.Rfc3339, "20:00:00.999999999Z" }
+    };
 }

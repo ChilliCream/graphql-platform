@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -20,7 +17,7 @@ public partial class SchemaErrorBuilder
         private static readonly JsonWriterOptions _serializationOptions = new()
         {
             Indented = true,
-            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         };
 
         public string Message { get; set; } = default!;

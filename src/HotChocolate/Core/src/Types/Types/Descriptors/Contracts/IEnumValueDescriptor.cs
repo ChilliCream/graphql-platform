@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -8,9 +7,6 @@ public interface IEnumValueDescriptor
     : IDescriptor<EnumValueDefinition>
     , IFluent
 {
-    IEnumValueDescriptor SyntaxNode(
-        EnumValueDefinitionNode enumValueDefinition);
-
     /// <summary>
     /// Defines the name of the <see cref="EnumValue"/>.
     /// The name represents the public visible enum value name.
@@ -28,13 +24,6 @@ public interface IEnumValueDescriptor
     /// </summary>
     /// <param name="value">The enum value description.</param>
     IEnumValueDescriptor Description(string value);
-
-    /// <summary>
-    /// Specifies a deprecation reason for this enum value.
-    /// </summary>
-    /// <param name="reason">The reason why this enum value is deprecated.</param>
-    [Obsolete("Use `Deprecated`.")]
-    IEnumValueDescriptor DeprecationReason(string reason);
 
     /// <summary>
     /// Deprecates the enum value.

@@ -4,4 +4,6 @@
 
 type QueryWithDocumentation {
   foo(bar: String): String
+  baz: String
+  qux: String
 }

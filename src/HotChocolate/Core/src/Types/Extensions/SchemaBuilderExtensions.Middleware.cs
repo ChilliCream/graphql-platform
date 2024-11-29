@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate;
@@ -32,7 +31,6 @@ public static partial class SchemaBuilderExtensions
                 (s, n) => new MapMiddleware(
                     n, fieldReference, middleware(n))));
     }
-
 
     public static ISchemaBuilder Map<TMiddleware>(
         this ISchemaBuilder builder,

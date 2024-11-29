@@ -1,6 +1,5 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
-using MongoDB.Driver;
 using MongoDB.Driver.Core.Misc;
 
 namespace HotChocolate.Data.MongoDb;

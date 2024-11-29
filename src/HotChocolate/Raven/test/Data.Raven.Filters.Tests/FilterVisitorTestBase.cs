@@ -1,5 +1,3 @@
-using HotChocolate.Data.Raven.Pagination;
-using HotChocolate.Data.Raven;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
@@ -40,6 +38,7 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
             .AddGraphQLServer()
             .AddRavenFiltering()
             .AddRavenPagingProviders()
+            .ModifyPagingOptions(o => o.RequirePagingBoundaries = false)
             .AddQueryType(
                 c =>
                 {
@@ -62,10 +61,10 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
                     if (context.ContextData.TryGetValue("sql", out var queryString))
                     {
                         context.Result =
-                            QueryResultBuilder
-                                .FromResult(context.Result!.ExpectQueryResult())
+                            OperationResultBuilder
+                                .FromResult(context.Result!.ExpectOperationResult())
                                 .SetContextData("sql", queryString)
-                                .Create();
+                                .Build();
                     }
                 })
             .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)

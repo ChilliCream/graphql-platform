@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
@@ -168,7 +166,6 @@ public sealed class VariableDefinitionNode : ISyntaxNode, IHasDirectives
     /// <returns>
     /// Returns the new node with the new <paramref name="directives" />.
     /// </returns>
-
     public VariableDefinitionNode WithDirectives(IReadOnlyList<DirectiveNode> directives)
         => new(Location, Variable, Type, DefaultValue, directives);
 }

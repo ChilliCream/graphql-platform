@@ -1,11 +1,9 @@
-using System.Collections.Generic;
-
 namespace StrawberryShake.CodeGeneration.CSharp.Builders;
 
 public class ForEachBuilder : ICodeContainer<ForEachBuilder>
 {
     private ICode? _loopHeader;
-    private readonly List<ICode> _lines = new List<ICode>();
+    private readonly List<ICode> _lines = [];
 
     public static ForEachBuilder New() => new();
 

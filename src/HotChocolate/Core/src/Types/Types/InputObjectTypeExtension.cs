@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Properties;
@@ -52,7 +51,7 @@ public class InputObjectTypeExtension : NamedTypeExtensionBase<InputObjectTypeDe
     /// Returns the newly created input object type.
     /// </returns>
     public static InputObjectTypeExtension CreateUnsafe(InputObjectTypeDefinition definition)
-        => new() { Definition = definition };
+        => new() { Definition = definition, };
 
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.InputObject;
