@@ -1,4 +1,6 @@
+using Azure;
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 
@@ -9,6 +11,16 @@ namespace HotChocolate.PersistedOperations.AzureBlobStorage;
 /// </summary>
 public class AzureBlobOperationDocumentStorage : IOperationDocumentStorage
 {
+    private static readonly BlobOpenWriteOptions _defaultBlobOpenWriteOptions = new()
+    {
+        HttpHeaders = new BlobHttpHeaders
+        {
+            ContentType = "application/graphql",
+            ContentDisposition = "inline",
+            CacheControl = "public, max-age=604800, immutable"
+        }
+    };
+
     private readonly BlobContainerClient _blobContainerClient;
     private readonly string _blobNamePrefix;
     private readonly string _blobNameSuffix;
@@ -51,17 +63,27 @@ public class AzureBlobOperationDocumentStorage : IOperationDocumentStorage
         CancellationToken cancellationToken)
     {
         var blobClient = _blobContainerClient.GetBlobClient(BlobName(documentId));
-        if (!await blobClient.ExistsAsync(cancellationToken).ConfigureAwait(false))
+
+        try
         {
-            return null;
+            await using var blobStream = await blobClient
+                .OpenReadAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+
+            await using var memoryStream = new MemoryStream();
+            await blobStream.CopyToAsync(memoryStream, cancellationToken).ConfigureAwait(false);
+            return memoryStream.Length == 0
+                ? null
+                : new OperationDocument(Utf8GraphQLParser.Parse(memoryStream.ToArray()));
         }
+        catch (RequestFailedException e)
+        {
+            if (e.Status == 404)
+            {
+                return null;
+            }
 
-        await using var memoryStream = new MemoryStream();
-        await using var blobStream = await blobClient
-            .OpenReadAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
-        await blobStream.CopyToAsync(memoryStream, cancellationToken).ConfigureAwait(false);
-
-        return memoryStream.Length == 0 ? null : new OperationDocument(Utf8GraphQLParser.Parse(memoryStream.ToArray()));
+            throw;
+        }
     }
 
     /// <inheritdoc />
@@ -82,12 +104,11 @@ public class AzureBlobOperationDocumentStorage : IOperationDocumentStorage
     private async ValueTask SaveInternalAsync(
         OperationDocumentId documentId,
         IOperationDocument document,
-        CancellationToken cancellationToken
-        )
+        CancellationToken cancellationToken)
     {
         var blobClient = _blobContainerClient.GetBlobClient(BlobName(documentId));
         await using var outStream = await blobClient
-            .OpenWriteAsync(overwrite: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+            .OpenWriteAsync(true, _defaultBlobOpenWriteOptions, cancellationToken).ConfigureAwait(false);
 
         await document.WriteToAsync(outStream, cancellationToken).ConfigureAwait(false);
         await outStream.FlushAsync(cancellationToken).ConfigureAwait(false);
