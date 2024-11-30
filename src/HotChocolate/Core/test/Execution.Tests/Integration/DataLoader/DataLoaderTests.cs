@@ -472,6 +472,67 @@ public class DataLoaderTests
         await snapshot.MatchMarkdownAsync();
     }
 
+    [Fact]
+    public async Task ClassDataLoader_Resolve_From_DependencyInjection_Using_Factory()
+    {
+        var snapshot = new Snapshot();
+
+        // arrange
+        var executor = await CreateExecutorAsync(
+            c => c
+                .AddQueryType<Query>()
+                .AddDataLoader<ITestDataLoader, TestDataLoader>(sp =>
+                    new TestDataLoader(
+                        sp.GetRequiredService<IBatchScheduler>(),
+                        new DataLoaderOptions()))
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .UseRequest(
+                    next => async context =>
+                    {
+                        await next(context);
+
+                        var dataLoader = (TestDataLoader)context.Services.GetRequiredService<ITestDataLoader>();
+
+                        context.Result = OperationResultBuilder
+                            .FromResult(((IOperationResult)context.Result!))
+                            .AddExtension("loads", dataLoader.Loads)
+                            .Build();
+                    })
+                .UseDefaultPipeline());
+
+        // act
+        snapshot.Add(
+            await executor.ExecuteAsync(
+                OperationRequestBuilder.New()
+                    .SetDocument(
+                        @"{
+                            a: dataLoaderWithInterface(key: ""a"")
+                            b: dataLoaderWithInterface(key: ""b"")
+                        }")
+                    .Build()));
+
+        snapshot.Add(
+            await executor.ExecuteAsync(
+                OperationRequestBuilder.New()
+                    .SetDocument(
+                        @"{
+                            a: dataLoaderWithInterface(key: ""a"")
+                        }")
+                    .Build()));
+
+        snapshot.Add(
+            await executor.ExecuteAsync(
+                OperationRequestBuilder.New()
+                    .SetDocument(
+                        @"{
+                            c: dataLoaderWithInterface(key: ""c"")
+                        }")
+                    .Build()));
+
+        // assert
+        await snapshot.MatchMarkdownAsync();
+    }
+
     [LocalFact]
     public async Task NestedDataLoader()
     {
