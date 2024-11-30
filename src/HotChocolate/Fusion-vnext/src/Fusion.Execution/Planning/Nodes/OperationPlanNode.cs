@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
@@ -6,11 +7,11 @@ namespace HotChocolate.Fusion.Planning.Nodes;
 /// <summary>
 /// Represents an operation to resolve data from a specific source schema.
 /// </summary>
-public sealed class OperationPlanNode : SelectionPlanNode, IOperationPlanNodeProvider
+public sealed class OperationPlanNode : SelectionPlanNode, IPlanNodeProvider, ISerializablePlanNode
 {
     private static readonly IReadOnlyDictionary<string, VariableDefinitionNode> _emptyVariableMap =
         new Dictionary<string, VariableDefinitionNode>();
-    private List<OperationPlanNode>? _operations;
+    private readonly List<PlanNode> _nodes = [];
     private Dictionary<string, VariableDefinitionNode>? _variables;
 
     public OperationPlanNode(
@@ -43,8 +44,7 @@ public sealed class OperationPlanNode : SelectionPlanNode, IOperationPlanNodePro
     public IReadOnlyDictionary<string, VariableDefinitionNode> VariableDefinitions
         => _variables ?? _emptyVariableMap;
 
-    public IReadOnlyList<OperationPlanNode> Operations
-        => _operations ?? (IReadOnlyList<OperationPlanNode>)Array.Empty<OperationPlanNode>();
+    public IReadOnlyList<PlanNode> Nodes => _nodes;
 
     public void AddVariableDefinition(VariableDefinitionNode variable)
     {
@@ -52,11 +52,11 @@ public sealed class OperationPlanNode : SelectionPlanNode, IOperationPlanNodePro
         (_variables ??= new Dictionary<string, VariableDefinitionNode>()).Add(variable.Variable.Name.Value, variable);
     }
 
-    public void AddOperation(OperationPlanNode operation)
+    public void AddChildNode(PlanNode node)
     {
-        ArgumentNullException.ThrowIfNull(operation);
-        (_operations ??= []).Add(operation);
-        operation.Parent = this;
+        ArgumentNullException.ThrowIfNull(node);
+        _nodes.Add(node);
+        node.Parent = this;
     }
 
     public OperationDefinitionNode ToSyntaxNode()
@@ -68,5 +68,17 @@ public sealed class OperationPlanNode : SelectionPlanNode, IOperationPlanNodePro
             _variables?.Values.OrderBy(t => t.Variable.Name.Value).ToArray() ?? [],
             Directives.ToSyntaxNode(),
             Selections.ToSyntaxNode());
+    }
+
+    public PlanNodeKind Kind => PlanNodeKind.Operation;
+
+    public void Serialize(Utf8JsonWriter writer)
+    {
+        writer.WriteStartObject();
+        SerializationHelper.WriteKind(writer, this);
+        writer.WriteString("schema", SchemaName);
+        writer.WriteString("document", ToSyntaxNode().ToString(indented: false));
+        SerializationHelper.WriteChildNodes(writer, this);
+        writer.WriteEndObject();
     }
 }
