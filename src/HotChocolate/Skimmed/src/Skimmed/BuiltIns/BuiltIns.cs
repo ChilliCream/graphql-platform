@@ -140,7 +140,6 @@ public static class BuiltIns
             Skip.Name => true,
             Deprecated.Name => true,
             SpecifiedBy.Name => true,
-            // SemanticNonNull.Name => true,
             _ => false
         };
 }
