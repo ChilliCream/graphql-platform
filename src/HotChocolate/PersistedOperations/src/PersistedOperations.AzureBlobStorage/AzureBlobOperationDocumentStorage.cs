@@ -10,14 +10,27 @@ namespace HotChocolate.PersistedOperations.AzureBlobStorage;
 public class AzureBlobOperationDocumentStorage : IOperationDocumentStorage
 {
     private readonly BlobContainerClient _blobContainerClient;
+    private readonly string _blobNamePrefix;
+    private readonly string _blobNameSuffix;
 
     /// <summary>
     /// Initializes a new instance of the class.
     /// </summary>
     /// <param name="containerClient">The blob container client instance.</param>
-    public AzureBlobOperationDocumentStorage(BlobContainerClient containerClient)
+    /// <param name="blobNamePrefix">This prefix string is prepended before the hash of the document.</param>
+    /// <param name="blobNameSuffix">This suffix is appended after the hash of the document.</param>
+    public AzureBlobOperationDocumentStorage(
+        BlobContainerClient containerClient,
+        string blobNamePrefix,
+        string blobNameSuffix)
     {
-        _blobContainerClient = containerClient ?? throw new ArgumentNullException(nameof(containerClient));
+        ArgumentNullException.ThrowIfNull(containerClient);
+        ArgumentNullException.ThrowIfNull(blobNamePrefix);
+        ArgumentNullException.ThrowIfNull(blobNameSuffix);
+
+        _blobContainerClient = containerClient;
+        _blobNamePrefix = blobNamePrefix;
+        _blobNameSuffix = blobNameSuffix;
     }
 
     /// <inheritdoc />
@@ -37,7 +50,7 @@ public class AzureBlobOperationDocumentStorage : IOperationDocumentStorage
         OperationDocumentId documentId,
         CancellationToken cancellationToken)
     {
-        var blobClient = _blobContainerClient.GetBlobClient(documentId.Value);
+        var blobClient = _blobContainerClient.GetBlobClient(BlobName(documentId));
         if (!await blobClient.ExistsAsync(cancellationToken).ConfigureAwait(false))
         {
             return null;
@@ -72,10 +85,13 @@ public class AzureBlobOperationDocumentStorage : IOperationDocumentStorage
         CancellationToken cancellationToken
         )
     {
-        await using var outStream = await _blobContainerClient.GetBlobClient(documentId.Value)
+        var blobClient = _blobContainerClient.GetBlobClient(BlobName(documentId));
+        await using var outStream = await blobClient
             .OpenWriteAsync(overwrite: true, cancellationToken: cancellationToken).ConfigureAwait(false);
 
         await document.WriteToAsync(outStream, cancellationToken).ConfigureAwait(false);
-        await outStream.FlushAsync(cancellationToken);
+        await outStream.FlushAsync(cancellationToken).ConfigureAwait(false);
     }
+
+    private string BlobName(OperationDocumentId documentId) => $"{_blobNamePrefix}{documentId.Value}{_blobNameSuffix}";
 }

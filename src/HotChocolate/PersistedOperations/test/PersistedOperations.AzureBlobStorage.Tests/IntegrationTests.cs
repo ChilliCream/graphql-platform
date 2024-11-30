@@ -9,6 +9,9 @@ namespace HotChocolate.PersistedOperations.AzureBlobStorage;
 
 public class IntegrationTests : IClassFixture<AzureStorageBlobResource>
 {
+    private const string Prefix = "hc_";
+    private const string Suffix = ".graphql";
+
     private readonly BlobContainerClient _client;
 
     public IntegrationTests(AzureStorageBlobResource blobStorageResource)
@@ -22,7 +25,7 @@ public class IntegrationTests : IClassFixture<AzureStorageBlobResource>
     {
         // arrange
         var documentId = new OperationDocumentId(Guid.NewGuid().ToString("N"));
-        var storage = new AzureBlobOperationDocumentStorage(_client);
+        var storage = new AzureBlobOperationDocumentStorage(_client, Prefix, Suffix);
 
         await storage.SaveAsync(
             documentId,
@@ -32,7 +35,7 @@ public class IntegrationTests : IClassFixture<AzureStorageBlobResource>
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
-                .AddAzureBlobStorageOperationDocumentStorage(_ => _client)
+                .AddAzureBlobStorageOperationDocumentStorage(_ => _client, Prefix, Suffix)
                 .UseRequest(n => async c =>
                 {
                     await n(c);
@@ -60,14 +63,14 @@ public class IntegrationTests : IClassFixture<AzureStorageBlobResource>
     {
         // arrange
         var documentId = new OperationDocumentId(Guid.NewGuid().ToString("N"));
-        var storage = new AzureBlobOperationDocumentStorage(_client);
+        var storage = new AzureBlobOperationDocumentStorage(_client, Prefix, Suffix);
         await storage.SaveAsync(documentId, new OperationDocumentSourceText("{ __typename }"));
 
         var executor =
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
-                .AddAzureBlobStorageOperationDocumentStorage(_ => _client)
+                .AddAzureBlobStorageOperationDocumentStorage(_ => _client, Prefix, Suffix)
                 .UseRequest(n => async c =>
                 {
                     await n(c);
