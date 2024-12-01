@@ -27,7 +27,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
 
             if (TryPlanSelectionSet(operation, operation, new Stack<SelectionPathSegment>()))
             {
-                operationPlan.AddOperation(operation);
+                operationPlan.AddChildNode(operation);
             }
         }
 
@@ -191,7 +191,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 continue;
             }
 
-            operation.AddOperation(lookupOperation);
+            operation.AddChildNode(lookupOperation);
 
             foreach (var selection in lookupField.Selections)
             {
