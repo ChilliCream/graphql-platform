@@ -56,9 +56,9 @@ Remember to save any changes you've made before exiting the Console UI.
 - `--api-id <api-id>`: Specifies the ID of the API for which you want to edit stages. This ID can be retrieved with the `nitro api list` command. You can set it from the environment variable `NITRO_API_ID`.
 
 
-# Edit Stages of an API (non-interaactive)
+# Edit Stages of an API (non-interactive)
 
-The `nitro stage edit` command also provides a non interactive user interface for managing the stages of an API.
+The `nitro stage edit` command also provides a non-interactive user interface for managing the stages of an API.
 
 ```shell
 nitro stage edit --api-id abc123 --configuration '[{"name":"stage1","displayName":"Stage 1","conditions":[{"afterStage":"stage2"}]}]'
