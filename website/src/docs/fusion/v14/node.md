@@ -2,6 +2,8 @@
 title: "Node Pattern in Fusion"
 ---
 
+<Video videoId="3iTXFHAvZ-U" />
+
 By leveraging the [**global object identification pattern**](https://graphql.org/learn/global-object-identification/), also known as the **node pattern**, Fusion can work seamlessly with source systems that implement this specification. This integration enables a zero-configuration setup for your distributed GraphQL services and allows you to re-expose fields like `node` through the gateway.
 
 # Understanding the Node Pattern
