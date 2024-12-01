@@ -9,15 +9,10 @@ internal static class OperationVariableBinder
         OperationDefinitionNode operationDefinition,
         RootPlanNode operationPlan)
     {
-        var operationBacklog = new Stack<OperationPlanNode>();
+        var operationBacklog = new Stack<OperationPlanNode>(operationPlan.Nodes.OfType<OperationPlanNode>());
         var selectionBacklog = new Stack<SelectionPlanNode>();
         var variableDefinitions = operationDefinition.VariableDefinitions.ToDictionary(t => t.Variable.Name.Value);
         var usedVariables = new HashSet<string>();
-
-        foreach (var operation in operationPlan.Nodes.OfType<OperationPlanNode>())
-        {
-            operationBacklog.Push(operation);
-        }
 
         while (operationBacklog.TryPop(out var operation))
         {
@@ -61,6 +56,11 @@ internal static class OperationVariableBinder
                             usedVariables.Add(variable.Name.Value);
                         }
                     }
+                }
+
+                foreach (var condition in field.Conditions)
+                {
+                    usedVariables.Add(condition.VariableName);
                 }
             }
 
