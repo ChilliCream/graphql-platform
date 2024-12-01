@@ -62,4 +62,24 @@ nitro schema upload \
 
 - `--api-key <api-key>`: Specifies the API key used for authentication. It doesn't have to be provided when you are logged in. Otherwise, it's the secret that `nitro api-key create` returns. You can set it from the environment variable `NITRO_API_KEY`.
 
+# Download a Schema
+
+The `nitro schema download` command is used to download a schema from a stage.
+
+```shell
+nitro schema download --api-id abc123 --stage production --file ./schema.graphql
+```
+
+**Options**
+
+- `--api-id <api-id>` **(required)**: Specifies the ID of the API from which to download the schema. You can set it from the environment variable `NITRO_API_ID`.
+- `--stage <stage>` **(required)**: Specifies the name of the stage. You can set it from the environment variable `NITRO_STAGE`.
+- `--file <file>` **(required)**: Specifies the file path where the schema will be stored.
+
+**Global Options**
+
+- `--cloud-url <cloud-url>`
+- `--api-key <api-key>`
+- `--output <json>`
+
 <!-- spell-checker:ignore Cmdi, Yjdh -->
