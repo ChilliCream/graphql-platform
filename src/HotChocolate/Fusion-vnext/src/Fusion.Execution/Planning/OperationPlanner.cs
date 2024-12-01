@@ -28,15 +28,8 @@ public sealed class OperationPlanner(CompositeSchema schema)
 
             if (TryPlanSelectionSet(operation, operation, new Stack<SelectionPathSegment>()))
             {
-                if (TryPlanConditionNode(operation.Selections, out var conditionNode))
-                {
-                    conditionNode.AddChildNode(operation);
-                    operationPlan.AddChildNode(conditionNode);
-                }
-                else
-                {
-                    operationPlan.AddChildNode(operation);
-                }
+                var planNodeToAdd = PlanConditionNode(operation.Selections, operation);
+                operationPlan.AddChildNode(planNodeToAdd);
             }
         }
 
@@ -226,15 +219,8 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 continue;
             }
 
-            if (TryPlanConditionNode(lookupField.Selections, out var conditionNode))
-            {
-                conditionNode.AddChildNode(lookupOperation);
-                operation.AddChildNode(conditionNode);
-            }
-            else
-            {
-                operation.AddChildNode(lookupOperation);
-            }
+            var planNodeToAdd = PlanConditionNode(lookupField.Selections, lookupOperation);
+            operation.AddChildNode(planNodeToAdd);
 
             foreach (var selection in lookupField.Selections)
             {
@@ -413,44 +399,60 @@ public sealed class OperationPlanner(CompositeSchema schema)
         return counts;
     }
 
-    private bool TryPlanConditionNode(IReadOnlyList<SelectionPlanNode> selectionPlanNodes,
-        [NotNullWhen(true)] out ConditionPlanNode? conditionNode)
+    private PlanNode PlanConditionNode(
+        IReadOnlyList<SelectionPlanNode> selectionPlanNodes,
+        OperationPlanNode operation)
     {
-        conditionNode = null;
-        // TODO: This is not correct
-        Condition? sharedCondition = null;
-
-        foreach (var selection in selectionPlanNodes)
+        var firstSelection = selectionPlanNodes.FirstOrDefault();
+        if (firstSelection is null || firstSelection.Conditions.Count == 0)
         {
-            if (selection.Conditions.Count < 1)
+            return operation;
+        }
+
+        var conditionsOnFirstSelectionNode = new HashSet<Condition>(firstSelection.Conditions);
+
+        foreach (var selection in selectionPlanNodes.Skip(1))
+        {
+            if (selection.Conditions.Count == 0)
             {
-                return false;
+                return operation;
             }
 
-            var condition = selection.Conditions[0];
-
-            if (sharedCondition is null)
+            foreach (var condition in selection.Conditions)
             {
-                sharedCondition = condition;
-                continue;
-            }
-
-            // One of the selection doesn't have same condition as the others.
-            if (sharedCondition != condition)
-            {
-                return false;
+                if (!conditionsOnFirstSelectionNode.Contains(condition))
+                {
+                    return operation;
+                }
             }
         }
 
-        if (sharedCondition is not null)
-        {
-            RemoveConditionFromSelections(selectionPlanNodes, sharedCondition);
-            conditionNode = new ConditionPlanNode(sharedCondition.VariableName, sharedCondition.PassingValue);
+        ConditionPlanNode? startConditionNode = null;
+        ConditionPlanNode? lastConditionNode = null;
 
-            return true;
+        foreach (var sharedCondition in conditionsOnFirstSelectionNode)
+        {
+            foreach (var selection in selectionPlanNodes)
+            {
+                selection.RemoveCondition(sharedCondition);
+            }
+
+            if (startConditionNode is null)
+            {
+                startConditionNode = lastConditionNode =
+                    new ConditionPlanNode(sharedCondition.VariableName, sharedCondition.PassingValue);
+            }
+            else if (lastConditionNode is not null)
+            {
+                var childCondition = new ConditionPlanNode(sharedCondition.VariableName, sharedCondition.PassingValue);
+                lastConditionNode.AddChildNode(childCondition);
+                lastConditionNode = childCondition;
+            }
         }
 
-        return false;
+        lastConditionNode?.AddChildNode(operation);
+
+        return startConditionNode!;
     }
 
     private bool IsSelectionAlwaysSkipped(ISelectionNode selectionNode)
@@ -534,14 +536,6 @@ public sealed class OperationPlanner(CompositeSchema schema)
         }
 
         return (isSelectionNodeObsolete, conditions);
-    }
-
-    private void RemoveConditionFromSelections(IReadOnlyList<SelectionPlanNode> selectionPlanNodes, Condition condition)
-    {
-        foreach (var selection in selectionPlanNodes)
-        {
-            selection.RemoveCondition(condition);
-        }
     }
 
     public record SelectionPathSegment(

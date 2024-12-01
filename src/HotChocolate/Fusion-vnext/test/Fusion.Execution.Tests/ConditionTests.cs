@@ -724,4 +724,93 @@ public class ConditionTests : FusionTestBase
                 }
                 """);
     }
+
+    [Test]
+    public async Task Skip_And_Include_On_RootField_Only_Skipped_Field_Selected()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        // act
+        var plan = PlanOperationAsync(
+            compositeSchema,
+            """
+            query GetProduct($id: ID!, $skip: Boolean!, $include: Boolean!) {
+                productById(id: $id) @skip(if: $skip) @include(if: $include) {
+                    name
+                }
+            }
+            """);
+
+        // assert
+        await Assert
+            .That(plan.Serialize())
+            .IsEqualTo(
+                """
+                {
+                  "kind": "Root",
+                  "nodes": [
+                    {
+                      "kind": "Condition",
+                      "variableName": "skip",
+                      "passingValue": false,
+                      "nodes": [
+                        {
+                          "kind": "Condition",
+                          "variableName": "include",
+                          "passingValue": true,
+                          "nodes": [
+                            {
+                              "kind": "Operation",
+                              "schema": "PRODUCTS",
+                              "document": "{ productById(id: $id) { name } }"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+                """);
+    }
+
+    [Test]
+    public async Task Skip_And_Include_On_RootField()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        // act
+        var plan = PlanOperationAsync(
+            compositeSchema,
+            """
+            query GetProduct($id: ID!, $skip: Boolean!, $include: Boolean!) {
+                productById(id: $id) @skip(if: $skip) @include(if: $include) {
+                    name
+                }
+                products {
+                    nodes {
+                        name
+                    }
+                }
+            }
+            """);
+
+        // assert
+        await Assert
+            .That(plan.Serialize())
+            .IsEqualTo(
+                """
+                {
+                  "kind": "Root",
+                  "nodes": [
+                    {
+                      "kind": "Operation",
+                      "schema": "PRODUCTS",
+                      "document": "query($id: ID!, $include: Boolean!, $skip: Boolean!) { productById(id: $id) @skip(if: $skip) @include(if: $include) { name } products { nodes { name } } }"
+                    }
+                  ]
+                }
+                """);
+    }
 }
