@@ -14,6 +14,12 @@ Fusion introduces a gateway component that acts as the single entry point for cl
 
 ![Fusion Overview](./assets/fusion-overview-1.png)
 
+# Video Walkthrough
+
+Join Michael in this video as he introduces Fusion and explains you how to get started with it:
+
+<Video videoId="peMdejyrKD4" />
+
 # Benefits of Using Fusion
 
 ## Autonomous Team Development
