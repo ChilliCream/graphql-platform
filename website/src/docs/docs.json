@@ -189,6 +189,10 @@
             "title": "DevOps"
           },
           {
+            "path": "node",
+            "title": "Node Pattern"
+          },
+          {
             "path": "cli",
             "title": "CLI"
           }
