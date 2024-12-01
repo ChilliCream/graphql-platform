@@ -2,7 +2,7 @@
 title: "Quick Start Guide to Fusion"
 ---
 
-All example code can be found in the [Fusion Quick Start repository]()
+All example code can be found in the [Fusion Quick Start repository](https://github.com/ChilliCream/hotchocolate-examples/tree/master/fusion)
 
 # Introduction
 
@@ -13,7 +13,7 @@ You can find the complete code for this tutorial in the [Fusion Quick Start repo
 ## Prerequisites
 
 - **.NET SDK** installed on your machine
-- [Checkout the intial code](https://github.com/ChilliCream/hotchocolate-examples/tree/master/fusion/initial/quick-start)
+- [Checkout the initial code](https://github.com/ChilliCream/hotchocolate-examples/tree/master/fusion/initial/quick-start)
 
 # Step 1: Understanding the Source Schemas
 
@@ -120,7 +120,7 @@ In this configuration:
 
 Before the gateway can unify the schemas, we need to prepare each service by creating configuration files and packaging them as Fusion subgraph packages.
 
-### Installing the Fusion CLI Tool
+## Installing the Fusion CLI Tool
 
 Install the Fusion command-line tool, which we'll use to pack and compose the subgraphs:
 
@@ -132,7 +132,7 @@ dotnet tool install -g HotChocolate.Fusion.CommandLine
 
 For each service, create a `subgraph-config.json` file that specifies the subgraph name and its endpoint.
 
-#### Products Service Configuration
+### Products Service Configuration
 
 In the `quick-start.Products` directory, create a file named `subgraph-config.json` with the following content:
 
@@ -184,7 +184,7 @@ This command creates an `.fsp` file containing the schema and configuration for 
 
 Now that we have packaged the subgraphs, we can compose them into a unified schema that the gateway will serve.
 
-### Composing Subgraphs into a Gateway Package
+## Composing Subgraphs into a Gateway Package
 
 Navigate to the `quick-start.Gateway` project directory and compose the subgraphs into a Fusion gateway package (`.fgp` file):
 
@@ -214,7 +214,7 @@ The gateway is now running and ready to accept queries from clients, providing a
 
 You can now query both services through the gateway's single endpoint, demonstrating how Fusion seamlessly integrates multiple GraphQL services.
 
-### Example Query
+## Example Query
 
 Try running the following query against the gateway:
 
@@ -313,7 +313,7 @@ public static class ProductOperations
 
 The `[Lookup]` and `[Internal]` attributes are from the `HotChocolate.Fusion.SourceSchema` package. Technically, these attributes are not required, yet, it's a good practice to mark all lookup methods with `[Lookup]`. In case the lookup should not be used as an entry point in a query, you can mark it as `[Internal]`.
 
-You can learn more about lookups in the [Fusion documentation](/docs/hotchocolate/fusion/lookups).
+You can learn more about lookups in the [Fusion documentation](/docs/fusion/v14/lookups).
 
 This method provides a way for the gateway to fetch a `Product` by its `id`, which is essential for resolving cross-service references.
 

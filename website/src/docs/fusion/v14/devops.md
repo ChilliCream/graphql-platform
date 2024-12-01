@@ -252,7 +252,7 @@ Nitro provides monitoring and telemetry capabilities for your Fusion gateway and
 
 ![Nitro Telemetry](/assets/telemetry-0.webp)
 
-Checkout the [Nitro Distributed Telemetry](/docs/nitro/apis/fusion/#distributed-telemetry) documentation for more details.
+Checkout the [Nitro Distributed Telemetry](/docs/nitro/apis/fusion#distributed-telemetry) documentation for more details.
 
 ---
 
@@ -263,8 +263,6 @@ Nitro offers caching mechanisms of persisted operations and configurations to im
 ## File System Cache
 
 The default caching mechanism uses the file system.
-
-#### Configuration
 
 ```csharp
 services
@@ -279,15 +277,11 @@ services
 
 For distributed caching across multiple servers, use Azure Blob Storage.
 
-#### Installation
-
 Install the `ChilliCream.Nitro.Azure` package:
 
 ```bash
 dotnet add package ChilliCream.Nitro.Azure
 ```
-
-#### Configuration
 
 ```csharp
 services
@@ -305,4 +299,4 @@ services
 
 Implement the `IAssetCache` interface for custom caching strategies tailored to your specific needs.
 
-[Learn more about caching with Nitro](/docs/nitro/fusion).
+[Learn more about caching with Nitro](/docs/nitro/apis/fusion).
