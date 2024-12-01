@@ -373,7 +373,9 @@ This query fetches orders and, for each line item, retrieves detailed informatio
 
 # Step 8: Setting up Nitro
 
-TODO
+Nitro simplifies deployment orchestration, allowing downstream services to be deployed independently without requiring a full gateway redeployment.
+
+[Learn more about the DevOps process with Nitro in the DevOps documentation.](/docs/fusion/v14/devops).
 
 ## Next Steps
 
