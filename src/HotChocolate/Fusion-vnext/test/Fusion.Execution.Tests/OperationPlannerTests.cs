@@ -35,14 +35,18 @@ public class OperationPlannerTests
 
         // assert
         await Assert
-            .That(plan.ToSyntaxNode().ToString(indented: true))
+            .That(plan.Serialize())
             .IsEqualTo(
                 """
                 {
-                  productById(id: 1) {
-                    id
-                    name
-                  }
+                  "kind": "Root",
+                  "nodes": [
+                    {
+                      "kind": "Operation",
+                      "schema": "PRODUCTS",
+                      "document": "{ productById(id: 1) { id name } }"
+                    }
+                  ]
                 }
                 """);
     }
@@ -77,20 +81,25 @@ public class OperationPlannerTests
 
         // assert
         await Assert
-            .That(plan.ToSyntaxNode().ToString(indented: true))
+            .That(plan.Serialize())
             .IsEqualTo(
                 """
                 {
-                  productById(id: 1) {
-                    id
-                    name
-                  }
-                }
-
-                {
-                  productById {
-                    estimatedDelivery(postCode: "12345")
-                  }
+                  "kind": "Root",
+                  "nodes": [
+                    {
+                      "kind": "Operation",
+                      "schema": "PRODUCTS",
+                      "document": "{ productById(id: 1) { id name } }",
+                      "nodes": [
+                        {
+                          "kind": "Operation",
+                          "schema": "SHIPPING",
+                          "document": "{ productById { estimatedDelivery(postCode: \u002212345\u0022) } }"
+                        }
+                      ]
+                    }
+                  ]
                 }
                 """);
     }
@@ -140,31 +149,32 @@ public class OperationPlannerTests
 
         // assert
         await Assert
-            .That(plan.ToSyntaxNode().ToString(indented: true))
+            .That(plan.Serialize())
             .IsEqualTo(
                 """
                 {
-                  productById(id: 1) {
-                    name
-                  }
-                }
-
-                {
-                  productById {
-                    reviews(first: 10) {
-                      nodes {
-                        body
-                        stars
-                        author
-                      }
+                  "kind": "Root",
+                  "nodes": [
+                    {
+                      "kind": "Operation",
+                      "schema": "PRODUCTS",
+                      "document": "{ productById(id: 1) { name } }",
+                      "nodes": [
+                        {
+                          "kind": "Operation",
+                          "schema": "REVIEWS",
+                          "document": "{ productById { reviews(first: 10) { nodes { body stars author } } } }",
+                          "nodes": [
+                            {
+                              "kind": "Operation",
+                              "schema": "ACCOUNTS",
+                              "document": "{ userById { displayName } }"
+                            }
+                          ]
+                        }
+                      ]
                     }
-                  }
-                }
-
-                {
-                  userById {
-                    displayName
-                  }
+                  ]
                 }
                 """);
     }
@@ -214,31 +224,32 @@ public class OperationPlannerTests
 
         // assert
         await Assert
-            .That(plan.ToSyntaxNode().ToString(indented: true))
+            .That(plan.Serialize())
             .IsEqualTo(
                 """
-                query($id: ID!) {
-                  productById(id: $id) {
-                    name
-                  }
-                }
-
-                query($first: Int! = 10) {
-                  productById {
-                    reviews(first: $first) {
-                      nodes {
-                        body
-                        stars
-                        author
-                      }
-                    }
-                  }
-                }
-
                 {
-                  userById {
-                    displayName
-                  }
+                  "kind": "Root",
+                  "nodes": [
+                    {
+                      "kind": "Operation",
+                      "schema": "PRODUCTS",
+                      "document": "query($id: ID!) { productById(id: $id) { name } }",
+                      "nodes": [
+                        {
+                          "kind": "Operation",
+                          "schema": "REVIEWS",
+                          "document": "query($first: Int! = 10) { productById { reviews(first: $first) { nodes { body stars author } } } }",
+                          "nodes": [
+                            {
+                              "kind": "Operation",
+                              "schema": "ACCOUNTS",
+                              "document": "{ userById { displayName } }"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
                 }
                 """);
     }

@@ -6,7 +6,7 @@ using System.Globalization;
 using System.Reflection;
 using Xunit.Sdk;
 
-namespace CookieCrumble.Attributes;
+namespace CookieCrumble.Xunit.Attributes;
 
 /// <summary>
 /// Apply this attribute to your test method to replace the

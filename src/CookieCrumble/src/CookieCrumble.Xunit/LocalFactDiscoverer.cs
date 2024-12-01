@@ -2,7 +2,7 @@ using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
-namespace CookieCrumble;
+namespace CookieCrumble.Xunit;
 
 [XunitTestCaseDiscoverer("LocalFactDiscoverer", "YourTestAssemblyName")]
 public class LocalFactAttribute : FactAttribute;

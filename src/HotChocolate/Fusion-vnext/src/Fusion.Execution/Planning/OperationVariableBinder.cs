@@ -14,7 +14,7 @@ internal static class OperationVariableBinder
         var variableDefinitions = operationDefinition.VariableDefinitions.ToDictionary(t => t.Variable.Name.Value);
         var usedVariables = new HashSet<string>();
 
-        foreach (var operation in operationPlan.Operations)
+        foreach (var operation in operationPlan.Nodes.OfType<OperationPlanNode>())
         {
             operationBacklog.Push(operation);
         }
@@ -23,7 +23,7 @@ internal static class OperationVariableBinder
         {
             CollectAndBindUsedVariables(operation, variableDefinitions, usedVariables, selectionBacklog);
 
-            foreach (var child in operation.Operations)
+            foreach (var child in operation.Nodes.OfType<OperationPlanNode>())
             {
                 operationBacklog.Push(child);
             }

@@ -1,11 +1,17 @@
 using System.Buffers;
 using System.Text;
 using CookieCrumble.Formatters;
+using CookieCrumble.Xunit;
 
 namespace CookieCrumble;
 
 public class SnapshotTests
 {
+    static SnapshotTests()
+    {
+        Snapshot.RegisterTestFramework(new XunitFramework());
+    }
+
     [Fact]
     public void MatchSnapshot()
     {
