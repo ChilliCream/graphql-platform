@@ -66,7 +66,7 @@ Fusion can automatically detect source systems that implement the node pattern, 
    fusion compose -p gateway.fgp -s ../quick-start.Products --enable-nodes
    ```
 
-### Querying the Node Field
+## Querying the Node Field
 
 Clients can now query for nodes directly via the gateway:
 
