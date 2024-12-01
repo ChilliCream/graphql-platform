@@ -193,6 +193,10 @@
             "title": "Node Pattern"
           },
           {
+            "path": "aspire",
+            "title": "Aspire"
+          },
+          {
             "path": "cli",
             "title": "CLI"
           }
