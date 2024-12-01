@@ -25,7 +25,7 @@ nitro pat create --description "Automation Token" --expires 180
 - `--api-key <api-key>`
 - `--output <json>`
 
-### List All Personal Access Tokens
+## List All Personal Access Tokens
 
 The `nitro pat list` command is used to list all personal access tokens associated with your account.
 

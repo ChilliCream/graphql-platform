@@ -66,4 +66,3 @@ nitro api-key list
 - `--cloud-url <cloud-url>`
 - `--api-key <api-key>`
 - `--output <json>`
-
