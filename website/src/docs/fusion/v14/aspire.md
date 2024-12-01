@@ -56,6 +56,21 @@ In this configuration:
 
 By including `.Compose()`, Aspire automatically composes the gateway every time you build the application. This ensures that any changes made to your subgraphs are incorporated into the Fusion gateway without manual intervention, providing an up-to-date composed schema whenever you run your application.
 
+# Options
+
+You can further customize the composition process by using the `WithOptions` to configure specific settings for your gateway.
+
+```csharp
+services
+    .AddGraphQLServer()
+    .AddFusion()
+    .WithOptions(new FusionCompositionOptions
+    {
+        // equivalent to `--enable-nodes` CLI option
+        EnableGlobalObjectIdentification = true
+    });
+```
+
 # Example Repository
 
 A practical example demonstrating this integration is available in the [HotChocolate Examples Repository](https://github.com/ChilliCream/hotchocolate-examples/tree/master/fusion/aspire) under the `fusion/aspire` directory. This repository illustrates:
