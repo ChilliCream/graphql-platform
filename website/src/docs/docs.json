@@ -189,6 +189,10 @@
             "title": "DevOps"
           },
           {
+            "path": "aspire",
+            "title": "Aspire"
+          },
+          {
             "path": "cli",
             "title": "CLI"
           }
