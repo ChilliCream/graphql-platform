@@ -15,6 +15,114 @@ public class ConditionTests : FusionTestBase
             query GetProduct($id: ID!, $skip: Boolean!) {
                 productById(id: $id) {
                     name @skip(if: $skip)
+                    description
+                }
+            }
+            """);
+
+        // assert
+        await Assert
+            .That(plan.Serialize())
+            .IsEqualTo(
+                """
+                {
+                  "kind": "Root",
+                  "nodes": [
+                    {
+                      "kind": "Operation",
+                      "schema": "PRODUCTS",
+                      "document": "query($id: ID!, $skip: Boolean!) { productById(id: $id) { name @skip(if: $skip) description } }"
+                    }
+                  ]
+                }
+                """);
+    }
+
+    [Test]
+    public async Task Skip_On_SubField_If_False()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        // act
+        var plan = PlanOperationAsync(
+            compositeSchema,
+            """
+            query GetProduct($id: ID!) {
+                productById(id: $id) {
+                    name @skip(if: false)
+                    description
+                }
+            }
+            """);
+
+        // assert
+        await Assert
+            .That(plan.Serialize())
+            .IsEqualTo(
+                """
+                {
+                  "kind": "Root",
+                  "nodes": [
+                    {
+                      "kind": "Operation",
+                      "schema": "PRODUCTS",
+                      "document": "query($id: ID!) { productById(id: $id) { name description } }"
+                    }
+                  ]
+                }
+                """);
+    }
+
+    [Test]
+    public async Task Skip_On_SubField_If_True()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        // act
+        var plan = PlanOperationAsync(
+            compositeSchema,
+            """
+            query GetProduct($id: ID!) {
+                productById(id: $id) {
+                    name @skip(if: true)
+                    description
+                }
+            }
+            """);
+
+        // assert
+        await Assert
+            .That(plan.Serialize())
+            .IsEqualTo(
+                """
+                {
+                  "kind": "Root",
+                  "nodes": [
+                    {
+                      "kind": "Operation",
+                      "schema": "PRODUCTS",
+                      "document": "query($id: ID!) { productById(id: $id) { description } }"
+                    }
+                  ]
+                }
+                """);
+    }
+
+    [Test]
+    public async Task Skip_On_SubField_Only_Skipped_Field_Selected()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        // act
+        var plan = PlanOperationAsync(
+            compositeSchema,
+            """
+            query GetProduct($id: ID!, $skip: Boolean!) {
+                productById(id: $id) {
+                    name @skip(if: $skip)
                 }
             }
             """);
@@ -38,7 +146,7 @@ public class ConditionTests : FusionTestBase
     }
 
     [Test]
-    public async Task Skip_If_False_On_SubField()
+    public async Task Skip_On_SubField_Only_Skipped_Field_Selected_If_False()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
@@ -73,7 +181,7 @@ public class ConditionTests : FusionTestBase
     }
 
     [Test]
-    public async Task Skip_If_True_On_SubField()
+    public async Task Skip_On_SubField_Only_Skipped_Field_Selected_If_True()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
@@ -108,7 +216,7 @@ public class ConditionTests : FusionTestBase
     }
 
     [Test]
-    public async Task Skip_If_True_On_SubField_With_Other_SubFields()
+    public async Task Skip_On_SubField_Resolved_From_Other_Source()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
@@ -117,10 +225,15 @@ public class ConditionTests : FusionTestBase
         var plan = PlanOperationAsync(
             compositeSchema,
             """
-            query GetProduct($id: ID!) {
+            query GetProduct($id: ID!, $skip: Boolean!) {
                 productById(id: $id) {
-                    id
-                    name @skip(if: true)
+                    name
+                    averageRating
+                    reviews(first: 10) @skip(if: $skip) {
+                        nodes {
+                            body
+                        }
+                    }
                 }
             }
             """);
@@ -136,7 +249,14 @@ public class ConditionTests : FusionTestBase
                     {
                       "kind": "Operation",
                       "schema": "PRODUCTS",
-                      "document": "query($id: ID!) { productById(id: $id) { id } }"
+                      "document": "query($id: ID!) { productById(id: $id) { name } }",
+                      "nodes": [
+                        {
+                          "kind": "Operation",
+                          "schema": "REVIEWS",
+                          "document": "query($skip: Boolean!) { productById { averageRating reviews(first: 10) @skip(if: $skip) { nodes { body } } } }"
+                        }
+                      ]
                     }
                   ]
                 }
@@ -144,7 +264,103 @@ public class ConditionTests : FusionTestBase
     }
 
     [Test]
-    public async Task Skip_On_SubField_Of_Another_Subgraph()
+    public async Task Skip_On_SubField_Resolved_From_Other_Source_If_False()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        // act
+        var plan = PlanOperationAsync(
+            compositeSchema,
+            """
+            query GetProduct($id: ID!) {
+                productById(id: $id) {
+                    name
+                    averageRating
+                    reviews(first: 10) @skip(if: false) {
+                        nodes {
+                            body
+                        }
+                    }
+                }
+            }
+            """);
+
+        // assert
+        await Assert
+            .That(plan.Serialize())
+            .IsEqualTo(
+                """
+                {
+                  "kind": "Root",
+                  "nodes": [
+                    {
+                      "kind": "Operation",
+                      "schema": "PRODUCTS",
+                      "document": "query($id: ID!) { productById(id: $id) { name } }",
+                      "nodes": [
+                        {
+                          "kind": "Operation",
+                          "schema": "REVIEWS",
+                          "document": "{ productById { averageRating reviews(first: 10) { nodes { body } } } }"
+                        }
+                      ]
+                    }
+                  ]
+                }
+                """);
+    }
+
+    [Test]
+    public async Task Skip_On_SubField_Resolved_From_Other_Source_If_True()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        // act
+        var plan = PlanOperationAsync(
+            compositeSchema,
+            """
+            query GetProduct($id: ID!) {
+                productById(id: $id) {
+                    name
+                    averageRating
+                    reviews(first: 10) @skip(if: true) {
+                        nodes {
+                            body
+                        }
+                    }
+                }
+            }
+            """);
+
+        // assert
+        await Assert
+            .That(plan.Serialize())
+            .IsEqualTo(
+                """
+                {
+                  "kind": "Root",
+                  "nodes": [
+                    {
+                      "kind": "Operation",
+                      "schema": "PRODUCTS",
+                      "document": "query($id: ID!) { productById(id: $id) { name } }",
+                      "nodes": [
+                        {
+                          "kind": "Operation",
+                          "schema": "REVIEWS",
+                          "document": "{ productById { averageRating } }"
+                        }
+                      ]
+                    }
+                  ]
+                }
+                """);
+    }
+
+    [Test]
+    public async Task Skip_On_SubField_Resolved_From_Other_Source_Only_Skipped_Field_Selected()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
@@ -198,7 +414,7 @@ public class ConditionTests : FusionTestBase
     }
 
     [Test]
-    public async Task Skip_If_False_On_SubField_Of_Another_Subgraph()
+    public async Task Skip_On_SubField_Resolved_From_Other_Source_Only_Skipped_Field_Selected_If_False()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
@@ -245,7 +461,7 @@ public class ConditionTests : FusionTestBase
     }
 
     [Test]
-    public async Task Skip_If_True_On_SubField_Of_Another_Subgraph()
+    public async Task Skip_On_SubField_Resolved_From_Other_Source_Only_Skipped_Field_Selected_If_True()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
@@ -298,6 +514,126 @@ public class ConditionTests : FusionTestBase
                 productById(id: $id) @skip(if: $skip) {
                     name
                 }
+                products {
+                  nodes {
+                    name
+                  }
+                }
+            }
+            """);
+
+        // assert
+        await Assert
+            .That(plan.Serialize())
+            .IsEqualTo(
+                """
+                {
+                  "kind": "Root",
+                  "nodes": [
+                    {
+                      "kind": "Operation",
+                      "schema": "PRODUCTS",
+                      "document": "query($id: ID!, $skip: Boolean!) { productById(id: $id) @skip(if: $skip) { name } products { nodes { name } } }"
+                    }
+                  ]
+                }
+                """);
+    }
+
+    [Test]
+    public async Task Skip_On_RootField_If_False()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        // act
+        var plan = PlanOperationAsync(
+            compositeSchema,
+            """
+            query GetProduct($id: ID!) {
+                productById(id: $id) @skip(if: false) {
+                    name
+                }
+                products {
+                  nodes {
+                    name
+                  }
+                }
+            }
+            """);
+
+        // assert
+        await Assert
+            .That(plan.Serialize())
+            .IsEqualTo(
+                """
+                {
+                  "kind": "Root",
+                  "nodes": [
+                    {
+                      "kind": "Operation",
+                      "schema": "PRODUCTS",
+                      "document": "query($id: ID!) { productById(id: $id) { name } products { nodes { name } } }"
+                    }
+                  ]
+                }
+                """);
+    }
+
+    [Test]
+    public async Task Skip_On_RootField_If_True()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        // act
+        var plan = PlanOperationAsync(
+            compositeSchema,
+            """
+            query GetProduct($id: ID!) {
+                productById(id: $id) @skip(if: true) {
+                    name
+                }
+                products {
+                  nodes {
+                    name
+                  }
+                }
+            }
+            """);
+
+        // assert
+        await Assert
+            .That(plan.Serialize())
+            .IsEqualTo(
+                """
+                {
+                  "kind": "Root",
+                  "nodes": [
+                    {
+                      "kind": "Operation",
+                      "schema": "PRODUCTS",
+                      "document": "{ products { nodes { name } } }"
+                    }
+                  ]
+                }
+                """);
+    }
+
+    [Test]
+    public async Task Skip_On_RootField_Only_Skipped_Field_Selected()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        // act
+        var plan = PlanOperationAsync(
+            compositeSchema,
+            """
+            query GetProduct($id: ID!, $skip: Boolean!) {
+                productById(id: $id) @skip(if: $skip) {
+                    name
+                }
             }
             """);
 
@@ -327,7 +663,7 @@ public class ConditionTests : FusionTestBase
     }
 
     [Test]
-    public async Task Skip_If_False_On_RootField()
+    public async Task Skip_On_RootField_Only_Skipped_Field_Selected_If_False()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
@@ -362,7 +698,7 @@ public class ConditionTests : FusionTestBase
     }
 
     [Test]
-    public async Task Skip_If_True_On_RootField()
+    public async Task Skip_On_RootField_Only_Skipped_Field_Selected_If_True()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
