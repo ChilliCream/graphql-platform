@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using CookieCrumble;
 using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Execution;
 using HotChocolate.Types;

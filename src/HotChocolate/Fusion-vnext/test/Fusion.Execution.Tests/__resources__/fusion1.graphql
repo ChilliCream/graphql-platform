@@ -1,0 +1,217 @@
+type Query
+  @fusion__type(schema: ACCOUNTS)
+  @fusion__type(schema: PRODUCTS) {
+  viewer: UserProfile
+    @fusion__field(schema: ACCOUNTS)
+  productById(id: ID!): Product
+    @fusion__field(schema: PRODUCTS)
+  products(first: Int, after: String, last: Int, before: String): ProductConnection
+    @fusion__field(schema: PRODUCTS)
+}
+
+type Product
+  @fusion__type(schema: PRODUCTS)
+  @fusion__type(schema: SHIPPING)
+  @fusion__type(schema: REVIEWS)
+  @fusion__lookup(
+      schema: PRODUCTS
+      key: "{ id }"
+      field: "productById(id: ID!): Product"
+      map: ["id"]
+  )
+  @fusion__lookup(
+      schema: SHIPPING
+      key: "{ id }"
+      field: "productById(id: ID!): Product"
+      map: ["id"]
+  )
+  @fusion__lookup(
+      schema: REVIEWS
+      key: "{ id }"
+      field: "productById(id: ID!): Product"
+      map: ["id"]
+  ) {
+  id: ID!
+    @fusion__field(schema: PRODUCTS)
+    @fusion__field(schema: SHIPPING)
+  name: String!
+    @fusion__field(schema: PRODUCTS)
+  description: String
+    @fusion__field(schema: PRODUCTS)
+  price: Float!
+    @fusion__field(schema: PRODUCTS)
+  dimension: ProductDimension!
+    @fusion__field(schema: PRODUCTS)
+  reviews(first: Int, after: String, last: Int, before: String): ProductReviewConnection
+    @fusion__field(schema: REVIEWS)
+  estimatedDelivery(postCode: String): Int!
+    @fusion__field(schema: SHIPPING)
+    @fusion__requires(
+        schema: SHIPPING
+        field: "estimatedDelivery(postCode: String, height: Int!, width: Int!): Int!"
+        map: ["dimension.height", "dimension.width"]
+    )
+}
+
+type ProductDimension
+  @fusion__type(schema: PRODUCTS) {
+  height: Int!
+    @fusion__field(schema: PRODUCTS)
+  width: Int!
+    @fusion__field(schema: PRODUCTS)
+}
+
+type Review
+  @fusion__type(schema: REVIEWS)
+  @fusion__lookup(
+    schema: REVIEWS
+    key: "{ id }"
+    field: "reviewById(id: ID!): Review"
+    map: ["id"]
+  ) {
+  id: ID!
+    @fusion__field(schema: REVIEWS)
+  body: String!
+    @fusion__field(schema: REVIEWS)
+  stars: Int!
+    @fusion__field(schema: REVIEWS)
+  author: UserProfile
+    @fusion__field(schema: REVIEWS)
+}
+
+type UserProfile
+  @fusion__type(schema: REVIEWS)
+  @fusion__type(schema: ACCOUNTS)
+  @fusion__lookup(
+    schema: REVIEWS
+    key: "{ id }"
+    field: "authorById(id: ID!): UserProfile"
+    map: ["id"]
+  )
+  @fusion__lookup(
+    schema: ACCOUNTS
+    key: "{ id }"
+    field: "userById(id: ID!): UserProfile"
+    map: ["id"]
+  ) {
+  id: ID!
+    @fusion__field(schema: ACCOUNTS)
+    @fusion__field(schema: REVIEWS)
+  displayName: String!
+    @fusion__field(schema: ACCOUNTS)
+  reviews(first: Int, after: String, last: Int, before: String): UserProfileReviewConnection
+    @fusion__field(schema: REVIEWS)
+}
+
+type ProductReviewConnection
+  @fusion__type(schema: REVIEWS) {
+  pageInfo: PageInfo!
+    @fusion__field(schema: REVIEWS)
+  edges: [ProductReviewEdge!]
+    @fusion__field(schema: REVIEWS)
+  nodes: [Review!]
+    @fusion__field(schema: REVIEWS)
+}
+
+type ProductReviewEdge
+  @fusion__type(schema: REVIEWS) {
+  cursor: String!
+    @fusion__field(schema: REVIEWS)
+  node: Review!
+    @fusion__field(schema: REVIEWS)
+}
+
+type UserProfileReviewConnection
+  @fusion__type(schema: REVIEWS) {
+  pageInfo: PageInfo!
+    @fusion__field(schema: REVIEWS)
+  edges: [UserProfileReviewEdge!]
+    @fusion__field(schema: REVIEWS)
+  nodes: [Review!]
+    @fusion__field(schema: REVIEWS)
+}
+
+type UserProfileReviewEdge
+  @fusion__type(schema: REVIEWS) {
+  cursor: String!
+    @fusion__field(schema: REVIEWS)
+  node: Review!
+    @fusion__field(schema: REVIEWS)
+}
+
+type ProductConnection
+  @fusion__type(schema: PRODUCTS) {
+  pageInfo: PageInfo!
+    @fusion__field(schema: PRODUCTS)
+  edges: [ProductEdge!]
+    @fusion__field(schema: PRODUCTS)
+  nodes: [Product!]
+    @fusion__field(schema: PRODUCTS)
+}
+
+type ProductEdge
+  @fusion__type(schema: PRODUCTS) {
+  cursor: String!
+    @fusion__field(schema: PRODUCTS)
+  node: Product!
+    @fusion__field(schema: PRODUCTS)
+}
+
+type PageInfo
+  @fusion__type(schema: PRODUCTS)
+  @fusion__type(schema: REVIEWS) {
+  hasNextPage: Boolean!
+    @fusion__field(schema: PRODUCTS)
+    @fusion__field(schema: REVIEWS)
+  hasPreviousPage: Boolean!
+    @fusion__field(schema: PRODUCTS)
+    @fusion__field(schema: REVIEWS)
+  startCursor: String
+    @fusion__field(schema: PRODUCTS)
+    @fusion__field(schema: REVIEWS)
+  endCursor: String
+    @fusion__field(schema: PRODUCTS)
+    @fusion__field(schema: REVIEWS)
+}
+
+enum fusion__Schema {
+  PRODUCTS
+  SHIPPING
+  REVIEWS
+  ACCOUNTS
+}
+
+scalar fusion__FieldDefinition
+scalar fusion__FieldSelectionMap
+scalar fusion__FieldSelectionSet
+
+directive @fusion__type(
+  schema: fusion__Schema!
+) repeatable on OBJECT | INTERFACE | UNION | ENUM | INPUT_OBJECT | SCALAR
+
+directive @fusion__field(
+  schema: fusion__Schema!
+  sourceName: String
+  sourceType: String
+  provides: fusion__FieldSelectionSet
+  external: Boolean! = false
+) repeatable on FIELD_DEFINITION
+
+directive @fusion__inputField(
+  schema: fusion__Schema!
+  sourceName: String
+  sourceType: String
+) repeatable on INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
+
+directive @fusion__requires(
+  schema: fusion__Schema!
+  field: fusion__FieldDefinition!
+  map: [fusion__FieldSelectionMap!]!
+) repeatable on FIELD_DEFINITION
+
+directive @fusion__lookup(
+  schema: fusion__Schema!
+  key: fusion__FieldSelectionSet!
+  field: fusion__FieldDefinition!
+  map: [fusion__FieldSelectionMap!]!
+) repeatable on OBJECT | INTERFACE

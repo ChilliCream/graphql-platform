@@ -1,4 +1,4 @@
-using CookieCrumble;
+using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Internal;
@@ -1007,6 +1007,27 @@ public class IntegrationTests
         result.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task Simple_EnumerableValueType_ReturnsError()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryEnumerableValueType>()
+            .BuildRequestExecutorAsync();
+
+        // act
+        const string query = "{ test { nodes } }";
+
+        var result = await executor.ExecuteAsync(query);
+        var errors = result.ExpectOperationResult().Errors;
+
+        // assert
+        Assert.NotNull(errors);
+        var error = Assert.Single(errors);
+        Assert.Equal("Cannot handle the specified data source.", error.Message);
+    }
+
     public class QueryType : ObjectType<Query>
     {
         protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
@@ -1249,5 +1270,14 @@ public class IntegrationTests
             => new Connection<string>(
                 new[] {new Edge<string>("abc", "def"), new Edge<string>("abc", "def"), },
                 new ConnectionPageInfo(false, false, null, null), 2);
+    }
+
+    public class QueryEnumerableValueType
+    {
+        [UsePaging]
+        public ImmutableArray<int> Test()
+        {
+            return ImmutableArray<int>.Empty;
+        }
     }
 }

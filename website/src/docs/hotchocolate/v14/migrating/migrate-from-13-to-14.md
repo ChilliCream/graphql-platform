@@ -152,9 +152,9 @@ We have also simplified what the builder does and removed a lot of the convenien
 
 The interface `IQueryResultBuilder` and its implementations were replaced with `OperationResultBuilder` which produces an `OperationResult` on `Build()`.
 
-### IQueryResult replaced by OperationResult
+### IQueryResult replaced by IOperationResult
 
-The interface `IQueryResultBuilder` and its implementations were replaced with `OperationResultBuilder` which produces an `OperationResult` on `Build()`.
+The interface `IQueryResult` was replaced with `IOperationResult`.
 
 ## Operation complexity analyzer replaced
 
@@ -189,19 +189,24 @@ Please ensure that your clients are sending date/time strings in the correct for
 
 ### Methods renamed
 
-| Old method name                     | New method name                        |
-| ----------------------------------- | -------------------------------------- |
-| UsePersistedQueryPipeline           | UsePersistedOperationPipeline          |
-| UseAutomaticPersistedQueryPipeline  | UseAutomaticPersistedOperationPipeline |
-| AddFileSystemQueryStorage           | AddFileSystemOperationDocumentStorage  |
-| AddInMemoryQueryStorage             | AddInMemoryOperationDocumentStorage    |
-| AddRedisQueryStorage                | AddRedisOperationDocumentStorage       |
-| OnlyAllowPersistedQueries           | OnlyAllowPersistedOperations           |
-| OnlyPersistedQueriesAreAllowedError | OnlyPersistedOperationsAreAllowedError |
-| AllowNonPersistedQuery              | AllowNonPersistedOperation             |
-| UseReadPersistedQuery               | UseReadPersistedOperation              |
-| UseAutomaticPersistedQueryNotFound  | UseAutomaticPersistedOperationNotFound |
-| UseWritePersistedQuery              | UseWritePersistedOperation             |
+| Old method name                    | New method name                        |
+| ---------------------------------- | -------------------------------------- |
+| UsePersistedQueryPipeline          | UsePersistedOperationPipeline          |
+| UseAutomaticPersistedQueryPipeline | UseAutomaticPersistedOperationPipeline |
+| AddFileSystemQueryStorage          | AddFileSystemOperationDocumentStorage  |
+| AddInMemoryQueryStorage            | AddInMemoryOperationDocumentStorage    |
+| AddRedisQueryStorage               | AddRedisOperationDocumentStorage       |
+| AllowNonPersistedQuery             | AllowNonPersistedOperation             |
+| UseReadPersistedQuery              | UseReadPersistedOperation              |
+| UseAutomaticPersistedQueryNotFound | UseAutomaticPersistedOperationNotFound |
+| UseWritePersistedQuery             | UseWritePersistedOperation             |
+
+### Options renamed
+
+| Old option name                     | New option name                                 |
+| ----------------------------------- | ----------------------------------------------- |
+| OnlyAllowPersistedQueries           | PersistedOperations.OnlyAllowPersistedDocuments |
+| OnlyPersistedQueriesAreAllowedError | PersistedOperations.OperationNotAllowedError    |
 
 ### Defaults changed
 
@@ -232,6 +237,20 @@ Renamed interface methods:
 Accessing a keyed service that has not been registered will now throw, instead of returning `null`. The return type is now non-nullable.
 
 This change aligns the API with the regular (non-keyed) service access API.
+
+## Change to OnlyAllowPersistedOperations option
+
+**Before**
+
+```csharp
+ModifyRequestOptions(o => o.OnlyAllowPersistedOperations = true);
+```
+
+**After**
+
+```csharp
+ModifyRequestOptions(o => o.PersistedOperations.OnlyAllowPersistedDocuments = true);
+```
 
 # Deprecations
 

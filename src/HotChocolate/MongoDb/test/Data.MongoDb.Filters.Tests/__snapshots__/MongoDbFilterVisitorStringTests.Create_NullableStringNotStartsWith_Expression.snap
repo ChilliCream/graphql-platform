@@ -16,7 +16,7 @@ testa Result:
 
 testa Query:
 ---------------
-find({ "Bar" : { "$not" : { "$regex" : /^testa/ } } })
+find({ "Bar" : { "$not" : { "$regex" : { "$regularExpression" : { "pattern" : "^testa", "options" : "" } } } } })
 ---------------
 
 testb Result:
@@ -37,7 +37,7 @@ testb Result:
 
 testb Query:
 ---------------
-find({ "Bar" : { "$not" : { "$regex" : /^testb/ } } })
+find({ "Bar" : { "$not" : { "$regex" : { "$regularExpression" : { "pattern" : "^testb", "options" : "" } } } } })
 ---------------
 
 null

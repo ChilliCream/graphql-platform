@@ -57,6 +57,7 @@ internal class MongoDbCursorPagingHandler<TEntity>(PagingOptions options)
 
         public async ValueTask<CursorPaginationData<TEntity>> QueryAsync(
             IMongoPagingContainer<TEntity> slicedQuery,
+            IMongoPagingContainer<TEntity> originalQuery,
             int offset,
             bool includeTotalCount,
             CancellationToken cancellationToken)
@@ -64,7 +65,7 @@ internal class MongoDbCursorPagingHandler<TEntity>(PagingOptions options)
             if (includeTotalCount)
             {
                 var itemsTask = slicedQuery.QueryAsync(offset, cancellationToken);
-                var countTask = slicedQuery.CountAsync(cancellationToken);
+                var countTask = originalQuery.CountAsync(cancellationToken);
 
                 await Task.WhenAll(itemsTask, countTask).ConfigureAwait(false);
 

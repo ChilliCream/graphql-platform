@@ -16,7 +16,7 @@ ASC Result:
 
 ASC Query:
 ---------------
-find({ "Bar" : { "$gt" : [NumberLong("630822816000000000"), 0] } }).sort({ "Qux" : 1, "Bar" : 1 })
+find({ "Bar" : { "$gt" : { "DateTime" : { "$date" : "2000-01-01T00:00:00Z" }, "Ticks" : 630822816000000000, "Offset" : 0 } } }).sort({ "Qux" : 1, "Bar" : 1 })
 ---------------
 
 DESC Result:
@@ -37,5 +37,5 @@ DESC Result:
 
 DESC Query:
 ---------------
-find({ "Bar" : { "$gt" : [NumberLong("630822816000000000"), 0] } }).sort({ "Qux" : 1, "Bar" : -1 })
+find({ "Bar" : { "$gt" : { "DateTime" : { "$date" : "2000-01-01T00:00:00Z" }, "Ticks" : 630822816000000000, "Offset" : 0 } } }).sort({ "Qux" : 1, "Bar" : -1 })
 ---------------
