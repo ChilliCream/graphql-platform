@@ -149,6 +149,45 @@
     ]
   },
   {
+    "path": "fusion",
+    "title": "Fusion",
+    "description": "Federated GraphQL Gateway",
+    "metaDescription": "Fusion is a powerful, open-source GraphQL gateway that helps developers to build a unified API for their services.",
+    "latestStableVersion": "v14",
+    "versions": [
+      {
+        "path": "v14",
+        "title": "v14",
+        "items": [
+          {
+            "path": "index",
+            "title": "Overview"
+          },
+          {
+            "path": "quick-start",
+            "title": "Quick Start"
+          },
+          {
+            "path": "entities",
+            "title": "Entities"
+          },
+          {
+            "path": "lookups",
+            "title": "Lookups"
+          },
+          {
+            "path": "devops",
+            "title": "DevOps"
+          },
+          {
+            "path": "cli",
+            "title": "CLI"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "path": "hotchocolate",
     "title": "Hot Chocolate",
     "description": "GraphQL Server / Gateway",
@@ -378,16 +417,6 @@
               {
                 "path": "command-line",
                 "title": "Command Line"
-              }
-            ]
-          },
-          {
-            "path": "fusion",
-            "title": "Fusion",
-            "items": [
-              {
-                "path": "index",
-                "title": "Overview"
               }
             ]
           },
@@ -716,16 +745,6 @@
               {
                 "path": "command-line",
                 "title": "Command Line"
-              }
-            ]
-          },
-          {
-            "path": "fusion",
-            "title": "Fusion",
-            "items": [
-              {
-                "path": "index",
-                "title": "Overview"
               }
             ]
           },
