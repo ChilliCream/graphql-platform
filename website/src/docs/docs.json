@@ -100,6 +100,14 @@
               {
                 "path": "authentication",
                 "title": "Authentication"
+              },
+              {
+                "path": "global-options",
+                "title": "Global Options"
+              },
+              {
+                "path": "automation",
+                "title": "Automation"
               }
             ]
           },
@@ -114,6 +122,7 @@
               { "path": "launch", "title": "launch" },
               { "path": "login", "title": "login" },
               { "path": "logout", "title": "logout" },
+              { "path": "pat", "title": "pat" },
               { "path": "schema", "title": "schema" },
               { "path": "stage", "title": "stage" },
               {
@@ -143,6 +152,53 @@
               { "path": "themes", "title": "Themes" },
               { "path": "key-bindings", "title": "Key Bindings" }
             ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "path": "fusion",
+    "title": "Fusion",
+    "description": "Federated GraphQL Gateway",
+    "metaDescription": "Fusion is a powerful, open-source GraphQL gateway that helps developers to build a unified API for their services.",
+    "latestStableVersion": "v14",
+    "versions": [
+      {
+        "path": "v14",
+        "title": "v14",
+        "items": [
+          {
+            "path": "index",
+            "title": "Overview"
+          },
+          {
+            "path": "quick-start",
+            "title": "Quick Start"
+          },
+          {
+            "path": "entities",
+            "title": "Entities"
+          },
+          {
+            "path": "lookups",
+            "title": "Lookups"
+          },
+          {
+            "path": "devops",
+            "title": "DevOps"
+          },
+          {
+            "path": "node",
+            "title": "Node Pattern"
+          },
+          {
+            "path": "aspire",
+            "title": "Aspire"
+          },
+          {
+            "path": "cli",
+            "title": "CLI"
           }
         ]
       }
@@ -378,16 +434,6 @@
               {
                 "path": "command-line",
                 "title": "Command Line"
-              }
-            ]
-          },
-          {
-            "path": "fusion",
-            "title": "Fusion",
-            "items": [
-              {
-                "path": "index",
-                "title": "Overview"
               }
             ]
           },
@@ -716,16 +762,6 @@
               {
                 "path": "command-line",
                 "title": "Command Line"
-              }
-            ]
-          },
-          {
-            "path": "fusion",
-            "title": "Fusion",
-            "items": [
-              {
-                "path": "index",
-                "title": "Overview"
               }
             ]
           },
