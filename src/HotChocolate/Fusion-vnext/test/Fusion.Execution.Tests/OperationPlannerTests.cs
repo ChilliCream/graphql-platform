@@ -7,7 +7,7 @@ namespace HotChocolate.Fusion;
 public class OperationPlannerTests
 {
     [Test]
-    public async Task Plan_Simple_Operation_1_Source_Schema()
+    public void Plan_Simple_Operation_1_Source_Schema()
     {
         var compositeSchemaDoc = Utf8GraphQLParser.Parse(FileResource.Open("fusion1.graphql"));
         var compositeSchema = CompositeSchemaBuilder.Create(compositeSchemaDoc);
@@ -34,25 +34,11 @@ public class OperationPlannerTests
         var plan = planner.CreatePlan(rewritten, null);
 
         // assert
-        await Assert
-            .That(plan.Serialize())
-            .IsEqualTo(
-                """
-                {
-                  "kind": "Root",
-                  "nodes": [
-                    {
-                      "kind": "Operation",
-                      "schema": "PRODUCTS",
-                      "document": "{ productById(id: 1) { id name } }"
-                    }
-                  ]
-                }
-                """);
+        plan.Serialize().MatchSnapshot();
     }
 
     [Test]
-    public async Task Plan_Simple_Operation_2_Source_Schema()
+    public void Plan_Simple_Operation_2_Source_Schema()
     {
         var compositeSchemaDoc = Utf8GraphQLParser.Parse(FileResource.Open("fusion1.graphql"));
         var compositeSchema = CompositeSchemaBuilder.Create(compositeSchemaDoc);
@@ -80,32 +66,11 @@ public class OperationPlannerTests
         var plan = planner.CreatePlan(rewritten, null);
 
         // assert
-        await Assert
-            .That(plan.Serialize())
-            .IsEqualTo(
-                """
-                {
-                  "kind": "Root",
-                  "nodes": [
-                    {
-                      "kind": "Operation",
-                      "schema": "PRODUCTS",
-                      "document": "{ productById(id: 1) { id name } }",
-                      "nodes": [
-                        {
-                          "kind": "Operation",
-                          "schema": "SHIPPING",
-                          "document": "{ productById { estimatedDelivery(postCode: \u002212345\u0022) } }"
-                        }
-                      ]
-                    }
-                  ]
-                }
-                """);
+        plan.Serialize().MatchSnapshot();
     }
 
     [Test]
-    public async Task Plan_Simple_Operation_3_Source_Schema()
+    public void Plan_Simple_Operation_3_Source_Schema()
     {
         var compositeSchemaDoc = Utf8GraphQLParser.Parse(FileResource.Open("fusion1.graphql"));
         var compositeSchema = CompositeSchemaBuilder.Create(compositeSchemaDoc);
@@ -148,39 +113,11 @@ public class OperationPlannerTests
         var plan = planner.CreatePlan(rewritten, null);
 
         // assert
-        await Assert
-            .That(plan.Serialize())
-            .IsEqualTo(
-                """
-                {
-                  "kind": "Root",
-                  "nodes": [
-                    {
-                      "kind": "Operation",
-                      "schema": "PRODUCTS",
-                      "document": "{ productById(id: 1) { name } }",
-                      "nodes": [
-                        {
-                          "kind": "Operation",
-                          "schema": "REVIEWS",
-                          "document": "{ productById { reviews(first: 10) { nodes { body stars author } } } }",
-                          "nodes": [
-                            {
-                              "kind": "Operation",
-                              "schema": "ACCOUNTS",
-                              "document": "{ userById { displayName } }"
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  ]
-                }
-                """);
+        plan.Serialize().MatchSnapshot();
     }
 
     [Test]
-    public async Task Plan_Simple_Operation_3_Source_Schema_And_Single_Variable()
+    public void Plan_Simple_Operation_3_Source_Schema_And_Single_Variable()
     {
         var compositeSchemaDoc = Utf8GraphQLParser.Parse(FileResource.Open("fusion1.graphql"));
         var compositeSchema = CompositeSchemaBuilder.Create(compositeSchemaDoc);
@@ -223,34 +160,6 @@ public class OperationPlannerTests
         var plan = planner.CreatePlan(rewritten, null);
 
         // assert
-        await Assert
-            .That(plan.Serialize())
-            .IsEqualTo(
-                """
-                {
-                  "kind": "Root",
-                  "nodes": [
-                    {
-                      "kind": "Operation",
-                      "schema": "PRODUCTS",
-                      "document": "query($id: ID!) { productById(id: $id) { name } }",
-                      "nodes": [
-                        {
-                          "kind": "Operation",
-                          "schema": "REVIEWS",
-                          "document": "query($first: Int! = 10) { productById { reviews(first: $first) { nodes { body stars author } } } }",
-                          "nodes": [
-                            {
-                              "kind": "Operation",
-                              "schema": "ACCOUNTS",
-                              "document": "{ userById { displayName } }"
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  ]
-                }
-                """);
+        plan.Serialize().MatchSnapshot();
     }
 }
