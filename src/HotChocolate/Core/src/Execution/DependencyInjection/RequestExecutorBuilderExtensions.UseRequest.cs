@@ -120,6 +120,10 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder) =>
         builder.UseRequest(OperationVariableCoercionMiddleware.Create());
 
+    public static IRequestExecutorBuilder UseSkipWarmupExecution(
+        this IRequestExecutorBuilder builder) =>
+        builder.UseRequest(SkipWarmupExecutionMiddleware.Create());
+
     public static IRequestExecutorBuilder UseReadPersistedOperation(
         this IRequestExecutorBuilder builder) =>
         builder.UseRequest(ReadPersistedOperationMiddleware.Create());
@@ -191,6 +195,7 @@ public static partial class RequestExecutorBuilderExtensions
             .UseDocumentValidation()
             .UseOperationCache()
             .UseOperationResolver()
+            .UseSkipWarmupExecution()
             .UseOperationVariableCoercion()
             .UseOperationExecution();
     }
@@ -215,6 +220,7 @@ public static partial class RequestExecutorBuilderExtensions
             .UseDocumentValidation()
             .UseOperationCache()
             .UseOperationResolver()
+            .UseSkipWarmupExecution()
             .UseOperationVariableCoercion()
             .UseOperationExecution();
     }
@@ -229,6 +235,7 @@ public static partial class RequestExecutorBuilderExtensions
         pipeline.Add(DocumentValidationMiddleware.Create());
         pipeline.Add(OperationCacheMiddleware.Create());
         pipeline.Add(OperationResolverMiddleware.Create());
+        pipeline.Add(SkipWarmupExecutionMiddleware.Create());
         pipeline.Add(OperationVariableCoercionMiddleware.Create());
         pipeline.Add(OperationExecutionMiddleware.Create());
     }
