@@ -1,0 +1,10 @@
+{
+  "kind": "Root",
+  "nodes": [
+    {
+      "kind": "Operation",
+      "schema": "PRODUCTS",
+      "document": "{ productById(id: 1) { id name } }"
+    }
+  ]
+}

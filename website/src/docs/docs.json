@@ -412,6 +412,10 @@
                 "title": "Dependency injection"
               },
               {
+                "path": "warmup",
+                "title": "Warmup"
+              },
+              {
                 "path": "global-state",
                 "title": "Global State"
               },

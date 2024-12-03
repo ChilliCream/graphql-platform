@@ -99,13 +99,13 @@ public static class PagingQueryableExtensions
         if (arguments.After is not null)
         {
             var cursor = CursorParser.Parse(arguments.After, keys);
-            source = source.Where(BuildWhereExpression<T>(keys, cursor, forward));
+            source = source.Where(BuildWhereExpression<T>(keys, cursor, true));
         }
 
         if (arguments.Before is not null)
         {
             var cursor = CursorParser.Parse(arguments.Before, keys);
-            source = source.Where(BuildWhereExpression<T>(keys, cursor, forward));
+            source = source.Where(BuildWhereExpression<T>(keys, cursor, false));
         }
 
         if (arguments.First is not null)
