@@ -1020,7 +1020,7 @@ public class SemanticNonNullTests
         public SomeObject[] PureObjectListItemThrowingError(IResolverContext context)
         {
             context.ReportError(ErrorBuilder.New().SetMessage("Another error").SetPath(context.Path.Append(1)).Build());
-            return [new("a"), null!, new("c")];;
+            return [new("a"), null!, new("c")];
         }
 
         public SomeObject?[] PureNullableObjectListItemReturningNull => [new("a"), null, new("c")];
