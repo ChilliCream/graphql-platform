@@ -1,0 +1,24 @@
+{
+  "kind": "Root",
+  "nodes": [
+    {
+      "kind": "Operation",
+      "schema": "PRODUCTS",
+      "document": "query($id: ID!) { productById(id: $id) { name } }",
+      "nodes": [
+        {
+          "kind": "Operation",
+          "schema": "REVIEWS",
+          "document": "query($first: Int! = 10) { productById { reviews(first: $first) { nodes { body stars author } } } }",
+          "nodes": [
+            {
+              "kind": "Operation",
+              "schema": "ACCOUNTS",
+              "document": "{ userById { displayName } }"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
