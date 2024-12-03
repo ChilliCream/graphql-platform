@@ -328,4 +328,9 @@ public static class WellKnownContextData
     /// The key to access the compiled requirements.
     /// </summary>
     public const string FieldRequirements = "HotChocolate.Types.ObjectField.Requirements";
+
+    /// <summary>
+    /// The key to determine whether the request is a warmup request.
+    /// </summary>
+    public const string IsWarmupRequest = "HotChocolate.AspNetCore.Warmup.IsWarmupRequest";
 }
