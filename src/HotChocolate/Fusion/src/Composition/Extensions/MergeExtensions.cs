@@ -168,7 +168,8 @@ internal static class MergeExtensions
     internal static void MergeDirectivesWith(
         this IDirectivesProvider target,
         IDirectivesProvider source,
-        CompositionContext context)
+        CompositionContext context,
+        bool shouldApplySemanticNonNull = true)
     {
         foreach (var directive in source.Directives)
         {
@@ -177,6 +178,11 @@ internal static class MergeExtensions
                 || directive.Name == BuiltIns.Deprecated.Name
                 // @tag is handled separately
                 || directive.Name == "tag")
+            {
+                continue;
+            }
+
+            if (directive.Name == BuiltIns.SemanticNonNull.Name && !shouldApplySemanticNonNull)
             {
                 continue;
             }
