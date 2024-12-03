@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace GreenDonut;
 
 public abstract partial class DataLoaderBase<TKey, TValue>
@@ -45,18 +39,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     }
 
     /// <inheritdoc />
-    void IDataLoader.Remove(object key)
-    {
-        if (key is null)
-        {
-            throw new ArgumentNullException(nameof(key));
-        }
-
-        Remove((TKey)key);
-    }
-
-    /// <inheritdoc />
-    void IDataLoader.Set(object key, Task<object?> value)
+    void IDataLoader.SetCacheEntry(object key, Task<object?> value)
     {
         if (key is null)
         {
@@ -68,11 +51,42 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             throw new ArgumentNullException(nameof(value));
         }
 
-        Set((TKey)key, AwaitValue());
+        SetCacheEntry((TKey)key, AwaitValue());
 
-        async Task<TValue> AwaitValue() => (TValue)(await value.ConfigureAwait(false))!;
+        async Task<TValue?> AwaitValue() => (TValue)(await value.ConfigureAwait(false))!;
     }
 
     /// <inheritdoc />
-    public void Clear() => Cache?.Clear();
+    void IDataLoader.RemoveCacheEntry(object key)
+    {
+        if (key is null)
+        {
+            throw new ArgumentNullException(nameof(key));
+        }
+
+        RemoveCacheEntry((TKey)key);
+    }
+
+    /// <inheritdoc />
+    public void ClearCache() => Cache?.Clear();
+
+    /// <inheritdoc />
+    [Obsolete("Use SetCacheEntry instead.")]
+    void IDataLoader.Set(object key, Task<object?> value)
+    {
+        IDataLoader dataLoader = this;
+        dataLoader.SetCacheEntry(key, value);
+    }
+
+    /// <inheritdoc />
+    [Obsolete("Use RemoveCacheEntry instead.")]
+    void IDataLoader.Remove(object key)
+    {
+        IDataLoader dataLoader = this;
+        dataLoader.RemoveCacheEntry(key);
+    }
+
+    /// <inheritdoc />
+    [Obsolete("Use ClearCache instead.")]
+    public void Clear() => ClearCache();
 }

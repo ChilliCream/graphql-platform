@@ -9,7 +9,8 @@ internal sealed partial class ResolverDefinition
         IReadOnlyDictionary<string, IValueNode> variables,
         SelectionSetNode? selectionSet,
         string? responseName,
-        IReadOnlyList<string>? unspecifiedArguments)
+        IReadOnlyList<string>? unspecifiedArguments,
+        IReadOnlyList<DirectiveNode>? directives)
     {
         public string? ResponseName { get; } = responseName;
 
@@ -25,6 +26,8 @@ internal sealed partial class ResolverDefinition
         /// An optional list of arguments that weren't explicitly specified in the original query.
         /// </summary>
         public IReadOnlyList<string>? UnspecifiedArguments { get; } = unspecifiedArguments;
+
+        public IReadOnlyList<DirectiveNode>? Directives { get; } = directives;
 
         public SelectionSetNode? SelectionSet { get; } = selectionSet;
 

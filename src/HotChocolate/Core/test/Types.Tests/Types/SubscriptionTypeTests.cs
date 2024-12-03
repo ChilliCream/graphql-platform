@@ -6,12 +6,7 @@
 #pragma warning disable CS0618 // Type or member is obsolete
 #nullable enable
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using CookieCrumble;
+using System.Runtime.CompilerServices;
 using HotChocolate.Execution;
 using HotChocolate.Subscriptions;
 using HotChocolate.Tests;
@@ -290,7 +285,7 @@ public class SubscriptionTypeTests : TypeTestBase
                     var mutationResult = await executor.ExecuteAsync(
                         "mutation { writeBoolean(userId: \"1\" message: true) }",
                         ct);
-                    Assert.Null(mutationResult.ExpectQueryResult().Errors);
+                    Assert.Null(mutationResult.ExpectOperationResult().Errors);
 
                     await foreach (var queryResult in subscriptionResult.ExpectResponseStream()
                         .ReadResultsAsync().WithCancellation(ct))
@@ -421,7 +416,7 @@ public class SubscriptionTypeTests : TypeTestBase
                     var mutationResult = await executor.ExecuteAsync(
                         "mutation { writeMessage(userId: \"abc\" message: \"def\") }",
                         ct);
-                    Assert.Null(mutationResult.ExpectQueryResult().Errors);
+                    Assert.Null(mutationResult.ExpectOperationResult().Errors);
 
                     await foreach (var queryResult in
                         results.WithCancellation(ct).ConfigureAwait(false))
@@ -455,7 +450,7 @@ public class SubscriptionTypeTests : TypeTestBase
                     var mutationResult = await executor.ExecuteAsync(
                         "mutation { writeFixedMessage(message: \"def\") }",
                         ct);
-                    Assert.Null(mutationResult.ExpectQueryResult().Errors);
+                    Assert.Null(mutationResult.ExpectOperationResult().Errors);
 
                     await foreach (var queryResult in
                         results.WithCancellation(ct).ConfigureAwait(false))
@@ -489,7 +484,7 @@ public class SubscriptionTypeTests : TypeTestBase
                     var mutationResult = await executor.ExecuteAsync(
                         "mutation { writeSysMessage(message: \"def\") }",
                         ct);
-                    Assert.Null(mutationResult.ExpectQueryResult().Errors);
+                    Assert.Null(mutationResult.ExpectOperationResult().Errors);
 
                     await foreach (var queryResult in
                         results.WithCancellation(ct).ConfigureAwait(false))
@@ -523,7 +518,7 @@ public class SubscriptionTypeTests : TypeTestBase
                     var mutationResult = await executor.ExecuteAsync(
                         "mutation { writeOnInferTopic(message: \"def\") }",
                         ct);
-                    Assert.Null(mutationResult.ExpectQueryResult().Errors);
+                    Assert.Null(mutationResult.ExpectOperationResult().Errors);
 
                     await foreach (var queryResult in
                         results.WithCancellation(ct).ConfigureAwait(false))
@@ -557,7 +552,7 @@ public class SubscriptionTypeTests : TypeTestBase
                     var mutationResult = await executor.ExecuteAsync(
                         "mutation { writeOnExplicit(message: \"def\") }",
                         ct);
-                    Assert.Null(mutationResult.ExpectQueryResult().Errors);
+                    Assert.Null(mutationResult.ExpectOperationResult().Errors);
 
                     await foreach (var queryResult in
                         results.WithCancellation(ct).ConfigureAwait(false))
@@ -573,7 +568,7 @@ public class SubscriptionTypeTests : TypeTestBase
     {
         // arrange
         var snapshot = new Snapshot();
-        
+
         // act
         var executor = await TestHelper.CreateExecutorAsync(
             r => r
@@ -593,7 +588,7 @@ public class SubscriptionTypeTests : TypeTestBase
     {
         // arrange
         var snapshot = new Snapshot();
-        
+
         // act
         var executor = await TestHelper.CreateExecutorAsync(
             r => r
@@ -613,7 +608,7 @@ public class SubscriptionTypeTests : TypeTestBase
     {
         // arrange
         var snapshot = new Snapshot();
-        
+
         // act
         var executor = await TestHelper.CreateExecutorAsync(
             r => r
@@ -646,6 +641,44 @@ public class SubscriptionTypeTests : TypeTestBase
             {
               "data": {
                 "onArguments": "abc"
+              }
+            }
+
+            """);
+    }
+
+    [Fact]
+    public async Task Subscription_Directives_Are_Allowed()
+    {
+        // arrange
+        // act
+        var executor = await new ServiceCollection()
+            .AddGraphQLServer()
+            .AddDocumentFromString(
+                """
+                type Subscription {
+                  bookAdded: String!
+                }
+
+                directive @bug(test: Int!) on SUBSCRIPTION
+                """)
+            .BindRuntimeType<SubscriptionWithDirective>("Subscription")
+            .ModifyOptions(o => o.StrictValidation = false)
+            .BuildRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(
+            """
+            subscription test @bug(test: 123) {
+              bookAdded
+            }
+            """);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "bookAdded": "foo"
               }
             }
 
@@ -1051,5 +1084,19 @@ public class SubscriptionTypeTests : TypeTestBase
         public string OnExplicit(
             [EventMessage] string message) =>
             message;
+    }
+
+
+    public class SubscriptionWithDirective
+    {
+        [Subscribe(With = nameof(GetStream))]
+        public string BookAdded([EventMessage] string foo) => foo;
+
+        private async IAsyncEnumerable<string> GetStream(
+            [EnumeratorCancellation] CancellationToken ct = default)
+        {
+            await Task.Delay(200, ct);
+            yield return "foo";
+        }
     }
 }

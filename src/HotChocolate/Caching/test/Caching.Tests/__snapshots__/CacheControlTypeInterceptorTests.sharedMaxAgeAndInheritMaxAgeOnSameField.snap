@@ -1,0 +1,6 @@
+{
+  "message": "Can not specify `inheritMaxAge: true` and a value for `sharedMaxAge` for the @cacheControl directive on the field NestedType.field.",
+  "type": "NestedType",
+  "extensions": {}
+}
+

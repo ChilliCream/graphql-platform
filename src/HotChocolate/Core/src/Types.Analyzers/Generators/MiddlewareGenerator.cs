@@ -13,17 +13,28 @@ public sealed class MiddlewareGenerator : ISyntaxGenerator
     public void Generate(
         SourceProductionContext context,
         Compilation compilation,
-        ImmutableArray<ISyntaxInfo> syntaxInfos)
+        ImmutableArray<SyntaxInfo> syntaxInfos)
     {
         if (syntaxInfos.IsEmpty)
         {
             return;
         }
 
-        var module = syntaxInfos.GetModuleInfo(compilation.AssemblyName, out var defaultModule);
+        var module = syntaxInfos.GetModuleInfo(compilation.AssemblyName, out _);
+
+        // the generator is disabled.
+        if(module.Options == ModuleOptions.Disabled)
+        {
+            return;
+        }
+
+        if((module.Options & ModuleOptions.RegisterTypes) != ModuleOptions.RegisterTypes)
+        {
+            return;
+        }
 
         // if there is only the module info we do not need to generate a module.
-        if (!defaultModule && syntaxInfos.Length == 1)
+        if (!syntaxInfos.Any(t => t is RequestMiddlewareInfo))
         {
             return;
         }

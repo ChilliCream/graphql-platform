@@ -1,9 +1,7 @@
-using System.Threading.Tasks;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.ApolloFederation.Directives;
 
@@ -13,8 +11,6 @@ public class ExternalDirectiveTests : FederationTypesTestBase
     public async Task AnnotateExternalToTypeFieldCodeFirst()
     {
         // arrange
-        Snapshot.FullName();
-
         var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddApolloFederation()
@@ -70,15 +66,13 @@ public class ExternalDirectiveTests : FederationTypesTestBase
         Assert.Collection(
             address.Directives,
             item => Assert.Equal(FederationTypeNames.ExternalDirective_Name, item.Type.Name));
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task AnnotateExternalToTypeFieldAnnotationBased()
     {
         // arrange
-        Snapshot.FullName();
-
         var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddApolloFederation()
@@ -99,7 +93,7 @@ public class ExternalDirectiveTests : FederationTypesTestBase
         Assert.Collection(
             address.Directives,
             item => Assert.Equal(FederationTypeNames.ExternalDirective_Name, item.Type.Name));
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 }
 

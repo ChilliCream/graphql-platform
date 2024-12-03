@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using HotChocolate.Properties;
 
 namespace HotChocolate.Execution;
@@ -27,7 +24,7 @@ public sealed class OperationResultBatch : ExecutionResult
     /// </exception>
     public OperationResultBatch(
         IReadOnlyList<IExecutionResult> results,
-        IReadOnlyDictionary<string, object?>? contextData = null) 
+        IReadOnlyDictionary<string, object?>? contextData = null)
         : base(cleanupTasks: [() => RunCleanUp(results),])
     {
         foreach (var result in results)
@@ -39,11 +36,11 @@ public sealed class OperationResultBatch : ExecutionResult
                     nameof(results));
             }
         }
-        
+
         Results = results ?? throw new ArgumentNullException(nameof(results));
         ContextData = contextData;
     }
-    
+
     /// <summary>
     /// Gets the result kind.
     /// </summary>
@@ -59,7 +56,28 @@ public sealed class OperationResultBatch : ExecutionResult
     /// properties that are NOT written to the transport.
     /// </summary>
     public override IReadOnlyDictionary<string, object?>? ContextData { get; }
-    
+
+    /// <summary>
+    /// Creates a new <see cref="OperationResultBatch"/> with the specified results.
+    /// </summary>
+    /// <param name="results">
+    /// The results of this batch.
+    /// </param>
+    /// <returns>
+    /// Returns a new <see cref="OperationResultBatch"/> with the specified results.
+    /// </returns>
+    public OperationResultBatch WithResults(IReadOnlyList<IExecutionResult> results)
+    {
+        var newBatch = new OperationResultBatch(results, ContextData);
+
+        foreach (var cleanupTask in CleanupTasks)
+        {
+            newBatch.RegisterForCleanup(cleanupTask);
+        }
+
+        return newBatch;
+    }
+
     private static async ValueTask RunCleanUp(IReadOnlyList<IExecutionResult> results)
     {
         foreach (var result in results)

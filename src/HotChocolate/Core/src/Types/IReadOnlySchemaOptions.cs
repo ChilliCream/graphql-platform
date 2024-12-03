@@ -1,4 +1,3 @@
-using System;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
@@ -55,7 +54,7 @@ public interface IReadOnlySchemaOptions
     /// unreachable from the root types.
     /// </summary>
     bool RemoveUnreachableTypes { get; }
-    
+
     /// <summary>
     /// Defines if unused type system directives shall
     /// be removed from the schema.
@@ -97,7 +96,7 @@ public interface IReadOnlySchemaOptions
     /// Defines if the order of important middleware components shall be validated.
     /// </summary>
     bool ValidatePipelineOrder { get; }
-    
+
     /// <summary>
     /// Defines if the runtime types of types shall be validated.
     /// </summary>
@@ -167,6 +166,13 @@ public interface IReadOnlySchemaOptions
     bool EnableStream { get; }
 
     /// <summary>
+    /// Enables the @semanticNonNull directive and rewrites Non-Null types to nullable types
+    /// with this directive attached to indicate semantic non-nullability.
+    /// This feature is experimental and might be changed or removed in the future.
+    /// </summary>
+    bool EnableSemanticNonNull { get; }
+
+    /// <summary>
     /// Specifies the maximum allowed nodes that can be fetched at once through the nodes field.
     /// </summary>
     int MaxAllowedNodeBatchSize { get; }
@@ -177,22 +183,23 @@ public interface IReadOnlySchemaOptions
     bool StripLeadingIFromInterface { get; }
 
     /// <summary>
-    /// Specifies that the true nullability proto type shall be enabled.
-    /// </summary>
-    bool EnableTrueNullability { get; }
-
-    /// <summary>
     /// Specifies that the @tag directive shall be registered with the type system.
     /// </summary>
     bool EnableTag { get; }
-    
+
     /// <summary>
     /// Specifies the default dependency injection scope for query fields.
     /// </summary>
     public DependencyInjectionScope DefaultQueryDependencyInjectionScope { get; }
-    
+
     /// <summary>
     /// Specifies the default dependency injection scope for mutation fields.
     /// </summary>
     public DependencyInjectionScope DefaultMutationDependencyInjectionScope { get; }
+
+    /// <summary>
+    /// Specifies if the elements of paginated root fields should be published
+    /// to the DataLOader promise cache.
+    /// </summary>
+    bool PublishRootFieldPagesToPromiseCache { get; }
 }

@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using System.Text;
-using CookieCrumble;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -17,10 +14,9 @@ public class GraphQLRequestParserTests
         // arrange
         var source = Encoding.UTF8.GetBytes(
             JsonConvert.SerializeObject(
-                new GraphQLRequestDto
-                {
-                    Query = FileResource.Open("kitchen-sink.graphql").NormalizeLineBreaks(),
-                }).NormalizeLineBreaks());
+                new GraphQLRequestDto(
+                    query: FileResource.Open("kitchen-sink.graphql").NormalizeLineBreaks()))
+                .NormalizeLineBreaks());
 
         // act
         var batch = Utf8GraphQLRequestParser.Parse(source);
@@ -44,11 +40,9 @@ public class GraphQLRequestParserTests
         // arrange
         var source = Encoding.UTF8.GetBytes(
             JsonConvert.SerializeObject(
-                new GraphQLRequestDto
-                {
-                    Query = FileResource.Open("kitchen-sink.graphql")
-                        .NormalizeLineBreaks(),
-                }).NormalizeLineBreaks());
+                new GraphQLRequestDto(
+                    query: FileResource.Open("kitchen-sink.graphql").NormalizeLineBreaks()))
+                .NormalizeLineBreaks());
 
         // act
         var obj = Utf8GraphQLRequestParser.ParseJson(source);
@@ -62,10 +56,9 @@ public class GraphQLRequestParserTests
     {
         // arrange
         var json = JsonConvert.SerializeObject(
-            new GraphQLRequestDto
-            {
-                Query = FileResource.Open("kitchen-sink.graphql").NormalizeLineBreaks(),
-            }).NormalizeLineBreaks();
+            new GraphQLRequestDto(
+                query: FileResource.Open("kitchen-sink.graphql").NormalizeLineBreaks()))
+            .NormalizeLineBreaks();
 
         // act
         var obj = Utf8GraphQLRequestParser.ParseJson(json);
@@ -80,11 +73,9 @@ public class GraphQLRequestParserTests
         // arrange
         var source = Encoding.UTF8.GetBytes(
             JsonConvert.SerializeObject(
-                new GraphQLRequestDto
-                {
-                    Query = FileResource.Open("kitchen-sink.graphql")
-                        .NormalizeLineBreaks(),
-                }).NormalizeLineBreaks());
+                new GraphQLRequestDto(
+                    query: FileResource.Open("kitchen-sink.graphql").NormalizeLineBreaks()))
+                .NormalizeLineBreaks());
 
         // act
         var obj =
@@ -99,11 +90,9 @@ public class GraphQLRequestParserTests
     {
         // arrange
         var json = JsonConvert.SerializeObject(
-            new GraphQLRequestDto
-            {
-                Query = FileResource.Open("kitchen-sink.graphql")
-                    .NormalizeLineBreaks(),
-            }).NormalizeLineBreaks();
+            new GraphQLRequestDto(
+                query: FileResource.Open("kitchen-sink.graphql").NormalizeLineBreaks()))
+            .NormalizeLineBreaks();
 
         // act
         var obj =
@@ -119,11 +108,9 @@ public class GraphQLRequestParserTests
         // arrange
         var source = Encoding.UTF8.GetBytes(
             JsonConvert.SerializeObject(
-                new GraphQLRequestDto
-                {
-                    Query = FileResource.Open("kitchen-sink.graphql")
-                        .NormalizeLineBreaks(),
-                }).NormalizeLineBreaks());
+                new GraphQLRequestDto(
+                    query: FileResource.Open("kitchen-sink.graphql").NormalizeLineBreaks()))
+                .NormalizeLineBreaks());
 
         // act
         var parserOptions = new ParserOptions();
@@ -149,10 +136,9 @@ public class GraphQLRequestParserTests
         // arrange
         var source = Encoding.UTF8.GetBytes(
             JsonConvert.SerializeObject(
-                new GraphQLRequestDto
-                {
-                    Query = FileResource.Open("russian-literals.graphql").NormalizeLineBreaks(),
-                }).NormalizeLineBreaks());
+                new GraphQLRequestDto(
+                    query: FileResource.Open("russian-literals.graphql").NormalizeLineBreaks()))
+                .NormalizeLineBreaks());
 
         // act
         var parserOptions = new ParserOptions();
@@ -204,11 +190,8 @@ public class GraphQLRequestParserTests
     public void Parse_Kitchen_Sink_Query_With_Cache()
     {
         // arrange
-        var request = new GraphQLRequestDto
-        {
-            Query = FileResource.Open("kitchen-sink.graphql")
-                .NormalizeLineBreaks(),
-        };
+        var request = new GraphQLRequestDto(
+            query: FileResource.Open("kitchen-sink.graphql").NormalizeLineBreaks());
 
         var buffer = Encoding.UTF8.GetBytes(request.Query);
         var expectedHash = Convert.ToBase64String(
@@ -216,7 +199,7 @@ public class GraphQLRequestParserTests
             .Replace("/", "_")
             .Replace("+", "-")
             .TrimEnd('=');
-            
+
         var source = Encoding.UTF8.GetBytes(
             JsonConvert.SerializeObject(request).NormalizeLineBreaks());
 
@@ -230,7 +213,7 @@ public class GraphQLRequestParserTests
 
         var first = requestParser.Parse();
 
-        cache.TryAddDocument(first[0].QueryId, first[0].Query);
+        cache.TryAddDocument(first[0].QueryId!, new CachedDocument(first[0].Query!, false));
 
         // act
         requestParser = new Utf8GraphQLRequestParser(
@@ -259,12 +242,9 @@ public class GraphQLRequestParserTests
     public void Parse_Skip_Custom_Property()
     {
         // arrange
-        var request = new CustomGraphQLRequestDto
-        {
-            CustomProperty = "FooBar",
-            Query = FileResource.Open("kitchen-sink.graphql")
-                .NormalizeLineBreaks(),
-        };
+        var request = new CustomGraphQLRequestDto(
+            customProperty: "FooBar",
+            query: FileResource.Open("kitchen-sink.graphql").NormalizeLineBreaks());
 
         var source = Encoding.UTF8.GetBytes(
             JsonConvert.SerializeObject(request
@@ -276,7 +256,7 @@ public class GraphQLRequestParserTests
             .Replace("/", "_")
             .Replace("+", "-")
             .TrimEnd('=');
-        
+
         var cache = new DocumentCache();
 
         var requestParser = new Utf8GraphQLRequestParser(
@@ -305,12 +285,9 @@ public class GraphQLRequestParserTests
     public void Parse_Id_As_Name()
     {
         // arrange
-        var request = new RelayGraphQLRequestDto
-        {
-            Id = "FooBar",
-            Query = FileResource.Open("kitchen-sink.graphql")
-                .NormalizeLineBreaks(),
-        };
+        var request = new RelayGraphQLRequestDto(
+            id: "FooBar",
+            query: FileResource.Open("kitchen-sink.graphql").NormalizeLineBreaks());
 
         var source = Encoding.UTF8.GetBytes(
             JsonConvert.SerializeObject(request
@@ -322,7 +299,7 @@ public class GraphQLRequestParserTests
             .Replace("/", "_")
             .Replace("+", "-")
             .TrimEnd('=');
-        
+
         var cache = new DocumentCache();
 
         var requestParser = new Utf8GraphQLRequestParser(
@@ -354,50 +331,60 @@ public class GraphQLRequestParserTests
         // arrange
         var source = Encoding.UTF8.GetBytes(
             JsonConvert.SerializeObject(
-                new GraphQLRequestDto
-                {
-                    Query = FileResource.Open("kitchen-sink.graphql").NormalizeLineBreaks(),
-                    Id = "ABC",
-                    OperationName = "DEF",
-                    Variables = new Dictionary<string, object>
+                new GraphQLRequestDto(
+                    query: FileResource.Open("kitchen-sink.graphql").NormalizeLineBreaks(),
+                    id: "ABC",
+                    operationName: "DEF",
+                    variables: new Dictionary<string, object>
                     {
-                            { "a" , "b"},
-                            { "b" , new Dictionary<string, object>
+                        { "a", "b" },
+                        {
+                            "b",
+                            new Dictionary<string, object>
+                            {
+                                { "a", "b" },
+                                { "b", true },
+                                { "c", 1 },
+                                { "d", 1.1 },
+                            }
+                        },
+                        {
+                            "c",
+                            new List<object>
+                            {
+                                new Dictionary<string, object>
                                 {
-                                    { "a" , "b"},
-                                    { "b" , true},
-                                    { "c" , 1},
-                                    { "d" , 1.1},
-                                }},
-                            { "c" , new List<object>
-                                {
-                                    new Dictionary<string, object>
-                                    {
-                                        { "a" , "b"},
-                                    },
-                                }},
+                                    { "a", "b" },
+                                },
+                            }
+                        },
                     },
-                    Extensions = new Dictionary<string, object>
+                    extensions: new Dictionary<string, object>
                     {
-                            { "aa" , "bb"},
-                            { "bb" , new Dictionary<string, object>
+                        { "aa", "bb" },
+                        {
+                            "bb",
+                            new Dictionary<string, object>
+                            {
+                                { "aa", "bb" },
+                                { "bb", true },
+                                { "cc", 1 },
+                                { "df", 1.1 },
+                            }
+                        },
+                        {
+                            "cc",
+                            new List<object>
+                            {
+                                new Dictionary<string, object?>
                                 {
-                                    { "aa" , "bb"},
-                                    { "bb" , true},
-                                    { "cc" , 1},
-                                    { "df" , 1.1},
-                                }},
-                            { "cc" , new List<object>
-                                {
-                                    new Dictionary<string, object>
-                                    {
-                                        { "aa" , "bb"},
-                                        { "ab" , null},
-                                        { "ac" , false},
-                                    },
-                                }},
-                    },
-                }).NormalizeLineBreaks());
+                                    { "aa", "bb" },
+                                    { "ab", null },
+                                    { "ac", false },
+                                },
+                            }
+                        },
+                    })).NormalizeLineBreaks());
 
         // act
         var parserOptions = new ParserOptions();
@@ -426,49 +413,58 @@ public class GraphQLRequestParserTests
         // arrange
         var source = Encoding.UTF8.GetBytes(
             JsonConvert.SerializeObject(
-                new GraphQLRequestDto
-                {
-                    Query = FileResource.Open("kitchen-sink.graphql")
-                        .NormalizeLineBreaks(),
-                    Id = "ABC",
-                    OperationName = "DEF",
-                    Variables = new Dictionary<string, object>
+                new GraphQLRequestDto(
+                    query: FileResource.Open("kitchen-sink.graphql").NormalizeLineBreaks(),
+                    id: "ABC",
+                    operationName: "DEF",
+                    variables: new Dictionary<string, object>
                     {
-                            { "a" , "b"},
-                            { "b" , new Dictionary<string, object>
+                        { "a", "b" },
+                        {
+                            "b",
+                            new Dictionary<string, object>
+                            {
+                                { "a", "b" },
+                                { "b", true },
+                                { "c", 1 },
+                                { "d", 1.1 },
+                            }
+                        },
+                        {
+                            "c",
+                            new List<object>
+                            {
+                                new Dictionary<string, object>
                                 {
-                                    { "a" , "b"},
-                                    { "b" , true},
-                                    { "c" , 1},
-                                    { "d" , 1.1},
-                                }},
-                            { "c" , new List<object>
-                                {
-                                    new Dictionary<string, object>
-                                    {
-                                        { "a" , "b"},
-                                    },
-                                }},
+                                    { "a", "b" },
+                                },
+                            }
+                        },
                     },
-                    Extensions = new Dictionary<string, object>
+                    extensions: new Dictionary<string, object>
                     {
-                            { "aa" , "bb"},
-                            { "bb" , new Dictionary<string, object>
+                        { "aa", "bb" },
+                        {
+                            "bb",
+                            new Dictionary<string, object>
+                            {
+                                { "aa", "bb" },
+                                { "bb", true },
+                                { "cc", 1 },
+                                { "df", 1.1 },
+                            }
+                        },
+                        {
+                            "cc",
+                            new List<object>
+                            {
+                                new Dictionary<string, object>
                                 {
-                                    { "aa" , "bb"},
-                                    { "bb" , true},
-                                    { "cc" , 1},
-                                    { "df" , 1.1},
-                                }},
-                            { "cc" , new List<object>
-                                {
-                                    new Dictionary<string, object>
-                                    {
-                                        { "aa" , "bb"},
-                                    },
-                                }},
-                    },
-                }).NormalizeLineBreaks());
+                                    { "aa", "bb" },
+                                },
+                            }
+                        },
+                    })).NormalizeLineBreaks());
 
         // act
         var parsed = Utf8GraphQLRequestParser.ParseJson(source);
@@ -490,7 +486,7 @@ public class GraphQLRequestParserTests
                             new Dictionary<string, object>
                             {
                                 { "a" , "b"},
-                                { "b" , new Dictionary<string, object>
+                                { "b" , new Dictionary<string, object?>
                                     {
                                         { "a" , "b"},
                                         { "b" , true},
@@ -665,6 +661,32 @@ public class GraphQLRequestParserTests
     }
 
     [Fact]
+    public void Parse_Empty_OperationName()
+    {
+        // arrange
+        var source = Encoding.UTF8.GetBytes(
+            """
+            {
+                "operationName": "",
+                "query": "{}"
+            }
+            """.NormalizeLineBreaks());
+        var parserOptions = new ParserOptions();
+        var requestParser = new Utf8GraphQLRequestParser(
+            source,
+            parserOptions,
+            new DocumentCache(),
+            new Sha256DocumentHashProvider());
+
+        // act
+        var batch = requestParser.Parse();
+
+        // assert
+        var request = Assert.Single(batch);
+        Assert.Null(request.OperationName);
+    }
+
+    [Fact]
     public void Parse_Empty_Json()
     {
         // assert
@@ -728,46 +750,51 @@ public class GraphQLRequestParserTests
             });
     }
 
-    private class GraphQLRequestDto
+    private class GraphQLRequestDto(
+        string query,
+        string? id = null,
+        string? operationName = null,
+        IReadOnlyDictionary<string, object>? variables = null,
+        IReadOnlyDictionary<string, object>? extensions = null)
     {
         [JsonProperty("operationName")]
-        public string OperationName { get; set; }
+        public string? OperationName { get; set; } = operationName;
 
         [JsonProperty("id")]
-        public string Id { get; set; }
+        public string? Id { get; set; } = id;
 
         [JsonProperty("query")]
-        public string Query { get; set; }
+        public string Query { get; set; } = query;
 
         [JsonProperty("variables")]
-        public IReadOnlyDictionary<string, object> Variables { get; set; }
+        public IReadOnlyDictionary<string, object>? Variables { get; set; } = variables;
 
         [JsonProperty("extensions")]
-        public IReadOnlyDictionary<string, object> Extensions { get; set; }
+        public IReadOnlyDictionary<string, object>? Extensions { get; set; } = extensions;
     }
 
-    private sealed class CustomGraphQLRequestDto
-        : GraphQLRequestDto
+    private sealed class CustomGraphQLRequestDto(string customProperty, string query)
+        : GraphQLRequestDto(query)
     {
-        public string CustomProperty { get; set; }
+        public string CustomProperty { get; set; } = customProperty;
     }
 
-    private sealed class RelayGraphQLRequestDto
-        : GraphQLRequestDto
+    private sealed class RelayGraphQLRequestDto(string id, string query)
+        : GraphQLRequestDto(query)
     {
         [JsonProperty("id")]
-        public new string Id { get; set; }
+        public new string Id { get; set; } = id;
     }
 
     private sealed class DocumentCache : IDocumentCache
     {
-        private readonly Dictionary<string, DocumentNode> _cache = new();
+        private readonly Dictionary<string, CachedDocument> _cache = new();
 
         public int Capacity => int.MaxValue;
 
         public int Count => _cache.Count;
 
-        public void TryAddDocument(string documentId, DocumentNode document)
+        public void TryAddDocument(string documentId, CachedDocument document)
         {
             if (!_cache.ContainsKey(documentId))
             {
@@ -777,7 +804,7 @@ public class GraphQLRequestParserTests
 
         public bool TryGetDocument(
             string documentId,
-            out DocumentNode document) =>
+            [NotNullWhen(true)] out CachedDocument? document) =>
             _cache.TryGetValue(documentId, out document);
 
         public void Clear()

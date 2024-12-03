@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -46,20 +45,20 @@ public class MongoDbCollectionTests : IClassFixture<MongoResource>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: true}}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: false}}){ bar}}")
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "true"), res2, "false")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "true")
+            .AddResult(res2, "false")
             .MatchAsync();
     }
 
@@ -83,26 +82,27 @@ public class MongoDbCollectionTests : IClassFixture<MongoResource>
         // act
         // assert
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { baz: { eq: \"2020-01-11T00:00:00Z\"}}){ baz}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { baz: { eq: \"2020-01-12T00:00:00Z\"}}){ baz}}")
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "2020-01-11"), res2, "2020-01-12")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "2020-01-11")
+            .AddResult(res2, "2020-01-12")
             .MatchAsync();
     }
 
     public class Foo
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         [BsonElement("renameTest")]
@@ -112,6 +112,7 @@ public class MongoDbCollectionTests : IClassFixture<MongoResource>
     public class Bar
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public DateTimeOffset Baz { get; set; }
@@ -147,7 +148,7 @@ public class MongoDbCollectionTests : IClassFixture<MongoResource>
                     {
                         context.Result =
                             OperationResultBuilder
-                                .FromResult(context.Result!.ExpectQueryResult())
+                                .FromResult(context.Result!.ExpectOperationResult())
                                 .SetContextData("query", queryString)
                                 .Build();
                     }

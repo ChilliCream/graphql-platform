@@ -1,5 +1,3 @@
-using System;
-
 namespace StrawberryShake.Serialization;
 
 public abstract class ScalarSerializer<T> : ScalarSerializer<T, T>

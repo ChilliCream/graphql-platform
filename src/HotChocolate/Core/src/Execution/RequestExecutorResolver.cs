@@ -1,20 +1,14 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-#if NET6_0_OR_GREATER
+using System.Collections.Immutable;
 using System.Reflection.Metadata;
-#endif
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Configuration;
-#if NET6_0_OR_GREATER
 using HotChocolate.Execution;
-#endif
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Errors;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Internal;
 using HotChocolate.Execution.Options;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -24,9 +18,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.Execution.ThrowHelper;
 
-#if NET6_0_OR_GREATER
 [assembly: MetadataUpdateHandler(typeof(RequestExecutorResolver.ApplicationUpdateHandler))]
-#endif
 
 namespace HotChocolate.Execution;
 
@@ -56,11 +48,9 @@ internal sealed partial class RequestExecutorResolver
             throw new ArgumentNullException(nameof(serviceProvider));
         _optionsMonitor.OnChange(EvictRequestExecutor);
 
-#if NET6_0_OR_GREATER
         // we register the schema eviction for application updates when hot reload is used.
         // Whenever a hot reload update is triggered we will evict all executors.
         ApplicationUpdateHandler.RegisterForApplicationUpdate(() => EvictAllRequestExecutors());
-#endif
     }
 
     public IObservable<RequestExecutorEvent> Events => _events;
@@ -163,7 +153,6 @@ internal sealed partial class RequestExecutorResolver
         }
     }
 
-#if NET6_0_OR_GREATER
     private void EvictAllRequestExecutors()
     {
         foreach (var key in _executors.Keys)
@@ -190,7 +179,6 @@ internal sealed partial class RequestExecutorResolver
             }
         }
     }
-#endif
 
     private static void BeginRunEvictionEvents(RegisteredExecutor registeredExecutor)
         => Task.Factory.StartNew(
@@ -263,7 +251,7 @@ internal sealed partial class RequestExecutorResolver
             static s => s.GetRequiredService<RequestExecutorOptions>());
         serviceCollection.AddSingleton<IRequestTimeoutOptionsAccessor>(
             static s => s.GetRequiredService<RequestExecutorOptions>());
-        serviceCollection.AddSingleton<IPersistedQueryOptionsAccessor>(
+        serviceCollection.AddSingleton<IPersistedOperationOptionsAccessor>(
             static s => s.GetRequiredService<RequestExecutorOptions>());
 
         serviceCollection.AddSingleton<IErrorHandler, DefaultErrorHandler>();
@@ -324,6 +312,33 @@ internal sealed partial class RequestExecutorResolver
                 sp.GetApplicationService<DefaultRequestContextAccessor>(),
                 version));
 
+        serviceCollection.AddSingleton<OperationCompilerOptimizers>(
+            sp =>
+            {
+                var optimizers = sp.GetServices<IOperationCompilerOptimizer>();
+                var selectionSetOptimizers = ImmutableArray.CreateBuilder<ISelectionSetOptimizer>();
+                var operationOptimizers = ImmutableArray.CreateBuilder<IOperationOptimizer>();
+
+                foreach (var optimizer in optimizers)
+                {
+                    if (optimizer is ISelectionSetOptimizer selectionSetOptimizer)
+                    {
+                        selectionSetOptimizers.Add(selectionSetOptimizer);
+                    }
+
+                    if (optimizer is IOperationOptimizer operationOptimizer)
+                    {
+                        operationOptimizers.Add(operationOptimizer);
+                    }
+                }
+
+                return new OperationCompilerOptimizers
+                {
+                    SelectionSetOptimizers = selectionSetOptimizers.ToImmutable(),
+                    OperationOptimizers = operationOptimizers.ToImmutable()
+                };
+            });
+
         OnConfigureSchemaServices(context, serviceCollection, setup);
 
         SchemaBuilder.AddCoreSchemaServices(serviceCollection, lazy);
@@ -365,9 +380,9 @@ internal sealed partial class RequestExecutorResolver
         var descriptorContext = context.SchemaBuilder.CreateContext();
 
         await foreach (var member in
-                       typeModuleChangeMonitor.CreateTypesAsync(descriptorContext)
-                           .WithCancellation(cancellationToken)
-                           .ConfigureAwait(false))
+           typeModuleChangeMonitor.CreateTypesAsync(descriptorContext)
+               .WithCancellation(cancellationToken)
+               .ConfigureAwait(false))
         {
             switch (member)
             {
@@ -383,8 +398,9 @@ internal sealed partial class RequestExecutorResolver
 
         await OnConfigureSchemaBuilderAsync(context, schemaServices, setup, cancellationToken);
 
-        context.SchemaBuilder.TryAddTypeInterceptor(
-            new SetSchemaNameInterceptor(context.SchemaName));
+        context
+            .SchemaBuilder
+            .TryAddTypeInterceptor(new SetSchemaNameInterceptor(context.SchemaName));
 
         var schema = context.SchemaBuilder.Create(descriptorContext);
         AssertSchemaNameValid(schema, context.SchemaName);
@@ -442,33 +458,25 @@ internal sealed partial class RequestExecutorResolver
         }
     }
 
-    private sealed class RegisteredExecutor : IDisposable
+    private sealed class RegisteredExecutor(
+        IRequestExecutor executor,
+        IServiceProvider services,
+        IExecutionDiagnosticEvents diagnosticEvents,
+        RequestExecutorSetup setup,
+        TypeModuleChangeMonitor typeModuleChangeMonitor)
+        : IDisposable
     {
         private bool _disposed;
 
-        public RegisteredExecutor(
-            IRequestExecutor executor,
-            IServiceProvider services,
-            IExecutionDiagnosticEvents diagnosticEvents,
-            RequestExecutorSetup setup,
-            TypeModuleChangeMonitor typeModuleChangeMonitor)
-        {
-            Executor = executor;
-            Services = services;
-            DiagnosticEvents = diagnosticEvents;
-            Setup = setup;
-            TypeModuleChangeMonitor = typeModuleChangeMonitor;
-        }
+        public IRequestExecutor Executor { get; } = executor;
 
-        public IRequestExecutor Executor { get; }
+        public IServiceProvider Services { get; } = services;
 
-        public IServiceProvider Services { get; }
+        public IExecutionDiagnosticEvents DiagnosticEvents { get; } = diagnosticEvents;
 
-        public IExecutionDiagnosticEvents DiagnosticEvents { get; }
+        public RequestExecutorSetup Setup { get; } = setup;
 
-        public RequestExecutorSetup Setup { get; }
-
-        public TypeModuleChangeMonitor TypeModuleChangeMonitor { get; }
+        public TypeModuleChangeMonitor TypeModuleChangeMonitor { get; } = typeModuleChangeMonitor;
 
         public void Dispose()
         {
@@ -485,22 +493,15 @@ internal sealed partial class RequestExecutorResolver
         }
     }
 
-    private sealed class SetSchemaNameInterceptor : TypeInterceptor
+    private sealed class SetSchemaNameInterceptor(string schemaName) : TypeInterceptor
     {
-        private readonly string _schemaName;
-
-        public SetSchemaNameInterceptor(string schemaName)
-        {
-            _schemaName = schemaName;
-        }
-
         public override void OnBeforeCompleteName(
             ITypeCompletionContext completionContext,
             DefinitionBase definition)
         {
             if (completionContext.IsSchema)
             {
-                definition.Name = _schemaName;
+                definition.Name = schemaName;
             }
         }
     }
@@ -559,26 +560,18 @@ internal sealed partial class RequestExecutorResolver
             }
         }
 
-        private sealed class TypeModuleEnumerable : IAsyncEnumerable<ITypeSystemMember>
+        private sealed class TypeModuleEnumerable(
+            List<ITypeModule> typeModules,
+            IDescriptorContext context)
+            : IAsyncEnumerable<ITypeSystemMember>
         {
-            private readonly List<ITypeModule> _typeModules;
-            private readonly IDescriptorContext _context;
-
-            public TypeModuleEnumerable(
-                List<ITypeModule> typeModules,
-                IDescriptorContext context)
-            {
-                _typeModules = typeModules;
-                _context = context;
-            }
-
             public async IAsyncEnumerator<ITypeSystemMember> GetAsyncEnumerator(
                 CancellationToken cancellationToken = default)
             {
-                foreach (var typeModule in _typeModules)
+                foreach (var typeModule in typeModules)
                 {
                     var types =
-                        await typeModule.CreateTypesAsync(_context, cancellationToken)
+                        await typeModule.CreateTypesAsync(context, cancellationToken)
                             .ConfigureAwait(false);
 
                     foreach (var type in types)
@@ -590,31 +583,23 @@ internal sealed partial class RequestExecutorResolver
         }
     }
 
-    private sealed class RequestContextPooledObjectPolicy : PooledObjectPolicy<RequestContext>
+    private sealed class RequestContextPooledObjectPolicy(
+        ISchema schema,
+        IErrorHandler errorHandler,
+        IExecutionDiagnosticEvents diagnosticEvents,
+        ulong executorVersion)
+        : PooledObjectPolicy<RequestContext>
     {
-        private readonly ISchema _schema;
-        private readonly ulong _executorVersion;
-        private readonly IErrorHandler _errorHandler;
-        private readonly IExecutionDiagnosticEvents _diagnosticEvents;
+        private readonly ISchema _schema = schema ??
+            throw new ArgumentNullException(nameof(schema));
 
-        public RequestContextPooledObjectPolicy(
-            ISchema schema,
-            IErrorHandler errorHandler,
-            IExecutionDiagnosticEvents diagnosticEvents,
-            ulong executorVersion)
-        {
-            _schema = schema ??
-                throw new ArgumentNullException(nameof(schema));
-            _errorHandler = errorHandler ??
-                throw new ArgumentNullException(nameof(errorHandler));
-            _diagnosticEvents = diagnosticEvents ??
-                throw new ArgumentNullException(nameof(diagnosticEvents));
-            _executorVersion = executorVersion;
-        }
-
+        private readonly IErrorHandler _errorHandler = errorHandler ??
+            throw new ArgumentNullException(nameof(errorHandler));
+        private readonly IExecutionDiagnosticEvents _diagnosticEvents = diagnosticEvents ??
+            throw new ArgumentNullException(nameof(diagnosticEvents));
 
         public override RequestContext Create()
-            => new(_schema, _executorVersion, _errorHandler, _diagnosticEvents);
+            => new(_schema, executorVersion, _errorHandler, _diagnosticEvents);
 
         public override bool Return(RequestContext obj)
         {
@@ -693,24 +678,20 @@ internal sealed partial class RequestExecutorResolver
             }
         }
 
-        private sealed class Subscription : IDisposable
+        private sealed class Subscription(
+            EventObservable parent,
+            IObserver<RequestExecutorEvent> observer)
+            : IDisposable
         {
-            private readonly EventObservable _parent;
             private bool _disposed;
 
-            public Subscription(EventObservable parent, IObserver<RequestExecutorEvent> observer)
-            {
-                _parent = parent;
-                Observer = observer;
-            }
-
-            public IObserver<RequestExecutorEvent> Observer { get; }
+            public IObserver<RequestExecutorEvent> Observer { get; } = observer;
 
             public void Dispose()
             {
                 if (!_disposed)
                 {
-                    _parent.Unsubscribe(this);
+                    parent.Unsubscribe(this);
                     _disposed = true;
                 }
             }
@@ -732,7 +713,6 @@ internal sealed partial class RequestExecutorResolver
         public IList<RequestCoreMiddleware> Pipeline { get; } = pipeline;
     }
 
-#if NET6_0_OR_GREATER
     /// <summary>
     /// A helper calls that receives hot reload update events from the runtime and triggers
     /// reload of registered components.
@@ -742,15 +722,22 @@ internal sealed partial class RequestExecutorResolver
         private static readonly List<Action> _actions = [];
 
         public static void RegisterForApplicationUpdate(Action action)
-            => _actions.Add(action);
+        {
+            lock (_actions)
+            {
+                _actions.Add(action);
+            }
+        }
 
         public static void UpdateApplication(Type[]? updatedTypes)
         {
-            foreach (var action in _actions)
+            lock (_actions)
             {
-                action();
+                foreach (var action in _actions)
+                {
+                    action();
+                }
             }
         }
     }
-#endif
 }

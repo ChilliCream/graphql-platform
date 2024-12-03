@@ -1,0 +1,73 @@
+Result:
+---------------
+{
+  "data": {
+    "posts": [
+      {
+        "postId": 1,
+        "title": "titleA",
+        "blog": {
+          "url": "testa.com",
+          "titleImage": {
+            "url": "https://testa.com/image.png"
+          }
+        }
+      },
+      {
+        "postId": 2,
+        "title": "titleB",
+        "blog": {
+          "url": "testa.com",
+          "titleImage": {
+            "url": "https://testa.com/image.png"
+          }
+        }
+      },
+      {
+        "postId": 3,
+        "title": "titleC",
+        "blog": {
+          "url": "testb.com",
+          "titleImage": {
+            "url": "https://testb.com/image.png"
+          }
+        }
+      },
+      {
+        "postId": 4,
+        "title": "titleD",
+        "blog": {
+          "url": "testb.com",
+          "titleImage": {
+            "url": "https://testb.com/image.png"
+          }
+        }
+      }
+    ]
+  }
+}
+---------------
+
+SQL:
+---------------
+SELECT "b"."BlogId" IS NULL, "i"."ImageId" IS NULL, "i"."Url", "b"."Url", "p"."PostId", "p"."Title"
+FROM "Posts" AS "p"
+LEFT JOIN "Blogs" AS "b" ON "p"."BlogId" = "b"."BlogId"
+LEFT JOIN "Images" AS "i" ON "b"."ImageId" = "i"."ImageId"
+---------------
+
+Expression:
+---------------
+DbSet<Post>()
+    .Select(dtoPost => new PostDto{ 
+        Blog = dtoPost.Blog == null ? null : new BlogDto{ 
+            TitleImage = dtoPost.Blog.TitleImage == null ? null : new ImageDto{ Url = dtoPost.Blog.TitleImage.Url }
+            , 
+            Url = dtoPost.Blog.Url 
+        }
+        , 
+        PostId = dtoPost.PostId ?? 0, 
+        Title = dtoPost.Title 
+    }
+    )
+---------------

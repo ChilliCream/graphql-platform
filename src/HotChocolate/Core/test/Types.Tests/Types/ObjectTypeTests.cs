@@ -1,9 +1,5 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -12,7 +8,6 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Snapshooter.Xunit;
 using static HotChocolate.Types.FieldBindingFlags;
 using static HotChocolate.WellKnownContextData;
 using SnapshotExtensions = CookieCrumble.SnapshotExtensions;
@@ -327,7 +322,6 @@ public class ObjectTypeTests : TypeTestBase
         Assert.IsType<StringType>(fooType.Fields["bar"].Type);
     }
 
-
     [Fact]
     public void TwoInterfacesProvideFieldAWithDifferentOutputType()
     {
@@ -359,7 +353,7 @@ public class ObjectTypeTests : TypeTestBase
             return;
         }
 
-        Assert.True(false, "Schema exception was not thrown.");
+        Assert.Fail("Schema exception was not thrown.");
     }
 
     [Fact]
@@ -393,7 +387,7 @@ public class ObjectTypeTests : TypeTestBase
             return;
         }
 
-        Assert.True(false, "Schema exception was not thrown.");
+        Assert.Fail("Schema exception was not thrown.");
     }
 
     [Fact]
@@ -427,7 +421,7 @@ public class ObjectTypeTests : TypeTestBase
             return;
         }
 
-        Assert.True(false, "Schema exception was not thrown.");
+        Assert.Fail("Schema exception was not thrown.");
     }
 
     [Fact]
@@ -461,7 +455,7 @@ public class ObjectTypeTests : TypeTestBase
             return;
         }
 
-        Assert.True(false, "Schema exception was not thrown.");
+        Assert.Fail("Schema exception was not thrown.");
     }
 
     [Fact]
@@ -565,7 +559,7 @@ public class ObjectTypeTests : TypeTestBase
             return;
         }
 
-        Assert.True(false, "Schema exception was not thrown.");
+        Assert.Fail("Schema exception was not thrown.");
     }
 
     [Fact]
@@ -599,7 +593,7 @@ public class ObjectTypeTests : TypeTestBase
             return;
         }
 
-        Assert.True(false, "Schema exception was not thrown.");
+        Assert.Fail("Schema exception was not thrown.");
     }
 
     [Fact]
@@ -1170,7 +1164,7 @@ public class ObjectTypeTests : TypeTestBase
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ desc }")
                 .SetGlobalState(InitialValue, new Foo())
                 .Build());
@@ -1310,7 +1304,6 @@ public class ObjectTypeTests : TypeTestBase
         schema.ToString().MatchSnapshot();
     }
 
-#if NET6_0_OR_GREATER
     [Fact]
     public void Support_Argument_Generic_Attributes()
     {
@@ -1323,7 +1316,6 @@ public class ObjectTypeTests : TypeTestBase
         // assert
         schema.ToString().MatchSnapshot();
     }
-#endif
 
     [Fact]
     public void Argument_Type_IsInferred_From_Parameter()
@@ -1481,7 +1473,7 @@ public class ObjectTypeTests : TypeTestBase
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ bar baz }")
                 .SetGlobalState(
                     InitialValue,
@@ -1826,8 +1818,6 @@ public class ObjectTypeTests : TypeTestBase
     [Fact]
     public async Task Override_Instance_Check_With_Options()
     {
-        Snapshot.FullName();
-
         var globalCheck = false;
 
         await new ServiceCollection()
@@ -1852,8 +1842,6 @@ public class ObjectTypeTests : TypeTestBase
     public async Task AnotationBased_DeprecatedArgument_Should_BeDeprecated()
     {
         // arrangt
-        Snapshot.FullName();
-
         // act
         var executor = await new ServiceCollection()
             .AddGraphQL()
@@ -1868,8 +1856,6 @@ public class ObjectTypeTests : TypeTestBase
     public async Task AnotationBased_DeprecatedArgument_NonNullableIsDeprecated_Throw()
     {
         // arrange
-        Snapshot.FullName();
-
         // act
         Func<Task> call = async () => await new ServiceCollection()
             .AddGraphQL()
@@ -1885,8 +1871,6 @@ public class ObjectTypeTests : TypeTestBase
     public async Task CodeFirst_DeprecatedArgument_Should_BeDeprecated()
     {
         // arrange
-        Snapshot.FullName();
-
         // act
         var executor = await new ServiceCollection()
             .AddGraphQL()
@@ -1905,8 +1889,6 @@ public class ObjectTypeTests : TypeTestBase
     public async Task CodeFirst_DeprecatedArgument_NonNullableIsDeprecated_Throw()
     {
         // arrange
-        Snapshot.FullName();
-
         // act
         Func<Task> call = async () => await new ServiceCollection()
             .AddGraphQL()
@@ -1928,8 +1910,6 @@ public class ObjectTypeTests : TypeTestBase
     public async Task SchemaFirst_DeprecatedArgument_Should_BeDeprecated()
     {
         // arrange
-        Snapshot.FullName();
-
         // act
         var executor = await new ServiceCollection()
             .AddGraphQL()
@@ -1950,8 +1930,6 @@ public class ObjectTypeTests : TypeTestBase
     public async Task SchemaFirst_DeprecatedArgument_NonNullableIsDeprecated_Throw()
     {
         // arrange
-        Snapshot.FullName();
-
         // act
         Func<Task> call = async () => await new ServiceCollection()
             .AddGraphQL()
@@ -1981,7 +1959,7 @@ public class ObjectTypeTests : TypeTestBase
                 .BuildSchemaAsync();
 
         // assert
-        SnapshotExtensions.MatchSnapshot(schema);
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -1996,9 +1974,8 @@ public class ObjectTypeTests : TypeTestBase
                 .BuildSchemaAsync();
 
         // assert
-        SnapshotExtensions.MatchSnapshot(schema);
+        schema.MatchSnapshot();
     }
-
 
     [Fact]
     public async Task Static_Field_Inference_3()
@@ -2034,7 +2011,7 @@ public class ObjectTypeTests : TypeTestBase
                 .BuildSchemaAsync();
 
         // assert
-        SnapshotExtensions.MatchSnapshot(schema);
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -2055,7 +2032,7 @@ public class ObjectTypeTests : TypeTestBase
                 .ExecuteRequestAsync("{ hello staticHello }");
 
         // assert
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -2072,7 +2049,7 @@ public class ObjectTypeTests : TypeTestBase
                 .BuildSchemaAsync();
 
         // assert
-        SnapshotExtensions.MatchSnapshot(schema);
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -2089,14 +2066,14 @@ public class ObjectTypeTests : TypeTestBase
             .Execute("{ value }")
             .ToJson();
 
-        SnapshotExtensions.MatchInlineSnapshot(result,
-        """
-        {
-            "data": {
-                "value": 1024
+        result.MatchInlineSnapshot(
+            """
+            {
+                "data": {
+                    "value": 1024
+                }
             }
-        }
-        """);
+            """);
     }
 
     [Fact]
@@ -2132,7 +2109,7 @@ public class ObjectTypeTests : TypeTestBase
                 .AddQueryType<QueryWithGenerics>()
                 .BuildSchemaAsync();
 
-        SnapshotExtensions.MatchSnapshot(schema);
+        schema.MatchSnapshot();
     }
 
     public abstract class ResolverBase
@@ -2195,7 +2172,6 @@ public class ObjectTypeTests : TypeTestBase
         public string Quux([GraphQLType(typeof(ListType<StringType>))] string arg) => arg;
     }
 
-#if NET6_0_OR_GREATER
     public class Baz2
     {
         public string Qux(
@@ -2204,7 +2180,6 @@ public class ObjectTypeTests : TypeTestBase
 
         public string Quux([GraphQLType<ListType<StringType>>] string arg) => arg;
     }
-#endif
 
     public class FooType
         : ObjectType<Foo>

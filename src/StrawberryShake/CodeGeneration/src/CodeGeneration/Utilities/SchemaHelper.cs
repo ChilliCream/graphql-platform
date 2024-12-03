@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -98,7 +95,6 @@ public static class SchemaHelper
                     o.EnableTag = false;
                     o.EnableOneOf = false;
                     o.EnableFlagEnums = false;
-                    o.EnableTrueNullability = false;
                 })
             .SetSchema(d => d.Extend().OnBeforeCreate(
                 c => c.ContextData.Add(_typeInfosKey, typeInfos)))

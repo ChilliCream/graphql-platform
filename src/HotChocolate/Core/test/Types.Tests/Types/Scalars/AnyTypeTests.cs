@@ -1,13 +1,9 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Dynamic;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 using static HotChocolate.Tests.TestHelper;
 
 namespace HotChocolate.Types;
@@ -18,13 +14,18 @@ public class AnyTypeTests
     public async Task Output_Return_Object()
     {
         // arrange
+        var foo = new Foo();
+        var bar = new Bar();
+        foo.Bar1 = bar;
+        foo.Bar2 = bar;
+
         var schema = SchemaBuilder.New()
             .AddQueryType(
                 d => d
                     .Name("Query")
                     .Field("foo")
                     .Type<AnyType>()
-                    .Resolve(_ => new Foo()))
+                    .Resolve(_ => foo))
             .Create();
 
         var executor = schema.MakeExecutable();
@@ -37,7 +38,88 @@ public class AnyTypeTests
     }
 
     [Fact]
+    public async Task Output_Return_ObjectCyclic()
+    {
+        // arrange
+        var fooCyclic = new FooCyclic();
+        var barCyclic = new BarCyclic();
+        fooCyclic.BarCyclic = barCyclic;
+        barCyclic.FooCyclic = fooCyclic;
+
+        var schema = SchemaBuilder.New()
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("fooCyclic")
+                    .Type<AnyType>()
+                    .Resolve(_ => fooCyclic))
+            .Create();
+
+        var executor = schema.MakeExecutable();
+
+        // act
+        var result = (await executor.ExecuteAsync("{ fooCyclic }")).ExpectOperationResult();
+
+        // assert
+        Assert.Equal("Cycle in object graph detected.", result.Errors?.Single().Exception?.Message);
+    }
+
+    [Fact]
     public async Task Output_Return_List()
+    {
+        // arrange
+        var foo = new Foo();
+        var bar = new Bar();
+        foo.Bar1 = bar;
+        foo.Bar2 = bar;
+
+        var schema = SchemaBuilder.New()
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Resolve(_ => new List<Foo> { foo, foo }))
+            .Create();
+
+        var executor = schema.MakeExecutable();
+
+        // act
+        var result = await executor.ExecuteAsync("{ foo }");
+
+        // assert
+        result.ToJson().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Output_Return_ListCyclic()
+    {
+        // arrange
+        var fooCyclic = new FooCyclic();
+        var barCyclic = new BarCyclic();
+        fooCyclic.BarCyclic = barCyclic;
+        barCyclic.FooCyclic = fooCyclic;
+
+        var schema = SchemaBuilder.New()
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("fooCyclic")
+                    .Type<AnyType>()
+                    .Resolve(_ => new List<FooCyclic> { fooCyclic, fooCyclic }))
+            .Create();
+
+        var executor = schema.MakeExecutable();
+
+        // act
+        var result = (await executor.ExecuteAsync("{ fooCyclic }")).ExpectOperationResult();
+
+        // assert
+        Assert.Equal("Cycle in object graph detected.", result.Errors?.Single().Exception?.Message);
+    }
+
+    [Fact]
+    public async Task Output_Return_RecordList()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -46,7 +128,7 @@ public class AnyTypeTests
                     .Name("Query")
                     .Field("foo")
                     .Type<AnyType>()
-                    .Resolve(_ => new List<Foo> { new(), }))
+                    .Resolve(_ => new List<FooRecord> { new(), new() }))
             .Create();
 
         var executor = schema.MakeExecutable();
@@ -405,7 +487,7 @@ public class AnyTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValues(new Dictionary<string, object> { { "foo", new List<object> { "abc", } }, })
                 .Build());
@@ -432,7 +514,7 @@ public class AnyTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValues(
                     new Dictionary<string, object>
@@ -471,7 +553,7 @@ public class AnyTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValues(new Dictionary<string, object> { { "foo", "bar" }, })
                 .Build());
@@ -498,7 +580,7 @@ public class AnyTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValues(new Dictionary<string, object> { { "foo", 123 }, })
                 .Build());
@@ -525,7 +607,7 @@ public class AnyTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValues(new Dictionary<string, object> { { "foo", 1.2 }, })
                 .Build());
@@ -552,7 +634,7 @@ public class AnyTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValues(new Dictionary<string, object> { { "foo", new { a = "b", } }, })
                 .Build());
@@ -579,7 +661,7 @@ public class AnyTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValues(
                     new Dictionary<string, object>
@@ -610,7 +692,7 @@ public class AnyTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValues(
                     new Dictionary<string, object>
@@ -641,7 +723,7 @@ public class AnyTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValues(new Dictionary<string, object> { { "foo", false }, })
                 .Build());
@@ -668,7 +750,7 @@ public class AnyTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValues(new Dictionary<string, object> { { "foo", null }, })
                 .Build());
@@ -717,7 +799,7 @@ public class AnyTypeTests
         var type = schema.GetType<AnyType>("Any");
 
         // act
-        var result = type.IsInstanceOfType(new ObjectValueNode(Array.Empty<ObjectFieldNode>()));
+        var result = type.IsInstanceOfType(new ObjectValueNode([]));
 
         // assert
         Assert.True(result);
@@ -740,7 +822,7 @@ public class AnyTypeTests
         var type = schema.GetType<AnyType>("Any");
 
         // act
-        var result = type.IsInstanceOfType(new ListValueNode(Array.Empty<IValueNode>()));
+        var result = type.IsInstanceOfType(new ListValueNode([]));
 
         // assert
         Assert.True(result);
@@ -999,9 +1081,65 @@ public class AnyTypeTests
             .Create();
 
         var type = schema.GetType<AnyType>("Any");
+        var foo = new Foo();
+        var bar = new Bar();
+        foo.Bar1 = bar;
+        foo.Bar2 = bar;
 
         // act
-        var literal = type.ParseValue(new List<Foo>());
+        var literal = type.ParseValue(new List<Foo> { foo, foo });
+
+        // assert
+        Assert.IsType<ListValueNode>(literal);
+    }
+
+    [Fact]
+    public void ParseValue_List_Of_FooCyclic()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .Create();
+
+        var type = schema.GetType<AnyType>("Any");
+        var fooCyclic = new FooCyclic();
+        var barCyclic = new BarCyclic();
+        fooCyclic.BarCyclic = barCyclic;
+        barCyclic.FooCyclic = fooCyclic;
+
+        // act
+        void Act() => type.ParseValue(new List<FooCyclic> { fooCyclic, fooCyclic });
+
+        // assert
+        Assert.Equal(
+            "Cycle in object graph detected.",
+            Assert.Throws<GraphQLException>(Act).Message);
+    }
+
+    [Fact]
+    public void ParseValue_List_Of_FooRecord()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .Create();
+
+        var type = schema.GetType<AnyType>("Any");
+
+        // act
+        var literal = type.ParseValue(new List<FooRecord> { new(), new() });
 
         // assert
         Assert.IsType<ListValueNode>(literal);
@@ -1028,6 +1166,35 @@ public class AnyTypeTests
 
         // assert
         Assert.IsType<ObjectValueNode>(literal);
+    }
+
+    [Fact]
+    public void ParseValue_FooCyclic()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .Create();
+
+        var type = schema.GetType<AnyType>("Any");
+        var fooCyclic = new FooCyclic();
+        var barCyclic = new BarCyclic();
+        fooCyclic.BarCyclic = barCyclic;
+        barCyclic.FooCyclic = fooCyclic;
+
+        // act
+        void Act() => type.ParseValue(fooCyclic);
+
+        // assert
+        Assert.Equal(
+            "Cycle in object graph detected.",
+            Assert.Throws<GraphQLException>(Act).Message);
     }
 
     [Fact]
@@ -1165,7 +1332,6 @@ public class AnyTypeTests
     [Fact]
     public async Task Dictionary_Is_Handled_As_Object()
     {
-        Snapshot.FullName();
         await ExpectValid(
                 "{ someObject }",
                 configure: c => c.AddQueryType<QueryWithDictionary>())
@@ -1175,7 +1341,6 @@ public class AnyTypeTests
     [Fact]
     public async Task UseExpandoObjectWithAny()
     {
-        Snapshot.FullName();
         await ExpectValid(
                 "{ something }",
                 configure: c => c.AddQueryType<SomeQuery>())
@@ -1185,7 +1350,6 @@ public class AnyTypeTests
     [Fact]
     public async Task UseImmutableDictWithAny()
     {
-        Snapshot.FullName();
         await ExpectValid(
                 "{ somethingImmutable }",
                 configure: c => c.AddQueryType<SomeQuery>())
@@ -1211,10 +1375,32 @@ public class AnyTypeTests
 
     public class Foo
     {
-        public Bar Bar { get; set; } = new Bar();
+        public Bar Bar1 { get; set; } = new Bar();
+
+        public Bar Bar2 { get; set; } = new Bar();
     }
 
     public class Bar
+    {
+        public string Baz { get; set; } = "Baz";
+    }
+
+    public class FooCyclic
+    {
+        public BarCyclic BarCyclic { get; set; }
+    }
+
+    public class BarCyclic
+    {
+        public FooCyclic FooCyclic { get; set; }
+    }
+
+    public record FooRecord
+    {
+        public BarRecord BarRecord { get; set; } = new BarRecord();
+    }
+
+    public record BarRecord
     {
         public string Baz { get; set; } = "Baz";
     }

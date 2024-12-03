@@ -6,13 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble\CookieCrumble.csproj" />
     <ProjectReference Include="..\..\..\..\GreenDonut\test\Core.Tests\GreenDonut.Tests.csproj" />
     <ProjectReference Include="..\..\src\ApolloFederation\HotChocolate.ApolloFederation.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+    <PackageReference Include="System.ComponentModel.Annotations" />
   </ItemGroup>
 
 </Project>

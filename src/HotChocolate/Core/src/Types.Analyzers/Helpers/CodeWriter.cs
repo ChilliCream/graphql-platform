@@ -71,7 +71,7 @@ public class CodeWriter : TextWriter
 
         WriteLine();
     }
-    
+
     public void WriteIndented(string format, params object?[] args)
     {
         WriteIndent();
@@ -94,6 +94,43 @@ public class CodeWriter : TextWriter
         return new Block(DecreaseIndent);
     }
 
+    public IDisposable WriteMethod(string accessModifier, string returnType, string methodName, params string[] parameters)
+    {
+        WriteIndented("{0} {1} {2}(", accessModifier, returnType, methodName);
+
+        if (parameters.Length > 0)
+        {
+            Write(string.Join(", ", parameters));
+        }
+
+        Write(")");
+        WriteLine();
+        return WithCurlyBrace();
+    }
+
+    public IDisposable WriteForEach(string item, string collection)
+    {
+        WriteIndentedLine("foreach(var {0} in {1})", item, collection);
+        return WithCurlyBrace();
+    }
+
+    public IDisposable WriteIfClause(string condition, params object[] args)
+    {
+        WriteIndentedLine("if({0})", args.Length == 0 ? condition : string.Format(condition, args));
+        return WithCurlyBrace();
+    }
+
+    public IDisposable WithCurlyBrace()
+    {
+        WriteIndentedLine("{");
+        _indent++;
+        return new Block(() =>
+        {
+            DecreaseIndent();
+            WriteIndentedLine("}");
+        });
+    }
+
     public void DecreaseIndent()
     {
         if (_indent > 0)
@@ -107,9 +144,7 @@ public class CodeWriter : TextWriter
         WriteLeftBrace();
         WriteLine();
 
-#pragma warning disable CA2000
         var indent = IncreaseIndent();
-#pragma warning restore CA2000
 
         return new Block(() =>
         {

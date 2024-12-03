@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -35,7 +34,6 @@ public class QueryableFilterVisitorEnumTests : FilterVisitorTestBase
 
         // act
         var func = tester.Build<Foo>(value);
-
 
         // assert
         var a = new Foo { BarEnum = FooEnum.BAZ, };

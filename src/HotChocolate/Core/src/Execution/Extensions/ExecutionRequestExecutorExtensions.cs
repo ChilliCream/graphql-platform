@@ -1,10 +1,4 @@
-using System;
-using System.Collections.Generic;
-#if NET7_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
-#endif
-using System.Threading;
-using System.Threading.Tasks;
 using static HotChocolate.Execution.Properties.Resources;
 
 // ReSharper disable once CheckNamespace
@@ -33,11 +27,7 @@ public static class ExecutionRequestExecutorExtensions
 
     public static Task<IExecutionResult> ExecuteAsync(
         this IRequestExecutor executor,
-#if NET7_0_OR_GREATER
         [StringSyntax("graphql")] string query)
-#else
-        string query)
-#endif
     {
         if (executor is null)
         {
@@ -52,17 +42,13 @@ public static class ExecutionRequestExecutorExtensions
         }
 
         return executor.ExecuteAsync(
-            OperationRequestBuilder.Create().SetDocument(query).Build(),
+            OperationRequestBuilder.New().SetDocument(query).Build(),
             CancellationToken.None);
     }
 
     public static Task<IExecutionResult> ExecuteAsync(
         this IRequestExecutor executor,
-#if NET7_0_OR_GREATER
         [StringSyntax("graphql")] string query,
-#else
-        string query,
-#endif
         CancellationToken cancellationToken)
     {
         if (executor is null)
@@ -78,17 +64,13 @@ public static class ExecutionRequestExecutorExtensions
         }
 
         return executor.ExecuteAsync(
-            OperationRequestBuilder.Create().SetDocument(query).Build(),
+            OperationRequestBuilder.New().SetDocument(query).Build(),
             cancellationToken);
     }
 
     public static Task<IExecutionResult> ExecuteAsync(
         this IRequestExecutor executor,
-#if NET7_0_OR_GREATER
         [StringSyntax("graphql")] string query,
-#else
-        string query,
-#endif
         Dictionary<string, object?> variableValues)
     {
         if (executor is null)
@@ -109,7 +91,7 @@ public static class ExecutionRequestExecutorExtensions
         }
 
         return executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(query)
                 .SetVariableValues(variableValues)
                 .Build(),
@@ -118,11 +100,7 @@ public static class ExecutionRequestExecutorExtensions
 
     public static Task<IExecutionResult> ExecuteAsync(
         this IRequestExecutor executor,
-#if NET7_0_OR_GREATER
         [StringSyntax("graphql")] string query,
-#else
-        string query,
-#endif
         IReadOnlyDictionary<string, object?> variableValues,
         CancellationToken cancellationToken)
     {
@@ -144,7 +122,7 @@ public static class ExecutionRequestExecutorExtensions
         }
 
         return executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(query)
                 .SetVariableValues(variableValues)
                 .Build(),
@@ -174,11 +152,7 @@ public static class ExecutionRequestExecutorExtensions
 
     public static IExecutionResult Execute(
         this IRequestExecutor executor,
-#if NET7_0_OR_GREATER
         [StringSyntax("graphql")] string query)
-#else
-        string query)
-#endif
     {
         if (executor is null)
         {
@@ -193,18 +167,14 @@ public static class ExecutionRequestExecutorExtensions
         }
 
         return executor.Execute(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(query)
                 .Build());
     }
 
     public static IExecutionResult Execute(
         this IRequestExecutor executor,
-#if NET7_0_OR_GREATER
         [StringSyntax("graphql")] string query,
-#else
-        string query,
-#endif
         IReadOnlyDictionary<string, object?> variableValues)
     {
         if (executor is null)
@@ -225,7 +195,7 @@ public static class ExecutionRequestExecutorExtensions
         }
 
         return executor.Execute(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(query)
                 .SetVariableValues(variableValues)
                 .Build());

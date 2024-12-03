@@ -1,13 +1,12 @@
-using System;
-#if NET8_0_OR_GREATER
 using System.Collections.Frozen;
-#endif
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Language.Utilities;
 using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Relay;
 
 #nullable enable
 
@@ -24,11 +23,8 @@ public partial class Schema
 {
     private readonly DateTimeOffset _createdAt = DateTimeOffset.UtcNow;
     private SchemaTypes _types = default!;
-#if NET8_0_OR_GREATER
     private FrozenDictionary<string, DirectiveType> _directiveTypes = default!;
-#else
-    private Dictionary<string, DirectiveType> _directiveTypes = default!;
-#endif
+    private AggregateSchemaDocumentFormatter? _formatter;
 
     /// <summary>
     /// Gets the schema directives.
@@ -67,6 +63,11 @@ public partial class Schema
     /// Gets all the directives that are supported by this schema.
     /// </summary>
     public IReadOnlyCollection<DirectiveType> DirectiveTypes { get; private set; } = default!;
+
+    /// <summary>
+    /// Gets the schema features.
+    /// </summary>
+    public IFeatureCollection Features { get; private set; } = default!;
 
     /// <summary>
     /// Specifies the time the schema was created.
@@ -128,7 +129,7 @@ public partial class Schema
     /// <param name="runtimeType">The resolved .net type.</param>
     /// <returns>
     /// <c>true</c>, if a .net type was found that was bound
-    /// the the specified schema type, <c>false</c> otherwise.
+    /// the specified schema type, <c>false</c> otherwise.
     /// </returns>
     public bool TryGetRuntimeType(string typeName, [NotNullWhen(true)] out Type? runtimeType)
     {
@@ -220,16 +221,33 @@ public partial class Schema
         return _directiveTypes.TryGetValue(directiveName, out directiveType);
     }
 
+    Type? INodeIdRuntimeTypeLookup.GetNodeIdRuntimeType(string typeName)
+    {
+        if (TryGetType<ObjectType>(typeName, out var type)
+            && type.IsImplementing("Node")
+            && type.Fields.TryGetField("id", out var field))
+        {
+            return field.RuntimeType;
+        }
+
+        return null;
+    }
+
     /// <summary>
     /// Generates a schema document.
     /// </summary>
     public DocumentNode ToDocument(bool includeSpecScalars = false)
-        => SchemaPrinter.PrintSchema(this, includeSpecScalars);
+    {
+        _formatter ??= new AggregateSchemaDocumentFormatter(
+            Services.GetService<IEnumerable<ISchemaDocumentFormatter>>());
+        var document = SchemaPrinter.PrintSchema(this, includeSpecScalars);
+        return _formatter.Format(document);
+    }
 
     /// <summary>
     /// Returns the schema SDL representation.
     /// </summary>
-    public string Print() => SchemaPrinter.Print(this);
+    public string Print() => ToDocument().Print();
 
     /// <summary>
     /// Returns the schema SDL representation.

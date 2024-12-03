@@ -19,7 +19,7 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
 
     protected T[] CreateEntity<T>(params T[] entities) => entities;
 
-    protected IRequestExecutor CreateSchema<TEntity, T>(
+    protected async Task<IRequestExecutor> CreateSchemaAsync<TEntity, T>(
         TEntity[] entities,
         FilterConvention? convention = null,
         bool withPaging = false,
@@ -28,10 +28,10 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
         where T : FilterInputType<TEntity>
     {
         var dbName = $"DB_{Guid.NewGuid():N}";
-        Container.Resource.CreateDatabaseAsync(dbName).GetAwaiter().GetResult();
+        await Container.Resource.CreateDatabaseAsync(dbName);
         var store = DocumentStore.For(Container.Resource.GetConnectionString(dbName));
 
-        var resolver = BuildResolver(store, entities);
+        var resolver = await BuildResolverAsync(store, entities);
 
         var builder = SchemaBuilder.New()
             .AddMartenFiltering()
@@ -56,7 +56,7 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
 
         var schema = builder.Create();
 
-        return new ServiceCollection()
+        return await new ServiceCollection()
             .Configure<RequestExecutorSetup>(
                 Schema.DefaultName,
                 o => o.Schema = schema)
@@ -69,7 +69,7 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
                     {
                         context.Result =
                             OperationResultBuilder
-                                .FromResult(context.Result!.ExpectQueryResult())
+                                .FromResult(context.Result!.ExpectOperationResult())
                                 .SetContextData("sql", queryString)
                                 .Build();
                     }
@@ -79,8 +79,7 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
             .Services
             .BuildServiceProvider()
             .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync()
-            .Result;
+            .GetRequestExecutorAsync();
     }
 
     private void ApplyConfigurationToField<TEntity, TType>(
@@ -116,19 +115,19 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
         field.UseFiltering<TType>();
     }
 
-    private Func<IResolverContext, IQueryable<TResult>> BuildResolver<TResult>(
+    private async Task<Func<IResolverContext, IQueryable<TResult>>> BuildResolverAsync<TResult>(
         IDocumentStore store,
         params TResult[] results)
         where TResult : class
     {
-        using var session = store.LightweightSession();
+        await using var session = store.LightweightSession();
 
         foreach (var item in results)
         {
             session.Store(item);
         }
 
-        session.SaveChanges();
+        await session.SaveChangesAsync();
 
         return ctx => ((IDocumentSession)ctx.LocalContextData["session"]!).Query<TResult>();
     }

@@ -1,16 +1,18 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 
   <PropertyGroup>
     <AssemblyName>HotChocolate.Types.Tests</AssemblyName>
     <RootNamespace>HotChocolate</RootNamespace>
+    <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="7.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Identity.Core" />
+    <PackageReference Include="System.ComponentModel.Annotations" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
     <ProjectReference Include="..\..\src\Core\HotChocolate.Core.csproj" />
     <ProjectReference Include="..\..\src\Subscriptions.InMemory\HotChocolate.Subscriptions.InMemory.csproj" />
     <ProjectReference Include="..\Types.Tests.Documentation\HotChocolate.Types.Tests.Documentation.csproj" />

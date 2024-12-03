@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -9,7 +8,7 @@ namespace HotChocolate;
 
 /// <summary>
 /// <para>
-/// A <see cref="SchemaCoordinate"/> is a human readable string that uniquely identifies a
+/// A <see cref="SchemaCoordinate"/> is a human-readable string that uniquely identifies a
 /// schema element within a GraphQL Schema.
 /// A schema element is a specific instance of a named type, field, input field, enum value,
 /// field argument, directive, or directive argument.
@@ -109,7 +108,7 @@ public readonly struct SchemaCoordinate : IEquatable<SchemaCoordinate>
     public override string ToString() => ToSyntax().ToString();
 
     /// <summary>
-    /// Tries to parse a <see cref="SchemaCoordinate"/> from a <see cref="String"/>.
+    /// Tries to parse a <see cref="SchemaCoordinate"/> from a <see cref="string"/>.
     /// </summary>
     /// <param name="s">The string that may represent a <see cref="SchemaCoordinate"/>.</param>
     /// <param name="coordinate">
@@ -210,4 +209,6 @@ public readonly struct SchemaCoordinate : IEquatable<SchemaCoordinate>
 
     public static bool operator !=(SchemaCoordinate left, SchemaCoordinate right)
         => !left.Equals(right);
+
+    public static implicit operator SchemaCoordinate(string s) => Parse(s);
 }

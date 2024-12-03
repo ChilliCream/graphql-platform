@@ -1,7 +1,5 @@
 using System.Net.WebSockets;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Transport.Serialization;
 using HotChocolate.Utilities;
 using static System.Net.WebSockets.WebSocketMessageType;
@@ -29,11 +27,7 @@ internal static class MessageHelper
         jsonWriter.WriteEndObject();
         await jsonWriter.FlushAsync(ct).ConfigureAwait(false);
 
-#if NET5_0_OR_GREATER
         await socket.SendAsync(arrayWriter.GetWrittenMemory(), Text, true, ct).ConfigureAwait(false);
-#else
-        await socket.SendAsync(arrayWriter.ToArraySegment(), Text, true, ct).ConfigureAwait(false);
-#endif
     }
 
     public static async ValueTask SendSubscribeMessageAsync(
@@ -55,14 +49,8 @@ internal static class MessageHelper
         jsonWriter.WriteEndObject();
         await jsonWriter.FlushAsync(ct).ConfigureAwait(false);
 
-#if NET5_0_OR_GREATER
         await socket.SendAsync(arrayWriter.GetWrittenMemory(), Text, true, ct).ConfigureAwait(false);
-#else
-        await socket.SendAsync(arrayWriter.ToArraySegment(), Text, true, ct).ConfigureAwait(false);
-#endif
     }
-
-
 
     public static async ValueTask SendCompleteMessageAsync(
         this WebSocket socket,
@@ -77,11 +65,7 @@ internal static class MessageHelper
         jsonWriter.WriteEndObject();
         await jsonWriter.FlushAsync(ct).ConfigureAwait(false);
 
-#if NET5_0_OR_GREATER
         await socket.SendAsync(arrayWriter.GetWrittenMemory(), Text, true, ct).ConfigureAwait(false);
-#else
-        await socket.SendAsync(arrayWriter.ToArraySegment(), Text, true, ct).ConfigureAwait(false);
-#endif
     }
 
     public static async ValueTask SendPongMessageAsync(
@@ -95,12 +79,6 @@ internal static class MessageHelper
         jsonWriter.WriteEndObject();
         await jsonWriter.FlushAsync(ct).ConfigureAwait(false);
 
-#if NET5_0_OR_GREATER
         await socket.SendAsync(arrayWriter.GetWrittenMemory(), Text, true, ct).ConfigureAwait(false);
-#else
-        await socket.SendAsync(arrayWriter.ToArraySegment(), Text, true, ct).ConfigureAwait(false);
-#endif
     }
-
-
 }

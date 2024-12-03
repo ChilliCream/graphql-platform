@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Security.Claims;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -25,7 +23,7 @@ public static class ResolverContextExtensions
     /// could not be found or casted to <typeparamref name="T" />.
     /// </returns>
     public static T? GetGlobalStateOrDefault<T>(
-        this IPureResolverContext context,
+        this IResolverContext context,
         string name)
     {
         if (context is null)
@@ -61,7 +59,7 @@ public static class ResolverContextExtensions
     /// could not be found or casted to <typeparamref name="T" />.
     /// </returns>
     public static T GetGlobalStateOrDefault<T>(
-        this IPureResolverContext context,
+        this IResolverContext context,
         string name,
         T defaultValue)
     {
@@ -94,8 +92,8 @@ public static class ResolverContextExtensions
     /// <returns>
     /// Returns the global state for the specified <paramref name="name" />.
     /// </returns>
-    public static T? GetGlobalState<T>(
-        this IPureResolverContext context,
+    public static T GetGlobalState<T>(
+        this IResolverContext context,
         string name)
     {
         if (context is null)
@@ -108,17 +106,9 @@ public static class ResolverContextExtensions
             throw String_NullOrEmpty(nameof(name));
         }
 
-        if (context.ContextData.TryGetValue(name, out var value))
+        if (context.ContextData.TryGetValue(name, out var value) && value is T typedValue)
         {
-            if (value is null)
-            {
-                return default;
-            }
-
-            if (value is T typedValue)
-            {
-                return typedValue;
-            }
+            return typedValue;
         }
 
         throw new ArgumentException(
@@ -138,7 +128,7 @@ public static class ResolverContextExtensions
     /// could not be found or casted to <typeparamref name="T" />.
     /// </returns>
     public static T? GetScopedStateOrDefault<T>(
-        this IPureResolverContext context,
+        this IResolverContext context,
         string name)
     {
         if (context is null)
@@ -174,7 +164,7 @@ public static class ResolverContextExtensions
     /// could not be found or casted to <typeparamref name="T" />.
     /// </returns>
     public static T GetScopedStateOrDefault<T>(
-        this IPureResolverContext context,
+        this IResolverContext context,
         string name,
         T defaultValue)
     {
@@ -207,8 +197,8 @@ public static class ResolverContextExtensions
     /// <returns>
     /// Returns the scoped state for the specified <paramref name="name" />.
     /// </returns>
-    public static T? GetScopedState<T>(
-        this IPureResolverContext context,
+    public static T GetScopedState<T>(
+        this IResolverContext context,
         string name)
     {
         if (context is null)
@@ -221,17 +211,10 @@ public static class ResolverContextExtensions
             throw String_NullOrEmpty(nameof(name));
         }
 
-        if (context.ScopedContextData.TryGetValue(name, out var value))
+        if (context.ScopedContextData.TryGetValue(name, out var value) &&
+            value is T typedValue)
         {
-            if (value is null)
-            {
-                return default;
-            }
-
-            if (value is T typedValue)
-            {
-                return typedValue;
-            }
+            return typedValue;
         }
 
         throw new ArgumentException(
@@ -320,7 +303,7 @@ public static class ResolverContextExtensions
     /// <returns>
     /// Returns the local state for the specified <paramref name="name" />.
     /// </returns>
-    public static T? GetLocalState<T>(
+    public static T GetLocalState<T>(
         this IResolverContext context,
         string name)
     {
@@ -334,17 +317,10 @@ public static class ResolverContextExtensions
             throw String_NullOrEmpty(nameof(name));
         }
 
-        if (context.LocalContextData.TryGetValue(name, out var value))
+        if (context.LocalContextData.TryGetValue(name, out var value) &&
+            value is T casted)
         {
-            if (value is null)
-            {
-                return default;
-            }
-
-            if (value is T typedValue)
-            {
-                return typedValue;
-            }
+            return casted;
         }
 
         throw new ArgumentException(

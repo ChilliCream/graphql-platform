@@ -38,6 +38,7 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
             .AddGraphQLServer()
             .AddRavenFiltering()
             .AddRavenPagingProviders()
+            .ModifyPagingOptions(o => o.RequirePagingBoundaries = false)
             .AddQueryType(
                 c =>
                 {
@@ -61,7 +62,7 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
                     {
                         context.Result =
                             OperationResultBuilder
-                                .FromResult(context.Result!.ExpectQueryResult())
+                                .FromResult(context.Result!.ExpectOperationResult())
                                 .SetContextData("sql", queryString)
                                 .Build();
                     }

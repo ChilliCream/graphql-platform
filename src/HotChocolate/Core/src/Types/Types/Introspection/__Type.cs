@@ -1,5 +1,4 @@
 #pragma warning disable IDE1006 // Naming Styles
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -105,16 +104,16 @@ internal sealed class __Type : ObjectType
 
     private static class Resolvers
     {
-        public static object Kind(IPureResolverContext context)
+        public static object Kind(IResolverContext context)
             => context.Parent<IType>().Kind;
 
-        public static object? Name(IPureResolverContext context)
+        public static object? Name(IResolverContext context)
             => context.Parent<IType>() is INamedType n ? n.Name : null;
 
-        public static object? Description(IPureResolverContext context)
+        public static object? Description(IResolverContext context)
             => context.Parent<IType>() is INamedType n ? n.Description : null;
 
-        public static object? Fields(IPureResolverContext context)
+        public static object? Fields(IResolverContext context)
         {
             var type = context.Parent<IType>();
             var includeDeprecated = context.ArgumentValue<bool>(Names.IncludeDeprecated);
@@ -129,33 +128,33 @@ internal sealed class __Type : ObjectType
             return default;
         }
 
-        public static object? Interfaces(IPureResolverContext context)
+        public static object? Interfaces(IResolverContext context)
             => context.Parent<IType>() is IComplexOutputType complexType
                 ? complexType.Implements
                 : null;
 
-        public static object? PossibleTypes(IPureResolverContext context)
+        public static object? PossibleTypes(IResolverContext context)
             => context.Parent<IType>() is INamedType nt
                 ? nt.IsAbstractType()
                     ? context.Schema.GetPossibleTypes(nt)
                     : null
                 : null;
 
-        public static object? EnumValues(IPureResolverContext context)
+        public static object? EnumValues(IResolverContext context)
             => context.Parent<IType>() is EnumType et
                 ? context.ArgumentValue<bool>(Names.IncludeDeprecated)
                     ? et.Values
                     : et.Values.Where(t => !t.IsDeprecated)
                 : null;
 
-        public static object? InputFields(IPureResolverContext context)
+        public static object? InputFields(IResolverContext context)
             => context.Parent<IType>() is IInputObjectType iot
                 ? context.ArgumentValue<bool>(Names.IncludeDeprecated)
                     ? iot.Fields
                     : iot.Fields.Where(t => !t.IsDeprecated)
                 : null;
 
-        public static object? OfType(IPureResolverContext context)
+        public static object? OfType(IResolverContext context)
             => context.Parent<IType>() switch
             {
                 ListType lt => lt.ElementType,
@@ -163,20 +162,20 @@ internal sealed class __Type : ObjectType
                 _ => null,
             };
 
-        public static object? OneOf(IPureResolverContext context)
+        public static object? OneOf(IResolverContext context)
             => context.Parent<IType>() is IInputObjectType iot
                 ? iot.Directives.ContainsDirective(WellKnownDirectives.OneOf)
                 : null;
 
-        public static object? SpecifiedBy(IPureResolverContext context)
+        public static object? SpecifiedBy(IResolverContext context)
             => context.Parent<IType>() is ScalarType scalar
                 ? scalar.SpecifiedBy?.ToString()
                 : null;
 
-        public static object AppliedDirectives(IPureResolverContext context) =>
+        public static object AppliedDirectives(IResolverContext context) =>
             context.Parent<IType>() is IHasDirectives hasDirectives
                 ? hasDirectives.Directives.Where(t => t.Type.IsPublic).Select(d => d.AsSyntaxNode())
-                : Enumerable.Empty<DirectiveNode>();
+                : [];
     }
 
     public static class Names

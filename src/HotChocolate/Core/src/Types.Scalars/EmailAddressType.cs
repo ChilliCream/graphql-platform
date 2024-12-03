@@ -1,4 +1,3 @@
-using System;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 
@@ -11,26 +10,14 @@ namespace HotChocolate.Types;
 /// HTML Spec
 /// </a>
 /// </summary>
-#if NET7_0_OR_GREATER
 public partial class EmailAddressType : RegexType
-#else
-public class EmailAddressType : RegexType
-#endif
 {
     private const string _validationPattern =
         "^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?" +
         "(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$";
 
-#if NET7_0_OR_GREATER
     [GeneratedRegex(_validationPattern, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegex();
-#else
-    private static Regex CreateRegex()
-        => new Regex(
-            _validationPattern,
-            RegexOptions.Compiled | RegexOptions.IgnoreCase,
-            TimeSpan.FromMilliseconds(DefaultRegexTimeoutInMs));
-#endif
 
     /// <summary>
     /// Initializes a new instance of the <see cref="EmailAddressType"/> class.

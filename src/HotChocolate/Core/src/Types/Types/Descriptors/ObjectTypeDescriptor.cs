@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
@@ -66,6 +64,18 @@ public class ObjectTypeDescriptor
                 Context,
                 this,
                 Definition.FieldBindingType);
+
+            if (Definition.AttributeBindingTypes.Length > 0)
+            {
+                foreach (var type in Definition.AttributeBindingTypes)
+                {
+                    Context.TypeInspector.ApplyAttributes(
+                        Context,
+                        this,
+                        type);
+                }
+            }
+
             Definition.AttributesAreApplied = true;
         }
 

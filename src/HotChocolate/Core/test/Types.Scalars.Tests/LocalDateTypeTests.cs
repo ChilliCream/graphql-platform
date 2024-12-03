@@ -1,8 +1,5 @@
-using System;
 using System.Globalization;
-using System.Threading;
 using HotChocolate.Language;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types;
 
@@ -20,7 +17,7 @@ public class LocalDateTypeTests : ScalarTypeTestBase
     }
 
     [Fact]
-    public void LocalDate_EnsureDateTimeTypeKindIsCorret()
+    public void LocalDate_EnsureLocalDateTypeKindIsCorrect()
     {
         // arrange
         var type = new LocalDateType();
@@ -37,7 +34,7 @@ public class LocalDateTypeTests : ScalarTypeTestBase
     {
         // arrange
         var scalar = CreateType<LocalDateType>();
-        var valueSyntax = new StringValueNode("2018-06-29T08:46:14+04:00");
+        var valueSyntax = new StringValueNode("2018-06-29");
 
         // act
         var result = scalar.IsInstanceOfType(valueSyntax);
@@ -47,11 +44,11 @@ public class LocalDateTypeTests : ScalarTypeTestBase
     }
 
     [Fact]
-    protected void LocalDate_ExpectIsDateTimeToMatch()
+    protected void LocalDate_ExpectIsDateOnlyToMatch()
     {
         // arrange
         var scalar = CreateType<LocalDateType>();
-        var valueSyntax = new DateTime(2018, 6, 29, 8, 46, 14);
+        var valueSyntax = new DateOnly(2018, 6, 29);
 
         // act
         var result = scalar.IsInstanceOfType(valueSyntax);
@@ -65,11 +62,11 @@ public class LocalDateTypeTests : ScalarTypeTestBase
     {
         // arrange
         var scalar = CreateType<LocalDateType>();
-        var valueSyntax = new StringValueNode("2018-06-29T08:46:14");
-        var expectedResult = new DateTime(2018, 6, 29, 8, 46, 14);
+        var valueSyntax = new StringValueNode("2018-06-29");
+        var expectedResult = new DateOnly(2018, 6, 29);
 
         // act
-        object result = (DateTime)scalar.ParseLiteral(valueSyntax)!;
+        object result = (DateOnly)scalar.ParseLiteral(valueSyntax)!;
 
         // assert
         Assert.Equal(expectedResult, result);
@@ -89,15 +86,14 @@ public class LocalDateTypeTests : ScalarTypeTestBase
             CultureInfo.GetCultureInfo(cultureName);
 
         ScalarType scalar = new LocalDateType();
-        var valueSyntax = new StringValueNode("2018-06-29T08:46:14+04:00");
-        var expectedDateTime = new DateTimeOffset(new DateTime(2018, 6, 29, 8, 46, 14),
-            new TimeSpan(4, 0, 0));
+        var valueSyntax = new StringValueNode("2018-06-29");
+        var expectedDateOnly = new DateOnly(2018, 6, 29);
 
         // act
-        var dateTime = (DateTime)scalar.ParseLiteral(valueSyntax)!;
+        var dateTime = (DateOnly)scalar.ParseLiteral(valueSyntax)!;
 
         // assert
-        Assert.Equal(expectedDateTime, dateTime);
+        Assert.Equal(expectedDateOnly, dateTime);
     }
 
     [Fact]
@@ -115,11 +111,11 @@ public class LocalDateTypeTests : ScalarTypeTestBase
     }
 
     [Fact]
-    protected void LocalDate_ExpectParseValueToMatchDateTime()
+    protected void LocalDate_ExpectParseValueToMatchDateOnly()
     {
         // arrange
         var scalar = CreateType<LocalDateType>();
-        var valueSyntax = new DateTime(2018, 6, 29, 8, 46, 14);
+        var valueSyntax = new DateOnly(2018, 6, 29);
 
         // act
         var result = scalar.ParseValue(valueSyntax);
@@ -150,6 +146,36 @@ public class LocalDateTypeTests : ScalarTypeTestBase
         DateTimeOffset dateTime = new DateTime(
             2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
 
+        var expectedValue = "2018-06-11";
+
+        // act
+        var serializedValue = (string)scalar.Serialize(dateTime)!;
+
+        // assert
+        Assert.Equal(expectedValue, serializedValue);
+    }
+
+    [Fact]
+    protected void LocalDate_ExpectSerializeDateOnlyToMatch()
+    {
+        // arrange
+        ScalarType scalar = new LocalDateType();
+        var dateOnly = new DateOnly(2018, 6, 11);
+        var expectedValue = "2018-06-11";
+
+        // act
+        var serializedValue = (string)scalar.Serialize(dateOnly)!;
+
+        // assert
+        Assert.Equal(expectedValue, serializedValue);
+    }
+
+    [Fact]
+    protected void LocalDate_ExpectSerializeDateTimeToMatch()
+    {
+        // arrange
+        ScalarType scalar = new LocalDateType();
+        var dateTime = new DateTime(2018, 6, 11, 8, 46, 14);
         var expectedValue = "2018-06-11";
 
         // act
@@ -191,14 +217,14 @@ public class LocalDateTypeTests : ScalarTypeTestBase
     }
 
     [Fact]
-    public void LocalDate_ExpectDeserializeNullableDateTimeToDateTime()
+    public void LocalDate_ExpectDeserializeNullableDateOnlyToDateOnly()
     {
         // arrange
         ScalarType scalar = new LocalDateType();
-        DateTime? time = null;
+        DateOnly? date = null;
 
         // act
-        var success = scalar.TryDeserialize(time, out var deserialized);
+        var success = scalar.TryDeserialize(date, out var deserialized);
 
         // assert
         Assert.True(success);
@@ -210,42 +236,21 @@ public class LocalDateTypeTests : ScalarTypeTestBase
     {
         // arrange
         var scalar = CreateType<LocalDateType>();
-        var runtimeValue = new DateTimeOffset(
-            new DateTime(2018, 6, 11, 8, 46, 14),
-            new TimeSpan(4, 0, 0));
+        var runtimeValue = new DateOnly(2018, 6, 11);
 
         // act
-        var deserializedValue = (DateTime)scalar
-            .Deserialize("2018-06-11T08:46:14+04:00")!;
+        var deserializedValue = (DateOnly)scalar.Deserialize("2018-06-11")!;
 
         // assert
         Assert.Equal(runtimeValue, deserializedValue);
     }
 
     [Fact]
-    protected void LocalDate_ExpectDeserializeDateTimeOffsetToMatch()
-    {
-        // arrange
-        var scalar = CreateType<LocalTimeType>();
-        object input = new DateTimeOffset(
-            new DateTime(2018, 6, 11, 8, 46, 14),
-            new TimeSpan(4, 0, 0));
-        object expected = new DateTime(2018, 6, 11, 8, 46, 14);
-
-        // act
-        var result = scalar.Deserialize(input);
-
-        // assert
-        Assert.Equal(result, expected);
-    }
-
-    [Fact]
-    protected void LocalDate_ExpectDeserializeDateTimeToMatch()
+    protected void LocalDate_ExpectDeserializeDateOnlyToMatch()
     {
         // arrange
         var scalar = CreateType<LocalDateType>();
-        object? resultValue =  new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
-
+        var resultValue = new DateOnly(2018, 6, 11);
 
         // act
         var result = scalar.Deserialize(resultValue);
@@ -255,7 +260,52 @@ public class LocalDateTypeTests : ScalarTypeTestBase
     }
 
     [Fact]
-    public void LocalDate_ExpectDeserializeInvalidStringToDateTime()
+    protected void LocalDate_ExpectDeserializeDateTimeToMatch()
+    {
+        // arrange
+        var scalar = CreateType<LocalDateType>();
+        var input = new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
+        var expected = new DateOnly(2018, 6, 11);
+
+        // act
+        var result = scalar.Deserialize(input);
+
+        // assert
+        Assert.Equal(expected, result);
+    }
+
+    [Fact]
+    protected void LocalDate_ExpectDeserializeDateTimeOffsetToMatch()
+    {
+        // arrange
+        var scalar = CreateType<LocalDateType>();
+        var input = new DateTimeOffset(
+            new DateTime(2018, 6, 11, 8, 46, 14),
+            new TimeSpan(4, 0, 0));
+        var expected = new DateOnly(2018, 6, 11);
+
+        // act
+        var result = scalar.Deserialize(input);
+
+        // assert
+        Assert.Equal(expected, result);
+    }
+
+    [Fact]
+    public void LocalDate_ExpectDeserializeInvalidFormatToDateOnly()
+    {
+        // arrange
+        ScalarType scalar = new LocalDateType();
+
+        // act
+        var success = scalar.TryDeserialize("2018/06/11", out var _);
+
+        // assert
+        Assert.False(success);
+    }
+
+    [Fact]
+    public void LocalDate_ExpectDeserializeInvalidStringToDateOnly()
     {
         // arrange
         ScalarType scalar = new LocalDateType();
@@ -326,7 +376,7 @@ public class LocalDateTypeTests : ScalarTypeTestBase
     {
         // arrange
         ScalarType scalar = new LocalDateType();
-        const string valueSyntax = "2018-06-29T08:46:14+04:00";
+        const string valueSyntax = "2018-06-29";
 
         // act
         var result = scalar.ParseResult(valueSyntax);
@@ -347,6 +397,22 @@ public class LocalDateTypeTests : ScalarTypeTestBase
 
         // assert
         Assert.IsType<SerializationException>(result);
+    }
+
+    [Fact]
+    public void ParseResult_DateOnly()
+    {
+        // arrange
+        var scalar = new LocalDateType();
+        var resultValue = new DateOnly(2023, 6, 19);
+        var expectedLiteralValue = "2023-06-19";
+
+        // act
+        var literal = scalar.ParseResult(resultValue);
+
+        // assert
+        Assert.Equal(typeof(StringValueNode), literal.GetType());
+        Assert.Equal(expectedLiteralValue, literal.Value);
     }
 
     [Fact]

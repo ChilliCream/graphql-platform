@@ -86,7 +86,6 @@ partial class Build : NukeBuild
                 .OrderBy(p => p.Name)
                 .ToList();
 
-
             var matrix = new
             {
                 include = testProjects.Select(p => new
@@ -106,7 +105,7 @@ partial class Build : NukeBuild
         .Executes(() =>
         {
             foreach (var mismatchDir in Directory.GetDirectories(
-                RootDirectory, "__MISMATCH__", SearchOption.AllDirectories))
+                RootDirectory, "__mismatch__", SearchOption.AllDirectories))
             {
                 Log.Information("Analyzing {0} ...", mismatchDir);
 
@@ -132,7 +131,6 @@ partial class Build : NukeBuild
             }
         });
 }
-
 
 [Serializable]
 public class TestProject

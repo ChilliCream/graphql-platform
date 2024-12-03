@@ -1,9 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
-using Snapshooter.Xunit;
-using System.Threading.Tasks;
-using Snapshooter;
 
 namespace HotChocolate.Types.SDL;
 
@@ -92,8 +89,6 @@ public class EnumTypeSchemaFirstTests
     public async Task RequestBuilder_Declare_EnumType_With_Explicit_Value_Binding()
     {
         // arrange
-        Snapshot.FullName();
-
         var sdl =
             @"type Query {
                     hello(greetings: Greetings): Greetings
@@ -117,8 +112,6 @@ public class EnumTypeSchemaFirstTests
     public async Task  RequestBuilder_Declare_EnumType_With_Implicit_Value_Binding()
     {
         // arrange
-        Snapshot.FullName();
-
         var sdl =
             @"type Query {
                     hello(greetings: Greetings): Greetings
@@ -142,8 +135,6 @@ public class EnumTypeSchemaFirstTests
     public async Task  RequestBuilder_Declare_EnumType_With_Type_Extension()
     {
         // arrange
-        Snapshot.FullName();
-
         var sdl =
             @"type Query {
                     hello(greetings: Greetings): Greetings
@@ -174,8 +165,6 @@ public class EnumTypeSchemaFirstTests
     public async Task Try_Using_A_Enum_Value_That_Is_Not_Bound(string value)
     {
         // arrange
-        Snapshot.FullName(new SnapshotNameExtension(value));
-
         var sdl =
             @"type Query {
                     hello(greetings: Greetings): Greetings
@@ -193,7 +182,7 @@ public class EnumTypeSchemaFirstTests
             .AddResolver<Query>()
             .BindRuntimeType<Greetings>()
             .ExecuteRequestAsync($"{{ hello(greetings: \"{value}\") }}")
-            .MatchSnapshotAsync();
+            .MatchSnapshotAsync(postFix: value);
     }
 
     public class Query

@@ -1,6 +1,6 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using Squadron;
 
@@ -36,14 +36,14 @@ public class MongoDbProjectionVisitorPagingTests : IClassFixture<MongoResource>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ nodes { bar baz } }}")
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -55,14 +55,14 @@ public class MongoDbProjectionVisitorPagingTests : IClassFixture<MongoResource>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ nodes { baz } }}")
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -74,14 +74,14 @@ public class MongoDbProjectionVisitorPagingTests : IClassFixture<MongoResource>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ edges { node { bar baz }} }}")
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -93,14 +93,14 @@ public class MongoDbProjectionVisitorPagingTests : IClassFixture<MongoResource>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ edges { node { baz }} }}")
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -112,14 +112,14 @@ public class MongoDbProjectionVisitorPagingTests : IClassFixture<MongoResource>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ nodes{ baz } edges { node { bar }} }}")
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -131,14 +131,14 @@ public class MongoDbProjectionVisitorPagingTests : IClassFixture<MongoResource>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ nodes{ baz } edges { node { baz }} }}")
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -150,14 +150,14 @@ public class MongoDbProjectionVisitorPagingTests : IClassFixture<MongoResource>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ nodes { bar baz } }}")
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -169,14 +169,14 @@ public class MongoDbProjectionVisitorPagingTests : IClassFixture<MongoResource>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ nodes { baz } }}")
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -188,14 +188,14 @@ public class MongoDbProjectionVisitorPagingTests : IClassFixture<MongoResource>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ edges { node { bar baz }} }}")
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -207,14 +207,14 @@ public class MongoDbProjectionVisitorPagingTests : IClassFixture<MongoResource>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ edges { node { baz }} }}")
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -226,14 +226,14 @@ public class MongoDbProjectionVisitorPagingTests : IClassFixture<MongoResource>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ nodes{ baz } edges { node { bar }} }}")
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -245,14 +245,14 @@ public class MongoDbProjectionVisitorPagingTests : IClassFixture<MongoResource>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ nodes{ baz } edges { node { baz }} }}")
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -264,14 +264,14 @@ public class MongoDbProjectionVisitorPagingTests : IClassFixture<MongoResource>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ nodes{ bar list { barBaz } } }}")
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -283,14 +283,14 @@ public class MongoDbProjectionVisitorPagingTests : IClassFixture<MongoResource>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(take:10, skip:1) { items { bar baz } } }")
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -302,14 +302,14 @@ public class MongoDbProjectionVisitorPagingTests : IClassFixture<MongoResource>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ items { bar baz } }}")
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -321,17 +321,16 @@ public class MongoDbProjectionVisitorPagingTests : IClassFixture<MongoResource>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ items { baz } }}")
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
-
 
     [Fact]
     public async Task CreateOffsetPagingNullable_ProjectsTwoProperties_Items()
@@ -343,14 +342,14 @@ public class MongoDbProjectionVisitorPagingTests : IClassFixture<MongoResource>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ items { bar baz } }}")
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -364,14 +363,14 @@ public class MongoDbProjectionVisitorPagingTests : IClassFixture<MongoResource>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ items { baz } }}")
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -383,14 +382,14 @@ public class MongoDbProjectionVisitorPagingTests : IClassFixture<MongoResource>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ items{ bar list { barBaz } } }}")
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -402,20 +401,21 @@ public class MongoDbProjectionVisitorPagingTests : IClassFixture<MongoResource>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ items{ bar paging { nodes {barBaz }} } }}")
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
     public class Foo
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public bool Bar { get; set; }
@@ -433,6 +433,7 @@ public class MongoDbProjectionVisitorPagingTests : IClassFixture<MongoResource>
     public class Bar
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public string? BarBaz { get; set; }
@@ -443,6 +444,7 @@ public class MongoDbProjectionVisitorPagingTests : IClassFixture<MongoResource>
     public class FooNullable
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public bool? Bar { get; set; }

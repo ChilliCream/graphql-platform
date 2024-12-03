@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Fusion.Composition.Features;
 using HotChocolate.Fusion.Shared;
 using HotChocolate.Skimmed.Serialization;
@@ -52,7 +51,7 @@ public class TagTests(ITestOutputHelper output)
             .FormatAsString(fusionConfig)
             .MatchSnapshot(extension: ".graphql");
     }
-    
+
     [Fact]
     public async Task Exclude_Subgraphs_With_Review_Tag()
     {
@@ -68,14 +67,14 @@ public class TagTests(ITestOutputHelper output)
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionWithTagSdl),
             },
             new FusionFeatureCollection(FusionFeatures.TagDirective(
-                makeTagsPublic: true, 
+                makeTagsPublic: true,
                 exclude: new[] {"review", })));
 
         SchemaFormatter
             .FormatAsString(fusionConfig)
             .MatchSnapshot(extension: ".graphql");
     }
-    
+
     [Fact]
     public async Task Exclude_Type_System_Members_With_Internal_Tag()
     {
@@ -91,14 +90,14 @@ public class TagTests(ITestOutputHelper output)
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionWithTagSdl),
             },
             new FusionFeatureCollection(FusionFeatures.TagDirective(
-                makeTagsPublic: true, 
+                makeTagsPublic: true,
                 exclude: new[] {"internal", })));
 
         SchemaFormatter
             .FormatAsString(fusionConfig)
             .MatchSnapshot(extension: ".graphql");
     }
-    
+
     [Fact]
     public async Task Exclude_Type_System_Members_With_Internal_Tag_Which_Is_Private()
     {
@@ -114,7 +113,7 @@ public class TagTests(ITestOutputHelper output)
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionWithTagSdl),
             },
             new FusionFeatureCollection(FusionFeatures.TagDirective(
-                makeTagsPublic: false, 
+                makeTagsPublic: false,
                 exclude: new[] {"internal", })));
 
         SchemaFormatter

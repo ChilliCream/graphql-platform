@@ -44,7 +44,7 @@ public class NoUndefinedVariablesRuleTests
                             field(b: $b) {
                                 ... on Query {
                                         field(c: $c)
-                                    } 
+                                    }
                                 }
                             }
                         }
@@ -82,11 +82,11 @@ public class NoUndefinedVariablesRuleTests
                 query Foo($a: String) {
                     ...FragA
                 }
-                
+
                 query Bar($a: String) {
                     ...FragA
                 }
-                
+
                 fragment FragA on Query {
                     field(a: $a)
                 }
@@ -100,15 +100,15 @@ public class NoUndefinedVariablesRuleTests
                 query Foo($a: String) {
                     ...FragA
                 }
-                
+
                 query Bar($b: String) {
                     ...FragB
                 }
-                
+
                 fragment FragA on Query {
                     field(a: $a)
                 }
-                
+
                 fragment FragB on Query {
                     field(b: $b)
                 }
@@ -122,7 +122,7 @@ public class NoUndefinedVariablesRuleTests
                 query Foo($a: String) {
                     ...FragA
                 }
-                
+
                 fragment FragA on Query {
                     field(a: $a) {
                     ...FragA
@@ -164,11 +164,11 @@ public class NoUndefinedVariablesRuleTests
     [Fact]
     public void VariableInFragmentNotDefinedByUnNamedQuery()
     {
-        ExpectErrors(@" 
+        ExpectErrors(@"
                 {
                     ...FragA
                 }
-                
+
                 fragment FragA on Query {
                     field(a: $a)
                 }
@@ -178,23 +178,23 @@ public class NoUndefinedVariablesRuleTests
     [Fact]
     public void VariableInFragmentNotDefinedByOperation()
     {
-        ExpectErrors(@" 
+        ExpectErrors(@"
                 query Foo($a: String, $b: String) {
                     ...FragA
                 }
-                
+
                 fragment FragA on Query {
                     field(a: $a) {
                     ...FragB
                     }
                 }
-                
+
                 fragment FragB on Query {
                     field(b: $b) {
                     ...FragC
                     }
                 }
-                
+
                 fragment FragC on Query {
                     field(c: $c)
                 }
@@ -204,23 +204,23 @@ public class NoUndefinedVariablesRuleTests
     [Fact]
     public void MultipleVariablesInFragmentsNotDefined()
     {
-        ExpectErrors(@" 
+        ExpectErrors(@"
                 query Foo($b: String) {
                     ...FragA
                 }
-                
+
                 fragment FragA on Query {
                     field(a: $a) {
                     ...FragB
                     }
                 }
-                
+
                 fragment FragB on Query {
                     field(b: $b) {
                     ...FragC
                     }
                 }
-                
+
                 fragment FragC on Query {
                     field(c: $c)
                 }
@@ -230,15 +230,15 @@ public class NoUndefinedVariablesRuleTests
     [Fact]
     public void SingleVariableInFragmentNotDefinedByMultipleOperations()
     {
-        ExpectErrors(@" 
+        ExpectErrors(@"
                 query Foo($a: String) {
                     ...FragAB
                 }
-                
+
                 query Bar($a: String) {
                     ...FragAB
                 }
-                
+
                 fragment FragAB on Query {
                     field(a: $a, b: $b)
                 }
@@ -248,15 +248,15 @@ public class NoUndefinedVariablesRuleTests
     [Fact]
     public void VariablesInFragmentNotDefinedByMultipleOperations()
     {
-        ExpectErrors(@" 
+        ExpectErrors(@"
                 query Foo($b: String) {
                     ...FragAB
                 }
-                
+
                 query Bar($a: String) {
                     ...FragAB
                 }
-                
+
                 fragment FragAB on Query {
                     field(a: $a, b: $b)
                 }
@@ -266,19 +266,19 @@ public class NoUndefinedVariablesRuleTests
     [Fact]
     public void VariableInFragmentUsedByOtherOperation()
     {
-        ExpectErrors(@" 
+        ExpectErrors(@"
                 query Foo($b: String) {
                     ...FragA
                 }
-                
+
                 query Bar($a: String) {
                     ...FragB
                 }
-                
+
                 fragment FragA on Query {
                     field(a: $a)
                 }
-                
+
                 fragment FragB on Query {
                     field(b: $b)
                 }
@@ -288,19 +288,19 @@ public class NoUndefinedVariablesRuleTests
     [Fact]
     public void MultipleUndefinedVariablesProduceMultipleErrors()
     {
-        ExpectErrors(@" 
+        ExpectErrors(@"
                 query Foo($b: String) {
                     ...FragA
                 }
-                
+
                 query Bar($a: String) {
                     ...FragB
                 }
-                
+
                 fragment FragA on Query {
                     field(a: $a)
                 }
-                
+
                 fragment FragB on Query {
                     field(b: $b)
                 }

@@ -30,7 +30,7 @@ enum UserRole {
 We can define descriptions like the following.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 [GraphQLDescription("An object type")]
@@ -62,7 +62,7 @@ If the description provided to the `GraphQLDescriptionAttribute` is `null` or ma
 
 Learn more about XML documentation below.
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp

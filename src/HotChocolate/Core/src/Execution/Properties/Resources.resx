@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!--
     Microsoft ResX Schema
@@ -252,12 +252,6 @@
   <data name="ResultHelper_BuildResult_InvalidResult" xml:space="preserve">
     <value>A GraphQL result must have data, errors or both.</value>
   </data>
-  <data name="ErrorHelper_MaxComplexityReached" xml:space="preserve">
-    <value>The maximum allowed operation complexity was exceeded.</value>
-  </data>
-  <data name="ErrorHelper_StateInvalidForComplexityAnalyzer_Message" xml:space="preserve">
-    <value>The analyzer needs a documentId, operationId, document and coerced variables.</value>
-  </data>
   <data name="BatchExecutionTask_AddExecutionTask_SerialTasksNotAllowed" xml:space="preserve">
     <value>Serial execution tasks cannot be batched.</value>
   </data>
@@ -309,11 +303,11 @@
   <data name="ResultBuilder_DataAndItemsNotAllowed" xml:space="preserve">
     <value>Its not allowed to set `items` and `data` at the same time.</value>
   </data>
-  <data name="ErrorHelper_PersistedQueryNotFound" xml:space="preserve">
-    <value>The specified persisted query key is invalid.</value>
+  <data name="ErrorHelper_PersistedOperationNotFound" xml:space="preserve">
+    <value>The specified persisted operation key is invalid.</value>
   </data>
-  <data name="ErrorHelper_OnlyPersistedQueriesAreAllowed" xml:space="preserve">
-    <value>Only persisted queries are allowed.</value>
+  <data name="ErrorHelper_OnlyPersistedOperationsAreAllowed" xml:space="preserve">
+    <value>Only persisted operations are allowed.</value>
   </data>
   <data name="MiddlewareContext_ReplaceArgument_InvalidKey" xml:space="preserve">
     <value>There is no argument with the name `{0}`.</value>
@@ -329,11 +323,5 @@
   </data>
   <data name="SelectionSetOptimizerContext_AddSelection_ResponseNameNotTheSame" xml:space="preserve">
     <value>The provided response name must be the same as on the selection.</value>
-  </data>
-  <data name="ComplexityAnalyzerCompiler_Enter_OnlyOperations" xml:space="preserve">
-    <value>We only compile operations.</value>
-  </data>
-  <data name="ErrorHelper_NoNullBubbling_ArgumentValue_NotAllowed" xml:space="preserve">
-    <value>Only boolean values are allowed to switch null bubbling on or off.</value>
   </data>
 </root>

@@ -1,4 +1,3 @@
-using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using HotChocolate.Types.Descriptors;
@@ -134,7 +133,7 @@ public sealed class UsePagingAttribute : DescriptorAttribute
                 AllowBackwardPagination = _allowBackwardPagination,
                 RequirePagingBoundaries = _requirePagingBoundaries,
                 InferConnectionNameFromField = _inferConnectionNameFromField,
-                ProviderName = ProviderName,
+                ProviderName = ProviderName
             };
 
         if (descriptor is IObjectFieldDescriptor ofd)

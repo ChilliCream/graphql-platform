@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using HotChocolate.Language;
-using Snapshooter.Xunit;
-
 namespace HotChocolate;
 
 public class ErrorTests
@@ -79,7 +73,7 @@ public class ErrorTests
 
         // act
         error = error.WithExtensions(
-            new Dictionary<string, object> { { "a", "b" }, });
+            new Dictionary<string, object?> { { "a", "b" }, });
 
         // assert
         Assert.Collection(
@@ -121,7 +115,7 @@ public class ErrorTests
         // arrange
         IError error = new Error("123");
         error = error.WithExtensions(
-            new Dictionary<string, object>
+            new Dictionary<string, object?>
             {
                 { "a", "b" },
                 { "c", "d" },

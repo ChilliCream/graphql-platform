@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Data.Raven;
@@ -120,7 +119,7 @@ public class QueryableSingleOrDefaultTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     @"
                         {
@@ -151,7 +150,7 @@ public class QueryableSingleOrDefaultTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     @"
                         {
@@ -182,7 +181,7 @@ public class QueryableSingleOrDefaultTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     @"
                         {
@@ -214,7 +213,7 @@ public class QueryableSingleOrDefaultTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     @"
                         {
@@ -245,7 +244,7 @@ public class QueryableSingleOrDefaultTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     @"
                         {

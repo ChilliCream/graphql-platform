@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using Raven.Client.Documents;
@@ -124,21 +123,21 @@ public class QueryableFilterVisitorObjectTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barShort: { eq: 12}}}) " +
                     "{ foo{ barShort}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barShort: { eq: 13}}}) " +
                     "{ foo{ barShort}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barShort: { eq: null}}}) " +
                     "{ foo{ barShort}}}")
@@ -161,21 +160,21 @@ public class QueryableFilterVisitorObjectTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barShort: { in: [ 12, 13 ]}}}) " +
                     "{ foo{ barShort}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barShort: { in: [ 13, 14 ]}}}) " +
                     "{ foo{ barShort}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barShort: { in: [ null, 14 ]}}}) " +
                     "{ foo{ barShort}}}")
@@ -198,21 +197,21 @@ public class QueryableFilterVisitorObjectTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barShort: { eq: 12}}}) " +
                     "{ foo{ barShort}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barShort: { eq: 13}}}) " +
                     "{ foo{ barShort}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barShort: { eq: null}}}) " +
                     "{ foo{ barShort}}}")
@@ -235,21 +234,21 @@ public class QueryableFilterVisitorObjectTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barShort: { in: [ 12, 13 ]}}}) " +
                     "{ foo{ barShort}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barShort: { in: [ 13, 14 ]}}}) " +
                     "{ foo{ barShort}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barShort: { in: [ 13, null ]}}}) " +
                     "{ foo{ barShort}}}")
@@ -272,14 +271,14 @@ public class QueryableFilterVisitorObjectTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barBool: { eq: true}}}) " +
                     "{ foo{ barBool}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barBool: { eq: false}}}) " +
                     "{ foo{ barBool}}}")
@@ -301,21 +300,21 @@ public class QueryableFilterVisitorObjectTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barBool: { eq: true}}}) " +
                     "{ foo{ barBool}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barBool: { eq: false}}}) " +
                     "{ foo{ barBool}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barBool: { eq: null}}}) " +
                     "{ foo{ barBool}}}")
@@ -338,21 +337,21 @@ public class QueryableFilterVisitorObjectTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barEnum: { eq: BAR}}}) " +
                     "{ foo{ barEnum}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barEnum: { eq: FOO}}}) " +
                     "{ foo{ barEnum}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barEnum: { eq: null}}}) " +
                     "{ foo{ barEnum}}}")
@@ -375,21 +374,21 @@ public class QueryableFilterVisitorObjectTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barEnum: { in: [ BAR FOO ]}}}) " +
                     "{ foo{ barEnum}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barEnum: { in: [ FOO ]}}}) " +
                     "{ foo{ barEnum}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barEnum: { in: [ null FOO ]}}}) " +
                     "{ foo{ barEnum}}}")
@@ -419,21 +418,21 @@ public class QueryableFilterVisitorObjectTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barEnum: { eq: BAR}}}) " +
                     "{ foo{ barEnum}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barEnum: { eq: FOO}}}) " +
                     "{ foo{ barEnum}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barEnum: { eq: null}}}) " +
                     "{ foo{ barEnum}}}")
@@ -466,21 +465,21 @@ public class QueryableFilterVisitorObjectTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barEnum: { in: [ BAR FOO ]}}}) " +
                     "{ foo{ barEnum}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barEnum: { in: [ FOO ]}}}) " +
                     "{ foo{ barEnum}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barEnum: { in: [ null FOO ]}}}) " +
                     "{ foo{ barEnum}}}")
@@ -503,21 +502,21 @@ public class QueryableFilterVisitorObjectTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barString: { eq: \"testatest\"}}}) " +
                     "{ foo{ barString}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barString: { eq: \"testbtest\"}}}) " +
                     "{ foo{ barString}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barString: { eq: null}}}){ foo{ barString}}}")
                 .Build());
@@ -539,7 +538,7 @@ public class QueryableFilterVisitorObjectTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barString: { in: " +
                     "[ \"testatest\"  \"testbtest\" ]}}}) " +
@@ -547,14 +546,14 @@ public class QueryableFilterVisitorObjectTests
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barString: { in: [\"testbtest\" null]}}}) " +
                     "{ foo{ barString}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barString: { in: [ \"testatest\" ]}}}) " +
                     "{ foo{ barString}}}")
@@ -577,7 +576,7 @@ public class QueryableFilterVisitorObjectTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo:{ objectArray: { " +
                     "some: { foo: { barString: { eq: \"a\"}}}}}}) " +
@@ -585,7 +584,7 @@ public class QueryableFilterVisitorObjectTests
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo:{ objectArray: { " +
                     "some: { foo: { barString: { eq: \"d\"}}}}}}) " +
@@ -593,7 +592,7 @@ public class QueryableFilterVisitorObjectTests
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo:{ objectArray: { " +
                     "some: { foo: { barString: { eq: null}}}}}}) " +
@@ -619,21 +618,21 @@ public class QueryableFilterVisitorObjectTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { objectArray: { any: false}}}) " +
                     "{ foo { objectArray  { foo { barString }}}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { objectArray: { any: true}}}) " +
                     "{ foo { objectArray  { foo { barString }}}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { objectArray: { any: null}}}) " +
                     "{ foo { objectArray  { foo { barString }}}}}")

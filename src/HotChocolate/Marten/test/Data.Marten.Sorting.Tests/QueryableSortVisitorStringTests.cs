@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 
@@ -28,28 +27,24 @@ public class QueryableSortVisitorStringTests
     public async Task Create_String_OrderBy()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooSortType>(_fooEntities);
+        var tester = await _cache.CreateSchemaAsync<Foo, FooSortType>(_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(order: { bar: ASC}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(order: { bar: DESC}){ bar}}")
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(),
-                    res1,
-                    "ASC"),
-                res2,
-                "DESC")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "ASC")
+            .AddResult(res2, "DESC")
             .MatchAsync();
     }
 
@@ -57,29 +52,25 @@ public class QueryableSortVisitorStringTests
     public async Task Create_String_OrderBy_Nullable()
     {
         // arrange
-        var tester = _cache.CreateSchema<FooNullable, FooNullableSortType>(
+        var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableSortType>(
             _fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(order: { bar: ASC}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(order: { bar: DESC}){ bar}}")
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(),
-                    res1,
-                    "ASC"),
-                res2,
-                "DESC")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "ASC")
+            .AddResult(res2, "DESC")
             .MatchAsync();
     }
 

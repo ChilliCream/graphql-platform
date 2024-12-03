@@ -1,7 +1,7 @@
-using CookieCrumble;
 using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Filters.Expressions;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -377,6 +377,36 @@ public class FilterInputTypeTest : FilterTestBase
         schema.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task Execute_CoerceWhereArgument_MatchesSnapshot()
+    {
+        // arrange
+        var builder = SchemaBuilder.New()
+            .AddFiltering()
+            .AddQueryType(
+                d => d
+                    .Field("bars")
+                    .UseFiltering()
+                    .Use(next => async context =>
+                    {
+                        context.OperationResult.SetExtension(
+                            "where",
+                            context.ArgumentValue<object>("where"));
+
+                        await next(context);
+                    })
+                    .Resolve(new List<Bar>()));
+
+        var schema = builder.Create();
+
+        // act
+        var result = await schema.MakeExecutable().ExecuteAsync(
+            """{ bars(where: { baz: { contains: "test" } }) { baz } }""");
+
+        // assert
+        result.MatchSnapshot();
+    }
+
     public class FooDirectiveType
         : DirectiveType<FooDirective>
     {
@@ -421,7 +451,7 @@ public class FilterInputTypeTest : FilterTestBase
 
         public int Chapters { get; set; }
 
-        public int[] LinesPerPage { get; set; } = Array.Empty<int>();
+        public int[] LinesPerPage { get; set; } = [];
 
         public ICollection<Author>? CoAuthors { get; set; }
 

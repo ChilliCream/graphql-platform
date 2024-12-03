@@ -62,9 +62,9 @@ public class Startup
 At the core of authorization with Hot Chocolate is the `@authorize` directive. It can be applied to fields and types to denote that they require authorization.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
-In the Annotation-based approach we can use the `[Authorize]` attribute to add the `@authorize` directive.
+In the implementation-first approach we can use the `[Authorize]` attribute to add the `@authorize` directive.
 
 ```csharp
 [Authorize]
@@ -79,7 +79,7 @@ public class User
 
 > Warning: We need to use the `HotChocolate.AspNetCore.Authorization.AuthorizeAttribute` instead of the `Microsoft.AspNetCore.AuthorizationAttribute`.
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -149,7 +149,7 @@ claims.Add(new Claim(ClaimTypes.Role, "Administrator"));
 We can then check whether an authenticated user has these role claims.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 [Authorize(Roles = new [] { "Guest", "Administrator" })]
@@ -162,7 +162,7 @@ public class User
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -232,7 +232,7 @@ public class Startup
 We can then use these policies to restrict access to our fields.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 [Authorize(Policy = "AllEmployees")]
@@ -245,7 +245,7 @@ public class User
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -278,7 +278,7 @@ This essentially uses the provided policy and runs it against the `ClaimsPrincip
 The `@authorize` directive is also repeatable, which means that we are able to chain the directive and a user is only allowed to access the field if they meet all of the specified conditions.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 [Authorize(Policy = "AtLeast21")]
@@ -289,7 +289,7 @@ public class User
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -376,7 +376,7 @@ Hot Chocolate provides the ability to register an `IHttpRequestInterceptor`, all
 public class HttpRequestInterceptor : DefaultHttpRequestInterceptor
 {
     public override ValueTask OnCreateAsync(HttpContext context,
-        IRequestExecutor requestExecutor, OperationRequestBuilder requestBuilder,
+        IRequestExecutor requestExecutor, IQueryRequestBuilder requestBuilder,
         CancellationToken cancellationToken)
     {
         var identity = new ClaimsIdentity();

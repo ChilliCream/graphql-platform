@@ -1,14 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types.Pagination;
 
@@ -30,8 +24,7 @@ public class CursorPagingQueryableExtensionsTests
     {
         var mock = new Mock<IQueryable<Person>>();
 
-        async Task Fail()
-            => await mock.Object.ApplyCursorPaginationAsync(default(IResolverContext)!);
+        async Task Fail() => await mock.Object.ApplyCursorPaginationAsync(default!);
 
         await Assert.ThrowsAsync<ArgumentNullException>(Fail);
     }
@@ -39,8 +32,6 @@ public class CursorPagingQueryableExtensionsTests
     [Fact]
     public async Task Queryable_ApplyCursorPaginationAsync_No_Boundaries()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
@@ -51,8 +42,6 @@ public class CursorPagingQueryableExtensionsTests
     [Fact]
     public async Task Queryable_ApplyCursorPaginationAsync_First_1()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
@@ -76,8 +65,7 @@ public class CursorPagingQueryableExtensionsTests
     {
         var mock = new Mock<IEnumerable<Person>>();
 
-        async Task Fail()
-            => await mock.Object.ApplyCursorPaginationAsync(default(IResolverContext)!);
+        async Task Fail() => await mock.Object.ApplyCursorPaginationAsync(default!);
 
         await Assert.ThrowsAsync<ArgumentNullException>(Fail);
     }
@@ -85,8 +73,6 @@ public class CursorPagingQueryableExtensionsTests
     [Fact]
     public async Task Enumerable_ApplyCursorPaginationAsync_No_Boundaries()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryEnumerable>()
@@ -97,8 +83,6 @@ public class CursorPagingQueryableExtensionsTests
     [Fact]
     public async Task Enumerable_ApplyCursorPaginationAsync_First_1()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryEnumerable>()
@@ -115,17 +99,15 @@ public class CursorPagingQueryableExtensionsTests
         {
             var list = new Person[]
             {
-                new() { Name = "Foo", },
-                new() { Name = "Bar", },
-                new() { Name = "Baz", },
-                new() { Name = "Qux", },
+                new(name: "Foo"),
+                new(name: "Bar"),
+                new(name: "Baz"),
+                new(name: "Qux"),
             };
 
             return await list.AsQueryable().ApplyCursorPaginationAsync(
                 context,
-                defaultPageSize: 2,
-                totalCount: list.Length,
-                cancellationToken: cancellationToken);
+                defaultPageSize: 2);
         }
     }
 
@@ -138,22 +120,20 @@ public class CursorPagingQueryableExtensionsTests
         {
             var list = new Person[]
             {
-                new() { Name = "Foo", },
-                new() { Name = "Bar", },
-                new() { Name = "Baz", },
-                new() { Name = "Qux", },
+                new(name: "Foo"),
+                new(name: "Bar"),
+                new(name: "Baz"),
+                new(name: "Qux"),
             };
 
             return await list.ApplyCursorPaginationAsync(
                 context,
-                defaultPageSize: 2,
-                totalCount: list.Length,
-                cancellationToken: cancellationToken);
+                defaultPageSize: 2);
         }
     }
 
-    public class Person
+    public class Person(string name)
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = name;
     }
 }

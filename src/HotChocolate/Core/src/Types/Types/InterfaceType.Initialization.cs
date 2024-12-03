@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
@@ -13,7 +11,7 @@ namespace HotChocolate.Types;
 
 public partial class InterfaceType
 {
-    private InterfaceType[] _implements = Array.Empty<InterfaceType>();
+    private InterfaceType[] _implements = [];
     private Action<IInterfaceTypeDescriptor>? _configure;
     private ResolveAbstractType? _resolveAbstractType;
     private ISchema _schema = default!;

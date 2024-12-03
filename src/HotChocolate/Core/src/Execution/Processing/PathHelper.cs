@@ -1,4 +1,3 @@
-using System;
 using System.Buffers;
 using System.Text.Json;
 
@@ -9,7 +8,19 @@ internal static class PathHelper
     private const int _initialPathLength = 64;
 
     public static Path CreatePathFromContext(ObjectResult parent)
-        => parent.Parent is null ? Path.Root : CreatePath(parent);
+    {
+        if (parent.Parent is null)
+        {
+            if (parent.PatchPath is null)
+            {
+                return Path.Root;
+            }
+
+            return parent.PatchPath;
+        }
+
+        return CreatePath(parent);
+    }
 
     public static Path CreatePathFromContext(ISelection selection, ResultData parent, int index)
         => parent switch
@@ -38,8 +49,9 @@ internal static class PathHelper
     {
         var segments = ArrayPool<object>.Shared.Rent(_initialPathLength);
         segments[0] = segmentValue;
-        var length = Build(segments, parent);
-        var path = CreatePath(parent.PatchPath, segments, length);
+        var current = parent;
+        var length = Build(segments, ref current);
+        var path = CreatePath(current.PatchPath, segments, length);
         ArrayPool<object>.Shared.Return(segments);
         return path;
     }
@@ -47,8 +59,9 @@ internal static class PathHelper
     private static Path CreatePath(ResultData parent)
     {
         var segments = ArrayPool<object>.Shared.Rent(_initialPathLength);
-        var length = Build(segments, parent, 0);
-        var path = CreatePath(parent.PatchPath, segments, length);
+        var current = parent;
+        var length = Build(segments, ref current, 0);
+        var path = CreatePath(current.PatchPath, segments, length);
         ArrayPool<object>.Shared.Return(segments);
         return path;
     }
@@ -74,7 +87,7 @@ internal static class PathHelper
         return path;
     }
 
-    private static int Build(object[] segments, ResultData parent, int start = 1)
+    private static int Build(object[] segments, ref ResultData parent, int start = 1)
     {
         var segment = start;
         var current = parent;
@@ -118,6 +131,7 @@ internal static class PathHelper
             }
         }
 
+        parent = current;
         return segment;
     }
 }

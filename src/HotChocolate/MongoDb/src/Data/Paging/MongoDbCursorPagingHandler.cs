@@ -4,25 +4,36 @@ using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb.Paging;
 
-internal class MongoDbCursorPagingHandler<TEntity> : CursorPagingHandler
+internal class MongoDbCursorPagingHandler<TEntity>(PagingOptions options)
+    : CursorPagingHandler<IMongoPagingContainer<TEntity>, TEntity>(options)
 {
-    private readonly MongoCursorPagination<TEntity> _pagination = new();
+    private static readonly MongoCursorPaginationAlgorithm<TEntity> _paginationAlgorithmAlgorithm = new();
+    private static readonly QueryExecutor _executor = new();
 
-    public MongoDbCursorPagingHandler(PagingOptions options) : base(options)
-    {
-    }
-
-    protected override async ValueTask<Connection> SliceAsync(
+    protected override ValueTask<Connection> SliceAsync(
         IResolverContext context,
         object source,
         CursorPagingArguments arguments)
-        => await _pagination.ApplyPaginationAsync(
+        => SliceInternalAsync(
+            context,
             CreatePagingContainer(source),
-            arguments,
-            context.RequestAborted)
+            arguments);
+
+    private async ValueTask<Connection> SliceInternalAsync(
+        IResolverContext context,
+        IMongoPagingContainer<TEntity> source,
+        CursorPagingArguments arguments)
+        => await SliceAsync(
+                context,
+                source,
+                arguments,
+                _paginationAlgorithmAlgorithm,
+                _executor,
+                context.RequestAborted)
             .ConfigureAwait(false);
 
-    private IMongoPagingContainer<TEntity> CreatePagingContainer(object source)
+
+    private static IMongoPagingContainer<TEntity> CreatePagingContainer(object source)
     {
         return source switch
         {
@@ -30,13 +41,48 @@ internal class MongoDbCursorPagingHandler<TEntity> : CursorPagingHandler
             IFindFluent<TEntity, TEntity> f => FindFluentPagingContainer<TEntity>.New(f),
             IMongoCollection<TEntity> m => FindFluentPagingContainer<TEntity>.New(
                 m.Find(FilterDefinition<TEntity>.Empty)),
-            MongoDbCollectionExecutable<TEntity> mce =>
-                CreatePagingContainer(mce.BuildPipeline()),
-            MongoDbAggregateFluentExecutable<TEntity> mae =>
-                CreatePagingContainer(mae.BuildPipeline()),
-            MongoDbFindFluentExecutable<TEntity> mfe =>
-                CreatePagingContainer(mfe.BuildPipeline()),
+            MongoDbCollectionExecutable<TEntity> mce => CreatePagingContainer(mce.BuildPipeline()),
+            MongoDbAggregateFluentExecutable<TEntity> mae => CreatePagingContainer(mae.BuildPipeline()),
+            MongoDbFindFluentExecutable<TEntity> mfe => CreatePagingContainer(mfe.BuildPipeline()),
             _ => throw ThrowHelper.PagingTypeNotSupported(source.GetType()),
         };
+    }
+
+    private sealed class QueryExecutor : ICursorPaginationQueryExecutor<IMongoPagingContainer<TEntity>, TEntity>
+    {
+        public async ValueTask<int> CountAsync(
+            IMongoPagingContainer<TEntity> originalQuery,
+            CancellationToken cancellationToken)
+            => await originalQuery.CountAsync(cancellationToken);
+
+        public async ValueTask<CursorPaginationData<TEntity>> QueryAsync(
+            IMongoPagingContainer<TEntity> slicedQuery,
+            IMongoPagingContainer<TEntity> originalQuery,
+            int offset,
+            bool includeTotalCount,
+            CancellationToken cancellationToken)
+        {
+            if (includeTotalCount)
+            {
+                var itemsTask = slicedQuery.QueryAsync(offset, cancellationToken);
+                var countTask = originalQuery.CountAsync(cancellationToken);
+
+                await Task.WhenAll(itemsTask, countTask).ConfigureAwait(false);
+
+                if (itemsTask.IsCompletedSuccessfully && countTask.IsCompletedSuccessfully)
+                {
+                    return new CursorPaginationData<TEntity>(
+                        itemsTask.Result,
+                        countTask.Result);
+                }
+
+                // if the tasks were not completed successfully we need to await them again
+                // to propagate exceptions.
+                return new(await itemsTask, await countTask);
+            }
+
+            var items = await slicedQuery.QueryAsync(offset, cancellationToken).ConfigureAwait(false);
+            return new(items, null);
+        }
     }
 }

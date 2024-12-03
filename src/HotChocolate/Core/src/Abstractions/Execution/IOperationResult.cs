@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace HotChocolate.Execution;
 
 /// <summary>
@@ -11,12 +9,12 @@ public interface IOperationResult : IExecutionResult
     /// Gets the index of the request that corresponds to this result.
     /// </summary>
     int? RequestIndex { get; }
-    
+
     /// <summary>
     /// Gets the index of of the variable set that corresponds to this result.
     /// </summary>
     int? VariableIndex { get; }
-    
+
     /// <summary>
     /// A string that was passed to the label argument of the @defer or @stream
     /// directive that corresponds to this results.
@@ -70,7 +68,7 @@ public interface IOperationResult : IExecutionResult
     /// </summary>
     /// <value></value>
     bool? HasNext { get; }
-    
+
     /// <summary>
     /// Specifies if data was explicitly set.
     /// If <c>false</c> the data was not set (including null).

@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -529,6 +528,5 @@ public class FilterConventionTests
 
     public class CustomFooFilterInput : FilterInputType<Foo>
     {
-
     }
 }

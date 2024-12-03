@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,13 +15,14 @@ public class EntityFrameworkResolverCompilerIntegrationTests
         var contextFactory = new Mock<IDbContextFactory<BookContext>>();
 
         contextFactory
-            .Setup(t => t.CreateDbContextAsync(It.IsAny<CancellationToken>()))
-            .Returns(Task.FromResult(authorFixture.Context));
+            .Setup(t => t.CreateDbContext())
+            .Returns(authorFixture.Context);
 
         var result = await new ServiceCollection()
             .AddSingleton(contextFactory.Object)
             .AddGraphQL()
             .AddQueryType<Query>()
+            .RegisterDbContextFactory<BookContext>()
             .ExecuteRequestAsync("{ books { title } }");
 
         result.MatchSnapshot();
@@ -43,7 +43,7 @@ public class EntityFrameworkResolverCompilerIntegrationTests
             .CreateScope();
 
         var result = await scope.ServiceProvider.ExecuteRequestAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ books { title } }")
                 .SetServices(scope.ServiceProvider)
                 .Build());
@@ -64,7 +64,7 @@ public class EntityFrameworkResolverCompilerIntegrationTests
             .BuildServiceProvider();
 
         var result = await service.ExecuteRequestAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ books { title } }")
                 .SetServices(service)
                 .Build());
@@ -85,7 +85,7 @@ public class EntityFrameworkResolverCompilerIntegrationTests
             .BuildServiceProvider();
 
         var result = await service.ExecuteRequestAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ books { title } }")
                 .SetServices(service)
                 .Build());

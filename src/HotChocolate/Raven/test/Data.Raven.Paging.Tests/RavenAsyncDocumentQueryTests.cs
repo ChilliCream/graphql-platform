@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Data.Raven.Filters;
 using HotChocolate.Data.Raven.Paging;
 using HotChocolate.Execution;
@@ -190,6 +189,9 @@ public class RavenAsyncDocumentQueryTests
         var result = await executor.ExecuteAsync(
             @"{
                 foos(first:1) {
+                    nodes {
+                        bar
+                    }
                     totalCount
                 }
             }");
@@ -256,7 +258,8 @@ public class RavenAsyncDocumentQueryTests
 
         // act
         var result = await executor.ExecuteAsync(
-            @"{
+            """
+            {
                 foosOffset(take: 2 skip: 2) {
                     items {
                         bar
@@ -267,7 +270,8 @@ public class RavenAsyncDocumentQueryTests
                         hasPreviousPage
                     }
                 }
-            }");
+            }
+            """);
 
         // assert
         await Snapshot.Create().AddResult(result).MatchAsync();
@@ -431,7 +435,7 @@ public class RavenAsyncDocumentQueryTests
                     {
                         context.Result =
                             OperationResultBuilder
-                                .FromResult(context.Result!.ExpectQueryResult())
+                                .FromResult(context.Result!.ExpectOperationResult())
                                 .SetContextData("query", queryString)
                                 .Build();
                     }

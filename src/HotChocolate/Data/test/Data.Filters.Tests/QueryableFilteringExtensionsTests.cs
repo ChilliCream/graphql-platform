@@ -1,5 +1,4 @@
 using System.Reflection;
-using CookieCrumble;
 using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
@@ -38,7 +37,7 @@ public class QueryableFilteringExtensionsTests
         // act
         var res1 = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument("{ shouldWork(where: {bar: {eq: true}}) { bar baz }}")
                 .Build());
 
@@ -59,7 +58,7 @@ public class QueryableFilteringExtensionsTests
         // act
         var res1 = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument("{ shouldWork(where: {bar: {eq: true}}) { bar baz }}")
                 .Build());
 
@@ -80,14 +79,14 @@ public class QueryableFilteringExtensionsTests
         // act
         var res1 = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument("{ typeMismatch(where: {bar: {eq: true}}) { bar baz }}")
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -104,14 +103,14 @@ public class QueryableFilteringExtensionsTests
         // act
         var res1 = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument("{ missingMiddleware { bar baz }}")
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -158,14 +157,14 @@ public class QueryableFilteringExtensionsTests
             IObjectFieldDescriptor descriptor,
             MemberInfo member)
         {
-            descriptor.Use(next => context =>
+            descriptor.Use(next => ctx =>
             {
-                context.LocalContextData =
-                    context.LocalContextData.SetItem(
+                ctx.LocalContextData =
+                    ctx.LocalContextData.SetItem(
                         QueryableFilterProvider.ContextApplyFilteringKey,
                         CreateApplicatorAsync<Foo>());
 
-                return next(context);
+                return next(ctx);
             });
         }
 

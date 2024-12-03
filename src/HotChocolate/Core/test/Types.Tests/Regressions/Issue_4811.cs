@@ -1,8 +1,6 @@
 #nullable enable
 
 using System.ComponentModel.DataAnnotations;
-using System.Threading.Tasks;
-using CookieCrumble;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -74,7 +72,6 @@ public class Issue_4811
             return new ADDBookResponse(input.CNAE.Title);
         }
     }
-
 
     public class CreateCnaeInput
     {

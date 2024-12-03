@@ -10,8 +10,8 @@ namespace HotChocolate.Data.Projections;
 internal sealed class ProjectionTypeInterceptor : TypeInterceptor
 {
     private ITypeCompletionContext? _queryContext;
-    
-    internal override void OnAfterResolveRootType(
+
+    public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
         ObjectTypeDefinition definition,
         OperationType operationType)

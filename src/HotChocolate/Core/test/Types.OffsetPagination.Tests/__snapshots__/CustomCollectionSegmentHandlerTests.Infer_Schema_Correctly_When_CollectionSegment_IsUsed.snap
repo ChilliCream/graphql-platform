@@ -15,7 +15,7 @@ type ItemsCollectionSegment {
   "Information to aid in pagination."
   pageInfo: CollectionSegmentInfo!
   "A flattened list of the items."
-  items: [String]
+  items: [String!]
 }
 
 type Query {

@@ -3,7 +3,7 @@ using Xunit;
 
 namespace HotChocolate.Language;
 
-public class SyntaxParserHelperTests
+public static class SyntaxParserHelperTests
 {
     [Fact]
     public static void ParseField()

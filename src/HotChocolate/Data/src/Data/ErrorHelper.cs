@@ -18,19 +18,19 @@ internal static class ErrorHelper
     {
         var filterType = context.Types.OfType<IFilterInputType>().First();
 
-        INullabilityNode nullability =
+        IType expectedType =
             isMemberInvalid && field.Type.IsListType()
-            ? new ListNullabilityNode(null, new RequiredModifierNode(null, null))
-            : new RequiredModifierNode(null, null);
+                ? new ListType(new NonNullType(field.Type.ElementType()))
+                : new NonNullType(field.Type);
 
         return ErrorBuilder.New()
             .SetMessage(
                 DataResources.ErrorHelper_CreateNonNullError,
                 context.Operations.Peek().Name,
                 filterType.Print())
-            .AddLocation([value])
+            .AddLocation(value)
             .SetCode(ErrorCodes.Data.NonNullError)
-            .SetExtension("expectedType", field.Type.RewriteNullability(nullability).Print())
+            .SetExtension("expectedType", expectedType.Print())
             .SetExtension("filterType", filterType.Print())
             .Build();
     }
@@ -41,7 +41,7 @@ internal static class ErrorHelper
                 DataResources.SortingVisitor_ListInput_AreNotSupported,
                 field.DeclaringType.Name,
                 field.Name)
-            .AddLocation([node])
+            .AddLocation(node)
             .SetCode(ErrorCodes.Data.ListNotSupported)
             .SetExtension(nameof(field), field)
             .Build();
@@ -58,7 +58,7 @@ internal static class ErrorHelper
                 DataResources.ErrorHelper_CreateNonNullError,
                 context.Fields.Peek().Name,
                 sortType.Print())
-            .AddLocation([value])
+            .AddLocation(value)
             .SetCode(ErrorCodes.Data.NonNullError)
             .SetExtension("expectedType", new NonNullType(field.Type).Print())
             .SetExtension("sortType", sortType.Print())
@@ -77,24 +77,10 @@ internal static class ErrorHelper
             .SetExtension(nameof(fieldHandler), fieldHandler)
             .Build();
 
-    public static IError ProjectionProvider_CreateMoreThanOneError(IResolverContext context) =>
-        ErrorBuilder.New()
-            .SetMessage(DataResources.ProjectionProvider_CreateMoreThanOneError)
-            .SetCode(ErrorCodes.Data.MoreThanOneElement)
-            .SetPath(context.Path)
-            .AddLocation([context.Selection.SyntaxNode])
-            .Build();
-
-    public static IError ProjectionProvider_CreateMoreThanOneError() =>
-        ErrorBuilder.New()
-            .SetMessage(DataResources.ProjectionProvider_CreateMoreThanOneError)
-            .SetCode(ErrorCodes.Data.MoreThanOneElement)
-            .Build();
-
     public static IError ProjectionProvider_CouldNotProjectFiltering(IValueNode node) =>
         ErrorBuilder.New()
             .SetMessage(DataResources.ProjectionProvider_CouldNotProjectFiltering)
-            .AddLocation([node])
+            .AddLocation(node)
             .SetCode(ErrorCodes.Data.FilteringProjectionFailed)
             .Build();
 
@@ -102,13 +88,12 @@ internal static class ErrorHelper
         ErrorBuilder.New()
             .SetMessage(DataResources.ProjectionProvider_CouldNotProjectSorting)
             .SetCode(ErrorCodes.Data.SortingProjectionFailed)
-            .AddLocation([node])
+            .AddLocation(node)
             .Build();
 
     public static IError ProjectionVisitor_NodeFieldWasNotFound(IPageType pageType) =>
         ErrorBuilder.New()
-            .SetMessage(DataResources.ProjectionVisitor_NodeFieldWasNotFound,
-                pageType.Name)
+            .SetMessage(DataResources.ProjectionVisitor_NodeFieldWasNotFound, pageType.Name)
             .SetCode(ErrorCodes.Data.NodeFieldWasNotFound)
             .Build();
 }

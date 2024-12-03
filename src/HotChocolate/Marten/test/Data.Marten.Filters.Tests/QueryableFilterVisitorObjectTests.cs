@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 
@@ -118,25 +117,25 @@ public class QueryableFilterVisitorObjectTests
     public async Task Create_ObjectShortEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
+        var tester = await _cache.CreateSchemaAsync<Bar, BarFilterInput>(_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barShort: { eq: 12}}}) " +
                     "{ foo{ barShort}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barShort: { eq: 13}}}) " +
                     "{ foo{ barShort}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barShort: { eq: null}}}) " +
                     "{ foo{ barShort}}}")
@@ -158,25 +157,25 @@ public class QueryableFilterVisitorObjectTests
     public async Task Create_ObjectShortIn_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
+        var tester = await _cache.CreateSchemaAsync<Bar, BarFilterInput>(_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barShort: { in: [ 12, 13 ]}}}) " +
                     "{ foo{ barShort}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barShort: { in: [ 13, 14 ]}}}) " +
                     "{ foo{ barShort}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barShort: { in: [ null, 14 ]}}}) " +
                     "{ foo{ barShort}}}")
@@ -198,25 +197,25 @@ public class QueryableFilterVisitorObjectTests
     public async Task Create_ObjectNullableShortEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<BarNullable, BarNullableFilterInput>(_barNullableEntities);
+        var tester = await _cache.CreateSchemaAsync<BarNullable, BarNullableFilterInput>(_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barShort: { eq: 12}}}) " +
                     "{ foo{ barShort}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barShort: { eq: 13}}}) " +
                     "{ foo{ barShort}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barShort: { eq: null}}}) " +
                     "{ foo{ barShort}}}")
@@ -238,25 +237,25 @@ public class QueryableFilterVisitorObjectTests
     public async Task Create_ObjectNullableShortIn_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<BarNullable, BarNullableFilterInput>(_barNullableEntities);
+        var tester = await _cache.CreateSchemaAsync<BarNullable, BarNullableFilterInput>(_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barShort: { in: [ 12, 13 ]}}}) " +
                     "{ foo{ barShort}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barShort: { in: [ 13, 14 ]}}}) " +
                     "{ foo{ barShort}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barShort: { in: [ 13, null ]}}}) " +
                     "{ foo{ barShort}}}")
@@ -278,18 +277,18 @@ public class QueryableFilterVisitorObjectTests
     public async Task Create_ObjectBooleanEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
+        var tester = await _cache.CreateSchemaAsync<Bar, BarFilterInput>(_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barBool: { eq: true}}}) " +
                     "{ foo{ barBool}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barBool: { eq: false}}}) " +
                     "{ foo{ barBool}}}")
@@ -309,25 +308,25 @@ public class QueryableFilterVisitorObjectTests
     public async Task Create_ObjectNullableBooleanEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<BarNullable, BarNullableFilterInput>(_barNullableEntities);
+        var tester = await _cache.CreateSchemaAsync<BarNullable, BarNullableFilterInput>(_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barBool: { eq: true}}}) " +
                     "{ foo{ barBool}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barBool: { eq: false}}}) " +
                     "{ foo{ barBool}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barBool: { eq: null}}}) " +
                     "{ foo{ barBool}}}")
@@ -349,25 +348,25 @@ public class QueryableFilterVisitorObjectTests
     public async Task Create_ObjectEnumEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
+        var tester = await _cache.CreateSchemaAsync<Bar, BarFilterInput>(_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barEnum: { eq: BAR}}}) " +
                     "{ foo{ barEnum}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barEnum: { eq: FOO}}}) " +
                     "{ foo{ barEnum}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barEnum: { eq: null}}}) " +
                     "{ foo{ barEnum}}}")
@@ -389,25 +388,25 @@ public class QueryableFilterVisitorObjectTests
     public async Task Create_ObjectEnumIn_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
+        var tester = await _cache.CreateSchemaAsync<Bar, BarFilterInput>(_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barEnum: { in: [ BAR FOO ]}}}) " +
                     "{ foo{ barEnum}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barEnum: { in: [ FOO ]}}}) " +
                     "{ foo{ barEnum}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barEnum: { in: [ null FOO ]}}}) " +
                     "{ foo{ barEnum}}}")
@@ -429,26 +428,26 @@ public class QueryableFilterVisitorObjectTests
     public async Task Create_ObjectNullableEnumEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<BarNullable, BarNullableFilterInput>(
+        var tester = await _cache.CreateSchemaAsync<BarNullable, BarNullableFilterInput>(
             _barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barEnum: { eq: BAR}}}) " +
                     "{ foo{ barEnum}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barEnum: { eq: FOO}}}) " +
                     "{ foo{ barEnum}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barEnum: { eq: null}}}) " +
                     "{ foo{ barEnum}}}")
@@ -470,25 +469,25 @@ public class QueryableFilterVisitorObjectTests
     public async Task Create_ObjectNullableEnumIn_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<BarNullable, BarNullableFilterInput>(_barNullableEntities);
+        var tester = await _cache.CreateSchemaAsync<BarNullable, BarNullableFilterInput>(_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barEnum: { in: [ BAR FOO ]}}}) " +
                     "{ foo{ barEnum}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barEnum: { in: [ FOO ]}}}) " +
                     "{ foo{ barEnum}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barEnum: { in: [ null FOO ]}}}) " +
                     "{ foo{ barEnum}}}")
@@ -510,25 +509,25 @@ public class QueryableFilterVisitorObjectTests
     public async Task Create_ObjectStringEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
+        var tester = await _cache.CreateSchemaAsync<Bar, BarFilterInput>(_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barString: { eq: \"testatest\"}}}) " +
                     "{ foo{ barString}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barString: { eq: \"testbtest\"}}}) " +
                     "{ foo{ barString}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barString: { eq: null}}}){ foo{ barString}}}")
                 .Build());
@@ -549,11 +548,11 @@ public class QueryableFilterVisitorObjectTests
     public async Task Create_ObjectStringIn_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
+        var tester = await _cache.CreateSchemaAsync<Bar, BarFilterInput>(_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barString: { in: " +
                     "[ \"testatest\"  \"testbtest\" ]}}}) " +
@@ -561,14 +560,14 @@ public class QueryableFilterVisitorObjectTests
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barString: { in: [\"testbtest\" null]}}}) " +
                     "{ foo{ barString}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { barString: { in: [ \"testatest\" ]}}}) " +
                     "{ foo{ barString}}}")
@@ -590,11 +589,11 @@ public class QueryableFilterVisitorObjectTests
     public async Task Create_ArrayObjectNestedArraySomeStringEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
+        var tester = await _cache.CreateSchemaAsync<Bar, BarFilterInput>(_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo:{ objectArray: { " +
                     "some: { foo: { barString: { eq: \"a\"}}}}}}) " +
@@ -602,7 +601,7 @@ public class QueryableFilterVisitorObjectTests
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo:{ objectArray: { " +
                     "some: { foo: { barString: { eq: \"d\"}}}}}}) " +
@@ -610,7 +609,7 @@ public class QueryableFilterVisitorObjectTests
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo:{ objectArray: { " +
                     "some: { foo: { barString: { eq: null}}}}}}) " +
@@ -633,25 +632,25 @@ public class QueryableFilterVisitorObjectTests
     public async Task Create_ArrayObjectNestedArrayAnyStringEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
+        var tester = await _cache.CreateSchemaAsync<Bar, BarFilterInput>(_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { objectArray: { any: false}}}) " +
                     "{ foo { objectArray  { foo { barString }}}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { objectArray: { any: true}}}) " +
                     "{ foo { objectArray  { foo { barString }}}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { foo: { objectArray: { any: null}}}) " +
                     "{ foo { objectArray  { foo { barString }}}}}")

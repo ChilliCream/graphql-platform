@@ -1,7 +1,6 @@
 using HotChocolate.Execution.Errors;
 using HotChocolate.Execution.Options;
 using Moq;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Execution.Pipeline;
 
@@ -40,7 +39,7 @@ public class ExceptionMiddlewareTests
         var middleware = ExceptionMiddleware.Create(
             _ => throw new GraphQLException("Something is wrong."),
             errorHandler);
-        
+
         var requestContext = new Mock<IRequestContext>();
         requestContext.SetupProperty(t => t.Result);
 

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using HotChocolate.Language;
@@ -21,7 +20,7 @@ namespace HotChocolate.Validation.Rules;
 /// Field selections on scalars or enums are never allowed,
 /// because they are the leaf nodes of any GraphQL query.
 ///
-/// Conversely the leaf field selections of GraphQL queries
+/// Conversely, the leaf field selections of GraphQL queries
 /// must be of type scalar or enum. Leaf selections on objects,
 /// interfaces, and unions without subfields are disallowed.
 ///
@@ -93,8 +92,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
             return Skip;
         }
 
-        if (context.Types.TryPeek(out var type) &&
-            type.NamedType() is IComplexOutputType ct)
+        if (context.Types.TryPeek(out var type) && type.NamedType() is IComplexOutputType ct)
         {
             if (ct.Fields.TryGetField(node.Name.Value, out var of))
             {
@@ -151,16 +149,15 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
         SelectionSetNode node,
         IDocumentValidatorContext context)
     {
-        if (context.Types.TryPeek(out var type) &&
-            type.NamedType() is { Kind: TypeKind.Union, } unionType &&
-            HasFields(node))
+        if (context.Types.TryPeek(out var type)
+            && type.NamedType() is { Kind: TypeKind.Union, } unionType
+            && HasFields(node))
         {
-            context.ReportError(context.UnionFieldError(node, (UnionType) unionType));
+            context.ReportError(context.UnionFieldError(node, (UnionType)unionType));
             return Skip;
         }
 
-        if (context.Path.TryPeek(out var parent) &&
-            parent.Kind is SyntaxKind.OperationDefinition or SyntaxKind.Field)
+        if (context.Path.TryPeek(out var parent) && parent.Kind is SyntaxKind.OperationDefinition or SyntaxKind.Field)
         {
             context.SelectionSets.Push(node);
         }
@@ -189,8 +186,8 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
         FragmentSpreadNode node,
         IDocumentValidatorContext context)
     {
-        if (context.Fragments.TryGetValue(node.Name.Value, out var fragment) &&
-            context.VisitedFragments.Add(fragment.Name.Value))
+        if (context.Fragments.TryGetValue(node.Name.Value, out var fragment)
+            && context.VisitedFragments.Add(fragment.Name.Value))
         {
             var result = Visit(fragment, node, context);
             context.VisitedFragments.Remove(fragment.Name.Value);
@@ -212,12 +209,13 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
 
             if (selection.Kind is SyntaxKind.Field)
             {
-                if (!IsTypeNameField(((FieldNode) selection).Name.Value))
+                if (!IsTypeNameField(((FieldNode)selection).Name.Value))
                 {
                     return true;
                 }
             }
         }
+
         return false;
     }
 
@@ -233,14 +231,16 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
         {
             if (fields.Count == 1)
             {
-                if (fields[0].Field.SelectionSet is { } selectionSet &&
-                    context.FieldSets.TryGetValue(selectionSet, out var fieldSet))
+                if (fields[0].SyntaxNode.SelectionSet is { } selectionSet
+                    && context.FieldSets.TryGetValue(selectionSet, out var fieldSet))
                 {
                     fields = fieldSet;
                     continue;
                 }
+
                 return;
             }
+
             break;
         }
 
@@ -252,24 +252,21 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
             {
                 var fieldB = fields[j];
 
-                if (ReferenceEquals(fieldA.Field, fieldB.Field) ||
-                    !fieldA.ResponseName.EqualsOrdinal(fieldB.ResponseName))
+                if (ReferenceEquals(fieldA.SyntaxNode, fieldB.SyntaxNode)
+                    || !fieldA.ResponseName.EqualsOrdinal(fieldB.ResponseName))
                 {
                     continue;
                 }
 
-                if (SameResponseShape(
-                        fieldA.Type.RewriteNullability(fieldA.Field.Required),
-                        fieldB.Type.RewriteNullability(fieldB.Field.Required)) &&
-                    SameStreamDirective(fieldA, fieldB))
+                if (SameResponseShape(fieldA.Type, fieldB.Type) && SameStreamDirective(fieldA, fieldB))
                 {
                     if (!IsParentTypeAligned(fieldA, fieldB))
                     {
                         continue;
                     }
 
-                    if (BySyntax.Equals(fieldA.Field.Name, fieldB.Field.Name) &&
-                        AreArgumentsIdentical(fieldA.Field, fieldB.Field))
+                    if (BySyntax.Equals(fieldA.SyntaxNode.Name, fieldB.SyntaxNode.Name)
+                        && AreArgumentsIdentical(fieldA.SyntaxNode, fieldB.SyntaxNode))
                     {
                         var pair = new FieldInfoPair(fieldA, fieldB);
                         if (context.ProcessedFieldPairs.Add(pair))
@@ -277,12 +274,12 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
                             context.NextFieldPairs.Add(pair);
                         }
                     }
-                    else if (context.FieldTuples.Add((fieldA.Field, fieldB.Field)))
+                    else if (context.FieldTuples.Add((fieldA.SyntaxNode, fieldB.SyntaxNode)))
                     {
                         context.ReportError(context.FieldsAreNotMergeable(fieldA, fieldB));
                     }
                 }
-                else if (context.FieldTuples.Add((fieldA.Field, fieldB.Field)))
+                else if (context.FieldTuples.Add((fieldA.SyntaxNode, fieldB.SyntaxNode)))
                 {
                     context.ReportError(context.FieldsAreNotMergeable(fieldA, fieldB));
                 }
@@ -295,15 +292,13 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
         FieldInfo fieldA,
         FieldInfo fieldB)
     {
-        if (fieldA.Field.SelectionSet is { } a &&
-            fieldB.Field.SelectionSet is { } b &&
-            context.FieldSets.TryGetValue(a, out var al) &&
-            context.FieldSets.TryGetValue(b, out var bl))
+        if (fieldA.SyntaxNode.SelectionSet is { } a
+            && fieldB.SyntaxNode.SelectionSet is { } b
+            && context.FieldSets.TryGetValue(a, out var al)
+            && context.FieldSets.TryGetValue(b, out var bl))
         {
             var mergedSet = Unsafe.As<List<FieldInfo>>(context.RentFieldInfoList());
-#if NET6_0_OR_GREATER
             mergedSet.EnsureCapacity(al.Count + bl.Count);
-#endif
             CopyFieldInfos(Unsafe.As<List<FieldInfo>>(al), mergedSet);
             CopyFieldInfos(Unsafe.As<List<FieldInfo>>(bl), mergedSet);
             TryMergeFieldsInSet(context, mergedSet);
@@ -312,12 +307,6 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
 
     private static void CopyFieldInfos(List<FieldInfo> from, List<FieldInfo> to)
     {
-#if NETSTANDARD2_0
-        foreach (var field in from)
-        {
-            to.Add(field);
-        }
-#else
         ref var field = ref MemoryMarshal.GetReference(CollectionsMarshal.AsSpan(from));
         ref var end = ref Unsafe.Add(ref field, from.Count);
 
@@ -326,12 +315,11 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
             to.Add(field);
             field = ref Unsafe.Add(ref field, 1);
         }
-#endif
     }
 
     private static bool IsParentTypeAligned(FieldInfo fieldA, FieldInfo fieldB)
-        => ReferenceEquals(fieldA.DeclaringType, fieldB.DeclaringType) ||
-            !fieldA.DeclaringType.IsObjectType() && !fieldB.DeclaringType.IsObjectType();
+        => ReferenceEquals(fieldA.DeclaringType, fieldB.DeclaringType)
+            || (!fieldA.DeclaringType.IsObjectType() && !fieldB.DeclaringType.IsObjectType());
 
     private static bool AreArgumentsIdentical(FieldNode fieldA, FieldNode fieldB)
     {
@@ -361,6 +349,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
                     {
                         validPairs++;
                     }
+
                     break;
                 }
             }
@@ -401,8 +390,8 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
             return ReferenceEquals(typeA, typeB);
         }
 
-        if (typeA.IsType(TypeKind.Object, TypeKind.Interface, TypeKind.Union) &&
-            typeB.IsType(TypeKind.Object, TypeKind.Interface, TypeKind.Union))
+        if (typeA.IsType(TypeKind.Object, TypeKind.Interface, TypeKind.Union)
+            && typeB.IsType(TypeKind.Object, TypeKind.Interface, TypeKind.Union))
         {
             return true;
         }
@@ -412,8 +401,8 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
 
     private static bool SameStreamDirective(FieldInfo fieldA, FieldInfo fieldB)
     {
-        var streamA = fieldA.Field.GetStreamDirectiveNode();
-        var streamB = fieldB.Field.GetStreamDirectiveNode();
+        var streamA = fieldA.SyntaxNode.GetStreamDirectiveNode();
+        var streamB = fieldB.SyntaxNode.GetStreamDirectiveNode();
 
         // if both fields do not have any stream directive they are mergeable.
         if (streamA is null)
@@ -421,7 +410,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
             return streamB is null;
         }
 
-        // if stream a is not nullable and stream b is null then we cannot merge.
+        // if stream A is not nullable and stream b is null then we cannot merge.
         if (streamB is null)
         {
             return false;
@@ -436,14 +425,6 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
         var next = context.NextFieldPairs;
         var current = context.CurrentFieldPairs;
 
-#if NETSTANDARD2_0
-        foreach (var pair in next)
-        {
-            current.Add(pair);
-        }
-
-        next.Clear();
-#else
         ref var pair = ref MemoryMarshal.GetReference(CollectionsMarshal.AsSpan(next));
         ref var end = ref Unsafe.Add(ref pair, next.Count);
 
@@ -456,21 +437,12 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
         }
 
         next.Clear();
-#endif
     }
 
     private static void ProcessCurrentFieldPairs(IDocumentValidatorContext context)
     {
         var current = context.CurrentFieldPairs;
 
-#if NETSTANDARD2_0
-        foreach (var pair in current)
-        {
-            TryMergeFieldsInSet(context, pair.FieldA, pair.FieldB);
-        }
-
-        current.Clear();
-#else
         ref var pair = ref MemoryMarshal.GetReference(CollectionsMarshal.AsSpan(current));
         ref var end = ref Unsafe.Add(ref pair, current.Count);
 
@@ -481,6 +453,5 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
         }
 
         current.Clear();
-#endif
     }
 }

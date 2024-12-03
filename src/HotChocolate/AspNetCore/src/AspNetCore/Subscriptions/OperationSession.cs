@@ -74,7 +74,8 @@ internal sealed class OperationSession : IOperationSession
                     {
                         try
                         {
-                            await SendResultMessageAsync(item, ct);
+                            // use original cancellation token here to keep the websocket open for other streams.
+                            await SendResultMessageAsync(item, cancellationToken);
                         }
                         finally
                         {

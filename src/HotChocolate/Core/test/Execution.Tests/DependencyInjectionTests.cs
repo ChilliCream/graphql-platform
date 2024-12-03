@@ -1,7 +1,6 @@
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Execution;
 
@@ -53,7 +52,7 @@ public class DependencyInjectionTests
             result[0] = await executor
                 .ExecuteAsync(
                     OperationRequestBuilder
-                        .Create()
+                        .New()
                         .SetDocument("{ hello }")
                         .SetServices(scope.ServiceProvider)
                         .Build())
@@ -65,7 +64,7 @@ public class DependencyInjectionTests
             result[1] = await executor
                 .ExecuteAsync(
                     OperationRequestBuilder
-                        .Create()
+                        .New()
                         .SetDocument("{ hello }")
                         .SetServices(scope.ServiceProvider)
                         .Build())
@@ -119,7 +118,7 @@ public class DependencyInjectionTests
             result[0] = await executor
                 .ExecuteAsync(
                     OperationRequestBuilder
-                        .Create()
+                        .New()
                         .SetDocument("{ hello }")
                         .SetServices(scope.ServiceProvider)
                         .Build())
@@ -131,7 +130,7 @@ public class DependencyInjectionTests
             result[1] = await executor
                 .ExecuteAsync(
                     OperationRequestBuilder
-                        .Create()
+                        .New()
                         .SetDocument("{ hello }")
                         .SetServices(scope.ServiceProvider)
                         .Build())
@@ -141,7 +140,6 @@ public class DependencyInjectionTests
         result.MatchSnapshot();
     }
 
-#if NET8_0_OR_GREATER
     [Fact]
     public async Task Keyed_Services_Do_Not_Throw()
     {
@@ -162,14 +160,13 @@ public class DependencyInjectionTests
         await executor
             .ExecuteAsync(
                 OperationRequestBuilder
-                    .Create()
+                    .New()
                     .SetDocument("{ hello }")
                     .SetServices(scope.ServiceProvider)
                     .Build())
             .ToJsonAsync()
             .MatchSnapshotAsync();
     }
-#endif
 
     public class SomeService
     {
@@ -182,7 +179,6 @@ public class DependencyInjectionTests
 
     public class Query1
     {
-
     }
 
     [ExtendObjectType(typeof(Query1))]

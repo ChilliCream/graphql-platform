@@ -1,8 +1,6 @@
-﻿using HotChocolate.Language;
+using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Tests;
-
-#nullable enable
 
 namespace HotChocolate.Execution;
 
@@ -23,7 +21,7 @@ public class ScalarExecutionErrorTests
             "{ stringToName(name: \"  \") }");
 
         // assert
-        await result.MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -41,7 +39,7 @@ public class ScalarExecutionErrorTests
             "{ stringToFoo(name: \"  \") }");
 
         // assert
-        await result.MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -59,7 +57,7 @@ public class ScalarExecutionErrorTests
             "{ nameToString(name: \"  \") }");
 
         // assert
-        await result.MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -81,7 +79,7 @@ public class ScalarExecutionErrorTests
             });
 
         // assert
-        await result.MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     public class Query

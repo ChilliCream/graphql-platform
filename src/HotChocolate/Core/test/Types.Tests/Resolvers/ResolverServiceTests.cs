@@ -1,5 +1,5 @@
-using System.Threading.Tasks;
-using CookieCrumble;
+#nullable enable
+
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,7 +31,7 @@ public class ResolverServiceTests
 
             result = await executor.ExecuteAsync(
                 OperationRequestBuilder
-                    .Create()
+                    .New()
                     .SetDocument("{ sayHelloAttribute }")
                     .SetServices(requestScope.ServiceProvider)
                     .Build());
@@ -63,7 +63,7 @@ public class ResolverServiceTests
 
             result = await executor.ExecuteAsync(
                 OperationRequestBuilder
-                    .Create()
+                    .New()
                     .SetDocument("{ sayHelloAttribute }")
                     .SetServices(requestScope.ServiceProvider)
                     .Build());
@@ -94,7 +94,7 @@ public class ResolverServiceTests
 
             result = await executor.ExecuteAsync(
                 OperationRequestBuilder
-                    .Create()
+                    .New()
                     .SetDocument("{ sayHelloInferred }")
                     .SetServices(requestScope.ServiceProvider)
                     .Build());
@@ -125,7 +125,7 @@ public class ResolverServiceTests
 
             result = await executor.ExecuteAsync(
                 OperationRequestBuilder
-                    .Create()
+                    .New()
                     .SetDocument("{ sayHelloRequest }")
                     .SetServices(requestScope.ServiceProvider)
                     .Build());
@@ -161,7 +161,7 @@ public class ResolverServiceTests
 
             result = await executor.ExecuteAsync(
                 OperationRequestBuilder
-                    .Create()
+                    .New()
                     .SetDocument("{ sayHelloAttribute }")
                     .SetServices(requestScope.ServiceProvider)
                     .Build());
@@ -193,7 +193,7 @@ public class ResolverServiceTests
 
             result = await executor.ExecuteAsync(
                 OperationRequestBuilder
-                    .Create()
+                    .New()
                     .SetDocument("mutation { doSomethingAttribute }")
                     .SetServices(requestScope.ServiceProvider)
                     .Build());
@@ -226,7 +226,7 @@ public class ResolverServiceTests
 
             result = await executor.ExecuteAsync(
                 OperationRequestBuilder
-                    .Create()
+                    .New()
                     .SetDocument("mutation { doSomethingAttribute }")
                     .SetServices(requestScope.ServiceProvider)
                     .Build());
@@ -258,7 +258,7 @@ public class ResolverServiceTests
 
             result = await executor.ExecuteAsync(
                 OperationRequestBuilder
-                    .Create()
+                    .New()
                     .SetDocument("mutation { doSomethingInferred }")
                     .SetServices(requestScope.ServiceProvider)
                     .Build());
@@ -290,7 +290,7 @@ public class ResolverServiceTests
 
             result = await executor.ExecuteAsync(
                 OperationRequestBuilder
-                    .Create()
+                    .New()
                     .SetDocument("mutation { doSomethingResolver }")
                     .SetServices(requestScope.ServiceProvider)
                     .Build());
@@ -299,7 +299,6 @@ public class ResolverServiceTests
         result.MatchMarkdownSnapshot();
     }
 
-#if NET8_0_OR_GREATER
     [Fact]
     public async Task Resolver_KeyedService()
     {
@@ -316,7 +315,38 @@ public class ResolverServiceTests
 
         result.MatchMarkdownSnapshot();
     }
-#endif
+
+    [Fact]
+    public async Task Resolver_Optional_KeyedService_Does_Not_Exist()
+    {
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryOptional>()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .BuildRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync("{ foo }");
+
+        result.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Resolver_Optional_KeyedService_Exists()
+    {
+        var executor =
+            await new ServiceCollection()
+                .AddKeyedSingleton("abc", (_, _) => new KeyedService("abc"))
+                .AddKeyedSingleton("def", (_, _) => new KeyedService("def"))
+                .AddGraphQL()
+                .AddQueryType<QueryOptional>()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .BuildRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync("{ foo }");
+
+        result.MatchMarkdownSnapshot();
+    }
 
     public sealed class SayHelloService
     {
@@ -369,11 +399,16 @@ public class ResolverServiceTests
         }
     }
 
-#if NET8_0_OR_GREATER
     public class Query
     {
         public string Foo([AbcService] KeyedService service)
             => service.Key;
+    }
+
+    public class QueryOptional
+    {
+        public string Foo([AbcService] KeyedService? service)
+            => service?.Key ?? "No Service";
     }
 
     public class KeyedService(string key)
@@ -382,5 +417,4 @@ public class ResolverServiceTests
     }
 
     public class AbcService() : ServiceAttribute("abc");
-#endif
 }

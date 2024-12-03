@@ -1,0 +1,63 @@
+BAR Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barEnum": "BAR"
+      }
+    ]
+  }
+}
+---------------
+
+BAR SQL:
+---------------
+select d.id, d.data from public.mt_doc_queryablefiltervisitorenumtests_foo as d where CAST(d.data ->> 'BarEnum' as integer) = :p0;
+---------------
+
+FOO Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barEnum": "FOO"
+      }
+    ]
+  }
+}
+---------------
+
+FOO SQL:
+---------------
+select d.id, d.data from public.mt_doc_queryablefiltervisitorenumtests_foo as d where CAST(d.data ->> 'BarEnum' as integer) = :p0;
+---------------
+
+null
+---------------
+{
+  "errors": [
+    {
+      "message": "The provided value for filter `eq` of type FooEnumOperationFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 32
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "FooEnum!",
+        "filterType": "FooEnumOperationFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": null
+  }
+}
+---------------

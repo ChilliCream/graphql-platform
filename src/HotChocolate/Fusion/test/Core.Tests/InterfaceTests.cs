@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Composition;
 using HotChocolate.Fusion.Composition.Features;
@@ -8,7 +7,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 using static HotChocolate.Language.Utf8GraphQLParser;
 using static HotChocolate.Fusion.TestHelper;
-
 
 namespace HotChocolate.Fusion;
 
@@ -58,7 +56,7 @@ public class InterfaceTests
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build());
 
@@ -67,7 +65,7 @@ public class InterfaceTests
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -111,7 +109,7 @@ public class InterfaceTests
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build());
 
@@ -120,7 +118,7 @@ public class InterfaceTests
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -166,7 +164,7 @@ public class InterfaceTests
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build());
 
@@ -175,6 +173,6 @@ public class InterfaceTests
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 }

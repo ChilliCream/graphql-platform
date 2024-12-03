@@ -24,4 +24,3 @@ internal sealed class DefaultPreparedOperationCache(int capacity = 100) : IPrepa
 
     public void Clear() => _cache.Clear();
 }
-

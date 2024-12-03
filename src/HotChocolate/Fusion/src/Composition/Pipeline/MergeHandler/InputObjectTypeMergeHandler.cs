@@ -47,6 +47,8 @@ internal sealed class InputObjectTypeMergeHandler : ITypeMergeHandler
         // If the target input object type doesn't have a description, use the source input
         // object type's description
         target.MergeDescriptionWith(source);
+        
+        target.MergeDirectivesWith(source, context);
 
         // Merge each field of the input object type
         foreach (var sourceField in source.Fields)

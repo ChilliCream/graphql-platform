@@ -32,7 +32,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "18.x"
+          node-version: 22
           cache: "yarn"
           cache-dependency-path: "website/yarn.lock"
 
@@ -48,6 +48,21 @@ jobs:
 
       - name: Install Packages
         run: yarn --immutable --network-timeout 100000
+        working-directory: website
+
+      - name: Delete Free Icons
+        run: |
+          rm -rf src/images/icons
+        working-directory: website
+
+      - name: Unzip Pro Icons
+        run: |
+          sudo apt-get install -y unzip
+          unzip -P ${{ secrets.ICON_PASSWORD }} src/images/icons.zip -d src/images/
+        working-directory: website
+
+      - name: Clean Website
+        run: yarn clean
         working-directory: website
 
       - name: Build Website

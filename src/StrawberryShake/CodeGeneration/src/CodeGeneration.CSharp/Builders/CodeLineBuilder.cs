@@ -1,5 +1,3 @@
-using System;
-
 namespace StrawberryShake.CodeGeneration.CSharp.Builders;
 
 public class CodeLineBuilder : ICode

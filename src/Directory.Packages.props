@@ -1,0 +1,127 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageVersion Include="AlterNats.Hosting" Version="1.0.6" />
+    <PackageVersion Include="Aspire.Hosting" Version="8.0.0" />
+    <PackageVersion Include="Aspire.Hosting.AppHost" Version="8.0.0" />
+    <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="8.0.0" />
+    <PackageVersion Include="Aspire.Hosting.RabbitMQ" Version="8.0.0" />
+    <PackageVersion Include="Aspire.Hosting.Redis" Version="8.0.0" />
+    <PackageVersion Include="AutoMapper" Version="10.1.1" />
+    <PackageVersion Include="Basic.Reference.Assemblies.Net80" Version="1.7.8" />
+    <PackageVersion Include="Basic.Reference.Assemblies.Net90" Version="1.7.8" />
+    <PackageVersion Include="ChilliCream.Nitro.App" Version="$(NitroVersion)" />
+    <PackageVersion Include="ChilliCream.Testing.Utilities" Version="0.2.0" />
+    <PackageVersion Include="coverlet.collector" Version="6.0.2" />
+    <PackageVersion Include="DiffPlex" Version="1.7.2" />
+    <PackageVersion Include="Glob" Version="1.1.9" />
+    <PackageVersion Include="IdentityModel" Version="4.1.1" />
+    <PackageVersion Include="JsonPointer.Net" Version="5.0.0" />
+    <PackageVersion Include="Marten" Version="7.33.0" />
+    <PackageVersion Include="McMaster.Extensions.CommandLineUtils" Version="4.0.1" />
+    <PackageVersion Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
+    <PackageVersion Include="Microsoft.Azure.Functions.Worker.Core" Version="1.4.0" />
+    <PackageVersion Include="Microsoft.Azure.Functions.Worker.Extensions.Abstractions" Version="1.1.0" />
+    <PackageVersion Include="Microsoft.Bcl.HashCode" Version="1.1.1" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.9.2" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.9.2" />
+    <PackageVersion Include="Microsoft.Extensions.Identity.Core" Version="7.0.3" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.11.0" />
+    <PackageVersion Include="Microsoft.OpenApi" Version="1.6.14" />
+    <PackageVersion Include="Microsoft.OpenApi.Readers" Version="1.6.14" />
+    <PackageVersion Include="MongoDB.Driver" Version="3.0.0" />
+    <PackageVersion Include="Moq" Version="4.20.70" />
+    <PackageVersion Include="NetTopologySuite" Version="2.0.0" />
+    <PackageVersion Include="Newtonsoft.Json" Version="13.0.2" />
+    <PackageVersion Include="NodaTime" Version="3.0.0" />
+    <PackageVersion Include="Npgsql" Version="8.0.4" />
+    <PackageVersion Include="Opa.Native" Version="0.41.0" />
+    <PackageVersion Include="OpenTelemetry.Api" Version="1.1.0" />
+    <PackageVersion Include="ProjNET" Version="2.0.0" />
+    <PackageVersion Include="RabbitMQ.Client" Version="6.4.0" />
+    <PackageVersion Include="RavenDB.Client" Version="6.0.104" />
+    <PackageVersion Include="Snapshooter.Xunit" Version="0.5.4" />
+    <PackageVersion Include="sqlite-net-pcl" Version="1.9.172" />
+    <PackageVersion Include="SQLitePCLRaw.bundle_green" Version="2.1.8" />
+    <PackageVersion Include="Squadron.Mongo" Version="0.23.0" />
+    <PackageVersion Include="Squadron.Nats" Version="0.18.0" />
+    <PackageVersion Include="Squadron.PostgreSql" Version="0.18.0" />
+    <PackageVersion Include="Squadron.RabbitMQ" Version="0.18.0" />
+    <PackageVersion Include="Squadron.RavenDB" Version="0.18.0" />
+    <PackageVersion Include="Squadron.Redis" Version="0.18.0" />
+    <PackageVersion Include="StackExchange.Redis" Version="2.6.80" />
+    <PackageVersion Include="System.Collections.Immutable" Version="8.0.0" />
+    <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+    <PackageVersion Include="System.ComponentModel.Annotations" Version="5.0.0" />
+    <PackageVersion Include="System.Reactive" Version="6.0.0" />
+    <PackageVersion Include="Xunit" Version="2.9.0" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <PackageVersion Include="TUnit" Version="0.3.34" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
+    <PackageVersion Include="Microsoft.AspNetCore.Components.Web" Version="9.0.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="9.0.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="9.0.0" />
+    <PackageVersion Include="Microsoft.Data.Sqlite.Core" Version="9.0.0" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.0" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.0" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="9.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Http" Version="9.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="9.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.ObjectPool" Version="9.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Options" Version="9.0.0" />
+    <PackageVersion Include="Microsoft.Net.Http.Headers" Version="9.0.0" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.0" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="9.0.0" />
+    <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="9.0.0" />
+    <PackageVersion Include="System.IO.Packaging" Version="9.0.0" />
+    <PackageVersion Include="System.IO.Pipelines" Version="9.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <PackageVersion Include="Microsoft.AspNetCore.Components.Web" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Data.Sqlite.Core" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Http" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.ObjectPool" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Options" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Net.Http.Headers" Version="8.0.4" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.8" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="8.0.8" />
+    <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="8.0.0" />
+    <PackageVersion Include="System.IO.Packaging" Version="8.0.1" />
+    <PackageVersion Include="System.IO.Pipelines" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageVersion Include="Microsoft.Extensions.ObjectPool" Version="6.0.0" />
+    <PackageVersion Include="System.Memory" Version="4.5.5" />
+    <PackageVersion Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'debug'">
+    <PackageVersion Include="Roslynator.Analyzers" Version="4.12.4" />
+    <PackageVersion Include="Roslynator.CodeAnalysis.Analyzers" Version="4.12.4" />
+    <PackageVersion Include="Roslynator.Formatting.Analyzers" Version="4.12.4" />
+  </ItemGroup>
+</Project>

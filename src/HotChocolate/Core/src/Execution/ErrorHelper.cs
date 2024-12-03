@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Net;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
@@ -18,7 +16,7 @@ internal static class ErrorHelper
             .SetMessage(
                 ErrorHelper_ArgumentNonNullError_Message,
                 argument.Name.Value)
-            .AddLocation([argument])
+            .SetLocations([argument])
             .SetExtension("responseName", responseName)
             .SetExtension("errorPath", validationResult.Path)
             .Build();
@@ -30,7 +28,7 @@ internal static class ErrorHelper
         GraphQLException exception)
     {
         return ErrorBuilder.FromError(exception.Errors[0])
-            .AddLocation([argument])
+            .SetLocations([argument])
             .SetExtension("responseName", responseName)
             .Build();
     }
@@ -50,7 +48,7 @@ internal static class ErrorHelper
         Path path)
     {
         return ErrorBuilder.FromError(exception.Errors[0])
-            .AddLocation([field])
+            .SetLocations([field])
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.CannotSerializeLeafValue)
             .Build();
@@ -64,7 +62,7 @@ internal static class ErrorHelper
     {
         return errorHandler
             .CreateUnexpectedError(exception)
-            .AddLocation([field])
+            .SetLocations([field])
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.CannotSerializeLeafValue)
             .Build();
@@ -77,7 +75,7 @@ internal static class ErrorHelper
     {
         return ErrorBuilder.New()
             .SetMessage(ErrorHelper_UnableToResolveTheAbstractType_Message, typeName)
-            .AddLocation([field])
+            .SetLocations([field])
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.CannotResolveAbstractType)
             .Build();
@@ -91,7 +89,7 @@ internal static class ErrorHelper
     {
         return ErrorBuilder.New()
             .SetMessage(ErrorHelper_UnableToResolveTheAbstractType_Message, typeName)
-            .AddLocation([field])
+            .SetLocations([field])
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.CannotResolveAbstractType)
             .SetException(exception)
@@ -105,7 +103,7 @@ internal static class ErrorHelper
     {
         return ErrorBuilder.New()
             .SetMessage(ErrorHelper_ListValueIsNotSupported_Message, listType.FullName!)
-            .AddLocation([field])
+            .SetLocations([field])
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.ListTypeNotSupported)
             .Build();
@@ -117,7 +115,7 @@ internal static class ErrorHelper
     {
         return ErrorBuilder.New()
             .SetMessage(ErrorHelper_UnexpectedValueCompletionError_Message)
-            .AddLocation([field])
+            .SetLocations([field])
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.ListTypeNotSupported)
             .Build();
@@ -161,7 +159,7 @@ internal static class ErrorHelper
                 result.GetType().FullName ?? result.GetType().Name,
                 field.Name)
             .SetPath(path)
-            .AddLocation([field])
+            .SetLocations([field])
             .Build();
 
     public static IOperationResult StateInvalidForDocumentValidation() =>
@@ -203,70 +201,31 @@ internal static class ErrorHelper
                 ErrorHelper_OperationCanceled_Message,
                 ErrorCodes.Execution.Canceled));
 
-    public static IOperationResult MaxComplexityReached(
-        int complexity,
-        int allowedComplexity) =>
-        OperationResultBuilder.CreateError(
-            new Error(
-                ErrorHelper_MaxComplexityReached,
-                ErrorCodes.Execution.ComplexityExceeded,
-                extensions: new Dictionary<string, object?>
-                {
-                    { nameof(complexity), complexity },
-                    { nameof(allowedComplexity), allowedComplexity },
-                }),
-            contextData: new Dictionary<string, object?>
-            {
-                { WellKnownContextData.ValidationErrors, true },
-            });
-
-    public static IError MaxComplexityReached() =>
-        new Error(
-            ErrorHelper_MaxComplexityReached,
-            ErrorCodes.Execution.ComplexityExceeded);
-
-    public static IOperationResult StateInvalidForComplexityAnalyzer() =>
-        OperationResultBuilder.CreateError(
-            ErrorBuilder.New()
-                .SetMessage(ErrorHelper_StateInvalidForComplexityAnalyzer_Message)
-                .SetCode(ErrorCodes.Execution.ComplexityStateInvalid)
-                .Build());
-
     public static IError NonNullOutputFieldViolation(Path? path, FieldNode selection)
         => ErrorBuilder.New()
             .SetMessage("Cannot return null for non-nullable field.")
             .SetCode(ErrorCodes.Execution.NonNullViolation)
             .SetPath(path)
-            .AddLocation([selection])
+            .SetLocations([selection])
             .Build();
 
-    public static IError PersistedQueryNotFound(OperationDocumentId requestedKey)
+    public static IError PersistedOperationNotFound(OperationDocumentId requestedKey)
         => ErrorBuilder.New()
-            .SetMessage(ErrorHelper_PersistedQueryNotFound)
-            .SetCode(ErrorCodes.Execution.PersistedQueryNotFound)
+            .SetMessage(ErrorHelper_PersistedOperationNotFound)
+            .SetCode(ErrorCodes.Execution.PersistedOperationNotFound)
             .SetExtension(nameof(requestedKey), requestedKey)
             .Build();
 
-    public static IError OnlyPersistedQueriesAreAllowed()
+    public static IError OnlyPersistedOperationsAreAllowed()
         => ErrorBuilder.New()
-            .SetMessage(ErrorHelper_OnlyPersistedQueriesAreAllowed)
-            .SetCode(ErrorCodes.Execution.OnlyPersistedQueriesAllowed)
+            .SetMessage(ErrorHelper_OnlyPersistedOperationsAreAllowed)
+            .SetCode(ErrorCodes.Execution.OnlyPersistedOperationsAllowed)
             .Build();
 
-    public static IError ReadPersistedQueryMiddleware_PersistedQueryNotFound()
+    public static IError ReadPersistedOperationMiddleware_PersistedOperationNotFound()
         => ErrorBuilder.New()
             // this string is defined in the APQ spec!
             .SetMessage("PersistedQueryNotFound")
-            .SetCode(ErrorCodes.Execution.PersistedQueryNotFound)
+            .SetCode(ErrorCodes.Execution.PersistedOperationNotFound)
             .Build();
-
-    public static IError NoNullBubbling_ArgumentValue_NotAllowed(
-        ArgumentNode argument)
-    {
-        var errorBuilder = ErrorBuilder.New();
-        errorBuilder.AddLocation([argument.Value]);
-        errorBuilder.SetMessage(ErrorHelper_NoNullBubbling_ArgumentValue_NotAllowed);
-
-        return errorBuilder.Build();
-    }
 }

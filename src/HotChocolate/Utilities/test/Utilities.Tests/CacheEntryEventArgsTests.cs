@@ -1,4 +1,3 @@
-﻿using System;
 using Xunit;
 
 namespace HotChocolate.Utilities;
@@ -9,7 +8,7 @@ public class CacheEntryEventArgsTests
     public void ValueIsNull()
     {
         // act
-        var eventArgs = new CacheEntryEventArgs<string>("key", null);
+        var eventArgs = new CacheEntryEventArgs<string?>("key", null);
 
         // assert
         Assert.Equal("key", eventArgs.Key);
@@ -31,7 +30,7 @@ public class CacheEntryEventArgsTests
     public void KeyIsNull()
     {
         // act
-        Action action = () => new CacheEntryEventArgs<string>(null, "value");
+        Action action = () => new CacheEntryEventArgs<string>(null!, "value");
 
         // assert
         Assert.Throws<ArgumentNullException>(action);

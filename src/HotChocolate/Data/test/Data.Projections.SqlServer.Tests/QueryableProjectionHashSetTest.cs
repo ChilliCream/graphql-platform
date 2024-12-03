@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using Microsoft.EntityFrameworkCore;
 
@@ -52,7 +51,7 @@ public class QueryableProjectionHashSetTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     @"
                         {
@@ -71,7 +70,7 @@ public class QueryableProjectionHashSetTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddResult(res1)
             .MatchAsync();
     }
@@ -84,7 +83,7 @@ public class QueryableProjectionHashSetTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     @"
                         {
@@ -104,7 +103,7 @@ public class QueryableProjectionHashSetTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddResult(res1)
             .MatchAsync();
     }

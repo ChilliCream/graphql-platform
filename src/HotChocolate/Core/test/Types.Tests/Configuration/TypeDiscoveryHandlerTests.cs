@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-using CookieCrumble;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -23,15 +21,15 @@ public class TypeDiscoveryHandlerTests
             schema {
               query: Query
             }
-            
+
             type Query {
               foo(foo: TestMeInput): TestMe
             }
-            
+
             type TestMe {
               bar: String
             }
-            
+
             input TestMeInput {
               bar: String
             }

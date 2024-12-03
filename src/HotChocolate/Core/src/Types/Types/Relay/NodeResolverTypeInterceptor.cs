@@ -1,10 +1,6 @@
 #nullable enable
 
-using System.Collections.Generic;
-#if NET5_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
-#endif
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -32,15 +28,13 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
 
     private ObjectTypeDefinition? TypeDef { get; set; }
 
-#if NET5_0_OR_GREATER
     [MemberNotNullWhen(true, nameof(QueryType), nameof(TypeDef), nameof(CompletionContext))]
-#endif
     private bool IsInitialized
         => QueryType is not null &&
             TypeDef is not null &&
             CompletionContext is not null;
 
-    internal override void OnAfterResolveRootType(
+    public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
         ObjectTypeDefinition definition,
         OperationType operationType)

@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - main-version-*
     paths:
       - 'src/**'
 
@@ -29,8 +30,8 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |
-            7.x
             8.x
+            9.x
 
       - name: Generate Test Matrix
         run: dotnet run --project ./.build -- GenerateMatrix
@@ -58,49 +59,50 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |
-            6.x
-            7.x
             8.x
+            9.x
 
       - name: Run Build
         id: run-build
-        run: dotnet build ${{ matrix.path }} --framework net7.0 --verbosity q --property WarningLevel=0
+        run: dotnet build ${{ matrix.path }} --framework net9.0 --verbosity q
         timeout-minutes: 5
 
       - name: Run tests
         id: run-tests
         timeout-minutes: 15
         continue-on-error: true
-        run: dotnet test ${{ matrix.path }} --no-build --framework net7.0 --verbosity q /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./.coverage/${{ matrix.name }}.xml --logger "trx;LogFileName=./.test-results/${{ matrix.name }}.trx" /p:ExcludeByFile="**/test/**"
+        run: >
+          dotnet test ${{ matrix.path }}
+          --collect:"XPlat Code Coverage;Format=opencover"
+          --framework net9.0
+          --logger trx
+          --no-build
+          --verbosity q
+          --
+          DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="**/test/**"
         env:
           CI_BUILD: true
 
-      - name: Upload Test Results as Artifacts
-        if: always()
+      - name: Upload Test Results as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: test-results-${{ matrix.name }}
-          path: ./.test-results/*.trx
+          path: ${{ matrix.directoryPath }}/TestResults/*.trx
 
-      - name: Upload mismatch files as Artifacts
+      - name: Upload Coverage File as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.name }}
+          # The * matches a single directory that is named with a GUID.
+          # Take note of https://github.com/microsoft/vstest/issues/2334.
+          path: ${{ matrix.directoryPath }}/TestResults/*/coverage.opencover.xml
+
+      - name: Upload mismatch files as Artifact
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: mismatch-files-${{ matrix.name }}
-          path: |
-            **/__mismatch__/*
-
-      - name: Copy test results
-        continue-on-error: true
-        run: |
-          mkdir -p ./output/coverage
-          cp "${{ matrix.directoryPath }}/.coverage/${{ matrix.name }}.net7.0.xml" ./output/coverage/
-
-      - name: Upload Individual Coverage Files as Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-${{ matrix.name }}
-          path: ./output/coverage/*.xml
+          path: ${{ matrix.directoryPath }}/**/__mismatch__/*
 
       - name: Fail if tests failed or were cancelled
         run: exit 1
@@ -108,54 +110,22 @@ jobs:
           steps.run-tests.outcome == 'failure' ||
           steps.run-tests.outcome == 'cancelled'
 
-  merge-coverage:
-    name: Merge and Upload Coverage
+  upload-coverage:
+    name: Upload Coverage
     needs: library-tests
-    if: always() && needs.library-tests.result != 'cancelled'
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      with:
-        show-progress: false
+      - name: Download all coverage artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./output/download
+          pattern: coverage-*
 
-    - name: Install .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: |
-          6.x
-          7.x
-          8.x
-
-    - name: Create All.sln
-      if: ${{ !cancelled() }}
-      run: ./build.sh CreateAllSln
-
-    - name: Build
-      if: ${{ !cancelled() }}
-      run: dotnet build ./src/All.sln
-
-    - name: Download all coverage artifacts
-      uses: actions/download-artifact@v4
-      with:
-        path: ./output/download
-
-    - name: Merge Coverage Files
-      if: ${{ !cancelled() }}
-      timeout-minutes: 10
-      run: |
-        dotnet tool install -g dotnet-reportgenerator-globaltool
-        reportgenerator "-reports:./output/download/**/*.xml" "-targetdir:./output/coverage/merged" -reporttypes:Opencover -license:$ReportGenerator_License
-      env:
-        ReportGenerator_License: ${{ secrets.REPORTGENERATOR_LICENSE }}
-
-    - name: Upload Combined Coverage to Codecov
-      if: ${{ !cancelled() }}
-      uses: codecov/codecov-action@v4
-      timeout-minutes: 10
-      with:
-        file: ./output/coverage/merged/OpenCover.xml
-        token: ${{ secrets.CODECOV_TOKEN }}
-        name: graphql-platform
-        flags: unittests
-        fail_ci_if_error: true
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        timeout-minutes: 10
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          name: graphql-platform
+          flags: unittests
+          fail_ci_if_error: true

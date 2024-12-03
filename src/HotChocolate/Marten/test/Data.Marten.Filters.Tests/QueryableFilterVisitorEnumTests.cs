@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 
@@ -35,21 +34,21 @@ public class QueryableFilterVisitorEnumTests
     public async Task Create_EnumEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { eq: BAR } }) { barEnum } }")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { eq: FOO } }) { barEnum } }")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { eq: null } }) { barEnum } }")
                 .Build());
 
@@ -69,21 +68,21 @@ public class QueryableFilterVisitorEnumTests
     public async Task Create_EnumNotEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { neq: BAR } }) { barEnum } }")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { neq: FOO } }) { barEnum } }")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { neq: null } }){ barEnum } }")
                 .Build());
 
@@ -103,21 +102,21 @@ public class QueryableFilterVisitorEnumTests
     public async Task Create_EnumIn_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { in: [ BAR FOO ]}}){ barEnum}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { in: [ FOO ]}}){ barEnum}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { in: [ null FOO ]}}){ barEnum}}")
                 .Build());
 
@@ -137,21 +136,21 @@ public class QueryableFilterVisitorEnumTests
     public async Task Create_EnumNotIn_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { nin: [ BAR FOO ] } }) { barEnum } }")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { nin: [ FOO ] } }) { barEnum } }")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { nin: [ null FOO ] } }) { barEnum } }")
                 .Build());
 
@@ -170,23 +169,23 @@ public class QueryableFilterVisitorEnumTests
     [Fact]
     public async Task Create_NullableEnumEqual_Expression()
     {
-        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
+        var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(
             _fooNullableEntities);
 
         // act
         // assert
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { eq: BAR } }) { barEnum } }")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { eq: FOO } }) { barEnum } }")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { eq: null } }){ barEnum } }")
                 .Build());
 
@@ -206,21 +205,21 @@ public class QueryableFilterVisitorEnumTests
     public async Task Create_NullableEnumNotEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { neq: BAR } }) { barEnum } }")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { neq: FOO } }) { barEnum } }")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { neq: null } }) { barEnum } }")
                 .Build());
 
@@ -240,21 +239,21 @@ public class QueryableFilterVisitorEnumTests
     public async Task Create_NullableEnumIn_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { in: [ BAR FOO ] } }) { barEnum } }")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { in: [ FOO ] } }) { barEnum } }")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { in: [ null FOO ] } }) { barEnum } }")
                 .Build());
 
@@ -274,21 +273,21 @@ public class QueryableFilterVisitorEnumTests
     public async Task Create_NullableEnumNotIn_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { nin: [ BAR FOO ] } }){ barEnum } }")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { nin: [ FOO ] } }) { barEnum } }")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { nin: [ null FOO ] } }) { barEnum } }")
                 .Build());
 

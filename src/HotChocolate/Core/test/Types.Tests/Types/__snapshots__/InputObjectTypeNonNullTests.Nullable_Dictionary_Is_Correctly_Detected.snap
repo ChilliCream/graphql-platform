@@ -7,7 +7,9 @@ type Query {
 }
 
 input FooInput {
-  contextData: [KeyValuePairOfStringAndStringInput!]
+  contextData1: [KeyValuePairOfStringAndStringInput!]
+  contextData2: [KeyValuePairOfStringAndStringInput!]
+  contextData3: [KeyValuePairOfStringAndStringInput!]
 }
 
 input KeyValuePairOfStringAndStringInput {

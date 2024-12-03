@@ -17,9 +17,7 @@ public abstract class FilterVisitorContext<T>
 
         Types.Push(initialType);
         Scopes = new Stack<FilterScope<T>>();
-#pragma warning disable CA2214
         Scopes.Push(filterScope ?? CreateScope());
-#pragma warning restore CA2214
     }
 
     /// <inheritdoc />
@@ -29,7 +27,6 @@ public abstract class FilterVisitorContext<T>
     public Stack<IType> Types { get; } = new Stack<IType>();
 
     /// <inheritdoc />
-
     public Stack<IInputField> Operations { get; } = new Stack<IInputField>();
 
     /// <inheritdoc />

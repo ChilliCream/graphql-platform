@@ -1,60 +1,26 @@
 namespace HotChocolate.Types.Analyzers.Models;
 
-public sealed class TypeExtensionInfo : ISyntaxInfo, IEquatable<TypeExtensionInfo>
+public sealed class TypeExtensionInfo(string name, bool isStatic, OperationType type = OperationType.No) : SyntaxInfo
 {
-    public TypeExtensionInfo(string name, bool isStatic, OperationType type = OperationType.No)
-    {
-        Name = name;
-        IsStatic = isStatic;
-        Type = type;
-    }
+    public string Name { get; } = name;
 
-    public string Name { get; }
+    public bool IsStatic { get; } = isStatic;
 
-    public bool IsStatic { get; }
+    public OperationType Type { get; } = type;
 
-    public OperationType Type { get; }
-
-    public bool Equals(TypeExtensionInfo? other)
-    {
-        if (ReferenceEquals(null, other))
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(this, other))
-        {
-            return true;
-        }
-
-        return Name == other.Name;
-    }
-
-    public bool Equals(ISyntaxInfo other)
-    {
-        if (ReferenceEquals(null, other))
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(this, other))
-        {
-            return true;
-        }
-
-        return other is TypeExtensionInfo info && Equals(info);
-    }
+    public override string OrderByKey => Name;
 
     public override bool Equals(object? obj)
-        => ReferenceEquals(this, obj) ||
-            obj is TypeExtensionInfo other && Equals(other);
+        => obj is TypeExtensionInfo other && Equals(other);
+
+    public override bool Equals(SyntaxInfo? other)
+        => other is TypeExtensionInfo info && Equals(info);
+
+    private bool Equals(TypeExtensionInfo other)
+        => string.Equals(Name, other.Name, StringComparison.Ordinal)
+            && IsStatic == other.IsStatic
+            && Type.Equals(other.Type);
 
     public override int GetHashCode()
-        => Name.GetHashCode();
-
-    public static bool operator ==(TypeExtensionInfo? left, TypeExtensionInfo? right)
-        => Equals(left, right);
-
-    public static bool operator !=(TypeExtensionInfo? left, TypeExtensionInfo? right)
-        => !Equals(left, right);
+        => HashCode.Combine(Name, IsStatic, Type);
 }

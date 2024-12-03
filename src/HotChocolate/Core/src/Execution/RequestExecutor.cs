@@ -1,11 +1,6 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Fetching;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
@@ -128,20 +123,36 @@ internal sealed class RequestExecutor : IRequestExecutor
 
             if (scope is null)
             {
-                return context.Result;
+                var localContext = context;
+
+                if (context.Result.IsStreamResult())
+                {
+                    context.Result.RegisterForCleanup(() => _contextPool.Return(localContext));
+                    context = null;
+                }
+
+                return localContext.Result;
             }
 
             if (context.Result.IsStreamResult())
             {
+                var localContext = context;
                 context.Result.RegisterForCleanup(scope);
+                context.Result.RegisterForCleanup(() => _contextPool.Return(localContext));
                 scope = null;
+                context = null;
+                return localContext.Result;
             }
 
             return context.Result;
         }
         finally
         {
-            _contextPool.Return(context);
+            if (context is not null)
+            {
+                _contextPool.Return(context);
+            }
+
             scope?.Dispose();
         }
     }
@@ -302,18 +313,13 @@ internal sealed class RequestExecutor : IRequestExecutor
 
     private void EnrichContext(IRequestContext context)
     {
-        if (_enricher.Length <= 0)
+        if (_enricher.Length == 0)
         {
             return;
         }
 
-#if NET6_0_OR_GREATER
         ref var start = ref MemoryMarshal.GetArrayDataReference(_enricher);
         ref var end = ref Unsafe.Add(ref start, _enricher.Length);
-#else
-        ref var start = ref MemoryMarshal.GetReference(_enricher.AsSpan());
-        ref var end = ref Unsafe.Add(ref start, _enricher.Length);
-#endif
 
         while (Unsafe.IsAddressLessThan(ref start, ref end))
         {

@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Validation.Options;
@@ -59,6 +54,9 @@ public sealed class DocumentValidator : IDocumentValidator
         _nonCacheableRules = _allRules.Where(t => !t.IsCacheable).ToArray();
         _aggregators = resultAggregators.ToArray();
         _maxAllowedErrors = errorOptions.MaxAllowedErrors;
+
+        Array.Sort(_allRules, (a, b) => a.Priority.CompareTo(b.Priority));
+        Array.Sort(_nonCacheableRules, (a, b) => a.Priority.CompareTo(b.Priority));
     }
 
     /// <inheritdoc />
@@ -102,15 +100,16 @@ public sealed class DocumentValidator : IDocumentValidator
             PrepareContext(schema, document, documentId, context, contextData);
 
             var length = rules.Length;
-#if NET6_0_OR_GREATER
             ref var start = ref MemoryMarshal.GetArrayDataReference(rules);
-#else
-            ref var start = ref MemoryMarshal.GetReference(rules.AsSpan());
-#endif
 
             for (var i = 0; i < length; i++)
             {
                 Unsafe.Add(ref start, i).Validate(context, document);
+
+                if (context.FatalErrorDetected)
+                {
+                    break;
+                }
             }
 
             if (_aggregators.Length == 0)

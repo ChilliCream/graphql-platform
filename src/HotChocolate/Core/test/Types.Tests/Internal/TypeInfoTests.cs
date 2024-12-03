@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Threading.Tasks;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
@@ -615,8 +611,6 @@ public class TypeInfoTests
 
         public Nullable<Optional<string?>> NullableOptionalNullableString() => default;
     }
-
-#nullable disable
 
     public class Foo;
 }

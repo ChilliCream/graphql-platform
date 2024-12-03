@@ -1,14 +1,14 @@
 [
   {
-    "path": "bananacakepop",
-    "title": "Banana Cake Pop",
-    "description": "Use this GUI to get deep insights from any GraphQL API.",
-    "metaDescription": "Banana Cake Pop is a performant, feature-rich GraphQL IDE that helps developers and data scientists to explore, share, and test any GraphQL API.",
-    "latestStableVersion": "v2",
+    "path": "nitro",
+    "title": "Nitro (fka Banana Cake Pop)",
+    "description": "GraphQL API Management",
+    "metaDescription": "Nitro is a performant, feature-rich GraphQL IDE that helps developers and data scientists to explore, share, and test any GraphQL API.",
+    "latestStableVersion": "",
     "versions": [
       {
-        "path": "v2",
-        "title": "v2",
+        "path": "",
+        "title": "latest",
         "items": [
           {
             "path": "index",
@@ -42,7 +42,7 @@
           },
           {
             "path": "apis",
-            "title": "Apis",
+            "title": "APIs",
             "items": [
               { "path": "overview", "title": "Overview" },
               { "path": "stages", "title": "Stages" },
@@ -59,8 +59,18 @@
               {
                 "path": "operation-reporting",
                 "title": "Operation Reporting"
+              }
+            ]
+          },
+          {
+            "path": "open-telemetry",
+            "title": "Open Telemetry",
+            "items": [
+              {
+                "path": "operation-monitoring",
+                "title": "Operation Monitoring"
               },
-              { "path": "open-telemetry", "title": "Open Telemetry" }
+              { "path": "logging", "title": "Logging" }
             ]
           },
           {
@@ -68,16 +78,59 @@
             "title": "Environments"
           },
           {
-            "path": "workspaces",
-            "title": "Workspaces"
-          },
-          {
             "path": "organizations",
             "title": "Organizations"
           },
           {
-            "path": "bcp-services",
+            "path": "workspaces",
+            "title": "Workspaces"
+          },
+          {
+            "path": "nitro-services",
             "title": "Connect your API"
+          },
+          {
+            "path": "cli",
+            "title": "CLI",
+            "items": [
+              {
+                "path": "index",
+                "title": "Introduction"
+              },
+              {
+                "path": "authentication",
+                "title": "Authentication"
+              },
+              {
+                "path": "global-options",
+                "title": "Global Options"
+              },
+              {
+                "path": "automation",
+                "title": "Automation"
+              }
+            ]
+          },
+          {
+            "path": "cli-commands",
+            "title": "CLI Commands",
+            "items": [
+              { "path": "api-key", "title": "api-key" },
+              { "path": "api", "title": "api" },
+              { "path": "client", "title": "client" },
+              { "path": "environment", "title": "environment" },
+              { "path": "launch", "title": "launch" },
+              { "path": "login", "title": "login" },
+              { "path": "logout", "title": "logout" },
+              { "path": "pat", "title": "pat" },
+              { "path": "schema", "title": "schema" },
+              { "path": "stage", "title": "stage" },
+              {
+                "path": "fusion-configuration",
+                "title": "fusion-configuration"
+              },
+              { "path": "workspace", "title": "workspace" }
+            ]
           },
           {
             "path": "subscriptions",
@@ -105,12 +158,715 @@
     ]
   },
   {
+    "path": "fusion",
+    "title": "Fusion",
+    "description": "Federated GraphQL Gateway",
+    "metaDescription": "Fusion is a powerful, open-source GraphQL gateway that helps developers to build a unified API for their services.",
+    "latestStableVersion": "v14",
+    "versions": [
+      {
+        "path": "v14",
+        "title": "v14",
+        "items": [
+          {
+            "path": "index",
+            "title": "Overview"
+          },
+          {
+            "path": "quick-start",
+            "title": "Quick Start"
+          },
+          {
+            "path": "entities",
+            "title": "Entities"
+          },
+          {
+            "path": "lookups",
+            "title": "Lookups"
+          },
+          {
+            "path": "devops",
+            "title": "DevOps"
+          },
+          {
+            "path": "node",
+            "title": "Node Pattern"
+          },
+          {
+            "path": "aspire",
+            "title": "Aspire"
+          },
+          {
+            "path": "cli",
+            "title": "CLI"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "path": "hotchocolate",
     "title": "Hot Chocolate",
+    "description": "GraphQL Server / Gateway",
     "metaDescription": "Hot Chocolate is the most efficient, feature-rich, open-source GraphQL server in the .NET ecosystem, that helps developers to build powerful APIs.",
-    "description": "Build your own thin GraphQL API layer on top of any resource.",
-    "latestStableVersion": "v13",
+    "latestStableVersion": "v14",
     "versions": [
+      {
+        "path": "v15",
+        "title": "v15",
+        "items": [
+          {
+            "path": "index",
+            "title": "Introduction"
+          },
+          {
+            "path": "get-started-with-graphql-in-net-core",
+            "title": "Getting Started"
+          },
+          {
+            "path": "defining-a-schema",
+            "title": "Defining a schema",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "queries",
+                "title": "Queries"
+              },
+              {
+                "path": "mutations",
+                "title": "Mutations"
+              },
+              {
+                "path": "subscriptions",
+                "title": "Subscriptions"
+              },
+              {
+                "path": "object-types",
+                "title": "Object Types"
+              },
+              {
+                "path": "scalars",
+                "title": "Scalars"
+              },
+              {
+                "path": "arguments",
+                "title": "Arguments"
+              },
+              {
+                "path": "input-object-types",
+                "title": "Input Object Types"
+              },
+              {
+                "path": "lists",
+                "title": "Lists"
+              },
+              {
+                "path": "non-null",
+                "title": "Non-Null"
+              },
+              {
+                "path": "enums",
+                "title": "Enums"
+              },
+              {
+                "path": "interfaces",
+                "title": "Interfaces"
+              },
+              {
+                "path": "unions",
+                "title": "Unions"
+              },
+              {
+                "path": "extending-types",
+                "title": "Extending Types"
+              },
+              {
+                "path": "directives",
+                "title": "Directives"
+              },
+              {
+                "path": "documentation",
+                "title": "Documentation"
+              },
+              {
+                "path": "versioning",
+                "title": "Versioning"
+              },
+              {
+                "path": "relay",
+                "title": "Relay"
+              },
+              {
+                "path": "dynamic-schemas",
+                "title": "Dynamic Schemas"
+              }
+            ]
+          },
+          {
+            "path": "fetching-data",
+            "title": "Fetching data",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "resolvers",
+                "title": "Resolvers"
+              },
+              {
+                "path": "fetching-from-databases",
+                "title": "Fetching from Databases"
+              },
+              {
+                "path": "fetching-from-rest",
+                "title": "Fetching from REST"
+              },
+              {
+                "path": "dataloader",
+                "title": "DataLoader"
+              },
+              {
+                "path": "pagination",
+                "title": "Pagination"
+              },
+              {
+                "path": "filtering",
+                "title": "Filtering"
+              },
+              {
+                "path": "sorting",
+                "title": "Sorting"
+              },
+              {
+                "path": "projections",
+                "title": "Projections"
+              }
+            ]
+          },
+          {
+            "path": "execution-engine",
+            "title": "Execution Engine",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "field-middleware",
+                "title": "Field middleware"
+              }
+            ]
+          },
+          {
+            "path": "integrations",
+            "title": "Integrations",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "entity-framework",
+                "title": "Entity Framework"
+              },
+              {
+                "path": "mongodb",
+                "title": "MongoDB"
+              },
+              {
+                "path": "spatial-data",
+                "title": "Spatial Data"
+              },
+              {
+                "path": "marten",
+                "title": "Marten"
+              }
+            ]
+          },
+          {
+            "path": "server",
+            "title": "Server",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "endpoints",
+                "title": "Endpoints"
+              },
+              {
+                "path": "http-transport",
+                "title": "HTTP transport"
+              },
+              {
+                "path": "interceptors",
+                "title": "Interceptors"
+              },
+              {
+                "path": "dependency-injection",
+                "title": "Dependency injection"
+              },
+              {
+                "path": "warmup",
+                "title": "Warmup"
+              },
+              {
+                "path": "global-state",
+                "title": "Global State"
+              },
+              {
+                "path": "introspection",
+                "title": "Introspection"
+              },
+              {
+                "path": "files",
+                "title": "Files"
+              },
+              {
+                "path": "instrumentation",
+                "title": "Instrumentation"
+              },
+              {
+                "path": "batching",
+                "title": "Batching"
+              },
+              {
+                "path": "command-line",
+                "title": "Command Line"
+              }
+            ]
+          },
+          {
+            "path": "performance",
+            "title": "Performance",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "persisted-operations",
+                "title": "Persisted operations"
+              },
+              {
+                "path": "automatic-persisted-operations",
+                "title": "Automatic persisted operations"
+              }
+            ]
+          },
+          {
+            "path": "security",
+            "title": "Security",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "authentication",
+                "title": "Authentication"
+              },
+              {
+                "path": "authorization",
+                "title": "Authorization"
+              },
+              {
+                "path": "cost-analysis",
+                "title": "Cost Analysis"
+              }
+            ]
+          },
+          {
+            "path": "api-reference",
+            "title": "API Reference",
+            "items": [
+              {
+                "path": "custom-attributes",
+                "title": "Custom Attributes"
+              },
+              {
+                "path": "errors",
+                "title": "Errors"
+              },
+              {
+                "path": "language",
+                "title": "Language"
+              },
+              {
+                "path": "extending-filtering",
+                "title": "Extending Filtering"
+              },
+              {
+                "path": "visitors",
+                "title": "Visitors"
+              },
+              {
+                "path": "apollo-federation",
+                "title": "Apollo Federation"
+              },
+              {
+                "path": "executable",
+                "title": "Executable"
+              }
+            ]
+          },
+          {
+            "path": "migrating",
+            "title": "Migrating",
+            "items": [
+              {
+                "path": "migrate-from-14-to-15",
+                "title": "Migrate from 14 to 15"
+              },
+              {
+                "path": "migrate-from-13-to-14",
+                "title": "Migrate from 13 to 14"
+              },
+              {
+                "path": "migrate-from-12-to-13",
+                "title": "Migrate from 12 to 13"
+              },
+              {
+                "path": "migrate-from-11-to-12",
+                "title": "Migrate from 11 to 12"
+              },
+              {
+                "path": "migrate-from-10-to-11",
+                "title": "Migrate from 10 to 11"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "path": "v14",
+        "title": "v14",
+        "items": [
+          {
+            "path": "index",
+            "title": "Introduction"
+          },
+          {
+            "path": "get-started-with-graphql-in-net-core",
+            "title": "Getting Started"
+          },
+          {
+            "path": "defining-a-schema",
+            "title": "Defining a schema",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "queries",
+                "title": "Queries"
+              },
+              {
+                "path": "mutations",
+                "title": "Mutations"
+              },
+              {
+                "path": "subscriptions",
+                "title": "Subscriptions"
+              },
+              {
+                "path": "object-types",
+                "title": "Object Types"
+              },
+              {
+                "path": "scalars",
+                "title": "Scalars"
+              },
+              {
+                "path": "arguments",
+                "title": "Arguments"
+              },
+              {
+                "path": "input-object-types",
+                "title": "Input Object Types"
+              },
+              {
+                "path": "lists",
+                "title": "Lists"
+              },
+              {
+                "path": "non-null",
+                "title": "Non-Null"
+              },
+              {
+                "path": "enums",
+                "title": "Enums"
+              },
+              {
+                "path": "interfaces",
+                "title": "Interfaces"
+              },
+              {
+                "path": "unions",
+                "title": "Unions"
+              },
+              {
+                "path": "extending-types",
+                "title": "Extending Types"
+              },
+              {
+                "path": "directives",
+                "title": "Directives"
+              },
+              {
+                "path": "documentation",
+                "title": "Documentation"
+              },
+              {
+                "path": "versioning",
+                "title": "Versioning"
+              },
+              {
+                "path": "relay",
+                "title": "Relay"
+              },
+              {
+                "path": "dynamic-schemas",
+                "title": "Dynamic Schemas"
+              }
+            ]
+          },
+          {
+            "path": "fetching-data",
+            "title": "Fetching data",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "resolvers",
+                "title": "Resolvers"
+              },
+              {
+                "path": "fetching-from-databases",
+                "title": "Fetching from Databases"
+              },
+              {
+                "path": "fetching-from-rest",
+                "title": "Fetching from REST"
+              },
+              {
+                "path": "dataloader",
+                "title": "DataLoader"
+              },
+              {
+                "path": "pagination",
+                "title": "Pagination"
+              },
+              {
+                "path": "filtering",
+                "title": "Filtering"
+              },
+              {
+                "path": "sorting",
+                "title": "Sorting"
+              },
+              {
+                "path": "projections",
+                "title": "Projections"
+              }
+            ]
+          },
+          {
+            "path": "execution-engine",
+            "title": "Execution Engine",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "field-middleware",
+                "title": "Field middleware"
+              }
+            ]
+          },
+          {
+            "path": "integrations",
+            "title": "Integrations",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "entity-framework",
+                "title": "Entity Framework"
+              },
+              {
+                "path": "mongodb",
+                "title": "MongoDB"
+              },
+              {
+                "path": "spatial-data",
+                "title": "Spatial Data"
+              },
+              {
+                "path": "marten",
+                "title": "Marten"
+              }
+            ]
+          },
+          {
+            "path": "server",
+            "title": "Server",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "endpoints",
+                "title": "Endpoints"
+              },
+              {
+                "path": "http-transport",
+                "title": "HTTP transport"
+              },
+              {
+                "path": "interceptors",
+                "title": "Interceptors"
+              },
+              {
+                "path": "dependency-injection",
+                "title": "Dependency injection"
+              },
+              {
+                "path": "global-state",
+                "title": "Global State"
+              },
+              {
+                "path": "introspection",
+                "title": "Introspection"
+              },
+              {
+                "path": "files",
+                "title": "Files"
+              },
+              {
+                "path": "instrumentation",
+                "title": "Instrumentation"
+              },
+              {
+                "path": "batching",
+                "title": "Batching"
+              },
+              {
+                "path": "command-line",
+                "title": "Command Line"
+              }
+            ]
+          },
+          {
+            "path": "performance",
+            "title": "Performance",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "persisted-operations",
+                "title": "Persisted operations"
+              },
+              {
+                "path": "automatic-persisted-operations",
+                "title": "Automatic persisted operations"
+              }
+            ]
+          },
+          {
+            "path": "security",
+            "title": "Security",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "authentication",
+                "title": "Authentication"
+              },
+              {
+                "path": "authorization",
+                "title": "Authorization"
+              },
+              {
+                "path": "cost-analysis",
+                "title": "Cost Analysis"
+              }
+            ]
+          },
+          {
+            "path": "api-reference",
+            "title": "API Reference",
+            "items": [
+              {
+                "path": "custom-attributes",
+                "title": "Custom Attributes"
+              },
+              {
+                "path": "errors",
+                "title": "Errors"
+              },
+              {
+                "path": "language",
+                "title": "Language"
+              },
+              {
+                "path": "extending-filtering",
+                "title": "Extending Filtering"
+              },
+              {
+                "path": "visitors",
+                "title": "Visitors"
+              },
+              {
+                "path": "apollo-federation",
+                "title": "Apollo Federation"
+              },
+              {
+                "path": "executable",
+                "title": "Executable"
+              }
+            ]
+          },
+          {
+            "path": "migrating",
+            "title": "Migrating",
+            "items": [
+              {
+                "path": "migrate-from-13-to-14",
+                "title": "Migrate from 13 to 14"
+              },
+              {
+                "path": "migrate-from-12-to-13",
+                "title": "Migrate from 12 to 13"
+              },
+              {
+                "path": "migrate-from-11-to-12",
+                "title": "Migrate from 11 to 12"
+              },
+              {
+                "path": "migrate-from-10-to-11",
+                "title": "Migrate from 10 to 11"
+              }
+            ]
+          }
+        ]
+      },
       {
         "path": "v13",
         "title": "v13",
@@ -410,6 +1166,10 @@
               {
                 "path": "custom-attributes",
                 "title": "Custom Attributes"
+              },
+              {
+                "path": "errors",
+                "title": "Errors"
               },
               {
                 "path": "language",
@@ -738,6 +1498,10 @@
                 "title": "Custom Attributes"
               },
               {
+                "path": "error-filter",
+                "title": "Error Filter"
+              },
+              {
                 "path": "language",
                 "title": "Language"
               },
@@ -992,6 +1756,10 @@
               {
                 "path": "custom-attributes",
                 "title": "Custom Attributes"
+              },
+              {
+                "path": "error-filter",
+                "title": "Error Filter"
               },
               {
                 "path": "language",
@@ -1264,10 +2032,210 @@
   {
     "path": "strawberryshake",
     "title": "Strawberry Shake",
-    "description": "The only GraphQL client you will ever need in the .NET ecosystem.",
+    "description": "GraphQL Client for .NET",
     "metaDescription": "Strawberry Shake is an incredible GraphQL client for the .NET ecosystem, that helps developers to build awesome UIs in Blazor, Maui, and more.",
-    "latestStableVersion": "v13",
+    "latestStableVersion": "v14",
     "versions": [
+      {
+        "path": "v15",
+        "title": "v15",
+        "items": [
+          {
+            "path": "index",
+            "title": "Introduction"
+          },
+          {
+            "path": "get-started",
+            "title": "Get Started",
+            "items": [
+              {
+                "path": "index",
+                "title": "Blazor"
+              },
+              {
+                "path": "xamarin",
+                "title": "Xamarin"
+              },
+              {
+                "path": "console",
+                "title": "Console"
+              }
+            ]
+          },
+          {
+            "path": "subscriptions",
+            "title": "Subscriptions"
+          },
+          {
+            "path": "tooling",
+            "title": "Tooling / CLI"
+          },
+          {
+            "path": "caching",
+            "title": "Caching",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "entities",
+                "title": "Entities"
+              },
+              {
+                "path": "invalidation",
+                "title": "Invalidation"
+              }
+            ]
+          },
+          {
+            "path": "performance",
+            "title": "Performance",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "persisted-operations",
+                "title": "Persisted Operations"
+              },
+              {
+                "path": "persisted-state",
+                "title": "Persisted State"
+              }
+            ]
+          },
+          {
+            "path": "networking",
+            "title": "Networking",
+            "items": [
+              {
+                "path": "index",
+                "title": "Protocols"
+              },
+              {
+                "path": "authentication",
+                "title": "Authentication"
+              }
+            ]
+          },
+          {
+            "path": "scalars",
+            "title": "Scalars"
+          },
+          {
+            "path": "migrating",
+            "title": "Migrating",
+            "items": [
+              {
+                "path": "migrate-from-12-to-13",
+                "title": "Migrate from 12 to 13"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "path": "v14",
+        "title": "v14",
+        "items": [
+          {
+            "path": "index",
+            "title": "Introduction"
+          },
+          {
+            "path": "get-started",
+            "title": "Get Started",
+            "items": [
+              {
+                "path": "index",
+                "title": "Blazor"
+              },
+              {
+                "path": "xamarin",
+                "title": "Xamarin"
+              },
+              {
+                "path": "console",
+                "title": "Console"
+              }
+            ]
+          },
+          {
+            "path": "subscriptions",
+            "title": "Subscriptions"
+          },
+          {
+            "path": "tooling",
+            "title": "Tooling / CLI"
+          },
+          {
+            "path": "caching",
+            "title": "Caching",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "entities",
+                "title": "Entities"
+              },
+              {
+                "path": "invalidation",
+                "title": "Invalidation"
+              }
+            ]
+          },
+          {
+            "path": "performance",
+            "title": "Performance",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "persisted-operations",
+                "title": "Persisted Operations"
+              },
+              {
+                "path": "persisted-state",
+                "title": "Persisted State"
+              }
+            ]
+          },
+          {
+            "path": "networking",
+            "title": "Networking",
+            "items": [
+              {
+                "path": "index",
+                "title": "Protocols"
+              },
+              {
+                "path": "authentication",
+                "title": "Authentication"
+              }
+            ]
+          },
+          {
+            "path": "scalars",
+            "title": "Scalars"
+          },
+          {
+            "path": "migrating",
+            "title": "Migrating",
+            "items": [
+              {
+                "path": "migrate-from-12-to-13",
+                "title": "Migrate from 12 to 13"
+              }
+            ]
+          }
+        ]
+      },
       {
         "path": "v13",
         "title": "v13",
@@ -1455,49 +2423,6 @@
           {
             "path": "scalars",
             "title": "Scalars"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "path": "barista",
-    "title": "Barista",
-    "description": "The CLI tool for orchestrating your GraphQL cloud services.",
-    "metaDescription": "Barista is a powerful .NET command-line tool used for managing your GraphQL API's schema and client registries. It provides a suite of commands that facilitate the handling of schemas, clients, stages, workspaces, environments, and API keys.",
-    "latestStableVersion": "v1",
-    "versions": [
-      {
-        "path": "v1",
-        "title": "v1",
-        "items": [
-          {
-            "path": "index",
-            "title": "Introduction"
-          },
-          {
-            "path": "authentication",
-            "title": "Authentication"
-          },
-          {
-            "path": "commands",
-            "title": "Commands",
-            "items": [
-              { "path": "api-key", "title": "api-key" },
-              { "path": "api", "title": "api" },
-              { "path": "client", "title": "client" },
-              { "path": "environment", "title": "environment" },
-              { "path": "launch", "title": "launch" },
-              { "path": "login", "title": "login" },
-              { "path": "logout", "title": "logout" },
-              { "path": "schema", "title": "schema" },
-              { "path": "stage", "title": "stage" },
-              {
-                "path": "fusion-configuration",
-                "title": "fusion-configuration"
-              },
-              { "path": "workspace", "title": "workspace" }
-            ]
           }
         ]
       }

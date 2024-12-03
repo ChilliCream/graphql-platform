@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Authorization;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -36,7 +35,7 @@ public class AuthorizeDirectiveTests
 
         // assert
         Assert.Equal("abc", authorizeDirective.Policy);
-        Assert.Empty(authorizeDirective.Roles);
+        Assert.Empty(authorizeDirective.Roles!);
     }
 
     [Fact]
@@ -76,9 +75,108 @@ public class AuthorizeDirectiveTests
         // assert
         Assert.Null(authorizeDirective.Policy);
         Assert.Collection(
-            authorizeDirective.Roles,
+            authorizeDirective.Roles!,
             t => Assert.Equal("a", t),
             t => Assert.Equal("b", t));
+    }
+
+    [Fact]
+    public void CacheKey_Policy_NoRoles()
+    {
+        // arrange
+        var authorizeDirective = new AuthorizeDirective(
+            policy: "policy");
+
+        // act
+        var cacheKey = authorizeDirective.GetPolicyCacheKey();
+
+        // assert
+        Assert.Equal("policy;", cacheKey);
+    }
+
+    [Fact]
+    public void CacheKey_NoPolicy_Roles()
+    {
+        // arrange
+        var authorizeDirective = new AuthorizeDirective(
+            policy: null,
+            roles: ["a", "b"]);
+
+        // act
+        var cacheKey = authorizeDirective.GetPolicyCacheKey();
+
+        // assert
+        Assert.Equal(";a,b", cacheKey);
+    }
+
+    [Fact]
+    public void CacheKey_Policy_And_Roles()
+    {
+        // arrange
+        var authorizeDirective = new AuthorizeDirective(
+            policy: "policy",
+            roles: ["a", "b"]);
+
+        // act
+        var cacheKey = authorizeDirective.GetPolicyCacheKey();
+
+        // assert
+        Assert.Equal("policy;a,b", cacheKey);
+    }
+
+    [Fact]
+    public void CacheKey_NoPolicy_NoRoles()
+    {
+        // arrange
+        var authorizeDirective = new AuthorizeDirective(
+            policy: null,
+            roles: null);
+
+        // act
+        var cacheKey = authorizeDirective.GetPolicyCacheKey();
+
+        // assert
+        Assert.Equal("", cacheKey);
+    }
+
+    [Fact]
+    public void CacheKey_Policy_And_Role_Naming_Does_Not_Conflict()
+    {
+        // arrange
+        var authorizeDirective1 = new AuthorizeDirective(
+            policy: "policy",
+            roles: null);
+
+        var authorizeDirective2 = new AuthorizeDirective(
+            policy: null,
+            roles: ["policy"]);
+
+        // act
+        var cacheKey1 = authorizeDirective1.GetPolicyCacheKey();
+        var cacheKey2 = authorizeDirective2.GetPolicyCacheKey();
+
+        // assert
+        Assert.NotEqual(cacheKey1, cacheKey2);
+    }
+
+    [Fact]
+    public void CacheKey_Same_Roles_Albeit_Sorted_Differently_Have_Same_Cache_Key()
+    {
+        // arrange
+        var authorizeDirective1 = new AuthorizeDirective(
+            policy: null,
+            roles: ["a", "c", "b"]);
+
+        var authorizeDirective2 = new AuthorizeDirective(
+            policy: null,
+            roles: ["c", "b", "a"]);
+
+        // act
+        var cacheKey1 = authorizeDirective1.GetPolicyCacheKey();
+        var cacheKey2 = authorizeDirective2.GetPolicyCacheKey();
+
+        // assert
+        Assert.Equal(cacheKey1, cacheKey2);
     }
 
     [Fact]

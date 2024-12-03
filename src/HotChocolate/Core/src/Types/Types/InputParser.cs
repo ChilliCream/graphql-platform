@@ -1,9 +1,7 @@
 #nullable enable
 
-using System;
 using System.Buffers;
 using System.Collections;
-using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using static HotChocolate.Utilities.ThrowHelper;
@@ -155,7 +153,8 @@ public sealed class InputParser
                     var item = items[i];
                     var itemPath = path.Append(i);
 
-                    if (item.Kind != SyntaxKind.ListValue)
+                    if (item.Kind != SyntaxKind.ListValue
+                        && item.Kind != SyntaxKind.NullValue)
                     {
                         throw ParseNestedList_InvalidSyntaxKind(type, item.Kind, itemPath);
                     }
@@ -329,7 +328,7 @@ public sealed class InputParser
 
             var error = ErrorBuilder.FromError(ex.Errors[0])
                 .SetPath(path)
-                .SetExtension(nameof(field), field.Coordinate.ToString())
+                .SetFieldCoordinate(field.Coordinate)
                 .SetExtension("fieldType", type.Name)
                 .Build();
 
@@ -644,7 +643,7 @@ public sealed class InputParser
 
             var error = ErrorBuilder.FromError(ex.Errors[0])
                 .SetPath(path)
-                .SetExtension(nameof(field), field.Coordinate.ToString())
+                .SetFieldCoordinate(field.Coordinate)
                 .SetExtension("fieldType", type.Name)
                 .Build();
 

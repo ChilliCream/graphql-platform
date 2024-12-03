@@ -1,66 +1,63 @@
-﻿using ChilliCream.Testing;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Validation;
 
-public class FieldSelectionMergingRuleTests
-    : DocumentValidatorVisitorTestBase
+public class FieldSelectionMergingRuleTests()
+    : DocumentValidatorVisitorTestBase(builder => builder.AddFieldRules())
 {
-    public FieldSelectionMergingRuleTests()
-        : base(builder => builder.AddFieldRules())
-    {
-    }
-
     [Fact]
     public void MergeIdenticalFields()
     {
-        ExpectValid(@"
-                {
-                    dog {
-                        ... mergeIdenticalFields
-                    }
+        ExpectValid(
+            """
+            {
+                dog {
+                    ... mergeIdenticalFields
                 }
+            }
 
-                fragment mergeIdenticalFields on Dog {
-                    name
-                    name
-                }
-            ");
+            fragment mergeIdenticalFields on Dog {
+                name
+                name
+            }
+            """);
     }
 
     [Fact]
     public void MergeIdenticalAliasesAndFields()
     {
-        ExpectValid(@"
-                {
-                    dog {
-                        ... mergeIdenticalAliasesAndFields
-                    }
+        ExpectValid(
+            """
+            {
+                dog {
+                    ... mergeIdenticalAliasesAndFields
                 }
+            }
 
-                fragment mergeIdenticalAliasesAndFields on Dog {
-                    otherName: name
-                    otherName: name
-                }
-            ");
+            fragment mergeIdenticalAliasesAndFields on Dog {
+                otherName: name
+                otherName: name
+            }
+            """);
     }
 
     [Fact]
     public void ConflictingBecauseAlias()
     {
-        ExpectErrors(@"
-                {
-                    dog {
-                        ... conflictingBecauseAlias
-                    }
+        ExpectErrors(
+            """
+            {
+                dog {
+                    ... conflictingBecauseAlias
                 }
+            }
 
-                fragment conflictingBecauseAlias on Dog {
-                    name: nickname
-                    name
-                }
-            ",
+            fragment conflictingBecauseAlias on Dog {
+                name: nickname
+                name
+            }
+            """,
             t => Assert.Equal(
                 "Encountered fields for the same object that cannot be merged.",
                 t.Message));
@@ -69,52 +66,55 @@ public class FieldSelectionMergingRuleTests
     [Fact]
     public void MergeIdenticalFieldsWithIdenticalArgs()
     {
-        ExpectValid(@"
-                {
-                    dog {
-                        ... mergeIdenticalFieldsWithIdenticalArgs
-                    }
+        ExpectValid(
+            """
+            {
+                dog {
+                    ... mergeIdenticalFieldsWithIdenticalArgs
                 }
+            }
 
-                fragment mergeIdenticalFieldsWithIdenticalArgs on Dog {
-                    doesKnowCommand(dogCommand: SIT)
-                    doesKnowCommand(dogCommand: SIT)
-                }
-            ");
+            fragment mergeIdenticalFieldsWithIdenticalArgs on Dog {
+                doesKnowCommand(dogCommand: SIT)
+                doesKnowCommand(dogCommand: SIT)
+            }
+            """);
     }
 
     [Fact]
     public void MergeIdenticalFieldsWithIdenticalValues()
     {
-        ExpectValid(@"
-                {
-                    dog {
-                        ... mergeIdenticalFieldsWithIdenticalValues
-                    }
+        ExpectValid(
+            """
+            {
+                dog {
+                    ... mergeIdenticalFieldsWithIdenticalValues
                 }
+            }
 
-                fragment mergeIdenticalFieldsWithIdenticalValues on Dog {
-                    doesKnowCommand(dogCommand: $dogCommand)
-                    doesKnowCommand(dogCommand: $dogCommand)
-                }
-            ");
+            fragment mergeIdenticalFieldsWithIdenticalValues on Dog {
+                doesKnowCommand(dogCommand: $dogCommand)
+                doesKnowCommand(dogCommand: $dogCommand)
+            }
+            """);
     }
 
     [Fact]
     public void ConflictingArgsOnValues()
     {
-        ExpectErrors(@"
-                {
-                    dog {
-                        ... conflictingArgsOnValues
-                    }
+        ExpectErrors(
+            """
+            {
+                dog {
+                    ... conflictingArgsOnValues
                 }
+            }
 
-                fragment conflictingArgsOnValues on Dog {
-                    doesKnowCommand(dogCommand: SIT)
-                    doesKnowCommand(dogCommand: HEEL)
-                }
-            ",
+            fragment conflictingArgsOnValues on Dog {
+                doesKnowCommand(dogCommand: SIT)
+                doesKnowCommand(dogCommand: HEEL)
+            }
+            """,
             t => Assert.Equal(
                 "Encountered fields for the same object that cannot be merged.",
                 t.Message));
@@ -123,18 +123,19 @@ public class FieldSelectionMergingRuleTests
     [Fact]
     public void ConflictingArgsValueAndVar()
     {
-        ExpectErrors(@"
-                query($dogCommand: DogCommand!) {
-                    dog {
-                        ... conflictingArgsValueAndVar
-                    }
+        ExpectErrors(
+            """
+            query($dogCommand: DogCommand!) {
+                dog {
+                    ... conflictingArgsValueAndVar
                 }
+            }
 
-                fragment conflictingArgsValueAndVar on Dog {
-                    doesKnowCommand(dogCommand: SIT)
-                    doesKnowCommand(dogCommand: $dogCommand)
-                }
-            ",
+            fragment conflictingArgsValueAndVar on Dog {
+                doesKnowCommand(dogCommand: SIT)
+                doesKnowCommand(dogCommand: $dogCommand)
+            }
+            """,
             t => Assert.Equal(
                 "Encountered fields for the same object that cannot be merged.",
                 t.Message));
@@ -143,18 +144,19 @@ public class FieldSelectionMergingRuleTests
     [Fact]
     public void ConflictingArgsWithVars()
     {
-        ExpectErrors(@"
-                query($varOne: DogCommand! $varTwo: DogCommand!) {
-                    dog {
-                        ... conflictingArgsWithVars
-                    }
+        ExpectErrors(
+            """
+            query($varOne: DogCommand! $varTwo: DogCommand!) {
+                dog {
+                    ... conflictingArgsWithVars
                 }
+            }
 
-                fragment conflictingArgsWithVars on Dog {
-                    doesKnowCommand(dogCommand: $varOne)
-                    doesKnowCommand(dogCommand: $varTwo)
-                }
-            ",
+            fragment conflictingArgsWithVars on Dog {
+                doesKnowCommand(dogCommand: $varOne)
+                doesKnowCommand(dogCommand: $varTwo)
+            }
+            """,
             t => Assert.Equal(
                 "Encountered fields for the same object that cannot be merged.",
                 t.Message));
@@ -163,18 +165,19 @@ public class FieldSelectionMergingRuleTests
     [Fact]
     public void DifferingArgs()
     {
-        ExpectErrors(@"
-                {
-                    dog {
-                        ... differingArgs
-                    }
+        ExpectErrors(
+            """
+            {
+                dog {
+                    ... differingArgs
                 }
+            }
 
-                fragment differingArgs on Dog {
-                    doesKnowCommand(dogCommand: SIT)
-                    doesKnowCommand
-                }
-            ",
+            fragment differingArgs on Dog {
+                doesKnowCommand(dogCommand: SIT)
+                doesKnowCommand
+            }
+            """,
             t => Assert.Equal(
                 "Encountered fields for the same object that cannot be merged.",
                 t.Message));
@@ -183,20 +186,21 @@ public class FieldSelectionMergingRuleTests
     [Fact]
     public void SameResponseNameDifferentFieldName()
     {
-        ExpectErrors(@"
-                {
-                    catOrDog {
-                        ... dog
-                    }
-                    catOrDog: dogOrHuman {
-                        ... dog
-                    }
+        ExpectErrors(
+            """
+            {
+                catOrDog {
+                    ... dog
                 }
+                catOrDog: dogOrHuman {
+                    ... dog
+                }
+            }
 
-                fragment dog on Dog {
-                    doesKnowCommand
-                }
-            ",
+            fragment dog on Dog {
+                doesKnowCommand
+            }
+            """,
             t => Assert.Equal(
                 "Encountered fields for the same object that cannot be merged.",
                 t.Message));
@@ -205,64 +209,67 @@ public class FieldSelectionMergingRuleTests
     [Fact]
     public void SafeDifferingFields()
     {
-        ExpectValid(@"
-                {
-                    catOrDog {
-                        ... safeDifferingFields
-                    }
+        ExpectValid(
+            """
+            {
+                catOrDog {
+                    ... safeDifferingFields
                 }
+            }
 
-                fragment safeDifferingFields on Pet {
-                    ... on Dog {
-                        volume: barkVolume
-                    }
-                    ... on Cat {
-                        volume: meowVolume
-                    }
+            fragment safeDifferingFields on Pet {
+                ... on Dog {
+                    volume: barkVolume
                 }
-            ");
+                ... on Cat {
+                    volume: meowVolume
+                }
+            }
+            """);
     }
 
     [Fact]
     public void SafeDifferingArgs()
     {
-        ExpectValid(@"
-                {
-                    dog {
-                        ... safeDifferingArgs
-                    }
+        ExpectValid(
+            """
+            {
+                dog {
+                    ... safeDifferingArgs
                 }
+            }
 
-                fragment safeDifferingArgs on Pet {
-                    ... on Dog {
-                        doesKnowCommand(dogCommand: SIT)
-                    }
-                    ... on Cat {
-                        doesKnowCommand(catCommand: JUMP)
-                    }
+            fragment safeDifferingArgs on Pet {
+                ... on Dog {
+                    doesKnowCommand(dogCommand: SIT)
                 }
-            ");
+                ... on Cat {
+                    doesKnowCommand(catCommand: JUMP)
+                }
+            }
+            """);
     }
 
     [Fact]
     public void ConflictingDifferingResponses()
     {
-        ExpectErrors(@"
-                {
-                    dog {
-                        ... conflictingDifferingResponses
-                    }
+        ExpectErrors(
+            """
+            {
+                dog {
+                    ... conflictingDifferingResponses
                 }
+            }
 
-                fragment conflictingDifferingResponses on Pet {
-                    ... on Dog {
-                        someValue: nickname
-                    }
-                    ... on Cat {
-                        someValue: meowVolume
-                    }
+            fragment conflictingDifferingResponses on Pet {
+                ... on Dog {
+                    someValue: nickname
                 }
-            ",
+                ... on Cat {
+                    someValue: meowVolume
+                }
+            }
+            """,
             t => Assert.Equal(
                 "Encountered fields for the same object that cannot be merged.",
                 t.Message));
@@ -272,55 +279,61 @@ public class FieldSelectionMergingRuleTests
     public void ShortHandQueryWithNoDuplicateFields()
     {
         ExpectValid(
-            @"{
-                    __type (type: ""Foo"") {
+            """
+            {
+                __type (type: "Foo") {
+                    name
+                    fields {
                         name
-                        fields {
+                        type {
                             name
-                            type {
-                                name
-                            }
                         }
                     }
-                }");
+                }
+            }
+            """);
     }
 
     [Fact]
     public void Stream_Mergeable()
     {
         ExpectValid(
-            @"{
-                    __type (type: ""Foo"") {
-                        name
-                        fields @stream(initialCount: 1) {
-                            type {
-                                name
-                            }
-                        }
-                        fields @stream(initialCount: 1) {
+            """
+            {
+                __type (type: "Foo") {
+                    name
+                    fields @stream(initialCount: 1) {
+                        type {
                             name
                         }
                     }
-                }");
+                    fields @stream(initialCount: 1) {
+                        name
+                    }
+                }
+            }
+            """);
     }
 
     [Fact]
     public void Stream_Argument_Mismatch()
     {
         ExpectErrors(
-            @"{
-                    __type (type: ""Foo"") {
-                        name
-                        fields @stream(initialCount: 1) {
-                            type {
-                                name
-                            }
-                        }
-                        fields @stream(initialCount: 2) {
+            """
+            {
+                __type (type: "Foo") {
+                    name
+                    fields @stream(initialCount: 1) {
+                        type {
                             name
                         }
                     }
-                }",
+                    fields @stream(initialCount: 2) {
+                        name
+                    }
+                }
+            }
+            """,
             t => Assert.Equal(
                 "Encountered fields for the same object that cannot be merged.",
                 t.Message));
@@ -330,19 +343,21 @@ public class FieldSelectionMergingRuleTests
     public void Stream_On_Some_Fields()
     {
         ExpectErrors(
-            @"{
-                    __type (type: ""Foo"") {
-                        name
-                        fields @stream(initialCount: 1) {
-                            type {
-                                name
-                            }
-                        }
-                        fields {
+            """
+            {
+                __type (type: "Foo") {
+                    name
+                    fields @stream(initialCount: 1) {
+                        type {
                             name
                         }
                     }
-                }",
+                    fields {
+                        name
+                    }
+                }
+            }
+            """,
             t => Assert.Equal(
                 "Encountered fields for the same object that cannot be merged.",
                 t.Message));
@@ -351,22 +366,23 @@ public class FieldSelectionMergingRuleTests
     [Fact]
     public void ShortHandQueryWithDuplicateFieldInSecondLevelFragment()
     {
-        ExpectErrors(@"
-                {
-                    dog {
-                        doesKnowCommand(dogCommand: DOWN)
-                        ... FooLevel1
-                    }
+        ExpectErrors(
+            """
+            {
+                dog {
+                    doesKnowCommand(dogCommand: DOWN)
+                    ... FooLevel1
                 }
+            }
 
-                fragment FooLevel1 on Dog {
-                    ... FooLevel2
-                }
+            fragment FooLevel1 on Dog {
+                ... FooLevel2
+            }
 
-                fragment FooLevel2 on Dog {
-                    doesKnowCommand(dogCommand: HEEL)
-                }
-            ",
+            fragment FooLevel2 on Dog {
+                doesKnowCommand(dogCommand: HEEL)
+            }
+            """,
             t => Assert.Equal(
                 "Encountered fields for the same object that cannot be merged.",
                 t.Message));
@@ -376,448 +392,469 @@ public class FieldSelectionMergingRuleTests
     public void ShortHandQueryWithDupMergeableFieldInSecondLevelFragment()
     {
         // arrange
-        ExpectValid(@"
-                {
-                    dog {
-                        doesKnowCommand(dogCommand: DOWN)
-                        ... FooLevel1
-                    }
-                }
-
-                fragment FooLevel1 on Dog {
-                    ... FooLevel2
-                }
-
-                fragment FooLevel2 on Dog {
+        ExpectValid(
+            """
+            {
+                dog {
                     doesKnowCommand(dogCommand: DOWN)
+                    ... FooLevel1
                 }
-            ");
+            }
+
+            fragment FooLevel1 on Dog {
+                ... FooLevel2
+            }
+
+            fragment FooLevel2 on Dog {
+                doesKnowCommand(dogCommand: DOWN)
+            }
+            """);
     }
 
     [Fact]
     public void TypeNameFieldOnInterfaceIsMergeable()
     {
         // arrange
-        ExpectValid(@"
-                {
-                    dog {
-                        ... interfaceFieldSelection
-                    }
+        ExpectValid(
+            """
+            {
+                dog {
+                    ... interfaceFieldSelection
                 }
+            }
 
-                fragment interfaceFieldSelection on Pet {
-                    __typename
-                    __typename
-                }
-            ");
+            fragment interfaceFieldSelection on Pet {
+                __typename
+                __typename
+            }
+            """);
     }
 
     [Fact]
     public void TypeNameFieldOnUnionIsMergeable()
     {
-        ExpectValid(@"
-                {
-                    catOrDog {
-                        ... interfaceFieldSelection
-                    }
+        ExpectValid(
+            """
+            {
+                catOrDog {
+                    ... interfaceFieldSelection
                 }
+            }
 
-                fragment interfaceFieldSelection on CatOrDog {
-                    __typename
-                    __typename
-                }
-            ");
+            fragment interfaceFieldSelection on CatOrDog {
+                __typename
+                __typename
+            }
+            """);
     }
 
     [Fact]
     public void TypeNameFieldOnObjectIsMergeable()
     {
-        ExpectValid(@"
-                {
-                    catOrDog {
-                        ... interfaceFieldSelection
-                    }
+        ExpectValid(
+            """
+            {
+                catOrDog {
+                    ... interfaceFieldSelection
                 }
+            }
 
-                fragment interfaceFieldSelection on Cat {
-                    __typename
-                    __typename
-                }
-            ");
+            fragment interfaceFieldSelection on Cat {
+                __typename
+                __typename
+            }
+            """);
     }
 
     [Fact]
     public void InvalidFieldsShouldNotRaiseValidationError()
-    {
-        ExpectValid(FileResource.Open("InvalidIntrospectionQuery.graphql"));
-    }
+        => ExpectValid(FileResource.Open("InvalidIntrospectionQuery.graphql"));
 
     [Fact]
     public void UniqueFields()
     {
-        ExpectValid(@"
-                {
-                    catOrDog {
-                        ... uniqueFields
-                    }
+        ExpectValid(
+            """
+            {
+                catOrDog {
+                    ... uniqueFields
                 }
+            }
 
-                fragment uniqueFields on Dog {
-                    name
-                    nickname
-                }
-            ");
+            fragment uniqueFields on Dog {
+                name
+                nickname
+            }
+            """);
     }
 
     [Fact]
     public void IdenticalFields()
     {
-        ExpectValid(@"
-                {
-                    catOrDog {
-                        ... mergeIdenticalFields
-                    }
+        ExpectValid(
+            """
+            {
+                catOrDog {
+                    ... mergeIdenticalFields
                 }
+            }
 
-                fragment mergeIdenticalFields on Dog {
-                    name
-                    name
-                }
-            ");
+            fragment mergeIdenticalFields on Dog {
+                name
+                name
+            }
+            """);
     }
 
     [Fact]
     public void IdenticalFieldsWithIdenticalArgs()
     {
-        ExpectValid(@"
-                {
-                    catOrDog {
-                        ... mergeIdenticalFieldsWithIdenticalArgs
-                    }
+        ExpectValid(
+            """
+            {
+                catOrDog {
+                    ... mergeIdenticalFieldsWithIdenticalArgs
                 }
+            }
 
-                fragment mergeIdenticalFieldsWithIdenticalArgs on Dog {
-                    doesKnowCommand(dogCommand: SIT)
-                    doesKnowCommand(dogCommand: SIT)
-                }
-            ");
+            fragment mergeIdenticalFieldsWithIdenticalArgs on Dog {
+                doesKnowCommand(dogCommand: SIT)
+                doesKnowCommand(dogCommand: SIT)
+            }
+            """);
     }
 
     [Fact]
     public void DifferentArgsWithDifferentAliases()
     {
-        ExpectValid(@"
-                {
-                    catOrDog {
-                        ... differentArgsWithDifferentAliases
-                    }
+        ExpectValid(
+            """
+            {
+                catOrDog {
+                    ... differentArgsWithDifferentAliases
                 }
+            }
 
-                fragment differentArgsWithDifferentAliases on Dog {
-                    knowsSit: doesKnowCommand(dogCommand: SIT)
-                    knowsDown: doesKnowCommand(dogCommand: DOWN)
-                }
-            ");
+            fragment differentArgsWithDifferentAliases on Dog {
+                knowsSit: doesKnowCommand(dogCommand: SIT)
+                knowsDown: doesKnowCommand(dogCommand: DOWN)
+            }
+            """);
     }
 
     [Fact]
     public void DifferentDirectivesWithDifferentAliases()
     {
-        ExpectValid(@"
-                {
-                    catOrDog {
-                        ... differentDirectivesWithDifferentAliases
-                    }
+        ExpectValid(
+            """
+            {
+                catOrDog {
+                    ... differentDirectivesWithDifferentAliases
                 }
+            }
 
-                fragment differentDirectivesWithDifferentAliases on Dog {
-                    nameIfTrue: name @include(if: true)
-                    nameIfFalse: name @include(if: false)
-                }
-            ");
+            fragment differentDirectivesWithDifferentAliases on Dog {
+                nameIfTrue: name @include(if: true)
+                nameIfFalse: name @include(if: false)
+            }
+            """);
     }
 
     [Fact]
     public void DifferentSkipIncludeDirectivesAccepted()
     {
-        ExpectValid(@"
-                {
-                    catOrDog {
-                        ... differentDirectivesWithDifferentAliases
-                    }
+        ExpectValid(
+            """
+            {
+                catOrDog {
+                    ... differentDirectivesWithDifferentAliases
                 }
+            }
 
-                fragment differentDirectivesWithDifferentAliases on Dog {
-                    name @include(if: true)
-                    name @include(if: false)
-                }
-            ");
+            fragment differentDirectivesWithDifferentAliases on Dog {
+                name @include(if: true)
+                name @include(if: false)
+            }
+            """);
     }
 
     [Fact]
     public void SameAliasesWithDifferentFieldTargets()
     {
-        ExpectErrors(@"
-                {
-                    catOrDog {
-                        ... sameAliasesWithDifferentFieldTargets
-                    }
+        ExpectErrors(
+            """
+            {
+                catOrDog {
+                    ... sameAliasesWithDifferentFieldTargets
                 }
+            }
 
-                fragment sameAliasesWithDifferentFieldTargets on Dog {
-                    fido: name
-                    fido: nickname
-                }
-            ");
+            fragment sameAliasesWithDifferentFieldTargets on Dog {
+                fido: name
+                fido: nickname
+            }
+            """);
     }
 
     [Fact]
     public void SameAliasesAllowedOnNonOverlappingFields()
     {
-        ExpectErrors(@"
-                {
-                    catOrDog {
-                        ... sameAliasesWithDifferentFieldTargets
-                    }
+        ExpectErrors(
+            """
+            {
+                catOrDog {
+                    ... sameAliasesWithDifferentFieldTargets
                 }
+            }
 
-                fragment sameAliasesWithDifferentFieldTargets on Pet {
-                    ... on Dog {
-                        name
-                    }
-                    ... on Cat {
-                        name: nickname
-                    }
+            fragment sameAliasesWithDifferentFieldTargets on Pet {
+                ... on Dog {
+                    name
                 }
-            ");
+                ... on Cat {
+                    name: nickname
+                }
+            }
+            """);
     }
 
     [Fact]
     public void AliasMaskingDirectFieldAccess()
     {
-        ExpectErrors(@"
-                {
-                    catOrDog {
-                        ... aliasMaskingDirectFieldAccess
-                    }
+        ExpectErrors(
+            """
+            {
+                catOrDog {
+                    ... aliasMaskingDirectFieldAccess
                 }
+            }
 
-                fragment aliasMaskingDirectFieldAccess on Dog {
-                    name: nickname
-                    name
-                }
-            ");
+            fragment aliasMaskingDirectFieldAccess on Dog {
+                name: nickname
+                name
+            }
+            """);
     }
 
     [Fact]
     public void DifferentArgsSecondAddsAnArgument()
     {
-        ExpectErrors(@"
-                {
-                    catOrDog {
-                        ... conflictingArgs
-                    }
+        ExpectErrors(
+            """
+            {
+                catOrDog {
+                    ... conflictingArgs
                 }
-
-                fragment conflictingArgs on Dog {
-                    doesKnowCommand
-                    doesKnowCommand(dogCommand: HEEL)
-                }
-            ");
+            }
+            fragment conflictingArgs on Dog {
+                doesKnowCommand
+                doesKnowCommand(dogCommand: HEEL)
+            }
+            """);
     }
 
     [Fact]
     public void DifferentArgsSecondMissingAnArgument()
     {
-        ExpectErrors(@"
-                {
-                    catOrDog {
-                        ... conflictingArgs
-                    }
+        ExpectErrors(
+            """
+            {
+                catOrDog {
+                    ... conflictingArgs
                 }
+            }
 
-                fragment conflictingArgs on Dog {
-                    doesKnowCommand(dogCommand: SIT)
-                    doesKnowCommand
-                }
-            ");
+            fragment conflictingArgs on Dog {
+                doesKnowCommand(dogCommand: SIT)
+                doesKnowCommand
+            }
+            """);
     }
 
     [Fact]
     public void ConflictingArgValues()
     {
-        ExpectErrors(@"
-                {
-                    catOrDog {
-                        ... conflictingArgs
-                    }
+        ExpectErrors(
+            """
+            {
+                catOrDog {
+                    ... conflictingArgs
                 }
+            }
 
-                fragment conflictingArgs on Dog {
-                    doesKnowCommand(dogCommand: SIT)
-                    doesKnowCommand(dogCommand: HEEL)
-                }
-            ");
+            fragment conflictingArgs on Dog {
+                doesKnowCommand(dogCommand: SIT)
+                doesKnowCommand(dogCommand: HEEL)
+            }
+            """);
     }
 
     [Fact]
     public void ConflictingArgNames()
     {
-        ExpectErrors(@"
-                {
-                    catOrDog {
-                        ... conflictingArgs
-                    }
+        ExpectErrors(
+            """
+            {
+                catOrDog {
+                    ... conflictingArgs
                 }
+            }
 
-                fragment conflictingArgs on Dog {
-                    isAtLocation(x: 0)
-                    isAtLocation(y: 0)
-                }
-            ");
+            fragment conflictingArgs on Dog {
+                isAtLocation(x: 0)
+                isAtLocation(y: 0)
+            }
+            """);
     }
 
     [Fact]
     public void AllowsDifferentArgsWhereNoConflictIsPossible()
     {
-        ExpectValid(@"
-                {
-                    catOrDog {
-                        ... conflictingArgs
-                    }
+        ExpectValid(
+            """
+            {
+                catOrDog {
+                    ... conflictingArgs
                 }
+            }
 
-                fragment conflictingArgs on Pet {
-                    ... on Dog {
-                    name(surname: true)
-                    }
-                    ... on Cat {
-                    name
-                    }
+            fragment conflictingArgs on Pet {
+                ... on Dog {
+                name(surname: true)
                 }
-            ");
+                ... on Cat {
+                name
+                }
+            }
+            """);
     }
 
     [Fact]
     public void EncountersConflictInFragments()
     {
-        ExpectErrors(@"
-                {
-                    ...A
-                    ...B
-                }
+        ExpectErrors(
+            """
+            {
+                ...A
+                ...B
+            }
 
-                fragment A on Query {
-                    x: a
-                }
+            fragment A on Query {
+                x: a
+            }
 
-                fragment B on Query {
-                    x: b
-                }
-            ");
+            fragment B on Query {
+                x: b
+            }
+            """);
     }
 
     [Fact]
     public void ReportsEachConflictOnce()
     {
-        ExpectErrors(@"
-                {
-                    f1 {
-                        ...A
-                        ...B
-                    }
-                    f2 {
-                        ...B
-                        ...A
-                    }
-                    f3 {
-                        ...A
-                        ...B
-                        x: c
-                    }
+        ExpectErrors(
+            """
+            {
+                f1 {
+                    ...A
+                    ...B
                 }
+                f2 {
+                    ...B
+                    ...A
+                }
+                f3 {
+                    ...A
+                    ...B
+                    x: c
+                }
+            }
 
-                fragment A on Query {
-                    x: a
-                }
+            fragment A on Query {
+                x: a
+            }
 
-                fragment B on Query {
-                    x: b
-                }
-            ");
+            fragment B on Query {
+                x: b
+            }
+            """);
     }
 
     [Fact]
     public void DeepConflict()
     {
-        ExpectErrors(@"
-                {
-                    f1 {
-                        x: a
-                    }
-                    f1 {
-                        x: b
-                    }
+        ExpectErrors(
+            """
+            {
+                f1 {
+                    x: a
                 }
-            ");
+                f1 {
+                    x: b
+                }
+            }
+            """);
     }
 
     [Fact]
     public void DeepConflictWithMultipleIssues()
     {
-        ExpectErrors(@"
-                {
-                    f1 {
-                        x: a
-                        y: c
-                    },
-                    f1 {
-                        x: b
-                        y: d
-                    }
+        ExpectErrors(
+            """
+            {
+                f1 {
+                    x: a
+                    y: c
+                },
+                f1 {
+                    x: b
+                    y: d
                 }
-            ");
+            }
+            """);
     }
 
     [Fact]
     public void VeryDeepConflict()
     {
-        ExpectErrors(@"
-                {
-                    f1 {
-                        f2 {
-                            x: a
-                        }
-                    }
-                    f1 {
-                        f2 {
-                            x: b
-                        }
+        ExpectErrors(
+            """
+            {
+                f1 {
+                    f2 {
+                        x: a
                     }
                 }
-            ");
+                f1 {
+                    f2 {
+                        x: b
+                    }
+                }
+            }
+            """);
     }
 
     [Fact]
     public void ReportsDeepConflictToNearestCommonAncestor()
     {
-        ExpectErrors(@"
-                {
-                    f1 {
-                        f2 {
-                            x: a
-                        }
-                        f2 {
-                            x: b
-                        }
+        ExpectErrors(
+            """
+            {
+                f1 {
+                    f2 {
+                        x: a
                     }
-                    f1 {
-                        f2 {
-                            y
-                        }
+                    f2 {
+                        x: b
                     }
                 }
-            ");
+                f1 {
+                    f2 {
+                        y
+                    }
+                }
+            }
+            """);
     }
 
     [Fact]
@@ -854,79 +891,85 @@ public class FieldSelectionMergingRuleTests
     [Fact]
     public void ReportsDeepConflictInNestedFragments()
     {
-        ExpectErrors(@"
-                {
-                    f1 {
-                        ...F
-                    }
-                    f1 {
-                        ...I
-                    }
+        ExpectErrors(
+            """
+            {
+                f1 {
+                    ...F
                 }
+                f1 {
+                    ...I
+                }
+            }
 
-                fragment F on Query {
-                    x: a
-                    ...G
-                }
+            fragment F on Query {
+                x: a
+                ...G
+            }
 
-                fragment G on Query {
-                    y: c
-                }
+            fragment G on Query {
+                y: c
+            }
 
-                fragment I on Query {
-                    y: d
-                    ...J
-                }
+            fragment I on Query {
+                y: d
+                ...J
+            }
 
-                fragment J on Query {
-                    x: b
-                }
-            ");
+            fragment J on Query {
+                x: b
+            }
+            """);
     }
-
 
     [Fact]
     public void ConflictingReturnTypesWhichPotentiallyOverlap()
     {
-        ExpectErrors(TestSchema, @"
-                {
-                    someBox {
-                        ...on IntBox {
-                            scalar
-                        }
-                        ...on NonNullStringBox1 {
-                            scalar
-                        }
+        ExpectErrors(
+            TestSchema,
+            """
+            {
+                someBox {
+                    ...on IntBox {
+                        scalar
+                    }
+                    ...on NonNullStringBox1 {
+                        scalar
                     }
                 }
-            ");
+            }
+            """);
     }
 
     [Fact]
     public void CompatibleReturnShapesOnDifferentReturnTypes()
     {
-        ExpectValid(TestSchema, @"
-                {
-                    someBox {
-                        ... on SomeBox {
-                            deepBox {
-                                unrelatedField
-                            }
+        ExpectValid(
+            TestSchema,
+            """
+            {
+                someBox {
+                    ... on SomeBox {
+                        deepBox {
+                            unrelatedField
                         }
-                        ... on StringBox {
-                            deepBox {
-                                unrelatedField
-                            }
+                    }
+                    ... on StringBox {
+                        deepBox {
+                            unrelatedField
                         }
                     }
                 }
-            ");
+            }
+            """);
     }
 
     [Fact]
     public void DisallowsDifferingReturnTypesDespiteNoOverlap()
     {
-        ExpectErrors(TestSchema, @"
+        ExpectErrors(
+            TestSchema,
+            """
             {
                 someBox {
                     ... on IntBox {
@@ -937,157 +980,182 @@ public class FieldSelectionMergingRuleTests
                     }
                 }
             }
-            ");
+            """);
     }
 
     [Fact]
     public void DisallowsDifferingReturnTypeNullabilityDespiteNoOverlap()
     {
-        ExpectErrors(TestSchema, @"
-                {
-                    someBox {
-                        ... on NonNullStringBox1 {
-                            scalar
-                        }
-                        ... on StringBox {
-                            scalar
-                        }
+        ExpectErrors(
+            TestSchema,
+            """
+            {
+                someBox {
+                    ... on NonNullStringBox1 {
+                        scalar
+                    }
+                    ... on StringBox {
+                        scalar
                     }
                 }
-            ");
+            }
+            """);
     }
 
     [Fact]
     public void DisallowsDifferingReturnTypeListDespiteNoOverlap()
     {
-        ExpectErrors(TestSchema, @"
-                {
-                    someBox {
-                        ... on IntBox {
-                            box: listStringBox {
-                                scalar
-                            }
-                        }
-                        ... on StringBox {
-                            box: stringBox {
-                                scalar
-                            }
+        ExpectErrors(
+            TestSchema,
+            """
+            {
+                someBox {
+                    ... on IntBox {
+                        box: listStringBox {
+                            scalar
                         }
                     }
-                }");
+                    ... on StringBox {
+                        box: stringBox {
+                            scalar
+                        }
+                    }
+                }
+            }
+            """);
     }
 
     [Fact]
     public void DisallowsDifferingReturnTypeListDespiteNoOverlapReverse()
     {
-        ExpectErrors(TestSchema, @"
-                {
-                    someBox {
-                        ... on IntBox {
-                            box: stringBox {
-                                scalar
-                            }
-                        }
-                        ... on StringBox {
-                            box: listStringBox {
-                                scalar
-                            }
+        ExpectErrors(
+            TestSchema,
+            """
+            {
+                someBox {
+                    ... on IntBox {
+                        box: stringBox {
+                            scalar
                         }
                     }
-                }");
+                    ... on StringBox {
+                        box: listStringBox {
+                            scalar
+                        }
+                    }
+                }
+            }
+            """);
     }
 
     [Fact]
     public void DisallowsDifferingSubfields()
     {
-        ExpectErrors(TestSchema,
-            @"{
-                    someBox {
-                        ... on IntBox {
-                            box: stringBox {
-                                val: scalar
-                                val: unrelatedField
-                            }
-                        }
-                        ... on StringBox {
-                            box: stringBox {
-                                val: scalar
-                            }
+        ExpectErrors(
+            TestSchema,
+            """
+            {
+                someBox {
+                    ... on IntBox {
+                        box: stringBox {
+                            val: scalar
+                            val: unrelatedField
                         }
                     }
-                }");
+                    ... on StringBox {
+                        box: stringBox {
+                            val: scalar
+                        }
+                    }
+                }
+            }
+            """);
     }
 
     // TODO : Fix this issue
     [Fact(Skip = "This one needs fixing!")]
     public void DisallowsDifferingDeepReturnTypesDespiteNoOverlap()
     {
-        ExpectErrors(TestSchema, @"
-                {
-                    someBox {
-                        ... on IntBox {
-                            box: stringBox {
-                                scalar
-                            }
-                        }
-                        ... on StringBox {
-                            box: intBox {
-                                scalar
-                            }
+        ExpectErrors(
+            TestSchema,
+            """
+            {
+                someBox {
+                    ... on IntBox {
+                        box: stringBox {
+                            scalar
                         }
                     }
-                }");
+                    ... on StringBox {
+                        box: intBox {
+                            scalar
+                        }
+                    }
+                }
+            }
+            """);
     }
 
     [Fact]
     public void AllowsNonConflictingOverlappingTypes()
     {
-        ExpectValid(TestSchema, @"
-                {
-                    someBox {
-                        ... on IntBox {
-                            scalar: unrelatedField
-                        }
-                        ... on StringBox {
-                            scalar
-                        }
+        ExpectValid(
+            TestSchema,
+            """
+            {
+                someBox {
+                    ... on IntBox {
+                        scalar: unrelatedField
                     }
-                }");
+                    ... on StringBox {
+                        scalar
+                    }
+                }
+            }
+            """);
     }
 
     // TODO : we need to analyze this validation issue further.
     [Fact(Skip = "This one needs to be analyzed further.")]
     public void SameWrappedScalarReturnTypes()
     {
-        ExpectErrors(TestSchema, @"
-                {
-                    someBox {
-                        ...on NonNullStringBox1 {
-                            scalar
-                        }
-                        ...on NonNullStringBox2 {
-                            scalar
-                        }
+        ExpectErrors(
+            TestSchema,
+            """
+            {
+                someBox {
+                    ...on NonNullStringBox1 {
+                        scalar
                     }
-                }");
+                    ...on NonNullStringBox2 {
+                        scalar
+                    }
+                }
+            }
+            """);
     }
 
     [Fact]
     public void AllowsInlineFragmentsWithoutTypeCondition()
     {
-        ExpectValid(TestSchema, @"
-                {
+        ExpectValid(
+            TestSchema,
+            """
+            {
+                a
+                ... {
                     a
-                    ... {
-                        a
-                    }
-                }");
+                }
+            }
+            """);
     }
 
     [Fact]
     public void ComparesDeepTypesIncludingList()
     {
-        ExpectErrors(TestSchema, @"
+        ExpectErrors(
+            TestSchema,
+            """
             {
                 connection {
                     ...edgeID
@@ -1105,122 +1173,97 @@ public class FieldSelectionMergingRuleTests
                         id
                     }
                 }
-            }");
+            }
+            """);
     }
 
     [Fact]
     public void FindsInvalidCaseEvenWithImmediatelyRecursiveFragment()
     {
-        ExpectErrors(@"
-                {
-                    dogOrHuman {
-                        ... sameAliasesWithDifferentFieldTargets
-                    }
+        ExpectErrors(
+            """
+            {
+                dogOrHuman {
+                    ... sameAliasesWithDifferentFieldTargets
                 }
+            }
 
-                fragment sameAliasesWithDifferentFieldTargets on Dog {
-                    ...sameAliasesWithDifferentFieldTargets
-                    fido: name
-                    fido: nickname
-                }");
-    }
-
-    [Fact]
-    public void ConflictingDifferingResponse()
-    {
-        ExpectErrors(@"
-                {
-                    catOrDog {
-                        ... conflictingDifferingResponses
-                    }
-                }
-
-                fragment conflictingDifferingResponses on Pet {
-                    ... on Dog {
-                        someValue: nickname
-                    }
-                    ... on Cat {
-                        someValue: nickname!
-                    }
-                }");
-    }
-
-    [Fact]
-    public void MergeableNullabilityChange()
-    {
-        ExpectValid(@"
-                {
-                    catOrDog {
-                        ... conflictingDifferingResponses
-                    }
-                }
-
-                fragment conflictingDifferingResponses on Pet {
-                    ... on Dog {
-                        someValue: nickname!
-                    }
-                    ... on Cat {
-                        someValue: nickname!
-                    }
-                }");
+            fragment sameAliasesWithDifferentFieldTargets on Dog {
+                ...sameAliasesWithDifferentFieldTargets
+                fido: name
+                fido: nickname
+            }
+            """);
     }
 
     private static readonly ISchema TestSchema =
         SchemaBuilder.New()
-            .AddDocumentFromString(@"
-                    interface SomeBox {
-                        deepBox: SomeBox
-                        unrelatedField: String
-                    }
-                    type StringBox implements SomeBox {
-                        scalar: String
-                        deepBox: StringBox
-                        unrelatedField: String
-                        listStringBox: [StringBox]
-                        stringBox: StringBox
-                        intBox: IntBox
-                    }
-                    type IntBox implements SomeBox {
-                        scalar: Int
-                        deepBox: IntBox
-                        unrelatedField: String
-                        listStringBox: [StringBox]
-                        stringBox: StringBox
-                        intBox: IntBox
-                    }
-                    interface NonNullStringBox1 {
-                        scalar: String!
-                    }
-                    type NonNullStringBox1Impl implements SomeBox & NonNullStringBox1 {
-                        scalar: String!
-                        unrelatedField: String
-                        deepBox: SomeBox
-                    }
-                    interface NonNullStringBox2 {
-                        scalar: String!
-                    }
-                    type NonNullStringBox2Impl implements SomeBox & NonNullStringBox2 {
-                        scalar: String!
-                        unrelatedField: String
-                        deepBox: SomeBox
-                    }
-                    type Connection {
-                        edges: [Edge]
-                    }
-                    type Edge {
-                        node: Node
-                    }
-                    type Node {
-                        id: ID
-                        name: String
-                    }
-                    type Query {
-                        someBox: SomeBox
-                        connection: Connection
-                        a: String
-                        d: String
-                        y: String
-                    }")
+            .AddDocumentFromString(
+                """
+                interface SomeBox {
+                    deepBox: SomeBox
+                    unrelatedField: String
+                }
+
+                type StringBox implements SomeBox {
+                    scalar: String
+                    deepBox: StringBox
+                    unrelatedField: String
+                    listStringBox: [StringBox]
+                    stringBox: StringBox
+                    intBox: IntBox
+                }
+
+                type IntBox implements SomeBox {
+                    scalar: Int
+                    deepBox: IntBox
+                    unrelatedField: String
+                    listStringBox: [StringBox]
+                    stringBox: StringBox
+                    intBox: IntBox
+                }
+
+                interface NonNullStringBox1 {
+                    scalar: String!
+                }
+
+                type NonNullStringBox1Impl implements SomeBox & NonNullStringBox1 {
+                    scalar: String!
+                    unrelatedField: String
+                    deepBox: SomeBox
+                }
+
+                interface NonNullStringBox2 {
+                    scalar: String!
+                }
+
+                type NonNullStringBox2Impl implements SomeBox & NonNullStringBox2 {
+                    scalar: String!
+                    unrelatedField: String
+                    deepBox: SomeBox
+                }
+
+                type Connection {
+                    edges: [Edge]
+                }
+
+                type Edge {
+                    node: Node
+                }
+
+                type Node {
+                    id: ID
+                    name: String
+                }
+
+                type Query {
+                    someBox: SomeBox
+                    connection: Connection
+                    a: String
+                    d: String
+                    y: String
+                }
+                """)
             .AddResolver("StringBox", "deepBox", () => "")
             .AddResolver("StringBox", "intBox", () => "")
             .AddResolver("StringBox", "listStringBox", () => "")

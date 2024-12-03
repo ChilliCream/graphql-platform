@@ -1,8 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
     <RootNamespace>HotChocolate.Fusion.Shared</RootNamespace>
   </PropertyGroup>
 
@@ -11,6 +9,8 @@
     <ProjectReference Include="..\..\..\AspNetCore\test\AspNetCore.Tests.Utilities\HotChocolate.AspNetCore.Tests.Utilities.csproj" />
     <ProjectReference Include="..\..\..\Utilities\src\Utilities.Introspection\HotChocolate.Utilities.Introspection.csproj" />
     <ProjectReference Include="..\..\src\Composition\HotChocolate.Fusion.Composition.csproj" />
+    <ProjectReference Include="..\..\src\Core\HotChocolate.Fusion.csproj" />
+    <ProjectReference Include="..\..\src\SourceSchema\HotChocolate.Fusion.SourceSchema.csproj" />
   </ItemGroup>
 
 </Project>

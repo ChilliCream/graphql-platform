@@ -1,7 +1,5 @@
-using System;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types;
 
@@ -24,7 +22,7 @@ public class RegexTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "+178955512343598", true)]
     public void IsInstanceOfType_GivenValueNode_MatchExpected(
         Type type,
-        object value,
+        object? value,
         bool expected)
     {
         // arrange
@@ -39,7 +37,7 @@ public class RegexTypeTests : ScalarTypeTestBase
     [InlineData(TestEnum.Foo, false)]
     [InlineData(null, true)]
     [InlineData("+765436789012345678901234", false)]
-    public void IsInstanceOfType_GivenObject_MatchExpected(object value, bool expected)
+    public void IsInstanceOfType_GivenObject_MatchExpected(object? value, bool expected)
     {
         // arrange
         // act
@@ -52,8 +50,8 @@ public class RegexTypeTests : ScalarTypeTestBase
     [InlineData(typeof(NullValueNode), null, null)]
     public void ParseLiteral_GivenValueNode_MatchExpected(
         Type type,
-        object value,
-        object expected)
+        object? value,
+        object? expected)
     {
         // arrange
         var valueNode = CreateValueNode(type, value);
@@ -84,8 +82,8 @@ public class RegexTypeTests : ScalarTypeTestBase
     [InlineData("+16873271234", "+16873271234")]
     [InlineData(null, null)]
     public void Deserialize_GivenValue_MatchExpected(
-        object resultValue,
-        object runtimeValue)
+        object? resultValue,
+        object? runtimeValue)
     {
         // arrange
         // act
@@ -111,8 +109,8 @@ public class RegexTypeTests : ScalarTypeTestBase
     [InlineData("+16873271234", "+16873271234")]
     [InlineData(null, null)]
     public void Serialize_GivenObject_MatchExpectedType(
-        object runtimeValue,
-        object resultValue)
+        object? runtimeValue,
+        object? resultValue)
     {
         // arrange
         // act
@@ -137,7 +135,7 @@ public class RegexTypeTests : ScalarTypeTestBase
     [Theory]
     [InlineData(typeof(StringValueNode), "+16873271234")]
     [InlineData(typeof(NullValueNode), null)]
-    public void ParseValue_GivenObject_MatchExpectedType(Type type, object value)
+    public void ParseValue_GivenObject_MatchExpectedType(Type type, object? value)
     {
         // arrange
         // act
@@ -162,7 +160,7 @@ public class RegexTypeTests : ScalarTypeTestBase
     [Theory]
     [InlineData(typeof(StringValueNode), "+16873271234")]
     [InlineData(typeof(NullValueNode), null)]
-    public void ParseResult_GivenObject_MatchExpectedType(Type type, object value)
+    public void ParseResult_GivenObject_MatchExpectedType(Type type, object? value)
     {
         // arrange
         // act
@@ -190,7 +188,6 @@ public class RegexTypeTests : ScalarTypeTestBase
         /// Regex that validates the standard E.164 format
         /// </summary>
         private const string _validationPattern = "^\\+[1-9]\\d{1,14}$";
-
 
         /// <summary>
         /// Initializes a new instance of the <see cref="StubType"/>

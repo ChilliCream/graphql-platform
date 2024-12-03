@@ -18,7 +18,6 @@ public static class FilterExpressionBuilder
             m.GetGenericArguments().Length == 1 &&
             m.GetParameters().Length is 2);
 
-#pragma warning disable CA1307
     private static readonly MethodInfo _startsWith =
         ReflectionUtils.ExtractMethod<string>(x => x.StartsWith(default(string)!));
 
@@ -27,7 +26,6 @@ public static class FilterExpressionBuilder
 
     private static readonly MethodInfo _contains =
         ReflectionUtils.ExtractMethod<string>(x => x.Contains(default(string)!));
-#pragma warning restore CA1307
 
     private static readonly MethodInfo _createAndConvert =
         typeof(FilterExpressionBuilder)
@@ -51,17 +49,17 @@ public static class FilterExpressionBuilder
     private static readonly ConstantExpression _null =
         Expression.Constant(null, typeof(object));
 
-    private static readonly Expression _true = (Expression)_createAndConvert
-        .MakeGenericMethod(typeof(bool)).Invoke(null, [true])!;
+    private static readonly Expression _true =
+        CreateAndConvertParameter<bool>(true);
 
-    private static readonly Expression _false = (Expression)_createAndConvert
-        .MakeGenericMethod(typeof(bool)).Invoke(null, [false])!;
+    private static readonly Expression _false =
+        CreateAndConvertParameter<bool>(false);
 
-    private static readonly Expression _nullableTrue = (Expression)_createAndConvert
-        .MakeGenericMethod(typeof(bool?)).Invoke(null, [true])!;
+    private static readonly Expression _nullableTrue =
+        CreateAndConvertParameter<bool?>(true);
 
-    private static readonly Expression _nullableFalse = (Expression)_createAndConvert
-        .MakeGenericMethod(typeof(bool?)).Invoke(null, [false])!;
+    private static readonly Expression _nullableFalse =
+        CreateAndConvertParameter<bool?>(false);
 
     public static Expression Not(Expression expression)
         => Expression.Not(expression);
@@ -202,8 +200,9 @@ public static class FilterExpressionBuilder
 
     private static Expression CreateAndConvertParameter<T>(object value)
     {
-        Expression<Func<T>> lambda = () => (T)value;
-        return lambda.Body;
+        ExpressionParameter<T> parameter = new((T)value);
+        return Expression.Property(Expression.Constant(parameter),
+            nameof(parameter.p));
     }
 
     private static Expression CreateParameter(object? value, Type type)
@@ -253,4 +252,8 @@ public static class FilterExpressionBuilder
             return (methodInfo, expressionDelegate);
         });
     }
+
+    // ReSharper disable once InconsistentNaming
+    // ReSharper disable once NotAccessedPositionalProperty.Local
+    private readonly record struct ExpressionParameter<T>(T p);
 }

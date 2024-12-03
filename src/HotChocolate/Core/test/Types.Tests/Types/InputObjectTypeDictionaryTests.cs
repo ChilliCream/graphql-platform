@@ -1,8 +1,4 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
-using Snapshooter.Xunit;
 
 #nullable enable
 
@@ -32,7 +28,17 @@ public class InputObjectTypeNonNullTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "query { foo(input: { contextData: [ { key: \"abc\" value: \"abc\" } ] }) }");
+            """
+            query {
+                foo(
+                    input: {
+                        contextData1: [{ key: "abc", value: "abc" }]
+                        contextData2: [{ key: "abc", value: "abc" }]
+                        contextData3: [{ key: "abc", value: "abc" }]
+                    }
+                )
+            }
+            """);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -42,9 +48,9 @@ public class InputObjectTypeNonNullTests
     {
         public string GetFoo(FooInput input)
         {
-            if (input.ContextData is { Count: 1, })
+            if (input.ContextData1 is { Count: 1, })
             {
-                return input.ContextData.First().Value;
+                return input.ContextData1.First().Value;
             }
             return "nothing";
         }
@@ -52,6 +58,10 @@ public class InputObjectTypeNonNullTests
 
     public class FooInput
     {
-        public Dictionary<string, string>? ContextData { get; set; }
+        public Dictionary<string, string>? ContextData1 { get; set; }
+
+        public IDictionary<string, string>? ContextData2 { get; set; }
+
+        public IReadOnlyDictionary<string, string>? ContextData3 { get; set; }
     }
 }

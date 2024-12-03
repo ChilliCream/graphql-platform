@@ -53,8 +53,6 @@ public class Query
         return someDbContext.Pubs;
     }
 }
-
-
 ```
 
 ```sdl

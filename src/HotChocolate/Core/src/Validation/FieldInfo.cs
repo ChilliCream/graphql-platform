@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -13,14 +12,14 @@ public readonly struct FieldInfo : IEquatable<FieldInfo>
     /// <summary>
     /// Initializes a new instance of <see cref="FieldInfo"/>
     /// </summary>
-    public FieldInfo(IType declaringType, IType type, FieldNode field)
+    public FieldInfo(IType declaringType, IType type, FieldNode syntaxNode)
     {
         DeclaringType = declaringType;
         Type = type;
-        Field = field;
-        ResponseName = Field.Alias is null
-            ? Field.Name.Value
-            : Field.Alias.Value;
+        SyntaxNode = syntaxNode;
+        ResponseName = SyntaxNode.Alias is null
+            ? SyntaxNode.Name.Value
+            : SyntaxNode.Alias.Value;
     }
 
     /// <summary>
@@ -39,9 +38,9 @@ public readonly struct FieldInfo : IEquatable<FieldInfo>
     public IType Type { get; }
 
     /// <summary>
-    /// Gets the field selection.
+    /// Gets the field selection syntax node.
     /// </summary>
-    public FieldNode Field { get; }
+    public FieldNode SyntaxNode { get; }
 
     /// <summary>
     /// Compares this field info to another field info.
@@ -53,7 +52,7 @@ public readonly struct FieldInfo : IEquatable<FieldInfo>
     /// <c>true</c> if the field infos are equal.
     /// </returns>
     public bool Equals(FieldInfo other)
-        => Field.Equals(other.Field) &&
+        => SyntaxNode.Equals(other.SyntaxNode) &&
             DeclaringType.Equals(other.DeclaringType) &&
             Type.Equals(other.Type);
 
@@ -76,5 +75,5 @@ public readonly struct FieldInfo : IEquatable<FieldInfo>
     /// The hash code of this instance.
     /// </returns>
     public override int GetHashCode()
-        => HashCode.Combine(Field, DeclaringType, Type);
+        => HashCode.Combine(SyntaxNode, DeclaringType, Type);
 }

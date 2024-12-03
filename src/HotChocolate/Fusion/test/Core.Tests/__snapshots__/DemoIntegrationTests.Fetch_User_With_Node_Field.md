@@ -27,7 +27,7 @@ query FetchNode($id: ID!) {
 ## QueryPlan Hash
 
 ```text
-BF6F48F7F9CFB1049588D6F68B31736F8631A502
+01A8E9F070E9DBB28214B5E8652D3C640CF46C94
 ```
 
 ## QueryPlan
@@ -45,11 +45,11 @@ BF6F48F7F9CFB1049588D6F68B31736F8631A502
         "responseName": "node",
         "branches": [
           {
-            "type": "Product",
+            "type": "User",
             "node": {
               "type": "Resolve",
-              "subgraph": "Products",
-              "document": "query FetchNode_1($id: ID!) { node(id: $id) { ... on Product { __typename } } }",
+              "subgraph": "Reviews2",
+              "document": "query FetchNode_1($id: ID!) { node(id: $id) { ... on User { id __typename } } }",
               "selectionSetId": 0,
               "forwardedVariables": [
                 {
@@ -59,11 +59,11 @@ BF6F48F7F9CFB1049588D6F68B31736F8631A502
             }
           },
           {
-            "type": "ProductBookmark",
+            "type": "Review",
             "node": {
               "type": "Resolve",
-              "subgraph": "Products",
-              "document": "query FetchNode_2($id: ID!) { node(id: $id) { ... on ProductBookmark { __typename } } }",
+              "subgraph": "Reviews2",
+              "document": "query FetchNode_2($id: ID!) { node(id: $id) { ... on Review { __typename } } }",
               "selectionSetId": 0,
               "forwardedVariables": [
                 {
@@ -87,11 +87,11 @@ BF6F48F7F9CFB1049588D6F68B31736F8631A502
             }
           },
           {
-            "type": "Review",
+            "type": "ProductBookmark",
             "node": {
               "type": "Resolve",
-              "subgraph": "Reviews2",
-              "document": "query FetchNode_4($id: ID!) { node(id: $id) { ... on Review { __typename } } }",
+              "subgraph": "Products",
+              "document": "query FetchNode_4($id: ID!) { node(id: $id) { ... on ProductBookmark { __typename } } }",
               "selectionSetId": 0,
               "forwardedVariables": [
                 {
@@ -101,11 +101,11 @@ BF6F48F7F9CFB1049588D6F68B31736F8631A502
             }
           },
           {
-            "type": "User",
+            "type": "Product",
             "node": {
               "type": "Resolve",
-              "subgraph": "Reviews2",
-              "document": "query FetchNode_5($id: ID!) { node(id: $id) { ... on User { id __typename } } }",
+              "subgraph": "Products",
+              "document": "query FetchNode_5($id: ID!) { node(id: $id) { ... on Product { __typename } } }",
               "selectionSetId": 0,
               "forwardedVariables": [
                 {

@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
@@ -124,6 +122,10 @@ public sealed partial class DescriptorContext : IDescriptorContext
     /// <inheritdoc />
     public INodeIdSerializerAccessor NodeIdSerializerAccessor
         => _schemaServices.GetRequiredService<INodeIdSerializerAccessor>();
+
+    /// <inheritdoc />
+    public IParameterBindingResolver ParameterBindingResolver
+        => Services.GetRequiredService<IApplicationServiceProvider>().GetRequiredService<IParameterBindingResolver>();
 
     /// <inheritdoc />
     public IDictionary<string, object?> ContextData { get; }

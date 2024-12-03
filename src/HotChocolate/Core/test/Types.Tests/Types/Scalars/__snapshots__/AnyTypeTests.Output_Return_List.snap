@@ -2,7 +2,18 @@
   "data": {
     "foo": [
       {
-        "bar": {
+        "bar1": {
+          "baz": "Baz"
+        },
+        "bar2": {
+          "baz": "Baz"
+        }
+      },
+      {
+        "bar1": {
+          "baz": "Baz"
+        },
+        "bar2": {
           "baz": "Baz"
         }
       }

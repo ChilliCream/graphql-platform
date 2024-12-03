@@ -1,9 +1,6 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.ApolloFederation.CertificationSchema.CodeFirst;
 

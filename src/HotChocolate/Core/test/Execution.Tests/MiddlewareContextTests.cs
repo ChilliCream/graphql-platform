@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,9 +23,9 @@ public class MiddlewareContextTests
                     ctx.Variables.GetVariable<string>("abc"))
             .Create();
 
-        var request = OperationRequestBuilder.Create()
+        var request = OperationRequestBuilder.New()
             .SetDocument("query abc($abc: String){ foo(bar: $abc) }")
-            .SetVariableValues(new Dictionary<string, object> { {"abc", "def" }, })
+            .SetVariableValues(new Dictionary<string, object?> { {"abc", "def" }, })
             .Build();
 
         // act
@@ -50,9 +49,9 @@ public class MiddlewareContextTests
                     ctx.Variables.GetVariable<string>("abc"))
             .Create();
 
-        var request = OperationRequestBuilder.Create()
+        var request = OperationRequestBuilder.New()
             .SetDocument("query abc($def: String){ foo(bar: $def) }")
-            .SetVariableValues(new Dictionary<string, object> { {"def", "ghi" }, })
+            .SetVariableValues(new Dictionary<string, object?> { {"def", "ghi" }, })
             .Build();
 
         // act
@@ -216,7 +215,7 @@ public class MiddlewareContextTests
                         .Use(
                             next => async context =>
                             {
-                                var original = context.ReplaceArguments(_ => null);
+                                var original = context.ReplaceArguments(_ => null!);
 
                                 await next(context);
 
@@ -337,7 +336,7 @@ public class MiddlewareContextTests
             }
 
             Assert.NotNull(queryResult.Incremental?[0].ContextData);
-            Assert.True(queryResult.Incremental[0].ContextData.TryGetValue("abc", out var value));
+            Assert.True(queryResult.Incremental[0].ContextData!.TryGetValue("abc", out var value));
             Assert.Equal(2, value);
         }
     }

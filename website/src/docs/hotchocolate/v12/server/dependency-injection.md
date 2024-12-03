@@ -137,7 +137,7 @@ public class Query
 Per default scoped services are scoped to the current request. If you want to resolve the services for a particular resolver using a dedicated [`IServiceScope`](https://docs.microsoft.com/dotnet/api/microsoft.extensions.dependencyinjection.iservicescope), you can use the `UseServiceScope` middleware.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Query
@@ -148,7 +148,7 @@ public class Query
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -166,7 +166,7 @@ descriptor.Field("foo")
 </Code>
 <Schema>
 
-Take a look at the Annotation-based or Code-first example.
+Take a look at the implementation-first or code-first example.
 
 </Schema>
 </ExampleTabs>
@@ -229,13 +229,13 @@ While Hot Chocolate's internals rely heavily on Microsoft's dependency injection
 
 You can switch out the service provider used for GraphQL requests, as long as your dependency injection container implements the [`IServiceProvider`](https://docs.microsoft.com/dotnet/api/system.iserviceprovider) interface.
 
-To switch out the service provider you need to call [`SetServices`](/docs/hotchocolate/v12/server/interceptors#setservices) on the [`OperationRequestBuilder`](/docs/hotchocolate/v12/server/interceptors#operationrequestbuilder) in both the [`IHttpRequestInterceptor`](/docs/hotchocolate/v12/server/interceptors#ihttprequestinterceptor) and the [`ISocketSessionInterceptor`](/docs/hotchocolate/v12/server/interceptors#isocketsessioninterceptor).
+To switch out the service provider you need to call [`SetServices`](/docs/hotchocolate/v12/server/interceptors#setservices) on the [`IQueryRequestBuilder`](/docs/hotchocolate/v12/server/interceptors#iqueryrequestbuilder) in both the [`IHttpRequestInterceptor`](/docs/hotchocolate/v12/server/interceptors#ihttprequestinterceptor) and the [`ISocketSessionInterceptor`](/docs/hotchocolate/v12/server/interceptors#isocketsessioninterceptor).
 
 ```csharp
 public class HttpRequestInterceptor : DefaultHttpRequestInterceptor
 {
     public override async ValueTask OnCreateAsync(HttpContext context,
-        IRequestExecutor requestExecutor, OperationRequestBuilder requestBuilder,
+        IRequestExecutor requestExecutor, IQueryRequestBuilder requestBuilder,
         CancellationToken cancellationToken)
     {
         // keeping this line is important!
@@ -249,7 +249,7 @@ public class HttpRequestInterceptor : DefaultHttpRequestInterceptor
 public class SocketSessionInterceptor : DefaultSocketSessionInterceptor
 {
     public override async ValueTask OnRequestAsync(ISocketConnection connection,
-        OperationRequestBuilder requestBuilder,
+        IQueryRequestBuilder requestBuilder,
         CancellationToken cancellationToken)
     {
         // keeping this line is important!

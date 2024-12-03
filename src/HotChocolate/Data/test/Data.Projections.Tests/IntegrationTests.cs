@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using HotChocolate.Types.Relay;
@@ -503,7 +502,6 @@ public class Mutation
     {
         public AnError(string message) : base(message)
         {
-
         }
     }
 }

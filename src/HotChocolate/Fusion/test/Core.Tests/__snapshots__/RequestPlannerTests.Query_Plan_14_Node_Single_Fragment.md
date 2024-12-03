@@ -27,11 +27,11 @@ query FetchNode($id: ID!) {
         "responseName": "node",
         "branches": [
           {
-            "type": "Review",
+            "type": "User",
             "node": {
               "type": "Resolve",
               "subgraph": "Reviews2",
-              "document": "query FetchNode_1($id: ID!) { node(id: $id) { ... on Review { __typename } } }",
+              "document": "query FetchNode_1($id: ID!) { node(id: $id) { ... on User { id __typename } } }",
               "selectionSetId": 0,
               "forwardedVariables": [
                 {
@@ -41,11 +41,11 @@ query FetchNode($id: ID!) {
             }
           },
           {
-            "type": "User",
+            "type": "Review",
             "node": {
               "type": "Resolve",
               "subgraph": "Reviews2",
-              "document": "query FetchNode_2($id: ID!) { node(id: $id) { ... on User { id __typename } } }",
+              "document": "query FetchNode_2($id: ID!) { node(id: $id) { ... on Review { __typename } } }",
               "selectionSetId": 0,
               "forwardedVariables": [
                 {

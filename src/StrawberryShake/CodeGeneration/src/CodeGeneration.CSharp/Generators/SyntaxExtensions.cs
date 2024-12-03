@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -74,8 +71,8 @@ public static class SyntaxExtensions
                                     Token(
                                         TriviaList(),
                                         SyntaxKind.XmlTextLiteralNewLineToken,
-                                        System.Environment.NewLine,
-                                        System.Environment.NewLine,
+                                        Environment.NewLine,
+                                        Environment.NewLine,
                                         TriviaList())))))));
     }
 
@@ -131,7 +128,6 @@ public static class SyntaxExtensions
                         LiteralExpression(
                             SyntaxKind.StringLiteralExpression,
                             Literal(version))));
-
 
         return (T)type
             .WithAttributeLists(
@@ -286,7 +282,6 @@ public static class SyntaxExtensions
                                                 SingletonSeparatedList(
                                                     Argument(IdentifierName(
                                                         parameterName)))))))))));
-
 
         var assignmentExpression =
             AssignmentExpression(

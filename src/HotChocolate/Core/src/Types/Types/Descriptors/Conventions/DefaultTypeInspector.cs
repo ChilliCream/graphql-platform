@@ -1,15 +1,12 @@
 #nullable enable
 
-using System;
 using System.Buffers;
 using System.Collections;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
+using GreenDonut;
 using HotChocolate.Internal;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
@@ -259,7 +256,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
             return Enum.GetValues(enumType).Cast<object>();
         }
 
-        return Enumerable.Empty<object>();
+        return [];
     }
 
     /// <inheritdoc />
@@ -312,6 +309,19 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
         if (resolverType is null)
         {
             foreach (var member in nodeType.GetMembers(Static | Public | FlattenHierarchy))
+            {
+                if (member is MethodInfo m && IsPossibleNodeResolver(m, nodeType))
+                {
+                    return m;
+                }
+            }
+
+            // check interfaces
+            var interfaceMembers = nodeType
+                .GetInterfaces()
+                .SelectMany(i => i.GetMembers(Static | Public | FlattenHierarchy));
+
+            foreach (var member in interfaceMembers)
             {
                 if (member is MethodInfo m && IsPossibleNodeResolver(m, nodeType))
                 {
@@ -410,7 +420,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
         var temp = ArrayPool<DescriptorAttribute>.Shared.Rent(attributes.Length);
         var i = 0;
 
-        foreach (var attribute in attributeProvider.GetCustomAttributes(true))
+        foreach (var attribute in attributes)
         {
             if (attribute is DescriptorAttribute casted)
             {
@@ -786,12 +796,8 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
             return HasConfiguration(member);
         }
 
-#if NETSTANDARD2_0
-        if (returnType.IsByRef)
-#else
         if (returnType.IsByRefLike ||
             returnType.IsByRef)
-#endif
         {
             return false;
         }
@@ -855,9 +861,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
 
         // by ref and out will never be allowed
         if (parameterType.IsByRef ||
-#if !NETSTANDARD2_0
             parameter.ParameterType.IsByRefLike ||
-#endif
             parameter.IsOut)
         {
             return false;

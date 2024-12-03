@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -23,6 +22,18 @@ public abstract class DescriptorBase<T>(IDescriptorContext context)
     T IDescriptorExtension<T>.Definition => Definition;
 
     public IDescriptorExtension<T> Extend() => this;
+
+    public IDescriptorExtension<T> ExtendWith(
+        Action<IDescriptorExtension<T>> configure)
+    {
+        if (configure is null)
+        {
+            throw new ArgumentNullException(nameof(configure));
+        }
+
+        configure(this);
+        return this;
+    }
 
     public T CreateDefinition()
     {

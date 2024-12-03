@@ -1,5 +1,4 @@
 using System.Text;
-using CookieCrumble;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.Language;

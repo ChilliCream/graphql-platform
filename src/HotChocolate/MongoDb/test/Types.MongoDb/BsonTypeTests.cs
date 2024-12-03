@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
@@ -564,7 +563,7 @@ public class BsonTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Bson) { foo(input: $foo) }")
                 .SetVariableValues(
                     new Dictionary<string, object?>
@@ -595,7 +594,7 @@ public class BsonTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Bson) { foo(input: $foo) }")
                 .SetVariableValues(
                     new Dictionary<string, object?>
@@ -629,7 +628,7 @@ public class BsonTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Bson) { foo(input: $foo) }")
                 .SetVariableValues(new Dictionary<string, object?> { { "foo", "bar" }, })
                 .Build());
@@ -656,7 +655,7 @@ public class BsonTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Bson) { foo(input: $foo) }")
                 .SetVariableValues(new Dictionary<string, object?> { { "foo", 123 }, })
                 .Build());
@@ -683,7 +682,7 @@ public class BsonTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Bson) { foo(input: $foo) }")
                 .SetVariableValues(new Dictionary<string, object?> { { "foo", 1.2 }, })
                 .Build());
@@ -710,7 +709,7 @@ public class BsonTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Bson) { foo(input: $foo) }")
                 .SetVariableValues(
                     new Dictionary<string, object?>
@@ -741,7 +740,7 @@ public class BsonTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Bson) { foo(input: $foo) }")
                 .SetVariableValues(new Dictionary<string, object?> { { "foo", false }, })
                 .Build());
@@ -768,7 +767,7 @@ public class BsonTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Bson) { foo(input: $foo) }")
                 .SetVariableValues(new Dictionary<string, object?> { { "foo", null }, })
                 .Build());
@@ -817,7 +816,7 @@ public class BsonTypeTests
         var type = schema.GetType<BsonType>("Bson");
 
         // act
-        var result = type.IsInstanceOfType(new ObjectValueNode(Array.Empty<ObjectFieldNode>()));
+        var result = type.IsInstanceOfType(new ObjectValueNode([]));
 
         // assert
         Assert.True(result);
@@ -840,7 +839,7 @@ public class BsonTypeTests
         var type = schema.GetType<BsonType>("Bson");
 
         // act
-        var result = type.IsInstanceOfType(new ListValueNode(Array.Empty<IValueNode>()));
+        var result = type.IsInstanceOfType(new ListValueNode([]));
 
         // assert
         Assert.True(result);

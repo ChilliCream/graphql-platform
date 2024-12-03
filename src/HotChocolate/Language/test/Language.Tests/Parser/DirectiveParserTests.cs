@@ -1,6 +1,4 @@
-using System.Linq;
 using System.Text;
-using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Language;
@@ -78,6 +76,7 @@ public class DirectiveParserTests
         // assert
         var type = document.Definitions
             .OfType<ObjectTypeDefinitionNode>().FirstOrDefault();
+        Assert.NotNull(type?.Fields.Single().Directives);
         Assert.Collection(type.Fields.Single().Directives,
             t => Assert.Equal("a", t.Name.Value),
             t => Assert.Equal("b", t.Name.Value),

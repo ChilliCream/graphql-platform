@@ -1,6 +1,4 @@
 #nullable enable
-using System;
-
 namespace HotChocolate.Types.Relay;
 
 /// <summary>
@@ -28,10 +26,13 @@ public interface INodeIdSerializer
     /// <param name="formattedId">
     /// The relay id that shall be parsed.
     /// </param>
+    /// <param name="runtimeTypeLookup">
+    /// The runtime type lookup that is used to resolve the runtime type of the encoded id.
+    /// </param>
     /// <returns>
     /// Returns the parsed internal id.
     /// </returns>
-    NodeId Parse(string formattedId);
+    NodeId Parse(string formattedId, INodeIdRuntimeTypeLookup runtimeTypeLookup);
 
     /// <summary>
     /// Parses the relay id to an internal id.

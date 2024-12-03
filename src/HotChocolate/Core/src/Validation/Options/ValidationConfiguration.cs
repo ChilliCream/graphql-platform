@@ -1,40 +1,44 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using Microsoft.Extensions.Options;
 
 namespace HotChocolate.Validation.Options;
 
-public class ValidationConfiguration : IValidationConfiguration
+public class ValidationConfiguration(
+    IOptionsMonitor<ValidationOptionsModifiers> optionsMonitor)
+    : IValidationConfiguration
 {
-    private readonly ConcurrentDictionary<string, ValidationOptions> _optionsCache = new();
-    private readonly IOptionsMonitor<ValidationOptionsModifiers> _optionsMonitor;
-
-    public ValidationConfiguration(IOptionsMonitor<ValidationOptionsModifiers> optionsMonitor)
-    {
-        _optionsMonitor = optionsMonitor
-            ?? throw new ArgumentNullException(nameof(optionsMonitor));
-    }
+    private readonly ConcurrentDictionary<string, (ValidationOptions, ValidationRulesOptions)> _optionsCache = new();
+    private readonly IOptionsMonitor<ValidationOptionsModifiers> _optionsMonitor = optionsMonitor
+        ?? throw new ArgumentNullException(nameof(optionsMonitor));
 
     public IEnumerable<IDocumentValidatorRule> GetRules(string schemaName)
-        => GetOptions(schemaName).Rules;
+        => GetRulesOptions(schemaName).Rules;
 
     public IEnumerable<IValidationResultAggregator> GetResultAggregators(string schemaName)
-        => GetOptions(schemaName).ResultAggregators;
+        => GetRulesOptions(schemaName).ResultAggregators;
 
     public ValidationOptions GetOptions(string schemaName)
-        => _optionsCache.GetOrAdd(schemaName, CreateOptions);
+        => _optionsCache.GetOrAdd(schemaName, CreateOptions).Item1;
 
-    private ValidationOptions CreateOptions(string schemaName)
+    private ValidationRulesOptions GetRulesOptions(string schemaName)
+        => _optionsCache.GetOrAdd(schemaName, CreateOptions).Item2;
+
+    private (ValidationOptions, ValidationRulesOptions) CreateOptions(string schemaName)
     {
         var modifiers = _optionsMonitor.Get(schemaName);
         var options = new ValidationOptions();
+        var rulesOptions = new ValidationRulesOptions();
 
         for (var i = 0; i < modifiers.Modifiers.Count; i++)
         {
             modifiers.Modifiers[i](options);
         }
 
-        return options;
+        for (var i = 0; i < modifiers.RulesModifiers.Count; i++)
+        {
+            modifiers.RulesModifiers[i](options, rulesOptions);
+        }
+
+        return (options, rulesOptions);
     }
 }

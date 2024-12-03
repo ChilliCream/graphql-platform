@@ -1,15 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Tests;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types;
 
@@ -156,7 +151,6 @@ public class InterfaceTypeTests : TypeTestBase
                     a => Assert.Equal("a", a.Name));
             });
     }
-
 
     [Fact]
     public void UnIgnoreFieldsFromClrInterface()

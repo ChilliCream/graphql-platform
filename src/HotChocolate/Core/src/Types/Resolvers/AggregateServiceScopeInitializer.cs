@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -16,7 +13,7 @@ internal sealed class AggregateServiceScopeInitializer : IServiceScopeInitialize
         {
             throw new ArgumentNullException(nameof(serviceScopeInitializers));
         }
-        
+
         _initializers = serviceScopeInitializers.ToArray();
     }
 
@@ -49,7 +46,7 @@ internal sealed class AggregateServiceScopeInitializer : IServiceScopeInitialize
 
                 while (Unsafe.IsAddressLessThan(ref start, ref end))
                 {
-                    start.Initialize(requestScope, resolverScope);
+                    start!.Initialize(requestScope, resolverScope);
                     start = ref Unsafe.Add(ref start, 1);
                 }
                 break;

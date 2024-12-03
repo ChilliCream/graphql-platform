@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Transport.Http;
 using static HotChocolate.Utilities.Introspection.CapabilityInspector;
@@ -148,7 +143,6 @@ public static class IntrospectionClient
         HttpClient client,
         CancellationToken cancellationToken = default)
         => InspectServerAsync(client, default, cancellationToken);
-
 
     /// <summary>
     /// Gets the supported GraphQL server capabilities from the server by doing an introspection query.

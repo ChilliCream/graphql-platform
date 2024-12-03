@@ -1,7 +1,5 @@
 #nullable enable
 
-using System.Collections.Generic;
-
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -32,7 +30,7 @@ public interface IComplexOutputType
     bool IsImplementing(string typeName);
 
     /// <summary>
-    /// Defines if this type is implementing the
+    /// Defines if this type is implementing
     /// the given <paramref name="interfaceType" />.
     /// </summary>
     /// <param name="interfaceType">

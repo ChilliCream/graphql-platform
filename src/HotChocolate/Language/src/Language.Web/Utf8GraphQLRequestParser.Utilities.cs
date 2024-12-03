@@ -10,11 +10,16 @@ public ref partial struct Utf8GraphQLRequestParser
         switch (_reader.Kind)
         {
             case TokenKind.String:
+                if(_reader.Value.Length == 0)
                 {
-                    var value = _reader.GetString();
                     _reader.MoveNext();
-                    return value;
+                    return null;
                 }
+
+                var value = _reader.GetString();
+                _reader.MoveNext();
+                return value;
+
 
             case TokenKind.Name when _reader.Value.SequenceEqual(GraphQLKeywords.Null):
                 _reader.MoveNext();

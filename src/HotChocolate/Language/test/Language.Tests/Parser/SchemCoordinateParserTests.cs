@@ -1,6 +1,4 @@
-using System;
 using System.Text;
-using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Language;
@@ -112,11 +110,11 @@ public class SchemaCoordinateParserTests
     [InlineData(null)]
     [InlineData("")]
     [Theory]
-    public void ParseSourceTextIsEmptyOrNull(string s)
+    public void ParseSourceTextIsEmptyOrNull(string? s)
     {
         // arrange;
         // act
-        void Fail() => Utf8GraphQLParser.Syntax.ParseSchemaCoordinate(s);
+        void Fail() => Utf8GraphQLParser.Syntax.ParseSchemaCoordinate(s!);
 
         // assert
         Assert.Equal("sourceText", Assert.Throws<ArgumentException>(Fail).ParamName);

@@ -18,7 +18,7 @@ public class DirectiveDefinition(string name)
     private IInputFieldDefinitionCollection? _arguments;
     private IFeatureCollection? _features;
     private string? _description;
-    private bool _isSpecScalar;
+    private bool _isSpecDirective;
     private bool _isRepeatable;
     private DirectiveLocation _locations;
     private bool _isReadOnly;
@@ -66,11 +66,11 @@ public class DirectiveDefinition(string name)
     }
 
     /// <summary>
-    /// Gets or sets a value indicating whether this scalar type is a spec scalar.
+    /// Gets or sets a value indicating whether this directive type is a spec directive.
     /// </summary>
-    public bool IsSpecScalar
+    public bool IsSpecDirective
     {
-        get => _isSpecScalar;
+        get => _isSpecDirective;
         set
         {
             if (_isReadOnly)
@@ -79,7 +79,7 @@ public class DirectiveDefinition(string name)
                     "The directive is sealed and cannot be modified.");
             }
 
-            _isSpecScalar = value;
+            _isSpecDirective = value;
         }
     }
 
@@ -152,19 +152,11 @@ public class DirectiveDefinition(string name)
 
         _features = _features is null
             ? EmptyFeatureCollection.Default
-            : new ReadOnlyFeatureCollection(_features);
+            : _features.ToReadOnly();
 
         foreach (var argument in _arguments)
         {
             argument.Seal();
-        }
-
-        foreach (var feature in _features)
-        {
-            if(feature.Value is ISealable sealable)
-            {
-                sealable.Seal();
-            }
         }
 
         _isReadOnly = true;

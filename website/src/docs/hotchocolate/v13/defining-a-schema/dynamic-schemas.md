@@ -132,7 +132,6 @@ var priceFieldDefinition = new ObjectFieldDefinition(
     TypeReference.Parse("Float!"),
     pureResolver: context => context.Parent<Dictionary<string, object>>()["price"]);
 
-
 objectTypeDefinition.Fields.Add(idFieldDefinition);
 objectTypeDefinition.Fields.Add(nameFieldDefinition);
 objectTypeDefinition.Fields.Add(priceFieldDefinition);
@@ -196,7 +195,7 @@ A resolver in Hot Chocolate is a delegate that fetches the data for a specific f
 2. **Pure Resolvers**:
 
    ```csharp
-   public delegate object? PureFieldDelegate(IPureResolverContext context);
+   public delegate object? PureFieldDelegate(IResolverContext context);
    ```
 
    _Pure Resolvers_ is used where no side-effects or async calls are needed. All your properties are turned into pure resolvers by Hot Chocolate.

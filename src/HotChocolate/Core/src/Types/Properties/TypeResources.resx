@@ -55,7 +55,7 @@
     <value>The `Date` scalar represents an ISO-8601 compliant date type.</value>
   </data>
   <data name="DecimalType_Description" xml:space="preserve">
-    <value>The built-in `Decimal` scalar type.</value>
+    <value>The `Decimal` scalar type represents a decimal floating-point number.</value>
   </data>
   <data name="DefaultTypeInspector_MemberInvalid" xml:space="preserve">
     <value>The specified member has to be a method or a property.</value>
@@ -636,9 +636,6 @@ Type: `{0}`</value>
   <data name="SchemaBuilderExtensions_AddResolverConfig_ContextInvalid" xml:space="preserve">
     <value>The schema builder context is invalid.</value>
   </data>
-  <data name="SchemaBuilderExtensions_AddResolver_EmptyCoordinates" xml:space="preserve">
-    <value>Empty field coordinates are not allowed.</value>
-  </data>
   <data name="ExpressionHelper_GetGlobalStateWithDefault_NoDefaults" xml:space="preserve">
     <value>The specified key `{0}` does not exist on `context.ContextData`.</value>
   </data>
@@ -1002,5 +999,8 @@ Type: `{0}`</value>
   </data>
   <data name="ResolverContextExtensions_IsSelected_FieldNameEmpty" xml:space="preserve">
     <value>The field name mustn't be null, empty or consist only of white spaces.</value>
+  </data>
+  <data name="ObjectToDictionaryConverter_CycleInObjectGraph" xml:space="preserve">
+    <value>Cycle in object graph detected.</value>
   </data>
 </root>

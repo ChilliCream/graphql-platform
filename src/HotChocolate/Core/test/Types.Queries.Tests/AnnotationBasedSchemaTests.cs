@@ -1,7 +1,3 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using CookieCrumble;
 using HotChocolate;
 using HotChocolate.Data;
 using HotChocolate.Execution;
@@ -64,7 +60,7 @@ public class AnnotationBasedSchemaTests
 
         result.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Execute_Query_With_FieldResult_2()
     {
@@ -157,7 +153,7 @@ public class AnnotationBasedSchemaTests
 
         result.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Schema_Query_With_FieldResult_And_Exceptions()
     {
@@ -170,7 +166,7 @@ public class AnnotationBasedSchemaTests
 
         schema.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Execute_Query_With_FieldResult_And_Exceptions_Success()
     {
@@ -182,7 +178,7 @@ public class AnnotationBasedSchemaTests
                 .ExecuteRequestAsync(
                     """
                     {
-                      userById(id: "1") { 
+                      userById(id: "1") {
                         __typename
                       }
                     }
@@ -190,7 +186,7 @@ public class AnnotationBasedSchemaTests
 
         result.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Execute_Query_With_FieldResult_And_Exceptions_Error_1()
     {
@@ -210,7 +206,7 @@ public class AnnotationBasedSchemaTests
 
         result.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Execute_Query_With_FieldResult_And_Exceptions_Error_2()
     {
@@ -230,7 +226,7 @@ public class AnnotationBasedSchemaTests
 
         result.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Execute_Query_With_FieldResult_And_Exceptions_Unexpected_Error()
     {
@@ -251,7 +247,6 @@ public class AnnotationBasedSchemaTests
         result.MatchSnapshot();
     }
 
-
     [Fact]
     public async Task Schema_Query_With_FieldResult_And_Paging()
     {
@@ -266,7 +261,7 @@ public class AnnotationBasedSchemaTests
 
         schema.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Execute_Query_With_FieldResult_And_Paging()
     {
@@ -295,7 +290,7 @@ public class AnnotationBasedSchemaTests
 
         result.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Execute_Query_With_FieldResult_And_Paging_Error()
     {
@@ -325,7 +320,7 @@ public class AnnotationBasedSchemaTests
 
         result.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Execute_Query_With_FieldResult_And_Paging_Filtering_Sorting()
     {
@@ -354,7 +349,7 @@ public class AnnotationBasedSchemaTests
 
         result.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Execute_Query_With_FieldResult_And_Paging_Filtering_Sorting_Error()
     {
@@ -395,7 +390,7 @@ public class AnnotationBasedSchemaTests
                 .BuildSchemaAsync();
 
         var exception = await Assert.ThrowsAsync<SchemaException>(Error);
-        Assert.Equal(1, exception.Errors.Count);
+        Assert.Single(exception.Errors);
         exception.Errors[0].Message.MatchSnapshot();
     }
 
@@ -424,7 +419,7 @@ public class AnnotationBasedSchemaTests
 
             return new UserNotFound(id, "Failed");
         }
-        
+
         [Error<UserNotFound>]
         public FieldResult<User> GetUserById2(string id)
         {
@@ -471,13 +466,13 @@ public class AnnotationBasedSchemaTests
                 return new UserNotFound("id", "Failed");
             }
 
-            return new FieldResult<IQueryable<User>, UserNotFound>( 
+            return new FieldResult<IQueryable<User>, UserNotFound>(
                 new[]
                 {
                     new User("1", "Foo", "foo@bar.de", new AddressNotFound("1", "Failed")),
                 }.AsQueryable());
         }
-        
+
         [UsePaging]
         [UseFiltering]
         [UseSorting]
@@ -488,7 +483,7 @@ public class AnnotationBasedSchemaTests
                 return new UserNotFound("id", "Failed");
             }
 
-            return new FieldResult<IQueryable<User>, UserNotFound>( 
+            return new FieldResult<IQueryable<User>, UserNotFound>(
                 new[]
                 {
                     new User("1", "Foo", "foo@bar.de", new AddressNotFound("1", "Failed")),

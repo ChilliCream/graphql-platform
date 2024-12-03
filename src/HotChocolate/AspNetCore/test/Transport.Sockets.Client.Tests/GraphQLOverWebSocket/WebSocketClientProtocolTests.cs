@@ -1,5 +1,4 @@
 using System.Text.Json;
-using CookieCrumble;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
@@ -9,8 +8,6 @@ using HotChocolate.Tests;
 using HotChocolate.Transport.Sockets.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
-
-#nullable enable
 
 namespace HotChocolate.Transport.Sockets.GraphQLOverWebSocket;
 
@@ -48,7 +45,7 @@ public class WebSocketClientProtocolTests(TestServerFactory serverFactory, ITest
 
                     var mutationRequest = new ClientQueryRequest
                     {
-                        Query = 
+                        Query =
                             """
                             mutation {
                                 createReview(episode: NEW_HOPE review: {
@@ -88,7 +85,7 @@ public class WebSocketClientProtocolTests(TestServerFactory serverFactory, ITest
                     snapshot.Add(result);
                 })
             .MatchAsync();
-            
+
     [Fact]
     public Task Subscribe_Disconnect()
     {
@@ -114,7 +111,7 @@ public class WebSocketClientProtocolTests(TestServerFactory serverFactory, ITest
             // ... try iterate
             await foreach (var unused in socketResult.ReadResultsAsync().WithCancellation(ct))
             {
-                Assert.True(false, "Stream should have been aborted");
+                Assert.Fail("Stream should have been aborted");
             }
         });
     }

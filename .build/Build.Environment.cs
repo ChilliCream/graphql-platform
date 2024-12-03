@@ -6,7 +6,6 @@ partial class Build
     const string Release = "Release";
     const string Net50 = "net5.0";
     const string Net60 = "net6.0";
-    const string Net70 = "net7.0";
 
     readonly int DegreeOfParallelism = 2;
 
@@ -17,17 +16,13 @@ partial class Build
 
     AbsolutePath OutputDirectory => RootDirectory / "output";
     AbsolutePath TestResultDirectory => OutputDirectory / "test-results";
-    AbsolutePath CoverageReportDirectory => OutputDirectory / "coberage-reports";
+    AbsolutePath CoverageReportDirectory => OutputDirectory / "coverage-reports";
     AbsolutePath PackageDirectory => OutputDirectory / "packages";
-    AbsolutePath StarWarsTemplateNuSpec => RootDirectory / "templates" / "StarWars" / "HotChocolate.Templates.StarWars.nuspec";
     AbsolutePath HotChocolateDirectoryBuildProps => SourceDirectory / "HotChocolate" / "Directory.Build.Props";
-    AbsolutePath StarWarsProj => RootDirectory / "templates" / "StarWars" / "content" / "StarWars.csproj";
-    AbsolutePath TemplatesNuSpec => RootDirectory / "templates" / "v12" / "HotChocolate.Templates.nuspec";
-    AbsolutePath EmptyServer12Proj => RootDirectory / "templates" / "v12" / "server" / "HotChocolate.Template.Server.csproj";
-    AbsolutePath EmptyAzf12Proj => RootDirectory / "templates" / "v12" / "function" / "HotChocolate.Template.AzureFunctions.csproj";
-    AbsolutePath EmptyAzfUp12Proj => RootDirectory / "templates" / "v12" / "function-isolated" / "HotChocolate.Template.AzureFunctions.Isolated.csproj";
-    AbsolutePath Gateway13Proj => RootDirectory / "templates" / "v12" / "gateway" / "HotChocolate.Template.Gateway.csproj";
-    AbsolutePath GatewayAspire13Proj => RootDirectory / "templates" / "v12" / "gateway-aspire" / "HotChocolate.Template.Gateway.Aspire.csproj";
-    AbsolutePath GatewayManaged13Proj => RootDirectory / "templates" / "v12" / "gateway-bcp" / "HotChocolate.Template.Gateway.Managed.csproj";
-    AbsolutePath FSharpTypes => SourceDirectory/"HotChocolate" /"Core" / "src" / "Types.FSharp" / "HotChocolate.Types.FSharp.fsproj";
+    AbsolutePath TemplatesNuSpec => RootDirectory / "templates" / "HotChocolate.Templates.nuspec";
+    AbsolutePath EmptyServer12Proj => RootDirectory / "templates" / "server" / "HotChocolate.Template.Server.csproj";
+    AbsolutePath EmptyAzf12Proj => RootDirectory / "templates" / "azure-function" / "HotChocolate.Template.AzureFunctions.csproj";
+    AbsolutePath Gateway13Proj => RootDirectory / "templates" / "gateway" / "HotChocolate.Template.Gateway.csproj";
+    AbsolutePath GatewayAspire13Proj => RootDirectory / "templates" / "gateway-aspire" / "HotChocolate.Template.Gateway.Aspire.csproj";
+    AbsolutePath GatewayManaged13Proj => RootDirectory / "templates" / "gateway-managed" / "HotChocolate.Template.Gateway.Managed.csproj";
 }

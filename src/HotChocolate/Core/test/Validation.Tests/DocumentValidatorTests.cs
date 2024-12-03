@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using CookieCrumble;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
@@ -13,7 +8,7 @@ namespace HotChocolate.Validation;
 public class DocumentValidatorTests
 {
     [Fact]
-    public void DocumentIsNull()
+    public async Task DocumentIsNull()
     {
         // arrange
         var schema = ValidationUtils.CreateSchema();
@@ -25,15 +20,15 @@ public class DocumentValidatorTests
                 schema,
                 null!,
                 new OperationDocumentId("abc"),
-                new Dictionary<string, object>(),
+                new Dictionary<string, object?>(),
                 false);
 
         // assert
-        Assert.ThrowsAsync<ArgumentNullException>(Error);
+        await Assert.ThrowsAsync<ArgumentNullException>(Error);
     }
 
     [Fact]
-    public void SchemaIsNull()
+    public async Task SchemaIsNull()
     {
         // arrange
         var queryValidator = CreateValidator();
@@ -44,11 +39,11 @@ public class DocumentValidatorTests
                 null!,
                 new DocumentNode(null, new List<IDefinitionNode>()),
                 new OperationDocumentId("abc"),
-                new Dictionary<string, object>(),
+                new Dictionary<string, object?>(),
                 false);
 
         // assert
-        Assert.ThrowsAsync<ArgumentNullException>(Error);
+        await Assert.ThrowsAsync<ArgumentNullException>(Error);
     }
 
     [Fact]
@@ -445,8 +440,8 @@ public class DocumentValidatorTests
                 }
             ",
             t => Assert.Equal(
-                "`barkVolume` returns a scalar value. Selections on scalars or enums" +
-                " are never allowed, because they are the leaf nodes of any GraphQL query.",
+                "Field \"barkVolume\" must not have a selection since type \"Int\" has no " +
+                "subfields.",
                 t.Message));
     }
 
@@ -468,9 +463,8 @@ public class DocumentValidatorTests
                 }
             ",
             t => Assert.Equal(
-                t.Message,
-                "Fragments can only be declared on unions, interfaces, " +
-                "and objects."));
+                "Fragments can only be declared on unions, interfaces, and objects.",
+                t.Message));
     }
 
     [Fact]
@@ -495,11 +489,11 @@ public class DocumentValidatorTests
                 }
             ",
             t => Assert.Equal(
-                t.Message,
                 "The graph of fragment spreads must not form any " +
                 "cycles including spreading itself. Otherwise an " +
                 "operation could infinitely spread or infinitely " +
-                "execute on cycles in the underlying data."));
+                "execute on cycles in the underlying data.",
+                t.Message));
     }
 
     [Fact]
@@ -747,7 +741,7 @@ public class DocumentValidatorTests
             schema,
             document,
             new OperationDocumentId("abc"),
-            new Dictionary<string, object>(),
+            new Dictionary<string, object?>(),
             false);
 
         // assert
@@ -866,9 +860,15 @@ public class DocumentValidatorTests
         await ExpectErrors(FileResource.Open("50000_query.graphql"));
     }
 
+    [Fact]
+    public async Task Introspection_Cycle_Detected()
+    {
+        await ExpectErrors(FileResource.Open("introspection_with_cycle.graphql"));
+    }
+
     private Task ExpectValid(string sourceText) => ExpectValid(null, null, sourceText);
 
-    private async Task ExpectValid(ISchema schema, IDocumentValidator validator, string sourceText)
+    private async Task ExpectValid(ISchema? schema, IDocumentValidator? validator, string sourceText)
     {
         // arrange
         schema ??= ValidationUtils.CreateSchema();
@@ -880,7 +880,7 @@ public class DocumentValidatorTests
             schema,
             query,
             new OperationDocumentId("abc"),
-            new Dictionary<string, object>(),
+            new Dictionary<string, object?>(),
             false);
 
         // assert
@@ -891,8 +891,8 @@ public class DocumentValidatorTests
         await ExpectErrors(null, null, sourceText, elementInspectors);
 
     private async Task ExpectErrors(
-        ISchema schema,
-        IDocumentValidator validator,
+        ISchema? schema,
+        IDocumentValidator? validator,
         string sourceText,
         params Action<IError>[] elementInspectors)
     {
@@ -906,7 +906,7 @@ public class DocumentValidatorTests
             schema,
             query,
             new OperationDocumentId("abc"),
-            new Dictionary<string, object>(),
+            new Dictionary<string, object?>(),
             false);
 
         // assert

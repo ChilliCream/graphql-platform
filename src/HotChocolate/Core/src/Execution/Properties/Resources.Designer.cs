@@ -315,18 +315,6 @@ namespace HotChocolate.Execution.Properties {
             }
         }
         
-        internal static string ErrorHelper_MaxComplexityReached {
-            get {
-                return ResourceManager.GetString("ErrorHelper_MaxComplexityReached", resourceCulture);
-            }
-        }
-        
-        internal static string ErrorHelper_StateInvalidForComplexityAnalyzer_Message {
-            get {
-                return ResourceManager.GetString("ErrorHelper_StateInvalidForComplexityAnalyzer_Message", resourceCulture);
-            }
-        }
-        
         internal static string BatchExecutionTask_AddExecutionTask_SerialTasksNotAllowed {
             get {
                 return ResourceManager.GetString("BatchExecutionTask_AddExecutionTask_SerialTasksNotAllowed", resourceCulture);
@@ -429,15 +417,15 @@ namespace HotChocolate.Execution.Properties {
             }
         }
         
-        internal static string ErrorHelper_PersistedQueryNotFound {
+        internal static string ErrorHelper_PersistedOperationNotFound {
             get {
-                return ResourceManager.GetString("ErrorHelper_PersistedQueryNotFound", resourceCulture);
+                return ResourceManager.GetString("ErrorHelper_PersistedOperationNotFound", resourceCulture);
             }
         }
         
-        internal static string ErrorHelper_OnlyPersistedQueriesAreAllowed {
+        internal static string ErrorHelper_OnlyPersistedOperationsAreAllowed {
             get {
-                return ResourceManager.GetString("ErrorHelper_OnlyPersistedQueriesAreAllowed", resourceCulture);
+                return ResourceManager.GetString("ErrorHelper_OnlyPersistedOperationsAreAllowed", resourceCulture);
             }
         }
         
@@ -468,18 +456,6 @@ namespace HotChocolate.Execution.Properties {
         internal static string SelectionSetOptimizerContext_AddSelection_ResponseNameNotTheSame {
             get {
                 return ResourceManager.GetString("SelectionSetOptimizerContext_AddSelection_ResponseNameNotTheSame", resourceCulture);
-            }
-        }
-        
-        internal static string ComplexityAnalyzerCompiler_Enter_OnlyOperations {
-            get {
-                return ResourceManager.GetString("ComplexityAnalyzerCompiler_Enter_OnlyOperations", resourceCulture);
-            }
-        }
-        
-        internal static string ErrorHelper_NoNullBubbling_ArgumentValue_NotAllowed {
-            get {
-                return ResourceManager.GetString("ErrorHelper_NoNullBubbling_ArgumentValue_NotAllowed", resourceCulture);
             }
         }
     }

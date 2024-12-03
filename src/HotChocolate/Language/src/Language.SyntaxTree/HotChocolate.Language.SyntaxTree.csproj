@@ -9,25 +9,21 @@
     <AssemblyName>HotChocolate.Language.SyntaxTree</AssemblyName>
     <RootNamespace>HotChocolate.Language</RootNamespace>
     <Description>This package contains the abstract syntax tree that is used by the Hot Chocolate parsers.</Description>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
-    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="8.0.0" />
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Fusion" />
+    <InternalsVisibleTo Include="HotChocolate.Language.Utf8" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
-    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="7.0.0" />
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.ObjectPool" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0' OR '$(TargetFramework)' == 'netstandard2.1' OR '$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="6.0.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'NETSTANDARD2.0'">
-    <PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.1" />
-    <PackageReference Include="System.Memory" Version="4.5.5" />
-    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="Microsoft.Bcl.HashCode" />
+    <PackageReference Include="System.Memory" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" />
   </ItemGroup>
 
   <ItemGroup>

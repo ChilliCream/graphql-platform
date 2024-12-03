@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,17 +27,17 @@ public class QueryableFilterVisitorExpressionTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
             .SetDocument("{ root(where: { displayName: { eq: \"Sam Sampleman\"}}){ name lastName}}")
             .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
             .SetDocument("{ root(where: { displayName: { eq: \"NoMatch\"}}){ name lastName}}")
             .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
             .SetDocument("{ root(where: { displayName: { eq: null}}){ name lastName}}")
             .Build());
 
@@ -84,17 +83,17 @@ public class QueryableFilterVisitorExpressionTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
             .SetDocument("{ root(where: { barLength: { eq: 1}}){ name lastName}}")
             .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
             .SetDocument("{ root(where: { barLength: { eq: 0}}){ name lastName}}")
             .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
             .SetDocument("{ root(where: { barLength: { eq: null}}){ name lastName}}")
             .Build());
 

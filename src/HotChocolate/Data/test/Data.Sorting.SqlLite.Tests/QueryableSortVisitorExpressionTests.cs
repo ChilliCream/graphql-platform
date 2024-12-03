@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,20 +27,20 @@ public class QueryableSortVisitorExpressionTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
             .SetDocument("{ root(order: { displayName: DESC}){ name lastName}}")
             .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
             .SetDocument("{ root(order: { displayName: ASC}){ name lastName}}")
             .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "DESC"), res2, "ASC")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "DESC")
+            .AddResult(res2, "ASC")
             .MatchAsync();
     }
 
@@ -78,21 +77,21 @@ public class QueryableSortVisitorExpressionTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
             .SetDocument("{ root(order: { barLength: ASC}){ name lastName}}")
             .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
             .SetDocument("{ root(order: { barLength: DESC}){ name lastName}}")
             .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "ASC"), res2, "DESC")
-            .MatchAsync();;
+        await Snapshot
+            .Create()
+            .AddResult(res1, "ASC")
+            .AddResult(res2, "DESC")
+            .MatchAsync();
     }
 
     public class Foo

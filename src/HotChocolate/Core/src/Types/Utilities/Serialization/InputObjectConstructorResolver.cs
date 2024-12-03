@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Types;
 using static System.Reflection.BindingFlags;
@@ -96,15 +93,33 @@ internal static class InputObjectConstructorResolver
 
         foreach (var parameter in constructor.GetParameters())
         {
-            if (fields.TryGetParameter(parameter, out var field) &&
-                parameter.ParameterType == field.Property!.PropertyType)
+            if (fields.TryGetParameter(parameter, out var field))
             {
-                if (required.Contains(field.Name))
+                if (parameter.ParameterType == field.Property!.PropertyType)
                 {
-                    count--;
+                    if (required.Contains(field.Name))
+                    {
+                        count--;
+                    }
+                }
+                else if (
+                    parameter.ParameterType.IsValueType &&
+                    field.Property!.PropertyType.IsValueType &&
+                    parameter.ParameterType.IsGenericType &&
+                    typeof(Nullable<>) == parameter.ParameterType.GetGenericTypeDefinition() &&
+                    parameter.ParameterType.GetGenericArguments()[0] == field.Property!.PropertyType)
+                {
+                    if (required.Contains(field.Name))
+                    {
+                        count--;
+                    }
+                }
+                else
+                {
+                    return false;
                 }
             }
-            else
+            else if (!parameter.HasDefaultValue)
             {
                 return false;
             }
@@ -142,10 +157,6 @@ internal static class InputObjectConstructorResolver
 
     private static string GetAlternativeParameterName(string name)
         => name.Length > 1
-#if NET6_0_OR_GREATER
             ? string.Concat(name[..1].ToUpperInvariant(), name.AsSpan(1))
-#else
-            ? string.Concat(name.Substring(0, 1).ToUpperInvariant(), name.Substring(1))
-#endif
             : name.ToUpperInvariant();
 }

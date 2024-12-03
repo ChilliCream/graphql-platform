@@ -10,21 +10,21 @@ internal class FilterGlobalIdInputValueFormatter(
 {
     private INodeIdSerializer? _serializer;
 
-    public object? Format(object? runtimeValue)
+    public object? Format(object? originalValue)
     {
-        if (runtimeValue is null)
+        if (originalValue is null)
         {
             return null;
         }
 
-        if (runtimeValue is NodeId id)
+        if (originalValue is NodeId id)
         {
             return id.InternalId;
         }
 
         _serializer ??= serializerAccessor.Serializer;
 
-        if (runtimeValue is string s)
+        if (originalValue is string s)
         {
             try
             {
@@ -39,7 +39,7 @@ internal class FilterGlobalIdInputValueFormatter(
             }
         }
 
-        if (runtimeValue is IEnumerable<NodeId?> nullableIdEnumerable)
+        if (originalValue is IEnumerable<NodeId?> nullableIdEnumerable)
         {
             List<object?> list = [];
             foreach (var idv in nullableIdEnumerable)
@@ -57,7 +57,7 @@ internal class FilterGlobalIdInputValueFormatter(
             return list;
         }
 
-        if (runtimeValue is IEnumerable<NodeId> idEnumerable)
+        if (originalValue is IEnumerable<NodeId> idEnumerable)
         {
             List<object?> list = [];
 
@@ -69,7 +69,7 @@ internal class FilterGlobalIdInputValueFormatter(
             return list;
         }
 
-        if (runtimeValue is IEnumerable<string?> stringEnumerable)
+        if (originalValue is IEnumerable<string?> stringEnumerable)
         {
             try
             {

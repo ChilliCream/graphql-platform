@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
@@ -51,7 +50,7 @@ public class QueryableProjectionInterfaceTypeTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     @"
                         {
@@ -98,7 +97,7 @@ public class QueryableProjectionInterfaceTypeTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     @"
                         {
@@ -132,7 +131,7 @@ public class QueryableProjectionInterfaceTypeTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     @"
                         {
@@ -166,7 +165,7 @@ public class QueryableProjectionInterfaceTypeTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     @"
                         {
@@ -205,7 +204,7 @@ public class QueryableProjectionInterfaceTypeTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     @"
                         {
@@ -244,7 +243,7 @@ public class QueryableProjectionInterfaceTypeTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     @"
                         {
@@ -278,7 +277,7 @@ public class QueryableProjectionInterfaceTypeTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     @"
                         {

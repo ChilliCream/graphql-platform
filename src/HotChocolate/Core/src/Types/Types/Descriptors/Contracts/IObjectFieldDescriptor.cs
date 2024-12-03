@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
@@ -321,4 +319,26 @@ public interface IObjectFieldDescriptor
     /// <param name="arguments">The arguments of the directive</param>
     /// <returns>The descriptor</returns>
     IObjectFieldDescriptor Directive(string name, params ArgumentNode[] arguments);
+
+    /// <summary>
+    /// Specifies the requirements for the parent object.
+    /// </summary>
+    /// <param name="requires">
+    /// The requirements for the parent object.
+    /// </param>
+    /// <returns>
+    /// Returns the descriptor to chain further configuration.
+    /// </returns>
+    IObjectFieldDescriptor ParentRequires<TParent>(string? requires);
+
+    /// <summary>
+    /// Specifies the requirements for the parent object.
+    /// </summary>
+    /// <param name="requires">
+    /// The requirements for the parent object.
+    /// </param>
+    /// <returns>
+    /// Returns the descriptor to chain further configuration.
+    /// </returns>
+    IObjectFieldDescriptor ParentRequires(string? requires);
 }

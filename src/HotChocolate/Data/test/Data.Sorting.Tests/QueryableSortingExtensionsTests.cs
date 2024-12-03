@@ -1,5 +1,4 @@
 using System.Reflection;
-using CookieCrumble;
 using HotChocolate.Data.Sorting.Expressions;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
@@ -30,7 +29,7 @@ public class QueryableSortingExtensionsTests
         // act
         var res1 = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument("{ shouldWork(order: {bar: DESC}) { bar baz }}")
                 .Build());
 
@@ -51,14 +50,14 @@ public class QueryableSortingExtensionsTests
         // act
         var res1 = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument("{ typeMismatch(order: {bar: DESC}) { bar baz }}")
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -75,14 +74,14 @@ public class QueryableSortingExtensionsTests
         // act
         var res1 = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument("{ missingMiddleware { bar baz }}")
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 

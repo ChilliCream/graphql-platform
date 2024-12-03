@@ -15,6 +15,7 @@ internal static class ComplexTypeMergeExtensions
         var target = new OutputFieldDefinition(source.Name);
         target.MergeDescriptionWith(source);
         target.MergeDeprecationWith(source);
+        target.MergeDirectivesWith(source, context);
 
         // Replace the type name of the field in the source with the corresponding type name
         // in the target schema.
@@ -33,6 +34,7 @@ internal static class ComplexTypeMergeExtensions
             targetArgument.Type = sourceArgument.Type.ReplaceNameType(n => targetSchema.Types[n]);
 
             targetArgument.MergeDeprecationWith(sourceArgument);
+            targetArgument.MergeDirectivesWith(sourceArgument, context);
 
             target.Arguments.Add(targetArgument);
         }
@@ -126,6 +128,8 @@ internal static class ComplexTypeMergeExtensions
         // If the target field is not deprecated and the source field is deprecated, copy over the
         target.MergeDeprecationWith(source);
 
+        target.MergeDirectivesWith(source, context);
+
         foreach (var sourceArgument in source.Arguments)
         {
             var targetArgument = target.Arguments[sourceArgument.Name];
@@ -136,6 +140,8 @@ internal static class ComplexTypeMergeExtensions
 
             // If the target argument is not deprecated and the source argument is deprecated,
             targetArgument.MergeDeprecationWith(sourceArgument);
+
+            targetArgument.MergeDirectivesWith(sourceArgument, context);
 
             // If the target argument does not have a default value and the source argument does,
             if (sourceArgument.DefaultValue is not null &&

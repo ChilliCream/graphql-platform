@@ -1,5 +1,4 @@
 using System.Reflection;
-using CookieCrumble;
 using HotChocolate.Data.Projections.Expressions;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
@@ -29,7 +28,7 @@ public class QueryableProjectionExtensionsTests
         // act
         var res1 = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument("{ shouldWork { bar baz }}")
                 .Build());
 
@@ -50,7 +49,7 @@ public class QueryableProjectionExtensionsTests
         // act
         var res1 = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument("{ typeMismatch { bar baz }}")
                 .Build());
 
@@ -74,7 +73,7 @@ public class QueryableProjectionExtensionsTests
         // act
         var res1 = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument("{ missingMiddleware { bar baz }}")
                 .Build());
 

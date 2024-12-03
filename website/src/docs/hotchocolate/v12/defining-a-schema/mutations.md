@@ -38,7 +38,7 @@ Each of these mutations is executed serially one by one whereas their child sele
 A mutation type can be defined like the following.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Mutation
@@ -62,7 +62,7 @@ public class Startup
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -237,7 +237,7 @@ service
 With the mutation conventions enabled, we can define the described mutation pattern with minimal code by just annotating a field with `UseMutationConvention`.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Mutation
@@ -250,7 +250,7 @@ public class Mutation
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -299,7 +299,7 @@ service
 In the case that the conventions are applied by default we no longer need any annotation.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Mutation
@@ -311,7 +311,7 @@ public class Mutation
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -350,12 +350,12 @@ type Mutation {
 ## Errors
 
 The mutation conventions also allow you to create mutations that follow the error
-[stage 6a Pattern Marc-Andre Giroux layed out](https://xuorig.medium.com/a-guide-to-graphql-errors-bb9ba9f15f85) with minimal effort.
+[stage 6a Pattern Marc-Andre Giroux laid out](https://xuorig.medium.com/a-guide-to-graphql-errors-bb9ba9f15f85) with minimal effort.
 
 The basic concept here is to keep the resolver clean of any error handling code and use exceptions to signal an error state. The field will simply expose which exceptions are domain errors that shall be exposed to the schema. All other exceptions will still cause runtime errors.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Mutation
@@ -369,7 +369,7 @@ public class Mutation
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -472,7 +472,7 @@ If the exception is thrown and is caught in the error middleware, it will be rew
 > The name of the exception will be rewritten. `Exception` is replaced with `Error` to follow the common GraphQL naming conventions.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class UserNameTakenException : Exception
@@ -493,7 +493,7 @@ public class Mutation
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -567,7 +567,7 @@ The error instance and the translation of the exception can be done by an error 
 Add a `public` `static` method called `CreateErrorFrom` that takes an exception and returns the error object.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class UserNameTakenError
@@ -610,7 +610,7 @@ public class Mutation
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -769,7 +769,7 @@ public class Mutation
 Lastly, we can also use the constructor of an error class to consume an exception. Essentially the constructor in this case represents the factory that we described earlier.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class UserNameTakenError
@@ -802,7 +802,7 @@ public class Mutation
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -982,7 +982,7 @@ Often we also want to provide an error code so that the GUI components can more 
 > Note: All your error types have to implement the contract that the interface declares! Your errors/exceptions do not have to implement the common interface, but they have to declare all the interface's members.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 [GraphQLName("UserError")]
@@ -1005,7 +1005,7 @@ public class Startup
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp

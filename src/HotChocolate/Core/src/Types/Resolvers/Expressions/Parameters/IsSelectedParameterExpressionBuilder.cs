@@ -1,7 +1,5 @@
 #nullable enable
 
-using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
@@ -178,7 +176,6 @@ internal sealed class IsSelectedParameterExpressionBuilder
             return base.Enter(node, context);
         }
 
-
         protected override ISyntaxVisitorAction Leave(InlineFragmentNode node, IsSelectedContext context)
         {
             if (node.TypeCondition is not null)
@@ -209,10 +206,11 @@ internal sealed class IsSelectedParameterExpressionBuilder
 
     private class IsSelectedBinding(string key) : IParameterBinding
     {
+        public ArgumentKind Kind => ArgumentKind.LocalState;
+
+        public bool IsPure => false;
+
         public T Execute<T>(IResolverContext context)
             => context.GetLocalState<T>(key)!;
-
-        public T Execute<T>(IPureResolverContext context)
-            => throw new NotSupportedException();
     }
 }

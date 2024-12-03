@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -619,7 +618,7 @@ public class AnnotationBasedAuthorizationTests
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     """
                     query($id: ID!) {
@@ -678,7 +677,7 @@ public class AnnotationBasedAuthorizationTests
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     """
                     query($id: ID!) {

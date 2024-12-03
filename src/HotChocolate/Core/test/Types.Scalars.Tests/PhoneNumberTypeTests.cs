@@ -1,6 +1,4 @@
-using System;
 using HotChocolate.Language;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types;
 
@@ -31,7 +29,7 @@ public class PhoneNumberTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "+765436789012345678901234", false)]
     public void IsInstanceOfType_GivenValueNode_MatchExpected(
         Type type,
-        object value,
+        object? value,
         bool expected)
     {
         // arrange
@@ -55,7 +53,7 @@ public class PhoneNumberTypeTests : ScalarTypeTestBase
     [InlineData("+76543678901234", true)]
     [InlineData("+765436789012345", true)]
     [InlineData("+765436789012345678901234", false)]
-    public void IsInstanceOfType_GivenObject_MatchExpected(object value, bool expected)
+    public void IsInstanceOfType_GivenObject_MatchExpected(object? value, bool expected)
     {
         // arrange
         // act
@@ -74,8 +72,8 @@ public class PhoneNumberTypeTests : ScalarTypeTestBase
     [InlineData(typeof(NullValueNode), null, null)]
     public void ParseLiteral_GivenValueNode_MatchExpected(
         Type type,
-        object value,
-        object expected)
+        object? value,
+        object? expected)
     {
         // arrange
         var valueNode = CreateValueNode(type, value);
@@ -110,8 +108,8 @@ public class PhoneNumberTypeTests : ScalarTypeTestBase
     [InlineData("+76543678901234", "+76543678901234")]
     [InlineData(null, null)]
     public void Deserialize_GivenValue_MatchExpected(
-        object resultValue,
-        object runtimeValue)
+        object? resultValue,
+        object? runtimeValue)
     {
         // arrange
         // act
@@ -141,8 +139,8 @@ public class PhoneNumberTypeTests : ScalarTypeTestBase
     [InlineData("+76543678901234", "+76543678901234")]
     [InlineData(null, null)]
     public void Serialize_GivenObject_MatchExpectedType(
-        object runtimeValue,
-        object resultValue)
+        object? runtimeValue,
+        object? resultValue)
     {
         // arrange
         // act
@@ -172,7 +170,7 @@ public class PhoneNumberTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "+76543678901234")]
     [InlineData(typeof(StringValueNode), "+178955512343598")]
     [InlineData(typeof(NullValueNode), null)]
-    public void ParseValue_GivenObject_MatchExpectedType(Type type, object value)
+    public void ParseValue_GivenObject_MatchExpectedType(Type type, object? value)
     {
         // arrange
         // act
@@ -202,7 +200,7 @@ public class PhoneNumberTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "+76543678901234")]
     [InlineData(typeof(StringValueNode), "+178955512343598")]
     [InlineData(typeof(NullValueNode), null)]
-    public void ParseResult_GivenObject_MatchExpectedType(Type type, object value)
+    public void ParseResult_GivenObject_MatchExpectedType(Type type, object? value)
     {
         // arrange
         // act

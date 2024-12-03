@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Data.Raven.Filters;
 using HotChocolate.Data.Raven.Paging;
 using HotChocolate.Execution;
@@ -190,6 +189,9 @@ public class RavenQueryableTests
         var result = await executor.ExecuteAsync(
             @"{
                 foos(first:1) {
+                    nodes {
+                        bar
+                    }
                     totalCount
                 }
             }");
@@ -428,7 +430,7 @@ public class RavenQueryableTests
                     if (context.ContextData.TryGetValue("query", out var queryString))
                     {
                         context.Result = OperationResultBuilder
-                            .FromResult(context.Result!.ExpectQueryResult())
+                            .FromResult(context.Result!.ExpectOperationResult())
                             .SetContextData("query", queryString)
                             .Build();
                     }

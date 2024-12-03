@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
@@ -10,7 +8,6 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Tests;
 using Moq;
-using Snapshooter.Xunit;
 using SnapshotExtensions = CookieCrumble.SnapshotExtensions;
 
 namespace HotChocolate;
@@ -414,7 +411,6 @@ public class SchemaBuilderTests
             })
             .Create();
 
-
         // assert
         schema.MakeExecutable().Execute("{ a }").MatchSnapshot();
     }
@@ -447,7 +443,6 @@ public class SchemaBuilderTests
                 return default;
             })
             .Create();
-
 
         // assert
         schema.MakeExecutable().Execute("{ a { a } }").MatchSnapshot();
@@ -1150,7 +1145,6 @@ public class SchemaBuilderTests
             item => Assert.Equal("touched", item.Key));
     }
 
-
     [Fact]
     public void AddConvention_TypeIsNullConcreteIsSet_ArgumentException()
     {
@@ -1198,8 +1192,6 @@ public class SchemaBuilderTests
         // assert
         Assert.Throws<ArgumentNullException>(action);
     }
-
-
 
     [Fact]
     public void AddConvention_ConventionHasInvalidTypeConcrete_ArgumentException()
@@ -1327,7 +1319,6 @@ public class SchemaBuilderTests
         Assert.NotNull(convention);
         Assert.IsType<TestConvention>(convention);
     }
-
 
     [Fact]
     public void AddConvention_ServiceDependency()
@@ -2096,7 +2087,7 @@ public class SchemaBuilderTests
                 .ModifyOptions(options => options.DefaultBindingBehavior = BindingBehavior.Explicit)
                 .BuildSchemaAsync();
 
-        SnapshotExtensions.MatchSnapshot(schema);
+        schema.MatchSnapshot();
     }
 
     public interface IMockConvention : IConvention
@@ -2158,11 +2149,9 @@ public class SchemaBuilderTests
 
     public interface IInvalidTestConvention
     {
-
     }
     public interface ITestConvention : IConvention
     {
-
     }
     public class TestConvention2 : Convention, ITestConvention
     {

@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
@@ -14,17 +12,17 @@ internal class ArgumentParameterExpressionBuilder
     : IParameterExpressionBuilder
     , IParameterBindingFactory
 {
-    private const string _argumentValue = nameof(IPureResolverContext.ArgumentValue);
-    private const string _argumentLiteral = nameof(IPureResolverContext.ArgumentLiteral);
-    private const string _argumentOptional = nameof(IPureResolverContext.ArgumentOptional);
+    private const string _argumentValue = nameof(IResolverContext.ArgumentValue);
+    private const string _argumentLiteral = nameof(IResolverContext.ArgumentLiteral);
+    private const string _argumentOptional = nameof(IResolverContext.ArgumentOptional);
     private static readonly Type _optional = typeof(Optional<>);
 
     private static readonly MethodInfo _getArgumentValue =
-        PureContextType.GetMethods().First(IsArgumentValueMethod);
+        ContextType.GetMethods().First(IsArgumentValueMethod);
     private static readonly MethodInfo _getArgumentLiteral =
-        PureContextType.GetMethods().First(IsArgumentLiteralMethod);
+        ContextType.GetMethods().First(IsArgumentLiteralMethod);
     private static readonly MethodInfo _getArgumentOptional =
-        PureContextType.GetMethods().First(IsArgumentOptionalMethod);
+        ContextType.GetMethods().First(IsArgumentOptionalMethod);
 
     private static bool IsArgumentValueMethod(MethodInfo method)
         => method.Name.Equals(_argumentValue, StringComparison.Ordinal) &&
@@ -89,9 +87,13 @@ internal class ArgumentParameterExpressionBuilder
     public IParameterBinding Create(ParameterBindingContext context)
         => new ArgumentBinding(context.ArgumentName);
 
-    private sealed class ArgumentBinding(string name) : ParameterBinding
+    private sealed class ArgumentBinding(string name) : IParameterBinding
     {
-        public override T Execute<T>(IPureResolverContext context)
+        public ArgumentKind Kind => ArgumentKind.Argument;
+
+        public bool IsPure => true;
+
+        public T Execute<T>(IResolverContext context)
             => context.ArgumentValue<T>(name);
     }
 }

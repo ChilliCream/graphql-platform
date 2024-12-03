@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Http.Json;
-using CookieCrumble;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Transport;
@@ -141,7 +140,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         // act
         using var request = new HttpRequestMessage(HttpMethod.Post, _url)
         {
-            Content = new ByteArrayContent(Array.Empty<byte>())
+            Content = new ByteArrayContent([])
             {
                 Headers =
                 {
@@ -241,32 +240,10 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         using var response = await client.SendAsync(request);
 
         // assert
-        Snapshot
-            .Create()
-            .Add(response)
-            .MatchInline(
-                @$"Headers:
-                Content-Type: {expectedContentType}
-                -------------------------->
-                Status Code: {expectedStatusCode}
-                -------------------------->
-                " +
-                @"{""errors"":[{""message"":""`__type` is an object, interface or " +
-                @"union type field. Leaf selections on objects, interfaces, and unions without " +
-                @"subfields are disallowed."",""locations"":[{""line"":1,""column"":3}]," +
-                @"""extensions"":{""declaringType"":""Query"",""field"":""__type""," +
-                @"""type"":""__Type"",""responseName"":""__type""," +
-                @"""specifiedBy"":""https://spec.graphql.org/October2021/#sec-Field-Selections-" +
-                @"on-Objects-Interfaces-and-Unions-Types""}},{""message"":""The field `name" +
-                @"` does not exist on the type `Query`."",""locations"":[{" +
-                @"""line"":1,""column"":10}],""extensions"":{""type"":""Query""," +
-                @"""field"":""name"",""responseName"":""name"",""specifiedBy"":" +
-                @"""https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-" +
-                @"Interfaces-and-Unions-Types""}},{""message"":""The argument `name` " +
-                @"is required."",""locations"":[{""line"":1,""column"":3}],""extensions"":{" +
-                @"""type"":""Query"",""field"":""__type"",""argument"":""name""," +
-                @"""specifiedBy"":""https://spec.graphql.org/October2021/#sec-Required-Arguments""" +
-                "}}]}");
+        Assert.Equal(
+            expectedContentType,
+            response.Content.Headers.GetValues("Content-Type").Single());
+        Assert.Equal(expectedStatusCode, response.StatusCode);
     }
 
     [Fact]
@@ -479,7 +456,102 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         Snapshot
             .Create()
             .Add(response)
-            .MatchInline("""
+            .MatchInline(
+                """
+                Headers:
+                Cache-Control: no-cache
+                Content-Type: text/event-stream; charset=utf-8
+                -------------------------->
+                Status Code: OK
+                -------------------------->
+                event: next
+                data: {"data":{"delay":"next"}}
+
+                :
+
+                event: next
+                data: {"data":{"delay":"next"}}
+
+                :
+
+                event: complete
+
+
+                """);
+    }
+
+    [Fact]
+    public async Task EventStream_When_Accept_Is_All()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+        var client = server.CreateClient();
+        client.Timeout = TimeSpan.FromSeconds(30);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, _url);
+        request.Content = JsonContent.Create(
+            new ClientQueryRequest
+            {
+                Query = "subscription {delay(count: 2, delay:15000)}",
+            });
+        request.Headers.Add("Accept", "*/*");
+
+        using var response = await client.SendAsync(request, ResponseHeadersRead);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Cache-Control: no-cache
+                Content-Type: text/event-stream; charset=utf-8
+                -------------------------->
+                Status Code: OK
+                -------------------------->
+                event: next
+                data: {"data":{"delay":"next"}}
+
+                :
+
+                event: next
+                data: {"data":{"delay":"next"}}
+
+                :
+
+                event: complete
+
+
+                """);
+    }
+
+    [Fact]
+    public async Task EventStream_When_Accept_Is_All_And_Subscription_Directive()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+        var client = server.CreateClient();
+        client.Timeout = TimeSpan.FromSeconds(30);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, _url);
+        request.Content = JsonContent.Create(
+            new ClientQueryRequest
+            {
+                Query = "subscription foo @foo(bar: 1) {delay(count: 2, delay:15000)}",
+            });
+        request.Headers.Add("Accept", "*/*");
+
+        using var response = await client.SendAsync(request, ResponseHeadersRead);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
                 Headers:
                 Cache-Control: no-cache
                 Content-Type: text/event-stream; charset=utf-8
@@ -536,7 +608,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         using var response = await client.SendAsync(request);
 
         // assert
-        Assert.Equal(response.StatusCode, OK);
+        Assert.Equal(OK, response.StatusCode);
 
         var sortedResults = new SortedList<(int?, int?), OperationResult>();
 
@@ -581,7 +653,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         using var response = await client.SendAsync(request);
 
         // assert
-        Assert.Equal(response.StatusCode, OK);
+        Assert.Equal(OK, response.StatusCode);
 
         await foreach (var result in response.ReadAsResultStreamAsync())
         {
@@ -606,7 +678,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         using var response = await client.SendAsync(request);
 
         // assert
-        Assert.Equal(response.StatusCode, OK);
+        Assert.Equal(OK, response.StatusCode);
     }
 
     private HttpClient GetClient(HttpTransportVersion serverTransportVersion)

@@ -1,6 +1,5 @@
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 using static HotChocolate.Tests.TestHelper;
 
 namespace HotChocolate.Execution.Integration.Spec;
@@ -11,11 +10,9 @@ public class InputObjectsCanBeVariablesTest
     [Fact]
     public async Task EnsureInputObjectsCanBeVariablesTest()
     {
-        Snapshot.FullName();
-
         await ExpectValid(
                 """
-                query ($a: String $b: String) {
+                query ($a: String! $b: String!) {
                     anything(foo: {
                         a: $a
                         b: $b
@@ -27,8 +24,8 @@ public class InputObjectsCanBeVariablesTest
                 """,
             r => r.AddQueryType<Query>(),
             r => r.SetVariableValues(
-                    new Dictionary<string, object> 
-                    { 
+                    new Dictionary<string, object?>
+                    {
                         { "a", "a" },
                         { "b", "b" },
                     }))
@@ -38,11 +35,9 @@ public class InputObjectsCanBeVariablesTest
     [Fact]
     public async Task EnsureInputObjectsCanBeVariablesAndLiteralsTest()
     {
-        Snapshot.FullName();
-
         await ExpectValid(
             """
-            query ($a: String) {
+            query ($a: String!) {
                 anything(foo: {
                     a: $a
                     b: "b"
@@ -53,15 +48,13 @@ public class InputObjectsCanBeVariablesTest
             }
             """,
             r => r.AddQueryType<Query>(),
-            r => r.SetVariableValues(new Dictionary<string, object> { { "a", "a" }, }))
+            r => r.SetVariableValues(new Dictionary<string, object?> { { "a", "a" }, }))
             .MatchSnapshotAsync();
     }
 
     [Fact]
     public async Task EnsureInputObjectsCanBeLiteralsTest()
     {
-        Snapshot.FullName();
-
         await ExpectValid(
             @"
                     {
@@ -87,9 +80,9 @@ public class InputObjectsCanBeVariablesTest
         }
     }
 
-    public class Foo
+    public class Foo(string a, string b)
     {
-        public string A { get; set; }
-        public string B { get; set; }
+        public string A { get; set; } = a;
+        public string B { get; set; } = b;
     }
 }

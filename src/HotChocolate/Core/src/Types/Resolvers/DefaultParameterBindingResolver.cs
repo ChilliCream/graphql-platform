@@ -1,8 +1,5 @@
 #nullable enable
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers.Expressions.Parameters;
@@ -18,7 +15,7 @@ public sealed class DefaultParameterBindingResolver : IParameterBindingResolver
         IServiceProvider applicationServices,
         IEnumerable<IParameterExpressionBuilder>? customBindingFactories)
     {
-        var serviceInspector = applicationServices?.GetService<IServiceProviderIsService>();
+        var serviceInspector = applicationServices.GetService<IServiceProviderIsService>();
 
         var bindingFactories = new List<IParameterBindingFactory>
         {
@@ -45,11 +42,9 @@ public sealed class DefaultParameterBindingResolver : IParameterBindingResolver
             bindingFactories.Add(new InferredServiceParameterExpressionBuilder(serviceInspector));
         }
 
-
         bindingFactories.Add(new DocumentParameterExpressionBuilder());
         bindingFactories.Add(new CancellationTokenParameterExpressionBuilder());
         bindingFactories.Add(new ResolverContextParameterExpressionBuilder());
-        bindingFactories.Add(new PureResolverContextParameterExpressionBuilder());
         bindingFactories.Add(new SchemaParameterExpressionBuilder());
         bindingFactories.Add(new SelectionParameterExpressionBuilder());
         bindingFactories.Add(new FieldSyntaxParameterExpressionBuilder());

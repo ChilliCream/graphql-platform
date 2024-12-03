@@ -1,9 +1,5 @@
-using System;
 using System.Collections;
-#if NET8_0_OR_GREATER
 using System.Collections.Frozen;
-#endif
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
@@ -13,35 +9,18 @@ namespace HotChocolate.Types;
 
 public sealed class FieldCollection<T> : IFieldCollection<T> where T : class, IField
 {
-#if NET8_0_OR_GREATER
     private readonly FrozenDictionary<string, T> _fieldsLookup;
-#else
-    private readonly Dictionary<string, T> _fieldsLookup;
-#endif
     private readonly T[] _fields;
 
     internal FieldCollection(T[] fields)
     {
         _fields = fields ?? throw new ArgumentNullException(nameof(fields));
-#if NET8_0_OR_GREATER
         _fieldsLookup = _fields.ToFrozenDictionary(t => t.Name, StringComparer.Ordinal);
-#else
-        _fieldsLookup = new Dictionary<string, T>(_fields.Length, StringComparer.Ordinal);
-
-        foreach (var field in _fields)
-        {
-            _fieldsLookup.Add(field.Name, field);
-        }
-#endif
     }
 
     private FieldCollection(Dictionary<string, T> fieldsLookup, T[] fields)
     {
-#if NET8_0_OR_GREATER
         _fieldsLookup = fieldsLookup.ToFrozenDictionary(StringComparer.Ordinal);
-#else
-        _fieldsLookup = fieldsLookup;
-#endif
         _fields = fields;
     }
 
@@ -81,11 +60,7 @@ public sealed class FieldCollection<T> : IFieldCollection<T> where T : class, IF
     internal ReadOnlySpan<T> AsSpan() => _fields;
 
     internal ref T GetReference()
-#if NET6_0_OR_GREATER
         => ref MemoryMarshal.GetArrayDataReference(_fields);
-#else
-        => ref MemoryMarshal.GetReference(_fields.AsSpan());
-#endif
 
     public IEnumerator<T> GetEnumerator()
         => _fields.Length == 0
@@ -94,7 +69,7 @@ public sealed class FieldCollection<T> : IFieldCollection<T> where T : class, IF
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    public static FieldCollection<T> Empty { get; } = new(Array.Empty<T>());
+    public static FieldCollection<T> Empty { get; } = new([]);
 
     internal static FieldCollection<T> TryCreate(T[] fields, out IReadOnlyCollection<string>? duplicateFieldNames)
     {
@@ -104,20 +79,10 @@ public sealed class FieldCollection<T> : IFieldCollection<T> where T : class, IF
 
         foreach (var field in internalFields)
         {
-#if NET6_0_OR_GREATER
             if (!internalLookup.TryAdd(field.Name, field))
             {
                 (duplicates ??= []).Add(field.Name);
             }
-#else
-            if (internalLookup.ContainsKey(field.Name))
-            {
-                (duplicates ??= []).Add(field.Name);
-                continue;
-            }
-
-            internalLookup.Add(field.Name, field);
-#endif
         }
 
         if (duplicates?.Count > 0)

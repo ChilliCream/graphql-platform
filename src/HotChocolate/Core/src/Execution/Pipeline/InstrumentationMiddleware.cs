@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -31,7 +29,7 @@ internal sealed class InstrumentationMiddleware
             }
         }
     }
-    
+
     public static RequestCoreMiddleware Create()
         => (core, next) =>
         {

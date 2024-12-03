@@ -79,7 +79,7 @@ public class QueryableProjectionProvider : ProjectionProvider
         {
             IQueryable<TEntityType> q => q.Select(projection),
             IEnumerable<TEntityType> q => q.AsQueryable().Select(projection),
-            QueryableExecutable<TEntityType> q => q.WithSource(q.Source.Select(projection)),
+            IQueryableExecutable<TEntityType> q => q.WithSource(q.Source.Select(projection)),
             _ => input,
         };
 
@@ -111,14 +111,14 @@ public class QueryableProjectionProvider : ProjectionProvider
                 inMemory);
 
             var visitor = new QueryableProjectionVisitor();
-            
+
             visitor.Visit(visitorContext);
 
             var projection = visitorContext.Project<TEntityType>();
 
             return ApplyToResult(input, projection);
         };
-    
+
     private sealed class QueryableQueryBuilder(ApplyProjection applicator) : IQueryBuilder
     {
         public void Prepare(IMiddlewareContext context)

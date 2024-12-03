@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Composition;
 using HotChocolate.Fusion.Composition.Features;
@@ -92,7 +91,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build());
 
@@ -101,7 +100,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -144,7 +143,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetVariableValues(new Dictionary<string, object?> { { "skip", true } })
                 .SetDocument(request)
                 .Build());
@@ -154,7 +153,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -198,7 +197,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetVariableValues(new Dictionary<string, object?> { { "skip", true } })
                 .SetDocument(request)
                 .Build());
@@ -208,7 +207,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -244,7 +243,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build());
 
@@ -253,7 +252,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -289,7 +288,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build());
 
@@ -298,8 +297,8 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.NotNull(result.ExpectQueryResult().Errors);
-        Assert.NotEmpty(result.ExpectQueryResult().Errors!);
+        Assert.NotNull(result.ExpectOperationResult().Errors);
+        Assert.NotEmpty(result.ExpectOperationResult().Errors!);
     }
 
     [Fact]
@@ -341,7 +340,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build(),
             cts.Token);
@@ -391,7 +390,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build(),
             cts.Token);
@@ -441,7 +440,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build(),
             cts.Token);
@@ -492,7 +491,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build(),
             cts.Token);
@@ -554,7 +553,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build());
 
@@ -563,7 +562,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact(Skip = "Do we want to reformat ids?")]
@@ -604,7 +603,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build());
 
@@ -613,7 +612,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact(Skip = "this does not work yet")]
@@ -654,7 +653,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build());
 
@@ -663,7 +662,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -705,7 +704,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build());
 
@@ -714,7 +713,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -757,7 +756,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build());
 
@@ -766,7 +765,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -810,7 +809,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build());
 
@@ -819,7 +818,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -856,7 +855,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { { "first", 2 }, })
                 .Build());
@@ -866,7 +865,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -876,13 +875,14 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         using var demoProject = await DemoProject.CreateAsync();
 
         // act
-        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
-            new[]
-            {
-                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
-            });
+        var fusionGraph =
+            await new FusionGraphComposer(logFactory: _logFactory)
+                .ComposeAsync(
+                [
+                    demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+                    demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                    demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+                ]);
 
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
@@ -913,7 +913,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build());
 
@@ -922,7 +922,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -964,7 +964,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { { "id", id }, })
                 .Build());
@@ -974,7 +974,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -1014,7 +1014,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { { "id", 1 }, })
                 .Build());
@@ -1064,7 +1064,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { { "id", id }, })
                 .Build());
@@ -1074,7 +1074,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -1116,7 +1116,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { { "id", id }, })
                 .Build());
@@ -1169,7 +1169,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { { "id", id }, })
                 .Build());
@@ -1179,7 +1179,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -1222,7 +1222,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         var result = await executorProxy.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build());
 
@@ -1245,7 +1245,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         result = await executorProxy.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build());
 
@@ -1287,7 +1287,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build());
 
@@ -1296,7 +1296,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -1338,7 +1338,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdDox" }, { "first", 1 }, })
                 .Build());
@@ -1348,7 +1348,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -1390,7 +1390,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(
                     new Dictionary<string, object?>
@@ -1405,7 +1405,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -1451,7 +1451,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdDox" }, { "first", 1 }, })
                 .Build());
@@ -1461,7 +1461,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -1505,7 +1505,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdDox" }, { "first", 1 }, })
                 .Build());
@@ -1515,7 +1515,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -1561,7 +1561,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdDox" }, { "first", 1 }, })
                 .Build());
@@ -1571,7 +1571,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -1621,7 +1621,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdDox" }, { "first", 1 }, })
                 .Build());
@@ -1631,7 +1631,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -1680,7 +1680,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdDox" }, { "first", 1 }, })
                 .Build());
@@ -1690,7 +1690,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -1745,7 +1745,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdDox" }, { "first", 1 }, })
                 .Build());
@@ -1755,7 +1755,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -1792,7 +1792,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { { "after", null }, })
                 .Build());
@@ -1802,7 +1802,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
@@ -1848,7 +1848,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdDox" }, { "first", 1 }, })
                 .Build());
@@ -1858,7 +1858,61 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
+    }
+
+    // TODO : FIX THIS TEST
+    [Fact(Skip = "This test does not work anymore as it uses CCN which we removed ... ")]
+    public async Task ResolveByKey_Handles_Null_Item_Correctly()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        // act
+        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+            new[]
+            {
+                demoProject.Products.ToConfiguration(),
+                demoProject.Resale.ToConfiguration(),
+            }, new FusionFeatureCollection(FusionFeatures.NodeField));
+
+        var executor = await new ServiceCollection()
+            .AddSingleton(demoProject.HttpClientFactory)
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .BuildRequestExecutorAsync();
+
+        var request = Parse(
+            """
+            {
+              viewer {
+                # The second product does not exist in the products subgraph
+                recommendedResalableProducts {
+                  edges {
+                    node {
+                      product? {
+                        id
+                        name
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            """);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            OperationRequestBuilder
+                .New()
+                .SetDocument(request)
+                .Build());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result);
+        await snapshot.MatchMarkdownAsync();
     }
 
     public sealed class HotReloadConfiguration : IObservable<GatewayConfiguration>

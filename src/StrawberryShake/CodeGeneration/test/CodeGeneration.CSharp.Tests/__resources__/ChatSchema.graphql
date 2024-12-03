@@ -357,7 +357,4 @@ type User {
   personId: ID!
 }
 
-"The cost directives is used to express the complexity of a field."
-directive @cost("Defines the complexity of the field." complexity: Int! = 1 "Defines field arguments that act as complexity multipliers." multipliers: [MultiplierPath!]) on FIELD_DEFINITION
-
 directive @authorize("The name of the authorization policy that determines access to the annotated resource." policy: String "Roles that are allowed to access to the annotated resource." roles: [String!]) repeatable on OBJECT | FIELD_DEFINITION

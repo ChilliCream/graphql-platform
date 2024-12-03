@@ -1,8 +1,6 @@
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
-using CookieCrumble;
 
 namespace HotChocolate.Types;
 
@@ -84,7 +82,6 @@ public class DirectiveTests : TypeTestBase
         Assert.Equal("123", runtimeValue.Bar);
         Assert.Equal("456", runtimeValue.Child.Bar);
     }
-
 
     [Fact]
     public void Directive_AsValue_Same()

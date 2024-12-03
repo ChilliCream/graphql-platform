@@ -9,5 +9,5 @@ public interface ISyntaxGenerator
     void Generate(
         SourceProductionContext context,
         Compilation compilation,
-        ImmutableArray<ISyntaxInfo> syntaxInfos);
+        ImmutableArray<SyntaxInfo> syntaxInfos);
 }

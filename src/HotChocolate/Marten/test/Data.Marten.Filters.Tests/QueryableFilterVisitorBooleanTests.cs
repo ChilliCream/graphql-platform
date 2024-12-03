@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 
@@ -24,16 +23,16 @@ public class QueryableFilterVisitorBooleanTests(SchemaCache cache)
     public async Task Create_BooleanEqual_Expression()
     {
         // arrange
-        var tester = cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = await cache.CreateSchemaAsync<Foo, FooFilterInput>(_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: true}}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: false}}){ bar}}")
                 .Build());
 
@@ -49,16 +48,16 @@ public class QueryableFilterVisitorBooleanTests(SchemaCache cache)
     public async Task Create_BooleanNotEqual_Expression()
     {
         // arrange
-        var tester = cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = await cache.CreateSchemaAsync<Foo, FooFilterInput>(_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { neq: true}}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { neq: false}}){ bar}}")
                 .Build());
 
@@ -74,21 +73,21 @@ public class QueryableFilterVisitorBooleanTests(SchemaCache cache)
     public async Task Create_NullableBooleanEqual_Expression()
     {
         // arrange
-        var tester = cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = await cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: true}}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: false}}){ bar}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: null}}){ bar}}")
                 .Build());
 
@@ -105,22 +104,22 @@ public class QueryableFilterVisitorBooleanTests(SchemaCache cache)
     public async Task Create_NullableBooleanNotEqual_Expression()
     {
         // arrange
-        var tester = cache.CreateSchema<FooNullable, FooNullableFilterInput>(
+        var tester = await cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(
             _fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { neq: true}}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { neq: false}}){ bar}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { neq: null}}){ bar}}")
                 .Build());
 

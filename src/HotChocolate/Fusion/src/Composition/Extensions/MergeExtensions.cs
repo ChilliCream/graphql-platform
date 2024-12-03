@@ -1,4 +1,3 @@
-using HotChocolate.Language;
 using HotChocolate.Skimmed;
 using HotChocolate.Types;
 
@@ -159,6 +158,46 @@ internal static class MergeExtensions
     }
 
     internal static void MergeDescriptionWith(this INamedTypeDefinition target, INamedTypeDefinition source)
+    {
+        if (string.IsNullOrWhiteSpace(target.Description) && !string.IsNullOrWhiteSpace(source.Description))
+        {
+            target.Description = source.Description;
+        }
+    }
+
+    internal static void MergeDirectivesWith(
+        this IDirectivesProvider target,
+        IDirectivesProvider source,
+        CompositionContext context)
+    {
+        foreach (var directive in source.Directives)
+        {
+            if (context.FusionTypes.IsFusionDirective(directive.Name)
+                // @deprecated is handled separately
+                || directive.Name == BuiltIns.Deprecated.Name
+                // @tag is handled separately
+                || directive.Name == "tag")
+            {
+                continue;
+            }
+
+            context.FusionGraph.DirectiveDefinitions.TryGetDirective(directive.Name, out var directiveDefinition);
+
+            if (!target.Directives.ContainsName(directive.Name))
+            {
+                target.Directives.Add(directive);
+            }
+            else
+            {
+                if (directiveDefinition is not null && directiveDefinition.IsRepeatable)
+                {
+                    target.Directives.Add(directive);
+                }
+            }
+        }
+    }
+
+    internal static void MergeDescriptionWith(this DirectiveDefinition target, DirectiveDefinition source)
     {
         if (string.IsNullOrWhiteSpace(target.Description) && !string.IsNullOrWhiteSpace(source.Description))
         {

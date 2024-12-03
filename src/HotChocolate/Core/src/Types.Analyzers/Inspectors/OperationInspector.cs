@@ -13,7 +13,7 @@ public sealed class OperationInspector : ISyntaxInspector
 
     public bool TryHandle(
         GeneratorSyntaxContext context,
-        [NotNullWhen(true)] out ISyntaxInfo? syntaxInfo)
+        [NotNullWhen(true)] out SyntaxInfo? syntaxInfo)
     {
         if (context.Node is MethodDeclarationSyntax { AttributeLists.Count: > 0, } methodSyntax)
         {

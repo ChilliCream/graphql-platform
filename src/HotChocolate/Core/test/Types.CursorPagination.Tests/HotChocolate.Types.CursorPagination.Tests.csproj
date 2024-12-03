@@ -6,10 +6,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+    <PackageReference Include="System.ComponentModel.Annotations" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
     <ProjectReference Include="..\..\src\Core\HotChocolate.Core.csproj" />
     <ProjectReference Include="..\Types.Tests.Documentation\HotChocolate.Types.Tests.Documentation.csproj" />
     <ProjectReference Include="..\Utilities\HotChocolate.Tests.Utilities.csproj" />

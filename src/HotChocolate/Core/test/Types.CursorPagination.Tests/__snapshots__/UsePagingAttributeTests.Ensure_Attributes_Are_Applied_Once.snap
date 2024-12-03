@@ -8,7 +8,7 @@ interface Node {
 }
 
 type Foo {
-  bar: String
+  bar: String!
 }
 
 "A connection to a list of items."
@@ -18,7 +18,7 @@ type FoosConnection {
   "A list of edges."
   edges: [FoosEdge!]
   "A flattened list of the nodes."
-  nodes: [Foo]
+  nodes: [Foo!]
 }
 
 "An edge in a connection."
@@ -26,7 +26,7 @@ type FoosEdge {
   "A cursor for use in pagination."
   cursor: String!
   "The item at the end of the edge."
-  node: Foo
+  node: Foo!
 }
 
 "Information about pagination in a connection."

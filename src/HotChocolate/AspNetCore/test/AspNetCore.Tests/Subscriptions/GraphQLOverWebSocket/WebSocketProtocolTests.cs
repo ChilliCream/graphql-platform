@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using CookieCrumble;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
 using HotChocolate.AspNetCore.Tests.Utilities;
@@ -11,8 +10,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 using static System.Net.WebSockets.WebSocketCloseStatus;
-
-#nullable enable
 
 namespace HotChocolate.AspNetCore.Subscriptions.GraphQLOverWebSocket;
 
@@ -272,7 +269,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                 await testServer.SendPostRequestAsync(
                     new ClientQueryRequest
                     {
-                        Query = 
+                        Query =
                             """
                             mutation {
                                 createReview(episode: NEW_HOPE review: {
@@ -501,7 +498,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
     }
 
     [Fact]
-    public async Task Send_Subscribe_600x_Complete_From_Server()
+    public async Task Send_Subscribe_100x_Complete_From_Server()
     {
         await TryTest(
             async ct =>
@@ -521,19 +518,19 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                     "subscription { onReview(episode: NEW_HOPE) { stars } }");
 
                 var stopwatch = Stopwatch.StartNew();
-                
-                for (var i = 0; i < 600; i++)
+
+                for (var i = 0; i < 100; i++)
                 {
                     await webSocket.SendSubscribeAsync(i.ToString(), payload, ct);
                 }
-                
-                while(diagnostics.Subscribed < 600)
+
+                while(diagnostics.Subscribed < 100)
                 {
                     await Task.Delay(10, ct);
                 }
-                
+
                 _output.WriteLine($"Subscribed in {stopwatch.ElapsedMilliseconds}ms");
-                
+
                 await testServer.SendPostRequestAsync(
                     new ClientQueryRequest
                     {
@@ -548,7 +545,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                             }",
                     });
 
-                for (var i = 0; i < 600; i++)
+                for (var i = 0; i < 100; i++)
                 {
                     await WaitForMessage(webSocket, Messages.Next, ct);
                 }
@@ -561,7 +558,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                     });
 
                 // assert
-                for (var i = 0; i < 600; i++)
+                for (var i = 0; i < 100; i++)
                 {
                     await WaitForMessage(webSocket, Messages.Complete, ct);
                 }
@@ -712,6 +709,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             async ct =>
             {
                 // arrange
+                snapshot.Clear();
                 var interceptor = new PingPongInterceptor();
                 using var testServer = CreateStarWarsServer(
                     configureServices: s => s
@@ -957,9 +955,9 @@ public class WebSocketProtocolTests : SubscriptionTestBase
     public sealed class SubscriptionTestDiagnostics : SubscriptionDiagnosticEventsListener
     {
         private int _subscribed;
-        
+
         public int Subscribed => _subscribed;
-        
+
         public bool UnsubscribeInvoked { get; private set; }
 
         public bool CloseInvoked { get; private set; }

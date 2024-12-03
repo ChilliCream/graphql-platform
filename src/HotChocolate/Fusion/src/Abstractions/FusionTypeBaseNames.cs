@@ -45,6 +45,16 @@ internal static class FusionTypeBaseNames
     /// </summary>
     public const string FusionDirective = "fusion";
 
+    public const string InternalDirective = "internal";
+
+    public const string RenameDirective = "rename";
+
+    public const string RemoveDirective = "remove";
+
+    public const string LookupDirective = "lookup";
+
+    public const string RequireDirective = "require";
+
     /// <summary>
     /// The base name of the GraphQL selection directive.
     /// </summary>
@@ -80,4 +90,3 @@ internal static class FusionTypeBaseNames
     /// </summary>
     public const string ResolverKind = "ResolverKind";
 }
-

@@ -4,8 +4,7 @@
     <PackageId>HotChocolate.AspNetCore</PackageId>
     <AssemblyName>HotChocolate.AspNetCore</AssemblyName>
     <RootNamespace>HotChocolate.AspNetCore</RootNamespace>
-    <Description>This package contains the GraphQL ASP.NET Core middleware for Hot Chocolate. Moreover, this package includes the Banana Cake Pop middleware, which provides you with our beloved GraphQL IDE middleware.</Description>
-    <ImplicitUsings>enable</ImplicitUsings>
+    <Description>This package contains the GraphQL ASP.NET Core middleware for Hot Chocolate. Moreover, this package includes the Nitro middleware, which provides you with our beloved GraphQL IDE middleware.</Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BananaCakePop.Middleware" Version="$(BananaCakePopVersion)" />
+    <PackageReference Include="ChilliCream.Nitro.App" />
   </ItemGroup>
 
   <ItemGroup>

@@ -50,6 +50,13 @@ public abstract partial class ScalarType
     {
         base.OnRegisterDependencies(context, definition);
 
+        if (SpecifiedBy is not null)
+        {
+            var inspector = context.TypeInspector;
+            var specifiedByTypeRef = inspector.GetTypeRef(typeof(SpecifiedByDirectiveType));
+            context.Dependencies.Add(new TypeDependency(specifiedByTypeRef));
+        }
+
         if (definition.HasDirectives)
         {
             foreach (var directive in definition.Directives)
@@ -66,5 +73,10 @@ public abstract partial class ScalarType
         _converter = context.DescriptorContext.TypeConverter;
         var directiveDefinitions = definition.GetDirectives();
         Directives = DirectiveCollection.CreateAndComplete(context, this, directiveDefinitions);
+
+        if(definition.SpecifiedBy is not null)
+        {
+            SpecifiedBy = definition.SpecifiedBy;
+        }
     }
 }

@@ -22,10 +22,10 @@ internal sealed class JsonSnapshotValueFormatter : ISnapshotValueFormatter, IMar
 
     public bool CanHandle(object? value)
         => true;
-    
+
     public void Format(IBufferWriter<byte> snapshot, object? value)
         => snapshot.Append(JsonConvert.SerializeObject(value, _settings));
-    
+
     public void FormatMarkdown(IBufferWriter<byte> snapshot, object? value)
     {
         snapshot.Append("```json");

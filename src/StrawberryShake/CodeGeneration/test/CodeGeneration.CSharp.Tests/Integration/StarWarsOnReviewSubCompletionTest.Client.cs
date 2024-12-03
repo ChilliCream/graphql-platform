@@ -227,9 +227,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubC
         /// The name of the current Object type at runtime.
         /// </summary>
         public global::System.String __typename { get; }
-
         public global::System.Int32 Stars { get; }
-
         public global::System.String? Commentary { get; }
 
         public virtual global::System.Boolean Equals(OnReviewSub_OnReview_Review? other)
@@ -304,9 +302,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubC
         /// The name of the current Object type at runtime.
         /// </summary>
         public global::System.String __typename { get; }
-
         public global::System.Int32 Stars { get; }
-
         public global::System.String? Commentary { get; }
     }
 
@@ -338,8 +334,99 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubC
 
         public static OnReviewSubSubscriptionDocument Instance { get; } = new OnReviewSubSubscriptionDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Subscription;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x73, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x4f, 0x6e, 0x52, 0x65, 0x76, 0x69, 0x65, 0x77, 0x53, 0x75, 0x62, 0x20, 0x7b, 0x20, 0x6f, 0x6e, 0x52, 0x65, 0x76, 0x69, 0x65, 0x77, 0x28, 0x65, 0x70, 0x69, 0x73, 0x6f, 0x64, 0x65, 0x3a, 0x20, 0x4e, 0x45, 0x57, 0x5f, 0x48, 0x4f, 0x50, 0x45, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x73, 0x74, 0x61, 0x72, 0x73, 0x20, 0x63, 0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x74, 0x61, 0x72, 0x79, 0x20, 0x7d, 0x20, 0x7d};
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
+        {
+            0x73,
+            0x75,
+            0x62,
+            0x73,
+            0x63,
+            0x72,
+            0x69,
+            0x70,
+            0x74,
+            0x69,
+            0x6f,
+            0x6e,
+            0x20,
+            0x4f,
+            0x6e,
+            0x52,
+            0x65,
+            0x76,
+            0x69,
+            0x65,
+            0x77,
+            0x53,
+            0x75,
+            0x62,
+            0x20,
+            0x7b,
+            0x20,
+            0x6f,
+            0x6e,
+            0x52,
+            0x65,
+            0x76,
+            0x69,
+            0x65,
+            0x77,
+            0x28,
+            0x65,
+            0x70,
+            0x69,
+            0x73,
+            0x6f,
+            0x64,
+            0x65,
+            0x3a,
+            0x20,
+            0x4e,
+            0x45,
+            0x57,
+            0x5f,
+            0x48,
+            0x4f,
+            0x50,
+            0x45,
+            0x29,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x73,
+            0x74,
+            0x61,
+            0x72,
+            0x73,
+            0x20,
+            0x63,
+            0x6f,
+            0x6d,
+            0x6d,
+            0x65,
+            0x6e,
+            0x74,
+            0x61,
+            0x72,
+            0x79,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d
+        };
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "92220fce37342d7ade3d63a2a81342eb1fb14bac");
+
         public override global::System.String ToString()
         {
 #if NETCOREAPP3_1_OR_GREATER
@@ -373,6 +460,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubC
         }
 
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IOnReviewSubResult);
+
         public global::System.IObservable<global::StrawberryShake.IOperationResult<IOnReviewSubResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null)
         {
             var request = CreateRequest();
@@ -463,6 +551,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubC
         }
 
         global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubCompletion.IOnReviewSubResult);
+
         public OnReviewSubResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             if (snapshot is null)
@@ -513,9 +602,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubC
         }
 
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubCompletion.State.ReviewData OnReview { get; }
-
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
         public global::System.UInt64 Version => _version;
+
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new OnReviewSubResultInfo(OnReview, _entityIds, version);
@@ -631,9 +720,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubC
         }
 
         public global::System.String __typename { get; }
-
         public global::System.Int32? Stars { get; }
-
         public global::System.String? Commentary { get; }
     }
 
@@ -642,7 +729,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubC
     public partial class StarWarsOnReviewSubCompletionClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
         private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
-        {Indented = false};
+        {
+            Indented = false
+        };
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
             global::System.String __typename = obj.GetProperty("__typename").GetString()!;

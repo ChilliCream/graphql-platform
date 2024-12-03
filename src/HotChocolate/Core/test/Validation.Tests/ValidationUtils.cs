@@ -1,11 +1,7 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Validation.Types;
 using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
-
-#nullable enable
 
 namespace HotChocolate.Validation;
 

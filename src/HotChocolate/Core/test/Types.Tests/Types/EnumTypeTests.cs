@@ -1,11 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Configuration;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types;
 
@@ -352,7 +350,7 @@ public class EnumTypeTests : TypeTestBase
             .AddEnumType(d => d
                 .Name("Foo")
                 .Value("baz")
-                .Directive("bar", Array.Empty<ArgumentNode>()))
+                .Directive("bar", []))
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
@@ -658,6 +656,41 @@ public class EnumTypeTests : TypeTestBase
         Assert.True(type.IsInstanceOfType("ANYTHING WILL DO"));
     }
 
+    [Fact]
+    public async Task EnsureEnumValueOrder()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryWithEnum>()
+                .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task EnsureEnumValueOrder_With_Introspection()
+    {
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryWithEnum>()
+                .BuildRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                __type(name: "CriticalityLevel") {
+                    enumValues {
+                        name
+                    }
+                }
+            }
+            """);
+
+        result.MatchMarkdownSnapshot();
+    }
+
     public enum Foo
     {
         Bar1,
@@ -670,15 +703,25 @@ public class EnumTypeTests : TypeTestBase
     {
         Bar1,
 
-        [Obsolete]
-        Bar2,
+        [Obsolete] Bar2,
     }
 
     public enum FooIgnore
     {
         Bar1,
-        [GraphQLIgnore]
-        Bar2,
+        [GraphQLIgnore] Bar2,
+    }
+
+    public enum CriticalityLevel
+    {
+        Info,
+        Warning,
+        Critical
+    }
+
+    public class QueryWithEnum
+    {
+        public CriticalityLevel GetCriticalityLevel() => CriticalityLevel.Critical;
     }
 
     public class FooIgnoredType : EnumType<Foo>
@@ -700,16 +743,14 @@ public class EnumTypeTests : TypeTestBase
     public enum FooDeprecated
     {
         Bar1,
-        [GraphQLDeprecated("Baz.")]
-        Bar2,
+        [GraphQLDeprecated("Baz.")] Bar2,
     }
 
     [GraphQLName("Foo")]
     public enum FooName
     {
         Bar1,
-        [GraphQLName("BAR_2")]
-        Bar2,
+        [GraphQLName("BAR_2")] Bar2,
     }
 
     public enum FooUnderline

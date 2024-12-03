@@ -1,5 +1,4 @@
 using HotChocolate.Types;
-using CookieCrumble;
 
 namespace HotChocolate.Data.Filters;
 
@@ -61,41 +60,41 @@ public class ListFilterInputTests
 
     public class Foo
     {
-        public Baz[] Baz { get; set; } = new Baz[0];
+        public Baz[] Baz { get; set; } = [];
 
-        public string[] StringArray { get; set; } = new string[0];
+        public string[] StringArray { get; set; } = [];
 
-        public string?[] StringNullableArray { get; set; } = new string?[0];
+        public string?[] StringNullableArray { get; set; } = [];
 
-        public bool[] BooleanArray { get; set; } = new bool[0];
+        public bool[] BooleanArray { get; set; } = [];
 
-        public bool?[] BooleanNullableArray { get; set; } = new bool?[0];
+        public bool?[] BooleanNullableArray { get; set; } = [];
 
-        public short[] BarShortArray { get; set; } = new short[0];
+        public short[] BarShortArray { get; set; } = [];
 
-        public int[] BarIntArray { get; set; } = new int[0];
+        public int[] BarIntArray { get; set; } = [];
 
-        public long[] BarLongArray { get; set; } = new long[0];
+        public long[] BarLongArray { get; set; } = [];
 
-        public float[] BarFloatArray { get; set; } = new float[0];
+        public float[] BarFloatArray { get; set; } = [];
 
-        public double[] BarDoubleArray { get; set; } = new double[0];
+        public double[] BarDoubleArray { get; set; } = [];
 
-        public decimal[] BarDecimalArray { get; set; } = new decimal[0];
+        public decimal[] BarDecimalArray { get; set; } = [];
 
-        public short?[] BarShortNullableArray { get; set; } = new short?[0];
+        public short?[] BarShortNullableArray { get; set; } = [];
 
-        public int?[] BarIntNullableArray { get; set; } = new int?[0];
+        public int?[] BarIntNullableArray { get; set; } = [];
 
-        public long?[] BarLongNullableArray { get; set; } = new long?[0];
+        public long?[] BarLongNullableArray { get; set; } = [];
 
-        public float?[] BarFloatNullableArray { get; set; } = new float?[0];
+        public float?[] BarFloatNullableArray { get; set; } = [];
 
-        public double?[] BarDoubleNullableArray { get; set; } = new double?[0];
+        public double?[] BarDoubleNullableArray { get; set; } = [];
 
-        public decimal?[] BarDecimalNullableArray { get; set; } = new decimal?[0];
+        public decimal?[] BarDecimalNullableArray { get; set; } = [];
 
-        public FooBar[] FooBarArray { get; set; } = new FooBar[0];
+        public FooBar[] FooBarArray { get; set; } = [];
     }
 
     public class Baz

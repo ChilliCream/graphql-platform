@@ -19,9 +19,7 @@ public abstract class DocumentHashProviderBase : IDocumentHashProvider
 
     public string ComputeHash(ReadOnlySpan<byte> document)
     {
-#if NET6_0_OR_GREATER
-        return ComputeHash(document, Format);
-#else
+#if NETSTANDARD2_0
         var rented = ArrayPool<byte>.Shared.Rent(document.Length);
         document.CopyTo(rented);
 
@@ -34,13 +32,15 @@ public abstract class DocumentHashProviderBase : IDocumentHashProvider
         {
             ArrayPool<byte>.Shared.Return(rented);
         }
+#else
+        return ComputeHash(document, Format);
 #endif
     }
 
-#if NET6_0_OR_GREATER
-    protected abstract string ComputeHash(ReadOnlySpan<byte> document, HashFormat format);
-#else
+#if NETSTANDARD2_0
     protected abstract byte[] ComputeHash(byte[] document, int length);
+#else
+    protected abstract string ComputeHash(ReadOnlySpan<byte> document, HashFormat format);
 #endif
 
     protected static string FormatHash(ReadOnlySpan<byte> hash, HashFormat format)
@@ -96,7 +96,6 @@ public abstract class DocumentHashProviderBase : IDocumentHashProvider
 
         return (char)value;
     }
-
 
 #if NETSTANDARD2_0
     private static unsafe string ToBase64UrlSafeString(

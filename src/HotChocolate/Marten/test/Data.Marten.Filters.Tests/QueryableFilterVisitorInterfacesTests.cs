@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using CookieCrumble;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -26,27 +25,27 @@ public class QueryableFilterVisitorInterfacesTests
     public async Task Create_InterfaceStringEqual_Expression()
     {
         // arrange
-        var tester = _cache
-            .CreateSchema<BarInterface, FilterInputType<BarInterface>>(_barEntities,
+        var tester = await _cache
+            .CreateSchemaAsync<BarInterface, FilterInputType<BarInterface>>(_barEntities,
                 configure: Configure);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { test: { prop: { eq: \"a\"}}}) " +
                     "{ test{ prop }}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { test: { prop: { eq: \"b\"}}}) " +
                     "{ test{ prop }}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { test: { prop: { eq: null}}}) " +
                     "{ test{ prop}}}")

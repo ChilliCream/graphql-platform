@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Composition;
@@ -72,7 +71,7 @@ public class UnionTests
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { {"input", input }, })
                 .Build(),
@@ -134,7 +133,7 @@ public class UnionTests
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { {"input", input}, })
                 .Build(),
@@ -193,7 +192,7 @@ public class UnionTests
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { {"input", input}, })
                 .Build(),
@@ -252,7 +251,7 @@ public class UnionTests
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { {"input", input}, })
                 .Build(),

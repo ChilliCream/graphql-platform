@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
@@ -33,21 +32,21 @@ public class QueryableFilterVisitorInterfacesTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { test: { prop: { eq: \"a\"}}}) " +
                     "{ test{ prop }}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { test: { prop: { eq: \"b\"}}}) " +
                     "{ test{ prop }}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { test: { prop: { eq: null}}}) " +
                     "{ test{ prop}}}")
@@ -60,7 +59,6 @@ public class QueryableFilterVisitorInterfacesTests : IClassFixture<SchemaCache>
             .AddResult(res2, "ba")
             .AddResult(res3, "null")
             .MatchAsync();
-
     }
 
     private static void Configure(ISchemaBuilder builder)

@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution.Properties;
 using HotChocolate.Execution.Serialization;
 using HotChocolate.Language;
@@ -39,9 +35,6 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
     public IVariableValueCollection Variables => _operationContext.Variables;
 
-    IReadOnlyDictionary<string, object?> IPureResolverContext.ScopedContextData
-        => ScopedContextData;
-
     public CancellationToken RequestAborted { get; private set; }
 
     public bool HasCleanupTasks => _cleanupTasks.Count > 0;
@@ -59,7 +52,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
             ErrorBuilder.New()
                 .SetMessage(errorMessage)
                 .SetPath(Path)
-                .AddLocation([_selection.SyntaxNode])
+                .SetLocations([_selection.SyntaxNode])
                 .Build());
     }
 
@@ -89,7 +82,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
             var errorBuilder = _operationContext.ErrorHandler
                 .CreateUnexpectedError(exception)
                 .SetPath(Path)
-                .AddLocation([_selection.SyntaxNode]);
+                .SetLocations([_selection.SyntaxNode]);
 
             configure?.Invoke(errorBuilder);
 
@@ -177,9 +170,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
     public T Service<T>() where T : notnull => Services.GetRequiredService<T>();
 
-#if NET8_0_OR_GREATER
-    public T? Service<T>(object key) where T : notnull => Services.GetKeyedService<T>(key);
-#endif
+    public T Service<T>(object key) where T : notnull => Services.GetRequiredKeyedService<T>(key);
 
     public object Service(Type service)
     {
@@ -212,9 +203,32 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
     public async ValueTask ExecuteCleanupTasksAsync()
     {
-        foreach (var task in _cleanupTasks)
+        var count = _cleanupTasks.Count;
+
+        if (count == 1)
         {
-            await task.Invoke().ConfigureAwait(false);
+            await _cleanupTasks[0].Invoke().ConfigureAwait(false);
+            return;
+        }
+
+        if (count == 2)
+        {
+            await _cleanupTasks[0].Invoke().ConfigureAwait(false);
+            await _cleanupTasks[1].Invoke().ConfigureAwait(false);
+            return;
+        }
+
+        if (count == 3)
+        {
+            await _cleanupTasks[0].Invoke().ConfigureAwait(false);
+            await _cleanupTasks[1].Invoke().ConfigureAwait(false);
+            await _cleanupTasks[2].Invoke().ConfigureAwait(false);
+            return;
+        }
+
+        for (var i = 0; i < count; i++)
+        {
+            await _cleanupTasks[i].Invoke().ConfigureAwait(false);
         }
     }
 

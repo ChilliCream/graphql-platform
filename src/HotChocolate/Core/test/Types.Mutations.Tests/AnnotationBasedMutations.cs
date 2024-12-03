@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Threading.Tasks;
-using CookieCrumble;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
@@ -85,7 +81,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -137,7 +133,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -192,7 +188,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -215,7 +211,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -251,7 +247,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -286,7 +282,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -342,7 +338,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -440,6 +436,21 @@ public class AnnotationBasedMutations
     }
 
     [Fact]
+    public async Task SimpleMutation_Override_Payload_WithError()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddCostAnalyzer()
+                .AddMutationType<SimpleMutationPayloadOverrideWithError>()
+                .AddMutationConventions(true)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task SimpleMutation_Override_Input()
     {
         var schema =
@@ -500,7 +511,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -517,7 +528,7 @@ public class AnnotationBasedMutations
                 .AddGlobalObjectIdentification()
                 .ExecuteRequestAsync(
                     OperationRequestBuilder
-                        .Create()
+                        .New()
                         .SetDocument(
                             """
                             mutation($id: ID!) {
@@ -531,7 +542,7 @@ public class AnnotationBasedMutations
                         .SetVariableValues(new Dictionary<string, object?> { { "id", id } })
                         .Build());
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -555,7 +566,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -580,7 +591,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -603,7 +614,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -641,7 +652,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -666,7 +677,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -690,7 +701,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -758,7 +769,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -782,7 +793,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -820,7 +831,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -844,7 +855,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -882,7 +893,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -905,7 +916,7 @@ public class AnnotationBasedMutations
                         }
                     }
                     """);
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -943,7 +954,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -967,7 +978,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -1005,7 +1016,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -1029,7 +1040,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -1081,7 +1092,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -1105,7 +1116,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -1158,11 +1169,11 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
-    public async Task Mutation_With_Optional_Arg()
+    public async Task Mutation_With_Optional_Args()
     {
         var result =
             await new ServiceCollection()
@@ -1173,7 +1184,7 @@ public class AnnotationBasedMutations
                 .ExecuteRequestAsync(
                     """
                     mutation {
-                        doSomething(input: { }) {
+                        doSomething(input: { optional1: "something", optional2: null }) {
                             string
                         }
                     }
@@ -1184,7 +1195,7 @@ public class AnnotationBasedMutations
             {
               "data": {
                 "doSomething": {
-                  "string": "nothing"
+                  "string": "something, null, unspecified"
                 }
               }
             }
@@ -1278,6 +1289,31 @@ public class AnnotationBasedMutations
         result.Print().MatchSnapshot();
     }
 
+    [Fact]
+    public async Task InferErrorEvenIfExplicitFieldBindingIsUsed()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d => d.Field("abc").Resolve("def"))
+                .AddMutationType<ExplicitMutation>(c => c.Field(t => t.DoSomething(default)))
+                .AddMutationConventions()
+                .BuildSchemaAsync();
+
+        schema.Print().MatchSnapshot();
+    }
+
+    public class ExplicitMutation
+    {
+        public FieldResult<int, ExplicitCustomError> DoSomething(int status)
+            => new ExplicitCustomError { Message = "Error" };
+    }
+
+    public sealed class ExplicitCustomError
+    {
+        public required string Message { get; set; }
+    }
+
     public class SimpleMutation
     {
         public string DoSomething(string something)
@@ -1286,7 +1322,7 @@ public class AnnotationBasedMutations
 
     public class SimpleMutationReturnList
     {
-        public System.Collections.Generic.List<string> DoSomething(string something)
+        public List<string> DoSomething(string something)
             => [something,];
     }
 
@@ -1331,6 +1367,15 @@ public class AnnotationBasedMutations
         public DoSomethingPayload DoSomething(string something)
         {
             throw new Exception();
+        }
+    }
+
+    public class SimpleMutationPayloadOverrideWithError
+    {
+        [Error(typeof(CustomException))]
+        public DoSomethingPayload DoSomething()
+        {
+            return new DoSomethingPayload();
         }
     }
 
@@ -1705,8 +1750,11 @@ public class AnnotationBasedMutations
 
     public class MutationWithOptionalArg
     {
-        public string DoSomething(Optional<string?> something)
-            => something.Value ?? "nothing";
+        public string DoSomething(
+            Optional<string?> optional1,
+            Optional<string?> optional2,
+            Optional<string?> optional3)
+            => string.Join(", ", optional1.ToString(), optional2.ToString(), optional3.ToString());
     }
 
     public class MutationWithInterfaces
@@ -1736,7 +1784,6 @@ public class AnnotationBasedMutations
         public ErrorNotAnnotated NotAnnotated(string something) => default!;
 
         public ErrorAnnotatedAndNot Both(string something) => default!;
-
     }
 
     public class ErrorNotAnnotated : IErrorInterface

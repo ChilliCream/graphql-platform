@@ -1,19 +1,9 @@
-using System;
-using System.Collections.Generic;
 using System.Net;
-#if NET6_0_OR_GREATER
 using System.Diagnostics;
-using System.IO;
-#endif
-using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
-#if NET6_0_OR_GREATER
 using System.Text;
-#endif
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Transport.Http;
@@ -25,9 +15,7 @@ public sealed class GraphQLHttpResponse : IDisposable
 {
     private static readonly OperationResult _transportError = CreateTransportError();
 
-#if NET6_0_OR_GREATER
     private static readonly Encoding _utf8 = Encoding.UTF8;
-#endif
     private readonly HttpResponseMessage _message;
 
     /// <summary>
@@ -90,7 +78,6 @@ public sealed class GraphQLHttpResponse : IDisposable
     /// </returns>
     public HttpContentHeaders ContentHeaders => _message.Content.Headers;
 
-    #if NET6_0_OR_GREATER
     /// <summary>
     /// Gets the collection of trailing headers included in an HTTP response.
     /// </summary>
@@ -101,7 +88,6 @@ public sealed class GraphQLHttpResponse : IDisposable
     /// The collection of trailing headers in the HTTP response.
     /// </returns>
     public HttpResponseHeaders TrailingHeaders => _message.TrailingHeaders;
-    #endif
 
     /// <summary>
     /// Reads the GraphQL response as a <see cref="OperationResult"/>.
@@ -121,11 +107,7 @@ public sealed class GraphQLHttpResponse : IDisposable
         // to use status codes.
         if (contentType?.MediaType.EqualsOrdinal(ContentType.GraphQL) ?? false)
         {
-#if NET6_0_OR_GREATER
             return ReadAsResultInternalAsync(contentType.CharSet, cancellationToken);
-#else
-            return ReadAsResultInternalAsync(cancellationToken);
-#endif
         }
 
         // The server supports the older application/json media type and the status code
@@ -133,39 +115,26 @@ public sealed class GraphQLHttpResponse : IDisposable
         if (contentType?.MediaType.EqualsOrdinal(ContentType.Json) ?? false)
         {
             _message.EnsureSuccessStatusCode();
-#if NET6_0_OR_GREATER
             return ReadAsResultInternalAsync(contentType.CharSet, cancellationToken);
-#else
-            return ReadAsResultInternalAsync(cancellationToken);
-#endif
         }
 
-        // if the media type is anything else we will return a transport error.
-        return new ValueTask<OperationResult>(_transportError);
+        _message.EnsureSuccessStatusCode();
+
+        throw new InvalidOperationException("Received a successful response with an unexpected content type.");
     }
 
-#if NET6_0_OR_GREATER
     private async ValueTask<OperationResult> ReadAsResultInternalAsync(string? charSet, CancellationToken ct)
-#else
-    private async ValueTask<OperationResult> ReadAsResultInternalAsync(CancellationToken ct)
-#endif
     {
-#if NET6_0_OR_GREATER
         await using var contentStream = await _message.Content.ReadAsStreamAsync(ct)
             .ConfigureAwait(false);
-#else
-        using var contentStream = await _message.Content.ReadAsStreamAsync().ConfigureAwait(false);
-#endif
 
         var stream = contentStream;
 
-#if NET6_0_OR_GREATER
         var sourceEncoding = GetEncoding(charSet);
         if (sourceEncoding is not null && !Equals(sourceEncoding.EncodingName, _utf8.EncodingName))
         {
             stream = GetTranscodingStream(contentStream, sourceEncoding);
         }
-#endif
 
         var document = await JsonDocument.ParseAsync(stream, cancellationToken: ct);
 
@@ -197,22 +166,14 @@ public sealed class GraphQLHttpResponse : IDisposable
 
         if (contentType?.MediaType.EqualsOrdinal(ContentType.EventStream) ?? false)
         {
-#if NET6_0_OR_GREATER
             return ReadAsResultStreamInternalAsync(contentType.CharSet, cancellationToken);
-#else
-            return ReadAsResultStreamInternalAsync(cancellationToken);
-#endif
         }
 
         // The server supports the newer graphql-response+json media type and users are free
         // to use status codes.
         if (contentType?.MediaType.EqualsOrdinal(ContentType.GraphQL) ?? false)
         {
-#if NET6_0_OR_GREATER
             return SingleResult(ReadAsResultInternalAsync(contentType.CharSet, cancellationToken));
-#else
-            return SingleResult(ReadAsResultInternalAsync(cancellationToken));
-#endif
         }
 
         // The server supports the older application/json media type and the status code
@@ -220,41 +181,26 @@ public sealed class GraphQLHttpResponse : IDisposable
         if (contentType?.MediaType.EqualsOrdinal(ContentType.Json) ?? false)
         {
             _message.EnsureSuccessStatusCode();
-#if NET6_0_OR_GREATER
             return SingleResult(ReadAsResultInternalAsync(contentType.CharSet, cancellationToken));
-#else
-            return SingleResult(ReadAsResultInternalAsync(cancellationToken));
-#endif
         }
 
         return SingleResult(new ValueTask<OperationResult>(_transportError));
     }
 
-#if NET6_0_OR_GREATER
     private async IAsyncEnumerable<OperationResult> ReadAsResultStreamInternalAsync(
         string? charSet,
         [EnumeratorCancellation] CancellationToken ct)
-#else
-    private async IAsyncEnumerable<OperationResult> ReadAsResultStreamInternalAsync(
-        [EnumeratorCancellation] CancellationToken ct)
-#endif
     {
-#if NET6_0_OR_GREATER
         await using var contentStream = await _message.Content.ReadAsStreamAsync(ct)
             .ConfigureAwait(false);
-#else
-        using var contentStream = await _message.Content.ReadAsStreamAsync().ConfigureAwait(false);
-#endif
 
         var stream = contentStream;
 
-#if NET6_0_OR_GREATER
         var sourceEncoding = GetEncoding(charSet);
         if (sourceEncoding is not null && !Equals(sourceEncoding.EncodingName, _utf8.EncodingName))
         {
             stream = GetTranscodingStream(contentStream, sourceEncoding);
         }
-#endif
 
         await foreach (var item in GraphQLHttpEventStreamProcessor.ReadStream(stream, ct).ConfigureAwait(false))
         {
@@ -267,7 +213,6 @@ public sealed class GraphQLHttpResponse : IDisposable
         yield return await result.ConfigureAwait(false);
     }
 
-#if NET6_0_OR_GREATER
     private static Encoding? GetEncoding(string? charset)
     {
         Encoding? encoding = null;
@@ -302,7 +247,6 @@ public sealed class GraphQLHttpResponse : IDisposable
             contentStream,
             innerStreamEncoding: sourceEncoding,
             outerStreamEncoding: _utf8);
-#endif
 
     private static OperationResult CreateTransportError()
         => new OperationResult(

@@ -1,5 +1,6 @@
-using System.Threading.Tasks;
+using System.Collections.Immutable;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Pagination.Utilities;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Pagination;
@@ -9,20 +10,15 @@ public abstract class CursorPagingHandler : IPagingHandler
     protected CursorPagingHandler(PagingOptions options)
     {
         DefaultPageSize =
-            options.DefaultPageSize ??
-                PagingDefaults.DefaultPageSize;
+            options.DefaultPageSize ?? PagingDefaults.DefaultPageSize;
         MaxPageSize =
-            options.MaxPageSize ??
-                PagingDefaults.MaxPageSize;
+            options.MaxPageSize ?? PagingDefaults.MaxPageSize;
         IncludeTotalCount =
-            options.IncludeTotalCount ??
-                PagingDefaults.IncludeTotalCount;
+            options.IncludeTotalCount ?? PagingDefaults.IncludeTotalCount;
         RequirePagingBoundaries =
-            options.RequirePagingBoundaries ??
-                PagingDefaults.RequirePagingBoundaries;
+            options.RequirePagingBoundaries ?? PagingDefaults.RequirePagingBoundaries;
         AllowBackwardPagination =
-            options.AllowBackwardPagination ??
-                PagingDefaults.AllowBackwardPagination;
+            options.AllowBackwardPagination ?? PagingDefaults.AllowBackwardPagination;
 
         if (MaxPageSize < DefaultPageSize)
         {
@@ -124,7 +120,7 @@ public abstract class CursorPagingHandler : IPagingHandler
             AllowBackwardPagination
                 ? context.ArgumentValue<string?>(CursorPagingArgumentNames.Before)
                 : null);
-        
+
         context.SetLocalState(WellKnownContextData.PagingArguments, arguments);
     }
 
@@ -132,7 +128,7 @@ public abstract class CursorPagingHandler : IPagingHandler
         IResolverContext context,
         object source)
     {
-        var arguments = context.GetLocalState<CursorPagingArguments>(WellKnownContextData.PagingArguments);   
+        var arguments = context.GetLocalState<CursorPagingArguments>(WellKnownContextData.PagingArguments);
         return await SliceAsync(context, source, arguments).ConfigureAwait(false);
     }
 
@@ -140,4 +136,95 @@ public abstract class CursorPagingHandler : IPagingHandler
         IResolverContext context,
         object source,
         CursorPagingArguments arguments);
+}
+
+public abstract class CursorPagingHandler<TQuery, TEntity>(PagingOptions options)
+    : CursorPagingHandler(options)
+    where TQuery : notnull
+{
+    protected async ValueTask<Connection<TEntity>> SliceAsync(
+        IResolverContext context,
+        TQuery originalQuery,
+        CursorPagingArguments arguments,
+        CursorPaginationAlgorithm<TQuery, TEntity> algorithm,
+        ICursorPaginationQueryExecutor<TQuery, TEntity> executor,
+        CancellationToken cancellationToken)
+    {
+        var pagingFlags = context.GetPagingFlags(IncludeTotalCount);
+        var countRequired = (pagingFlags & PagingFlags.TotalCount) == PagingFlags.TotalCount;
+        var edgesRequired = (pagingFlags & PagingFlags.Edges) == PagingFlags.Edges;
+
+        int? totalCount = null;
+        if (arguments.Before is null && arguments.First is null)
+        {
+            totalCount = await executor.CountAsync(originalQuery, cancellationToken).ConfigureAwait(false);
+            countRequired = false;
+        }
+
+        var (slicedQuery, offset, length) = algorithm.ApplyPagination(originalQuery, arguments, totalCount);
+
+        // we store the original query and the sliced query in the
+        // context for later use by customizations.
+        context.SetOriginalQuery(originalQuery);
+        context.SetSlicedQuery(slicedQuery);
+
+        // if no edges are required we will return a connection without edges.
+        if (!edgesRequired)
+        {
+            if (countRequired)
+            {
+                totalCount = await executor.CountAsync(originalQuery, cancellationToken).ConfigureAwait(false);
+            }
+
+            return new Connection<TEntity>(ConnectionPageInfo.Empty, totalCount ?? -1);
+        }
+
+        var data = await executor.QueryAsync(
+            slicedQuery,
+            originalQuery,
+            offset,
+            countRequired,
+            cancellationToken).ConfigureAwait(false);
+
+        var moreItemsReturnedThanRequested = data.Edges.Length > length;
+        var isSequenceFromStart = offset == 0;
+        var edges = data.Edges;
+
+        if (moreItemsReturnedThanRequested)
+        {
+            edges = edges.Slice(0, length);
+        }
+
+        var pageInfo = CreatePageInfo(isSequenceFromStart, moreItemsReturnedThanRequested, edges);
+
+        return new Connection<TEntity>(edges, pageInfo, totalCount ?? data.TotalCount ?? -1);
+    }
+
+    private static ConnectionPageInfo CreatePageInfo(
+        bool isSequenceFromStart,
+        bool moreItemsReturnedThanRequested,
+        IReadOnlyList<Edge<TEntity>> selectedEdges)
+    {
+        // We know that there is a next page if more items than requested are returned
+        var hasNextPage = moreItemsReturnedThanRequested;
+
+        // There is a previous page if the sequence start is not 0.
+        // If you point to index 2 of an empty list, we assume that there is a previous page
+        var hasPreviousPage = !isSequenceFromStart;
+
+        Edge<TEntity>? firstEdge = null;
+        Edge<TEntity>? lastEdge = null;
+
+        if (selectedEdges.Count > 0)
+        {
+            firstEdge = selectedEdges[0];
+            lastEdge = selectedEdges[selectedEdges.Count - 1];
+        }
+
+        return new ConnectionPageInfo(
+            hasNextPage,
+            hasPreviousPage,
+            firstEdge?.Cursor,
+            lastEdge?.Cursor);
+    }
 }

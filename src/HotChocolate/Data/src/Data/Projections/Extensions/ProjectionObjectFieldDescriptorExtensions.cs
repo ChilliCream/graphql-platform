@@ -133,10 +133,12 @@ public static class ProjectionObjectFieldDescriptorExtensions
         FieldMiddlewareDefinition placeholder =
             new(_ => _ => default, key: WellKnownMiddleware.Projection);
 
-        descriptor.Extend().Definition.MiddlewareDefinitions.Add(placeholder);
+        var extension = descriptor.Extend();
 
-        descriptor
-            .Extend()
+        extension.Definition.MiddlewareDefinitions.Add(placeholder);
+        extension.Definition.Flags |= FieldFlags.UsesProjections;
+
+        extension
             .OnBeforeCreate(
                 (context, definition) =>
                 {
@@ -276,9 +278,6 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
         public Path Path => _context.Path;
 
-        IReadOnlyDictionary<string, object?> IPureResolverContext.ScopedContextData
-            => ScopedContextData;
-
         public IServiceProvider RequestServices => _context.RequestServices;
 
         public string ResponseName => _context.ResponseName;
@@ -324,9 +323,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
         public T Service<T>() where T : notnull => _context.Service<T>();
 
-    #if NET8_0_OR_GREATER
-        public T? Service<T>(object key) where T : notnull => _context.Service<T>(key);
-    #endif
+        public T Service<T>(object key) where T : notnull => _context.Service<T>(key);
 
         public T Resolver<T>() => _context.Resolver<T>();
 
@@ -395,7 +392,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
             selection.ResolverPipeline,
             selection.PureResolver);
         proxy.SetSelectionSetId(((Selection)selection).SelectionSetId);
-        proxy.Seal(selection.DeclaringSelectionSet);
+        proxy.Seal(selection.DeclaringOperation, selection.DeclaringSelectionSet);
         return proxy;
     }
 
@@ -418,8 +415,6 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
         public DependencyInjectionScope DependencyInjectionScope => _nodeField.DependencyInjectionScope;
 
-        public bool HasStreamResult => _nodeField.HasStreamResult;
-
         public FieldDelegate Middleware => _nodeField.Middleware;
 
         public FieldResolverDelegate? Resolver => _nodeField.Resolver;
@@ -427,6 +422,8 @@ public static class ProjectionObjectFieldDescriptorExtensions
         public PureFieldDelegate? PureResolver => _nodeField.PureResolver;
 
         public SubscribeResolverDelegate? SubscribeResolver => _nodeField.SubscribeResolver;
+
+        public IResolverResultPostProcessor? ResultPostProcessor => _nodeField.ResultPostProcessor;
 
         public MemberInfo? Member => _nodeField.Member;
 
@@ -452,7 +449,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
         public string Name => _nodeField.Name;
 
-        public FieldCoordinate Coordinate => _nodeField.Coordinate;
+        public SchemaCoordinate Coordinate => _nodeField.Coordinate;
 
         public Type RuntimeType => _runtimeType;
 

@@ -1,8 +1,5 @@
-using System;
+using System.Buffers;
 using System.Collections;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace HotChocolate.Types.Pagination;
 
@@ -20,34 +17,13 @@ public class CollectionSegment<T> : CollectionSegment
     /// <param name="info">
     /// Additional information about this page.
     /// </param>
-    /// <param name="getTotalCount">
-    /// A delegate to request the the total count.
-    /// </param>
-    public CollectionSegment(
-        IReadOnlyCollection<T> items,
-        CollectionSegmentInfo info,
-        Func<CancellationToken, ValueTask<int>> getTotalCount)
-        : base(new CollectionWrapper(items), info, getTotalCount)
-    {
-        Items = items;
-    }
-
-    /// <summary>
-    /// Initializes <see cref="CollectionSegment" />.
-    /// </summary>
-    /// <param name="items">
-    /// The items that belong to this page.
-    /// </param>
-    /// <param name="info">
-    /// Additional information about this page.
-    /// </param>
     /// <param name="totalCount">
     /// The total count of the data set / collection that is being paged.
     /// </param>
     public CollectionSegment(
-        IReadOnlyCollection<T> items,
+        IReadOnlyList<T> items,
         CollectionSegmentInfo info,
-        int totalCount = 0)
+        int totalCount)
         : base(new CollectionWrapper(items), info, totalCount)
     {
         Items = items;
@@ -56,20 +32,45 @@ public class CollectionSegment<T> : CollectionSegment
     /// <summary>
     /// The items that belong to this page.
     /// </summary>
-    public new IReadOnlyCollection<T> Items { get; }
+    public new IReadOnlyList<T> Items { get; }
+
+    /// <summary>
+    /// Accepts a page observer.
+    /// </summary>
+    public override void Accept(IPageObserver observer)
+    {
+        if(Items.Count == 0)
+        {
+            ReadOnlySpan<T> empty = Array.Empty<T>();
+            observer.OnAfterSliced(empty, Info);
+            return;
+        }
+
+        var buffer = ArrayPool<T>.Shared.Rent(Items.Count);
+
+        for (var i = 0; i < Items.Count; i++)
+        {
+            buffer[i] = Items[i];
+        }
+
+        ReadOnlySpan<T> items = buffer.AsSpan(0, Items.Count);
+        observer.OnAfterSliced(items, Info);
+
+        buffer.AsSpan().Slice(0, Items.Count).Clear();
+        ArrayPool<T>.Shared.Return(buffer);
+    }
 
     /// <summary>
     /// This wrapper is used to be able to pass along the items collection to the base class
     /// which demands <see cref="IReadOnlyCollection{Object}"/>.
     /// </summary>
-    private sealed class CollectionWrapper : IReadOnlyCollection<object>
+    private sealed class CollectionWrapper(IReadOnlyList<T> collection)
+        : IReadOnlyList<object>
     {
-        private readonly IReadOnlyCollection<T> _collection;
+        private readonly IReadOnlyList<T> _collection = collection
+            ?? throw new ArgumentNullException(nameof(collection));
 
-        public CollectionWrapper(IReadOnlyCollection<T> collection)
-        {
-            _collection = collection ?? throw new ArgumentNullException(nameof(collection));
-        }
+        public object this[int index] => _collection[index]!;
 
         public int Count => _collection.Count;
 

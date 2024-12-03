@@ -1,6 +1,3 @@
-using System;
-using System.Threading.Tasks;
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;

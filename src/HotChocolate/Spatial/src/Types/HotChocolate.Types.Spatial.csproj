@@ -5,8 +5,11 @@
     <AssemblyName>HotChocolate.Types.Spatial</AssemblyName>
     <RootNamespace>HotChocolate.Types.Spatial</RootNamespace>
     <Description>Contains types for HotChocolate to expose NetTopologySuite as GeoJSON</Description>
-    <TargetFrameworks>$(LibraryTargetFrameworks)</TargetFrameworks>
   </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Types.Spatial.Tests" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Core\src\Execution\HotChocolate.Execution.csproj" />
@@ -14,8 +17,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NetTopologySuite" Version="2.0.0" />
-    <PackageReference Include="ProjNET" Version="2.0.0" />
+    <PackageReference Include="NetTopologySuite" />
+    <PackageReference Include="ProjNET" />
   </ItemGroup>
 
   <ItemGroup>

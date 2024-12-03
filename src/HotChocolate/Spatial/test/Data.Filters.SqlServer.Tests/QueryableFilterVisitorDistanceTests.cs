@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using NetTopologySuite.Geometries;
@@ -50,7 +49,7 @@ public class QueryableFilterVisitorDistanceTests
         // act
         // assert
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     @"{
                             root(where: {
@@ -70,7 +69,7 @@ public class QueryableFilterVisitorDistanceTests
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     @"{
                             root(where: {
@@ -90,10 +89,10 @@ public class QueryableFilterVisitorDistanceTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "2"), res2, "1")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "2")
+            .AddResult(res2, "1")
             .MatchAsync();
     }
 

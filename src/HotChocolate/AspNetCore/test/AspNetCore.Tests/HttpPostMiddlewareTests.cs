@@ -1,26 +1,21 @@
-using System.Net;
 using System.Net.Http.Json;
-using CookieCrumble;
-using CookieCrumble.Formatters;
+using CookieCrumble.HotChocolate.Formatters;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Serialization;
+using HotChocolate.Transport.Http;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
 using static HotChocolate.Execution.Serialization.JsonNullIgnoreCondition;
 
 namespace HotChocolate.AspNetCore;
 
-public class HttpPostMiddlewareTests : ServerTestBase
+public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTestBase(serverFactory)
 {
     private static readonly Uri _url = new("http://localhost:5000/graphql");
-
-    public HttpPostMiddlewareTests(TestServerFactory serverFactory)
-        : base(serverFactory) { }
 
     [Fact]
     public async Task Simple_IsAlive_Test()
@@ -79,21 +74,6 @@ public class HttpPostMiddlewareTests : ServerTestBase
         // act
         var result = await server.PostAsync(
             new ClientQueryRequest { Query = "{ __typename }", });
-
-        // assert
-        result.MatchSnapshot();
-    }
-
-    [Fact(Skip = "We are currently reworking the query plans.")]
-    public async Task Include_Query_Plan()
-    {
-        // arrange
-        var server = CreateStarWarsServer();
-
-        // act
-        var result = await server.PostAsync(
-            new ClientQueryRequest { Query = "{ __typename }", },
-            includeQueryPlan: true);
 
         // assert
         result.MatchSnapshot();
@@ -415,7 +395,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                 });
 
         // assert
-        result.MatchInlineSnapshot(
+        new GraphQLHttpResponse(result).MatchInlineSnapshot(
             """
             {
               "data": {
@@ -426,8 +406,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                 "wait": true
               }
             }
-            """,
-            formatter: SnapshotValueFormatters.GraphQLHttp);
+            """);
     }
 
     [Fact]
@@ -509,7 +488,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                         hero(episode: NEW_HOPE)
                         {
                             name
-                            friends {
+                            friends(first: 10) {
                                 nodes @stream(initialCount: 1 label: ""foo"") {
                                     name
                                 }
@@ -519,7 +498,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
             });
 
         // assert
-        result.MatchInlineSnapshot(
+        new GraphQLHttpResponse(result).MatchInlineSnapshot(
             """
             {
               "data": {
@@ -542,8 +521,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                 "wait": true
               }
             }
-            """,
-            formatter: SnapshotValueFormatters.GraphQLHttp);
+            """);
     }
 
     [Fact]
@@ -992,7 +970,13 @@ public class HttpPostMiddlewareTests : ServerTestBase
         var server = CreateStarWarsServer(
             configureServices: s => s.AddHttpResponseFormatter(
                 _ => new DefaultHttpResponseFormatter(
-                    new() { Json = new() { NullIgnoreCondition = Fields, }, })));
+                    new HttpResponseFormatterOptions
+                    {
+                        Json = new JsonResultFormatterOptions
+                        {
+                            NullIgnoreCondition = Fields,
+                        }
+                    })));
         var client = server.CreateClient();
 
         // act

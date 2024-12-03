@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 
@@ -28,7 +27,7 @@ public class QueryableProjectionVisitorExecutableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ rootExecutable{ bar baz }}")
                 .Build());
 
@@ -46,7 +45,7 @@ public class QueryableProjectionVisitorExecutableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ rootExecutable{ baz }}")
                 .Build());
 
@@ -70,7 +69,7 @@ public class QueryableProjectionVisitorExecutableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ rootExecutable{ baz foo }}")
                 .Build());
 

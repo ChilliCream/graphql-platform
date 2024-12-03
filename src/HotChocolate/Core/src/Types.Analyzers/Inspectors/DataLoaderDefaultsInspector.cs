@@ -5,6 +5,7 @@ using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static System.StringComparison;
+using static HotChocolate.Types.Analyzers.WellKnownAttributes;
 using static HotChocolate.Types.Analyzers.WellKnownTypes;
 
 namespace HotChocolate.Types.Analyzers.Inspectors;
@@ -15,7 +16,7 @@ public class DataLoaderDefaultsInspector : ISyntaxInspector
 
     public bool TryHandle(
         GeneratorSyntaxContext context,
-        [NotNullWhen(true)] out ISyntaxInfo? syntaxInfo)
+        [NotNullWhen(true)] out SyntaxInfo? syntaxInfo)
     {
         if (context.Node is AttributeListSyntax attributeList)
         {
@@ -38,7 +39,8 @@ public class DataLoaderDefaultsInspector : ISyntaxInspector
                         attribList.Arguments.IsScoped(context),
                         attribList.Arguments.IsPublic(context),
                         attribList.Arguments.IsInterfacePublic(context),
-                        attribList.Arguments.RegisterService(context));
+                        attribList.Arguments.RegisterService(context),
+                        attribList.Arguments.GenerateInterfaces(context));
                     return true;
                 }
             }

@@ -1,12 +1,8 @@
-using System;
-
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
 internal static class ParameterExpressionBuilderHelpers
 {
     public static Type ContextType { get; } = typeof(IResolverContext);
-
-    public static Type PureContextType { get; } = typeof(IPureResolverContext);
 
     public static bool IsStateSetter(Type parameterType)
     {

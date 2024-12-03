@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Nullable>disable</Nullable>
+    <NoWarn>HC8001;$(NoWarn)</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -16,66 +18,49 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="HotChocolate.Execution" />
-    <InternalsVisibleTo Include="HotChocolate.Execution.Tests" />
-    <InternalsVisibleTo Include="HotChocolate.Types.Errors" />
-    <InternalsVisibleTo Include="HotChocolate.Types.Queries" />
-    <InternalsVisibleTo Include="HotChocolate.Types.Mutations" />
-    <InternalsVisibleTo Include="HotChocolate.Authorization" />
-    <InternalsVisibleTo Include="HotChocolate.AspNetCore" />
-    <InternalsVisibleTo Include="HotChocolate.AspNetCore.Authorization" />
-    <InternalsVisibleTo Include="HotChocolate.Validation" />
-    <InternalsVisibleTo Include="HotChocolate.Types.CursorPagination" />
-    <InternalsVisibleTo Include="HotChocolate.Types.OffsetPagination" />
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
     <InternalsVisibleTo Include="HotChocolate.ApolloFederation" />
-    <InternalsVisibleTo Include="HotChocolate.Data" />
-    <InternalsVisibleTo Include="HotChocolate.Data.Raven" />
+    <InternalsVisibleTo Include="HotChocolate.AspNetCore.Authorization" />
+    <InternalsVisibleTo Include="HotChocolate.AspNetCore.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.AspNetCore" />
+    <InternalsVisibleTo Include="HotChocolate.Authorization" />
+    <InternalsVisibleTo Include="HotChocolate.Caching.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Caching" />
+    <InternalsVisibleTo Include="HotChocolate.Core.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Core" />
+    <InternalsVisibleTo Include="HotChocolate.CostAnalysis" />
+    <InternalsVisibleTo Include="HotChocolate.Data.Filters.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Data.Projections.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Data.Raven" />
+    <InternalsVisibleTo Include="HotChocolate.Data.Sorting.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Data" />
+    <InternalsVisibleTo Include="HotChocolate.Execution.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Execution" />
+    <InternalsVisibleTo Include="HotChocolate.Fetching" />
     <InternalsVisibleTo Include="HotChocolate.Fusion" />
-    <InternalsVisibleTo Include="StrawberryShake.CodeGeneration" />
-
-    <!--Legacy Support-->
-    <InternalsVisibleTo Include="HotChocolate.Types.Filters" />
-    <InternalsVisibleTo Include="HotChocolate.Types.Sorting" />
-    <InternalsVisibleTo Include="HotChocolate.Types.Selections" />
-    <InternalsVisibleTo Include="HotChocolate.Stitching" />
-
-    <!--Tests-->
+    <InternalsVisibleTo Include="HotChocolate.Types.CursorPagination" />
+    <InternalsVisibleTo Include="HotChocolate.Types.Errors" />
     <InternalsVisibleTo Include="HotChocolate.Types.Filters.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Types.Mutations" />
+    <InternalsVisibleTo Include="HotChocolate.Types.OffsetPagination" />
+    <InternalsVisibleTo Include="HotChocolate.Types.Queries" />
     <InternalsVisibleTo Include="HotChocolate.Types.Sorting.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Types.Tests" />
-    <InternalsVisibleTo Include="HotChocolate.AspNetCore.Tests" />
-    <InternalsVisibleTo Include="HotChocolate.Data.Filters.Tests" />
-    <InternalsVisibleTo Include="HotChocolate.Data.Sorting.Tests" />
-    <InternalsVisibleTo Include="HotChocolate.Data.Projections.Tests" />
-    <InternalsVisibleTo Include="HotChocolate.Caching.Tests" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="8.0.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
-    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="7.0.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
-    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="6.0.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
-    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="6.0.0" />
-    <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
-    <PackageReference Include="System.Text.Json" Version="6.0.7" />
+    <InternalsVisibleTo Include="HotChocolate.Types.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Validation" />
+    <InternalsVisibleTo Include="StrawberryShake.CodeGeneration" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.ObjectPool" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\GreenDonut\src\Core\GreenDonut.csproj" />
     <ProjectReference Include="..\..\..\Utilities\src\Utilities\HotChocolate.Utilities.csproj" />
     <ProjectReference Include="..\Abstractions\HotChocolate.Abstractions.csproj" />
+    <ProjectReference Include="..\Features\HotChocolate.Features.csproj" />
     <ProjectReference Include="..\Types.Shared\HotChocolate.Types.Shared.csproj" />
   </ItemGroup>
 

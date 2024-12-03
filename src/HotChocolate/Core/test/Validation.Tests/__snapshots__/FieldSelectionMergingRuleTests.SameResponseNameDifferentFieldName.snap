@@ -5,12 +5,12 @@
     "Path": null,
     "Locations": [
       {
-        "Line": 3,
-        "Column": 21
+        "Line": 2,
+        "Column": 5
       },
       {
-        "Line": 6,
-        "Column": 21
+        "Line": 5,
+        "Column": 5
       }
     ],
     "Extensions": {

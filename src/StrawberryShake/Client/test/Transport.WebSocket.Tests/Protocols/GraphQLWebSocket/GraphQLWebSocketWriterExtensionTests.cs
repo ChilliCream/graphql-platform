@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Text;
-using System.Threading.Tasks;
-using CookieCrumble;
 
 namespace StrawberryShake.Transport.WebSockets.Protocols;
 
@@ -17,7 +13,6 @@ public class GraphQlWsSocketWriterExtensionTests
         var request = new OperationRequest("Foo",
             GetHeroQueryDocument.Instance,
             new Dictionary<string, object?>() { { "Var1", "Value1" }, });
-
 
         // act
         writer.WriteStartOperationMessage(operationId, request);
@@ -35,7 +30,6 @@ public class GraphQlWsSocketWriterExtensionTests
             GetHeroQueryDocument.Instance,
             new Dictionary<string, object?>() { { "Var1", "Value1" }, });
 
-
         // act
         var ex =
             Record.Exception(() => writer.WriteStartOperationMessage(null!, request));
@@ -50,7 +44,6 @@ public class GraphQlWsSocketWriterExtensionTests
         // arrange
         await using var writer = new SocketMessageWriter();
         var operationId = "12f90cc5-2905-4d10-b33a-cb6d8f98a810";
-
 
         // act
         var ex =

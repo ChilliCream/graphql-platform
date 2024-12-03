@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Fusion.Shared;
 using HotChocolate.Skimmed.Serialization;
 using Xunit.Abstractions;
@@ -15,7 +14,7 @@ public abstract class CompositionTestBase(ITestOutputHelper output)
         var configA = new SubgraphConfiguration(
             "A",
             schema,
-            extensions ?? Array.Empty<string>(),
+            extensions ?? [],
             new[] { new HttpClientConfiguration(new Uri("https://localhost:5001/graphql")), },
             null);
 

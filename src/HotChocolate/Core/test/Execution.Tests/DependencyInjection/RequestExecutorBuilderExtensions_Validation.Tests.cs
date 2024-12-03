@@ -3,7 +3,6 @@ using HotChocolate.Tests;
 using HotChocolate.Types;
 using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Execution.DependencyInjection;
 
@@ -70,68 +69,64 @@ public class RequestExecutorBuilderExtensionsValidationTests
     }
 
     [Fact]
+    [Obsolete]
     public async Task AddIntrospectionAllowedRule_IntegrationTest_NotAllowed()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
             .AddIntrospectionAllowedRule()
             .ExecuteRequestAsync(
                 OperationRequestBuilder
-                    .Create()
+                    .New()
                     .SetDocument("{ __schema { description } }")
                     .Build())
             .MatchSnapshotAsync();
     }
 
     [Fact]
+    [Obsolete]
     public async Task AllowIntrospection_IntegrationTest_NotAllowed()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
             .AllowIntrospection(false)
             .ExecuteRequestAsync(
                 OperationRequestBuilder
-                    .Create()
+                    .New()
                     .SetDocument("{ __schema { description } }")
                     .Build())
             .MatchSnapshotAsync();
     }
 
     [Fact]
+    [Obsolete]
     public async Task AllowIntrospection_IntegrationTest_Allowed()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
             .AllowIntrospection(true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder
-                    .Create()
+                    .New()
                     .SetDocument("{ __schema { description } }")
                     .Build())
             .MatchSnapshotAsync();
     }
 
     [Fact]
+    [Obsolete]
     public async Task AllowIntrospection_IntegrationTest_NotAllowed_CustomMessage()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
             .AllowIntrospection(false)
             .ExecuteRequestAsync(
                 OperationRequestBuilder
-                    .Create()
+                    .New()
                     .SetDocument("{ __schema { description } }")
                     .SetIntrospectionNotAllowedMessage("Bar")
                     .Build())
@@ -139,17 +134,16 @@ public class RequestExecutorBuilderExtensionsValidationTests
     }
 
     [Fact]
+    [Obsolete]
     public async Task AddIntrospectionAllowedRule_IntegrationTest_NotAllowed_CustomMessageFact()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
             .AddIntrospectionAllowedRule()
             .ExecuteRequestAsync(
                 OperationRequestBuilder
-                    .Create()
+                    .New()
                     .SetDocument("{ __schema { description } }")
                     .SetIntrospectionNotAllowedMessage(() => "Bar")
                     .Build())
@@ -157,17 +151,16 @@ public class RequestExecutorBuilderExtensionsValidationTests
     }
 
     [Fact]
+    [Obsolete]
     public async Task AddIntrospectionAllowedRule_IntegrationTest_NotAllowed_CustomMessage()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
             .AddIntrospectionAllowedRule()
             .ExecuteRequestAsync(
                 OperationRequestBuilder
-                    .Create()
+                    .New()
                     .SetDocument("{ __schema { description } }")
                     .SetIntrospectionNotAllowedMessage("Baz")
                     .Build())
@@ -175,10 +168,9 @@ public class RequestExecutorBuilderExtensionsValidationTests
     }
 
     [Fact]
+    [Obsolete]
     public async Task AddIntrospectionAllowedRule_IntegrationTest_Allowed()
     {
-        Snapshot.FullName();
-
         var executor =
             await new ServiceCollection()
                 .AddGraphQLServer()
@@ -191,7 +183,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
         var result =
             await executor.ExecuteAsync(
                 OperationRequestBuilder
-                    .Create()
+                    .New()
                     .SetDocument("{ __schema { description } }")
                     .AllowIntrospection()
                     .Build());
@@ -200,7 +192,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
         result =
             await executor.ExecuteAsync(
                 OperationRequestBuilder
-                    .Create()
+                    .New()
                     .SetDocument("{ __schema { description } }")
                     .Build());
         results.Add(result.ToJson());
@@ -221,6 +213,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
 
     public class MockRule : IDocumentValidatorRule
     {
+        public ushort Priority => ushort.MaxValue;
         public bool IsCacheable => true;
 
         public void Validate(IDocumentValidatorContext context, DocumentNode document)

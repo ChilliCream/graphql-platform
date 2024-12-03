@@ -32,6 +32,8 @@ internal sealed class ScalarTypeMergeHandler : ITypeMergeHandler
             // Try to apply the source scalar type to the target scalar type.
             context.TryApplySource(source, part.Schema, target);
 
+            target.MergeDirectivesWith(source, context);
+
             // If the target scalar type has no description,
             // set it to the source scalar type's description.
             target.MergeDescriptionWith(source);

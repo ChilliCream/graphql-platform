@@ -1,4 +1,3 @@
-using System;
 using HotChocolate;
 using HotChocolate.Caching;
 using HotChocolate.Execution.Configuration;
@@ -43,6 +42,7 @@ public static class QueryCacheRequestExecutorBuilderExtensions
             .UseDocumentValidation()
             .UseOperationCache()
             .UseOperationResolver()
+            .UseSkipWarmupExecution()
             .UseOperationVariableCoercion()
             .UseOperationExecution();
     }

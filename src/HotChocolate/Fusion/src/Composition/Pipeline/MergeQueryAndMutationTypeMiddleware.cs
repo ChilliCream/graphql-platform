@@ -9,13 +9,17 @@ internal sealed class MergeQueryAndMutationTypeMiddleware : IMergeMiddleware
 {
     public async ValueTask InvokeAsync(CompositionContext context, MergeDelegate next)
     {
-        var skipOnQuery = new HashSet<string>(StringComparer.Ordinal);
+        var skipOnQuery = new HashSet<string>(StringComparer.Ordinal)
+        {
+            // Fusion can currently not handle the `nodes` field, so we're not exposing it
+            // through the gateway schema, even though a subgraph might support it.
+            "nodes"
+        };
         var skipOnMutation = new HashSet<string>(StringComparer.Ordinal);
 
         if (!context.Features.IsNodeFieldSupported())
         {
             skipOnQuery.Add("node");
-            skipOnQuery.Add("nodes");
         }
 
         foreach (var schema in context.Subgraphs)
@@ -28,6 +32,7 @@ internal sealed class MergeQueryAndMutationTypeMiddleware : IMergeMiddleware
                 {
                     targetType = context.FusionGraph.QueryType = new ObjectTypeDefinition(schema.QueryType.Name);
                     targetType.MergeDescriptionWith(schema.QueryType);
+                    targetType.MergeDirectivesWith(schema.QueryType, context);
                 }
 
                 MergeRootFields(
@@ -47,6 +52,7 @@ internal sealed class MergeQueryAndMutationTypeMiddleware : IMergeMiddleware
                 {
                     targetType = context.FusionGraph.MutationType = new ObjectTypeDefinition(schema.MutationType.Name);
                     targetType.MergeDescriptionWith(schema.MutationType);
+                    targetType.MergeDirectivesWith(schema.MutationType, context);
                     context.FusionGraph.Types.Add(targetType);
                 }
 
@@ -92,6 +98,11 @@ internal sealed class MergeQueryAndMutationTypeMiddleware : IMergeMiddleware
                 continue;
             }
 
+            if (field.ContainsInternalDirective())
+            {
+                continue;
+            }
+
             if (targetRootType.Fields.TryGetField(field.Name, out var targetField))
             {
                 context.MergeField(field, targetField, targetRootType.Name);
@@ -108,12 +119,11 @@ internal sealed class MergeQueryAndMutationTypeMiddleware : IMergeMiddleware
                 null,
                 new NameNode(field.GetOriginalName()),
                 null,
-                null,
                 Array.Empty<DirectiveNode>(),
                 arguments,
                 null);
 
-            var selectionSet = new SelectionSetNode(new[] { selection, });
+            var selectionSet = new SelectionSetNode([selection]);
 
             foreach (var arg in field.Arguments)
             {

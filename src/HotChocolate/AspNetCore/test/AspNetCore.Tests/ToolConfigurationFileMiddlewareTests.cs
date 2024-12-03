@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Http.Headers;
-using CookieCrumble;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -22,7 +21,7 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
         var server = CreateStarWarsServer();
 
         // act
-        var result = await GetBcpConfigAsync(server);
+        var result = await GetNitroConfigAsync(server);
 
         // assert
         result.MatchSnapshot();
@@ -33,10 +32,10 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     {
         // arrange
         var options = new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded, };
-        var server = CreateServer(builder => builder.MapBananaCakePop().WithOptions(options));
+        var server = CreateServer(builder => builder.MapNitroApp().WithOptions(options));
 
         // act
-        var result = await GetBcpConfigAsync(server, "/graphql/ui");
+        var result = await GetNitroConfigAsync(server, "/graphql/ui");
 
         // assert
         result.MatchSnapshot();
@@ -50,11 +49,11 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
         var server = CreateServer(builder =>
         {
             builder.MapGraphQLHttp();
-            builder.MapBananaCakePop().WithOptions(options);
+            builder.MapNitroApp().WithOptions(options);
         });
 
         // act
-        var result = await GetBcpConfigAsync(server, "/graphql/ui");
+        var result = await GetNitroConfigAsync(server, "/graphql/ui");
 
         // assert
         result.MatchSnapshot();
@@ -65,10 +64,10 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     {
         // arrange
         var options = new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded, };
-        var server = CreateServer(b => b.MapBananaCakePop("/foo/bar").WithOptions(options));
+        var server = CreateServer(b => b.MapNitroApp("/foo/bar").WithOptions(options));
 
         // act
-        var result = await GetBcpConfigAsync(server, "/foo/bar");
+        var result = await GetNitroConfigAsync(server, "/foo/bar");
 
         // assert
         result.MatchSnapshot();
@@ -117,39 +116,39 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
                 DisableTelemetry = true,
             },
         };
-        
+
         var server = CreateStarWarsServer("/graphql", configureConventions: builder => builder.WithOptions(options));
 
         // act
-        var result = await GetBcpConfigAsync(server);
+        var result = await GetNitroConfigAsync(server);
 
         // assert
         result.MatchSnapshot();
     }
 
     [Fact]
-    public async Task Fetch_MapBananaCakePop_Tool_Config()
+    public async Task Fetch_MapNitroApp_Tool_Config()
     {
         // arrange
         var options = new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded, };
-        var server = CreateServer(endpoint => endpoint.MapBananaCakePop().WithOptions(options));
+        var server = CreateServer(endpoint => endpoint.MapNitroApp().WithOptions(options));
 
         // act
-        var result = await GetBcpConfigAsync(server, "/graphql/ui");
+        var result = await GetNitroConfigAsync(server, "/graphql/ui");
 
         // assert
         result.MatchSnapshot();
     }
 
     [Fact]
-    public async Task Fetch_MapBananaCakePop_Tool_FromCdn()
+    public async Task Fetch_MapNitroApp_Tool_FromCdn()
     {
         // arrange
         var options = new GraphQLToolOptions
         {
             ServeMode = GraphQLToolServeMode.Version("5.0.8"),
         };
-        var server = CreateServer(endpoint => endpoint.MapBananaCakePop().WithOptions(options));
+        var server = CreateServer(endpoint => endpoint.MapNitroApp().WithOptions(options));
 
         // act
         var result = await GetAsync(server, "/graphql/ui/index.html");
@@ -158,9 +157,9 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
         Assert.Contains("static/js/main.98391269.js", result.Content);
     }
 
-    private Task<Result> GetBcpConfigAsync(TestServer server, string url = "/graphql")
+    private Task<Result> GetNitroConfigAsync(TestServer server, string url = "/graphql")
     {
-        return GetAsync(server, $"{url}/bcp-config.json");
+        return GetAsync(server, $"{url}/nitro-config.json");
     }
 
     private async Task<Result> GetAsync(TestServer server, string url = "/graphql")

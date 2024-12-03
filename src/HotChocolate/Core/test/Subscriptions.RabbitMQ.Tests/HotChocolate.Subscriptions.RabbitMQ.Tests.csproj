@@ -3,7 +3,6 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Subscriptions.RabbitMQ.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Subscriptions.RabbitMQ</RootNamespace>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,7 +21,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Squadron.RabbitMQ" Version="0.18.0-preview.6" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+    <PackageReference Include="Squadron.RabbitMQ" />
   </ItemGroup>
 
 </Project>

@@ -1,4 +1,4 @@
-using BananaCakePop.Middleware;
+using ChilliCream.Nitro.App;
 using HotChocolate;
 using HotChocolate.AspNetCore;
 using HotChocolate.AzureFunctions;
@@ -99,8 +99,11 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
                     .UseMiddleware<HttpPostMiddleware>(schemaNameOrDefault)
                     .UseMiddleware<HttpMultipartMiddleware>(schemaNameOrDefault)
                     .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault)
-                    .UseBananaCakePop(path)
-                    .UseMiddleware<HttpGetSchemaMiddleware>(schemaNameOrDefault)
+                    .UseNitroApp(path)
+                    .UseMiddleware<HttpGetSchemaMiddleware>(
+                        schemaNameOrDefault,
+                        path,
+                        MiddlewareRoutingType.Integrated)
                     .Compile(sp);
 
             return new DefaultGraphQLRequestExecutor(pipeline, options);
@@ -139,7 +142,7 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
         return builder;
     }
 
-    private static PipelineBuilder UseBananaCakePop(
+    private static PipelineBuilder UseNitroApp(
         this PipelineBuilder requestPipeline,
         PathString path)
     {
@@ -153,15 +156,15 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
         var forwarderAccessor = new HttpForwarderAccessor();
 
         return requestPipeline
-            .UseMiddleware<BananaCakePopOptionsFileMiddleware>(path)
-            .UseMiddleware<BananaCakePopCdnMiddleware>(path, forwarderAccessor)
-            .UseMiddleware<BananaCakePopDefaultFileMiddleware>(fileProvider, path)
-            .UseMiddleware<BananaCakePopStaticFileMiddleware>(fileProvider, path);
+            .UseMiddleware<NitroAppOptionsFileMiddleware>(path)
+            .UseMiddleware<NitroAppCdnMiddleware>(path, forwarderAccessor)
+            .UseMiddleware<NitroAppDefaultFileMiddleware>(fileProvider, path)
+            .UseMiddleware<NitroAppStaticFileMiddleware>(fileProvider, path);
     }
 
     private static IFileProvider CreateFileProvider()
     {
-        var type = typeof(BananaCakePopStaticFileMiddleware);
+        var type = typeof(NitroAppStaticFileMiddleware);
         var resourceNamespace = type.Namespace + ".Resources";
 
         return new EmbeddedFileProvider(type.Assembly, resourceNamespace);

@@ -1,4 +1,3 @@
-using System;
 using System.Reflection;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
@@ -10,7 +9,7 @@ namespace HotChocolate.Types;
 /// metadata to a schema location. Custom tooling can use
 /// this metadata during any step of the schema delivery flow,
 /// including composition, static analysis, and documentation.
-/// 
+///
 /// <code>
 /// interface Book {
 ///   id: ID! @tag(name: "your-value")

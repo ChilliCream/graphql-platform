@@ -1,8 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Execution;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -10,8 +8,8 @@ using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static System.Reflection.BindingFlags;
-using static HotChocolate.Execution.ExecutionStrategy;
 using static HotChocolate.Properties.TypeResources;
+using static HotChocolate.WellKnownContextData;
 
 #nullable enable
 
@@ -22,7 +20,7 @@ public class ObjectFieldDescriptor
     , IObjectFieldDescriptor
 {
     private bool _argumentsInitialized;
-    private ParameterInfo[] _parameterInfos = Array.Empty<ParameterInfo>();
+    private ParameterInfo[] _parameterInfos = [];
 
     /// <summary>
     /// Creates a new instance of <see cref="ObjectFieldDescriptor"/>
@@ -34,7 +32,8 @@ public class ObjectFieldDescriptor
     {
         Definition.Name = fieldName;
         Definition.ResultType = typeof(object);
-        Definition.IsParallelExecutable = context.Options.DefaultResolverStrategy is Parallel;
+        Definition.IsParallelExecutable =
+            context.Options.DefaultResolverStrategy is ExecutionStrategy.Parallel;
     }
 
     /// <summary>
@@ -56,7 +55,8 @@ public class ObjectFieldDescriptor
         Definition.ResolverType = resolverType == sourceType
             ? null
             : resolverType;
-        Definition.IsParallelExecutable = context.Options.DefaultResolverStrategy is Parallel;
+        Definition.IsParallelExecutable =
+            context.Options.DefaultResolverStrategy is ExecutionStrategy.Parallel;
 
         if (naming.IsDeprecated(member, out var reason))
         {
@@ -88,7 +88,8 @@ public class ObjectFieldDescriptor
         Definition.Expression = expression ?? throw new ArgumentNullException(nameof(expression));
         Definition.SourceType = sourceType;
         Definition.ResolverType = resolverType;
-        Definition.IsParallelExecutable = context.Options.DefaultResolverStrategy is Parallel;
+        Definition.IsParallelExecutable =
+            context.Options.DefaultResolverStrategy is ExecutionStrategy.Parallel;
 
         var member = expression.TryExtractCallMember();
 
@@ -137,7 +138,7 @@ public class ObjectFieldDescriptor
     protected override void OnCreateDefinition(ObjectFieldDefinition definition)
     {
         Context.Descriptors.Push(this);
-        
+
         var member = definition.ResolverMember ?? definition.Member;
 
         if (!Definition.AttributesAreApplied && member is not null)
@@ -213,6 +214,24 @@ public class ObjectFieldDescriptor
                     definition.Member,
                     _parameterInfos,
                     definition.GetParameterExpressionBuilders());
+
+                foreach (var parameter in _parameterInfos)
+                {
+                    if (!parameter.IsDefined(typeof(ParentAttribute)))
+                    {
+                        continue;
+                    }
+
+                    var requirements = parameter.GetCustomAttribute<ParentAttribute>()?.Requires;
+                    if (!(requirements?.Length > 0))
+                    {
+                        continue;
+                    }
+
+                    Definition.Flags |= FieldFlags.WithRequirements;
+                    Definition.ContextData[FieldRequirementsSyntax] = requirements;
+                    Definition.ContextData[FieldRequirementsEntity] = parameter.ParameterType;
+                }
             }
 
             _argumentsInitialized = true;
@@ -450,6 +469,39 @@ public class ObjectFieldDescriptor
         params ArgumentNode[] arguments)
     {
         base.Directive(name, arguments);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IObjectFieldDescriptor ParentRequires<TParent>(string? requires)
+    {
+        if (!(requires?.Length > 0))
+        {
+            Definition.Flags &= ~FieldFlags.WithRequirements;
+            Definition.ContextData.Remove(FieldRequirementsSyntax);
+            Definition.ContextData.Remove(FieldRequirementsEntity);
+            return this;
+        }
+
+        Definition.Flags |= FieldFlags.WithRequirements;
+        Definition.ContextData[FieldRequirementsSyntax] = requires;
+        Definition.ContextData[FieldRequirementsEntity] = typeof(TParent);
+        return this;
+    }
+
+    public IObjectFieldDescriptor ParentRequires(string? requires)
+    {
+        if (!(requires?.Length > 0))
+        {
+            Definition.Flags &= ~FieldFlags.WithRequirements;
+            Definition.ContextData.Remove(FieldRequirementsSyntax);
+            Definition.ContextData.Remove(FieldRequirementsEntity);
+            return this;
+        }
+
+        Definition.Flags |= FieldFlags.WithRequirements;
+        Definition.ContextData[FieldRequirementsSyntax] = requires;
+        Definition.ContextData[FieldRequirementsEntity] = Definition.SourceType;
         return this;
     }
 

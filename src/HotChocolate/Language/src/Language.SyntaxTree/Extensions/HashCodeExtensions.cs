@@ -1,4 +1,4 @@
-#if !NET6_0_OR_GREATER
+#if NETSTANDARD2_0
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -8,7 +8,7 @@ namespace HotChocolate.Language;
 
 internal static class HashCodeExtensions
 {
-#if !NET6_0_OR_GREATER
+#if NETSTANDARD2_0
     public static void AddBytes(ref HashCode hashCode, ReadOnlySpan<byte> value)
     {
         ref var pos = ref MemoryMarshal.GetReference(value);

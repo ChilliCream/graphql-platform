@@ -34,10 +34,10 @@ public static class ExtendServiceTypeDescriptorExtensions
         {
             descriptor.Directive(ExtendServiceTypeDirective.Default);
         }
-        
+
         return descriptor;
     }
-    
+
     /// <summary>
     /// Applies @extends directive which is used to represent type extensions in the schema. Federated extended types should have
     /// corresponding @key directive defined that specifies primary key required to fetch the underlying object.
@@ -70,7 +70,7 @@ public static class ExtendServiceTypeDescriptorExtensions
         {
             descriptor.Directive(ExtendServiceTypeDirective.Default);
         }
-        
+
         return descriptor;
     }
 }

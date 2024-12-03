@@ -1,12 +1,8 @@
-using System;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Caching.Tests;
@@ -192,6 +188,23 @@ public class CacheControlTypeInterceptorTests
     }
 
     [Fact]
+    public void SharedMaxAgeAndInheritMaxAgeOnSameField()
+    {
+        ExpectErrors(builder => builder
+            .AddDocumentFromString(@"
+                type Query {
+                    field: NestedType
+                }
+
+                type NestedType {
+                    field: String @cacheControl(sharedMaxAge: 10 inheritMaxAge: true)
+                }
+            ")
+            .Use(_ => _ => default)
+            .AddCacheControl());
+    }
+
+    [Fact]
     public void CacheControlOnInterfaceField()
     {
         ExpectErrors(builder => builder
@@ -292,7 +305,7 @@ public class CacheControlTypeInterceptorTests
 
             builder.Create();
 
-            Assert.False(true, "Expected error!");
+            Assert.Fail("Expected error!");
         }
         catch (SchemaException ex)
         {
@@ -347,8 +360,17 @@ public class CacheControlTypeInterceptorTests
         [CacheControl(200)]
         public IExecutable<string> ExecutableFieldWithCacheControl() => default!;
 
-        [CacheControl(200)]
+        [CacheControl(MaxAge = 200)]
         public IQueryable<string> QueryableFieldWithCacheControl() => default!;
+
+        [CacheControl(SharedMaxAge=200)]
+        public IQueryable<string> QueryableFieldWithCacheControlSharedMaxAge() => default!;
+
+        [CacheControl(500, SharedMaxAge = 200)]
+        public IQueryable<string> QueryableFieldWithCacheControlMaxAgeAndSharedMaxAge() => default!;
+
+        [CacheControl(500, SharedMaxAge = 200, Vary = new [] {"accept-language", "x-timezoneoffset"})]
+        public IQueryable<string> QueryableFieldWithCacheControlMaxAgeAndSharedMaxAgeAndVary() => default!;
 
         [CacheControl(200)]
         [UsePaging]

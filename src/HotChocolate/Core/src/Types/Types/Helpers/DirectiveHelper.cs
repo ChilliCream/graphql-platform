@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Types.Helpers;
 
 internal static class DirectiveHelper

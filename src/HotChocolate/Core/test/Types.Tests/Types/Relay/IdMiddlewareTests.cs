@@ -1,8 +1,5 @@
-﻿using System;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types.Relay;
 
@@ -11,19 +8,14 @@ public class IdMiddlewareTests
     [Fact]
     public async Task ExecuteQueryThatReturnsId_IdShouldBeOpaque()
     {
-        // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType<SomeQuery>()
-            .AddGlobalObjectIdentification(false)
-            .Create();
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<SomeQuery>()
+                .AddGlobalObjectIdentification(false)
+                .ExecuteRequestAsync("{ id string }");
 
-        var executor = schema.MakeExecutable();
-
-        // act
-        var result = await executor.ExecuteAsync("{ id string }");
-
-        // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -39,16 +31,17 @@ public class IdMiddlewareTests
             .BuildRequestExecutorAsync();
 
         // act
-        var result = await executor.ExecuteAsync("""
+        var result = await executor.ExecuteAsync(
+            """
             mutation {
                 do(input: { id: "RXhhbXBsZTp0ZXN0" }) {
                     string
                 }
             }
-        """);
+            """);
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     public class SomeQuery

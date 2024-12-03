@@ -1,6 +1,4 @@
-using System;
 using HotChocolate.Language;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types;
 
@@ -52,7 +50,7 @@ public class PostalCodeTypeTests : ScalarTypeTestBase
     [InlineData(typeof(NullValueNode), null, true)]
     public void IsInstanceOfType_GivenValueNode_MatchExpected(
         Type type,
-        object value,
+        object? value,
         bool expected)
     {
         // arrange
@@ -97,7 +95,7 @@ public class PostalCodeTypeTests : ScalarTypeTestBase
     [InlineData("7004", true)]
     [InlineData(null, true)]
 
-    public void IsInstanceOfType_GivenObject_MatchExpected(object value, bool expected)
+    public void IsInstanceOfType_GivenObject_MatchExpected(object? value, bool expected)
     {
         // arrange
         // act
@@ -135,8 +133,8 @@ public class PostalCodeTypeTests : ScalarTypeTestBase
     [InlineData(typeof(NullValueNode), null, null)]
     public void ParseLiteral_GivenValueNode_MatchExpected(
         Type type,
-        object value,
-        object expected)
+        object? value,
+        object? expected)
     {
         // arrange
         var valueNode = CreateValueNode(type, value);
@@ -196,8 +194,8 @@ public class PostalCodeTypeTests : ScalarTypeTestBase
     [InlineData("7004", "7004")]
     [InlineData(null, null)]
     public void Deserialize_GivenValue_MatchExpected(
-        object resultValue,
-        object runtimeValue)
+        object? resultValue,
+        object? runtimeValue)
     {
         // arrange
         // act
@@ -252,8 +250,8 @@ public class PostalCodeTypeTests : ScalarTypeTestBase
     [InlineData("7004", "7004")]
     [InlineData(null, null)]
     public void Serialize_GivenObject_MatchExpectedType(
-        object runtimeValue,
-        object resultValue)
+        object? runtimeValue,
+        object? resultValue)
     {
         // arrange
         // act
@@ -306,7 +304,7 @@ public class PostalCodeTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "1001")]
     [InlineData(typeof(StringValueNode), "7004")]
     [InlineData(typeof(NullValueNode), null)]
-    public void ParseValue_GivenObject_MatchExpectedType(Type type, object value)
+    public void ParseValue_GivenObject_MatchExpectedType(Type type, object? value)
     {
         // arrange
         // act
@@ -359,7 +357,7 @@ public class PostalCodeTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "1001")]
     [InlineData(typeof(StringValueNode), "7004")]
     [InlineData(typeof(NullValueNode), null)]
-    public void ParseResult_GivenObject_MatchExpectedType(Type type, object value)
+    public void ParseResult_GivenObject_MatchExpectedType(Type type, object? value)
     {
         // arrange
         // act

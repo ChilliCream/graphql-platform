@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using static HotChocolate.Execution.ErrorHelper;
@@ -18,7 +17,7 @@ internal static partial class ValueCompletion
     {
         var operationContext = context.OperationContext;
         var resolverContext = context.ResolverContext;
-        
+
         try
         {
             var leafType = (ILeafType)type;

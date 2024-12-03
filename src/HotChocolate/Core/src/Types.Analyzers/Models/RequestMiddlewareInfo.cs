@@ -7,7 +7,7 @@ public sealed class RequestMiddlewareInfo(
     (string, int, int) location,
     List<RequestMiddlewareParameterInfo> ctorParameters,
     List<RequestMiddlewareParameterInfo> invokeParameters)
-    : ISyntaxInfo, IEquatable<RequestMiddlewareInfo>
+    : SyntaxInfo
 {
     public string Name { get; } = name;
 
@@ -20,22 +20,20 @@ public sealed class RequestMiddlewareInfo(
     public List<RequestMiddlewareParameterInfo> CtorParameters { get; } = ctorParameters;
 
     public List<RequestMiddlewareParameterInfo> InvokeParameters { get; } = invokeParameters;
-    
-    public bool Equals(RequestMiddlewareInfo? other)
-    {
-        if (ReferenceEquals(null, other))
-        {
-            return false;
-        }
 
-        if (ReferenceEquals(this, other))
-        {
-            return true;
-        }
-        
-        if(Name == other.Name &&
-            TypeName == other.TypeName &&
-            InvokeMethodName == other.InvokeMethodName &&
+    public override string OrderByKey => Name;
+
+    public override bool Equals(object? obj)
+        => obj is RequestMiddlewareInfo other && Equals(other);
+
+    public override bool Equals(SyntaxInfo obj)
+        => obj is RequestMiddlewareInfo other && Equals(other);
+
+    private bool Equals(RequestMiddlewareInfo other)
+    {
+        if (string.Equals(Name, other.Name, StringComparison.Ordinal) &&
+            string.Equals(TypeName, other.TypeName, StringComparison.Ordinal) &&
+            string.Equals(InvokeMethodName, other.InvokeMethodName, StringComparison.Ordinal) &&
             Location.Equals(other.Location))
         {
             if (ReferenceEquals(CtorParameters, other.CtorParameters) &&
@@ -49,17 +47,17 @@ public sealed class RequestMiddlewareInfo(
                 return false;
             }
 
+            if (InvokeParameters.Count != other.InvokeParameters.Count)
+            {
+                return false;
+            }
+
             for (var i = 0; i < CtorParameters.Count; i++)
             {
                 if (!CtorParameters[i].Equals(other.CtorParameters[i]))
                 {
                     return false;
                 }
-            }
-            
-            if (InvokeParameters.Count != other.InvokeParameters.Count)
-            {
-                return false;
             }
 
             for (var i = 0; i < InvokeParameters.Count; i++)
@@ -73,33 +71,24 @@ public sealed class RequestMiddlewareInfo(
 
         return false;
     }
-    
-    public bool Equals(ISyntaxInfo obj)
-        => ReferenceEquals(this, obj) || obj is RequestMiddlewareInfo other && Equals(other);
-
-    public override bool Equals(object? obj)
-        => ReferenceEquals(this, obj) || obj is RequestMiddlewareInfo other && Equals(other);
 
     public override int GetHashCode()
     {
-        unchecked
-        {
-            var hashCode = Name.GetHashCode();
-            hashCode = (hashCode * 397) ^ TypeName.GetHashCode();
-            hashCode = (hashCode * 397) ^ InvokeMethodName.GetHashCode();
-            hashCode = (hashCode * 397) ^ Location.GetHashCode();
+        var hashCode = new HashCode();
+        hashCode.Add(TypeName);
+        hashCode.Add(InvokeMethodName);
+        hashCode.Add(Location);
 
-            foreach (var p in CtorParameters)
-            {
-                hashCode = (hashCode * 397) ^ p.GetHashCode();
-            }
-            
-            foreach (var p in InvokeParameters)
-            {
-                hashCode = (hashCode * 397) ^ p.GetHashCode();
-            }
-            
-            return hashCode;
+        foreach (var p in CtorParameters)
+        {
+            hashCode.Add(p);
         }
+
+        foreach (var p in InvokeParameters)
+        {
+            hashCode.Add(p);
+        }
+
+        return hashCode.ToHashCode();
     }
 }

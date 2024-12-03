@@ -85,7 +85,7 @@ internal sealed class QueryPlan
         }
         else
         {
-            _exportKeyToVariableName = Array.Empty<(string, string)>();
+            _exportKeyToVariableName = [];
         }
     }
 
@@ -190,7 +190,7 @@ internal sealed class QueryPlan
 
             if (context.Result.Errors.Count == 0)
             {
-                var errorHandler = context.OperationContext.ErrorHandler;
+                var errorHandler = context.ErrorHandler;
                 var error = errorHandler.CreateUnexpectedError(ex).Build();
                 error = errorHandler.Handle(error);
                 context.Result.AddError(error);

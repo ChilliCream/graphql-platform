@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection.Extensions;

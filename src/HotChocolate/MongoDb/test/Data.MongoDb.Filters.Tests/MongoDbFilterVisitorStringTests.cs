@@ -1,6 +1,6 @@
-using CookieCrumble;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using Squadron;
 
@@ -36,26 +36,26 @@ public class MongoDbFilterVisitorStringTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: \"testatest\"}}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: \"testbtest\"}}){ bar}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: null}}){ bar}}")
                 .Build());
 
         // arrange
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "testatest"), res2, "testbtest"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "testatest")
+            .AddResult(res2, "testbtest")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -67,26 +67,26 @@ public class MongoDbFilterVisitorStringTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { neq: \"testatest\"}}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { neq: \"testbtest\"}}){ bar}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { neq: null}}){ bar}}")
                 .Build());
 
         // arrange
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "testatest"), res2, "testbtest"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "testatest")
+            .AddResult(res2, "testbtest")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -98,27 +98,27 @@ public class MongoDbFilterVisitorStringTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { bar: { in: [ \"testatest\"  \"testbtest\" ]}}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { in: [\"testbtest\" null]}}){ bar}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { in: [ \"testatest\" ]}}){ bar}}")
                 .Build());
 
         // arrange
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "testatestAndtestb"), res2, "testbtestAndNull"), res3, "testatest")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "testatestAndtestb")
+            .AddResult(res2, "testbtestAndNull")
+            .AddResult(res3, "testatest")
             .MatchAsync();
     }
 
@@ -130,27 +130,27 @@ public class MongoDbFilterVisitorStringTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { bar: { nin: [ \"testatest\"  \"testbtest\" ]}}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { nin: [\"testbtest\" null]}}){ bar}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { nin: [ \"testatest\" ]}}){ bar}}")
                 .Build());
 
         // arrange
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "testatestAndtestb"), res2, "testbtestAndNull"), res3, "testatest")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "testatestAndtestb")
+            .AddResult(res2, "testbtestAndNull")
+            .AddResult(res3, "testatest")
             .MatchAsync();
     }
 
@@ -162,26 +162,26 @@ public class MongoDbFilterVisitorStringTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { contains: \"a\" }}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { contains: \"b\" }}){ bar}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { contains: null }}){ bar}}")
                 .Build());
 
         // arrange
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "a"), res2, "b"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "a")
+            .AddResult(res2, "b")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -193,26 +193,26 @@ public class MongoDbFilterVisitorStringTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { ncontains: \"a\" }}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { ncontains: \"b\" }}){ bar}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { ncontains: null }}){ bar}}")
                 .Build());
 
         // arrange
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "a"), res2, "b"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "a")
+            .AddResult(res2, "b")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -224,26 +224,26 @@ public class MongoDbFilterVisitorStringTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { startsWith: \"testa\" }}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { startsWith: \"testb\" }}){ bar}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { startsWith: null }}){ bar}}")
                 .Build());
 
         // arrange
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "testa"), res2, "testb"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "testa")
+            .AddResult(res2, "testb")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -255,26 +255,26 @@ public class MongoDbFilterVisitorStringTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { nstartsWith: \"testa\" }}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { nstartsWith: \"testb\" }}){ bar}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { nstartsWith: null }}){ bar}}")
                 .Build());
 
         // arrange
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "testa"), res2, "testb"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "testa")
+            .AddResult(res2, "testb")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -286,26 +286,26 @@ public class MongoDbFilterVisitorStringTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { endsWith: \"atest\" }}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { endsWith: \"btest\" }}){ bar}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { endsWith: null }}){ bar}}")
                 .Build());
 
         // arrange
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "atest"), res2, "btest"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "atest")
+            .AddResult(res2, "btest")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -317,26 +317,26 @@ public class MongoDbFilterVisitorStringTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { nendsWith: \"atest\" }}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { nendsWith: \"btest\" }}){ bar}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { nendsWith: null }}){ bar}}")
                 .Build());
 
         // arrange
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "atest"), res2, "btest"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "atest")
+            .AddResult(res2, "btest")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -348,26 +348,26 @@ public class MongoDbFilterVisitorStringTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: \"testatest\"}}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: \"testbtest\"}}){ bar}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: null}}){ bar}}")
                 .Build());
 
         // arrange
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "testatest"), res2, "testbtest"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "testatest")
+            .AddResult(res2, "testbtest")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -379,26 +379,26 @@ public class MongoDbFilterVisitorStringTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { neq: \"testatest\"}}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { neq: \"testbtest\"}}){ bar}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { neq: null}}){ bar}}")
                 .Build());
 
         // arrange
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "testatest"), res2, "testbtest"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "testatest")
+            .AddResult(res2, "testbtest")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -410,27 +410,27 @@ public class MongoDbFilterVisitorStringTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { bar: { in: [ \"testatest\"  \"testbtest\" ]}}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { in: [\"testbtest\" null]}}){ bar}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { in: [ \"testatest\" ]}}){ bar}}")
                 .Build());
 
         // arrange
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "testatestAndtestb"), res2, "testbtestAndNull"), res3, "testatest")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "testatestAndtestb")
+            .AddResult(res2, "testbtestAndNull")
+            .AddResult(res3, "testatest")
             .MatchAsync();
     }
 
@@ -442,27 +442,27 @@ public class MongoDbFilterVisitorStringTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { bar: { nin: [ \"testatest\"  \"testbtest\" ]}}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { nin: [\"testbtest\" null]}}){ bar}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { nin: [ \"testatest\" ]}}){ bar}}")
                 .Build());
 
         // arrange
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "testatestAndtestb"), res2, "testbtestAndNull"), res3, "testatest")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "testatestAndtestb")
+            .AddResult(res2, "testbtestAndNull")
+            .AddResult(res3, "testatest")
             .MatchAsync();
     }
 
@@ -474,26 +474,26 @@ public class MongoDbFilterVisitorStringTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { contains: \"a\" }}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { contains: \"b\" }}){ bar}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { contains: null }}){ bar}}")
                 .Build());
 
         // arrange
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "a"), res2, "b"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "a")
+            .AddResult(res2, "b")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -505,26 +505,26 @@ public class MongoDbFilterVisitorStringTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { ncontains: \"a\" }}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { ncontains: \"b\" }}){ bar}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { ncontains: null }}){ bar}}")
                 .Build());
 
         // arrange
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "a"), res2, "b"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "a")
+            .AddResult(res2, "b")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -536,26 +536,26 @@ public class MongoDbFilterVisitorStringTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { startsWith: \"testa\" }}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { startsWith: \"testb\" }}){ bar}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { startsWith: null }}){ bar}}")
                 .Build());
 
         // arrange
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "testa"), res2, "testb"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "testa")
+            .AddResult(res2, "testb")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -567,26 +567,26 @@ public class MongoDbFilterVisitorStringTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { nstartsWith: \"testa\" }}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { nstartsWith: \"testb\" }}){ bar}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { nstartsWith: null }}){ bar}}")
                 .Build());
 
         // arrange
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "testa"), res2, "testb"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "testa")
+            .AddResult(res2, "testb")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -598,26 +598,26 @@ public class MongoDbFilterVisitorStringTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { endsWith: \"atest\" }}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { endsWith: \"btest\" }}){ bar}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { endsWith: null }}){ bar}}")
                 .Build());
 
         // arrange
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "atest"), res2, "btest"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "atest")
+            .AddResult(res2, "btest")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -629,32 +629,33 @@ public class MongoDbFilterVisitorStringTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { nendsWith: \"atest\" }}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { nendsWith: \"btest\" }}){ bar}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { nendsWith: null }}){ bar}}")
                 .Build());
 
         // arrange
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "atest"), res2, "btest"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "atest")
+            .AddResult(res2, "btest")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
     public class Foo
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public string Bar { get; set; } = null!;
@@ -663,6 +664,7 @@ public class MongoDbFilterVisitorStringTests
     public class FooNullable
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public string? Bar { get; set; }

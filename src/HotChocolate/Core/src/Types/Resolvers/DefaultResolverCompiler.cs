@@ -1,9 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Threading.Tasks;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers.Expressions.Parameters;
 using HotChocolate.Types.Descriptors;
@@ -28,13 +24,13 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         Parameter(typeof(IResolverContext), "context");
 
     private static readonly ParameterExpression _pureContext =
-        Parameter(typeof(IPureResolverContext), "context");
+        Parameter(typeof(IResolverContext), "context");
 
     private static readonly MethodInfo _parent =
-        typeof(IPureResolverContext).GetMethod(nameof(IPureResolverContext.Parent))!;
+        typeof(IResolverContext).GetMethod(nameof(IResolverContext.Parent))!;
 
     private static readonly MethodInfo _resolver =
-        typeof(IPureResolverContext).GetMethod(nameof(IPureResolverContext.Resolver))!;
+        typeof(IResolverContext).GetMethod(nameof(IResolverContext.Resolver))!;
 
     private readonly Dictionary<ParameterInfo, IParameterExpressionBuilder> _cache = new();
     private readonly List<IParameterExpressionBuilder> _parameterExpressionBuilders;
@@ -86,7 +82,6 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         expressionBuilders.Add(new DocumentParameterExpressionBuilder());
         expressionBuilders.Add(new CancellationTokenParameterExpressionBuilder());
         expressionBuilders.Add(new ResolverContextParameterExpressionBuilder());
-        expressionBuilders.Add(new PureResolverContextParameterExpressionBuilder());
         expressionBuilders.Add(new SchemaParameterExpressionBuilder());
         expressionBuilders.Add(new SelectionParameterExpressionBuilder());
         expressionBuilders.Add(new FieldSyntaxParameterExpressionBuilder());
@@ -543,11 +538,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
             {
                 if (!builder.IsDefaultHandler && builder.CanHandle(parameter))
                 {
-#if NETSTANDARD
-                    _cache[parameter] = builder;
-#else
                     _cache.TryAdd(parameter, builder);
-#endif
                     return builder;
                 }
             }
@@ -557,11 +548,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         {
             if (builder.CanHandle(parameter))
             {
-#if NETSTANDARD
-                _cache[parameter] = builder;
-#else
                 _cache.TryAdd(parameter, builder);
-#endif
                 return builder;
             }
         }
@@ -572,11 +559,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
             {
                 if (builder.IsDefaultHandler && builder.CanHandle(parameter))
                 {
-#if NETSTANDARD
-                    _cache[parameter] = builder;
-#else
                     _cache.TryAdd(parameter, builder);
-#endif
                     return builder;
                 }
             }
@@ -588,21 +571,13 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
             {
                 if (builder.CanHandle(parameter))
                 {
-#if NETSTANDARD
-                _cache[parameter] = builder;
-#else
                     _cache.TryAdd(parameter, builder);
-#endif
                     return builder;
                 }
             }
         }
 
-#if NETSTANDARD
-        _cache[parameter] = _defaultExprBuilder;
-#else
         _cache.TryAdd(parameter, _defaultExprBuilder);
-#endif
         return _defaultExprBuilder;
     }
 

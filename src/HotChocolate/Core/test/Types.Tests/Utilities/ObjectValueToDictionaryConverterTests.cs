@@ -1,5 +1,4 @@
-﻿using HotChocolate.Language;
-using Snapshooter.Xunit;
+using HotChocolate.Language;
 
 namespace HotChocolate.Utilities;
 

@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -114,10 +113,10 @@ internal sealed class EdgeType : ObjectType, IEdgeType
             },
         };
 
-    private static string GetCursor(IPureResolverContext context)
+    private static string GetCursor(IResolverContext context)
         => context.Parent<IEdge>().Cursor;
 
-    private static object? GetNode(IPureResolverContext context)
+    private static object? GetNode(IResolverContext context)
         => context.Parent<IEdge>().Node;
 
     private static class Names

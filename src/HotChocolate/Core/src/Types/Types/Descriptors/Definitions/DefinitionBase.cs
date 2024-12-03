@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using HotChocolate.Utilities;
 
@@ -74,6 +72,12 @@ public class DefinitionBase : IDefinition
     public bool AttributesAreApplied { get; set; }
 
     /// <summary>
+    /// Gets state that is available during schema initialization.
+    /// </summary>
+    public ImmutableDictionary<string, object?> State { get; set; }
+        = ImmutableDictionary<string, object?>.Empty;
+
+    /// <summary>
     /// Gets lazy configuration of this definition and all dependent definitions.
     /// </summary>
     public virtual IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
@@ -138,6 +142,11 @@ public class DefinitionBase : IDefinition
             target._contextData = new ExtensionData(_contextData);
         }
 
+        if (State is { Count: > 0 })
+        {
+            target.State = State;
+        }
+
         target.Name = Name;
         target.Description = Description;
         target.AttributesAreApplied = AttributesAreApplied;
@@ -171,7 +180,26 @@ public class DefinitionBase : IDefinition
             }
         }
 
-        if (Description is not null)
+        if (State is { Count: > 0 })
+        {
+            if (target.State.Count == 0)
+            {
+                target.State = State;
+            }
+            else
+            {
+                var state = ImmutableDictionary.CreateBuilder<string, object?>();
+                if (target.State.Count > 0)
+                {
+                    state.AddRange(target.State);
+                }
+
+                state.AddRange(State);
+                target.State = state.ToImmutable();
+            }
+        }
+
+        if (target.Description is null && Description is not null)
         {
             target.Description = Description;
         }

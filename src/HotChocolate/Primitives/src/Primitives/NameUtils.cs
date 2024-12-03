@@ -1,4 +1,3 @@
-using System;
 using System.Runtime.CompilerServices;
 using static HotChocolate.Properties.PrimitivesResources;
 
@@ -25,9 +24,7 @@ public static class NameUtils
     /// </returns>
     public static string EnsureGraphQLName(
         this string? name,
-        #if NET6_0_OR_GREATER
         [CallerArgumentExpression("name")]
-        #endif
         string argumentName = "name")
     {
         if (name.IsValidGraphQLName())

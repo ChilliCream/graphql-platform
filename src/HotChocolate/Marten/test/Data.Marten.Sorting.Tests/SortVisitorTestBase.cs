@@ -14,9 +14,9 @@ public sealed class ResourceContainer : IAsyncDisposable
 {
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private int _testClassInstances = 0;
-    
-    public PostgreSqlResource Resource { get; } = new(); 
-    
+
+    public PostgreSqlResource Resource { get; } = new();
+
     public async ValueTask InitializeAsync()
     {
         await _semaphore.WaitAsync();
@@ -33,8 +33,8 @@ public sealed class ResourceContainer : IAsyncDisposable
         {
             _semaphore.Release();
         }
-    } 
-    
+    }
+
     public async ValueTask DisposeAsync()
     {
         await _semaphore.WaitAsync();
@@ -61,36 +61,36 @@ public class SortVisitorTestBase : IAsyncLifetime
 
     public async Task DisposeAsync() => await Container.DisposeAsync();
 
-    private static Func<IResolverContext, IQueryable<TResult>> BuildResolver<TResult>(
+    private static async Task<Func<IResolverContext, IQueryable<TResult>>> BuildResolverAsync<TResult>(
         IDocumentStore store,
         params TResult[] results)
         where TResult : class
     {
-        using var session = store.LightweightSession();
+        await using var session = store.LightweightSession();
 
         foreach (var item in results)
         {
             session.Store(item);
         }
 
-        session.SaveChanges();
+        await session.SaveChangesAsync();
 
         return ctx => ((IDocumentSession)ctx.LocalContextData["session"]!).Query<TResult>();
     }
 
     protected T[] CreateEntity<T>(params T[] entities) => entities;
 
-    protected IRequestExecutor CreateSchema<TEntity, T>(
+    protected async Task<IRequestExecutor> CreateSchemaAsync<TEntity, T>(
         TEntity[] entities,
         SortConvention? convention = null)
         where TEntity : class
         where T : SortInputType<TEntity>
     {
         var dbName = $"DB_{Guid.NewGuid():N}";
-        Container.Resource.CreateDatabaseAsync(dbName).GetAwaiter().GetResult();
+        await Container.Resource.CreateDatabaseAsync(dbName);
         var store = DocumentStore.For(Container.Resource.GetConnectionString(dbName));
 
-        var resolver = BuildResolver(store, entities);
+        var resolver = await BuildResolverAsync(store, entities);
 
         var builder = SchemaBuilder.New()
             .AddMartenSorting()
@@ -113,7 +113,7 @@ public class SortVisitorTestBase : IAsyncLifetime
 
         var schema = builder.Create();
 
-        return new ServiceCollection()
+        return await new ServiceCollection()
             .Configure<RequestExecutorSetup>(
                 Schema.DefaultName,
                 o => o.Schema = schema)
@@ -126,7 +126,7 @@ public class SortVisitorTestBase : IAsyncLifetime
                     {
                         context.Result =
                             OperationResultBuilder
-                                .FromResult(context.Result!.ExpectQueryResult())
+                                .FromResult(context.Result!.ExpectOperationResult())
                                 .SetContextData("sql", queryString)
                                 .Build();
                     }
@@ -136,8 +136,7 @@ public class SortVisitorTestBase : IAsyncLifetime
             .Services
             .BuildServiceProvider()
             .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync()
-            .Result;
+            .GetRequestExecutorAsync();
     }
 
     private void ApplyConfigurationToField<TEntity, TType>(
@@ -153,7 +152,7 @@ public class SortVisitorTestBase : IAsyncLifetime
             context.LocalContextData = context.LocalContextData.SetItem("session", session);
             await next(context);
         });
-        
+
         field.Use(next => async context =>
         {
             await next(context);

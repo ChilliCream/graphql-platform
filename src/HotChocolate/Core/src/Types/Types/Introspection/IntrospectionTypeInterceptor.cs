@@ -1,6 +1,5 @@
 #nullable enable
 
-using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
@@ -37,7 +36,7 @@ internal sealed class IntrospectionTypeInterceptor : TypeInterceptor
         }
     }
 
-    internal override void OnAfterResolveRootType(
+    public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
         ObjectTypeDefinition definition,
         OperationType operationType)

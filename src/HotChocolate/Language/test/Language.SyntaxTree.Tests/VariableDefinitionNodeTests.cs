@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Language.SyntaxTree;

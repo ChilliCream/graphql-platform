@@ -1,6 +1,4 @@
-using System.Linq;
 using System.Text;
-using CookieCrumble;
 using Xunit;
 using static CookieCrumble.Formatters.SnapshotValueFormatters;
 
@@ -189,7 +187,6 @@ public class QueryParserTests
                     .SelectionSet.Selections.Single();
                 Assert.IsType<FieldNode>(selectionNode);
                 Assert.Equal("z", ((FieldNode)selectionNode).Name.Value);
-
             });
     }
 
@@ -270,7 +267,6 @@ public class QueryParserTests
         // assert
         document.MatchSnapshot();
     }
-
 
     [Fact]
     public void StringArg()

@@ -1,11 +1,6 @@
 #nullable enable
 
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -218,19 +213,19 @@ public class CodeFirstTests
                 .AddGraphQLServer()
                 .AddQueryType<QueryWithEnumerableArg>()
                 .BuildSchemaAsync();
-        
+
         schema.MatchInlineSnapshot(
             """
             schema {
               query: QueryWithEnumerableArg
             }
-            
+
             type QueryWithEnumerableArg {
               foo(foo: [String!]!): String!
             }
             """);
     }
-    
+
     public class Query
     {
         public string SayHello(string name) =>
@@ -270,7 +265,7 @@ public class CodeFirstTests
 
     public class QueryWithEnumerableArg
     {
-        public string GetFoo(IEnumerable<string> foo) 
+        public string GetFoo(IEnumerable<string> foo)
             => "foo";
     }
 

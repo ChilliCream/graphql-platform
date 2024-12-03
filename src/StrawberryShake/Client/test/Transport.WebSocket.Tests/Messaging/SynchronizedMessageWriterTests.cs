@@ -1,7 +1,3 @@
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace StrawberryShake.Transport.WebSockets;
 
 public class SynchronizedMessageWriterTests
@@ -34,6 +30,14 @@ public class SynchronizedMessageWriterTests
         await using var writer = new SynchronizedMessageWriter(socketClient);
 
         // act
+        var canceled = writer.CommitAsync(x =>
+            {
+                x.WriteStartObject();
+                x.WriteEndObject();
+            },
+            new(true));
+        Assert.True(canceled.IsCanceled);
+
         List<Task> tasks = [];
         for (var i = 0; i < 10; i++)
         {

@@ -19,13 +19,13 @@ public class DocumentCacheMiddlewareTests
             cache,
             hashProvider);
 
-        var request = OperationRequestBuilder.Create()
+        var request = OperationRequestBuilder.New()
             .SetDocument("{ a }")
             .SetDocumentId("a")
             .Build();
 
         var document = Utf8GraphQLParser.Parse("{ a }");
-        cache.TryAddDocument("a", document);
+        cache.TryAddDocument("a", new CachedDocument(document, false));
 
         var requestContext = new Mock<IRequestContext>();
         var schema = new Mock<ISchema>();
@@ -57,13 +57,13 @@ public class DocumentCacheMiddlewareTests
             cache,
             hashProvider);
 
-        var request = OperationRequestBuilder.Create()
+        var request = OperationRequestBuilder.New()
             .SetDocument("{ a }")
             .SetDocumentHash("a")
             .Build();
 
         var document = Utf8GraphQLParser.Parse("{ a }");
-        cache.TryAddDocument("a", document);
+        cache.TryAddDocument("a", new CachedDocument(document, false));
 
         var requestContext = new Mock<IRequestContext>();
         var schema = new Mock<ISchema>();
@@ -95,13 +95,13 @@ public class DocumentCacheMiddlewareTests
             cache,
             hashProvider);
 
-        var request = OperationRequestBuilder.Create()
+        var request = OperationRequestBuilder.New()
             .SetDocument("{ a }")
             .SetDocumentId("a")
             .Build();
 
         var document = Utf8GraphQLParser.Parse("{ a }");
-        cache.TryAddDocument("b", document);
+        cache.TryAddDocument("b", new CachedDocument(document, false));
 
         var requestContext = new Mock<IRequestContext>();
         var schema = new Mock<ISchema>();
@@ -129,7 +129,7 @@ public class DocumentCacheMiddlewareTests
         var cache = new Caching.DefaultDocumentCache();
         var hashProvider = new MD5DocumentHashProvider();
 
-        var request = OperationRequestBuilder.Create()
+        var request = OperationRequestBuilder.New()
             .SetDocument("{ a }")
             .Build();
 
@@ -169,7 +169,7 @@ public class DocumentCacheMiddlewareTests
         var cache = new Caching.DefaultDocumentCache();
         var hashProvider = new MD5DocumentHashProvider();
 
-        var request = OperationRequestBuilder.Create()
+        var request = OperationRequestBuilder.New()
             .SetDocument("{ a }")
             .Build();
 

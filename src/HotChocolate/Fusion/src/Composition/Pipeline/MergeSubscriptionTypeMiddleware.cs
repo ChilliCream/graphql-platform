@@ -21,6 +21,7 @@ internal sealed class MergeSubscriptionTypeMiddleware : IMergeMiddleware
             {
                 subscriptionType = context.FusionGraph.SubscriptionType = new ObjectTypeDefinition(schema.SubscriptionType.Name);
                 subscriptionType.MergeDescriptionWith(schema.SubscriptionType);
+                subscriptionType.MergeDirectivesWith(schema.SubscriptionType, context);
                 context.FusionGraph.Types.Add(subscriptionType);
             }
 
@@ -52,7 +53,6 @@ internal sealed class MergeSubscriptionTypeMiddleware : IMergeMiddleware
                 var selection = new FieldNode(
                     null,
                     new NameNode(field.GetOriginalName()),
-                    null,
                     null,
                     Array.Empty<DirectiveNode>(),
                     arguments,

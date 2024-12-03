@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Opa.Native" Version="0.41.0" PrivateAssets="Compile" IncludeAssets="Compile;Runtime;Native" />
+    <PackageReference Include="Opa.Native" PrivateAssets="Compile" IncludeAssets="Compile;Runtime;Native" />
   </ItemGroup>
 
   <ItemGroup>

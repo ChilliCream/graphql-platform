@@ -53,11 +53,11 @@
           "event": [
             {
               "Name": "AddedOperationToCache",
-              "Tags": {}
+              "Tags": []
             },
             {
               "Name": "AddedDocumentToCache",
-              "Tags": {}
+              "Tags": []
             }
           ],
           "activities": [
@@ -73,6 +73,18 @@
                 {
                   "Key": "otel.status_code",
                   "Value": "OK"
+                }
+              ],
+              "event": []
+            },
+            {
+              "OperationName": "AnalyzeOperationCost",
+              "DisplayName": "Analyze Operation Complexity",
+              "Status": "Unset",
+              "tags": [
+                {
+                  "Key": "graphql.operation.id",
+                  "Value": "1d4bca4d0dff630390ddf48e9085589d"
                 }
               ],
               "event": []

@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
@@ -69,8 +65,7 @@ public sealed class MockHttpRequestData : HttpRequestData, IDisposable
 
     public override Uri Url { get; }
 
-    public override IEnumerable<ClaimsIdentity> Identities { get; } =
-        Enumerable.Empty<ClaimsIdentity>();
+    public override IEnumerable<ClaimsIdentity> Identities { get; } = [];
 
     public override string Method { get; }
 
@@ -81,5 +76,3 @@ public sealed class MockHttpRequestData : HttpRequestData, IDisposable
         Body.Dispose();
     }
 }
-
-

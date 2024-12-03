@@ -28,7 +28,7 @@ internal sealed class OpenApiMutableSchemaBuilder
     private bool _mutationConventionsEnabled;
     private MutationConventionOptions _mutationConventionOptions;
 
-    public static OpenApiMutableSchemaBuilder Create(
+    public static OpenApiMutableSchemaBuilder New(
         OpenApiDocument openApiDocument,
         string httpClientName)
     {

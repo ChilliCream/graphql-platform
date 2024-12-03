@@ -1,6 +1,7 @@
 using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Execution.Errors;
 using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Pipeline;
 using HotChocolate.Fusion;
@@ -52,7 +53,7 @@ public static class FusionRequestExecutorBuilderExtensions
                 sp.GetRequiredService<IWebSocketConnectionFactory>()));
 
         var builder = services
-            .AddGraphQLServer(graphName)
+            .AddGraphQLServer(graphName, disableDefaultSecurity: true)
             .UseField(next => next)
             .AddOperationCompilerOptimizer<OperationQueryPlanCompiler>()
             .AddOperationCompilerOptimizer<FieldFlagsOptimizer>()
@@ -135,7 +136,7 @@ public static class FusionRequestExecutorBuilderExtensions
                 (_, sc) =>
                 {
                     sc.RemoveAll<NodeIdParser>();
-                    sc.AddSingleton<NodeIdParser, DefaultNodeIdParser>();
+                    sc.AddSingleton<NodeIdParser, T>();
                 }));
 
         return builder;
@@ -343,6 +344,66 @@ public static class FusionRequestExecutorBuilderExtensions
         return builder;
     }
 
+    public static FusionGatewayBuilder AddErrorFilter(
+        this FusionGatewayBuilder builder,
+        Func<IError, IError> errorFilter)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (errorFilter is null)
+        {
+            throw new ArgumentNullException(nameof(errorFilter));
+        }
+
+        builder.CoreBuilder.ConfigureSchemaServices(
+            s => s.AddSingleton<IErrorFilter>(
+                new FuncErrorFilterWrapper(errorFilter)));
+
+        return builder;
+    }
+
+    public static FusionGatewayBuilder AddErrorFilter<T>(
+        this FusionGatewayBuilder builder,
+        Func<IServiceProvider, T> factory)
+        where T : class, IErrorFilter
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (factory is null)
+        {
+            throw new ArgumentNullException(nameof(factory));
+        }
+
+        builder.CoreBuilder.ConfigureSchemaServices(
+            s => s.AddSingleton<IErrorFilter, T>(
+                sp => factory(sp.GetCombinedServices())));
+
+        return builder;
+    }
+
+    public static FusionGatewayBuilder AddErrorFilter<T>(
+        this FusionGatewayBuilder builder)
+        where T : class, IErrorFilter
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        builder.Services.TryAddSingleton<T>();
+        builder.CoreBuilder.ConfigureSchemaServices(
+            s => s.AddSingleton<IErrorFilter, T>(
+                sp => sp.GetApplicationService<T>()));
+
+        return builder;
+    }
+
     /// <summary>
     /// Uses the default fusion gateway pipeline.
     /// </summary>
@@ -362,7 +423,7 @@ public static class FusionRequestExecutorBuilderExtensions
     }
 
     /// <summary>
-    /// Uses the persisted query pipeline with the Fusion gateway.
+    /// Uses the persisted operation pipeline with the Fusion gateway.
     /// </summary>
     /// <param name="builder">
     /// The gateway builder.
@@ -373,7 +434,7 @@ public static class FusionRequestExecutorBuilderExtensions
     /// <exception cref="ArgumentNullException">
     /// <paramref name="builder"/> is <c>null</c>.
     /// </exception>
-    public static FusionGatewayBuilder UsePersistedQueryPipeline(
+    public static FusionGatewayBuilder UsePersistedOperationPipeline(
         this FusionGatewayBuilder builder)
     {
         if (builder is null)
@@ -381,12 +442,12 @@ public static class FusionRequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        builder.CoreBuilder.UseFusionPersistedQueryPipeline();
+        builder.CoreBuilder.UseFusionPersistedOperationPipeline();
         return builder;
     }
 
     /// <summary>
-    /// Uses the automatic persisted query pipeline with the Fusion gateway.
+    /// Uses the automatic persisted operation pipeline with the Fusion gateway.
     /// </summary>
     /// <param name="builder">
     /// The gateway builder.
@@ -397,7 +458,7 @@ public static class FusionRequestExecutorBuilderExtensions
     /// <exception cref="ArgumentNullException">
     /// <paramref name="builder"/> is <c>null</c>.
     /// </exception>
-    public static FusionGatewayBuilder UseAutomaticPersistedQueryPipeline(
+    public static FusionGatewayBuilder UseAutomaticPersistedOperationPipeline(
         this FusionGatewayBuilder builder)
     {
         if (builder is null)
@@ -405,7 +466,89 @@ public static class FusionRequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        builder.CoreBuilder.UseFusionAutomaticPersistedQueryPipeline();
+        builder.CoreBuilder.UseFusionAutomaticPersistedOperationPipeline();
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds a type that will be used to create a middleware for the execution pipeline.
+    /// </summary>
+    /// <param name="builder">
+    /// The gateway builder.
+    /// </param>
+    /// <returns>
+    /// Returns the gateway builder for configuration chaining.
+    /// </returns>
+    public static FusionGatewayBuilder UseRequest<TMiddleware>(
+        this FusionGatewayBuilder builder)
+        where TMiddleware : class
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        builder.CoreBuilder.UseRequest<TMiddleware>();
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds a delegate that will be used to create a middleware for the execution pipeline.
+    /// </summary>
+    /// <param name="builder">
+    /// The gateway builder.
+    /// </param>
+    /// <param name="middleware">
+    /// A delegate that is used to create a middleware for the execution pipeline.
+    /// </param>
+    /// <returns>
+    /// Returns the gateway builder for configuration chaining.
+    /// </returns>
+    public static FusionGatewayBuilder UseRequest(
+        this FusionGatewayBuilder builder,
+        RequestCoreMiddleware middleware)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (middleware is null)
+        {
+            throw new ArgumentNullException(nameof(middleware));
+        }
+
+        builder.CoreBuilder.UseRequest(middleware);
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds a delegate that will be used to create a middleware for the execution pipeline.
+    /// </summary>
+    /// <param name="builder">
+    /// The gateway builder.
+    /// </param>
+    /// <param name="middleware">
+    /// A delegate that is used to create a middleware for the execution pipeline.
+    /// </param>
+    /// <returns>
+    /// Returns the gateway builder for configuration chaining.
+    /// </returns>
+    public static FusionGatewayBuilder UseRequest(
+        this FusionGatewayBuilder builder,
+        RequestMiddleware middleware)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (middleware is null)
+        {
+            throw new ArgumentNullException(nameof(middleware));
+        }
+
+        builder.CoreBuilder.UseRequest(middleware);
         return builder;
     }
 
@@ -421,11 +564,12 @@ public static class FusionRequestExecutorBuilderExtensions
             .UseDocumentValidation()
             .UseOperationCache()
             .UseOperationResolver()
+            .UseSkipWarmupExecution()
             .UseOperationVariableCoercion()
             .UseDistributedOperationExecution();
     }
 
-    private static IRequestExecutorBuilder UseFusionPersistedQueryPipeline(
+    private static IRequestExecutorBuilder UseFusionPersistedOperationPipeline(
         this IRequestExecutorBuilder builder)
     {
         if (builder is null)
@@ -438,18 +582,19 @@ public static class FusionRequestExecutorBuilderExtensions
             .UseExceptions()
             .UseTimeout()
             .UseDocumentCache()
-            .UseReadPersistedQuery()
-            .UsePersistedQueryNotFound()
-            .UseOnlyPersistedQueriesAllowed()
+            .UseReadPersistedOperation()
+            .UsePersistedOperationNotFound()
+            .UseOnlyPersistedOperationAllowed()
             .UseDocumentParser()
             .UseDocumentValidation()
             .UseOperationCache()
             .UseOperationResolver()
+            .UseSkipWarmupExecution()
             .UseOperationVariableCoercion()
             .UseDistributedOperationExecution();
     }
 
-    private static IRequestExecutorBuilder UseFusionAutomaticPersistedQueryPipeline(
+    private static IRequestExecutorBuilder UseFusionAutomaticPersistedOperationPipeline(
         this IRequestExecutorBuilder builder)
     {
         if (builder is null)
@@ -462,13 +607,14 @@ public static class FusionRequestExecutorBuilderExtensions
             .UseExceptions()
             .UseTimeout()
             .UseDocumentCache()
-            .UseReadPersistedQuery()
-            .UseAutomaticPersistedQueryNotFound()
-            .UseWritePersistedQuery()
+            .UseReadPersistedOperation()
+            .UseAutomaticPersistedOperationNotFound()
+            .UseWritePersistedOperation()
             .UseDocumentParser()
             .UseDocumentValidation()
             .UseOperationCache()
             .UseOperationResolver()
+            .UseSkipWarmupExecution()
             .UseOperationVariableCoercion()
             .UseDistributedOperationExecution();
     }
@@ -481,7 +627,7 @@ public static class FusionRequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        return builder.UseRequest<DistributedOperationExecutionMiddleware>();
+        return builder.UseRequest(DistributedOperationExecutionMiddleware.Create());
     }
 
     internal static void AddDefaultPipeline(this IList<RequestCoreMiddleware> pipeline)

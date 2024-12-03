@@ -1,21 +1,18 @@
-namespace HotChocolate.Types.Descriptors
+namespace HotChocolate.Types.Descriptors;
+
+public class WithMultilineXmlDoc(string foo)
 {
-#pragma warning disable 1591
-    public class WithMultilineXmlDoc
-    {
-        /// <summary>
-        /// Query and manages users.
-        ///
-        /// Please note:
-        /// * Users ...
-        /// * Users ...
-        ///     * Users ...
-        ///     * Users ...
-        ///
-        /// You need one of the following role: Owner,
-        /// Editor, use XYZ to manage permissions.
-        /// </summary>
-        public string Foo { get; set; }
-    }
-#pragma warning restore 1591
+    /// <summary>
+    /// Query and manages users.
+    ///
+    /// Please note:
+    /// * Users ...
+    /// * Users ...
+    ///     * Users ...
+    ///     * Users ...
+    ///
+    /// You need one of the following role: Owner,
+    /// Editor, use XYZ to manage permissions.
+    /// </summary>
+    public string Foo { get; set; } = foo;
 }

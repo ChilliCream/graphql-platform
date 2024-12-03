@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -27,13 +26,13 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(query)
                 .SetVariableValues(new Dictionary<string, object?> { { "order", "ASC" }, })
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(query)
                 .SetVariableValues(new Dictionary<string, object?> { { "order", "DESC" }, })
                 .Build());
@@ -56,13 +55,13 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(query)
                 .SetVariableValues(new Dictionary<string, object?> { { "order", "ASC" }, })
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(query)
                 .SetVariableValues(new Dictionary<string, object?> { { "order", "DESC" }, })
                 .Build());

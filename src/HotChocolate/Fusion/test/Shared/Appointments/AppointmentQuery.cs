@@ -1,4 +1,4 @@
-﻿using HotChocolate.Types;
+using HotChocolate.Types;
 using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Fusion.Shared.Appointments;
@@ -49,6 +49,5 @@ public class AppointmentQuery
         }
 
         return null;
-
     }
 }

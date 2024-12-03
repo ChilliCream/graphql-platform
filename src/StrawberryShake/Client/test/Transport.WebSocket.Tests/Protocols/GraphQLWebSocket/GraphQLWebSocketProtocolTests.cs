@@ -1,9 +1,5 @@
-using System;
 using System.Text;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
-using CookieCrumble;
 using Moq;
 using StrawberryShake.Transport.WebSockets.Messages;
 
@@ -21,7 +17,6 @@ public class GraphQlWsProtocolTests
         var protocol = new GraphQLWebSocketProtocol(socketClient);
         await protocol.InitializeAsync(CancellationToken.None);
         await protocol.DisposeAsync();
-
 
         // assert
         Assert.Equal(1, socketClient.GetCallCount(x => x.ReceiveAsync(default!, default!)));

@@ -1,26 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>$(LibraryTargetFrameworks)</TargetFrameworks>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <PackageId>HotChocolate.Transport.Sockets</PackageId>
     <AssemblyName>HotChocolate.Transport.Sockets</AssemblyName>
     <RootNamespace>HotChocolate.Transport.Sockets</RootNamespace>
     <Description>This package contains common abstractions and base classes for socket transport.</Description>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
-    <PackageReference Include="System.IO.Pipelines" Version="8.0.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
-    <PackageReference Include="System.IO.Pipelines" Version="7.0.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0' OR '$(TargetFramework)' == 'netstandard2.1' OR '$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="System.IO.Pipelines" Version="6.0.0" />
+  <ItemGroup>
+    <PackageReference Include="System.IO.Pipelines" />
   </ItemGroup>
 
 </Project>

@@ -26,7 +26,7 @@ query Appointments {
       {
         "type": "Resolve",
         "subgraph": "Appointment",
-        "document": "query Appointments_1 { appointments { nodes { patient { __typename ... on Patient1 { id } ... on Patient2 { id } } } } }",
+        "document": "query Appointments_1 { appointments { nodes { patient { __typename ... on Patient2 { id } ... on Patient1 { id } } } } }",
         "selectionSetId": 0
       },
       {

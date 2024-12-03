@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Data.Projections;
@@ -32,7 +31,7 @@ public class QueryableProjectionVisitorIsProjectedTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root { isProjectedFalse }}")
                 .Build());
 
@@ -51,7 +50,7 @@ public class QueryableProjectionVisitorIsProjectedTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root { isProjectedFalse isProjectedTrue  }}")
                 .Build());
 
@@ -70,7 +69,7 @@ public class QueryableProjectionVisitorIsProjectedTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root { isProjectedFalse }}")
                 .Build());
 
@@ -89,7 +88,7 @@ public class QueryableProjectionVisitorIsProjectedTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root { isProjectedFalse }}")
                 .Build());
 
@@ -108,7 +107,7 @@ public class QueryableProjectionVisitorIsProjectedTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root { isProjectedFalse }}")
                 .Build());
 

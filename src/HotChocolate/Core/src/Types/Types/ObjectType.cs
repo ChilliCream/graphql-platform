@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
@@ -63,7 +61,7 @@ public partial class ObjectType
 
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Object;
-    
+
     /// <summary>
     /// Gets the interfaces that are implemented by this type.
     /// </summary>

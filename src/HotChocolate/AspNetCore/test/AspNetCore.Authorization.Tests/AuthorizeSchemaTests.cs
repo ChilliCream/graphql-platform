@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using CookieCrumble;
 using HotChocolate.Authorization;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -21,7 +20,7 @@ public class AuthorizeSchemaTests
             .AddAuthorization()
             .ExecuteRequestAsync(
                 OperationRequestBuilder
-                    .Create()
+                    .New()
                     .SetDocument("{ bar }")
                     .SetUser(new ClaimsPrincipal())
                     .Build());

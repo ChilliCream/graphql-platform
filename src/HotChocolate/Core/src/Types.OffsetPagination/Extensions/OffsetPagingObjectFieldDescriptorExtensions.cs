@@ -1,8 +1,8 @@
-using System;
 using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Types.Pagination.PagingDefaults;
@@ -45,7 +45,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
         Type? itemType = null,
         GetOffsetPagingProvider? resolvePagingProvider = null,
         string? collectionSegmentName = null,
-        PagingOptions options = default)
+        PagingOptions? options = null)
         where TSchemaType : IOutputType =>
         UseOffsetPaging(
             descriptor,
@@ -85,7 +85,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
         Type? entityType = null,
         GetOffsetPagingProvider? resolvePagingProvider = null,
         string? collectionSegmentName = null,
-        PagingOptions options = default)
+        PagingOptions? options = null)
     {
         if (descriptor is null)
         {
@@ -106,7 +106,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
             .Extend()
             .OnBeforeCreate((c, d) =>
             {
-                var pagingOptions = c.GetSettings(options);
+                var pagingOptions = c.GetPagingOptions(options);
                 if (string.IsNullOrEmpty(collectionSegmentName))
                 {
                     collectionSegmentName =
@@ -115,6 +115,8 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
                             ? EnsureCollectionSegmentNameCasing(d.Name)
                             : null;
                 }
+                d.State = d.State.Add(WellKnownContextData.PagingOptions, pagingOptions);
+                d.Flags |= FieldFlags.CollectionSegment;
 
                 TypeReference? typeRef = itemType is not null
                     ? c.TypeInspector.GetTypeRef(itemType)
@@ -127,12 +129,41 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
                     typeRef = syntaxTypeRef.WithType(syntaxTypeRef.Type.ElementType());
                 }
 
+                if (typeRef is null &&
+                    d.Type is ExtendedTypeReference extendedTypeRef &&
+                    c.TypeInspector.TryCreateTypeInfo(extendedTypeRef.Type, out var typeInfo) &&
+                    GetElementType(typeInfo) is { } elementType)
+                {
+                    typeRef = TypeReference.Create(elementType, TypeContext.Output);
+                }
+
                 var resolverMember = d.ResolverMember ?? d.Member;
                 d.Type = CreateTypeRef(c, resolverMember, collectionSegmentName, typeRef, options);
-                d.CustomSettings.Add(typeof(CollectionSegment));
             });
 
         return descriptor;
+    }
+
+    private static IExtendedType? GetElementType(ITypeInfo typeInfo)
+    {
+        var elementType = false;
+
+        for (var i = 0; i < typeInfo.Components.Count; i++)
+        {
+            var component = typeInfo.Components[i];
+
+            if (elementType)
+            {
+                return component.Type;
+            }
+
+            if (component.Kind is TypeComponentKind.List)
+            {
+                elementType = true;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -156,7 +187,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
     public static IInterfaceFieldDescriptor UseOffsetPaging<TSchemaType>(
         this IInterfaceFieldDescriptor descriptor,
         string? collectionSegmentName = null,
-        PagingOptions options = default)
+        PagingOptions? options = null)
         where TSchemaType : class, IOutputType =>
         UseOffsetPaging(descriptor, typeof(TSchemaType), collectionSegmentName, options);
 
@@ -182,7 +213,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
         this IInterfaceFieldDescriptor descriptor,
         Type? itemType = null,
         string? collectionSegmentName = null,
-        PagingOptions options = default)
+        PagingOptions? options = null)
     {
         if (descriptor is null)
         {
@@ -195,7 +226,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
             .Extend()
             .OnBeforeCreate((c, d) =>
             {
-                var pagingOptions = c.GetSettings(options);
+                var pagingOptions = c.GetPagingOptions(options);
                 if (string.IsNullOrEmpty(collectionSegmentName))
                 {
                     collectionSegmentName =
@@ -204,6 +235,8 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
                             ? EnsureCollectionSegmentNameCasing(d.Name)
                             : null;
                 }
+                d.State = d.State.Add(WellKnownContextData.PagingOptions, pagingOptions);
+                d.Flags |= FieldFlags.CollectionSegment;
 
                 TypeReference? typeRef = itemType is not null
                     ? c.TypeInspector.GetTypeRef(itemType)
@@ -234,8 +267,10 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
             throw new ArgumentNullException(nameof(descriptor));
         }
 
+        var skip = descriptor.Argument(OffsetPagingArgumentNames.Skip, a => a.Type<IntType>());
+        skip.Extend().Definition.Flags |= FieldFlags.SkipArgument;
+
         return descriptor
-            .Argument(OffsetPagingArgumentNames.Skip, a => a.Type<IntType>())
             .Argument(OffsetPagingArgumentNames.Take, a => a.Type<IntType>());
     }
 
@@ -260,7 +295,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
         MemberInfo? resolverMember,
         string? collectionSegmentName,
         TypeReference? itemsType,
-        PagingOptions options)
+        PagingOptions? options)
     {
         var typeInspector = context.TypeInspector;
 
@@ -278,7 +313,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
                 namedType);
         }
 
-        options = context.GetSettings(options);
+        options = context.GetPagingOptions(options);
 
         // last but not leas we create a type reference that can be put on the field definition
         // to tell the type discovery that this field needs this result type.

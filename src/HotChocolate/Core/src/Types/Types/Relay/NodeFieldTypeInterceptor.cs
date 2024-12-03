@@ -1,7 +1,5 @@
 #nullable enable
 
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
@@ -24,7 +22,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
 
     internal override uint Position => uint.MaxValue - 100;
 
-    internal override void OnAfterResolveRootType(
+    public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
         ObjectTypeDefinition definition,
         OperationType operationType)
@@ -96,6 +94,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
                         };
                     }),
             },
+            Flags = FieldFlags.ParallelExecutable | FieldFlags.GlobalIdNodeField
         };
 
         // In the projection interceptor we want to change the context data that is on this field
@@ -135,6 +134,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
                         };
                     }),
             },
+            Flags = FieldFlags.ParallelExecutable | FieldFlags.GlobalIdNodesField
         };
 
         // In the projection interceptor we want to change the context data that is on this field

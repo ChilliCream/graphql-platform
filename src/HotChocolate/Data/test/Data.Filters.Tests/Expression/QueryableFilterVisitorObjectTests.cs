@@ -281,7 +281,7 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
         var a = new Bar { Foo = new Foo { ScalarArray = ["c", "d", "a",], }, };
         Assert.True(func(a));
 
-        var b = new Bar { Foo = new Foo { ScalarArray = new string[0], }, };
+        var b = new Bar { Foo = new Foo { ScalarArray = [], }, };
         Assert.False(func(b));
 
         var c = new Bar { Foo = new Foo { ScalarArray = null, }, };
@@ -369,7 +369,7 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
                 [
                     new Bar {
                             Foo = new Foo {
-                                ScalarArray = new string[0],
+                                ScalarArray = [],
                             },
                         },
                 ],
@@ -530,13 +530,11 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
     public class Bar
     {
         public Foo? Foo { get; set; }
-
     }
 
     public class BarNullable
     {
         public FooNullable? Foo { get; set; }
-
     }
 
     public class BarFilterInput

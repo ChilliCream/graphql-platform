@@ -1,5 +1,3 @@
-using System;
-using Snapshooter.Xunit;
 using HotChocolate.Types;
 using HotChocolate.Language;
 
@@ -974,7 +972,6 @@ public class SchemaBuilderExtensionsTypeTests
             .MatchSnapshot();
     }
 
-
     [Fact]
     public void AddEnumType_BuilderIsNull_ArgumentNullException()
     {
@@ -1129,7 +1126,7 @@ public class SchemaBuilderExtensionsTypeTests
 
     public class Bar
     {
-        public string Baz { get; }
+        public string Baz { get; init; }
     }
 
     public class MySchema
@@ -1154,7 +1151,6 @@ public class SchemaBuilderExtensionsTypeTests
 
     public interface IMyInterface
     {
-
     }
 
     public enum MyEnum

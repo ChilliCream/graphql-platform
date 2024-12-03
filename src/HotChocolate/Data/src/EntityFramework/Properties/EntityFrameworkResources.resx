@@ -3,7 +3,7 @@
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:element name="root" msdata:IsDataSet="true">
-      
+
     </xsd:element>
   </xsd:schema>
   <resheader name="resmimetype">
@@ -20,5 +20,14 @@
   </resheader>
   <data name="ResolverContext_DbContext_MissingFromLocalState" xml:space="preserve">
     <value>A DbContext of type `{0}` could not be retrieved from the `LocalContextData`. Most likely the `UseDbContext&lt;{0}&gt;()` middleware is missing.</value>
+  </data>
+  <data name="EfQueryableCursorPagingHandler_SliceAsync_NoOrder" xml:space="preserve">
+    <value>In order to use cursor pagination, you must specify at least one key using the `OrderBy` method.</value>
+  </data>
+  <data name="EfQueryableCursorPagingHandler_SliceAsync_FirstOrLast" xml:space="preserve">
+    <value>You can specify either `first` or `last`, but not both as this can lead to unpredictable results.</value>
+  </data>
+  <data name="EfQueryableCursorPagingHandler_SourceNotSupported" xml:space="preserve">
+    <value>Cannot handle the specified data source.</value>
   </data>
 </root>

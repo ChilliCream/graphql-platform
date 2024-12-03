@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -496,6 +495,7 @@ public class CodeFirstAuthorizationTests
             .AddGraphQLServer()
             .AddQueryType<QueryType>()
             .AddGlobalObjectIdentification()
+            .ModifyOptions(o => o.EnsureAllNodesCanBeResolved = false)
             .AddAuthorizationHandler(_ => handler)
             .ModifyAuthorizationOptions(configure ?? (_ => { }))
             .Services

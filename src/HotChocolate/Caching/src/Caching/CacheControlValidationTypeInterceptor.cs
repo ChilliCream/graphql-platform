@@ -10,7 +10,7 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
 {
     private ITypeCompletionContext _queryContext = default!;
 
-    internal override void OnAfterResolveRootType(
+    public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
         ObjectTypeDefinition definition,
         OperationType operationType)
@@ -20,7 +20,7 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
             _queryContext = completionContext;
         }
     }
-    
+
     public override void OnValidateType(
         ITypeSystemObjectContext validationContext,
         DefinitionBase definition)
@@ -130,6 +130,21 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
             if (inheritMaxAge)
             {
                 var error = ErrorHelper.CacheControlBothMaxAgeAndInheritMaxAge(obj, field);
+                validationContext.ReportError(error);
+            }
+        }
+
+        if (directive.SharedMaxAge.HasValue)
+        {
+            if (directive.SharedMaxAge.Value < 0)
+            {
+                var error = ErrorHelper.CacheControlNegativeSharedMaxAge(obj, field);
+                validationContext.ReportError(error);
+            }
+
+            if (inheritMaxAge)
+            {
+                var error = ErrorHelper.CacheControlBothSharedMaxAgeAndInheritMaxAge(obj, field);
                 validationContext.ReportError(error);
             }
         }

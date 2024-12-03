@@ -1,5 +1,3 @@
-using Snapshooter.Xunit;
-
 namespace HotChocolate.Types.SDL;
 
 public class InputObjectTypeSchemaFirstTests

@@ -3,20 +3,18 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Fusion</AssemblyName>
     <RootNamespace>HotChocolate.Fusion</RootNamespace>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
-    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
     <!--EnableTrimAnalyzer>true</EnableTrimAnalyzer-->
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Fusion.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Composition.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Tests.Shared" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.CommandLine" />
-    <InternalsVisibleTo Include="BananaCakePop.Services" />
-    <InternalsVisibleTo Include="CookieCrumble" />
+    <InternalsVisibleTo Include="ChilliCream.Nitro.Fusion" />
+    <InternalsVisibleTo Include="CookieCrumble.Fusion" />
   </ItemGroup>
 
   <ItemGroup>
@@ -27,14 +25,10 @@
     <ProjectReference Include="..\Abstractions\HotChocolate.Fusion.Abstractions.csproj" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Http" />
+    <PackageReference Include="System.Reactive" />
   </ItemGroup>
 
   <ItemGroup>
@@ -60,10 +54,5 @@
       <DependentUpon>ResolverNodeBase.cs</DependentUpon>
     </Compile>
   </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="System.Reactive" Version="5.0.0" />
-  </ItemGroup>
-
 
 </Project>

@@ -1,5 +1,4 @@
 #pragma warning disable IDE1006 // Naming Styles
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -67,13 +66,13 @@ internal sealed class __Field : ObjectType<IOutputField>
 
     private static class Resolvers
     {
-        public static string Name(IPureResolverContext context)
+        public static string Name(IResolverContext context)
             => context.Parent<IOutputField>().Name;
 
-        public static string? Description(IPureResolverContext context)
+        public static string? Description(IResolverContext context)
             => context.Parent<IOutputField>().Description;
 
-        public static object Arguments(IPureResolverContext context)
+        public static object Arguments(IResolverContext context)
         {
             var field = context.Parent<IOutputField>();
             return context.ArgumentValue<bool>(Names.IncludeDeprecated)
@@ -81,16 +80,16 @@ internal sealed class __Field : ObjectType<IOutputField>
                 : field.Arguments.Where(t => !t.IsDeprecated);
         }
 
-        public static IType Type(IPureResolverContext context)
+        public static IType Type(IResolverContext context)
             => context.Parent<IOutputField>().Type;
 
-        public static object IsDeprecated(IPureResolverContext context)
+        public static object IsDeprecated(IResolverContext context)
             => context.Parent<IOutputField>().IsDeprecated;
 
-        public static string? DeprecationReason(IPureResolverContext context)
+        public static string? DeprecationReason(IResolverContext context)
             => context.Parent<IOutputField>().DeprecationReason;
 
-        public static object AppliedDirectives(IPureResolverContext context) =>
+        public static object AppliedDirectives(IResolverContext context) =>
             context.Parent<IOutputField>()
                 .Directives
                 .Where(t => t.Type.IsPublic)

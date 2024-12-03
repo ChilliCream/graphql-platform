@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
@@ -12,17 +11,22 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="HotChocolate.Types.Mutations" />
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
     <InternalsVisibleTo Include="HotChocolate.AspNetCore.Tests" />
-    <InternalsVisibleTo Include="HotChocolate.Data" />
-    <InternalsVisibleTo Include="HotChocolate.Data.Raven" />
-    <InternalsVisibleTo Include="HotChocolate.Fusion" />
-    <InternalsVisibleTo Include="HotChocolate.Fusion.Tests" />
-    <InternalsVisibleTo Include="StrawberryShake.CodeGeneration" />
     <InternalsVisibleTo Include="HotChocolate.Caching" />
+    <InternalsVisibleTo Include="HotChocolate.CostAnalysis" />
+    <InternalsVisibleTo Include="HotChocolate.Data.Raven" />
+    <InternalsVisibleTo Include="HotChocolate.Data" />
+    <InternalsVisibleTo Include="HotChocolate.Execution.Benchmarks" />
+    <InternalsVisibleTo Include="HotChocolate.Execution.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion" />
+    <InternalsVisibleTo Include="HotChocolate.Types.Mutations" />
+    <InternalsVisibleTo Include="StrawberryShake.CodeGeneration" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Pagination\src\Pagination.Batching\HotChocolate.Pagination.Batching.csproj" />
     <ProjectReference Include="..\..\..\Utilities\src\Utilities.DependencyInjection\HotChocolate.Utilities.DependencyInjection.csproj" />
     <ProjectReference Include="..\Abstractions\HotChocolate.Abstractions.csproj" />
     <ProjectReference Include="..\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />
@@ -31,21 +35,9 @@
     <ProjectReference Include="..\Validation\HotChocolate.Validation.csproj" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
-    <PackageReference Include="System.Threading.Channels" Version="6.0.0" />
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="System.IO.Pipelines" />
   </ItemGroup>
 
   <ItemGroup>
@@ -223,10 +215,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="System.IO.Pipelines" Version="7.0.0" />
   </ItemGroup>
 
 </Project>

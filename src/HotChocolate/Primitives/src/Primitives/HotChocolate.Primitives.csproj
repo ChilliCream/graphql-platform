@@ -1,15 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <PackageId>HotChocolate.Primitives</PackageId>
     <AssemblyName>HotChocolate.Primitives</AssemblyName>
     <RootNamespace>HotChocolate</RootNamespace>
   </PropertyGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="6.0.0" />
-    <PackageReference Include="System.Collections.Immutable" Version="6.0.0" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Language\src\Language\HotChocolate.Language.csproj" />

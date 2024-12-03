@@ -1,19 +1,16 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using HotChocolate.Properties;
 
 namespace HotChocolate.Execution;
 
 /// <summary>
-/// Represents a query result object.
+/// Represents a operation result object.
 /// </summary>
 public sealed class OperationResult : ExecutionResult, IOperationResult
 {
     internal OperationResult(
         IReadOnlyDictionary<string, object?>? data,
         IReadOnlyList<IError>? errors,
-        IReadOnlyDictionary<string, object?>? extension,
+        IReadOnlyDictionary<string, object?>? extensions,
         IReadOnlyDictionary<string, object?>? contextData,
         IReadOnlyList<object?>? items,
         IReadOnlyList<IOperationResult>? incremental,
@@ -23,10 +20,12 @@ public sealed class OperationResult : ExecutionResult, IOperationResult
         Func<ValueTask>[] cleanupTasks,
         bool isDataSet,
         int? requestIndex,
-        int? variableIndex)
+        int? variableIndex,
+        bool skipValidation = false)
         : base(cleanupTasks)
     {
-        if (data is null &&
+        if (!skipValidation &&
+            data is null &&
             items is null &&
             errors is null &&
             incremental is null &&
@@ -40,7 +39,7 @@ public sealed class OperationResult : ExecutionResult, IOperationResult
         Data = data;
         Items = items;
         Errors = errors;
-        Extensions = extension;
+        Extensions = extensions;
         ContextData = contextData;
         Incremental = incremental;
         Label = label;
@@ -57,7 +56,7 @@ public sealed class OperationResult : ExecutionResult, IOperationResult
     public OperationResult(
         IReadOnlyDictionary<string, object?>? data,
         IReadOnlyList<IError>? errors = null,
-        IReadOnlyDictionary<string, object?>? extension = null,
+        IReadOnlyDictionary<string, object?>? extensions = null,
         IReadOnlyDictionary<string, object?>? contextData = null,
         IReadOnlyList<object?>? items = null,
         IReadOnlyList<IOperationResult>? incremental = null,
@@ -81,7 +80,7 @@ public sealed class OperationResult : ExecutionResult, IOperationResult
         Data = data;
         Items = items;
         Errors = errors;
-        Extensions = extension;
+        Extensions = extensions;
         ContextData = contextData;
         Incremental = incremental;
         Label = label;
@@ -129,6 +128,58 @@ public sealed class OperationResult : ExecutionResult, IOperationResult
 
     /// <inheritdoc />
     public bool IsDataSet { get; }
+
+    /// <summary>
+    /// Creates a new <see cref="OperationResult"/> with the specified extension data.
+    /// </summary>
+    /// <param name="extensions">
+    /// The extension data that shall be added to the result.
+    /// </param>
+    /// <returns>
+    /// Returns a new <see cref="OperationResult"/> that represents the result.
+    /// </returns>
+    public OperationResult WithExtensions(
+        IReadOnlyDictionary<string, object?>? extensions)
+        => new OperationResult(
+            data: Data,
+            errors: Errors,
+            extensions: extensions,
+            contextData: ContextData,
+            items: Items,
+            incremental: Incremental,
+            label: Label,
+            path: Path,
+            hasNext: HasNext,
+            cleanupTasks: CleanupTasks,
+            isDataSet: IsDataSet,
+            requestIndex: RequestIndex,
+            variableIndex: VariableIndex);
+
+    /// <summary>
+    /// Creates a new <see cref="OperationResult"/> with the specified context data.
+    /// </summary>
+    /// <param name="contextData">
+    /// The context data that shall be added to the result.
+    /// </param>
+    /// <returns>
+    /// Returns a new <see cref="OperationResult"/> that represents the result.
+    /// </returns>
+    public OperationResult WithContextData(
+        IReadOnlyDictionary<string, object?>? contextData)
+        => new OperationResult(
+            data: Data,
+            errors: Errors,
+            extensions: Extensions,
+            contextData: contextData,
+            items: Items,
+            incremental: Incremental,
+            label: Label,
+            path: Path,
+            hasNext: HasNext,
+            cleanupTasks: CleanupTasks,
+            isDataSet: IsDataSet,
+            requestIndex: RequestIndex,
+            variableIndex: VariableIndex);
 
     /// <inheritdoc />
     public IReadOnlyDictionary<string, object?> ToDictionary()

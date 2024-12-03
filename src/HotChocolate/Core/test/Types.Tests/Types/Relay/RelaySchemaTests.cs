@@ -1,9 +1,7 @@
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types.Relay;
 
@@ -12,8 +10,6 @@ public class RelaySchemaTests
     [Fact]
     public async Task AddGlobalObjectIdentification_Node_Field_On_Query_Exists()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryType>()
@@ -25,8 +21,6 @@ public class RelaySchemaTests
     [Fact]
     public async Task AddQueryFieldToMutationPayloads_QueryField_On_MutationPayload_Exists()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryType>()
@@ -39,8 +33,6 @@ public class RelaySchemaTests
     [Fact]
     public async Task AddQueryFieldToMutationPayloads_With_Extensions()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryType>()
@@ -54,8 +46,6 @@ public class RelaySchemaTests
     [Fact]
     public async Task AddQueryFieldToMutationPayloads_With_Different_FieldName()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryType>()
@@ -68,8 +58,6 @@ public class RelaySchemaTests
     [Fact]
     public async Task AddQueryFieldToMutationPayloads_With_Different_PayloadPredicate()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryType>()
@@ -85,8 +73,6 @@ public class RelaySchemaTests
     [Fact]
     public async Task AddQueryFieldToMutationPayloads_Refetch_SomeId()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryType>()
@@ -100,8 +86,6 @@ public class RelaySchemaTests
     [Fact]
     public async Task AddQueryFieldToMutationPayloads_Refetch_SomeId_With_Query_Inst()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
@@ -115,8 +99,6 @@ public class RelaySchemaTests
     [Fact]
     public async Task Relay_ShouldReturnNonNullError_When_IdIsNull()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(d => d

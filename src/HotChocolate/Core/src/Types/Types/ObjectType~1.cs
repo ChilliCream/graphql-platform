@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -64,4 +63,3 @@ public class ObjectType<T> : ObjectType
     protected sealed override void Configure(IObjectTypeDescriptor descriptor)
         => throw new NotSupportedException();
 }
-

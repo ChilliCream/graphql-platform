@@ -93,7 +93,6 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
                 null,
                 new NameNode(entityResolverField.GetOriginalName()),
                 null,
-                null,
                 Array.Empty<DirectiveNode>(),
                 arguments,
                 null);
@@ -111,7 +110,6 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
             var keyFieldNode = new FieldNode(
                 null,
                 new NameNode(keyField.Name),
-                null,
                 null,
                 Array.Empty<DirectiveNode>(),
                 Array.Empty<ArgumentNode>(),
@@ -206,7 +204,6 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
                 null,
                 new NameNode(entityResolverField.GetOriginalName()),
                 null,
-                null,
                 Array.Empty<DirectiveNode>(),
                 arguments,
                 null);
@@ -224,7 +221,6 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
             var keyFieldNode = new FieldNode(
                 null,
                 new NameNode(keyField.Name),
-                null,
                 null,
                 Array.Empty<DirectiveNode>(),
                 Array.Empty<ArgumentNode>(),

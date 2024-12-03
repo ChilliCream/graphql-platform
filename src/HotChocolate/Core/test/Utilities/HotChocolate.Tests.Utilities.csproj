@@ -1,10 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <AssemblyName>HotChocolate.Tests.Utilities</AssemblyName>
     <RootNamespace>HotChocolate.Tests</RootNamespace>
   </PropertyGroup>

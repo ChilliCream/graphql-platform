@@ -1,13 +1,8 @@
 // ReSharper disable IntroduceOptionalParameters.Global
 
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Transport.Serialization;
 using HotChocolate.Utilities;
@@ -103,10 +98,8 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         // DO NOT move the writer out of this method.
         using var arrayWriter = new ArrayWriter();
         using var requestMessage = CreateRequestMessage(arrayWriter, request, requestUri);
-#if NET5_0_OR_GREATER
         requestMessage.Version = _http.DefaultRequestVersion;
         requestMessage.VersionPolicy = _http.DefaultVersionPolicy;
-#endif
         var responseMessage = await _http
             .SendAsync(requestMessage, ResponseHeadersRead, ct)
             .ConfigureAwait(false);
@@ -186,11 +179,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         jsonWriter.Flush();
 
         var content = new ByteArrayContent(arrayWriter.GetInternalBuffer(), 0, arrayWriter.Length);
-#if NET7_0_OR_GREATER
         content.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json, "utf-8");
-#else
-        content.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json) { CharSet = "utf-8", };
-#endif
         return content;
     }
 
@@ -213,21 +202,11 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         var form = new MultipartFormDataContent();
 
         var operation = new ByteArrayContent(buffer, start, arrayWriter.Length - start);
-#if NET7_0_OR_GREATER
         operation.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json, "utf-8");
-#else
-        operation.Headers.ContentType =
-            new MediaTypeHeaderValue(ContentType.Json) { CharSet = "utf-8", };
-#endif
         form.Add(operation, "operations");
 
         var fileMap = new ByteArrayContent(buffer, 0, start);
-#if NET7_0_OR_GREATER
         fileMap.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json, "utf-8");
-#else
-        fileMap.Headers.ContentType =
-            new MediaTypeHeaderValue(ContentType.Json) { CharSet = "utf-8", };
-#endif
         form.Add(fileMap, "map");
 
         foreach (var fileInfo in fileInfos)
@@ -336,11 +315,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         Utf8JsonWriterHelper.WriteFieldValue(jsonWriter, obj);
         jsonWriter.Flush();
 
-#if NET6_0_OR_GREATER
         return Encoding.UTF8.GetString(arrayWriter.GetWrittenSpan());
-#else
-        return Encoding.UTF8.GetString(arrayWriter.GetInternalBuffer(), 0, arrayWriter.Length);
-#endif
     }
 
     protected override void Dispose(bool disposing)

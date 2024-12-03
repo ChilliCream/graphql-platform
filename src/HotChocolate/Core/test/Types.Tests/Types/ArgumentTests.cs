@@ -1,11 +1,8 @@
 #nullable enable
 
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types;
 
@@ -26,7 +23,7 @@ public class ArgumentTests
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(@"{
                         arrayOfScalarsA: arrayOfScalars(values: 1)
                         arrayOfScalarsB: arrayOfScalars(values: [1, 2])

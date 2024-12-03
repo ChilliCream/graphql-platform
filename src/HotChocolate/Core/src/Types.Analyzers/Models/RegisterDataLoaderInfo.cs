@@ -1,54 +1,20 @@
 namespace HotChocolate.Types.Analyzers.Models;
 
-public sealed class RegisterDataLoaderInfo : ISyntaxInfo, IEquatable<RegisterDataLoaderInfo>
+public sealed class RegisterDataLoaderInfo(string name) : SyntaxInfo
 {
-    public RegisterDataLoaderInfo(string name)
-    {
-        Name = name;
-    }
+    public string Name { get; } = name;
 
-    public string Name { get; }
-
-    public bool Equals(RegisterDataLoaderInfo? other)
-    {
-        if (ReferenceEquals(null, other))
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(this, other))
-        {
-            return true;
-        }
-
-        return Name == other.Name;
-    }
-    
-    public bool Equals(ISyntaxInfo other)
-    {
-        if (ReferenceEquals(null, other))
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(this, other))
-        {
-            return true;
-        }
-
-        return other is RegisterDataLoaderInfo info && Equals(info);
-    }
+    public override string OrderByKey => Name;
 
     public override bool Equals(object? obj)
-        => ReferenceEquals(this, obj) ||
-            obj is RegisterDataLoaderInfo other && Equals(other);
+        => obj is RegisterDataLoaderInfo other && Equals(other);
+
+    public override bool Equals(SyntaxInfo other)
+        => other is RegisterDataLoaderInfo info && Equals(info);
+
+    private bool Equals(RegisterDataLoaderInfo other)
+        => string.Equals(Name, other.Name, StringComparison.Ordinal);
 
     public override int GetHashCode()
-        => Name.GetHashCode();
-
-    public static bool operator ==(RegisterDataLoaderInfo? left, RegisterDataLoaderInfo? right)
-        => Equals(left, right);
-
-    public static bool operator !=(RegisterDataLoaderInfo? left, RegisterDataLoaderInfo? right)
-        => !Equals(left, right);
+        => HashCode.Combine(Name);
 }

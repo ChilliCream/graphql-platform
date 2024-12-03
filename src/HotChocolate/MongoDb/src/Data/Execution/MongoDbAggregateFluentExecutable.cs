@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb;
@@ -16,12 +17,32 @@ public class MongoDbAggregateFluentExecutable<T>(IAggregateFluent<T> aggregate) 
         => await BuildPipeline().ToListAsync(cancellationToken).ConfigureAwait(false);
 
     /// <inheritdoc />
+    public override async IAsyncEnumerable<T> ToAsyncEnumerable(
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var cursor = await BuildPipeline().ToCursorAsync(cancellationToken).ConfigureAwait(false);
+        while (await cursor.MoveNextAsync(cancellationToken).ConfigureAwait(false))
+        {
+            foreach (var document in cursor.Current)
+            {
+                yield return document;
+            }
+        }
+    }
+
+    /// <inheritdoc />
     public override async ValueTask<T?> FirstOrDefaultAsync(CancellationToken cancellationToken)
         => await BuildPipeline().FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
 
     /// <inheritdoc />
     public override async ValueTask<T?> SingleOrDefaultAsync(CancellationToken cancellationToken)
         => await BuildPipeline().SingleOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+
+    public override async ValueTask<int> CountAsync(CancellationToken cancellationToken)
+    {
+        var item = await aggregate.Count().FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+        return (int)(item?.Count ?? 0);
+    }
 
     /// <inheritdoc />
     public override string Print() => BuildPipeline().ToString() ?? "";

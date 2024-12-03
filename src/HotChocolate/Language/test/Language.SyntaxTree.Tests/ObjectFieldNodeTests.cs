@@ -116,7 +116,6 @@ public class ObjectFieldNodeTests
         Assert.Equal(dHash, eHash);
     }
 
-
     [Fact]
     public void Create_Float()
     {

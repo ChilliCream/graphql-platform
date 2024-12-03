@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Data.Filters;
@@ -34,12 +33,12 @@ public class QueryableFilterVisitorExecutableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ rootExecutable(where: { bar: { eq: true}}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ rootExecutable(where: { bar: { eq: false}}){ bar}}")
                 .Build());
 
@@ -59,12 +58,12 @@ public class QueryableFilterVisitorExecutableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ rootExecutable(where: { bar: { neq: true}}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ rootExecutable(where: { bar: { neq: false}}){ bar}}")
                 .Build());
 
@@ -84,17 +83,17 @@ public class QueryableFilterVisitorExecutableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ rootExecutable(where: { bar: { eq: true}}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ rootExecutable(where: { bar: { eq: false}}){ bar}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ rootExecutable(where: { bar: { eq: null}}){ bar}}")
                 .Build());
 
@@ -115,17 +114,17 @@ public class QueryableFilterVisitorExecutableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ rootExecutable(where: { bar: { neq: true}}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ rootExecutable(where: { bar: { neq: false}}){ bar}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ rootExecutable(where: { bar: { neq: null}}){ bar}}")
                 .Build());
 

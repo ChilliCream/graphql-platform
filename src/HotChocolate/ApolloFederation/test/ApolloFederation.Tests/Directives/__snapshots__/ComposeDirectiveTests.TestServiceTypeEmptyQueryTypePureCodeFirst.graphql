@@ -1,4 +1,4 @@
-schema @composeDirective(name: "custom") @link(url: "https:\/\/specs.apollo.dev\/federation\/v2.6", import: [ "@composeDirective", "@key", "FieldSet" ]) @link(url: "https:\/\/specs.custom.dev\/custom\/v1.0", import: [ "@custom" ]) {
+schema @composeDirective(name: "custom") @link(url: "https:\/\/specs.apollo.dev\/federation\/v2.6", import: [ "@key", "@tag", "FieldSet", "@composeDirective" ]) @link(url: "https:\/\/specs.custom.dev\/custom\/v1.0", import: [ "@custom" ]) {
   query: Query
 }
 

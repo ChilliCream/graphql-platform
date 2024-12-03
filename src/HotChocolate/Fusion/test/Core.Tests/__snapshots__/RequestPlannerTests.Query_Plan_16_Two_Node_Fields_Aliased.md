@@ -35,11 +35,11 @@ query FetchNode($a: ID!, $b: ID!) {
             "responseName": "a",
             "branches": [
               {
-                "type": "Review",
+                "type": "User",
                 "node": {
                   "type": "Resolve",
                   "subgraph": "Reviews2",
-                  "document": "query FetchNode_1($a: ID!) { a: node(id: $a) { ... on Review { __typename } } }",
+                  "document": "query FetchNode_1($a: ID!) { a: node(id: $a) { ... on User { id __typename } } }",
                   "selectionSetId": 0,
                   "forwardedVariables": [
                     {
@@ -49,11 +49,11 @@ query FetchNode($a: ID!, $b: ID!) {
                 }
               },
               {
-                "type": "User",
+                "type": "Review",
                 "node": {
                   "type": "Resolve",
                   "subgraph": "Reviews2",
-                  "document": "query FetchNode_2($a: ID!) { a: node(id: $a) { ... on User { id __typename } } }",
+                  "document": "query FetchNode_2($a: ID!) { a: node(id: $a) { ... on Review { __typename } } }",
                   "selectionSetId": 0,
                   "forwardedVariables": [
                     {
@@ -70,11 +70,11 @@ query FetchNode($a: ID!, $b: ID!) {
             "responseName": "b",
             "branches": [
               {
-                "type": "Review",
+                "type": "User",
                 "node": {
                   "type": "Resolve",
                   "subgraph": "Reviews2",
-                  "document": "query FetchNode_3($b: ID!) { b: node(id: $b) { ... on Review { __typename } } }",
+                  "document": "query FetchNode_3($b: ID!) { b: node(id: $b) { ... on User { id __typename } } }",
                   "selectionSetId": 0,
                   "forwardedVariables": [
                     {
@@ -84,11 +84,11 @@ query FetchNode($a: ID!, $b: ID!) {
                 }
               },
               {
-                "type": "User",
+                "type": "Review",
                 "node": {
                   "type": "Resolve",
                   "subgraph": "Reviews2",
-                  "document": "query FetchNode_4($b: ID!) { b: node(id: $b) { ... on User { id __typename } } }",
+                  "document": "query FetchNode_4($b: ID!) { b: node(id: $b) { ... on Review { __typename } } }",
                   "selectionSetId": 0,
                   "forwardedVariables": [
                     {

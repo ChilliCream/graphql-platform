@@ -1,8 +1,6 @@
-using CookieCrumble;
-
 namespace HotChocolate.Data;
 
-public class EntityFrameworkExecutableTests(AuthorFixture authorFixture) 
+public class EntityFrameworkExecutableTests(AuthorFixture authorFixture)
     : IClassFixture<AuthorFixture>
 {
     private readonly BookContext _context = authorFixture.Context;
@@ -12,10 +10,10 @@ public class EntityFrameworkExecutableTests(AuthorFixture authorFixture)
     {
         // arrange
         // act
-        var executable = _context.Authors.AsExecutable();
+        var executable = _context.Authors.AsDbContextExecutable();
 
         // assert
-        Assert.IsType<EntityFrameworkExecutable<Author>>(executable);
+        Assert.True(executable is IQueryableExecutable<Author>);
         executable.MatchSnapshot();
     }
 
@@ -27,11 +25,10 @@ public class EntityFrameworkExecutableTests(AuthorFixture authorFixture)
         var executable = _context
             .Authors
             .AsQueryable()
-            .AsEntityFrameworkExecutable();
-
+            .AsDbContextExecutable();
 
         // assert
-        Assert.IsType<EntityFrameworkExecutable<Author>>(executable);
+        Assert.True(executable is IQueryableExecutable<Author>);
         executable.MatchSnapshot();
     }
 
@@ -41,7 +38,7 @@ public class EntityFrameworkExecutableTests(AuthorFixture authorFixture)
         // arrange
         var executable = _context
             .Authors
-            .AsExecutable();
+            .AsDbContextExecutable();
 
         // act
         object result = await executable.ToListAsync(default);
@@ -54,7 +51,7 @@ public class EntityFrameworkExecutableTests(AuthorFixture authorFixture)
     public async Task ExecuteAsync_Should_OnlyOneItem_When_SingleOrDefault()
     {
         // arrange
-        IExecutable executable = _context.Authors.Take(1).AsEntityFrameworkExecutable();
+        IExecutable executable = _context.Authors.Take(1).AsDbContextExecutable();
 
         // act
         var result = await executable.SingleOrDefaultAsync(default);
@@ -67,7 +64,7 @@ public class EntityFrameworkExecutableTests(AuthorFixture authorFixture)
     public async Task ExecuteAsync_Should_OnlyOneItem_When_FirstOrDefault()
     {
         // arrange
-        IExecutable executable = _context.Authors.AsExecutable();
+        IExecutable executable = _context.Authors.AsDbContextExecutable();
 
         // act
         var result = await executable.FirstOrDefaultAsync(default);

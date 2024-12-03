@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Language;
 using System.Diagnostics.CodeAnalysis;
 
@@ -30,10 +29,7 @@ public static class ArgumentDescriptorExtensions
     /// </exception>
     public static IArgumentDescriptor DefaultValueSyntax(
         this IArgumentDescriptor descriptor,
-#if NET7_0_OR_GREATER
-        [StringSyntax("graphql")]
-#endif
-        string syntax)
+        [StringSyntax("graphql")] string syntax)
     {
         if (descriptor is null)
         {

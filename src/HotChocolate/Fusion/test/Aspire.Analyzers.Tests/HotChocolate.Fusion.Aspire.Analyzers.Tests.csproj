@@ -1,10 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0</TargetFrameworks>
-    <TargetFramework>net8.0</TargetFramework>
     <DisableFusionAnalyzerBuild>true</DisableFusionAnalyzerBuild>
-    <ImplicitUsings>disable</ImplicitUsings>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -12,10 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Hosting.AppHost" Version="8.0.0-preview.5.24201.12" />
-    <PackageReference Include="Aspire.Hosting.PostgreSQL" Version="8.0.0-preview.5.24201.12" />
-    <PackageReference Include="Aspire.Hosting.RabbitMQ" Version="8.0.0-preview.5.24201.12" />
-    <PackageReference Include="Aspire.Hosting.Redis" Version="8.0.0-preview.5.24201.12" />
+    <PackageReference Include="Aspire.Hosting.AppHost" />
+    <PackageReference Include="Aspire.Hosting.PostgreSQL" />
+    <PackageReference Include="Aspire.Hosting.RabbitMQ" />
+    <PackageReference Include="Aspire.Hosting.Redis" />
   </ItemGroup>
 
   <ItemGroup>

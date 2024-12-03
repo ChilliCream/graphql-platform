@@ -1,6 +1,4 @@
-using System;
 using HotChocolate.Language;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types;
 
@@ -35,7 +33,7 @@ public class HslTypeTests : ScalarTypeTestBase
     [InlineData(typeof(NullValueNode), null, true)]
     public void IsInstanceOfType_GivenValueNode_MatchExpected(
         Type type,
-        object value,
+        object? value,
         bool expected)
     {
         // arrange
@@ -62,7 +60,7 @@ public class HslTypeTests : ScalarTypeTestBase
     [InlineData("hsl(270 60% 50% / .15)", true)]
     [InlineData("hsl(270 60% 50% / 15%)", true)]
     [InlineData("hsl(270, 100%, 50%)", true)]
-    public void IsInstanceOfType_GivenObject_MatchExpected(object value, bool expected)
+    public void IsInstanceOfType_GivenObject_MatchExpected(object? value, bool expected)
     {
         // arrange
         // act
@@ -83,8 +81,8 @@ public class HslTypeTests : ScalarTypeTestBase
     [InlineData(typeof(NullValueNode), null, null)]
     public void ParseLiteral_GivenValueNode_MatchExpected(
         Type type,
-        object value,
-        object expected)
+        object? value,
+        object? expected)
     {
         // arrange
         var valueNode = CreateValueNode(type, value);
@@ -127,8 +125,8 @@ public class HslTypeTests : ScalarTypeTestBase
     [InlineData("hsl(270, 100%, 50%)", "hsl(270, 100%, 50%)")]
     [InlineData(null, null)]
     public void Deserialize_GivenValue_MatchExpected(
-        object resultValue,
-        object runtimeValue)
+        object? resultValue,
+        object? runtimeValue)
     {
         // arrange
         // act
@@ -166,8 +164,8 @@ public class HslTypeTests : ScalarTypeTestBase
     [InlineData("hsl(270, 100%, 50%)", "hsl(270, 100%, 50%)")]
     [InlineData(null, null)]
     public void Serialize_GivenObject_MatchExpectedType(
-        object runtimeValue,
-        object resultValue)
+        object? runtimeValue,
+        object? resultValue)
     {
         // arrange
         // act
@@ -204,7 +202,7 @@ public class HslTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "hsl(270 60% 50% / 15%)")]
     [InlineData(typeof(StringValueNode), "hsl(270, 100%, 50%)")]
     [InlineData(typeof(NullValueNode), null)]
-    public void ParseValue_GivenObject_MatchExpectedType(Type type, object value)
+    public void ParseValue_GivenObject_MatchExpectedType(Type type, object? value)
     {
         // arrange
         // act
@@ -241,7 +239,7 @@ public class HslTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "hsl(270 60% 50% / 15%)")]
     [InlineData(typeof(StringValueNode), "hsl(270, 100%, 50%)")]
     [InlineData(typeof(NullValueNode), null)]
-    public void ParseResult_GivenObject_MatchExpectedType(Type type, object value)
+    public void ParseResult_GivenObject_MatchExpectedType(Type type, object? value)
     {
         // arrange
         // act

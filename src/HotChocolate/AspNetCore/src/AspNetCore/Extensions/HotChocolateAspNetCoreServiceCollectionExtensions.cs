@@ -7,6 +7,7 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.Hosting;
 using static HotChocolate.AspNetCore.ServerDefaults;
 
 // ReSharper disable once CheckNamespace
@@ -43,11 +44,9 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
 
         services.AddGraphQLCore();
         services.TryAddSingleton<IHttpResponseFormatter>(
-            DefaultHttpResponseFormatter.Create(
-                new HttpResponseFormatterOptions
-                {
-                    HttpTransportVersion = HttpTransportVersion.Latest,
-                }));
+            sp => DefaultHttpResponseFormatter.Create(
+                new HttpResponseFormatterOptions { HttpTransportVersion = HttpTransportVersion.Latest },
+                sp.GetRequiredService<ITimeProvider>()));
         services.TryAddSingleton<IHttpRequestParser>(
             sp => new DefaultHttpRequestParser(
                 sp.GetRequiredService<IDocumentCache>(),
@@ -95,18 +94,43 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// <param name="maxAllowedRequestSize">
     /// The max allowed GraphQL request size.
     /// </param>
+    /// <param name="disableDefaultSecurity">
+    /// Defines if the default security policy should be disabled.
+    /// </param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
     /// </returns>
     public static IRequestExecutorBuilder AddGraphQLServer(
         this IServiceCollection services,
         string? schemaName = default,
-        int maxAllowedRequestSize = MaxAllowedRequestSize)
-        => services
+        int maxAllowedRequestSize = MaxAllowedRequestSize,
+        bool disableDefaultSecurity = false)
+    {
+        var builder = services
             .AddGraphQLServerCore(maxAllowedRequestSize)
             .AddGraphQL(schemaName)
             .AddDefaultHttpRequestInterceptor()
             .AddSubscriptionServices();
+
+        if (!disableDefaultSecurity)
+        {
+            builder.AddCostAnalyzer();
+            builder.DisableIntrospection(
+                (sp, _) =>
+                {
+                    var environment = sp.GetService<IHostEnvironment>();
+                    return environment?.IsDevelopment() == false;
+                });
+            builder.AddMaxAllowedFieldCycleDepthRule(
+                isEnabled: (sp, _) =>
+                {
+                    var environment = sp.GetService<IHostEnvironment>();
+                    return environment?.IsDevelopment() == false;
+                });
+        }
+
+        return builder;
+    }
 
     /// <summary>
     /// Adds a GraphQL server configuration to the DI.
@@ -117,13 +141,17 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// <param name="schemaName">
     /// The name of the schema. Use explicit schema names if you host multiple schemas.
     /// </param>
+    /// <param name="disableDefaultSecurity">
+    /// Defines if the default security policy should be disabled.
+    /// </param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
     /// </returns>
     public static IRequestExecutorBuilder AddGraphQLServer(
         this IRequestExecutorBuilder builder,
-        string? schemaName = default) =>
-        builder.Services.AddGraphQLServer(schemaName);
+        string? schemaName = default,
+        bool disableDefaultSecurity = false)
+        => builder.Services.AddGraphQLServer(schemaName, disableDefaultSecurity: disableDefaultSecurity);
 
     /// <summary>
     /// Registers the GraphQL Upload Scalar.

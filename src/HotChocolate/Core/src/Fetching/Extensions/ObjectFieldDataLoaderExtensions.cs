@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading.Tasks;
 using GreenDonut;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
@@ -9,8 +6,6 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Fetching.Utilities.ThrowHelper;
 using static HotChocolate.WellKnownMiddleware;
-
-#nullable enable
 
 // ReSharper disable once CheckNamespace
 namespace HotChocolate.Types;
@@ -140,12 +135,16 @@ public static class DataLoaderObjectFieldExtensions
                     .LoadAsync(values, context.RequestAborted)
                     .ConfigureAwait(false);
 
-                var result = new HashSet<object>();
+                var result = new HashSet<object?>();
                 for (var m = 0; m < data.Count; m++)
                 {
-                    for (var n = 0; n < data[m].Length; n++)
+                    var group = data[m];
+                    if (group is not null)
                     {
-                        result.Add(data[m][n]!);
+                        for (var n = 0; n < group.Length; n++)
+                        {
+                            result.Add(group[n]);
+                        }
                     }
                 }
 

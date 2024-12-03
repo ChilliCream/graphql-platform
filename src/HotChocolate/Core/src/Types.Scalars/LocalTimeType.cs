@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using HotChocolate.Language;
@@ -9,7 +8,7 @@ namespace HotChocolate.Types;
 /// The `LocalTime` scalar type is a local time string (i.e., with no associated timezone)
 /// in 24-hr HH:mm:ss.
 /// </summary>
-public class LocalTimeType : ScalarType<DateTime, StringValueNode>
+public class LocalTimeType : ScalarType<TimeOnly, StringValueNode>
 {
     private const string _localFormat = "HH:mm:ss";
 
@@ -42,13 +41,14 @@ public class LocalTimeType : ScalarType<DateTime, StringValueNode>
         {
             null => NullValueNode.Default,
             string s => new StringValueNode(s),
+            TimeOnly t => ParseValue(t),
             DateTimeOffset d => ParseValue(d),
             DateTime dt => ParseValue(dt),
             _ => throw ThrowHelper.LocalTimeType_ParseValue_IsInvalid(this),
         };
     }
 
-    protected override DateTime ParseLiteral(StringValueNode valueSyntax)
+    protected override TimeOnly ParseLiteral(StringValueNode valueSyntax)
     {
         if (TryDeserializeFromString(valueSyntax.Value, out var value))
         {
@@ -58,7 +58,7 @@ public class LocalTimeType : ScalarType<DateTime, StringValueNode>
         throw ThrowHelper.LocalTimeType_ParseLiteral_IsInvalid(this);
     }
 
-    protected override StringValueNode ParseValue(DateTime runtimeValue)
+    protected override StringValueNode ParseValue(TimeOnly runtimeValue)
     {
         return new(Serialize(runtimeValue));
     }
@@ -69,6 +69,9 @@ public class LocalTimeType : ScalarType<DateTime, StringValueNode>
         {
             case null:
                 resultValue = null;
+                return true;
+            case TimeOnly t:
+                resultValue = Serialize(t);
                 return true;
             case DateTimeOffset dt:
                 resultValue = Serialize(dt);
@@ -89,14 +92,17 @@ public class LocalTimeType : ScalarType<DateTime, StringValueNode>
             case null:
                 runtimeValue = null;
                 return true;
-            case string s when TryDeserializeFromString(s, out var d):
-                runtimeValue = d;
+            case string s when TryDeserializeFromString(s, out var t):
+                runtimeValue = t;
+                return true;
+            case TimeOnly t:
+                runtimeValue = t;
                 return true;
             case DateTimeOffset d:
-                runtimeValue = d.DateTime;
+                runtimeValue = TimeOnly.FromDateTime(d.DateTime);
                 return true;
             case DateTime d:
-                runtimeValue = d;
+                runtimeValue = TimeOnly.FromDateTime(d);
                 return true;
             default:
                 runtimeValue = null;
@@ -111,16 +117,15 @@ public class LocalTimeType : ScalarType<DateTime, StringValueNode>
 
     private static bool TryDeserializeFromString(
         string? serialized,
-        [NotNullWhen(true)] out DateTime? value)
+        [NotNullWhen(true)] out TimeOnly? value)
     {
         if (serialized is not null
-            && DateTime.TryParse(
+            && TimeOnly.TryParseExact(
                 serialized,
-                CultureInfo.InvariantCulture,
-                DateTimeStyles.AssumeLocal,
-                out var dt))
+                _localFormat,
+                out var time))
         {
-            value = dt;
+            value = time;
             return true;
         }
 

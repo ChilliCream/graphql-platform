@@ -21,4 +21,10 @@ public class QueryExtension
         await Task.Delay(m, ct);
         return true;
     }
+
+    [GraphQLDeprecated("use something else")]
+    public string SomeDeprecatedField(
+        [GraphQLDeprecated("use something else")]
+        string deprecatedArg = "foo")
+        => "foo";
 }

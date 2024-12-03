@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
@@ -19,9 +17,8 @@ internal sealed class ParentParameterExpressionBuilder
     , IParameterBindingFactory
     , IParameterBinding
 {
-    private const string _parent = nameof(IPureResolverContext.Parent);
-    private static readonly MethodInfo _getParentMethod =
-        _getParentMethod = PureContextType.GetMethods().First(IsParentMethod);
+    private const string _parent = nameof(IResolverContext.Parent);
+    private static readonly MethodInfo _getParentMethod = ContextType.GetMethods().First(IsParentMethod);
 
     private static bool IsParentMethod(MethodInfo method)
         => method.Name.Equals(_parent, StringComparison.Ordinal) &&
@@ -47,8 +44,5 @@ internal sealed class ParentParameterExpressionBuilder
         => this;
 
     public T Execute<T>(IResolverContext context)
-        => context.Parent<T>();
-
-    public T Execute<T>(IPureResolverContext context)
         => context.Parent<T>();
 }

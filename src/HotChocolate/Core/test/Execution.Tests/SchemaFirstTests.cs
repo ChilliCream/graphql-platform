@@ -1,5 +1,3 @@
-#nullable enable
-using CookieCrumble;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -289,8 +287,7 @@ public class SchemaFirstTests
 
     public record ChangeChannelParameterInput
     {
-        public ParameterValuePair[] ParameterChangeInfo { get; set; } =
-            Array.Empty<ParameterValuePair>();
+        public ParameterValuePair[] ParameterChangeInfo { get; set; } = [];
     }
 
     public record ParameterValuePair

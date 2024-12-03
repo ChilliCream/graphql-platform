@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using NetTopologySuite.Geometries;
@@ -48,7 +47,7 @@ public class QueryableFilterVisitorWithinTests : SchemaCache
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     @"{
                         root(where: {
@@ -75,7 +74,7 @@ public class QueryableFilterVisitorWithinTests : SchemaCache
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     @"{
                         root(where: {
@@ -102,10 +101,10 @@ public class QueryableFilterVisitorWithinTests : SchemaCache
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "true"), res2, "false")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "true")
+            .AddResult(res2, "false")
             .MatchAsync();
     }
 

@@ -1,7 +1,5 @@
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Types.Relay;
+using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.Types;
 
@@ -16,6 +14,7 @@ public static partial class BookNode
         descriptor.Field(t => t.Genre);
     }
 
+    [BindMember(nameof(Book.AuthorId))]
     public static async Task<Author?> GetAuthorAsync(
         [Parent] Book book,
         AuthorRepository repository,
@@ -29,8 +28,11 @@ public static partial class BookNode
         CancellationToken cancellationToken)
         => await repository.GetChaptersAsync(book.Id, cancellationToken);
 
-    public static string IdAndTitle([Parent] Book book)
+    public static string IdAndTitle([HotChocolate.Parent] Book book)
         => $"{book.Id}: {book.Title}";
+
+    public static string GetBookUri([HotChocolate.Parent] Book book, HttpContext context, [LocalState] string? foo = null)
+        => context.Request.Path + $"/{book.Id}";
 
     [NodeResolver]
     public static async Task<Book?> GetBookByIdAsync(

@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
@@ -21,16 +20,7 @@ public sealed class ExtensionData
 
     public ExtensionData(IReadOnlyDictionary<string, object?> extensionData)
     {
-#if NET6_0_OR_GREATER
         _dict = new Dictionary<string, object?>(extensionData);
-#else
-        _dict = new Dictionary<string, object?>();
-
-        foreach (var item in extensionData)
-        {
-            _dict.Add(item.Key, item.Value);
-        }
-#endif
     }
 
     public object? this[string key]
@@ -49,17 +39,13 @@ public sealed class ExtensionData
 
     object? IReadOnlyDictionary<string, object?>.this[string key] => this[key];
 
-    public ICollection<string> Keys
-        => _dict?.Keys ?? (ICollection<string>)ImmutableList<string>.Empty;
+    public ICollection<string> Keys => _dict?.Keys ?? (ICollection<string>)[];
 
-    IEnumerable<string> IReadOnlyDictionary<string, object?>.Keys
-        => Keys;
+    IEnumerable<string> IReadOnlyDictionary<string, object?>.Keys => Keys;
 
-    public ICollection<object?> Values
-        => _dict?.Values ?? (ICollection<object?>)ImmutableList<object?>.Empty;
+    public ICollection<object?> Values => _dict?.Values ?? (ICollection<object?>)[];
 
-    IEnumerable<object?> IReadOnlyDictionary<string, object?>.Values
-        => Values;
+    IEnumerable<object?> IReadOnlyDictionary<string, object?>.Values => Values;
 
     public int Count => _dict?.Count ?? 0;
 

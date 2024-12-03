@@ -10,10 +10,10 @@ namespace HotChocolate.Data;
 /// </summary>
 public class UseSortingAttribute : ObjectFieldDescriptorAttribute
 {
-    private static readonly MethodInfo _generic = typeof(SortObjectFieldDescriptorExtensions)
+    private static readonly MethodInfo _generic = typeof(SortingObjectFieldDescriptorExtensions)
         .GetMethods(BindingFlags.Public | BindingFlags.Static)
         .Single(m => m.Name.Equals(
-                nameof(SortObjectFieldDescriptorExtensions.UseSorting),
+                nameof(SortingObjectFieldDescriptorExtensions.UseSorting),
                 StringComparison.Ordinal)
             && m.GetGenericArguments().Length == 1
             && m.GetParameters().Length == 2
@@ -53,7 +53,6 @@ public class UseSortingAttribute : ObjectFieldDescriptorAttribute
     }
 }
 
-#if NET6_0_OR_GREATER
 /// <summary>
 /// Specifies the GraphQL type.
 /// </summary>
@@ -64,4 +63,3 @@ public sealed class UseSortingAttribute<T> : UseSortingAttribute
     {
     }
 }
-#endif

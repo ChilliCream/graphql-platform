@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Data.Filters.Expressions;
@@ -30,21 +29,21 @@ public class QueryableFilterVisitorInterfacesTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { test: { prop: { eq: \"a\"}}}) " +
                     "{ test{ prop }}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { test: { prop: { eq: \"b\"}}}) " +
                     "{ test{ prop }}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { test: { prop: { eq: null}}}) " +
                     "{ test{ prop}}}")

@@ -24,21 +24,21 @@ public ref partial struct Utf8GraphQLRequestParser
         _hashProvider = hashProvider;
         _useCache = cache is not null;
     }
-    
-    public GraphQLRequest ParsePersistedOperation(string operationId)
+
+    public GraphQLRequest ParsePersistedOperation(string operationId, string? operationName)
     {
         _reader.MoveNext();
 
         if (_reader.Kind == TokenKind.LeftBrace)
         {
             var request = ParseMutableRequest(operationId);
-            
+
             return new GraphQLRequest
             (
                 null,
                 request.QueryId,
                 null,
-                request.OperationName,
+                operationName ?? request.OperationName,
                 request.Variables,
                 request.Extensions
             );
@@ -111,7 +111,7 @@ public ref partial struct Utf8GraphQLRequestParser
 
         return batch;
     }
-    
+
     private GraphQLRequest ParseRequest()
     {
         var request = ParseMutableRequest();
@@ -126,7 +126,7 @@ public ref partial struct Utf8GraphQLRequestParser
             request.Extensions
         );
     }
-    
+
     private Request ParseMutableRequest(string? operationId = null)
     {
         var request = new Request();
@@ -137,7 +137,7 @@ public ref partial struct Utf8GraphQLRequestParser
         {
             ParseRequestProperty(ref request);
         }
-        
+
         if (operationId is not null)
         {
             request.QueryId = operationId;
@@ -167,7 +167,7 @@ public ref partial struct Utf8GraphQLRequestParser
 
         return request;
     }
-    
+
     private void ParseRequestProperty(ref Request request)
     {
         var fieldName = _reader.Expect(TokenKind.String);
@@ -282,7 +282,11 @@ public ref partial struct Utf8GraphQLRequestParser
             {
                 queryId ??= request.QueryHash = _hashProvider!.ComputeHash(unescapedSpan);
 
-                if (!_cache!.TryGetDocument(queryId, out document))
+                if (_cache!.TryGetDocument(queryId, out var cachedDocument))
+                {
+                    document = cachedDocument.Body;
+                }
+                else
                 {
                     document = unescapedSpan.Length == 0
                         ? null

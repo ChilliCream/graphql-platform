@@ -1,9 +1,7 @@
-using System;
-using System.Threading.Tasks;
+using CookieCrumble.Xunit.Attributes;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types;
 
@@ -186,6 +184,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
     }
 
     [Theory]
+    [UseCulture("en-US")]
     [InlineData("38° 36' 0.000\" S", -38.6, 1)]
     [InlineData("66° 54' 0.000\" S", -66.9, 1)]
     [InlineData("39° 51' 21.600\" N", 39.86, 2)]
@@ -261,6 +260,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
     }
 
     [Theory]
+    [UseCulture("en-US")]
     [InlineData(-38.6, "38° 36' 0\" S")]
     [InlineData(-66.9, "66° 54' 0\" S")]
     [InlineData(52.33, "52° 19' 48\" N")]

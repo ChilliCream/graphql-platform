@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Marten;
@@ -9,7 +8,6 @@ namespace HotChocolate.Data;
 public class IntegrationTests : IAsyncLifetime
 {
     protected static ResourceContainer Container { get; } = new();
-
 
     [Fact]
     public async Task Ensure_Marten_Works()
@@ -40,7 +38,7 @@ public class IntegrationTests : IAsyncLifetime
 
         await using (var scope = services.CreateAsyncScope())
         {
-            var request = OperationRequestBuilder.Create()
+            var request = OperationRequestBuilder.New()
                 .SetServices(scope.ServiceProvider)
                 .SetDocument("{ foos { nodes { id } } }")
                 .Build();
@@ -60,7 +58,6 @@ public class IntegrationTests : IAsyncLifetime
         public IQueryable<Foo> GetFoos(IDocumentSession session)
             => session.Query<Foo>();
     }
-
 
     public class Foo
     {

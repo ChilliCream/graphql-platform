@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
@@ -244,6 +243,7 @@ public class FluentApiTests : IClassFixture<RavenDBResource<CustomRavenDBDefault
         .AddRavenProjections()
         .AddRavenSorting()
         .AddRavenPagingProviders()
+        .ModifyPagingOptions(x => x.RequirePagingBoundaries = false)
         .RegisterDocumentStore()
         .AddQueryType<QueryType>()
         .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)
@@ -258,7 +258,7 @@ public class FluentApiTests : IClassFixture<RavenDBResource<CustomRavenDBDefault
 
             descriptor.Field("pagingName")
                 .Resolve(ctx => ctx.AsyncSession().Query<Car>())
-                .UsePaging<ObjectType<Car>>(options: new PagingOptions()
+                .UsePaging<ObjectType<Car>>(options: new PagingOptions
                 {
                     ProviderName = RavenPagination.ProviderName, IncludeTotalCount = true,
                 })
@@ -268,7 +268,7 @@ public class FluentApiTests : IClassFixture<RavenDBResource<CustomRavenDBDefault
 
             descriptor.Field("pagingExecutable")
                 .Resolve(ctx => ctx.AsyncSession().Query<Car>().AsExecutable())
-                .UsePaging<ObjectType<Car>>(options: new PagingOptions()
+                .UsePaging<ObjectType<Car>>(options: new PagingOptions
                 {
                     ProviderName = RavenPagination.ProviderName, IncludeTotalCount = true,
                 });
@@ -297,9 +297,9 @@ public class FluentApiTests : IClassFixture<RavenDBResource<CustomRavenDBDefault
 
         using var session = documentStore.OpenSession();
 
-        session.Store(new Car { Name = "Subaru", Engine = new Engine() { CylinderCount = 6, }, });
-        session.Store(new Car { Name = "Toyota", Engine = new Engine() { CylinderCount = 4, }, });
-        session.Store(new Car { Name = "Telsa", Engine = new Engine() { CylinderCount = 0, }, });
+        session.Store(new Car { Name = "Subaru", Engine = new Engine { CylinderCount = 6, }, });
+        session.Store(new Car { Name = "Toyota", Engine = new Engine { CylinderCount = 4, }, });
+        session.Store(new Car { Name = "Telsa", Engine = new Engine { CylinderCount = 0, }, });
 
         session.SaveChanges();
 

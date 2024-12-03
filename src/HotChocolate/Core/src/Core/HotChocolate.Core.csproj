@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 
   <PropertyGroup>
     <PackageId>HotChocolate</PackageId>
@@ -6,11 +6,11 @@
     <RootNamespace>HotChocolate</RootNamespace>
     <Description>Contains the Hot Chocolate GraphQL query execution engine and query validation.</Description>
     <NoWarn>$(NoWarn);NU5128</NoWarn>
-    <IncludeSymbols>false</IncludeSymbols>
-    <IncludeBuildOutput>false</IncludeBuildOutput>
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\CostAnalysis\src\CostAnalysis\HotChocolate.CostAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\Pagination\src\Pagination.Mappings\HotChocolate.Pagination.Mappings.csproj" />
     <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
     <ProjectReference Include="..\Authorization\HotChocolate.Authorization.csproj" />
     <ProjectReference Include="..\Types.Mutations\HotChocolate.Types.Mutations.csproj" />

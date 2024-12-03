@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Language;
@@ -7,7 +5,6 @@ using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Factories;
 using HotChocolate.Types.Interceptors;
 using HotChocolate.Types.Introspection;
@@ -39,10 +36,11 @@ public partial class SchemaBuilder : ISchemaBuilder
         typeof(IntrospectionTypeInterceptor),
         typeof(InterfaceCompletionTypeInterceptor),
         typeof(MiddlewareValidationTypeInterceptor),
-        typeof(EnableTrueNullabilityTypeInterceptor),
+        typeof(SemanticNonNullTypeInterceptor),
     ];
 
     private SchemaOptions _options = new();
+    private PagingOptions _pagingOptions = new();
     private IsOfTypeFallback? _isOfType;
     private IServiceProvider? _services;
     private CreateRef? _schema;
@@ -105,6 +103,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     }
 
     /// <inheritdoc />
+    [Obsolete("Use ModifyOptions instead.")]
     public ISchemaBuilder SetOptions(IReadOnlySchemaOptions options)
     {
         if (options is null)
@@ -125,6 +124,26 @@ public partial class SchemaBuilder : ISchemaBuilder
         }
 
         configure(_options);
+        return this;
+    }
+
+    /// <inheritdoc />
+    [Obsolete("Use ModifyPagingOptions instead.")]
+    public ISchemaBuilder SetPagingOptions(PagingOptions options)
+    {
+        _pagingOptions = options;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public ISchemaBuilder ModifyPagingOptions(Action<PagingOptions> configure)
+    {
+        if (configure is null)
+        {
+            throw new ArgumentNullException(nameof(configure));
+        }
+
+        configure(_pagingOptions);
         return this;
     }
 
@@ -455,24 +474,4 @@ public partial class SchemaBuilder : ISchemaBuilder
     /// Returns a new instance of <see cref="SchemaBuilder"/>.
     /// </returns>
     public static SchemaBuilder New() => new();
-
-    private sealed class CopyOptions : TypeInterceptor
-    {
-        public override void OnBeforeCompleteType(ITypeCompletionContext completionContext, DefinitionBase definition)
-        {
-            if (definition is SchemaTypeDefinition schemaDef)
-            {
-                var key = typeof(PagingOptions).FullName!;
-
-                if (completionContext.DescriptorContext.ContextData.TryGetValue(key, out var value))
-                {
-                    schemaDef.ContextData[key] = value;
-                }
-                else
-                {
-                    schemaDef.ContextData[key] = new PagingOptions();
-                }
-            }
-        }
-    }
 }

@@ -1,8 +1,5 @@
-using System;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
-using Snapshooter;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Configuration;
 
@@ -30,7 +27,7 @@ public class TypeInitializationOrderTests
             .AddType<QueryExtensionType_A>()
             .Create()
             .Print()
-            .MatchSnapshot(new SnapshotNameExtension("BA"));
+            .MatchSnapshot(postFix: "BA");
     }
 
     public class QueryExtensionType_A : ObjectTypeExtension

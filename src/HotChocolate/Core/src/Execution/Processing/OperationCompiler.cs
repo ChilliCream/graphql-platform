@@ -1,14 +1,10 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
-#if NET6_0_OR_GREATER
 using static System.Runtime.InteropServices.CollectionsMarshal;
-#endif
 using static System.Runtime.InteropServices.MemoryMarshal;
 using static System.StringComparer;
 using static HotChocolate.Execution.Properties.Resources;
@@ -22,29 +18,30 @@ namespace HotChocolate.Execution.Processing;
 /// </summary>
 public sealed partial class OperationCompiler
 {
-    private static readonly ImmutableList<ISelectionSetOptimizer> _emptyOptimizers =
-        ImmutableList<ISelectionSetOptimizer>.Empty;
-
     private readonly InputParser _parser;
     private readonly CreateFieldPipeline _createFieldPipeline;
-    private readonly Stack<BacklogItem> _backlog = new();
+    private readonly Queue<BacklogItem> _backlog = new();
     private readonly Dictionary<Selection, SelectionSetInfo[]> _selectionLookup = new();
     private readonly Dictionary<SelectionSetRef, int> _selectionSetIdLookup = new();
     private readonly Dictionary<int, SelectionVariants> _selectionVariants = new();
     private readonly Dictionary<string, FragmentDefinitionNode> _fragmentDefinitions = new(Ordinal);
     private readonly Dictionary<string, object?> _contextData = new();
-    private readonly List<IOperationOptimizer> _operationOptimizers = [];
-    private readonly List<ISelectionSetOptimizer> _selectionSetOptimizers = [];
     private readonly List<Selection> _selections = [];
     private readonly HashSet<string> _directiveNames = new(Ordinal);
     private readonly List<FieldMiddleware> _pipelineComponents = [];
-    private IncludeCondition[] _includeConditions = Array.Empty<IncludeCondition>();
+    private readonly HashSet<int> _enqueuedSelectionSets = new();
+    private IncludeCondition[] _includeConditions = [];
     private CompilerContext? _deferContext;
+
+    private ImmutableArray<IOperationOptimizer> _operationOptimizers =
+        ImmutableArray<IOperationOptimizer>.Empty;
+
     private int _nextSelectionId;
     private int _nextSelectionSetRefId;
     private int _nextSelectionSetId;
     private int _nextFragmentId;
     private bool _hasIncrementalParts;
+    private OperationCompilerMetrics _metrics;
 
     public OperationCompiler(InputParser parser)
     {
@@ -60,68 +57,39 @@ public sealed partial class OperationCompiler
                     _pipelineComponents);
     }
 
-    public IOperation Compile(
-        string operationId,
-        OperationDefinitionNode operationDefinition,
-        ObjectType operationType,
-        DocumentNode document,
-        ISchema schema,
-        IReadOnlyList<IOperationCompilerOptimizer>? optimizers = null,
-        bool enableNullBubbling = true)
+    internal OperationCompilerMetrics Metrics => _metrics;
+
+    public IOperation Compile(OperationCompilerRequest request)
     {
-        if (string.IsNullOrEmpty(operationId))
+        if (string.IsNullOrEmpty(request.Id))
         {
             throw new ArgumentException(
                 OperationCompiler_OperationIdNullOrEmpty,
-                nameof(operationId));
-        }
-
-        if (operationDefinition is null)
-        {
-            throw new ArgumentNullException(nameof(operationDefinition));
-        }
-
-        if (operationType is null)
-        {
-            throw new ArgumentNullException(nameof(operationType));
-        }
-
-        if (document is null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
-
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
+                nameof(request.Id));
         }
 
         try
         {
-            // prepare optimizers
-            PrepareOptimizers(optimizers);
-
-            var rootOptimizers = _emptyOptimizers;
-
-            if (_selectionSetOptimizers.Count > 0)
-            {
-                rootOptimizers = ImmutableList.CreateRange(_selectionSetOptimizers);
-            }
+            var backlogMaxSize = 0;
+            var selectionSetOptimizers = request.SelectionSetOptimizers;
+            _operationOptimizers = request.OperationOptimizers;
 
             // collect root fields
             var rootPath = SelectionPath.Root;
-            var id = GetOrCreateSelectionSetRefId(operationDefinition.SelectionSet, rootPath);
+            var id = GetOrCreateSelectionSetRefId(request.Definition.SelectionSet, request.RootType.Name, rootPath);
             var variants = GetOrCreateSelectionVariants(id);
-            SelectionSetInfo[] infos = [new(operationDefinition.SelectionSet, 0),];
+            SelectionSetInfo[] infos = [new(request.Definition.SelectionSet, 0)];
 
-            var context = new CompilerContext(schema, document, enableNullBubbling);
-            context.Initialize(operationType, variants, infos, rootPath, rootOptimizers);
+            var context = new CompilerContext(request.Schema, request.Document);
+            context.Initialize(request.RootType, variants, infos, rootPath, selectionSetOptimizers);
             CompileSelectionSet(context);
 
             // process consecutive selections
             while (_backlog.Count > 0)
             {
-                var current = _backlog.Pop();
+                backlogMaxSize = Math.Max(backlogMaxSize, _backlog.Count);
+
+                var current = _backlog.Dequeue();
                 var type = current.Type;
                 variants = GetOrCreateSelectionVariants(current.SelectionSetId);
 
@@ -134,12 +102,14 @@ public sealed partial class OperationCompiler
             }
 
             // create operation
-            return CreateOperation(
-                operationId,
-                operationDefinition,
-                operationType,
-                document,
-                schema);
+            var operation = CreateOperation(request);
+
+            _metrics = new OperationCompilerMetrics(
+                _nextSelectionId,
+                _selectionVariants.Count,
+                backlogMaxSize);
+
+            return operation;
         }
         finally
         {
@@ -155,36 +125,39 @@ public sealed partial class OperationCompiler
             _selectionVariants.Clear();
             _fragmentDefinitions.Clear();
             _contextData.Clear();
-            _operationOptimizers.Clear();
-            _selectionSetOptimizers.Clear();
             _selections.Clear();
             _directiveNames.Clear();
             _pipelineComponents.Clear();
+            _enqueuedSelectionSets.Clear();
 
-            _includeConditions = Array.Empty<IncludeCondition>();
+            _operationOptimizers = ImmutableArray<IOperationOptimizer>.Empty;
+
+            _includeConditions = [];
             _deferContext = null;
         }
     }
 
-    private Operation CreateOperation(
-        string operationId,
-        OperationDefinitionNode operationDefinition,
-        ObjectType operationType,
-        DocumentNode document,
-        ISchema schema)
+    private Operation CreateOperation(OperationCompilerRequest request)
     {
+        var operation = new Operation(
+            request.Id,
+            request.Document,
+            request.Definition,
+            request.RootType,
+            request.Schema);
+
         var variants = new SelectionVariants[_selectionVariants.Count];
 
-        if (_operationOptimizers.Count == 0)
+        if (_operationOptimizers.Length == 0)
         {
-            CompleteResolvers(schema);
+            CompleteResolvers(request.Schema);
 
             // if we do not have any optimizers we will copy
             // the variants and seal them in one go.
             foreach (var item in _selectionVariants)
             {
                 variants[item.Key] = item.Value;
-                item.Value.Seal();
+                item.Value.Seal(operation);
             }
         }
         else
@@ -194,11 +167,11 @@ public sealed partial class OperationCompiler
             // more mutations on the compiled selection variants.
             // after we have executed all optimizers we will seal the selection variants.
             var context = new OperationOptimizerContext(
-                operationId,
-                document,
-                operationDefinition,
-                schema,
-                operationType,
+                request.Id,
+                request.Document,
+                request.Definition,
+                request.Schema,
+                request.RootType,
                 variants,
                 _includeConditions,
                 _contextData,
@@ -219,12 +192,11 @@ public sealed partial class OperationCompiler
 
             while (Unsafe.IsAddressLessThan(ref variantsStart, ref variantsEnd))
             {
-                variantsStart.Complete();
+                variantsStart.Complete(operation);
                 variantsStart = ref Unsafe.Add(ref variantsStart, 1)!;
             }
 
-#if NET5_0_OR_GREATER
-            var optSpan = AsSpan(_operationOptimizers);
+            var optSpan = _operationOptimizers.AsSpan();
             ref var optStart = ref GetReference(optSpan);
             ref var optEnd = ref Unsafe.Add(ref optStart, optSpan.Length);
 
@@ -233,14 +205,8 @@ public sealed partial class OperationCompiler
                 optStart.OptimizeOperation(context);
                 optStart = ref Unsafe.Add(ref optStart, 1)!;
             }
-#else
-            for (var i = 0; i < _operationOptimizers.Count; i++)
-            {
-                _operationOptimizers[i].OptimizeOperation(context);
-            }
-#endif
 
-            CompleteResolvers(schema);
+            CompleteResolvers(request.Schema);
 
             variantsSpan = variants.AsSpan();
             variantsStart = ref GetReference(variantsSpan)!;
@@ -248,25 +214,17 @@ public sealed partial class OperationCompiler
 
             while (Unsafe.IsAddressLessThan(ref variantsStart, ref variantsEnd))
             {
-                variantsStart.Seal();
+                variantsStart.Seal(operation);
                 variantsStart = ref Unsafe.Add(ref variantsStart, 1)!;
             }
         }
 
-        return new Operation(
-            operationId,
-            document,
-            operationDefinition,
-            operationType,
-            variants,
-            _includeConditions,
-            new Dictionary<string, object?>(_contextData),
-            _hasIncrementalParts);
+        operation.Seal(_contextData, variants, _hasIncrementalParts, _includeConditions);
+        return operation;
     }
 
     private void CompleteResolvers(ISchema schema)
     {
-#if NET6_0_OR_GREATER
         ref var searchSpace = ref GetReference(AsSpan(_selections));
 
         for (var i = 0; i < _selections.Count; i++)
@@ -287,25 +245,6 @@ public sealed partial class OperationCompiler
                 selection.SetResolvers(resolver, pureResolver);
             }
         }
-
-#else
-        foreach (var selection in _selections)
-        {
-            if (selection.ResolverPipeline is null && selection.PureResolver is null)
-            {
-                var field = selection.Field;
-                var syntaxNode = selection.SyntaxNode;
-                var resolver = CreateFieldPipeline(
-                    schema,
-                    field,
-                    syntaxNode,
-                    _directiveNames,
-                    _pipelineComponents);
-                var pureResolver = TryCreatePureField(schema, field, syntaxNode);
-                selection.SetResolvers(resolver, pureResolver);
-            }
-        }
-#endif
     }
 
     private void CompileSelectionSet(CompilerContext context)
@@ -325,9 +264,9 @@ public sealed partial class OperationCompiler
     private void CompleteSelectionSet(CompilerContext context)
     {
         var selections = new Selection[context.Fields.Values.Count];
-        var fragments = context.Fragments.Count is 0
-            ? Array.Empty<Fragment>()
-            : new Fragment[context.Fragments.Count];
+        var fragments = context.Fragments.Count is not 0
+            ? new Fragment[context.Fragments.Count]
+            : [];
         var selectionIndex = 0;
         var isConditional = false;
 
@@ -354,19 +293,16 @@ public sealed partial class OperationCompiler
                 }
 
                 var selectionPath = context.Path.Append(selection.ResponseName);
-                selectionSetId = GetOrCreateSelectionSetRefId(selection.SelectionSet, selectionPath);
-                var selectionVariants = GetOrCreateSelectionVariants(selectionSetId);
+                selectionSetId = GetOrCreateSelectionSetRefId(selection.SelectionSet, fieldType.Name, selectionPath);
                 var possibleTypes = context.Schema.GetPossibleTypes(fieldType);
 
-                for (var i = possibleTypes.Count - 1; i >= 0; i--)
+                if (_enqueuedSelectionSets.Add(selectionSetId))
                 {
-                    var objectType = possibleTypes[i];
-
-                    if (!selectionVariants.ContainsSelectionSet(objectType))
+                    for (var i = possibleTypes.Count - 1; i >= 0; i--)
                     {
-                        _backlog.Push(
+                        _backlog.Enqueue(
                             new BacklogItem(
-                                objectType,
+                                possibleTypes[i],
                                 selectionSetId,
                                 selection,
                                 selectionPath,
@@ -377,7 +313,7 @@ public sealed partial class OperationCompiler
                 // We are waiting for the latest stream and defer spec discussions to be codified
                 // before we change the overall stream handling.
                 //
-                // For now we only allow streams on lists of composite types.
+                // For now, we only allow streams on lists of composite types.
                 if (selection.SyntaxNode.IsStreamable())
                 {
                     var streamDirective = selection.SyntaxNode.GetStreamDirectiveNode();
@@ -451,21 +387,21 @@ public sealed partial class OperationCompiler
             case SyntaxKind.Field:
                 ResolveField(
                     context,
-                    (FieldNode) selection,
+                    (FieldNode)selection,
                     includeCondition);
                 break;
 
             case SyntaxKind.InlineFragment:
                 ResolveInlineFragment(
                     context,
-                    (InlineFragmentNode) selection,
+                    (InlineFragmentNode)selection,
                     includeCondition);
                 break;
 
             case SyntaxKind.FragmentSpread:
                 ResolveFragmentSpread(
                     context,
-                    (FragmentSpreadNode) selection,
+                    (FragmentSpreadNode)selection,
                     includeCondition);
                 break;
         }
@@ -483,9 +419,7 @@ public sealed partial class OperationCompiler
 
         if (context.Type.Fields.TryGetField(fieldName, out var field))
         {
-            var fieldType = context.EnableNullBubbling
-                ? field.Type.RewriteNullability(selection.Required)
-                : field.Type.RewriteToNullableType();
+            var fieldType = field.Type;
 
             if (context.Fields.TryGetValue(responseName, out var preparedSelection))
             {
@@ -505,10 +439,12 @@ public sealed partial class OperationCompiler
             }
             else
             {
+                var id = GetNextSelectionId();
+
                 // if this is the first time we find a selection to this field we have to
                 // create a new prepared selection.
                 preparedSelection = new Selection.Sealed(
-                    GetNextSelectionId(),
+                    id,
                     context.Type,
                     field,
                     fieldType,
@@ -579,9 +515,9 @@ public sealed partial class OperationCompiler
         IReadOnlyList<DirectiveNode> directives,
         long includeCondition)
     {
-        if (typeCondition is null ||
-            (context.Schema.TryGetTypeFromAst(typeCondition, out IType typeCon) &&
-                DoesTypeApply(typeCon, context.Type)))
+        if (typeCondition is null
+            || (context.Schema.TryGetTypeFromAst(typeCondition, out IType typeCon)
+                && DoesTypeApply(typeCon, context.Type)))
         {
             includeCondition = GetSelectionIncludeCondition(selection, includeCondition);
 
@@ -599,7 +535,8 @@ public sealed partial class OperationCompiler
                     ifConditionFlags = GetSelectionIncludeCondition(ifCondition, includeCondition);
                 }
 
-                var id = GetOrCreateSelectionSetRefId(selectionSet, context.Path);
+                var typeName = typeCondition?.Name.Value ?? context.Type.Name;
+                var id = GetOrCreateSelectionSetRefId(selectionSet, typeName, context.Path);
                 var variants = GetOrCreateSelectionVariants(id);
                 var infos = new SelectionSetInfo[] { new(selectionSet, includeCondition), };
 
@@ -623,7 +560,7 @@ public sealed partial class OperationCompiler
                 context.Fragments.Add(fragment);
                 _hasIncrementalParts = true;
 
-                // if we have if condition flags there will be a runtime validation if something
+                // if we have if-condition flags there will be a runtime validation if something
                 // shall be deferred, so we need to prepare for both cases.
                 //
                 // this means that we will collect the fields with our if condition flags as
@@ -644,8 +581,8 @@ public sealed partial class OperationCompiler
         => typeCondition.Kind switch
         {
             TypeKind.Object => ReferenceEquals(typeCondition, current),
-            TypeKind.Interface => current.IsImplementing((InterfaceType) typeCondition),
-            TypeKind.Union => ((UnionType) typeCondition).Types.ContainsKey(current.Name),
+            TypeKind.Interface => current.IsImplementing((InterfaceType)typeCondition),
+            TypeKind.Union => ((UnionType)typeCondition).Types.ContainsKey(current.Name),
             _ => false,
         };
 
@@ -661,8 +598,8 @@ public sealed partial class OperationCompiler
 
             for (var i = 0; i < document.Definitions.Count; i++)
             {
-                if (document.Definitions[i] is FragmentDefinitionNode fragmentDefinition &&
-                    fragmentDefinition.Name.Value.EqualsOrdinal(fragmentName))
+                if (document.Definitions[i] is FragmentDefinitionNode fragmentDefinition
+                    && fragmentDefinition.Name.Value.EqualsOrdinal(fragmentName))
                 {
                     value = fragmentDefinition;
                     _fragmentDefinitions.Add(fragmentName, value);
@@ -684,9 +621,12 @@ public sealed partial class OperationCompiler
 
     private int GetNextFragmentId() => _nextFragmentId++;
 
-    private int GetOrCreateSelectionSetRefId(SelectionSetNode selectionSet, SelectionPath path)
+    private int GetOrCreateSelectionSetRefId(
+        SelectionSetNode selectionSet,
+        string selectionSetTypeName,
+        SelectionPath path)
     {
-        var selectionSetRef = new SelectionSetRef(selectionSet, path);
+        var selectionSetRef = new SelectionSetRef(selectionSet, selectionSetTypeName, path);
 
         if (!_selectionSetIdLookup.TryGetValue(selectionSetRef, out var selectionSetId))
         {
@@ -704,6 +644,7 @@ public sealed partial class OperationCompiler
             variants = new SelectionVariants(selectionSetId);
             _selectionVariants.Add(selectionSetId, variants);
         }
+
         return variants;
     }
 
@@ -796,7 +737,7 @@ public sealed partial class OperationCompiler
     {
         if (_deferContext is null)
         {
-            return new CompilerContext(context.Schema, context.Document, context.EnableNullBubbling);
+            return new CompilerContext(context.Schema, context.Document);
         }
 
         var temp = _deferContext;
@@ -807,37 +748,6 @@ public sealed partial class OperationCompiler
     private void ReturnContext(CompilerContext context)
         => _deferContext ??= context;
 
-    private void PrepareOptimizers(IReadOnlyList<IOperationCompilerOptimizer>? optimizers)
-    {
-        // we only clear the selectionSetOptimizers since we use this list as a temp
-        // to temporarily store the selectionSetOptimizers before they are copied to
-        // the context.
-        _selectionSetOptimizers.Clear();
-
-        if (optimizers is null)
-        {
-            return;
-        }
-
-        if (optimizers.Count > 0)
-        {
-            for (var i = 0; i < optimizers.Count; i++)
-            {
-                var optimizer = optimizers[i];
-
-                if (optimizer is ISelectionSetOptimizer selectionSetOptimizer)
-                {
-                    _selectionSetOptimizers.Add(selectionSetOptimizer);
-                }
-
-                if (optimizer is IOperationOptimizer operationOptimizer)
-                {
-                    _operationOptimizers.Add(operationOptimizer);
-                }
-            }
-        }
-    }
-
     internal void RegisterNewSelection(Selection newSelection)
     {
         if (newSelection.SyntaxNode.SelectionSet is not null)
@@ -847,26 +757,30 @@ public sealed partial class OperationCompiler
         }
     }
 
-    private readonly struct SelectionSetRef : IEquatable<SelectionSetRef>
+    private readonly struct SelectionSetRef(
+        SelectionSetNode selectionSet,
+        string selectionSetTypeName,
+        SelectionPath path)
+        : IEquatable<SelectionSetRef>
     {
-        public SelectionSetRef(SelectionSetNode selectionSet, SelectionPath path)
-        {
-            SelectionSet = selectionSet;
-            Path = path;
-        }
+        public SelectionSetNode SelectionSet { get; } = selectionSet;
 
-        public SelectionSetNode SelectionSet { get; }
+        public SelectionPath Path { get; } = path;
 
-        public SelectionPath Path { get; }
+        public string SelectionSetTypeName { get; } = selectionSetTypeName;
 
         public bool Equals(SelectionSetRef other)
-            => SelectionSet.Equals(other.SelectionSet, SyntaxComparison.Syntax) &&
-                Path.Equals(other.Path);
+            => SyntaxComparer.BySyntax.Equals(SelectionSet, other.SelectionSet)
+                && Path.Equals(other.Path)
+                && Ordinal.Equals(SelectionSetTypeName, other.SelectionSetTypeName);
 
         public override bool Equals(object? obj)
             => obj is SelectionSetRef other && Equals(other);
 
         public override int GetHashCode()
-            => HashCode.Combine(SelectionSet, Path);
+            => HashCode.Combine(
+                SyntaxComparer.BySyntax.GetHashCode(SelectionSet),
+                Path.GetHashCode(),
+                Ordinal.GetHashCode(SelectionSetTypeName));
     }
 }

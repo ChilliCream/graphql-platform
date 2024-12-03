@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Execution.Processing;
 
 namespace HotChocolate.Execution.Instrumentation;
