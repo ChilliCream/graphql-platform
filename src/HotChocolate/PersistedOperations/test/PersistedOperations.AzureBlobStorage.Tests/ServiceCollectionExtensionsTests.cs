@@ -1,5 +1,4 @@
 using Azure.Storage.Blobs;
-using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Utilities;
 using Squadron;

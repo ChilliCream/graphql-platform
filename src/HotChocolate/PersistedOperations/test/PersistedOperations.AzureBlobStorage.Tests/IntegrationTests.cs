@@ -1,5 +1,4 @@
 using Azure.Storage.Blobs;
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
