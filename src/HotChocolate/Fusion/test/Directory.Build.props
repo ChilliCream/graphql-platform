@@ -11,12 +11,14 @@
     <Using Include="CookieCrumble" />
     <Using Include="CookieCrumble.Fusion" />
     <Using Include="CookieCrumble.HotChocolate" />
+    <Using Include="CookieCrumble.Xunit" />
     <Using Include="Xunit" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.Fusion\CookieCrumble.Fusion.csproj" />
     <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.HotChocolate\CookieCrumble.HotChocolate.csproj" />
+    <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.Xunit\CookieCrumble.Xunit.csproj" />
   </ItemGroup>
 
   <ItemGroup>

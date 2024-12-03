@@ -1,42 +1,44 @@
-using System.Collections.Immutable;
-using HotChocolate.Language;
+using System.Text;
+using System.Text.Json;
 
 namespace HotChocolate.Fusion.Planning.Nodes;
 
-public sealed class RootPlanNode : PlanNode, IOperationPlanNodeProvider
+public sealed class RootPlanNode : PlanNode, IPlanNodeProvider, ISerializablePlanNode
 {
-    private readonly List<OperationPlanNode> _operations = new();
-
-    public IReadOnlyList<OperationPlanNode> Operations
-        => _operations;
-
-    public void AddOperation(OperationPlanNode operation)
+    private static readonly JsonWriterOptions SerializerOptions = new()
     {
-        ArgumentNullException.ThrowIfNull(operation);
-        _operations.Add(operation);
-        operation.Parent = this;
+        Indented = true,
+    };
+    private readonly List<PlanNode> _nodes = [];
+
+    public IReadOnlyList<PlanNode> Nodes => _nodes;
+
+    public void AddChildNode(PlanNode node)
+    {
+        ArgumentNullException.ThrowIfNull(node);
+        _nodes.Add(node);
+        node.Parent = this;
     }
 
-    public DocumentNode ToSyntaxNode()
+    public PlanNodeKind Kind => PlanNodeKind.Root;
+
+    public string Serialize()
     {
-        var backlog = new Queue<OperationPlanNode>();
-        var definitions = ImmutableArray.CreateBuilder<IDefinitionNode>();
+        using var memoryStream = new MemoryStream();
+        var jsonWriter = new Utf8JsonWriter(memoryStream, SerializerOptions);
 
-        foreach(var operation in _operations)
-        {
-            backlog.Enqueue(operation);
-        }
+        Serialize(jsonWriter);
 
-        while(backlog.TryDequeue(out var operation))
-        {
-            definitions.Add(operation.ToSyntaxNode());
+        return Encoding.UTF8.GetString(memoryStream.ToArray());
+    }
 
-            foreach(var child in operation.Operations)
-            {
-                backlog.Enqueue(child);
-            }
-        }
+    public void Serialize(Utf8JsonWriter writer)
+    {
+        writer.WriteStartObject();
+        SerializationHelper.WriteKind(writer, this);
+        SerializationHelper.WriteChildNodes(writer, this);
+        writer.WriteEndObject();
 
-        return new DocumentNode(definitions.ToImmutable());
+        writer.Flush();
     }
 }

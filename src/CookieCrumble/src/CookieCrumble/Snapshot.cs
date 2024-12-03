@@ -7,7 +7,6 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using CookieCrumble.Formatters;
 using DiffPlex.DiffBuilder;
-using Xunit;
 using static System.Collections.Immutable.ImmutableStack;
 using static System.IO.Path;
 using ChangeType = DiffPlex.DiffBuilder.Model.ChangeType;
@@ -28,6 +27,7 @@ public class Snapshot
         });
     private static readonly JsonSnapshotValueFormatter _defaultFormatter = new();
 
+    private static ITestFramework _testFramework = null!;
     private readonly List<ISnapshotSegment> _segments = [];
     private readonly string _title;
     private readonly string _fileName;
@@ -36,6 +36,11 @@ public class Snapshot
 
     public Snapshot(string? postFix = null, string? extension = null)
     {
+        if (_testFramework is null)
+        {
+            throw new Exception("Please initialize a test framework before using Snapshot");
+        }
+
         var frames = new StackTrace(true).GetFrames();
         _title = CreateMarkdownTitle(frames);
         _fileName = CreateFileName(frames);
@@ -86,6 +91,19 @@ public class Snapshot
         snapshot.Add(value2, formatter: formatter);
         snapshot.Add(value3, formatter: formatter);
         snapshot.Match();
+    }
+
+    public static void RegisterTestFramework(ITestFramework testFramework)
+    {
+        if (testFramework is null)
+        {
+            throw new ArgumentNullException(nameof(testFramework));
+        }
+
+        lock (_sync)
+        {
+            _testFramework = testFramework;
+        }
     }
 
     public static void RegisterFormatter(
@@ -240,7 +258,7 @@ public class Snapshot
                 EnsureDirectoryExists(mismatchFile);
                 await using var stream = File.Create(mismatchFile);
                 await stream.WriteAsync(writer.WrittenMemory, cancellationToken);
-                throw new Xunit.Sdk.XunitException(diff);
+                _testFramework.ThrowTestException(diff);
             }
         }
     }
@@ -271,7 +289,7 @@ public class Snapshot
                 EnsureDirectoryExists(mismatchFile);
                 using var stream = File.Create(mismatchFile);
                 stream.Write(writer.WrittenSpan);
-                throw new Xunit.Sdk.XunitException(diff);
+                _testFramework.ThrowTestException(diff);
             }
         }
     }
@@ -309,7 +327,7 @@ public class Snapshot
             EnsureDirectoryExists(mismatchFile);
             await using var stream = File.Create(mismatchFile);
             await stream.WriteAsync(writer.WrittenMemory, cancellationToken);
-            throw new Xunit.Sdk.XunitException(diff);
+            _testFramework.ThrowTestException(diff);
         }
     }
 
@@ -346,7 +364,7 @@ public class Snapshot
             EnsureDirectoryExists(mismatchFile);
             using var stream = File.Create(mismatchFile);
             stream.Write(writer.WrittenSpan);
-            throw new Xunit.Sdk.XunitException(diff);
+            _testFramework.ThrowTestException(diff);
         }
     }
 
@@ -359,7 +377,7 @@ public class Snapshot
 
         if (!MatchSnapshot(expected, after, true, out var diff))
         {
-            throw new Xunit.Sdk.XunitException(diff);
+            _testFramework.ThrowTestException(diff);
         }
     }
 
@@ -621,18 +639,18 @@ public class Snapshot
 
             if (method is not null &&
                 !string.IsNullOrEmpty(fileName) &&
-                IsXunitTestMethod(method))
+                _testFramework.IsValidTestMethod(method))
             {
                 return Combine(GetDirectoryName(fileName)!, method.ToName());
             }
 
-            var asyncMethod = EvaluateAsynchronousMethodBase(method);
+            method = EvaluateAsynchronousMethodBase(method);
 
-            if (asyncMethod is not null &&
+            if (method is not null &&
                 !string.IsNullOrEmpty(fileName) &&
-                IsXunitTestMethod(asyncMethod))
+                _testFramework.IsValidTestMethod(method))
             {
-                return Combine(GetDirectoryName(fileName)!, asyncMethod.ToName());
+                return Combine(GetDirectoryName(fileName)!, method.ToName());
             }
         }
 
@@ -654,18 +672,18 @@ public class Snapshot
 
             if (method is not null &&
                 !string.IsNullOrEmpty(fileName) &&
-                IsXunitTestMethod(method))
+                _testFramework.IsValidTestMethod(method))
             {
                 return method.Name;
             }
 
-            var asyncMethod = EvaluateAsynchronousMethodBase(method);
+            method = EvaluateAsynchronousMethodBase(method);
 
-            if (asyncMethod is not null &&
+            if (method is not null &&
                 !string.IsNullOrEmpty(fileName) &&
-                IsXunitTestMethod(asyncMethod))
+                _testFramework.IsValidTestMethod(method))
             {
-                return asyncMethod.Name;
+                return method.Name;
             }
         }
 
@@ -700,20 +718,6 @@ public class Snapshot
 
         return actualMethodInfo;
     }
-
-    private static bool IsXunitTestMethod(MemberInfo? method)
-    {
-        var isFactTest = IsFactTestMethod(method);
-        var isTheoryTest = IsTheoryTestMethod(method);
-
-        return isFactTest || isTheoryTest;
-    }
-
-    private static bool IsFactTestMethod(MemberInfo? method)
-        => method?.GetCustomAttributes(typeof(FactAttribute)).Any() ?? false;
-
-    private static bool IsTheoryTestMethod(MemberInfo? method)
-        => method?.GetCustomAttributes(typeof(TheoryAttribute)).Any() ?? false;
 
     private readonly struct SnapshotSegment(string? name, object? value, ISnapshotValueFormatter formatter)
         : ISnapshotSegment

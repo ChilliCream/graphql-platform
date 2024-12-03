@@ -11,6 +11,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Using Include="CookieCrumble" />
+    <Using Include="CookieCrumble.TUnit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.TUnit\CookieCrumble.TUnit.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="TUnit" />
     <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
   </ItemGroup>

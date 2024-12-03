@@ -9,10 +9,12 @@
   <ItemGroup>
     <Using Include="CookieCrumble" />
     <Using Include="CookieCrumble.HotChocolate" />
+    <Using Include="CookieCrumble.Xunit" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.HotChocolate\CookieCrumble.HotChocolate.csproj" />
+    <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.Xunit\CookieCrumble.Xunit.csproj" />
   </ItemGroup>
 
   <ItemGroup>
