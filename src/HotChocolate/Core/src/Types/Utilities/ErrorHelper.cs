@@ -538,4 +538,24 @@ internal static class ErrorHelper
             .SetTypeSystemObject(type)
             .Build();
     }
+
+    public static ISchemaError RequiresOptInOnRequiredInputField(
+        IInputObjectType type,
+        IInputField field)
+        => SchemaErrorBuilder.New()
+            .SetMessage(ErrorHelper_RequiresOptInOnRequiredInputField)
+            .SetType(type)
+            .SetField(field)
+            .Build();
+
+    public static ISchemaError RequiresOptInOnRequiredArgument(
+        IComplexOutputType type,
+        IOutputField field,
+        IInputField argument)
+        => SchemaErrorBuilder.New()
+            .SetMessage(ErrorHelper_RequiresOptInOnRequiredArgument)
+            .SetType(type)
+            .SetField(field)
+            .SetArgument(argument)
+            .Build();
 }

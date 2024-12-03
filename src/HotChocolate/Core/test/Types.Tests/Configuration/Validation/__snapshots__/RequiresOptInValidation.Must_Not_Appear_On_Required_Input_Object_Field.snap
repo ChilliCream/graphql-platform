@@ -1,0 +1,16 @@
+{
+  "message": "The @requiresOptIn directive must not appear on required (non-null without a default) input object field definitions.",
+  "type": "Input",
+  "extensions": {
+    "field": "field"
+  }
+}
+
+{
+  "message": "The @requiresOptIn directive must not appear on required (non-null without a default) input object field definitions.",
+  "type": "Input",
+  "extensions": {
+    "field": "field"
+  }
+}
+
