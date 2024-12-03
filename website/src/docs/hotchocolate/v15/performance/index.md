@@ -6,17 +6,9 @@ In this section we will look at some ways of how we can improve the performance 
 
 # Startup performance
 
-The first GraphQL request issued against a Hot Chocolate server will most of the time take a little longer than subsequent requests. This is because Hot Chocolate has to build up the GraphQL schema and prepare for the execution of requests.
+Instead of the schema being created lazily, you can move its creation to the server startup and also specify warmup tasks.
 
-We can however delegate this task to the startup of the application instead of the first request, by call `InitializeOnStartup()` on the `IRequestExecutorBuilder`.
-
-```csharp
-builder.Services
-    .AddGraphQLServer()
-    .InitializeOnStartup()
-```
-
-This will create the schema and warmup the request executor as soon as the app starts. This also brings the added benefit that schema errors are surfaced at app startup and not on the first request.
+[Learn more server warmup](/docs/hotchocolate/v15/server/warmup)
 
 # Persisted operations
 

@@ -74,4 +74,11 @@ public static class OperationRequestBuilderExtensions
         this OperationRequestBuilder builder,
         ClaimsPrincipal claimsPrincipal)
         => builder.SetGlobalState(nameof(ClaimsPrincipal), claimsPrincipal);
+
+    /// <summary>
+    /// Marks this request as a warmup request that will bypass security measures and skip execution.
+    /// </summary>
+    public static OperationRequestBuilder MarkAsWarmupRequest(
+        this OperationRequestBuilder builder)
+        => builder.SetGlobalState(WellKnownContextData.IsWarmupRequest, true);
 }
