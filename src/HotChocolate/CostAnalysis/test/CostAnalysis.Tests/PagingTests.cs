@@ -1,5 +1,4 @@
 using System.Text.Json;
-using CookieCrumble;
 using HotChocolate.Data;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Sorting;
@@ -21,6 +20,7 @@ public class PagingTests
                 .AddQueryType<Query>()
                 .AddFiltering()
                 .AddSorting()
+                .ModifyPagingOptions(o => o.RequirePagingBoundaries = true)
                 .BuildSchemaAsync();
 
         schema.MatchSnapshot();
@@ -109,6 +109,7 @@ public class PagingTests
                 .AddQueryType<Query>()
                 .AddFiltering()
                 .AddSorting()
+                .ModifyPagingOptions(o => o.RequirePagingBoundaries = true)
                 .BuildRequestExecutorAsync();
 
         // act
@@ -277,6 +278,7 @@ public class PagingTests
                 .AddQueryType<Query>()
                 .AddFiltering()
                 .AddSorting()
+                .ModifyPagingOptions(o => o.RequirePagingBoundaries = true)
                 .BuildRequestExecutorAsync();
 
         // act
@@ -324,6 +326,7 @@ public class PagingTests
                 .AddQueryType<Query>()
                 .AddFiltering()
                 .AddSorting()
+                .ModifyPagingOptions(o => o.RequirePagingBoundaries = true)
                 .BuildRequestExecutorAsync();
 
         // act

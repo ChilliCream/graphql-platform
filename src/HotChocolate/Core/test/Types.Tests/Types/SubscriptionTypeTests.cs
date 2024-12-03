@@ -6,7 +6,7 @@
 #pragma warning disable CS0618 // Type or member is obsolete
 #nullable enable
 
-using CookieCrumble;
+using System.Runtime.CompilerServices;
 using HotChocolate.Execution;
 using HotChocolate.Subscriptions;
 using HotChocolate.Tests;
@@ -647,6 +647,44 @@ public class SubscriptionTypeTests : TypeTestBase
             """);
     }
 
+    [Fact]
+    public async Task Subscription_Directives_Are_Allowed()
+    {
+        // arrange
+        // act
+        var executor = await new ServiceCollection()
+            .AddGraphQLServer()
+            .AddDocumentFromString(
+                """
+                type Subscription {
+                  bookAdded: String!
+                }
+
+                directive @bug(test: Int!) on SUBSCRIPTION
+                """)
+            .BindRuntimeType<SubscriptionWithDirective>("Subscription")
+            .ModifyOptions(o => o.StrictValidation = false)
+            .BuildRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(
+            """
+            subscription test @bug(test: 123) {
+              bookAdded
+            }
+            """);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "bookAdded": "foo"
+              }
+            }
+
+            """);
+    }
+
     public class TestObservable : IObservable<string>, IDisposable
     {
         public bool DisposeRaised { get; private set; }
@@ -1046,5 +1084,19 @@ public class SubscriptionTypeTests : TypeTestBase
         public string OnExplicit(
             [EventMessage] string message) =>
             message;
+    }
+
+
+    public class SubscriptionWithDirective
+    {
+        [Subscribe(With = nameof(GetStream))]
+        public string BookAdded([EventMessage] string foo) => foo;
+
+        private async IAsyncEnumerable<string> GetStream(
+            [EnumeratorCancellation] CancellationToken ct = default)
+        {
+            await Task.Delay(200, ct);
+            yield return "foo";
+        }
     }
 }

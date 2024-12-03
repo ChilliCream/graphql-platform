@@ -11,21 +11,13 @@ namespace HotChocolate.Fusion.Shared;
 
 public class TestSubgraphCollection(ITestOutputHelper outputHelper, TestSubgraph[] subgraphs) : IDisposable
 {
-    public IHttpClientFactory GetHttpClientFactory()
-    {
-        var subgraphsDictionary = GetSubgraphs()
-            .ToDictionary(s => s.SubgraphName, s => s.Subgraph);
-
-        return new TestSubgraphCollectionHttpClientFactory(subgraphsDictionary);
-    }
-
     public async Task<IRequestExecutor> GetExecutorAsync(
         FusionFeatureCollection? features = null,
-        Action<FusionGatewayBuilder>? configureBuilder = null)
+        Action<FusionGatewayBuilder>? configure = null)
     {
         var fusionGraph = await GetFusionGraphAsync(features);
 
-        return await GetExecutorAsync(fusionGraph, configureBuilder);
+        return await GetExecutorAsync(fusionGraph, configure);
     }
 
     public async Task<Skimmed.SchemaDefinition> GetFusionGraphAsync(FusionFeatureCollection? features = null)
@@ -60,7 +52,7 @@ public class TestSubgraphCollection(ITestOutputHelper outputHelper, TestSubgraph
 
     private async Task<IRequestExecutor> GetExecutorAsync(
         Skimmed.SchemaDefinition fusionGraph,
-        Action<FusionGatewayBuilder>? configureBuilder = null)
+        Action<FusionGatewayBuilder>? configure = null)
     {
         var httpClientFactory = GetHttpClientFactory();
 
@@ -69,9 +61,17 @@ public class TestSubgraphCollection(ITestOutputHelper outputHelper, TestSubgraph
             .AddFusionGatewayServer()
             .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph));
 
-        configureBuilder?.Invoke(builder);
+        configure?.Invoke(builder);
 
         return await builder.BuildRequestExecutorAsync();
+    }
+
+    private IHttpClientFactory GetHttpClientFactory()
+    {
+        var subgraphsDictionary = GetSubgraphs()
+            .ToDictionary(s => s.SubgraphName, s => s.Subgraph);
+
+        return new TestSubgraphCollectionHttpClientFactory(subgraphsDictionary);
     }
 
     private IEnumerable<(string SubgraphName, TestSubgraph Subgraph)> GetSubgraphs()

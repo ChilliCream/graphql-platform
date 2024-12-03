@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Data.Raven.Filters;
 using HotChocolate.Data.Raven.Paging;
 using HotChocolate.Execution;
@@ -190,6 +189,9 @@ public class RavenAsyncDocumentQueryTests
         var result = await executor.ExecuteAsync(
             @"{
                 foos(first:1) {
+                    nodes {
+                        bar
+                    }
                     totalCount
                 }
             }");

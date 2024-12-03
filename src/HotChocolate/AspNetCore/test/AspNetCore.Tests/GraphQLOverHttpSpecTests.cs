@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Http.Json;
-using CookieCrumble;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Transport;
@@ -457,7 +456,102 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         Snapshot
             .Create()
             .Add(response)
-            .MatchInline("""
+            .MatchInline(
+                """
+                Headers:
+                Cache-Control: no-cache
+                Content-Type: text/event-stream; charset=utf-8
+                -------------------------->
+                Status Code: OK
+                -------------------------->
+                event: next
+                data: {"data":{"delay":"next"}}
+
+                :
+
+                event: next
+                data: {"data":{"delay":"next"}}
+
+                :
+
+                event: complete
+
+
+                """);
+    }
+
+    [Fact]
+    public async Task EventStream_When_Accept_Is_All()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+        var client = server.CreateClient();
+        client.Timeout = TimeSpan.FromSeconds(30);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, _url);
+        request.Content = JsonContent.Create(
+            new ClientQueryRequest
+            {
+                Query = "subscription {delay(count: 2, delay:15000)}",
+            });
+        request.Headers.Add("Accept", "*/*");
+
+        using var response = await client.SendAsync(request, ResponseHeadersRead);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Cache-Control: no-cache
+                Content-Type: text/event-stream; charset=utf-8
+                -------------------------->
+                Status Code: OK
+                -------------------------->
+                event: next
+                data: {"data":{"delay":"next"}}
+
+                :
+
+                event: next
+                data: {"data":{"delay":"next"}}
+
+                :
+
+                event: complete
+
+
+                """);
+    }
+
+    [Fact]
+    public async Task EventStream_When_Accept_Is_All_And_Subscription_Directive()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+        var client = server.CreateClient();
+        client.Timeout = TimeSpan.FromSeconds(30);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, _url);
+        request.Content = JsonContent.Create(
+            new ClientQueryRequest
+            {
+                Query = "subscription foo @foo(bar: 1) {delay(count: 2, delay:15000)}",
+            });
+        request.Headers.Add("Accept", "*/*");
+
+        using var response = await client.SendAsync(request, ResponseHeadersRead);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
                 Headers:
                 Cache-Control: no-cache
                 Content-Type: text/event-stream; charset=utf-8

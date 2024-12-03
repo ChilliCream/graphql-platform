@@ -395,10 +395,10 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                 new ObjectFieldDefinition(
                     options.PayloadErrorsFieldName,
                     type: errorListTypeRef,
-                    resolver: ctx =>
+                    pureResolver: ctx =>
                     {
                         ctx.ScopedContextData.TryGetValue(Errors, out var errors);
-                        return new ValueTask<object?>(errors);
+                        return errors;
                     }));
 
             // collect error factories for middleware

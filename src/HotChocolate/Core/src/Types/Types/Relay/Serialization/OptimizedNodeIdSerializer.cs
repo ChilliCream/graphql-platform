@@ -34,7 +34,8 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
         _stringSerializerMap =
             boundSerializers.ToFrozenDictionary(
                 t => t.TypeName,
-                t => new Serializer(t.TypeName, t.Serializer, outputNewIdFormat, _urlSafeBase64));
+                t => new Serializer(t.TypeName, t.Serializer, outputNewIdFormat, urlSafeBase64));
+
         _serializers = allSerializers;
         _spanSerializerMap = new SpanSerializerMap();
         foreach (var serializer in _stringSerializerMap.Values)

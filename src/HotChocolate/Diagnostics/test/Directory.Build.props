@@ -7,11 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Using Include="CookieCrumble" />
+    <Using Include="CookieCrumble.Xunit" />
     <Using Include="Xunit" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble\CookieCrumble.csproj" />
+    <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.Xunit\CookieCrumble.Xunit.csproj" />
   </ItemGroup>
 
   <ItemGroup>

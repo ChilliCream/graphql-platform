@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using CookieCrumble;
 using GreenDonut;
 using GreenDonut.Selectors;
 using HotChocolate.Data.TestContext;
