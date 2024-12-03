@@ -38,8 +38,8 @@ internal sealed class OnlyPersistedOperationsAllowedMiddleware
 
     public ValueTask InvokeAsync(IRequestContext context)
     {
-        // if all operations are allowed we can skip this middleware.
-        if(!_options.OnlyAllowPersistedDocuments)
+        // if all operations are allowed or the request is a warmup request, we can skip this middleware.
+        if(!_options.OnlyAllowPersistedDocuments || context.IsWarmupRequest())
         {
             return _next(context);
         }
