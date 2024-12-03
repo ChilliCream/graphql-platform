@@ -48,7 +48,8 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 "A leaf field cannot be a parent node.");
         }
 
-        List<UnresolvedField>? unresolved = null;
+        List<UnresolvedField>? unresolvedFields = null;
+        // List<UnresolvedType>? unresolvedTypes = null;
         var type = (CompositeComplexType)parent.DeclaringType;
 
         foreach (var selection in parent.SelectionNodes)
@@ -106,8 +107,8 @@ public sealed class OperationPlanner(CompositeSchema schema)
                     }
                     else
                     {
-                        unresolved ??= [];
-                        unresolved.Add(new UnresolvedField(fieldNode, field, parent));
+                        unresolvedFields ??= [];
+                        unresolvedFields.Add(new UnresolvedField(fieldNode, field));
                     }
 
                     path.Pop();
@@ -115,16 +116,16 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 else
                 {
                     // unresolvable fields will be collected to backtrack later.
-                    unresolved ??= [];
-                    unresolved.Add(new UnresolvedField(fieldNode, field, parent));
+                    unresolvedFields ??= [];
+                    unresolvedFields.Add(new UnresolvedField(fieldNode, field));
                 }
             }
         }
 
         return skipUnresolved
-            || unresolved is null
-            || unresolved.Count == 0
-            || TryHandleUnresolvedSelections(operation, parent, type, unresolved, path);
+            || unresolvedFields is null
+            || unresolvedFields.Count == 0
+            || TryHandleUnresolvedSelections(operation, parent, type, unresolvedFields, path);
     }
 
     private bool TryHandleUnresolvedSelections(
@@ -185,14 +186,16 @@ public sealed class OperationPlanner(CompositeSchema schema)
             var lookupOperation = CreateLookupOperation(schemaName, lookup, type, parent, fields);
             var lookupField = lookupOperation.Selections[0];
 
-            // what do we do of its not successful
-            if (!TryPlanSelectionSet(lookupOperation, lookupField, path))
+            if (!TryPlanSelectionSet(lookupOperation, lookupField, path, true))
             {
                 continue;
             }
 
             operation.AddChildNode(lookupOperation);
 
+            // we register the fields that we were able to resolve with the lookup
+            // so that if there are still unresolved fields we can check if we can
+            // resolve them with another lookup.
             foreach (var selection in lookupField.Selections)
             {
                 switch (selection)
@@ -259,6 +262,13 @@ public sealed class OperationPlanner(CompositeSchema schema)
         CompositeOutputField field,
         string schemaName)
         => field.Sources.ContainsSchema(schemaName);
+
+    // this needs more meat
+    private bool IsResolvable(
+        InlineFragmentNode inlineFragment,
+        CompositeComplexType typeCondition,
+        string schemaName)
+        => typeCondition.Sources.ContainsSchema(schemaName);
 
     private bool TryGetLookup(SelectionPlanNode selection, HashSet<string> schemas, out Lookup lookup)
     {
@@ -370,13 +380,31 @@ public sealed class OperationPlanner(CompositeSchema schema)
         return counts;
     }
 
+    private static FieldPath CreateFieldPath(Stack<SelectionPathSegment> path)
+    {
+        var current = FieldPath.Root;
+
+        foreach (var segment in path)
+        {
+            if (segment.PlanNode is FieldPlanNode field)
+            {
+                current = current.Append(field.Field.Name);
+            }
+        }
+
+        return current;
+    }
+
     public record SelectionPathSegment(
         SelectionPlanNode PlanNode);
 
     public record UnresolvedField(
         FieldNode FieldNode,
-        CompositeOutputField Field,
-        SelectionPlanNode Parent);
+        CompositeOutputField Field);
+
+    public record UnresolvedType(
+        InlineFragmentNode InlineFragment,
+        CompositeComplexType TypeCondition);
 
     public class RequestPlanNode
     {

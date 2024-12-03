@@ -12,6 +12,8 @@ public sealed class OperationPlanNode : SelectionPlanNode, IPlanNodeProvider, IS
     private static readonly IReadOnlyDictionary<string, VariableDefinitionNode> _emptyVariableMap =
         new Dictionary<string, VariableDefinitionNode>();
     private readonly List<PlanNode> _nodes = [];
+    // private List<OperationPlanNode>? _operations;
+    private Dictionary<string, FieldRequirement>? _requirements;
     private Dictionary<string, VariableDefinitionNode>? _variables;
 
     public OperationPlanNode(
@@ -41,10 +43,19 @@ public sealed class OperationPlanNode : SelectionPlanNode, IPlanNodeProvider, IS
     // todo: variable representations are missing.
     // todo: how to we represent state?
 
+    private IReadOnlyDictionary<string, FieldRequirement> Requirements
+        => _requirements ??= new Dictionary<string, FieldRequirement>();
+
     public IReadOnlyDictionary<string, VariableDefinitionNode> VariableDefinitions
         => _variables ?? _emptyVariableMap;
 
     public IReadOnlyList<PlanNode> Nodes => _nodes;
+
+    public void AddRequirement(FieldRequirement fieldRequirement)
+    {
+        ArgumentNullException.ThrowIfNull(fieldRequirement);
+        (_requirements ??= new Dictionary<string, FieldRequirement>()).Add(fieldRequirement.Name, fieldRequirement);
+    }
 
     public void AddVariableDefinition(VariableDefinitionNode variable)
     {

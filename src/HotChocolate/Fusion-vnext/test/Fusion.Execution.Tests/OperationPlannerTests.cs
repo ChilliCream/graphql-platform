@@ -34,7 +34,19 @@ public class OperationPlannerTests
         var plan = planner.CreatePlan(rewritten, null);
 
         // assert
-        plan.Serialize().MatchSnapshot();
+        plan.Serialize().MatchInlineSnapshot(
+            """
+            {
+              "kind": "Root",
+              "nodes": [
+                {
+                  "kind": "Operation",
+                  "schema": "PRODUCTS",
+                  "document": "{ productById(id: 1) { id name } }"
+                }
+              ]
+            }
+            """);
     }
 
     [Test]
@@ -66,7 +78,26 @@ public class OperationPlannerTests
         var plan = planner.CreatePlan(rewritten, null);
 
         // assert
-        plan.Serialize().MatchSnapshot();
+        plan.Serialize().MatchInlineSnapshot(
+            """
+            {
+              "kind": "Root",
+              "nodes": [
+                {
+                  "kind": "Operation",
+                  "schema": "PRODUCTS",
+                  "document": "{ productById(id: 1) { id name } }",
+                  "nodes": [
+                    {
+                      "kind": "Operation",
+                      "schema": "SHIPPING",
+                      "document": "{ productById { estimatedDelivery(postCode: \u002212345\u0022) } }"
+                    }
+                  ]
+                }
+              ]
+            }
+            """);
     }
 
     [Test]
@@ -113,7 +144,33 @@ public class OperationPlannerTests
         var plan = planner.CreatePlan(rewritten, null);
 
         // assert
-        plan.Serialize().MatchSnapshot();
+        plan.Serialize().MatchInlineSnapshot(
+            """
+            {
+              "kind": "Root",
+              "nodes": [
+                {
+                  "kind": "Operation",
+                  "schema": "PRODUCTS",
+                  "document": "{ productById(id: 1) { name } }",
+                  "nodes": [
+                    {
+                      "kind": "Operation",
+                      "schema": "REVIEWS",
+                      "document": "{ productById { reviews(first: 10) { nodes { body stars author } } } }",
+                      "nodes": [
+                        {
+                          "kind": "Operation",
+                          "schema": "ACCOUNTS",
+                          "document": "{ userById { displayName } }"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            """);
     }
 
     [Test]
@@ -160,11 +217,37 @@ public class OperationPlannerTests
         var plan = planner.CreatePlan(rewritten, null);
 
         // assert
-        plan.Serialize().MatchSnapshot();
+        plan.Serialize().MatchInlineSnapshot(
+            """
+            {
+              "kind": "Root",
+              "nodes": [
+                {
+                  "kind": "Operation",
+                  "schema": "PRODUCTS",
+                  "document": "query($id: ID!) { productById(id: $id) { name } }",
+                  "nodes": [
+                    {
+                      "kind": "Operation",
+                      "schema": "REVIEWS",
+                      "document": "query($first: Int! = 10) { productById { reviews(first: $first) { nodes { body stars author } } } }",
+                      "nodes": [
+                        {
+                          "kind": "Operation",
+                          "schema": "ACCOUNTS",
+                          "document": "{ userById { displayName } }"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            """);
     }
 
     [Test]
-    public async Task Plan_With_Conditional_InlineFragment()
+    public void Plan_With_Conditional_InlineFragment()
     {
         var compositeSchemaDoc = Utf8GraphQLParser.Parse(FileResource.Open("fusion1.graphql"));
         var compositeSchema = CompositeSchemaBuilder.Create(compositeSchemaDoc);
@@ -194,22 +277,9 @@ public class OperationPlannerTests
         var plan = planner.CreatePlan(rewritten, null);
 
         // assert
-        await Assert
-            .That(plan.ToSyntaxNode().ToString(indented: true))
-            .IsEqualTo(
-                """
-                {
-                  productById(id: 1) {
-                    id
-                    name
-                  }
-                }
+        plan.Serialize().MatchInlineSnapshot(
+            """
 
-                {
-                  productById {
-                    estimatedDelivery(postCode: "12345")
-                  }
-                }
-                """);
+            """);
     }
 }
