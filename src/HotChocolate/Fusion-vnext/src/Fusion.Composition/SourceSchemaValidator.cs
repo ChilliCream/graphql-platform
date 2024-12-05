@@ -4,9 +4,9 @@ namespace HotChocolate.Fusion;
 
 internal sealed class SourceSchemaValidator
 {
-    public Result Validate(CompositionContext _)
+    public CompositionResult Validate(CompositionContext _)
     {
         // FIXME: Implement.
-        return Result.Success();
+        return CompositionResult.Success();
     }
 }

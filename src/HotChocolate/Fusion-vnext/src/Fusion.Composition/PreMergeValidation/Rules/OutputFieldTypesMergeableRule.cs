@@ -13,7 +13,7 @@ namespace HotChocolate.Fusion.PreMergeValidation.Rules;
 /// </seealso>
 internal sealed class OutputFieldTypesMergeableRule : IPreMergeValidationRule
 {
-    public Result Run(PreMergeValidationContext context)
+    public CompositionResult Run(PreMergeValidationContext context)
     {
         var loggingSession = context.Log.CreateSession();
 
@@ -32,7 +32,7 @@ internal sealed class OutputFieldTypesMergeableRule : IPreMergeValidationRule
         }
 
         return loggingSession.ErrorCount == 0
-            ? Result.Success()
+            ? CompositionResult.Success()
             : ErrorHelper.PreMergeValidationRuleFailed(this);
     }
 }

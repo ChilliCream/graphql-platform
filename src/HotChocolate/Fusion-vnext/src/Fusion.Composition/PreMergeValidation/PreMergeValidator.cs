@@ -13,7 +13,7 @@ internal sealed class PreMergeValidator
         new OutputFieldTypesMergeableRule()
     ];
 
-    public Result Validate(CompositionContext compositionContext)
+    public CompositionResult Validate(CompositionContext compositionContext)
     {
         var preMergeValidationContext = new PreMergeValidationContext(compositionContext);
         preMergeValidationContext.Initialize();

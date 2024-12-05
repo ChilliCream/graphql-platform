@@ -5,9 +5,9 @@ namespace HotChocolate.Fusion.PostMergeValidation;
 
 internal sealed class PostMergeValidator
 {
-    public Result Validate(SchemaDefinition _)
+    public CompositionResult Validate(SchemaDefinition _)
     {
         // FIXME: Implement.
-        return Result.Success();
+        return CompositionResult.Success();
     }
 }

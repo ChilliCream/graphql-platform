@@ -7,7 +7,7 @@ namespace HotChocolate.Fusion;
 
 internal sealed class SourceSchemaMerger
 {
-    public Result<SchemaDefinition> Merge(CompositionContext context)
+    public CompositionResult<SchemaDefinition> Merge(CompositionContext context)
     {
         // Pre Merge Validation
         var preMergeValidationResult = new PreMergeValidator().Validate(context);
@@ -36,7 +36,7 @@ internal sealed class SourceSchemaMerger
         return mergeResult;
     }
 
-    private Result<SchemaDefinition> MergeSchemaDefinitions(CompositionContext _)
+    private CompositionResult<SchemaDefinition> MergeSchemaDefinitions(CompositionContext _)
     {
         // FIXME: Implement.
         return new SchemaDefinition();

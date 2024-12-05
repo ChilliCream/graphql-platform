@@ -6,7 +6,7 @@ namespace HotChocolate.Fusion;
 
 public sealed class SchemaComposer
 {
-    public Result<SchemaDefinition> Compose(
+    public CompositionResult<SchemaDefinition> Compose(
         SchemaDefinition[] schemaDefinitions,
         ICompositionLog compositionLog)
     {
