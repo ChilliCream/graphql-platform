@@ -4,7 +4,7 @@
     <AssemblyName>HotChocolate.Fusion.Composition</AssemblyName>
     <RootNamespace>HotChocolate.Fusion</RootNamespace>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Fusion.Composition.Tests" />
   </ItemGroup>
