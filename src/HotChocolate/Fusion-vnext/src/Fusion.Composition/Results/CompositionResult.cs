@@ -1,3 +1,5 @@
+using HotChocolate.Fusion.Errors;
+
 namespace HotChocolate.Fusion.Results;
 
 public readonly record struct CompositionResult
@@ -6,20 +8,20 @@ public readonly record struct CompositionResult
 
     public bool IsSuccess { get; }
 
-    public List<Error> Errors { get; } = [];
+    public List<CompositionError> Errors { get; } = [];
 
     public CompositionResult()
     {
         IsSuccess = true;
     }
 
-    private CompositionResult(Error error)
+    private CompositionResult(CompositionError error)
     {
         Errors = [error];
         IsFailure = true;
     }
 
-    private CompositionResult(List<Error> errors)
+    private CompositionResult(List<CompositionError> errors)
     {
         if (errors.Count == 0)
         {
@@ -35,17 +37,17 @@ public readonly record struct CompositionResult
     public static CompositionResult Success() => new();
 
     /// <summary>
-    /// Creates a <see cref="CompositionResult"/> from an error.
+    /// Creates a <see cref="CompositionResult"/> from a composition error.
     /// </summary>
-    public static implicit operator CompositionResult(Error error)
+    public static implicit operator CompositionResult(CompositionError error)
     {
         return new CompositionResult(error);
     }
 
     /// <summary>
-    /// Creates a <see cref="CompositionResult"/> from a list of errors.
+    /// Creates a <see cref="CompositionResult"/> from a list of composition errors.
     /// </summary>
-    public static implicit operator CompositionResult(List<Error> errors)
+    public static implicit operator CompositionResult(List<CompositionError> errors)
     {
         return new CompositionResult(errors);
     }

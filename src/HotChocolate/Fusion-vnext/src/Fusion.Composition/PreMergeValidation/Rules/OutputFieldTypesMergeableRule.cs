@@ -1,3 +1,4 @@
+using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.PreMergeValidation.Contracts;
 using HotChocolate.Fusion.Results;

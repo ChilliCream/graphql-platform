@@ -1,3 +1,5 @@
+using HotChocolate.Fusion.Errors;
+
 namespace HotChocolate.Fusion.Results;
 
 public readonly record struct CompositionResult<TValue>
@@ -6,7 +8,7 @@ public readonly record struct CompositionResult<TValue>
 
     public bool IsSuccess { get; }
 
-    public List<Error> Errors { get; } = [];
+    public List<CompositionError> Errors { get; } = [];
 
     public TValue Value => IsSuccess
         ? _value
@@ -20,13 +22,13 @@ public readonly record struct CompositionResult<TValue>
         IsSuccess = true;
     }
 
-    private CompositionResult(Error error)
+    private CompositionResult(CompositionError error)
     {
         Errors = [error];
         IsFailure = true;
     }
 
-    private CompositionResult(List<Error> errors)
+    private CompositionResult(List<CompositionError> errors)
     {
         if (errors.Count == 0)
         {
@@ -48,17 +50,17 @@ public readonly record struct CompositionResult<TValue>
     }
 
     /// <summary>
-    /// Creates a <see cref="CompositionResult{TValue}"/> from an error.
+    /// Creates a <see cref="CompositionResult{TValue}"/> from a composition error.
     /// </summary>
-    public static implicit operator CompositionResult<TValue>(Error error)
+    public static implicit operator CompositionResult<TValue>(CompositionError error)
     {
         return new CompositionResult<TValue>(error);
     }
 
     /// <summary>
-    /// Creates a <see cref="CompositionResult{TValue}"/> from a list of errors.
+    /// Creates a <see cref="CompositionResult{TValue}"/> from a list of composition errors.
     /// </summary>
-    public static implicit operator CompositionResult<TValue>(List<Error> errors)
+    public static implicit operator CompositionResult<TValue>(List<CompositionError> errors)
     {
         return new CompositionResult<TValue>(errors);
     }

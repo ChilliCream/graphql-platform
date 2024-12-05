@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.PreMergeValidation.Contracts;
 using HotChocolate.Fusion.PreMergeValidation.Rules;
 using HotChocolate.Fusion.Results;
@@ -18,7 +19,7 @@ internal sealed class PreMergeValidator
         var preMergeValidationContext = new PreMergeValidationContext(compositionContext);
         preMergeValidationContext.Initialize();
 
-        var errors = new List<Error>();
+        var errors = new List<CompositionError>();
 
         foreach (var validationRule in _validationRules)
         {
