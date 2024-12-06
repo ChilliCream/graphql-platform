@@ -15,7 +15,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
         ArgumentNullException.ThrowIfNull(document);
 
         var operationDefinition = document.GetOperation(operationName);
-        var schemasWeighted = GetSchemasWeighted(schema.QueryType, operationDefinition.SelectionSet);
+        var schemasWeighted = GetSchemasWeighted(document, schema.QueryType, operationDefinition.SelectionSet);
         var operationPlan = new RootPlanNode();
 
         // this need to be rewritten to check if everything is planned for.
@@ -62,7 +62,28 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 continue;
             }
 
-            if (selection is FieldNode fieldNode)
+            // We don't have to handle FragmentSpreadNode here because they are already
+            // either fully inlined or represented as an InlineFragmentNode.
+            if (selection is InlineFragmentNode inlineFragmentNode)
+            {
+                // TODO: We need the handle the type condition here for selection on abstract types
+                // TODO: We need to plan the selections
+                var inlineFragment = new InlineFragmentPlanNode(inlineFragmentNode, type);
+
+                var pathSegment = new SelectionPathSegment(inlineFragment);
+
+                path.Push(pathSegment);
+
+                if (TryPlanSelectionSet(operation, inlineFragment, path))
+                {
+                    parent.AddSelection(inlineFragment);
+                }
+                else
+                {
+                    // TODO: Handle unresolved case
+                }
+            }
+            else if (selection is FieldNode fieldNode)
             {
                 if (!type.Fields.TryGetField(fieldNode.Name.Value, out var field))
                 {
@@ -71,7 +92,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 }
 
                 // if we have an operation plan node we have a pre-validated set of
-                // root fields, so we now the field will be resolvable on the
+                // root fields, so we know the field will be resolvable on the
                 // source schema.
                 if (parent is OperationPlanNode || IsResolvable(fieldNode, field, operation.SchemaName))
                 {
@@ -371,27 +392,61 @@ public sealed class OperationPlanner(CompositeSchema schema)
     }
 
     private static Dictionary<string, int> GetSchemasWeighted(
+        DocumentNode document,
         CompositeObjectType operationType,
         SelectionSetNode selectionSet)
     {
         var counts = new Dictionary<string, int>();
+        Dictionary<string, FragmentDefinitionNode>? fragmentDefinitions = null;
+
+        var fieldNodes = new List<FieldNode>();
 
         foreach (var selectionNode in selectionSet.Selections)
         {
             if (selectionNode is FieldNode fieldNode)
             {
-                var field = operationType.Fields[fieldNode.Name.Value];
+                fieldNodes.Add(fieldNode);
+            }
+            else if (selectionNode is FragmentSpreadNode fragmentSpread)
+            {
+                fragmentDefinitions ??= document.GetFragments();
 
-                foreach (var schemaName in field.Sources.Schemas)
+                if (fragmentDefinitions.TryGetValue(fragmentSpread.Name.Value, out var fragmentDefinition))
                 {
-                    if (counts.TryGetValue(schemaName, out var count))
+                    foreach(var selection in fragmentDefinition.SelectionSet.Selections)
                     {
-                        counts[schemaName] = count + 1;
+                        if (selection is FieldNode fieldNodeFromFragment)
+                        {
+                            fieldNodes.Add(fieldNodeFromFragment);
+                        }
                     }
-                    else
+                }
+            }
+            else if (selectionNode is InlineFragmentNode inlineFragment)
+            {
+                foreach (var selection in inlineFragment.SelectionSet.Selections)
+                {
+                    if (selection is FieldNode fieldNodeFromFragment)
                     {
-                        counts[schemaName] = 1;
+                        fieldNodes.Add(fieldNodeFromFragment);
                     }
+                }
+            }
+        }
+
+        foreach (var fieldNode in fieldNodes)
+        {
+            var field = operationType.Fields[fieldNode.Name.Value];
+
+            foreach (var schemaName in field.Sources.Schemas)
+            {
+                if (counts.TryGetValue(schemaName, out var count))
+                {
+                    counts[schemaName] = count + 1;
+                }
+                else
+                {
+                    counts[schemaName] = 1;
                 }
             }
         }
@@ -493,49 +548,6 @@ public sealed class OperationPlanner(CompositeSchema schema)
         }
 
         return selectionIsSkipped;
-    }
-
-    private (bool IsSelectionNodeObsolete, List<Condition>? conditions) CreateConditions(ISelectionNode selectionNode)
-    {
-        List<Condition>? conditions = null;
-        var isSelectionNodeObsolete = false;
-
-        foreach (var directive in selectionNode.Directives)
-        {
-            var isSkipDirective = directive.Name.Value == "skip";
-            var isIncludedDirective = directive.Name.Value == "include";
-
-            if (isSkipDirective || isIncludedDirective)
-            {
-                var ifArgument = directive.Arguments.FirstOrDefault(a => a.Name.Value == "if");
-
-                if (ifArgument is not null)
-                {
-                    if (ifArgument.Value is VariableNode variableNode)
-                    {
-                        conditions ??= new List<Condition>();
-                        conditions.Add(new Condition(variableNode.Name.Value, isIncludedDirective));
-                    }
-                    else if (ifArgument.Value is BooleanValueNode booleanValueNode)
-                    {
-                        if (booleanValueNode.Value && isSkipDirective)
-                        {
-                            isSelectionNodeObsolete = true;
-                        }
-                        else if (!booleanValueNode.Value && isIncludedDirective)
-                        {
-                            isSelectionNodeObsolete = true;
-                        }
-                        else
-                        {
-                            isSelectionNodeObsolete = false;
-                        }
-                    }
-                }
-            }
-        }
-
-        return (isSelectionNodeObsolete, conditions);
     }
 
     public record SelectionPathSegment(

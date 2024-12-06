@@ -126,4 +126,14 @@ public abstract class SelectionPlanNode : PlanNode
 
         _conditions.Remove(condition);
     }
+
+    protected void ExtendDirectivesWithConditions(List<DirectiveNode> directives)
+    {
+        foreach (var condition in Conditions)
+        {
+            var directiveName = condition.PassingValue ? "include" : "skip";
+            directives.Add(new DirectiveNode(directiveName,
+                new ArgumentNode("if", new VariableNode(condition.VariableName))));
+        }
+    }
 }
