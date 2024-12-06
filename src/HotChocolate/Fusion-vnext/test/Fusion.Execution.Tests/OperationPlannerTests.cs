@@ -1,18 +1,16 @@
-using HotChocolate.Fusion.Planning;
-using HotChocolate.Fusion.Types.Completion;
-using HotChocolate.Language;
-
 namespace HotChocolate.Fusion;
 
-public class OperationPlannerTests
+public class OperationPlannerTests : FusionTestBase
 {
     [Test]
     public void Plan_Simple_Operation_1_Source_Schema()
     {
-        var compositeSchemaDoc = Utf8GraphQLParser.Parse(FileResource.Open("fusion1.graphql"));
-        var compositeSchema = CompositeSchemaBuilder.Create(compositeSchemaDoc);
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
 
-        var doc = Utf8GraphQLParser.Parse(
+        // act
+        var plan = PlanOperationAsync(
+            compositeSchema,
             """
             {
                 productById(id: 1) {
@@ -25,13 +23,6 @@ public class OperationPlannerTests
                 name
             }
             """);
-
-        var rewriter = new InlineFragmentOperationRewriter(compositeSchema);
-        var rewritten = rewriter.RewriteDocument(doc, null);
-
-        // act
-        var planner = new OperationPlanner(compositeSchema);
-        var plan = planner.CreatePlan(rewritten, null);
 
         // assert
         plan.Serialize().MatchInlineSnapshot(
@@ -52,10 +43,12 @@ public class OperationPlannerTests
     [Test]
     public void Plan_Simple_Operation_2_Source_Schema()
     {
-        var compositeSchemaDoc = Utf8GraphQLParser.Parse(FileResource.Open("fusion1.graphql"));
-        var compositeSchema = CompositeSchemaBuilder.Create(compositeSchemaDoc);
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
 
-        var doc = Utf8GraphQLParser.Parse(
+        // act
+        var plan = PlanOperationAsync(
+            compositeSchema,
             """
             {
                 productById(id: 1) {
@@ -69,13 +62,6 @@ public class OperationPlannerTests
                 estimatedDelivery(postCode: "12345")
             }
             """);
-
-        var rewriter = new InlineFragmentOperationRewriter(compositeSchema);
-        var rewritten = rewriter.RewriteDocument(doc, null);
-
-        // act
-        var planner = new OperationPlanner(compositeSchema);
-        var plan = planner.CreatePlan(rewritten, null);
 
         // assert
         plan.Serialize().MatchInlineSnapshot(
@@ -103,10 +89,12 @@ public class OperationPlannerTests
     [Test]
     public void Plan_Simple_Operation_3_Source_Schema()
     {
-        var compositeSchemaDoc = Utf8GraphQLParser.Parse(FileResource.Open("fusion1.graphql"));
-        var compositeSchema = CompositeSchemaBuilder.Create(compositeSchemaDoc);
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
 
-        var doc = Utf8GraphQLParser.Parse(
+        // act
+        var plan = PlanOperationAsync(
+            compositeSchema,
             """
             {
                 productById(id: 1) {
@@ -135,13 +123,6 @@ public class OperationPlannerTests
                 displayName
             }
             """);
-
-        var rewriter = new InlineFragmentOperationRewriter(compositeSchema);
-        var rewritten = rewriter.RewriteDocument(doc, null);
-
-        // act
-        var planner = new OperationPlanner(compositeSchema);
-        var plan = planner.CreatePlan(rewritten, null);
 
         // assert
         plan.Serialize().MatchInlineSnapshot(
@@ -176,10 +157,12 @@ public class OperationPlannerTests
     [Test]
     public void Plan_Simple_Operation_3_Source_Schema_And_Single_Variable()
     {
-        var compositeSchemaDoc = Utf8GraphQLParser.Parse(FileResource.Open("fusion1.graphql"));
-        var compositeSchema = CompositeSchemaBuilder.Create(compositeSchemaDoc);
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
 
-        var doc = Utf8GraphQLParser.Parse(
+        // act
+        var plan = PlanOperationAsync(
+            compositeSchema,
             """
             query GetProduct($id: ID!, $first: Int! = 10) {
                 productById(id: $id) {
@@ -208,13 +191,6 @@ public class OperationPlannerTests
                 displayName
             }
             """);
-
-        var rewriter = new InlineFragmentOperationRewriter(compositeSchema);
-        var rewritten = rewriter.RewriteDocument(doc, null);
-
-        // act
-        var planner = new OperationPlanner(compositeSchema);
-        var plan = planner.CreatePlan(rewritten, null);
 
         // assert
         plan.Serialize().MatchInlineSnapshot(

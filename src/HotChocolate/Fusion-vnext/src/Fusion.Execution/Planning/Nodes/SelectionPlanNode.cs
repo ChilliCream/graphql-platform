@@ -10,6 +10,7 @@ public abstract class SelectionPlanNode : PlanNode
 {
     private List<CompositeDirective>? _directives;
     private List<SelectionPlanNode>? _selections;
+    private List<Condition>? _conditions;
 
     /// <summary>
     /// Initializes a new instance of <see cref="SelectionPlanNode"/>.
@@ -20,13 +21,36 @@ public abstract class SelectionPlanNode : PlanNode
     /// <param name="selectionNodes">
     /// The child selection syntax nodes of this selection.
     /// </param>
+    /// <param name="directiveNodes">
+    /// The directives applied to this selection.
+    /// </param>
     protected SelectionPlanNode(
         ICompositeNamedType declaringType,
-        IReadOnlyList<ISelectionNode>? selectionNodes)
+        IReadOnlyList<ISelectionNode>? selectionNodes,
+        IReadOnlyList<DirectiveNode> directiveNodes)
     {
         DeclaringType = declaringType;
         IsEntity = declaringType.IsEntity();
         SelectionNodes = selectionNodes;
+
+        foreach (var directive in directiveNodes)
+        {
+            var isSkipDirective = directive.Name.Value.Equals("skip");
+            var isIncludeDirective = directive.Name.Value.Equals("include");
+
+            // TODO: Ideally this would be just a lookup to the directive
+            if (isSkipDirective || isIncludeDirective)
+            {
+                var ifArgument = directive.Arguments.FirstOrDefault(
+                    t => t.Name.Value.Equals("if"));
+
+                if (ifArgument?.Value is VariableNode variableNode)
+                {
+                    var condition = new Condition(variableNode.Name.Value, isIncludeDirective);
+                    (_conditions ??= []).Add(condition);
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -56,6 +80,8 @@ public abstract class SelectionPlanNode : PlanNode
     public IReadOnlyList<SelectionPlanNode> Selections
         => _selections ?? (IReadOnlyList<SelectionPlanNode>)Array.Empty<SelectionPlanNode>();
 
+    public IReadOnlyList<Condition> Conditions => _conditions ?? [];
+
     /// <summary>
     /// Adds a child selection to this selection.
     /// </summary>
@@ -66,7 +92,7 @@ public abstract class SelectionPlanNode : PlanNode
     {
         ArgumentNullException.ThrowIfNull(selection);
 
-        if(selection is OperationPlanNode)
+        if (selection is OperationPlanNode)
         {
             throw new NotSupportedException(
                 "An operation cannot be a child of a selection.");
@@ -86,5 +112,18 @@ public abstract class SelectionPlanNode : PlanNode
     {
         ArgumentNullException.ThrowIfNull(directive);
         (_directives ??= []).Add(directive);
+    }
+
+    // TODO: Maybe remove
+    public void RemoveCondition(Condition condition)
+    {
+        ArgumentNullException.ThrowIfNull(condition);
+
+        if (_conditions is null)
+        {
+            return;
+        }
+
+        _conditions.Remove(condition);
     }
 }

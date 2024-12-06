@@ -10,7 +10,7 @@ public sealed class FieldPlanNode : SelectionPlanNode
     public FieldPlanNode(
         FieldNode fieldNode,
         OutputFieldInfo field)
-        : base(field.Type.NamedType(), fieldNode.SelectionSet?.Selections)
+        : base(field.Type.NamedType(), fieldNode.SelectionSet?.Selections, fieldNode.Directives)
     {
         FieldNode = fieldNode;
         Field = field;
@@ -36,7 +36,7 @@ public sealed class FieldPlanNode : SelectionPlanNode
     public OutputFieldInfo Field { get; }
 
     public IReadOnlyList<ArgumentAssignment> Arguments
-        => _arguments ?? (IReadOnlyList<ArgumentAssignment>)Array.Empty<ArgumentAssignment>();
+        => _arguments ?? [];
 
     public void AddArgument(ArgumentAssignment argument)
     {
@@ -47,10 +47,19 @@ public sealed class FieldPlanNode : SelectionPlanNode
 
     public FieldNode ToSyntaxNode()
     {
+        var directives = new List<DirectiveNode>(Directives.ToSyntaxNode());
+
+        foreach (var condition in Conditions)
+        {
+            var directiveName = condition.PassingValue ? "include" : "skip";
+            directives.Add(new DirectiveNode(directiveName,
+                new ArgumentNode("if", new VariableNode(condition.VariableName))));
+        }
+
         return new FieldNode(
             new NameNode(Field.Name),
             Field.Name.Equals(ResponseName) ? null : new NameNode(ResponseName),
-            Directives.ToSyntaxNode(),
+            directives,
             Arguments.ToSyntaxNode(),
             Selections.Count == 0 ? null : Selections.ToSyntaxNode());
     }

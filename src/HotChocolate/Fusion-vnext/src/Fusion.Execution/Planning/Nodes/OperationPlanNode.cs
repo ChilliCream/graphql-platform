@@ -21,7 +21,7 @@ public sealed class OperationPlanNode : SelectionPlanNode, IPlanNodeProvider, IS
         ICompositeNamedType declaringType,
         SelectionSetNode selectionSet,
         PlanNode? parent = null)
-        : base(declaringType, selectionSet.Selections)
+        : base(declaringType, selectionSet.Selections, [])
     {
         SchemaName = schemaName;
         Parent = parent;
@@ -32,7 +32,7 @@ public sealed class OperationPlanNode : SelectionPlanNode, IPlanNodeProvider, IS
         ICompositeNamedType declaringType,
         IReadOnlyList<ISelectionNode> selections,
         PlanNode? parent = null)
-        : base(declaringType, selections)
+        : base(declaringType, selections, [])
     {
         SchemaName = schemaName;
         Parent = parent;
