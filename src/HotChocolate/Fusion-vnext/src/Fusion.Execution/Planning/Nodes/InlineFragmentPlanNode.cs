@@ -12,13 +12,6 @@ public sealed class InlineFragmentPlanNode : SelectionPlanNode
     {
     }
 
-    public InlineFragmentPlanNode(
-        ICompositeNamedType declaringType,
-        IReadOnlyList<ISelectionNode> selectionNodes)
-        : base(declaringType, selectionNodes, [])
-    {
-    }
-
     public InlineFragmentNode ToSyntaxNode()
     {
         var directives = new List<DirectiveNode>(Directives.ToSyntaxNode());

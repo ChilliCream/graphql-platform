@@ -136,4 +136,32 @@ public abstract class SelectionPlanNode : PlanNode
                 new ArgumentNode("if", new VariableNode(condition.VariableName))));
         }
     }
+
+    public void FlattenSelections()
+    {
+        var newSelections = new List<SelectionPlanNode>();
+
+        foreach (var selectionNode in Selections)
+        {
+            selectionNode.FlattenSelections();
+
+            if (selectionNode is InlineFragmentPlanNode inlineFragmentNode)
+            {
+                if (inlineFragmentNode.Directives.Count == 0 && inlineFragmentNode.Conditions.Count == 0)
+                {
+                    newSelections.AddRange(inlineFragmentNode.Selections);
+                }
+                else
+                {
+                    newSelections.Add(inlineFragmentNode);
+                }
+            }
+            else if (selectionNode is FieldPlanNode fieldNode)
+            {
+                newSelections.Add(fieldNode);
+            }
+        }
+
+        _selections = newSelections;
+    }
 }

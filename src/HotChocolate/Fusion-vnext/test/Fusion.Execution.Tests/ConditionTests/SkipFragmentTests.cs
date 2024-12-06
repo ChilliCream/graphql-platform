@@ -1,6 +1,5 @@
 namespace HotChocolate.Fusion;
 
-// TODO: Implement flattening of inline fragments
 public class SkipFragmentTests : FusionTestBase
 {
     [Test]
@@ -80,7 +79,7 @@ public class SkipFragmentTests : FusionTestBase
                 {
                   "kind": "Operation",
                   "schema": "PRODUCTS",
-                  "document": "query($id: ID!) { ... on Query { productById(id: $id) { name } } products { nodes { name } } }"
+                  "document": "query($id: ID!) { productById(id: $id) { name } products { nodes { name } } }"
                 }
               ]
             }
@@ -203,7 +202,7 @@ public class SkipFragmentTests : FusionTestBase
                 {
                   "kind": "Operation",
                   "schema": "PRODUCTS",
-                  "document": "query($id: ID!) { ... on Query { productById(id: $id) { name } } }"
+                  "document": "query($id: ID!) { productById(id: $id) { name } }"
                 }
               ]
             }
@@ -309,7 +308,7 @@ public class SkipFragmentTests : FusionTestBase
                 {
                   "kind": "Operation",
                   "schema": "PRODUCTS",
-                  "document": "query($id: ID!) { productById(id: $id) { ... on Product { name } description } }"
+                  "document": "query($id: ID!) { productById(id: $id) { name description } }"
                 }
               ]
             }
@@ -421,7 +420,7 @@ public class SkipFragmentTests : FusionTestBase
                 {
                   "kind": "Operation",
                   "schema": "PRODUCTS",
-                  "document": "query($id: ID!) { productById(id: $id) { ... on Product { name } } }"
+                  "document": "query($id: ID!) { productById(id: $id) { name } }"
                 }
               ]
             }

@@ -28,6 +28,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
 
             if (TryPlanSelectionSet(operation, operation, new Stack<SelectionPathSegment>()))
             {
+                operation.FlattenSelections();
                 var planNodeToAdd = PlanConditionNode(operation.Selections, operation);
                 operationPlan.AddChildNode(planNodeToAdd);
             }
@@ -240,6 +241,10 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 continue;
             }
 
+            lookupField.FlattenSelections();
+
+            // We have to check the selections of the lookup field, since the lookup field
+            // itself is a virtually inserted field that doesn't contain any conditions.
             var planNodeToAdd = PlanConditionNode(lookupField.Selections, lookupOperation);
             operation.AddChildNode(planNodeToAdd);
 
