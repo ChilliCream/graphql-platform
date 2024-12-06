@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Fusion.Planning.Nodes;
 using HotChocolate.Fusion.Types;
+using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -27,7 +28,8 @@ public sealed class OperationPlanner(CompositeSchema schema)
 
             if (TryPlanSelectionSet(operation, operation, new Stack<SelectionPathSegment>()))
             {
-                operationPlan.AddChildNode(operation);
+                var planNodeToAdd = PlanConditionNode(operation.Selections, operation);
+                operationPlan.AddChildNode(planNodeToAdd);
             }
         }
 
@@ -50,9 +52,16 @@ public sealed class OperationPlanner(CompositeSchema schema)
 
         List<UnresolvedField>? unresolved = null;
         var type = (CompositeComplexType)parent.DeclaringType;
+        var haveConditionalSelectionsBeenRemoved = false;
 
         foreach (var selection in parent.SelectionNodes)
         {
+            if (IsSelectionAlwaysSkipped(selection))
+            {
+                haveConditionalSelectionsBeenRemoved = true;
+                continue;
+            }
+
             if (selection is FieldNode fieldNode)
             {
                 if (!type.Fields.TryGetField(fieldNode.Name.Value, out var field))
@@ -64,8 +73,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 // if we have an operation plan node we have a pre-validated set of
                 // root fields, so we now the field will be resolvable on the
                 // source schema.
-                if (parent is OperationPlanNode
-                    || IsResolvable(fieldNode, field, operation.SchemaName))
+                if (parent is OperationPlanNode || IsResolvable(fieldNode, field, operation.SchemaName))
                 {
                     var fieldNamedType = field.Type.NamedType();
 
@@ -87,9 +95,9 @@ public sealed class OperationPlanner(CompositeSchema schema)
                     // if this field as a selection set it must be a object, interface or union type,
                     // otherwise the validation should have caught this. So, we just throw here if this
                     // is not the case.
-                    if (fieldNamedType.Kind != TypeKind.Object
-                        && fieldNamedType.Kind != TypeKind.Interface
-                        && fieldNamedType.Kind != TypeKind.Union)
+                    if (fieldNamedType.Kind != TypeKind.Object &&
+                        fieldNamedType.Kind != TypeKind.Interface &&
+                        fieldNamedType.Kind != TypeKind.Union)
                     {
                         throw new InvalidOperationException(
                             "Only object, interface, or union types can have a selection set.");
@@ -121,10 +129,30 @@ public sealed class OperationPlanner(CompositeSchema schema)
             }
         }
 
-        return skipUnresolved
-            || unresolved is null
-            || unresolved.Count == 0
-            || TryHandleUnresolvedSelections(operation, parent, type, unresolved, path);
+        if (haveConditionalSelectionsBeenRemoved)
+        {
+            // If we have removed conditional selections from a composite field, we need to add a __typename field
+            // to have a valid selection set.
+            if (parent is FieldPlanNode fieldPlanNode && fieldPlanNode.Selections.Count == 0)
+            {
+                // TODO: How to properly create a __typename field?
+                var dummyType = new CompositeObjectType("Dummy", description: null,
+                    fields: new CompositeOutputFieldCollection([]));
+                var outputFieldInfo = new OutputFieldInfo("__typename", dummyType, []);
+                fieldPlanNode.AddSelection(new FieldPlanNode(new FieldNode("__typename"), outputFieldInfo));
+            }
+            // If we have removed conditional selections from an operation, we need to fail the creation
+            // of the operation as it would be invalid without any selections.
+            else if (parent is OperationPlanNode operationPlanNode && operationPlanNode.Selections.Count == 0)
+            {
+                return false;
+            }
+        }
+
+        return skipUnresolved ||
+            unresolved is null ||
+            unresolved.Count == 0 ||
+            TryHandleUnresolvedSelections(operation, parent, type, unresolved, path);
     }
 
     private bool TryHandleUnresolvedSelections(
@@ -175,8 +203,8 @@ public sealed class OperationPlanner(CompositeSchema schema)
 
             foreach (var unresolvedField in unresolved)
             {
-                if (unresolvedField.Field.Sources.ContainsSchema(schemaName)
-                    && !processedFields.Contains(unresolvedField.Field.Name))
+                if (unresolvedField.Field.Sources.ContainsSchema(schemaName) &&
+                    !processedFields.Contains(unresolvedField.Field.Name))
                 {
                     fields.Add(unresolvedField.FieldNode);
                 }
@@ -191,7 +219,8 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 continue;
             }
 
-            operation.AddChildNode(lookupOperation);
+            var planNodeToAdd = PlanConditionNode(lookupField.Selections, lookupOperation);
+            operation.AddChildNode(planNodeToAdd);
 
             foreach (var selection in lookupField.Selections)
             {
@@ -267,8 +296,8 @@ public sealed class OperationPlanner(CompositeSchema schema)
         // is available for free.
         foreach (var schemaName in schemas)
         {
-            if (((CompositeComplexType)selection.DeclaringType).Sources.TryGetType(schemaName, out var source)
-                && source.Lookups.Length > 0)
+            if (((CompositeComplexType)selection.DeclaringType).Sources.TryGetType(schemaName, out var source) &&
+                source.Lookups.Length > 0)
             {
                 lookup = source.Lookups[0];
                 return true;
@@ -288,8 +317,8 @@ public sealed class OperationPlanner(CompositeSchema schema)
         var lookupFieldNode = new FieldNode(
             new NameNode(lookup.Name),
             null,
-            Array.Empty<DirectiveNode>(),
-            Array.Empty<ArgumentNode>(),
+            [],
+            [],
             new SelectionSetNode(selections));
 
         var selectionNodes = new ISelectionNode[] { lookupFieldNode };
@@ -368,6 +397,145 @@ public sealed class OperationPlanner(CompositeSchema schema)
         }
 
         return counts;
+    }
+
+    private PlanNode PlanConditionNode(
+        IReadOnlyList<SelectionPlanNode> selectionPlanNodes,
+        OperationPlanNode operation)
+    {
+        var firstSelection = selectionPlanNodes.FirstOrDefault();
+        if (firstSelection is null || firstSelection.Conditions.Count == 0)
+        {
+            return operation;
+        }
+
+        var conditionsOnFirstSelectionNode = new HashSet<Condition>(firstSelection.Conditions);
+
+        foreach (var selection in selectionPlanNodes.Skip(1))
+        {
+            if (selection.Conditions.Count == 0)
+            {
+                return operation;
+            }
+
+            foreach (var condition in selection.Conditions)
+            {
+                if (!conditionsOnFirstSelectionNode.Contains(condition))
+                {
+                    return operation;
+                }
+            }
+        }
+
+        ConditionPlanNode? startConditionNode = null;
+        ConditionPlanNode? lastConditionNode = null;
+
+        foreach (var sharedCondition in conditionsOnFirstSelectionNode)
+        {
+            foreach (var selection in selectionPlanNodes)
+            {
+                selection.RemoveCondition(sharedCondition);
+            }
+
+            if (startConditionNode is null)
+            {
+                startConditionNode = lastConditionNode =
+                    new ConditionPlanNode(sharedCondition.VariableName, sharedCondition.PassingValue);
+            }
+            else if (lastConditionNode is not null)
+            {
+                var childCondition = new ConditionPlanNode(sharedCondition.VariableName, sharedCondition.PassingValue);
+                lastConditionNode.AddChildNode(childCondition);
+                lastConditionNode = childCondition;
+            }
+        }
+
+        lastConditionNode?.AddChildNode(operation);
+
+        return startConditionNode!;
+    }
+
+    private bool IsSelectionAlwaysSkipped(ISelectionNode selectionNode)
+    {
+        var selectionIsSkipped = false;
+        foreach (var directive in selectionNode.Directives)
+        {
+            var isSkipDirective = directive.Name.Value == "skip";
+            var isIncludedDirective = directive.Name.Value == "include";
+
+            if (isSkipDirective || isIncludedDirective)
+            {
+                var ifArgument = directive.Arguments.FirstOrDefault(a => a.Name.Value == "if");
+
+                if (ifArgument is not null)
+                {
+                    if (ifArgument.Value is BooleanValueNode booleanValueNode)
+                    {
+                        if (booleanValueNode.Value && isSkipDirective)
+                        {
+                            selectionIsSkipped = true;
+                        }
+                        else if (!booleanValueNode.Value && isIncludedDirective)
+                        {
+                            selectionIsSkipped = true;
+                        }
+                        else
+                        {
+                            selectionIsSkipped = false;
+                        }
+                    }
+                    else
+                    {
+                        selectionIsSkipped = false;
+                    }
+                }
+            }
+        }
+
+        return selectionIsSkipped;
+    }
+
+    private (bool IsSelectionNodeObsolete, List<Condition>? conditions) CreateConditions(ISelectionNode selectionNode)
+    {
+        List<Condition>? conditions = null;
+        var isSelectionNodeObsolete = false;
+
+        foreach (var directive in selectionNode.Directives)
+        {
+            var isSkipDirective = directive.Name.Value == "skip";
+            var isIncludedDirective = directive.Name.Value == "include";
+
+            if (isSkipDirective || isIncludedDirective)
+            {
+                var ifArgument = directive.Arguments.FirstOrDefault(a => a.Name.Value == "if");
+
+                if (ifArgument is not null)
+                {
+                    if (ifArgument.Value is VariableNode variableNode)
+                    {
+                        conditions ??= new List<Condition>();
+                        conditions.Add(new Condition(variableNode.Name.Value, isIncludedDirective));
+                    }
+                    else if (ifArgument.Value is BooleanValueNode booleanValueNode)
+                    {
+                        if (booleanValueNode.Value && isSkipDirective)
+                        {
+                            isSelectionNodeObsolete = true;
+                        }
+                        else if (!booleanValueNode.Value && isIncludedDirective)
+                        {
+                            isSelectionNodeObsolete = true;
+                        }
+                        else
+                        {
+                            isSelectionNodeObsolete = false;
+                        }
+                    }
+                }
+            }
+        }
+
+        return (isSelectionNodeObsolete, conditions);
     }
 
     public record SelectionPathSegment(

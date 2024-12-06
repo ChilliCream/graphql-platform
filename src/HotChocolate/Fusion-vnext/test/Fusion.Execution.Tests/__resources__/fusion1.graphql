@@ -42,6 +42,7 @@ type Product
     @fusion__field(schema: PRODUCTS)
   dimension: ProductDimension!
     @fusion__field(schema: PRODUCTS)
+  averageRating: Int! @fusion__field(schema: REVIEWS)
   reviews(first: Int, after: String, last: Int, before: String): ProductReviewConnection
     @fusion__field(schema: REVIEWS)
   estimatedDelivery(postCode: String): Int!

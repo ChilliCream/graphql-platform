@@ -8,7 +8,7 @@ public sealed class InlineFragmentPlanNode : SelectionPlanNode
     public InlineFragmentPlanNode(
         ICompositeNamedType declaringType,
         IReadOnlyList<ISelectionNode> selectionNodes)
-        : base(declaringType, selectionNodes)
+        : base(declaringType, selectionNodes, [])
     {
     }
 
