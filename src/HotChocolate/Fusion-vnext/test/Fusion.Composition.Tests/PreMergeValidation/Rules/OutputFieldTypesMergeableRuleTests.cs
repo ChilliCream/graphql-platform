@@ -15,7 +15,7 @@ public sealed class OutputFieldTypesMergeableRuleTests
         // arrange
         var log = new CompositionLog();
         var context = new PreMergeValidationContext(
-            new CompositionContext(sdl.Select(SchemaParser.Parse).ToArray(), log));
+            new CompositionContext([.. sdl.Select(SchemaParser.Parse)], log));
 
         context.Initialize();
 
@@ -34,7 +34,7 @@ public sealed class OutputFieldTypesMergeableRuleTests
         // arrange
         var log = new CompositionLog();
         var context = new PreMergeValidationContext(
-            new CompositionContext(sdl.Select(SchemaParser.Parse).ToArray(), log));
+            new CompositionContext([.. sdl.Select(SchemaParser.Parse)], log));
 
         context.Initialize();
 

@@ -6,7 +6,7 @@ namespace HotChocolate.Fusion.PreMergeValidation;
 
 internal sealed class PreMergeValidationContext(CompositionContext context)
 {
-    public SchemaDefinition[] SchemaDefinitions => context.SchemaDefinitions;
+    public ImmutableArray<SchemaDefinition> SchemaDefinitions => context.SchemaDefinitions;
     public ICompositionLog Log => context.Log;
     public ImmutableArray<OutputTypeInfo> OutputTypeInfo = [];
 

@@ -7,13 +7,13 @@ namespace HotChocolate.Fusion;
 public sealed class SchemaComposer
 {
     public CompositionResult<SchemaDefinition> Compose(
-        SchemaDefinition[] schemaDefinitions,
+        IEnumerable<SchemaDefinition> schemaDefinitions,
         ICompositionLog compositionLog)
     {
         ArgumentNullException.ThrowIfNull(schemaDefinitions);
         ArgumentNullException.ThrowIfNull(compositionLog);
 
-        var context = new CompositionContext(schemaDefinitions, compositionLog);
+        var context = new CompositionContext([.. schemaDefinitions], compositionLog);
 
         // Validate Source Schemas
         var validationResult = new SourceSchemaValidator().Validate(context);
