@@ -5,10 +5,6 @@ namespace HotChocolate.Fusion.Logging.Contracts;
 /// </summary>
 public interface ICompositionLog
 {
-    IList<LogEntry> Entries { get; }
-
-    int EntryCount { get; }
-
     bool IsEmpty { get; }
 
     /// <summary>

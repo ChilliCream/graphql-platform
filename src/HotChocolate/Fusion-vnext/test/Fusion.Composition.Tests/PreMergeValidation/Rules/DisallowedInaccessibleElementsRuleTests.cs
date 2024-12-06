@@ -43,9 +43,9 @@ public sealed class DisallowedInaccessibleElementsRuleTests
 
         // assert
         await Assert.That(result.IsFailure).IsTrue();
-        await Assert.That(log.EntryCount).IsEqualTo(1);
-        await Assert.That(log.Entries[0].Code).IsEqualTo("DISALLOWED_INACCESSIBLE");
-        await Assert.That(log.Entries[0].Severity).IsEqualTo(LogSeverity.Error);
+        await Assert.That(log.Count()).IsEqualTo(1);
+        await Assert.That(log.First().Code).IsEqualTo("DISALLOWED_INACCESSIBLE");
+        await Assert.That(log.First().Severity).IsEqualTo(LogSeverity.Error);
     }
 
     public static IEnumerable<Func<string[]>> ValidExamplesData()
