@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Fusion.Errors;
 
 namespace HotChocolate.Fusion.Results;
@@ -8,7 +9,7 @@ public readonly record struct CompositionResult
 
     public bool IsSuccess { get; }
 
-    public List<CompositionError> Errors { get; } = [];
+    public ImmutableArray<CompositionError> Errors { get; } = [];
 
     public CompositionResult()
     {
@@ -21,15 +22,15 @@ public readonly record struct CompositionResult
         IsFailure = true;
     }
 
-    private CompositionResult(List<CompositionError> errors)
+    private CompositionResult(ImmutableArray<CompositionError> errors)
     {
-        if (errors.Count == 0)
+        if (errors.Length == 0)
         {
             IsSuccess = true;
         }
         else
         {
-            Errors = [.. errors];
+            Errors = errors;
             IsFailure = true;
         }
     }
@@ -47,12 +48,20 @@ public readonly record struct CompositionResult
     }
 
     /// <summary>
+    /// Creates a <see cref="CompositionResult"/> from an array of composition errors.
+    /// </summary>
+    public static implicit operator CompositionResult(ImmutableArray<CompositionError> errors)
+    {
+        return new CompositionResult(errors);
+    }
+
+    /// <summary>
     /// Creates a <see cref="CompositionResult"/> from a list of composition errors.
     /// </summary>
     public static implicit operator CompositionResult(List<CompositionError> errors)
     {
         ArgumentNullException.ThrowIfNull(errors);
 
-        return new CompositionResult(errors);
+        return new CompositionResult([.. errors]);
     }
 }
