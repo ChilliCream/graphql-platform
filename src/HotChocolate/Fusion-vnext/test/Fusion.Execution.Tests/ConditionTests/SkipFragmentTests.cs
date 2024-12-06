@@ -1,9 +1,10 @@
 namespace HotChocolate.Fusion;
 
+// TODO: Implement flattening of inline fragments
 public class SkipFragmentTests : FusionTestBase
 {
     [Test]
-    public void Skip_On_Root_Fragment()
+    public void Skip_On_RootFragment()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
@@ -37,7 +38,7 @@ public class SkipFragmentTests : FusionTestBase
                 {
                   "kind": "Operation",
                   "schema": "PRODUCTS",
-                  "document": "query($id: ID!) { ... on Query @skip(if: $skip) { productById(id: $id) { name } } products { nodes { name } } }"
+                  "document": "query($id: ID!, $skip: Boolean!) { ... on Query @skip(if: $skip) { productById(id: $id) { name } } products { nodes { name } } }"
                 }
               ]
             }
@@ -45,7 +46,7 @@ public class SkipFragmentTests : FusionTestBase
     }
 
     [Test]
-    public void Skip_On_Root_Fragment_If_False()
+    public void Skip_On_RootFragment_If_False()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
@@ -87,7 +88,7 @@ public class SkipFragmentTests : FusionTestBase
     }
 
     [Test]
-    public void Skip_On_Root_Fragment_If_True()
+    public void Skip_On_RootFragment_If_True()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
@@ -129,7 +130,7 @@ public class SkipFragmentTests : FusionTestBase
     }
 
     [Test]
-    public void Skip_On_Root_Fragment_Only_Skipped_Fragment_Selected()
+    public void Skip_On_RootFragment_Only_Skipped_Fragment_Selected()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
@@ -173,7 +174,7 @@ public class SkipFragmentTests : FusionTestBase
     }
 
     [Test]
-    public void Skip_On_Root_Fragment_Only_Skipped_Fragment_Selected_If_False()
+    public void Skip_On_RootFragment_Only_Skipped_Fragment_Selected_If_False()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
@@ -210,7 +211,7 @@ public class SkipFragmentTests : FusionTestBase
     }
 
     [Test]
-    public void Skip_On_Root_Fragment_Only_Skipped_Fragment_Selected_If_True()
+    public void Skip_On_RootFragment_Only_Skipped_Fragment_Selected_If_True()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
@@ -235,6 +236,231 @@ public class SkipFragmentTests : FusionTestBase
             """
             {
               "kind": "Root"
+            }
+            """);
+    }
+
+    [Test]
+    public void Skip_On_SubFragment()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        // act
+        var plan = PlanOperation(
+            compositeSchema,
+            """
+            query GetProduct($id: ID!, $skip: Boolean!) {
+                productById(id: $id) {
+                    ...ProductFragment @skip(if: $skip)
+                    description
+                }
+            }
+
+            fragment ProductFragment on Product {
+                name
+            }
+            """);
+
+        // assert
+        plan.Serialize().MatchInlineSnapshot(
+            """
+            {
+              "kind": "Root",
+              "nodes": [
+                {
+                  "kind": "Operation",
+                  "schema": "PRODUCTS",
+                  "document": "query($id: ID!, $skip: Boolean!) { productById(id: $id) { ... on Product @skip(if: $skip) { name } description } }"
+                }
+              ]
+            }
+            """);
+    }
+
+    [Test]
+    public void Skip_On_SubFragment_If_False()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        // act
+        var plan = PlanOperation(
+            compositeSchema,
+            """
+            query GetProduct($id: ID!) {
+                productById(id: $id) {
+                    ...ProductFragment @skip(if: false)
+                    description
+                }
+            }
+
+            fragment ProductFragment on Product {
+                name
+            }
+            """);
+
+        // assert
+        plan.Serialize().MatchInlineSnapshot(
+            """
+            {
+              "kind": "Root",
+              "nodes": [
+                {
+                  "kind": "Operation",
+                  "schema": "PRODUCTS",
+                  "document": "query($id: ID!) { productById(id: $id) { ... on Product { name } description } }"
+                }
+              ]
+            }
+            """);
+    }
+
+    [Test]
+    public void Skip_On_SubFragment_If_True()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        // act
+        var plan = PlanOperation(
+            compositeSchema,
+            """
+            query GetProduct($id: ID!) {
+                productById(id: $id) {
+                    ...ProductFragment @skip(if: true)
+                    description
+                }
+            }
+
+            fragment ProductFragment on Product {
+                name
+            }
+            """);
+
+        // assert
+        plan.Serialize().MatchInlineSnapshot(
+            """
+            {
+              "kind": "Root",
+              "nodes": [
+                {
+                  "kind": "Operation",
+                  "schema": "PRODUCTS",
+                  "document": "query($id: ID!) { productById(id: $id) { description } }"
+                }
+              ]
+            }
+            """);
+    }
+
+    [Test]
+    public void Skip_On_SubFragment_Only_Skipped_Fragment_Selected()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        // act
+        var plan = PlanOperation(
+            compositeSchema,
+            """
+            query GetProduct($id: ID!, $skip: Boolean!) {
+                productById(id: $id) {
+                    ...ProductFragment @skip(if: $skip)
+                }
+            }
+
+            fragment ProductFragment on Product {
+                name
+            }
+            """);
+
+        // assert
+        plan.Serialize().MatchInlineSnapshot(
+            """
+            {
+              "kind": "Root",
+              "nodes": [
+                {
+                  "kind": "Operation",
+                  "schema": "PRODUCTS",
+                  "document": "query($id: ID!, $skip: Boolean!) { productById(id: $id) { ... on Product @skip(if: $skip) { name } } }"
+                }
+              ]
+            }
+            """);
+    }
+
+    [Test]
+    public void Skip_On_SubFragment_Only_Skipped_Fragment_SelectedIf_False()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        // act
+        var plan = PlanOperation(
+            compositeSchema,
+            """
+            query GetProduct($id: ID!) {
+                productById(id: $id) {
+                    ...ProductFragment @skip(if: false)
+                }
+            }
+
+            fragment ProductFragment on Product {
+                name
+            }
+            """);
+
+        // assert
+        plan.Serialize().MatchInlineSnapshot(
+            """
+            {
+              "kind": "Root",
+              "nodes": [
+                {
+                  "kind": "Operation",
+                  "schema": "PRODUCTS",
+                  "document": "query($id: ID!) { productById(id: $id) { ... on Product { name } } }"
+                }
+              ]
+            }
+            """);
+    }
+
+    [Test]
+    public void Skip_On_SubFragment_Only_Skipped_Fragment_Selected_If_True()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        // act
+        var plan = PlanOperation(
+            compositeSchema,
+            """
+            query GetProduct($id: ID!) {
+                productById(id: $id) {
+                    ...ProductFragment @skip(if: true)
+                }
+            }
+
+            fragment ProductFragment on Product {
+                name
+            }
+            """);
+
+        // assert
+        plan.Serialize().MatchInlineSnapshot(
+            """
+            {
+              "kind": "Root",
+              "nodes": [
+                {
+                  "kind": "Operation",
+                  "schema": "PRODUCTS",
+                  "document": "query($id: ID!) { productById(id: $id) { __typename } }"
+                }
+              ]
             }
             """);
     }

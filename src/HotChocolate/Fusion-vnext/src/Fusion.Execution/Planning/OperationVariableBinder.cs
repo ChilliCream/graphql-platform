@@ -46,22 +46,22 @@ internal static class OperationVariableBinder
                         usedVariables.Add(variable.Name.Value);
                     }
                 }
+            }
 
-                foreach (var directive in field.Directives)
+            foreach (var directive in node.Directives)
+            {
+                foreach (var argument in directive.Arguments)
                 {
-                    foreach (var argument in directive.Arguments)
+                    if (argument.Value is VariableNode variable)
                     {
-                        if (argument.Value is VariableNode variable)
-                        {
-                            usedVariables.Add(variable.Name.Value);
-                        }
+                        usedVariables.Add(variable.Name.Value);
                     }
                 }
+            }
 
-                foreach (var condition in field.Conditions)
-                {
-                    usedVariables.Add(condition.VariableName);
-                }
+            foreach (var condition in node.Conditions)
+            {
+                usedVariables.Add(condition.VariableName);
             }
 
             foreach (var selection in node.Selections)
