@@ -38,19 +38,17 @@ public static class SchemaParser
         {
             if (definition is DirectiveDefinitionNode def)
             {
-                if (BuiltIns.IsBuiltInDirective(def.Name.Value))
-                {
-                    // If a built-in directive is redefined in the schema, we just ignore it.
-                    continue;
-                }
-
                 if (schema.DirectiveDefinitions.ContainsName(def.Name.Value))
                 {
                     // TODO : parsing error
                     throw new Exception("duplicate");
                 }
 
-                schema.DirectiveDefinitions.Add(new DirectiveDefinition(def.Name.Value));
+                schema.DirectiveDefinitions.Add(
+                    new DirectiveDefinition(def.Name.Value)
+                    {
+                        IsSpecDirective = BuiltIns.IsBuiltInDirective(def.Name.Value)
+                    });
             }
         }
     }
@@ -61,11 +59,6 @@ public static class SchemaParser
         {
             if (definition is ITypeDefinitionNode typeDef)
             {
-                if (BuiltIns.IsBuiltInScalar(typeDef.Name.Value))
-                {
-                    continue;
-                }
-
                 if (schema.Types.ContainsName(typeDef.Name.Value))
                 {
                     // TODO : parsing error
@@ -91,7 +84,11 @@ public static class SchemaParser
                         break;
 
                     case ScalarTypeDefinitionNode:
-                        schema.Types.Add(new ScalarTypeDefinition(typeDef.Name.Value));
+                        schema.Types.Add(
+                            new ScalarTypeDefinition(typeDef.Name.Value)
+                            {
+                                IsSpecScalar = BuiltIns.IsBuiltInScalar(typeDef.Name.Value)
+                            });
                         break;
 
                     case UnionTypeDefinitionNode:
@@ -196,11 +193,6 @@ public static class SchemaParser
                         break;
 
                     case ScalarTypeDefinitionNode typeDef:
-                        if (BuiltIns.IsBuiltInScalar(typeDef.Name.Value))
-                        {
-                            continue;
-                        }
-
                         BuildScalarType(
                             schema,
                             (ScalarTypeDefinition)schema.Types[typeDef.Name.Value],
@@ -545,11 +537,6 @@ public static class SchemaParser
         {
             if (definition is DirectiveDefinitionNode directiveDef)
             {
-                if (BuiltIns.IsBuiltInDirective(directiveDef.Name.Value))
-                {
-                    continue;
-                }
-
                 BuildDirectiveType(
                     schema,
                     schema.DirectiveDefinitions[directiveDef.Name.Value],
