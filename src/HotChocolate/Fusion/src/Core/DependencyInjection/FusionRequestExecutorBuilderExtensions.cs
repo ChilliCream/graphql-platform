@@ -564,6 +564,7 @@ public static class FusionRequestExecutorBuilderExtensions
             .UseDocumentValidation()
             .UseOperationCache()
             .UseOperationResolver()
+            .UseSkipWarmupExecution()
             .UseOperationVariableCoercion()
             .UseDistributedOperationExecution();
     }
@@ -588,6 +589,7 @@ public static class FusionRequestExecutorBuilderExtensions
             .UseDocumentValidation()
             .UseOperationCache()
             .UseOperationResolver()
+            .UseSkipWarmupExecution()
             .UseOperationVariableCoercion()
             .UseDistributedOperationExecution();
     }
@@ -612,6 +614,7 @@ public static class FusionRequestExecutorBuilderExtensions
             .UseDocumentValidation()
             .UseOperationCache()
             .UseOperationResolver()
+            .UseSkipWarmupExecution()
             .UseOperationVariableCoercion()
             .UseDistributedOperationExecution();
     }

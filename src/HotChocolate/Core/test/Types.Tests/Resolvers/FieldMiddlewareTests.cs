@@ -41,7 +41,6 @@ public class FieldMiddlewareTests
         {
             context.Result = "worked";
             return Task.CompletedTask;
-            ;
         }
     }
 
