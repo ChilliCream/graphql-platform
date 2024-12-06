@@ -9,7 +9,7 @@ public class OperationPlannerTests : FusionTestBase
         var compositeSchema = CreateCompositeSchema();
 
         // act
-        var plan = PlanOperationAsync(
+        var plan = PlanOperation(
             compositeSchema,
             """
             {
@@ -35,7 +35,7 @@ public class OperationPlannerTests : FusionTestBase
         var compositeSchema = CreateCompositeSchema();
 
         // act
-        var plan = PlanOperationAsync(
+        var plan = PlanOperation(
             compositeSchema,
             """
             {
@@ -62,7 +62,7 @@ public class OperationPlannerTests : FusionTestBase
         var compositeSchema = CreateCompositeSchema();
 
         // act
-        var plan = PlanOperationAsync(
+        var plan = PlanOperation(
             compositeSchema,
             """
             {
@@ -104,7 +104,7 @@ public class OperationPlannerTests : FusionTestBase
         var compositeSchema = CreateCompositeSchema();
 
         // act
-        var plan = PlanOperationAsync(
+        var plan = PlanOperation(
             compositeSchema,
             """
             query GetProduct($id: ID!, $first: Int! = 10) {
