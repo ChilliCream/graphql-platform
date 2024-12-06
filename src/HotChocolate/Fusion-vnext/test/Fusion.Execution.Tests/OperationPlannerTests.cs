@@ -1,3 +1,7 @@
+using HotChocolate.Fusion.Planning;
+using HotChocolate.Fusion.Types.Completion;
+using HotChocolate.Language;
+
 namespace HotChocolate.Fusion;
 
 public class OperationPlannerTests : FusionTestBase
@@ -255,7 +259,16 @@ public class OperationPlannerTests : FusionTestBase
         // assert
         plan.Serialize().MatchInlineSnapshot(
             """
-
+            {
+              "kind": "Root",
+              "nodes": [
+                {
+                  "kind": "Operation",
+                  "schema": "PRODUCTS",
+                  "document": "{ productById(id: 1) { id name } }"
+                }
+              ]
+            }
             """);
     }
 }
