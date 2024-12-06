@@ -8,8 +8,8 @@ namespace HotChocolate.Fusion.PreMergeValidation.Rules;
 
 /// <summary>
 /// This rule ensures that certain essential elements of a GraphQL schema, particularly built-in
-/// scalars, directives, and introspection types, cannot be marked as @inaccessible. These types are
-/// fundamental to GraphQL. Making these elements inaccessible would break core GraphQL
+/// scalars, directive arguments, and introspection types, cannot be marked as @inaccessible. These
+/// types are fundamental to GraphQL. Making these elements inaccessible would break core GraphQL
 /// functionality.
 /// </summary>
 /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Disallowed-Inaccessible-Elements">
@@ -73,11 +73,6 @@ internal sealed class DisallowedInaccessibleElementsRule : IPreMergeValidationRu
             {
                 if (BuiltIns.IsBuiltInDirective(directive.Name))
                 {
-                    if (!ValidationHelper.IsAccessible(directive))
-                    {
-                        loggingSession.Write(DisallowedInaccessibleDirective(directive, schema));
-                    }
-
                     foreach (var argument in directive.Arguments)
                     {
                         if (!ValidationHelper.IsAccessible(argument))

@@ -33,9 +33,6 @@
   <data name="LogEntryHelper_DisallowedInaccessibleIntrospectionArgument" xml:space="preserve">
     <value>The introspection argument '{0}' with schema coordinate '{1}' is not accessible.</value>
   </data>
-  <data name="LogEntryHelper_DisallowedInaccessibleDirective" xml:space="preserve">
-    <value>The built-in directive type '{0}' is not accessible.</value>
-  </data>
   <data name="LogEntryHelper_DisallowedInaccessibleDirectiveArgument" xml:space="preserve">
     <value>The argument '{0}' on built-in directive type '{1}' is not accessible.</value>
   </data>

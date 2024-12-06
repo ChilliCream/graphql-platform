@@ -62,17 +62,6 @@ internal static class LogEntryHelper
             schema);
     }
 
-    public static LogEntry DisallowedInaccessibleDirective(
-        Directive directive,
-        SchemaDefinition schema)
-        => new(
-            string.Format(LogEntryHelper_DisallowedInaccessibleDirective, directive.Name),
-            LogEntryCodes.DisallowedInaccessible,
-            LogSeverity.Error,
-            new SchemaCoordinate(directive.Name, ofDirective: true),
-            directive,
-            schema);
-
     public static LogEntry DisallowedInaccessibleDirectiveArgument(
         ArgumentAssignment argument,
         string directiveName,

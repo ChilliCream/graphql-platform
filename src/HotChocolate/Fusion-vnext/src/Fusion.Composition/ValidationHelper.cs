@@ -28,12 +28,6 @@ internal sealed class ValidationHelper
         return true;
     }
 
-    public static bool IsAccessible(Directive _)
-    {
-        // FIXME: Requires support for directives on directives.
-        return true;
-    }
-
     public static bool IsAccessible(IDirectivesProvider type)
     {
         return !type.Directives.ContainsName(WellKnownDirectiveNames.Inaccessible);

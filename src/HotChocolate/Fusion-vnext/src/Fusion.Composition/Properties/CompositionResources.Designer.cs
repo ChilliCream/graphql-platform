@@ -69,15 +69,6 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The built-in directive type &apos;{0}&apos; is not accessible..
-        /// </summary>
-        internal static string LogEntryHelper_DisallowedInaccessibleDirective {
-            get {
-                return ResourceManager.GetString("LogEntryHelper_DisallowedInaccessibleDirective", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The argument &apos;{0}&apos; on built-in directive type &apos;{1}&apos; is not accessible..
         /// </summary>
         internal static string LogEntryHelper_DisallowedInaccessibleDirectiveArgument {
