@@ -12,6 +12,8 @@ public sealed class LoggingSession(ICompositionLog compositionLog) : ILoggingSes
 
     public void Write(LogEntry entry)
     {
+        ArgumentNullException.ThrowIfNull(entry);
+
         switch (entry.Severity)
         {
             case LogSeverity.Info:

@@ -10,6 +10,9 @@ public sealed class SchemaComposer
         SchemaDefinition[] schemaDefinitions,
         ICompositionLog compositionLog)
     {
+        ArgumentNullException.ThrowIfNull(schemaDefinitions);
+        ArgumentNullException.ThrowIfNull(compositionLog);
+
         var context = new CompositionContext(schemaDefinitions, compositionLog);
 
         // Validate Source Schemas

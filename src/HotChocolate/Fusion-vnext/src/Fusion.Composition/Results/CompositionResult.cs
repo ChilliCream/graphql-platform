@@ -41,6 +41,8 @@ public readonly record struct CompositionResult
     /// </summary>
     public static implicit operator CompositionResult(CompositionError error)
     {
+        ArgumentNullException.ThrowIfNull(error);
+
         return new CompositionResult(error);
     }
 
@@ -49,6 +51,8 @@ public readonly record struct CompositionResult
     /// </summary>
     public static implicit operator CompositionResult(List<CompositionError> errors)
     {
+        ArgumentNullException.ThrowIfNull(errors);
+
         return new CompositionResult(errors);
     }
 }

@@ -20,6 +20,9 @@ public sealed record LogEntry
         SchemaDefinition? schema = null,
         object? extension = null)
     {
+        ArgumentNullException.ThrowIfNull(message);
+        ArgumentNullException.ThrowIfNull(code);
+
         Message = message;
         Code = code;
         Severity = severity;
