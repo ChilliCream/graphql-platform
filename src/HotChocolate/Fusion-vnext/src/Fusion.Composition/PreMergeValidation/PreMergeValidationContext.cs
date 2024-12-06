@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Skimmed;
 
@@ -7,7 +8,7 @@ internal sealed class PreMergeValidationContext(CompositionContext context)
 {
     public SchemaDefinition[] SchemaDefinitions => context.SchemaDefinitions;
     public ICompositionLog Log => context.Log;
-    public IEnumerable<OutputTypeInfo> OutputTypeInfo = [];
+    public ImmutableArray<OutputTypeInfo> OutputTypeInfo = [];
 
     public void Initialize()
     {
@@ -20,50 +21,57 @@ internal sealed class PreMergeValidationContext(CompositionContext context)
     /// </summary>
     private void InitializeOutputTypeInfo()
     {
-        OutputTypeInfo = SchemaDefinitions
-            .SelectMany(s => s.Types)
-            .Where(t => t.IsOutputType())
-            .OfType<ComplexTypeDefinition>()
-            .GroupBy(t => t.Name, (typeName, types) =>
-            {
-                types = types.ToArray();
+        OutputTypeInfo =
+        [
+            .. SchemaDefinitions
+                .SelectMany(s => s.Types)
+                .Where(t => t.IsOutputType())
+                .OfType<ComplexTypeDefinition>()
+                .GroupBy(
+                    t => t.Name,
+                    (typeName, types) =>
+                    {
+                        types = types.ToImmutableArray();
 
-                var fieldInfo = types
-                    .SelectMany(t => t.Fields)
-                    .GroupBy(
-                        f => f.Name,
-                        (fieldName, fields) =>
-                        {
-                            fields = fields.ToArray();
+                        var fieldInfo = types
+                            .SelectMany(t => t.Fields)
+                            .GroupBy(
+                                f => f.Name,
+                                (fieldName, fields) =>
+                                {
+                                    fields = fields.ToImmutableArray();
 
-                            var argumentInfo = fields
-                                .SelectMany(f => f.Arguments)
-                                .GroupBy(
-                                    a => a.Name,
-                                    (argumentName, arguments) =>
-                                        new OutputArgumentInfo(argumentName, arguments.ToArray()));
+                                    var argumentInfo = fields
+                                        .SelectMany(f => f.Arguments)
+                                        .GroupBy(
+                                            a => a.Name,
+                                            (argumentName, arguments) =>
+                                                new OutputArgumentInfo(
+                                                    argumentName,
+                                                    [.. arguments]));
 
-                            return new OutputFieldInfo(
-                                fieldName,
-                                fields.ToArray(),
-                                argumentInfo.ToArray());
-                        });
+                                    return new OutputFieldInfo(
+                                        fieldName,
+                                        [.. fields],
+                                        [.. argumentInfo]);
+                                });
 
-                return new OutputTypeInfo(typeName, types.ToArray(), fieldInfo.ToArray());
-            });
+                        return new OutputTypeInfo(typeName, [.. types], [.. fieldInfo]);
+                    })
+        ];
     }
 }
 
 internal record OutputTypeInfo(
     string TypeName,
-    ComplexTypeDefinition[] Types,
-    OutputFieldInfo[] FieldInfo);
+    ImmutableArray<ComplexTypeDefinition> Types,
+    ImmutableArray<OutputFieldInfo> FieldInfo);
 
 internal record OutputFieldInfo(
     string FieldName,
-    OutputFieldDefinition[] Fields,
-    OutputArgumentInfo[] Arguments);
+    ImmutableArray<OutputFieldDefinition> Fields,
+    ImmutableArray<OutputArgumentInfo> Arguments);
 
 internal record OutputArgumentInfo(
     string ArgumentName,
-    InputFieldDefinition[] Arguments);
+    ImmutableArray<InputFieldDefinition> Arguments);

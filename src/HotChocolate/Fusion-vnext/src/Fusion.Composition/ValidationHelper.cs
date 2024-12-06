@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Fusion.Extensions;
 using HotChocolate.Skimmed;
 
@@ -5,7 +6,7 @@ namespace HotChocolate.Fusion;
 
 internal sealed class ValidationHelper
 {
-    public static bool FieldsAreMergeable(OutputFieldDefinition[] fields)
+    public static bool FieldsAreMergeable(ImmutableArray<OutputFieldDefinition> fields)
     {
         for (var i = 0; i < fields.Length - 1; i++)
         {
