@@ -1,3 +1,39 @@
+# Plan_Simple_Operation_3_Source_Schema_And_Single_Variable
+
+## Request
+
+```graphql
+query GetProduct($id: ID!, $first: Int! = 10) {
+  productById(id: $id) {
+    ... ProductCard
+  }
+}
+
+fragment ProductCard on Product {
+  name
+  reviews(first: $first) {
+    nodes {
+      ... ReviewCard
+    }
+  }
+}
+
+fragment ReviewCard on Review {
+  body
+  stars
+  author {
+    ... AuthorCard
+  }
+}
+
+fragment AuthorCard on UserProfile {
+  displayName
+}
+```
+
+## Plan
+
+```json
 {
   "kind": "Root",
   "nodes": [
@@ -22,3 +58,5 @@
     }
   ]
 }
+```
+

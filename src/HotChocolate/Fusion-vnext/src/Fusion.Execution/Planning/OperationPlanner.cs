@@ -542,7 +542,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
         return startConditionNode!;
     }
 
-    private bool IsSelectionAlwaysSkipped(ISelectionNode selectionNode)
+    private static bool IsSelectionAlwaysSkipped(ISelectionNode selectionNode)
     {
         foreach (var directive in selectionNode.Directives)
         {

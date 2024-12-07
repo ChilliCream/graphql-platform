@@ -1,16 +1,16 @@
+using static HotChocolate.Language.Utf8GraphQLParser;
+
 namespace HotChocolate.Fusion;
 
 public class SkipFragmentTests : FusionTestBase
 {
     [Test]
-    public void Skip_On_RootFragment()
+    public async Task Skip_On_RootFragment()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperation(
-            compositeSchema,
+        var request = Parse(
             """
             query GetProduct($id: ID!, $skip: Boolean!) {
                 ...QueryFragment @skip(if: $skip)
@@ -28,31 +28,20 @@ public class SkipFragmentTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
-        plan.Serialize().MatchInlineSnapshot(
-            """
-            {
-              "kind": "Root",
-              "nodes": [
-                {
-                  "kind": "Operation",
-                  "schema": "PRODUCTS",
-                  "document": "query($id: ID!, $skip: Boolean!) { ... on Query @skip(if: $skip) { productById(id: $id) { name } } products { nodes { name } } }"
-                }
-              ]
-            }
-            """);
+        await MatchSnapshotAsync(request, plan);
     }
 
     [Test]
-    public void Skip_On_RootFragment_If_False()
+    public async Task Skip_On_RootFragment_If_False()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperation(
-            compositeSchema,
+        var request = Parse(
             """
             query GetProduct($id: ID!) {
                 ...QueryFragment @skip(if: false)
@@ -70,31 +59,20 @@ public class SkipFragmentTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
-        plan.Serialize().MatchInlineSnapshot(
-            """
-            {
-              "kind": "Root",
-              "nodes": [
-                {
-                  "kind": "Operation",
-                  "schema": "PRODUCTS",
-                  "document": "query($id: ID!) { productById(id: $id) { name } products { nodes { name } } }"
-                }
-              ]
-            }
-            """);
+        await MatchSnapshotAsync(request, plan);
     }
 
     [Test]
-    public void Skip_On_RootFragment_If_True()
+    public async Task Skip_On_RootFragment_If_True()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperation(
-            compositeSchema,
+        var request = Parse(
             """
             query GetProduct($id: ID!) {
                 ...QueryFragment @skip(if: true)
@@ -112,31 +90,20 @@ public class SkipFragmentTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
-        plan.Serialize().MatchInlineSnapshot(
-            """
-            {
-              "kind": "Root",
-              "nodes": [
-                {
-                  "kind": "Operation",
-                  "schema": "PRODUCTS",
-                  "document": "{ products { nodes { name } } }"
-                }
-              ]
-            }
-            """);
+        await MatchSnapshotAsync(request, plan);
     }
 
     [Test]
-    public void Skip_On_RootFragment_Only_Skipped_Fragment_Selected()
+    public async Task Skip_On_RootFragment_Only_Skipped_Fragment_Selected()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperation(
-            compositeSchema,
+        var request = Parse(
             """
             query GetProduct($id: ID!, $skip: Boolean!) {
                 ...QueryFragment @skip(if: $skip)
@@ -149,38 +116,20 @@ public class SkipFragmentTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
-        plan.Serialize().MatchInlineSnapshot(
-            """
-            {
-              "kind": "Root",
-              "nodes": [
-                {
-                  "kind": "Condition",
-                  "variableName": "skip",
-                  "passingValue": false,
-                  "nodes": [
-                    {
-                      "kind": "Operation",
-                      "schema": "PRODUCTS",
-                      "document": "{ ... on Query { productById(id: $id) { name } } }"
-                    }
-                  ]
-                }
-              ]
-            }
-            """);
+        await MatchSnapshotAsync(request, plan);
     }
 
     [Test]
-    public void Skip_On_RootFragment_Only_Skipped_Fragment_Selected_If_False()
+    public async Task Skip_On_RootFragment_Only_Skipped_Fragment_Selected_If_False()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperation(
-            compositeSchema,
+        var request = Parse(
             """
             query GetProduct($id: ID!) {
                 ...QueryFragment @skip(if: false)
@@ -193,31 +142,20 @@ public class SkipFragmentTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
-        plan.Serialize().MatchInlineSnapshot(
-            """
-            {
-              "kind": "Root",
-              "nodes": [
-                {
-                  "kind": "Operation",
-                  "schema": "PRODUCTS",
-                  "document": "query($id: ID!) { productById(id: $id) { name } }"
-                }
-              ]
-            }
-            """);
+        await MatchSnapshotAsync(request, plan);
     }
 
     [Test]
-    public void Skip_On_RootFragment_Only_Skipped_Fragment_Selected_If_True()
+    public async Task Skip_On_RootFragment_Only_Skipped_Fragment_Selected_If_True()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperation(
-            compositeSchema,
+        var request = Parse(
             """
             query GetProduct($id: ID!) {
                 ...QueryFragment @skip(if: true)
@@ -230,24 +168,20 @@ public class SkipFragmentTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
-        plan.Serialize().MatchInlineSnapshot(
-            """
-            {
-              "kind": "Root"
-            }
-            """);
+        await MatchSnapshotAsync(request, plan);
     }
 
     [Test]
-    public void Skip_On_SubFragment()
+    public async Task Skip_On_SubFragment()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperation(
-            compositeSchema,
+        var request = Parse(
             """
             query GetProduct($id: ID!, $skip: Boolean!) {
                 productById(id: $id) {
@@ -261,31 +195,20 @@ public class SkipFragmentTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
-        plan.Serialize().MatchInlineSnapshot(
-            """
-            {
-              "kind": "Root",
-              "nodes": [
-                {
-                  "kind": "Operation",
-                  "schema": "PRODUCTS",
-                  "document": "query($id: ID!, $skip: Boolean!) { productById(id: $id) { ... on Product @skip(if: $skip) { name } description } }"
-                }
-              ]
-            }
-            """);
+        await MatchSnapshotAsync(request, plan);
     }
 
     [Test]
-    public void Skip_On_SubFragment_If_False()
+    public async Task Skip_On_SubFragment_If_False()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperation(
-            compositeSchema,
+        var request = Parse(
             """
             query GetProduct($id: ID!) {
                 productById(id: $id) {
@@ -299,31 +222,20 @@ public class SkipFragmentTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
-        plan.Serialize().MatchInlineSnapshot(
-            """
-            {
-              "kind": "Root",
-              "nodes": [
-                {
-                  "kind": "Operation",
-                  "schema": "PRODUCTS",
-                  "document": "query($id: ID!) { productById(id: $id) { name description } }"
-                }
-              ]
-            }
-            """);
+        await MatchSnapshotAsync(request, plan);
     }
 
     [Test]
-    public void Skip_On_SubFragment_If_True()
+    public async Task Skip_On_SubFragment_If_True()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperation(
-            compositeSchema,
+        var request = Parse(
             """
             query GetProduct($id: ID!) {
                 productById(id: $id) {
@@ -337,31 +249,20 @@ public class SkipFragmentTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
-        plan.Serialize().MatchInlineSnapshot(
-            """
-            {
-              "kind": "Root",
-              "nodes": [
-                {
-                  "kind": "Operation",
-                  "schema": "PRODUCTS",
-                  "document": "query($id: ID!) { productById(id: $id) { description } }"
-                }
-              ]
-            }
-            """);
+        await MatchSnapshotAsync(request, plan);
     }
 
     [Test]
-    public void Skip_On_SubFragment_Only_Skipped_Fragment_Selected()
+    public async Task Skip_On_SubFragment_Only_Skipped_Fragment_Selected()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperation(
-            compositeSchema,
+        var request = Parse(
             """
             query GetProduct($id: ID!, $skip: Boolean!) {
                 productById(id: $id) {
@@ -374,31 +275,20 @@ public class SkipFragmentTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
-        plan.Serialize().MatchInlineSnapshot(
-            """
-            {
-              "kind": "Root",
-              "nodes": [
-                {
-                  "kind": "Operation",
-                  "schema": "PRODUCTS",
-                  "document": "query($id: ID!, $skip: Boolean!) { productById(id: $id) { ... on Product @skip(if: $skip) { name } } }"
-                }
-              ]
-            }
-            """);
+        await MatchSnapshotAsync(request, plan);
     }
 
     [Test]
-    public void Skip_On_SubFragment_Only_Skipped_Fragment_SelectedIf_False()
+    public async Task Skip_On_SubFragment_Only_Skipped_Fragment_SelectedIf_False()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperation(
-            compositeSchema,
+        var request = Parse(
             """
             query GetProduct($id: ID!) {
                 productById(id: $id) {
@@ -411,31 +301,20 @@ public class SkipFragmentTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
-        plan.Serialize().MatchInlineSnapshot(
-            """
-            {
-              "kind": "Root",
-              "nodes": [
-                {
-                  "kind": "Operation",
-                  "schema": "PRODUCTS",
-                  "document": "query($id: ID!) { productById(id: $id) { name } }"
-                }
-              ]
-            }
-            """);
+        await MatchSnapshotAsync(request, plan);
     }
 
     [Test]
-    public void Skip_On_SubFragment_Only_Skipped_Fragment_Selected_If_True()
+    public async Task Skip_On_SubFragment_Only_Skipped_Fragment_Selected_If_True()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperation(
-            compositeSchema,
+        var request = Parse(
             """
             query GetProduct($id: ID!) {
                 productById(id: $id) {
@@ -448,19 +327,10 @@ public class SkipFragmentTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
-        plan.Serialize().MatchInlineSnapshot(
-            """
-            {
-              "kind": "Root",
-              "nodes": [
-                {
-                  "kind": "Operation",
-                  "schema": "PRODUCTS",
-                  "document": "query($id: ID!) { productById(id: $id) { __typename } }"
-                }
-              ]
-            }
-            """);
+        await MatchSnapshotAsync(request, plan);
     }
 }

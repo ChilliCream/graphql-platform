@@ -1,16 +1,16 @@
+using static HotChocolate.Language.Utf8GraphQLParser;
+
 namespace HotChocolate.Fusion;
 
 public class SkipTests : FusionTestBase
 {
     [Test]
-    public void Skip_On_RootField()
+    public async Task Skip_On_RootField()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperation(
-            compositeSchema,
+        var request = Parse(
             """
             query GetProduct($id: ID!, $skip: Boolean!) {
                 productById(id: $id) @skip(if: $skip) {
@@ -24,31 +24,20 @@ public class SkipTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
-        plan.Serialize().MatchInlineSnapshot(
-            """
-            {
-              "kind": "Root",
-              "nodes": [
-                {
-                  "kind": "Operation",
-                  "schema": "PRODUCTS",
-                  "document": "query($id: ID!, $skip: Boolean!) { productById(id: $id) @skip(if: $skip) { name } products { nodes { name } } }"
-                }
-              ]
-            }
-            """);
+        await MatchSnapshotAsync(request, plan);
     }
 
     [Test]
-    public void Skip_On_RootField_If_False()
+    public async Task Skip_On_RootField_If_False()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperation(
-            compositeSchema,
+        var request = Parse(
             """
             query GetProduct($id: ID!) {
                 productById(id: $id) @skip(if: false) {
@@ -62,31 +51,20 @@ public class SkipTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
-        plan.Serialize().MatchInlineSnapshot(
-            """
-            {
-              "kind": "Root",
-              "nodes": [
-                {
-                  "kind": "Operation",
-                  "schema": "PRODUCTS",
-                  "document": "query($id: ID!) { productById(id: $id) { name } products { nodes { name } } }"
-                }
-              ]
-            }
-            """);
+        await MatchSnapshotAsync(request, plan);
     }
 
     [Test]
-    public void Skip_On_RootField_If_True()
+    public async Task Skip_On_RootField_If_True()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperation(
-            compositeSchema,
+        var request = Parse(
             """
             query GetProduct($id: ID!) {
                 productById(id: $id) @skip(if: true) {
@@ -100,31 +78,20 @@ public class SkipTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
-        plan.Serialize().MatchInlineSnapshot(
-            """
-            {
-              "kind": "Root",
-              "nodes": [
-                {
-                  "kind": "Operation",
-                  "schema": "PRODUCTS",
-                  "document": "{ products { nodes { name } } }"
-                }
-              ]
-            }
-            """);
+        await MatchSnapshotAsync(request, plan);
     }
 
     [Test]
-    public void Skip_On_RootField_Only_Skipped_Field_Selected()
+    public async Task Skip_On_RootField_Only_Skipped_Field_Selected()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperation(
-            compositeSchema,
+        var request = Parse(
             """
             query GetProduct($id: ID!, $skip: Boolean!) {
                 productById(id: $id) @skip(if: $skip) {
@@ -133,38 +100,20 @@ public class SkipTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
-        plan.Serialize().MatchInlineSnapshot(
-            """
-            {
-              "kind": "Root",
-              "nodes": [
-                {
-                  "kind": "Condition",
-                  "variableName": "skip",
-                  "passingValue": false,
-                  "nodes": [
-                    {
-                      "kind": "Operation",
-                      "schema": "PRODUCTS",
-                      "document": "{ productById(id: $id) { name } }"
-                    }
-                  ]
-                }
-              ]
-            }
-            """);
+        await MatchSnapshotAsync(request, plan);
     }
 
     [Test]
-    public void Skip_On_RootField_Only_Skipped_Field_Selected_If_False()
+    public async Task Skip_On_RootField_Only_Skipped_Field_Selected_If_False()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperation(
-            compositeSchema,
+        var request = Parse(
             """
             query GetProduct($id: ID!) {
                 productById(id: $id) @skip(if: false) {
@@ -173,31 +122,20 @@ public class SkipTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
-        plan.Serialize().MatchInlineSnapshot(
-            """
-            {
-              "kind": "Root",
-              "nodes": [
-                {
-                  "kind": "Operation",
-                  "schema": "PRODUCTS",
-                  "document": "query($id: ID!) { productById(id: $id) { name } }"
-                }
-              ]
-            }
-            """);
+        await MatchSnapshotAsync(request, plan);
     }
 
     [Test]
-    public void Skip_On_RootField_Only_Skipped_Field_Selected_If_True()
+    public async Task Skip_On_RootField_Only_Skipped_Field_Selected_If_True()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperation(
-            compositeSchema,
+        var request = Parse(
             """
             query GetProduct($id: ID!) {
                 productById(id: $id) @skip(if: true) {
@@ -206,24 +144,20 @@ public class SkipTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
-        plan.Serialize().MatchInlineSnapshot(
-            """
-            {
-              "kind": "Root"
-            }
-            """);
+        await MatchSnapshotAsync(request, plan);
     }
 
     [Test]
-    public void Skip_On_SubField()
+    public async Task Skip_On_SubField()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperation(
-            compositeSchema,
+        var request = Parse(
             """
             query GetProduct($id: ID!, $skip: Boolean!) {
                 productById(id: $id) {
@@ -233,31 +167,20 @@ public class SkipTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
-        plan.Serialize().MatchInlineSnapshot(
-            """
-            {
-              "kind": "Root",
-              "nodes": [
-                {
-                  "kind": "Operation",
-                  "schema": "PRODUCTS",
-                  "document": "query($id: ID!, $skip: Boolean!) { productById(id: $id) { name @skip(if: $skip) description } }"
-                }
-              ]
-            }
-            """);
+        await MatchSnapshotAsync(request, plan);
     }
 
     [Test]
-    public void Skip_On_SubField_If_False()
+    public async Task Skip_On_SubField_If_False()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperation(
-            compositeSchema,
+        var request = Parse(
             """
             query GetProduct($id: ID!) {
                 productById(id: $id) {
@@ -267,31 +190,20 @@ public class SkipTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
-        plan.Serialize().MatchInlineSnapshot(
-            """
-            {
-              "kind": "Root",
-              "nodes": [
-                {
-                  "kind": "Operation",
-                  "schema": "PRODUCTS",
-                  "document": "query($id: ID!) { productById(id: $id) { name description } }"
-                }
-              ]
-            }
-            """);
+        await MatchSnapshotAsync(request, plan);
     }
 
     [Test]
-    public void Skip_On_SubField_If_True()
+    public async Task Skip_On_SubField_If_True()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperation(
-            compositeSchema,
+        var request = Parse(
             """
             query GetProduct($id: ID!) {
                 productById(id: $id) {
@@ -301,31 +213,20 @@ public class SkipTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
-        plan.Serialize().MatchInlineSnapshot(
-            """
-            {
-              "kind": "Root",
-              "nodes": [
-                {
-                  "kind": "Operation",
-                  "schema": "PRODUCTS",
-                  "document": "query($id: ID!) { productById(id: $id) { description } }"
-                }
-              ]
-            }
-            """);
+        await MatchSnapshotAsync(request, plan);
     }
 
     [Test]
-    public void Skip_On_SubField_Only_Skipped_Field_Selected()
+    public async Task Skip_On_SubField_Only_Skipped_Field_Selected()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperation(
-            compositeSchema,
+        var request = Parse(
             """
             query GetProduct($id: ID!, $skip: Boolean!) {
                 productById(id: $id) {
@@ -334,31 +235,20 @@ public class SkipTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
-        plan.Serialize().MatchInlineSnapshot(
-            """
-            {
-              "kind": "Root",
-              "nodes": [
-                {
-                  "kind": "Operation",
-                  "schema": "PRODUCTS",
-                  "document": "query($id: ID!, $skip: Boolean!) { productById(id: $id) { name @skip(if: $skip) } }"
-                }
-              ]
-            }
-            """);
+        await MatchSnapshotAsync(request, plan);
     }
 
     [Test]
-    public void Skip_On_SubField_Only_Skipped_Field_Selected_If_False()
+    public async Task Skip_On_SubField_Only_Skipped_Field_Selected_If_False()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperation(
-            compositeSchema,
+        var request = Parse(
             """
             query GetProduct($id: ID!) {
                 productById(id: $id) {
@@ -367,31 +257,20 @@ public class SkipTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
-        plan.Serialize().MatchInlineSnapshot(
-            """
-            {
-              "kind": "Root",
-              "nodes": [
-                {
-                  "kind": "Operation",
-                  "schema": "PRODUCTS",
-                  "document": "query($id: ID!) { productById(id: $id) { name } }"
-                }
-              ]
-            }
-            """);
+        await MatchSnapshotAsync(request, plan);
     }
 
     [Test]
-    public void Skip_On_SubField_Only_Skipped_Field_Selected_If_True()
+    public async Task Skip_On_SubField_Only_Skipped_Field_Selected_If_True()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperation(
-            compositeSchema,
+        var request = Parse(
             """
             query GetProduct($id: ID!) {
                 productById(id: $id) {
@@ -400,31 +279,20 @@ public class SkipTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
-        plan.Serialize().MatchInlineSnapshot(
-            """
-            {
-              "kind": "Root",
-              "nodes": [
-                {
-                  "kind": "Operation",
-                  "schema": "PRODUCTS",
-                  "document": "query($id: ID!) { productById(id: $id) { __typename } }"
-                }
-              ]
-            }
-            """);
+        await MatchSnapshotAsync(request, plan);
     }
 
     [Test]
-    public void Skip_On_SubField_Resolved_From_Other_Source()
+    public async Task Skip_On_SubField_Resolved_From_Other_Source()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperation(
-            compositeSchema,
+        var request = Parse(
             """
             query GetProduct($id: ID!, $skip: Boolean!) {
                 productById(id: $id) {
@@ -439,38 +307,20 @@ public class SkipTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
-        plan.Serialize().MatchInlineSnapshot(
-            """
-            {
-              "kind": "Root",
-              "nodes": [
-                {
-                  "kind": "Operation",
-                  "schema": "PRODUCTS",
-                  "document": "query($id: ID!) { productById(id: $id) { name } }",
-                  "nodes": [
-                    {
-                      "kind": "Operation",
-                      "schema": "REVIEWS",
-                      "document": "query($skip: Boolean!) { productById { averageRating reviews(first: 10) @skip(if: $skip) { nodes { body } } } }"
-                    }
-                  ]
-                }
-              ]
-            }
-            """);
+        await MatchSnapshotAsync(request, plan);
     }
 
     [Test]
-    public void Skip_On_SubField_Resolved_From_Other_Source_If_False()
+    public async Task Skip_On_SubField_Resolved_From_Other_Source_If_False()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperation(
-            compositeSchema,
+        var request = Parse(
             """
             query GetProduct($id: ID!) {
                 productById(id: $id) {
@@ -485,38 +335,20 @@ public class SkipTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
-        plan.Serialize().MatchInlineSnapshot(
-            """
-            {
-              "kind": "Root",
-              "nodes": [
-                {
-                  "kind": "Operation",
-                  "schema": "PRODUCTS",
-                  "document": "query($id: ID!) { productById(id: $id) { name } }",
-                  "nodes": [
-                    {
-                      "kind": "Operation",
-                      "schema": "REVIEWS",
-                      "document": "{ productById { averageRating reviews(first: 10) { nodes { body } } } }"
-                    }
-                  ]
-                }
-              ]
-            }
-            """);
+        await MatchSnapshotAsync(request, plan);
     }
 
     [Test]
-    public void Skip_On_SubField_Resolved_From_Other_Source_If_True()
+    public async Task Skip_On_SubField_Resolved_From_Other_Source_If_True()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperation(
-            compositeSchema,
+        var request = Parse(
             """
             query GetProduct($id: ID!) {
                 productById(id: $id) {
@@ -531,38 +363,20 @@ public class SkipTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
-        plan.Serialize().MatchInlineSnapshot(
-            """
-            {
-              "kind": "Root",
-              "nodes": [
-                {
-                  "kind": "Operation",
-                  "schema": "PRODUCTS",
-                  "document": "query($id: ID!) { productById(id: $id) { name } }",
-                  "nodes": [
-                    {
-                      "kind": "Operation",
-                      "schema": "REVIEWS",
-                      "document": "{ productById { averageRating } }"
-                    }
-                  ]
-                }
-              ]
-            }
-            """);
+        await MatchSnapshotAsync(request, plan);
     }
 
     [Test]
-    public void Skip_On_SubField_Resolved_From_Other_Source_Only_Skipped_Field_Selected()
+    public async Task Skip_On_SubField_Resolved_From_Other_Source_Only_Skipped_Field_Selected()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperation(
-            compositeSchema,
+        var request = Parse(
             """
             query GetProduct($id: ID!, $skip: Boolean!) {
                 productById(id: $id) {
@@ -576,45 +390,20 @@ public class SkipTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
-        plan.Serialize().MatchInlineSnapshot(
-            """
-            {
-              "kind": "Root",
-              "nodes": [
-                {
-                  "kind": "Operation",
-                  "schema": "PRODUCTS",
-                  "document": "query($id: ID!) { productById(id: $id) { name } }",
-                  "nodes": [
-                    {
-                      "kind": "Condition",
-                      "variableName": "skip",
-                      "passingValue": false,
-                      "nodes": [
-                        {
-                          "kind": "Operation",
-                          "schema": "REVIEWS",
-                          "document": "{ productById { reviews(first: 10) { nodes { body } } } }"
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-            """);
+        await MatchSnapshotAsync(request, plan);
     }
 
     [Test]
-    public void Skip_On_SubField_Resolved_From_Other_Source_Only_Skipped_Field_Selected_If_False()
+    public async Task Skip_On_SubField_Resolved_From_Other_Source_Only_Skipped_Field_Selected_If_False()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperation(
-            compositeSchema,
+        var request = Parse(
             """
             query GetProduct($id: ID!) {
                 productById(id: $id) {
@@ -628,38 +417,20 @@ public class SkipTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
-        plan.Serialize().MatchInlineSnapshot(
-            """
-            {
-              "kind": "Root",
-              "nodes": [
-                {
-                  "kind": "Operation",
-                  "schema": "PRODUCTS",
-                  "document": "query($id: ID!) { productById(id: $id) { name } }",
-                  "nodes": [
-                    {
-                      "kind": "Operation",
-                      "schema": "REVIEWS",
-                      "document": "{ productById { reviews(first: 10) { nodes { body } } } }"
-                    }
-                  ]
-                }
-              ]
-            }
-            """);
+        await MatchSnapshotAsync(request, plan);
     }
 
     [Test]
-    public void Skip_On_SubField_Resolved_From_Other_Source_Only_Skipped_Field_Selected_If_True()
+    public async Task Skip_On_SubField_Resolved_From_Other_Source_Only_Skipped_Field_Selected_If_True()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperation(
-            compositeSchema,
+        var request = Parse(
             """
             query GetProduct($id: ID!) {
                 productById(id: $id) {
@@ -673,239 +444,10 @@ public class SkipTests : FusionTestBase
             }
             """);
 
-        // assert
-        plan.Serialize().MatchInlineSnapshot(
-            """
-            {
-              "kind": "Root",
-              "nodes": [
-                {
-                  "kind": "Operation",
-                  "schema": "PRODUCTS",
-                  "document": "query($id: ID!) { productById(id: $id) { name } }"
-                }
-              ]
-            }
-            """);
-    }
-
-    [Test]
-    public void Multiple_Skip_On_RootField()
-    {
-        // arrange
-        var compositeSchema = CreateCompositeSchema();
-
         // act
-        var plan = PlanOperation(
-            compositeSchema,
-            """
-            query GetProduct($id: ID!, $skip1: Boolean!, $skip2: Boolean!) {
-                productById(id: $id) @skip(if: $skip1) @skip(if: $skip2) {
-                    name
-                }
-                products {
-                  nodes {
-                    name
-                  }
-                }
-            }
-            """);
+        var plan = PlanOperation(request, compositeSchema);
 
         // assert
-        plan.Serialize().MatchInlineSnapshot(
-            """
-            {
-              "kind": "Root",
-              "nodes": [
-                {
-                  "kind": "Operation",
-                  "schema": "PRODUCTS",
-                  "document": "query($id: ID!, $skip1: Boolean!, $skip2: Boolean!) { productById(id: $id) @skip(if: $skip1) @skip(if: $skip2) { name } products { nodes { name } } }"
-                }
-              ]
-            }
-            """);
-    }
-
-    [Test]
-    public void Multiple_Skip_On_RootField_All_If_False()
-    {
-        // arrange
-        var compositeSchema = CreateCompositeSchema();
-
-        // act
-        var plan = PlanOperation(
-            compositeSchema,
-            """
-            query GetProduct($id: ID!) {
-                productById(id: $id) @skip(if: false) @skip(if: false) {
-                    name
-                }
-                products {
-                  nodes {
-                    name
-                  }
-                }
-            }
-            """);
-
-        // assert
-        plan.Serialize().MatchInlineSnapshot(
-            """
-            {
-              "kind": "Root",
-              "nodes": [
-                {
-                  "kind": "Operation",
-                  "schema": "PRODUCTS",
-                  "document": "query($id: ID!) { productById(id: $id) { name } products { nodes { name } } }"
-                }
-              ]
-            }
-            """);
-    }
-
-    [Test]
-    public void Multiple_Skip_On_RootField_One_If_True()
-    {
-        // arrange
-        var compositeSchema = CreateCompositeSchema();
-
-        // act
-        var plan = PlanOperation(
-            compositeSchema,
-            """
-            query GetProduct($id: ID!) {
-                productById(id: $id) @skip(if: false) @skip(if: true) {
-                    name
-                }
-                products {
-                  nodes {
-                    name
-                  }
-                }
-            }
-            """);
-
-        // assert
-        plan.Serialize().MatchInlineSnapshot(
-            """
-            {
-              "kind": "Root",
-              "nodes": [
-                {
-                  "kind": "Operation",
-                  "schema": "PRODUCTS",
-                  "document": "{ products { nodes { name } } }"
-                }
-              ]
-            }
-            """);
-    }
-
-    [Test]
-    public void Multiple_Skip_On_RootField_Only_Skipped_Field_Selected()
-    {
-        // arrange
-        var compositeSchema = CreateCompositeSchema();
-
-        // act
-        var plan = PlanOperation(
-            compositeSchema,
-            """
-            query GetProduct($id: ID!, $skip1: Boolean!, $skip2: Boolean!) {
-                productById(id: $id) @skip(if: $skip1) @skip(if: $skip2) {
-                    name
-                }
-            }
-            """);
-
-        // assert
-        plan.Serialize().MatchInlineSnapshot(
-            """
-            {
-              "kind": "Root",
-              "nodes": [
-                {
-                  "kind": "Condition",
-                  "variableName": "skip1",
-                  "passingValue": false,
-                  "nodes": [
-                    {
-                      "kind": "Condition",
-                      "variableName": "skip2",
-                      "passingValue": false,
-                      "nodes": [
-                        {
-                          "kind": "Operation",
-                          "schema": "PRODUCTS",
-                          "document": "{ productById(id: $id) { name } }"
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-            """);
-    }
-
-    [Test]
-    public void Multiple_Skip_On_RootField_Only_Skipped_Field_Selected_All_If_False()
-    {
-        // arrange
-        var compositeSchema = CreateCompositeSchema();
-
-        // act
-        var plan = PlanOperation(
-            compositeSchema,
-            """
-            query GetProduct($id: ID!) {
-                productById(id: $id) @skip(if: false) @skip(if: false) {
-                    name
-                }
-            }
-            """);
-
-        // assert
-        plan.Serialize().MatchInlineSnapshot(
-            """
-            {
-              "kind": "Root",
-              "nodes": [
-                {
-                  "kind": "Operation",
-                  "schema": "PRODUCTS",
-                  "document": "query($id: ID!) { productById(id: $id) { name } }"
-                }
-              ]
-            }
-            """);
-    }
-
-    [Test]
-    public void Multiple_Skip_On_RootField_Only_Skipped_Field_Selected_One_If_True()
-    {
-        // arrange
-        var compositeSchema = CreateCompositeSchema();
-
-        // act
-        var plan = PlanOperation(
-            compositeSchema,
-            """
-            query GetProduct($id: ID!) {
-                productById(id: $id) @skip(if: false) @skip(if: true) {
-                    name
-                }
-            }
-            """);
-
-        // assert
-        plan.Serialize().MatchInlineSnapshot(
-            """
-            {
-              "kind": "Root"
-            }
-            """);
+        await MatchSnapshotAsync(request, plan);
     }
 }

@@ -1,3 +1,24 @@
+# Plan_Simple_Operation_2_Source_Schema
+
+## Request
+
+```graphql
+{
+  productById(id: 1) {
+    ... Product
+  }
+}
+
+fragment Product on Product {
+  id
+  name
+  estimatedDelivery(postCode: "12345")
+}
+```
+
+## Plan
+
+```json
 {
   "kind": "Root",
   "nodes": [
@@ -15,3 +36,5 @@
     }
   ]
 }
+```
+
