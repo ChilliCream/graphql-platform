@@ -1,24 +1,22 @@
-using static HotChocolate.Language.Utf8GraphQLParser;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion;
 
-public class FragmentTests : FusionTestBase
+public class InlineFragmentTests : FusionTestBase
 {
     [Test]
-    public async Task Fragment_On_Root()
+    public async Task InlineFragment_On_Root()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        var request = Parse(
+        var request = Utf8GraphQLParser.Parse(
             """
             query GetProduct($id: ID!) {
-                ...QueryFragment
-            }
-
-            fragment QueryFragment on Query {
-                productById(id: $id) {
-                    name
+                ... {
+                    productById(id: $id) {
+                        name
+                    }
                 }
             }
             """);
@@ -31,23 +29,21 @@ public class FragmentTests : FusionTestBase
     }
 
     [Test]
-    public async Task Fragment_On_Root_Next_To_Same_Selection()
+    public async Task InlineFragment_On_Root_Next_To_Same_Selection()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        var request = Parse(
+        var request = Utf8GraphQLParser.Parse(
             """
             query GetProduct($id: ID!) {
                 productById(id: $id) {
                     name
                 }
-                ...QueryFragment
-            }
-
-            fragment QueryFragment on Query {
-                productById(id: $id) {
-                    name
+                ... {
+                    productById(id: $id) {
+                        name
+                    }
                 }
             }
             """);
@@ -60,23 +56,21 @@ public class FragmentTests : FusionTestBase
     }
 
     [Test]
-    public async Task Fragment_On_Root_Next_To_Same_Selection_With_Different_Sub_Selection()
+    public async Task InlineFragment_On_Root_Next_To_Same_Selection_With_Different_Sub_Selection()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        var request = Parse(
+        var request = Utf8GraphQLParser.Parse(
             """
             query GetProduct($id: ID!) {
                 productById(id: $id) {
                     description
                 }
-                ...QueryFragment
-            }
-
-            fragment QueryFragment on Query {
-                productById(id: $id) {
-                    name
+                ... {
+                    productById(id: $id) {
+                        name
+                    }
                 }
             }
             """);
@@ -89,12 +83,12 @@ public class FragmentTests : FusionTestBase
     }
 
     [Test]
-    public async Task Fragment_On_Root_Next_To_Different_Selection()
+    public async Task InlineFragment_On_Root_Next_To_Different_Selection()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        var request = Parse(
+        var request = Utf8GraphQLParser.Parse(
             """
             query GetProduct($id: ID!) {
                 products {
@@ -102,109 +96,9 @@ public class FragmentTests : FusionTestBase
                         description
                     }
                 }
-                ...QueryFragment
-            }
-
-            fragment QueryFragment on Query {
-                productById(id: $id) {
-                    name
-                }
-            }
-            """);
-
-        // act
-        var plan = PlanOperation(request, compositeSchema);
-
-        // assert
-        await MatchSnapshotAsync(request, plan);
-    }
-
-    [Test]
-    [Skip("Not yet supported by the planner")]
-    public async Task Fragment_On_Root_Next_To_Different_Selection_From_Different_Subgraph()
-    {
-        // arrange
-        var compositeSchema = CreateCompositeSchema();
-
-        var request = Parse(
-            """
-            query GetProduct($id: ID!) {
-                viewer {
-                    displayName
-                }
-                ...QueryFragment
-            }
-
-            fragment QueryFragment on Query {
-                productById(id: $id) {
-                    name
-                }
-            }
-            """);
-
-        // act
-        var plan = PlanOperation(request, compositeSchema);
-
-        // assert
-        await MatchSnapshotAsync(request, plan);
-    }
-
-    [Test]
-    public async Task Two_Fragments_On_Root_With_Same_Selection()
-    {
-        // arrange
-        var compositeSchema = CreateCompositeSchema();
-
-        var request = Parse(
-            """
-            query GetProduct($id: ID!) {
-                ...QueryFragment1
-                ...QueryFragment2
-            }
-
-            fragment QueryFragment1 on Query {
-                productById(id: $id) {
-                    name
-                }
-            }
-
-            fragment QueryFragment2 on Query {
-                productById(id: $id) {
-                    name
-                }
-            }
-            """);
-
-        // act
-        var plan = PlanOperation(request, compositeSchema);
-
-        // assert
-        await MatchSnapshotAsync(request, plan);
-    }
-
-    [Test]
-    public async Task Two_Fragments_On_Root_With_Different_Selection()
-    {
-        // arrange
-        var compositeSchema = CreateCompositeSchema();
-
-        var request = Parse(
-            """
-            query GetProduct($id: ID!) {
-                ...QueryFragment1
-                ...QueryFragment2
-            }
-
-            fragment QueryFragment1 on Query {
-                productById(id: $id) {
-                    name
-                }
-            }
-
-            fragment QueryFragment2 on Query {
-                products {
-                    nodes {
-                        description
+                ... {
+                    productById(id: $id) {
+                        name
                     }
                 }
             }
@@ -219,28 +113,22 @@ public class FragmentTests : FusionTestBase
 
     [Test]
     [Skip("Not yet supported by the planner")]
-    public async Task Two_Fragments_On_Root_With_Different_Selection_From_Different_Subgraph()
+    public async Task InlineFragment_On_Root_Next_To_Different_Selection_From_Different_Subgraph()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        var request = Parse(
+        var request = Utf8GraphQLParser.Parse(
             """
             query GetProduct($id: ID!) {
-                ...QueryFragment1
-                ...QueryFragment2
-            }
-
-            fragment QueryFragment1 on Query {
-                productById(id: $id) {
-                    name
-                }
-            }
-
-            fragment QueryFragment2 on Query {
                 viewer {
                     displayName
                 }
+                ... {
+                    productById(id: $id) {
+                        name
+                    }
+                }
             }
             """);
 
@@ -252,21 +140,109 @@ public class FragmentTests : FusionTestBase
     }
 
     [Test]
-    public async Task Fragment_On_Sub_Selection()
+    public async Task Two_InlineFragments_On_Root_With_Same_Selection()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        var request = Parse(
+        var request = Utf8GraphQLParser.Parse(
+            """
+            query GetProduct($id: ID!) {
+                ... {
+                    productById(id: $id) {
+                        name
+                    }
+                }
+                ... {
+                    productById(id: $id) {
+                        name
+                    }
+                }
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        await MatchSnapshotAsync(request, plan);
+    }
+
+    [Test]
+    public async Task Two_InlineFragments_On_Root_With_Different_Selection()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Utf8GraphQLParser.Parse(
+            """
+            query GetProduct($id: ID!) {
+                ... {
+                    productById(id: $id) {
+                        name
+                    }
+                }
+                ... {
+                    products {
+                        nodes {
+                            description
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        await MatchSnapshotAsync(request, plan);
+    }
+
+    [Test]
+    [Skip("Not yet supported by the planner")]
+    public async Task Two_InlineFragments_On_Root_With_Different_Selection_From_Different_Subgraph()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Utf8GraphQLParser.Parse(
+            """
+            query GetProduct($id: ID!) {
+                ... {
+                    productById(id: $id) {
+                        name
+                    }
+                }
+                ... {
+                    viewer {
+                        displayName
+                    }
+                }
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        await MatchSnapshotAsync(request, plan);
+    }
+
+    [Test]
+    public async Task InlineFragment_On_Sub_Selection()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Utf8GraphQLParser.Parse(
             """
             query GetProduct($id: ID!) {
                 productById(id: $id) {
-                    ...ProductFragment
+                    ... {
+                        name
+                    }
                 }
-            }
-
-            fragment ProductFragment on Product {
-                name
             }
             """);
 
@@ -278,22 +254,20 @@ public class FragmentTests : FusionTestBase
     }
 
     [Test]
-    public async Task Fragment_On_Sub_Selection_Next_To_Same_Selection()
+    public async Task InlineFragment_On_Sub_Selection_Next_To_Same_Selection()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        var request = Parse(
+        var request = Utf8GraphQLParser.Parse(
             """
             query GetProduct($id: ID!) {
                 productById(id: $id) {
                     name
-                    ...ProductFragment
+                    ... {
+                        name
+                    }
                 }
-            }
-
-            fragment ProductFragment on Product {
-                name
             }
             """);
 
@@ -305,22 +279,20 @@ public class FragmentTests : FusionTestBase
     }
 
     [Test]
-    public async Task Fragment_On_Sub_Selection_Next_To_Different_Selection()
+    public async Task InlineFragment_On_Sub_Selection_Next_To_Different_Selection()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        var request = Parse(
+        var request = Utf8GraphQLParser.Parse(
             """
             query GetProduct($id: ID!) {
                 productById(id: $id) {
                     name
-                    ...ProductFragment
+                    ... {
+                        description
+                    }
                 }
-            }
-
-            fragment ProductFragment on Product {
-                description
             }
             """);
 
@@ -332,22 +304,20 @@ public class FragmentTests : FusionTestBase
     }
 
     [Test]
-    public async Task Fragment_On_Sub_Selection_Next_To_Different_Selection_From_Different_Subgraph()
+    public async Task InlineFragment_On_Sub_Selection_Next_To_Different_Selection_From_Different_Subgraph()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        var request = Parse(
+        var request = Utf8GraphQLParser.Parse(
             """
             query GetProduct($id: ID!) {
                 productById(id: $id) {
                     name
-                    ...ProductFragment
+                    ... {
+                        averageRating
+                    }
                 }
-            }
-
-            fragment ProductFragment on Product {
-                averageRating
             }
             """);
 
@@ -364,21 +334,17 @@ public class FragmentTests : FusionTestBase
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        var request = Parse(
+        var request = Utf8GraphQLParser.Parse(
             """
             query GetProduct($id: ID!) {
                 productById(id: $id) {
-                    ...ProductFragment1
-                    ...ProductFragment2
+                    ... {
+                        name
+                    }
+                    ... {
+                        name
+                    }
                 }
-            }
-
-            fragment ProductFragment1 on Product {
-                name
-            }
-
-            fragment ProductFragment2 on Product {
-                name
             }
             """);
 
@@ -395,21 +361,17 @@ public class FragmentTests : FusionTestBase
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        var request = Parse(
+        var request = Utf8GraphQLParser.Parse(
             """
             query GetProduct($id: ID!) {
                 productById(id: $id) {
-                    ...ProductFragment1
-                    ...ProductFragment2
+                    ... {
+                        name
+                    }
+                    ... {
+                        description
+                    }
                 }
-            }
-
-            fragment ProductFragment1 on Product {
-                name
-            }
-
-            fragment ProductFragment2 on Product {
-                description
             }
             """);
 
@@ -426,21 +388,17 @@ public class FragmentTests : FusionTestBase
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        var request = Parse(
+        var request = Utf8GraphQLParser.Parse(
             """
             query GetProduct($id: ID!) {
                 productById(id: $id) {
-                    ...ProductFragment1
-                    ...ProductFragment2
+                   ... {
+                       name
+                   }
+                   ... {
+                       averageRating
+                   }
                 }
-            }
-
-            fragment ProductFragment1 on Product {
-                name
-            }
-
-            fragment ProductFragment2 on Product {
-                averageRating
             }
             """);
 
