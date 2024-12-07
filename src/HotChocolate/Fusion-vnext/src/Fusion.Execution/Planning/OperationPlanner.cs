@@ -544,7 +544,6 @@ public sealed class OperationPlanner(CompositeSchema schema)
 
     private bool IsSelectionAlwaysSkipped(ISelectionNode selectionNode)
     {
-        var selectionIsSkipped = false;
         foreach (var directive in selectionNode.Directives)
         {
             var isSkipDirective = directive.Name.Value == "skip";
@@ -560,26 +559,19 @@ public sealed class OperationPlanner(CompositeSchema schema)
                     {
                         if (booleanValueNode.Value && isSkipDirective)
                         {
-                            selectionIsSkipped = true;
+                            return true;
                         }
-                        else if (!booleanValueNode.Value && isIncludedDirective)
+
+                        if (!booleanValueNode.Value && isIncludedDirective)
                         {
-                            selectionIsSkipped = true;
+                            return true;
                         }
-                        else
-                        {
-                            selectionIsSkipped = false;
-                        }
-                    }
-                    else
-                    {
-                        selectionIsSkipped = false;
                     }
                 }
             }
         }
 
-        return selectionIsSkipped;
+        return false;
     }
 
     public record SelectionPathSegment(
