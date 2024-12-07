@@ -688,4 +688,224 @@ public class SkipTests : FusionTestBase
             }
             """);
     }
+
+    [Test]
+    public void Multiple_Skip_On_RootField()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        // act
+        var plan = PlanOperation(
+            compositeSchema,
+            """
+            query GetProduct($id: ID!, $skip1: Boolean!, $skip2: Boolean!) {
+                productById(id: $id) @skip(if: $skip1) @skip(if: $skip2) {
+                    name
+                }
+                products {
+                  nodes {
+                    name
+                  }
+                }
+            }
+            """);
+
+        // assert
+        plan.Serialize().MatchInlineSnapshot(
+            """
+            {
+              "kind": "Root",
+              "nodes": [
+                {
+                  "kind": "Operation",
+                  "schema": "PRODUCTS",
+                  "document": "query($id: ID!, $skip1: Boolean!, $skip2: Boolean!) { productById(id: $id) @skip(if: $skip1) @skip(if: $skip2) { name } products { nodes { name } } }"
+                }
+              ]
+            }
+            """);
+    }
+
+    [Test]
+    public void Multiple_Skip_On_RootField_All_If_False()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        // act
+        var plan = PlanOperation(
+            compositeSchema,
+            """
+            query GetProduct($id: ID!) {
+                productById(id: $id) @skip(if: false) @skip(if: false) {
+                    name
+                }
+                products {
+                  nodes {
+                    name
+                  }
+                }
+            }
+            """);
+
+        // assert
+        plan.Serialize().MatchInlineSnapshot(
+            """
+            {
+              "kind": "Root",
+              "nodes": [
+                {
+                  "kind": "Operation",
+                  "schema": "PRODUCTS",
+                  "document": "query($id: ID!) { productById(id: $id) { name } products { nodes { name } } }"
+                }
+              ]
+            }
+            """);
+    }
+
+    [Test]
+    public void Multiple_Skip_On_RootField_One_If_True()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        // act
+        var plan = PlanOperation(
+            compositeSchema,
+            """
+            query GetProduct($id: ID!) {
+                productById(id: $id) @skip(if: false) @skip(if: true) {
+                    name
+                }
+                products {
+                  nodes {
+                    name
+                  }
+                }
+            }
+            """);
+
+        // assert
+        plan.Serialize().MatchInlineSnapshot(
+            """
+            {
+              "kind": "Root",
+              "nodes": [
+                {
+                  "kind": "Operation",
+                  "schema": "PRODUCTS",
+                  "document": "{ products { nodes { name } } }"
+                }
+              ]
+            }
+            """);
+    }
+
+    [Test]
+    public void Multiple_Skip_On_RootField_Only_Skipped_Field_Selected()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        // act
+        var plan = PlanOperation(
+            compositeSchema,
+            """
+            query GetProduct($id: ID!, $skip1: Boolean!, $skip2: Boolean!) {
+                productById(id: $id) @skip(if: $skip1) @skip(if: $skip2) {
+                    name
+                }
+            }
+            """);
+
+        // assert
+        plan.Serialize().MatchInlineSnapshot(
+            """
+            {
+              "kind": "Root",
+              "nodes": [
+                {
+                  "kind": "Condition",
+                  "variableName": "skip1",
+                  "passingValue": false,
+                  "nodes": [
+                    {
+                      "kind": "Condition",
+                      "variableName": "skip2",
+                      "passingValue": false,
+                      "nodes": [
+                        {
+                          "kind": "Operation",
+                          "schema": "PRODUCTS",
+                          "document": "{ productById(id: $id) { name } }"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            """);
+    }
+
+    [Test]
+    public void Multiple_Skip_On_RootField_Only_Skipped_Field_Selected_All_If_False()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        // act
+        var plan = PlanOperation(
+            compositeSchema,
+            """
+            query GetProduct($id: ID!) {
+                productById(id: $id) @skip(if: false) @skip(if: false) {
+                    name
+                }
+            }
+            """);
+
+        // assert
+        plan.Serialize().MatchInlineSnapshot(
+            """
+            {
+              "kind": "Root",
+              "nodes": [
+                {
+                  "kind": "Operation",
+                  "schema": "PRODUCTS",
+                  "document": "query($id: ID!) { productById(id: $id) { name } }"
+                }
+              ]
+            }
+            """);
+    }
+
+    [Test]
+    public void Multiple_Skip_On_RootField_Only_Skipped_Field_Selected_One_If_True()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        // act
+        var plan = PlanOperation(
+            compositeSchema,
+            """
+            query GetProduct($id: ID!) {
+                productById(id: $id) @skip(if: false) @skip(if: true) {
+                    name
+                }
+            }
+            """);
+
+        // assert
+        plan.Serialize().MatchInlineSnapshot(
+            """
+            {
+              "kind": "Root"
+            }
+            """);
+    }
 }
