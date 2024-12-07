@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Text;
 
 namespace HotChocolate.Fusion.Types;
@@ -5,7 +6,7 @@ namespace HotChocolate.Fusion.Types;
 /// <summary>
 /// Represents GraphQL selection path which is used in the operation compiler.
 /// </summary>
-public sealed class FieldPath : IEquatable<FieldPath>
+public sealed class FieldPath : IEnumerable<FieldPath>, IEquatable<FieldPath>
 {
     private FieldPath(string name, FieldPath? parent = null)
     {
@@ -89,6 +90,31 @@ public sealed class FieldPath : IEquatable<FieldPath>
     /// </returns>
     public override bool Equals(object? obj)
         => Equals(obj as FieldPath);
+
+    /// <summary>
+    /// Returns an enumerator that iterates through the path segments.
+    /// </summary>
+    /// <returns>
+    /// An enumerator that can be used to iterate through the path segments.
+    /// </returns>
+    public IEnumerator<FieldPath> GetEnumerator()
+    {
+        var current = this;
+
+        do
+        {
+            if (ReferenceEquals(current, Root))
+            {
+                yield break;
+            }
+
+            yield return current;
+            current = current.Parent;
+        } while (current != null);
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+        => GetEnumerator();
 
     /// <summary>
     /// Returns the hash code for this path.

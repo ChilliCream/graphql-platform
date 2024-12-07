@@ -72,7 +72,22 @@ internal static class OperationVariableBinder
 
         foreach (var variable in usedVariables)
         {
-            operation.AddVariableDefinition(variableDefinitions[variable]);
+            if(variableDefinitions.TryGetValue(variable, out var variableDefinition))
+            {
+                operation.AddVariableDefinition(variableDefinition);
+            }
+        }
+
+        foreach (var requirement in operation.Requirements.Values)
+        {
+            var variable = new VariableDefinitionNode(
+                null,
+                new VariableNode(requirement.Name),
+                requirement.Type,
+                null,
+                Array.Empty<DirectiveNode>());
+
+            operation.AddVariableDefinition(variable);
         }
     }
 }
