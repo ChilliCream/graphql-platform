@@ -1,4 +1,4 @@
-# Skip_And_Include_With_Same_Variable_On_SubField
+# Skip_And_Include_On_SubField_Only_Skipped_Field_Selected_With_Same_Variable
 
 ## Request
 
@@ -6,7 +6,6 @@
 query GetProduct($id: ID!, $skipOrInclude: Boolean!) {
   productById(id: $id) {
     name @skip(if: $skipOrInclude) @include(if: $skipOrInclude)
-    description
   }
 }
 ```
@@ -20,7 +19,7 @@ query GetProduct($id: ID!, $skipOrInclude: Boolean!) {
     {
       "kind": "Operation",
       "schema": "PRODUCTS",
-      "document": "query($id: ID!, $skipOrInclude: Boolean!) { productById(id: $id) { name @skip(if: $skipOrInclude) @include(if: $skipOrInclude) description } }"
+      "document": "query($id: ID!, $skipOrInclude: Boolean!) { productById(id: $id) { name @skip(if: $skipOrInclude) @include(if: $skipOrInclude) } }"
     }
   ]
 }

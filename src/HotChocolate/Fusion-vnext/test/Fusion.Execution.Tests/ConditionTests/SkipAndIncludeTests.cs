@@ -32,7 +32,7 @@ public class SkipAndIncludeTests : FusionTestBase
     }
 
     [Test]
-    public async Task Skip_And_Include_With_Same_Variable_On_RootField()
+    public async Task Skip_And_Include_On_RootField_With_Same_Variable()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
@@ -41,6 +41,60 @@ public class SkipAndIncludeTests : FusionTestBase
             """
             query GetProduct($id: ID!, $skipOrInclude: Boolean!) {
                 productById(id: $id) @skip(if: $skipOrInclude) @include(if: $skipOrInclude) {
+                    name
+                }
+                products {
+                    nodes {
+                        name
+                    }
+                }
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        await MatchSnapshotAsync(request, plan);
+    }
+
+    [Test]
+    public async Task Skip_And_Include_On_RootField_Skip_False()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            query GetProduct($id: ID!, $include: Boolean!) {
+                productById(id: $id) @include(if: $include) @skip(if: false) {
+                    name
+                }
+                products {
+                    nodes {
+                        name
+                    }
+                }
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        await MatchSnapshotAsync(request, plan);
+    }
+
+    [Test]
+    public async Task Skip_And_Include_On_RootField_Skip_True()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            query GetProduct($id: ID!, $include: Boolean!) {
+                productById(id: $id) @include(if: $include) @skip(if: true) {
                     name
                 }
                 products {
@@ -189,7 +243,7 @@ public class SkipAndIncludeTests : FusionTestBase
     }
 
     [Test]
-    public async Task Skip_And_Include_With_Same_Variable_On_RootField_Only_Skipped_Field_Selected()
+    public async Task Skip_And_Include_On_RootField_Only_Skipped_Field_Selected_With_Same_Variable()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
@@ -198,6 +252,50 @@ public class SkipAndIncludeTests : FusionTestBase
             """
             query GetProduct($id: ID!, $skip: Boolean!, $include: Boolean!) {
                 productById(id: $id) @skip(if: $skip) @include(if: $include) {
+                    name
+                }
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        await MatchSnapshotAsync(request, plan);
+    }
+
+    [Test]
+    public async Task Skip_And_Include_On_RootField_Only_Skipped_Field_Selected_Skip_False()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            query GetProduct($id: ID!, $include: Boolean!) {
+                productById(id: $id) @include(if: $include) @skip(if: false) {
+                    name
+                }
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        await MatchSnapshotAsync(request, plan);
+    }
+
+    [Test]
+    public async Task Skip_And_Include_On_RootField_Only_Skipped_Field_Selected_Skip_True()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            query GetProduct($id: ID!, $include: Boolean!) {
+                productById(id: $id) @include(if: $include) @skip(if: true) {
                     name
                 }
             }
@@ -322,7 +420,7 @@ public class SkipAndIncludeTests : FusionTestBase
     }
 
     [Test]
-    public async Task Skip_And_Include_With_Same_Variable_On_SubField()
+    public async Task Skip_And_Include_On_SubField_With_Same_Variable()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
@@ -332,6 +430,52 @@ public class SkipAndIncludeTests : FusionTestBase
             query GetProduct($id: ID!, $skipOrInclude: Boolean!) {
                 productById(id: $id) {
                     name @skip(if: $skipOrInclude) @include(if: $skipOrInclude)
+                    description
+                }
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        await MatchSnapshotAsync(request, plan);
+    }
+
+    [Test]
+    public async Task Skip_And_Include_On_SubField_Skip_False()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            query GetProduct($id: ID!, $include: Boolean!) {
+                productById(id: $id) {
+                    name @include(if: $include) @skip(if: false)
+                    description
+                }
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        await MatchSnapshotAsync(request, plan);
+    }
+
+    [Test]
+    public async Task Skip_And_Include_On_SubField_Skip_True()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            query GetProduct($id: ID!, $include: Boolean!) {
+                productById(id: $id) {
+                    name @include(if: $include) @skip(if: true)
                     description
                 }
             }
@@ -459,7 +603,51 @@ public class SkipAndIncludeTests : FusionTestBase
     }
 
     [Test]
-    public async Task Skip_And_Include_With_Same_Variable_On_SubField_Only_Skipped_Field_Selected()
+    public async Task Skip_And_Include_On_SubField_Only_Skipped_Field_Selected_Skip_False()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            query GetProduct($id: ID!, $include: Boolean!) {
+                productById(id: $id) {
+                    name @include(if: $include) @skip(if: false)
+                }
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        await MatchSnapshotAsync(request, plan);
+    }
+
+    [Test]
+    public async Task Skip_And_Include_On_SubField_Only_Skipped_Field_Selected_Skip_True()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            query GetProduct($id: ID!, $include: Boolean!) {
+                productById(id: $id) {
+                    name @include(if: $include) @skip(if: true)
+                }
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        await MatchSnapshotAsync(request, plan);
+    }
+
+    [Test]
+    public async Task Skip_And_Include_On_SubField_Only_Skipped_Field_Selected_With_Same_Variable()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
