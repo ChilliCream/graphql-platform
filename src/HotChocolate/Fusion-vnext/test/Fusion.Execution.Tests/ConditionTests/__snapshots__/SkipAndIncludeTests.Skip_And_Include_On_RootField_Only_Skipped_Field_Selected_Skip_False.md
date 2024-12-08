@@ -24,7 +24,7 @@ query GetProduct($id: ID!, $include: Boolean!) {
         {
           "kind": "Operation",
           "schema": "PRODUCTS",
-          "document": "{ productById(id: $id) { name } }"
+          "document": "query($id: ID!) { productById(id: $id) { name } }"
         }
       ]
     }

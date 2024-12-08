@@ -1,4 +1,4 @@
-# Skip_On_SubField_Resolved_From_Other_Source_If_True
+# Skip_On_SubField_From_Different_Subgraph_If_True
 
 ## Request
 

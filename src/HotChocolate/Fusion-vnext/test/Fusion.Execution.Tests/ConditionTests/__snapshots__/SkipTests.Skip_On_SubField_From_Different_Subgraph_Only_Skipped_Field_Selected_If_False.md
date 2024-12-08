@@ -1,4 +1,4 @@
-# Skip_On_SubField_Resolved_From_Other_Source_If_False
+# Skip_On_SubField_From_Different_Subgraph_Only_Skipped_Field_Selected_If_False
 
 ## Request
 
@@ -6,7 +6,6 @@
 query GetProduct($id: ID!) {
   productById(id: $id) {
     name
-    averageRating
     reviews(first: 10) @skip(if: false) {
       nodes {
         body
@@ -30,7 +29,7 @@ query GetProduct($id: ID!) {
         {
           "kind": "Operation",
           "schema": "REVIEWS",
-          "document": "{ productById { averageRating reviews(first: 10) { nodes { body } } } }"
+          "document": "{ productById { reviews(first: 10) { nodes { body } } } }"
         }
       ]
     }

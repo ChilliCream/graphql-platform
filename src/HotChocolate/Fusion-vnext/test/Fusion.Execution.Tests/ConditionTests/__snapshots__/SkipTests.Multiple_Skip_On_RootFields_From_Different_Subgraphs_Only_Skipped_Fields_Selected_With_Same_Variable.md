@@ -1,4 +1,4 @@
-# Skip_On_RootField_Only_Skipped_Field_Selected
+# Multiple_Skip_On_RootFields_From_Different_Subgraphs_Only_Skipped_Fields_Selected_With_Same_Variable
 
 ## Request
 
@@ -6,6 +6,9 @@
 query GetProduct($id: ID!, $skip: Boolean!) {
   productById(id: $id) @skip(if: $skip) {
     name
+  }
+  viewer @skip(if: $skip) {
+    displayName
   }
 }
 ```
@@ -25,6 +28,11 @@ query GetProduct($id: ID!, $skip: Boolean!) {
           "kind": "Operation",
           "schema": "PRODUCTS",
           "document": "query($id: ID!) { productById(id: $id) { name } }"
+        },
+        {
+          "kind": "Operation",
+          "schema": "ACCOUNTS",
+          "document": "{ viewer { displayName } }"
         }
       ]
     }

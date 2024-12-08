@@ -287,7 +287,7 @@ public class SkipTests : FusionTestBase
     }
 
     [Test]
-    public async Task Skip_On_SubField_Resolved_From_Other_Source()
+    public async Task Skip_On_SubField_From_Different_Subgraph()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
@@ -315,7 +315,7 @@ public class SkipTests : FusionTestBase
     }
 
     [Test]
-    public async Task Skip_On_SubField_Resolved_From_Other_Source_If_False()
+    public async Task Skip_On_SubField_From_Different_Subgraph_If_False()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
@@ -343,7 +343,7 @@ public class SkipTests : FusionTestBase
     }
 
     [Test]
-    public async Task Skip_On_SubField_Resolved_From_Other_Source_If_True()
+    public async Task Skip_On_SubField_From_Different_Subgraph_If_True()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
@@ -371,7 +371,7 @@ public class SkipTests : FusionTestBase
     }
 
     [Test]
-    public async Task Skip_On_SubField_Resolved_From_Other_Source_Only_Skipped_Field_Selected()
+    public async Task Skip_On_SubField_From_Different_Subgraph_Only_Skipped_Field_Selected()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
@@ -398,7 +398,7 @@ public class SkipTests : FusionTestBase
     }
 
     [Test]
-    public async Task Skip_On_SubField_Resolved_From_Other_Source_Only_Skipped_Field_Selected_If_False()
+    public async Task Skip_On_SubField_From_Different_Subgraph_Only_Skipped_Field_Selected_If_False()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
@@ -425,7 +425,7 @@ public class SkipTests : FusionTestBase
     }
 
     [Test]
-    public async Task Skip_On_SubField_Resolved_From_Other_Source_Only_Skipped_Field_Selected_If_True()
+    public async Task Skip_On_SubField_From_Different_Subgraph_Only_Skipped_Field_Selected_If_True()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
@@ -440,6 +440,362 @@ public class SkipTests : FusionTestBase
                             body
                         }
                     }
+                }
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        await MatchSnapshotAsync(request, plan);
+    }
+
+    [Test]
+    [Skip("Not yet supported by the planner")]
+    public async Task Multiple_Skip_On_RootFields_From_Same_Subgraph()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            query GetProduct($id: ID!, $skip1: Boolean!, $skip2: Boolean!) {
+                productById(id: $id) @skip(if: $skip1) {
+                    name
+                }
+                products @skip(if: $skip2) {
+                  nodes {
+                    name
+                  }
+                }
+                viewer {
+                    displayName
+                }
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        await MatchSnapshotAsync(request, plan);
+    }
+
+    [Test]
+    [Skip("Not yet supported by the planner")]
+    public async Task Multiple_Skip_On_RootFields_From_Same_Subgraph_With_Same_Variable()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            query GetProduct($id: ID!, $skip: Boolean!) {
+                productById(id: $id) @skip(if: $skip) {
+                    name
+                }
+                products @skip(if: $skip) {
+                  nodes {
+                    name
+                  }
+                }
+                viewer {
+                    displayName
+                }
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        await MatchSnapshotAsync(request, plan);
+    }
+
+    [Test]
+    public async Task Multiple_Skip_On_RootFields_From_Same_Subgraph_Only_Skipped_Fields_Selected()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            query GetProduct($id: ID!, $skip1: Boolean!, $skip2: Boolean!) {
+                productById(id: $id) @skip(if: $skip1) {
+                    name
+                }
+                products @skip(if: $skip2) {
+                  nodes {
+                    name
+                  }
+                }
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        await MatchSnapshotAsync(request, plan);
+    }
+
+    [Test]
+    public async Task Multiple_Skip_On_RootFields_From_Same_Subgraph_Only_Skipped_Fields_Selected_With_Same_Variable()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            query GetProduct($id: ID!, $skip: Boolean!) {
+                productById(id: $id) @skip(if: $skip) {
+                    name
+                }
+                products @skip(if: $skip) {
+                  nodes {
+                    name
+                  }
+                }
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        await MatchSnapshotAsync(request, plan);
+    }
+
+    [Test]
+    [Skip("Not yet supported by the planner")]
+    public async Task Multiple_Skip_On_RootFields_From_Different_Subgraphs_Only_Skipped_Fields_Selected()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            query GetProduct($id: ID!, $skip1: Boolean!, $skip2: Boolean!) {
+                productById(id: $id) @skip(if: $skip1) {
+                    name
+                }
+                viewer @skip(if: $skip2) {
+                    displayName
+                }
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        await MatchSnapshotAsync(request, plan);
+    }
+
+    [Test]
+    [Skip("Not yet supported by the planner")]
+    public async Task Multiple_Skip_On_RootFields_From_Different_Subgraphs_Only_Skipped_Fields_Selected_With_Same_Variable()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            query GetProduct($id: ID!, $skip: Boolean!) {
+                productById(id: $id) @skip(if: $skip) {
+                    name
+                }
+                viewer @skip(if: $skip) {
+                    displayName
+                }
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        await MatchSnapshotAsync(request, plan);
+    }
+
+    [Test]
+    public async Task Multiple_Skip_On_SubFields()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            query GetProduct($id: ID!, $skip1: Boolean!, $skip2: Boolean!) {
+                productById(id: $id) {
+                    id
+                    name @skip(if: $skip1)
+                    description @skip(if: $skip2)
+                }
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        await MatchSnapshotAsync(request, plan);
+    }
+
+    [Test]
+    public async Task Multiple_Skip_On_SubFields_With_Same_Variable()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            query GetProduct($id: ID!, $skip: Boolean!) {
+                productById(id: $id) {
+                    id
+                    name @skip(if: $skip)
+                    description @skip(if: $skip)
+                }
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        await MatchSnapshotAsync(request, plan);
+    }
+
+    [Test]
+    public async Task Multiple_Skip_On_SubFields_Only_Skipped_Fields_Selected()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            query GetProduct($id: ID!, $skip1: Boolean!, $skip2: Boolean!) {
+                productById(id: $id) {
+                    name @skip(if: $skip1)
+                    description @skip(if: $skip2)
+                }
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        await MatchSnapshotAsync(request, plan);
+    }
+
+    [Test]
+    public async Task Multiple_Skip_On_SubFields_Only_Skipped_Fields_Selected_With_Same_Variable()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            query GetProduct($id: ID!, $skip: Boolean!) {
+                productById(id: $id) {
+                    name @skip(if: $skip)
+                    description @skip(if: $skip)
+                }
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        await MatchSnapshotAsync(request, plan);
+    }
+
+    [Test]
+    public async Task Multiple_Skip_On_SubFields_From_Different_Subgraph()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            query GetProduct($id: ID!, $skip1: Boolean!, $skip2: Boolean!) {
+                productById(id: $id) {
+                    id
+                    name @skip(if: $skip1)
+                    averageRating @skip(if: $skip2)
+                }
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        await MatchSnapshotAsync(request, plan);
+    }
+
+    [Test]
+    public async Task Multiple_Skip_On_SubFields_From_Different_Subgraph_With_Same_Variable()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            query GetProduct($id: ID!, $skip: Boolean!) {
+                productById(id: $id) {
+                    id
+                    name @skip(if: $skip)
+                    averageRating @skip(if: $skip)
+                }
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        await MatchSnapshotAsync(request, plan);
+    }
+
+    [Test]
+    public async Task Multiple_Skip_On_SubFields_From_Different_Subgraph_Only_Skipped_Fields_Selected()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            query GetProduct($id: ID!, $skip1: Boolean!, $skip2: Boolean!) {
+                productById(id: $id) {
+                    name @skip(if: $skip1)
+                    averageRating @skip(if: $skip2)
+                }
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        await MatchSnapshotAsync(request, plan);
+    }
+
+    [Test]
+    public async Task Multiple_Skip_On_SubFields_From_Different_Subgraph_Only_Skipped_Fields_Selected_With_Same_Variable()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            query GetProduct($id: ID!, $skip: Boolean!) {
+                productById(id: $id) {
+                    name @skip(if: $skip)
+                    averageRating @skip(if: $skip)
                 }
             }
             """);

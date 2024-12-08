@@ -1,3 +1,4 @@
+using System.Collections;
 using HotChocolate.Fusion.Planning.Nodes;
 using HotChocolate.Language;
 
@@ -7,20 +8,36 @@ internal static class OperationVariableBinder
 {
     public static void BindOperationVariables(
         OperationDefinitionNode operationDefinition,
-        RootPlanNode operationPlan)
+        RootPlanNode rootPlanNode)
     {
-        var operationBacklog = new Stack<OperationPlanNode>(operationPlan.Nodes.OfType<OperationPlanNode>());
+        var planNodeBacklog = new Queue<PlanNode>(rootPlanNode.Nodes);
         var selectionBacklog = new Stack<SelectionPlanNode>();
         var variableDefinitions = operationDefinition.VariableDefinitions.ToDictionary(t => t.Variable.Name.Value);
         var usedVariables = new HashSet<string>();
 
-        while (operationBacklog.TryPop(out var operation))
+        while (planNodeBacklog.TryDequeue(out var planNode))
         {
-            CollectAndBindUsedVariables(operation, variableDefinitions, usedVariables, selectionBacklog);
-
-            foreach (var child in operation.Nodes.OfType<OperationPlanNode>())
+            if (planNode is OperationPlanNode operation)
             {
-                operationBacklog.Push(child);
+                CollectAndBindUsedVariables(operation, variableDefinitions, usedVariables, selectionBacklog);
+            }
+
+            if (planNode is IPlanNodeProvider planNodeProvider)
+            {
+                foreach (var childNode in planNodeProvider.Nodes)
+                {
+                    if (childNode is ConditionPlanNode conditionPlanNode)
+                    {
+                        foreach(var conditionChild in conditionPlanNode.Nodes)
+                        {
+                            planNodeBacklog.Enqueue(conditionChild);
+                        }
+                    }
+                    else
+                    {
+                        planNodeBacklog.Enqueue(childNode);
+                    }
+                }
             }
         }
     }

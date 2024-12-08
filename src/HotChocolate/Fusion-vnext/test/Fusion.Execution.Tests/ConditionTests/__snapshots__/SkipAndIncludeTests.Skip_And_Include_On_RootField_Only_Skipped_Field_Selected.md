@@ -29,7 +29,7 @@ query GetProduct($id: ID!, $skipOrInclude: Boolean!) {
             {
               "kind": "Operation",
               "schema": "PRODUCTS",
-              "document": "{ productById(id: $id) { name } }"
+              "document": "query($id: ID!) { productById(id: $id) { name } }"
             }
           ]
         }

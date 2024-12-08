@@ -1,15 +1,16 @@
-# Skip_On_RootFragment_Only_Skipped_Fragment_Selected
+# Multiple_Skip_On_RootFields_From_Same_Subgraph_Only_Skipped_Fields_Selected_With_Same_Variable
 
 ## Request
 
 ```graphql
 query GetProduct($id: ID!, $skip: Boolean!) {
-  ... QueryFragment @skip(if: $skip)
-}
-
-fragment QueryFragment on Query {
-  productById(id: $id) {
+  productById(id: $id) @skip(if: $skip) {
     name
+  }
+  products @skip(if: $skip) {
+    nodes {
+      name
+    }
   }
 }
 ```
@@ -28,7 +29,7 @@ fragment QueryFragment on Query {
         {
           "kind": "Operation",
           "schema": "PRODUCTS",
-          "document": "query($id: ID!) { ... on Query { productById(id: $id) { name } } }"
+          "document": "query($id: ID!) { productById(id: $id) { name } products { nodes { name } } }"
         }
       ]
     }

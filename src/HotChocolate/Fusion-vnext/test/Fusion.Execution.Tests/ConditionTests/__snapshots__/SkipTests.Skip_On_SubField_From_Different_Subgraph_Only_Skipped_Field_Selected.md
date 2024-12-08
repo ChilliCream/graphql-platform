@@ -1,4 +1,4 @@
-# Skip_On_SubField_Resolved_From_Other_Source
+# Skip_On_SubField_From_Different_Subgraph_Only_Skipped_Field_Selected
 
 ## Request
 
@@ -6,7 +6,6 @@
 query GetProduct($id: ID!, $skip: Boolean!) {
   productById(id: $id) {
     name
-    averageRating
     reviews(first: 10) @skip(if: $skip) {
       nodes {
         body
@@ -28,9 +27,16 @@ query GetProduct($id: ID!, $skip: Boolean!) {
       "document": "query($id: ID!) { productById(id: $id) { name } }",
       "nodes": [
         {
-          "kind": "Operation",
-          "schema": "REVIEWS",
-          "document": "query($skip: Boolean!) { productById { averageRating reviews(first: 10) @skip(if: $skip) { nodes { body } } } }"
+          "kind": "Condition",
+          "variableName": "skip",
+          "passingValue": false,
+          "nodes": [
+            {
+              "kind": "Operation",
+              "schema": "REVIEWS",
+              "document": "{ productById { reviews(first: 10) { nodes { body } } } }"
+            }
+          ]
         }
       ]
     }
