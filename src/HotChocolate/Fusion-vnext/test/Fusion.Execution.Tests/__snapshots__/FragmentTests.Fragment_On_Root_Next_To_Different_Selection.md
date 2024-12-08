@@ -3,7 +3,7 @@
 ## Request
 
 ```graphql
-query GetProduct($slug: String!) {
+query($slug: String!) {
   products {
     nodes {
       description

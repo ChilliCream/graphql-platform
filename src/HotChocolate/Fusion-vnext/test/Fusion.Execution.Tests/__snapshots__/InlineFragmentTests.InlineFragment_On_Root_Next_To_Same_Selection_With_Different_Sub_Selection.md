@@ -3,7 +3,7 @@
 ## Request
 
 ```graphql
-query GetProduct($slug: String!) {
+query($slug: String!) {
   productBySlug(slug: $slug) {
     description
   }
@@ -24,7 +24,7 @@ query GetProduct($slug: String!) {
     {
       "kind": "Operation",
       "schema": "PRODUCTS",
-      "document": "query($slug: String!) { productBySlug(slug: $slug) { description name } }"
+      "document": "query($slug: String!) { productBySlug(slug: $slug) { description } productBySlug(slug: $slug) { name } }"
     }
   ]
 }

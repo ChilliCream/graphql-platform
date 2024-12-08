@@ -4,7 +4,7 @@
 
 ```graphql
 query($slug: String!) {
-  ... QueryFragment1 @skip(if: false)
+  ... QueryFragment1 @skip(if: true)
   ... QueryFragment2
 }
 
@@ -32,7 +32,7 @@ fragment QueryFragment2 on Query {
     {
       "kind": "Operation",
       "schema": "PRODUCTS",
-      "document": "query($slug: String!) { productBySlug(slug: $slug) { name } products { nodes { description } } }"
+      "document": "{ products { nodes { description } } }"
     }
   ]
 }

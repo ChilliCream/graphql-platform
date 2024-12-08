@@ -60,7 +60,6 @@ public class FragmentTests : FusionTestBase
     }
 
     [Test]
-    [Skip("InlineFragmentOperationRewriter can not merge selection sets yet")]
     public async Task Fragment_On_Root_Next_To_Same_Selection_With_Different_Sub_Selection()
     {
         // arrange

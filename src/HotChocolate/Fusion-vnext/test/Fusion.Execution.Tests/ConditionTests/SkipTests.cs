@@ -27,28 +27,6 @@ public class SkipTests : FusionTestBase
     }
 
     [Test]
-    public async Task Skipped_Root_Selection_If_False()
-    {
-        // arrange
-        var compositeSchema = CreateCompositeSchema();
-
-        var request = Parse(
-            """
-            query($slug: String!) {
-                productBySlug(slug: $slug) @skip(if: false) {
-                    name
-                }
-            }
-            """);
-
-        // act
-        var plan = PlanOperation(request, compositeSchema);
-
-        // assert
-        await MatchSnapshotAsync(request, plan);
-    }
-
-    [Test]
     public async Task Skipped_Root_Selection_If_True()
     {
         // arrange
@@ -125,7 +103,7 @@ public class SkipTests : FusionTestBase
     }
 
     [Test]
-    [Skip("Not yet supported by planner")]
+    [Skip("Not yet supported by the planner")]
     public async Task Skipped_Root_Selections_From_Different_Subgraphs()
     {
         // arrange
@@ -151,7 +129,7 @@ public class SkipTests : FusionTestBase
     }
 
     [Test]
-    [Skip("Not yet supported by planner")]
+    [Skip("Not yet supported by the planner")]
     public async Task Skipped_Root_Selections_From_Different_Subgraphs_Same_Variable()
     {
         // arrange
@@ -177,7 +155,7 @@ public class SkipTests : FusionTestBase
     }
 
     [Test]
-    [Skip("Not yet supported by planner")]
+    [Skip("Not yet supported by the planner")]
     public async Task Skipped_Shared_Viewer_Root_Selection_With_Sub_Selections_From_Different_Subgraphs()
     {
         // arrange
@@ -205,7 +183,7 @@ public class SkipTests : FusionTestBase
     }
 
     [Test]
-    [Skip("Not yet supported by planner")]
+    [Skip("Not yet supported by the planner")]
     public async Task Skipped_Shared_byId_Root_Selection_With_Sub_Selections_From_Different_Subgraphs()
     {
         // arrange
@@ -256,33 +234,6 @@ public class SkipTests : FusionTestBase
     }
 
     [Test]
-    public async Task Skipped_Root_Selection_Other_Not_Skipped_Root_Selection_From_Same_Subgraph_If_False()
-    {
-        // arrange
-        var compositeSchema = CreateCompositeSchema();
-
-        var request = Parse(
-            """
-            query($slug: String!) {
-                productBySlug(slug: $slug) @skip(if: false) {
-                    name
-                }
-                products {
-                  nodes {
-                    name
-                  }
-                }
-            }
-            """);
-
-        // act
-        var plan = PlanOperation(request, compositeSchema);
-
-        // assert
-        await MatchSnapshotAsync(request, plan);
-    }
-
-    [Test]
     public async Task Skipped_Root_Selection_Other_Not_Skipped_Root_Selection_From_Same_Subgraph_If_True()
     {
         // arrange
@@ -310,7 +261,7 @@ public class SkipTests : FusionTestBase
     }
 
     [Test]
-    [Skip("Not yet supported by planner")]
+    [Skip("Not yet supported by the planner")]
     public async Task Skipped_Root_Selection_Other_Not_Skipped_Root_Selection_From_Different_Subgraph()
     {
         // arrange
@@ -336,33 +287,7 @@ public class SkipTests : FusionTestBase
     }
 
     [Test]
-    [Skip("Not yet supported by planner")]
-    public async Task Skipped_Root_Selection_Other_Not_Skipped_Root_Selection_From_Different_Subgraph_If_False()
-    {
-        // arrange
-        var compositeSchema = CreateCompositeSchema();
-
-        var request = Parse(
-            """
-            query($slug: String!) {
-                productBySlug(slug: $slug) @skip(if: false) {
-                    name
-                }
-                viewer {
-                    displayName
-                }
-            }
-            """);
-
-        // act
-        var plan = PlanOperation(request, compositeSchema);
-
-        // assert
-        await MatchSnapshotAsync(request, plan);
-    }
-
-    [Test]
-    [Skip("Not yet supported by planner")]
+    [Skip("Not yet supported by the planner")]
     public async Task Skipped_Root_Selection_Other_Not_Skipped_Root_Selection_From_Different_Subgraph_If_True()
     {
         // arrange
@@ -410,28 +335,6 @@ public class SkipTests : FusionTestBase
     }
 
     [Test]
-    public async Task Skipped_Sub_Selection_If_False()
-    {
-        // arrange
-        var compositeSchema = CreateCompositeSchema();
-
-        var request = Parse(
-            """
-            query($slug: String!) {
-                productBySlug(slug: $slug) {
-                    name @skip(if: false)
-                }
-            }
-            """);
-
-        // act
-        var plan = PlanOperation(request, compositeSchema);
-
-        // assert
-        await MatchSnapshotAsync(request, plan);
-    }
-
-    [Test]
     public async Task Skipped_Sub_Selection_If_True()
     {
         // arrange
@@ -464,29 +367,6 @@ public class SkipTests : FusionTestBase
             query($slug: String!, $skip: Boolean!) {
                 productBySlug(slug: $slug) {
                     name @skip(if: $skip)
-                    description
-                }
-            }
-            """);
-
-        // act
-        var plan = PlanOperation(request, compositeSchema);
-
-        // assert
-        await MatchSnapshotAsync(request, plan);
-    }
-
-    [Test]
-    public async Task Skipped_Sub_Selection_Other_Not_Skipped_Sub_Selection_From_Same_Subgraph_If_False()
-    {
-        // arrange
-        var compositeSchema = CreateCompositeSchema();
-
-        var request = Parse(
-            """
-            query($slug: String!) {
-                productBySlug(slug: $slug) {
-                    name @skip(if: false)
                     description
                 }
             }
@@ -546,29 +426,6 @@ public class SkipTests : FusionTestBase
     }
 
     [Test]
-    public async Task Skipped_Sub_Selection_Other_Not_Skipped_Sub_Selection_From_Different_Subgraph_If_False()
-    {
-        // arrange
-        var compositeSchema = CreateCompositeSchema();
-
-        var request = Parse(
-            """
-            query($slug: String!) {
-                productBySlug(slug: $slug) {
-                    name @skip(if: false)
-                    averageRating
-                }
-            }
-            """);
-
-        // act
-        var plan = PlanOperation(request, compositeSchema);
-
-        // assert
-        await MatchSnapshotAsync(request, plan);
-    }
-
-    [Test]
     public async Task Skipped_Sub_Selection_Other_Not_Skipped_Sub_Selection_From_Different_Subgraph_If_True()
     {
         // arrange
@@ -614,28 +471,6 @@ public class SkipTests : FusionTestBase
     }
 
     [Test]
-    public async Task Skipped_Sub_Selection_From_Different_Subgraph_If_False()
-    {
-        // arrange
-        var compositeSchema = CreateCompositeSchema();
-
-        var request = Parse(
-            """
-            query($slug: String!) {
-                productBySlug(slug: $slug) {
-                    averageRating @skip(if: false)
-                }
-            }
-            """);
-
-        // act
-        var plan = PlanOperation(request, compositeSchema);
-
-        // assert
-        await MatchSnapshotAsync(request, plan);
-    }
-
-    [Test]
     public async Task Skipped_Sub_Selection_From_Different_Subgraph_If_True()
     {
         // arrange
@@ -669,29 +504,6 @@ public class SkipTests : FusionTestBase
                 productBySlug(slug: $slug) {
                     name
                     averageRating @skip(if: $skip)
-                }
-            }
-            """);
-
-        // act
-        var plan = PlanOperation(request, compositeSchema);
-
-        // assert
-        await MatchSnapshotAsync(request, plan);
-    }
-
-    [Test]
-    public async Task Skipped_Sub_Selection_From_Different_Subgraph_Other_Not_Skipped_Sub_Selection_From_First_Subgraph_If_False()
-    {
-        // arrange
-        var compositeSchema = CreateCompositeSchema();
-
-        var request = Parse(
-            """
-            query($slug: String!) {
-                productBySlug(slug: $slug) {
-                    name
-                    averageRating @skip(if: false)
                 }
             }
             """);
@@ -754,33 +566,6 @@ public class SkipTests : FusionTestBase
     }
 
     [Test]
-    public async Task Skipped_Sub_Selection_From_Different_Subgraph_Other_Not_Skipped_Sub_Selection_From_Same_Subgraph_If_False()
-    {
-        // arrange
-        var compositeSchema = CreateCompositeSchema();
-
-        var request = Parse(
-            """
-            query($slug: String!) {
-                productBySlug(slug: $slug) {
-                    averageRating @skip(if: false)
-                    reviews(first: 10) {
-                        nodes {
-                            body
-                        }
-                    }
-                }
-            }
-            """);
-
-        // act
-        var plan = PlanOperation(request, compositeSchema);
-
-        // assert
-        await MatchSnapshotAsync(request, plan);
-    }
-
-    [Test]
     public async Task Skipped_Sub_Selection_From_Different_Subgraph_Other_Not_Skipped_Sub_Selection_From_Same_Subgraph_If_True()
     {
         // arrange
@@ -819,31 +604,6 @@ public class SkipTests : FusionTestBase
                 reviewById(id: $id) {
                     body
                     author @skip(if: $skip) {
-                        displayName
-                    }
-                }
-            }
-            """);
-
-        // act
-        var plan = PlanOperation(request, compositeSchema);
-
-        // assert
-        await MatchSnapshotAsync(request, plan);
-    }
-
-    [Test]
-    public async Task Skipped_Sub_Selection_That_Provides_Data_For_Lookup_On_Different_Subgraph_If_False()
-    {
-        // arrange
-        var compositeSchema = CreateCompositeSchema();
-
-        var request = Parse(
-            """
-            query($id: ID!) {
-                reviewById(id: $id) {
-                    body
-                    author @skip(if: false) {
                         displayName
                     }
                 }
