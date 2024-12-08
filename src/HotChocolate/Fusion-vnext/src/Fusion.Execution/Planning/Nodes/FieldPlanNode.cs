@@ -1,6 +1,4 @@
-using System.Diagnostics;
 using HotChocolate.Fusion.Types;
-using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning.Nodes;
