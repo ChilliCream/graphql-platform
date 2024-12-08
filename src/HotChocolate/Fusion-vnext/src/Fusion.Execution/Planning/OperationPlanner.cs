@@ -215,8 +215,8 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 }
             }
 
-            var lookupOperation = CreateLookupOperation(schemaName, lookup, type, parent, fields);
-            var lookupField = (FieldPlanNode)lookupOperation.Selections[0];
+            var (lookupOperation, lookupField, requirements) =
+                CreateLookupOperation(schemaName, lookup, type, parent, fields);
 
             if (!TryPlanSelectionSet(lookupOperation, lookupField, path, true))
             {
@@ -225,7 +225,15 @@ public sealed class OperationPlanner(CompositeSchema schema)
 
             schemasInContext.Add(schemaName, lookupOperation);
             var planNodeToAdd = PlanConditionNode(lookupField.Selections, lookupOperation);
-            operation.AddChildNode(planNodeToAdd);
+
+            // we add the lookup operation to all the schemas that we have requirements with.
+            foreach (var requiredSchema in requirements.Values.Distinct())
+            {
+                // Add child node is wrong ... this is a graph and the lookup operation has dependencies on
+                // this operation. We should probably double link here.
+                // maybe AddDependantNode()?
+                schemasInContext[requiredSchema].AddChildNode(planNodeToAdd);
+            }
 
             // TODO: we need to include the entity path in here.
             // actually ... we need to redo the whole path thingy.
@@ -339,7 +347,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
         {
             foreach (var possibleLookup in source.Lookups.OrderBy(t => t.Fields.Length))
             {
-                if(possibleLookup.Fields.All(p => IsResolvable(declaringType, p, schemasInContext)))
+                if (possibleLookup.Fields.All(p => IsResolvable(declaringType, p, schemasInContext)))
                 {
                     lookup = possibleLookup;
                     return true;
@@ -374,7 +382,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
     {
         foreach (var segment in fieldPath.Reverse())
         {
-            if(type.NamedType() is not CompositeComplexType complexType
+            if (type.NamedType() is not CompositeComplexType complexType
                 || !complexType.Fields.TryGetField(segment.Name, out var field)
                 || !field.Sources.TryGetMember(schemaName, out var source)
                 || source.Requirements is not null)
@@ -388,7 +396,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
         return true;
     }
 
-    private OperationPlanNode CreateLookupOperation(
+    private LookupOperation CreateLookupOperation(
         string schemaName,
         Lookup lookup,
         CompositeComplexType entityType,
@@ -652,4 +660,9 @@ public sealed class OperationPlanner(CompositeSchema schema)
     {
         public ICollection<OperationPlanNode> Operations { get; } = new List<OperationPlanNode>();
     }
+
+    private record struct LookupOperation(
+        OperationPlanNode Operation,
+        FieldPlanNode Field,
+        ImmutableDictionary<FieldPath, string> Requirements);
 }
