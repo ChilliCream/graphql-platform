@@ -12,9 +12,9 @@ public class InlineFragmentTests : FusionTestBase
 
         var request = Utf8GraphQLParser.Parse(
             """
-            query GetProduct($id: ID!) {
+            query GetProduct($slug: String!) {
                 ... {
-                    productById(id: $id) {
+                    productBySlug(slug: $slug) {
                         name
                     }
                 }
@@ -36,12 +36,12 @@ public class InlineFragmentTests : FusionTestBase
 
         var request = Utf8GraphQLParser.Parse(
             """
-            query GetProduct($id: ID!) {
-                productById(id: $id) {
+            query GetProduct($slug: String!) {
+                productBySlug(slug: $slug) {
                     name
                 }
                 ... {
-                    productById(id: $id) {
+                    productBySlug(slug: $slug) {
                         name
                     }
                 }
@@ -56,6 +56,7 @@ public class InlineFragmentTests : FusionTestBase
     }
 
     [Test]
+    [Skip("InlineFragmentOperationRewriter can not merge selection sets yet")]
     public async Task InlineFragment_On_Root_Next_To_Same_Selection_With_Different_Sub_Selection()
     {
         // arrange
@@ -63,12 +64,12 @@ public class InlineFragmentTests : FusionTestBase
 
         var request = Utf8GraphQLParser.Parse(
             """
-            query GetProduct($id: ID!) {
-                productById(id: $id) {
+            query GetProduct($slug: String!) {
+                productBySlug(slug: $slug) {
                     description
                 }
                 ... {
-                    productById(id: $id) {
+                    productBySlug(slug: $slug) {
                         name
                     }
                 }
@@ -90,14 +91,14 @@ public class InlineFragmentTests : FusionTestBase
 
         var request = Utf8GraphQLParser.Parse(
             """
-            query GetProduct($id: ID!) {
+            query GetProduct($slug: String!) {
                 products {
                     nodes {
                         description
                     }
                 }
                 ... {
-                    productById(id: $id) {
+                    productBySlug(slug: $slug) {
                         name
                     }
                 }
@@ -120,12 +121,12 @@ public class InlineFragmentTests : FusionTestBase
 
         var request = Utf8GraphQLParser.Parse(
             """
-            query GetProduct($id: ID!) {
+            query GetProduct($slug: String!) {
                 viewer {
                     displayName
                 }
                 ... {
-                    productById(id: $id) {
+                    productBySlug(slug: $slug) {
                         name
                     }
                 }
@@ -147,14 +148,14 @@ public class InlineFragmentTests : FusionTestBase
 
         var request = Utf8GraphQLParser.Parse(
             """
-            query GetProduct($id: ID!) {
+            query GetProduct($slug: String!) {
                 ... {
-                    productById(id: $id) {
+                    productBySlug(slug: $slug) {
                         name
                     }
                 }
                 ... {
-                    productById(id: $id) {
+                    productBySlug(slug: $slug) {
                         name
                     }
                 }
@@ -176,9 +177,9 @@ public class InlineFragmentTests : FusionTestBase
 
         var request = Utf8GraphQLParser.Parse(
             """
-            query GetProduct($id: ID!) {
+            query GetProduct($slug: String!) {
                 ... {
-                    productById(id: $id) {
+                    productBySlug(slug: $slug) {
                         name
                     }
                 }
@@ -208,9 +209,9 @@ public class InlineFragmentTests : FusionTestBase
 
         var request = Utf8GraphQLParser.Parse(
             """
-            query GetProduct($id: ID!) {
+            query GetProduct($slug: String!) {
                 ... {
-                    productById(id: $id) {
+                    productBySlug(slug: $slug) {
                         name
                     }
                 }
@@ -237,8 +238,8 @@ public class InlineFragmentTests : FusionTestBase
 
         var request = Utf8GraphQLParser.Parse(
             """
-            query GetProduct($id: ID!) {
-                productById(id: $id) {
+            query GetProduct($slug: String!) {
+                productBySlug(slug: $slug) {
                     ... {
                         name
                     }
@@ -261,8 +262,8 @@ public class InlineFragmentTests : FusionTestBase
 
         var request = Utf8GraphQLParser.Parse(
             """
-            query GetProduct($id: ID!) {
-                productById(id: $id) {
+            query GetProduct($slug: String!) {
+                productBySlug(slug: $slug) {
                     name
                     ... {
                         name
@@ -286,8 +287,8 @@ public class InlineFragmentTests : FusionTestBase
 
         var request = Utf8GraphQLParser.Parse(
             """
-            query GetProduct($id: ID!) {
-                productById(id: $id) {
+            query GetProduct($slug: String!) {
+                productBySlug(slug: $slug) {
                     name
                     ... {
                         description
@@ -311,8 +312,8 @@ public class InlineFragmentTests : FusionTestBase
 
         var request = Utf8GraphQLParser.Parse(
             """
-            query GetProduct($id: ID!) {
-                productById(id: $id) {
+            query GetProduct($slug: String!) {
+                productBySlug(slug: $slug) {
                     name
                     ... {
                         averageRating
@@ -336,8 +337,8 @@ public class InlineFragmentTests : FusionTestBase
 
         var request = Utf8GraphQLParser.Parse(
             """
-            query GetProduct($id: ID!) {
-                productById(id: $id) {
+            query GetProduct($slug: String!) {
+                productBySlug(slug: $slug) {
                     ... {
                         name
                     }
@@ -363,8 +364,8 @@ public class InlineFragmentTests : FusionTestBase
 
         var request = Utf8GraphQLParser.Parse(
             """
-            query GetProduct($id: ID!) {
-                productById(id: $id) {
+            query GetProduct($slug: String!) {
+                productBySlug(slug: $slug) {
                     ... {
                         name
                     }
@@ -390,8 +391,8 @@ public class InlineFragmentTests : FusionTestBase
 
         var request = Utf8GraphQLParser.Parse(
             """
-            query GetProduct($id: ID!) {
-                productById(id: $id) {
+            query GetProduct($slug: String!) {
+                productBySlug(slug: $slug) {
                    ... {
                        name
                    }

@@ -12,8 +12,8 @@ public class SkipAndIncludeTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!, $skip: Boolean!, $include: Boolean!) {
-                productById(id: $id) @skip(if: $skip) @include(if: $include) {
+            query GetProduct($slug: String!, $skip: Boolean!, $include: Boolean!) {
+                productBySlug(slug: $slug) @skip(if: $skip) @include(if: $include) {
                     name
                 }
                 products {
@@ -39,8 +39,8 @@ public class SkipAndIncludeTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!, $skipOrInclude: Boolean!) {
-                productById(id: $id) @skip(if: $skipOrInclude) @include(if: $skipOrInclude) {
+            query GetProduct($slug: String!, $skipOrInclude: Boolean!) {
+                productBySlug(slug: $slug) @skip(if: $skipOrInclude) @include(if: $skipOrInclude) {
                     name
                 }
                 products {
@@ -66,8 +66,8 @@ public class SkipAndIncludeTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!, $include: Boolean!) {
-                productById(id: $id) @include(if: $include) @skip(if: false) {
+            query GetProduct($slug: String!, $include: Boolean!) {
+                productBySlug(slug: $slug) @include(if: $include) @skip(if: false) {
                     name
                 }
                 products {
@@ -93,8 +93,8 @@ public class SkipAndIncludeTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!, $include: Boolean!) {
-                productById(id: $id) @include(if: $include) @skip(if: true) {
+            query GetProduct($slug: String!, $include: Boolean!) {
+                productBySlug(slug: $slug) @include(if: $include) @skip(if: true) {
                     name
                 }
                 products {
@@ -120,8 +120,8 @@ public class SkipAndIncludeTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!) {
-                productById(id: $id) @skip(if: true) @include(if: false) {
+            query GetProduct($slug: String!) {
+                productBySlug(slug: $slug) @skip(if: true) @include(if: false) {
                     name
                 }
                 products {
@@ -147,8 +147,8 @@ public class SkipAndIncludeTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!) {
-                productById(id: $id) @skip(if: false) @include(if: true) {
+            query GetProduct($slug: String!) {
+                productBySlug(slug: $slug) @skip(if: false) @include(if: true) {
                     name
                 }
                 products {
@@ -174,8 +174,8 @@ public class SkipAndIncludeTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!) {
-                productById(id: $id) @skip(if: true) @include(if: true) {
+            query GetProduct($slug: String!) {
+                productBySlug(slug: $slug) @skip(if: true) @include(if: true) {
                     name
                 }
                 products {
@@ -201,8 +201,8 @@ public class SkipAndIncludeTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!) {
-                productById(id: $id) @skip(if: false) @include(if: false) {
+            query GetProduct($slug: String!) {
+                productBySlug(slug: $slug) @skip(if: false) @include(if: false) {
                     name
                 }
                 products {
@@ -228,8 +228,8 @@ public class SkipAndIncludeTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!, $skipOrInclude: Boolean!) {
-                productById(id: $id) @skip(if: $skipOrInclude) @include(if: $skipOrInclude) {
+            query GetProduct($slug: String!, $skipOrInclude: Boolean!) {
+                productBySlug(slug: $slug) @skip(if: $skipOrInclude) @include(if: $skipOrInclude) {
                     name
                 }
             }
@@ -250,8 +250,8 @@ public class SkipAndIncludeTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!, $skip: Boolean!, $include: Boolean!) {
-                productById(id: $id) @skip(if: $skip) @include(if: $include) {
+            query GetProduct($slug: String!, $skip: Boolean!, $include: Boolean!) {
+                productBySlug(slug: $slug) @skip(if: $skip) @include(if: $include) {
                     name
                 }
             }
@@ -272,8 +272,8 @@ public class SkipAndIncludeTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!, $include: Boolean!) {
-                productById(id: $id) @include(if: $include) @skip(if: false) {
+            query GetProduct($slug: String!, $include: Boolean!) {
+                productBySlug(slug: $slug) @include(if: $include) @skip(if: false) {
                     name
                 }
             }
@@ -294,8 +294,8 @@ public class SkipAndIncludeTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!, $include: Boolean!) {
-                productById(id: $id) @include(if: $include) @skip(if: true) {
+            query GetProduct($slug: String!, $include: Boolean!) {
+                productBySlug(slug: $slug) @include(if: $include) @skip(if: true) {
                     name
                 }
             }
@@ -316,8 +316,8 @@ public class SkipAndIncludeTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!) {
-                productById(id: $id) @skip(if: true) @include(if: false) {
+            query GetProduct($slug: String!) {
+                productBySlug(slug: $slug) @skip(if: true) @include(if: false) {
                     name
                 }
             }
@@ -338,8 +338,8 @@ public class SkipAndIncludeTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!) {
-                productById(id: $id) @skip(if: false) @include(if: true) {
+            query GetProduct($slug: String!) {
+                productBySlug(slug: $slug) @skip(if: false) @include(if: true) {
                     name
                 }
             }
@@ -360,8 +360,8 @@ public class SkipAndIncludeTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!) {
-                productById(id: $id) @skip(if: true) @include(if: true) {
+            query GetProduct($slug: String!) {
+                productBySlug(slug: $slug) @skip(if: true) @include(if: true) {
                     name
                 }
             }
@@ -382,8 +382,8 @@ public class SkipAndIncludeTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!) {
-                productById(id: $id) @skip(if: false) @include(if: false) {
+            query GetProduct($slug: String!) {
+                productBySlug(slug: $slug) @skip(if: false) @include(if: false) {
                     name
                 }
             }
@@ -404,8 +404,8 @@ public class SkipAndIncludeTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!, $skip: Boolean!, $include: Boolean!) {
-                productById(id: $id) {
+            query GetProduct($slug: String!, $skip: Boolean!, $include: Boolean!) {
+                productBySlug(slug: $slug) {
                     name @skip(if: $skip) @include(if: $include)
                     description
                 }
@@ -427,8 +427,8 @@ public class SkipAndIncludeTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!, $skipOrInclude: Boolean!) {
-                productById(id: $id) {
+            query GetProduct($slug: String!, $skipOrInclude: Boolean!) {
+                productBySlug(slug: $slug) {
                     name @skip(if: $skipOrInclude) @include(if: $skipOrInclude)
                     description
                 }
@@ -450,8 +450,8 @@ public class SkipAndIncludeTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!, $include: Boolean!) {
-                productById(id: $id) {
+            query GetProduct($slug: String!, $include: Boolean!) {
+                productBySlug(slug: $slug) {
                     name @include(if: $include) @skip(if: false)
                     description
                 }
@@ -473,8 +473,8 @@ public class SkipAndIncludeTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!, $include: Boolean!) {
-                productById(id: $id) {
+            query GetProduct($slug: String!, $include: Boolean!) {
+                productBySlug(slug: $slug) {
                     name @include(if: $include) @skip(if: true)
                     description
                 }
@@ -496,8 +496,8 @@ public class SkipAndIncludeTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!) {
-                productById(id: $id) {
+            query GetProduct($slug: String!) {
+                productBySlug(slug: $slug) {
                     name @skip(if: true) @include(if: false)
                     description
                 }
@@ -519,8 +519,8 @@ public class SkipAndIncludeTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!) {
-                productById(id: $id) {
+            query GetProduct($slug: String!) {
+                productBySlug(slug: $slug) {
                     name @skip(if: false) @include(if: true)
                     description
                 }
@@ -542,8 +542,8 @@ public class SkipAndIncludeTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!) {
-                productById(id: $id) {
+            query GetProduct($slug: String!) {
+                productBySlug(slug: $slug) {
                     name @skip(if: true) @include(if: true)
                     description
                 }
@@ -565,8 +565,8 @@ public class SkipAndIncludeTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!) {
-                productById(id: $id) {
+            query GetProduct($slug: String!) {
+                productBySlug(slug: $slug) {
                     name @skip(if: false) @include(if: false)
                     description
                 }
@@ -588,8 +588,8 @@ public class SkipAndIncludeTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!, $skip: Boolean!, $include: Boolean!) {
-                productById(id: $id) {
+            query GetProduct($slug: String!, $skip: Boolean!, $include: Boolean!) {
+                productBySlug(slug: $slug) {
                     name @skip(if: $skip) @include(if: $include)
                 }
             }
@@ -610,8 +610,8 @@ public class SkipAndIncludeTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!, $include: Boolean!) {
-                productById(id: $id) {
+            query GetProduct($slug: String!, $include: Boolean!) {
+                productBySlug(slug: $slug) {
                     name @include(if: $include) @skip(if: false)
                 }
             }
@@ -632,8 +632,8 @@ public class SkipAndIncludeTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!, $include: Boolean!) {
-                productById(id: $id) {
+            query GetProduct($slug: String!, $include: Boolean!) {
+                productBySlug(slug: $slug) {
                     name @include(if: $include) @skip(if: true)
                 }
             }
@@ -654,8 +654,8 @@ public class SkipAndIncludeTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!, $skipOrInclude: Boolean!) {
-                productById(id: $id) {
+            query GetProduct($slug: String!, $skipOrInclude: Boolean!) {
+                productBySlug(slug: $slug) {
                     name @skip(if: $skipOrInclude) @include(if: $skipOrInclude)
                 }
             }
@@ -676,8 +676,8 @@ public class SkipAndIncludeTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!) {
-                productById(id: $id) {
+            query GetProduct($slug: String!) {
+                productBySlug(slug: $slug) {
                     name @skip(if: true) @include(if: false)
                 }
             }
@@ -698,8 +698,8 @@ public class SkipAndIncludeTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!) {
-                productById(id: $id) {
+            query GetProduct($slug: String!) {
+                productBySlug(slug: $slug) {
                     name @skip(if: false) @include(if: true)
                 }
             }
@@ -720,8 +720,8 @@ public class SkipAndIncludeTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!) {
-                productById(id: $id) {
+            query GetProduct($slug: String!) {
+                productBySlug(slug: $slug) {
                     name @skip(if: true) @include(if: true)
                 }
             }
@@ -742,8 +742,8 @@ public class SkipAndIncludeTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!) {
-                productById(id: $id) {
+            query GetProduct($slug: String!) {
+                productBySlug(slug: $slug) {
                     name @skip(if: false) @include(if: false)
                 }
             }

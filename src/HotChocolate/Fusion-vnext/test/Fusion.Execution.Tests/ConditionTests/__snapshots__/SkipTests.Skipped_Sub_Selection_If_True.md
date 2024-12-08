@@ -1,12 +1,11 @@
-# Skip_On_SubField_If_True
+# Skipped_Sub_Selection_If_True
 
 ## Request
 
 ```graphql
-query GetProduct($id: ID!) {
-  productById(id: $id) {
+query($slug: String!) {
+  productBySlug(slug: $slug) {
     name @skip(if: true)
-    description
   }
 }
 ```
@@ -20,7 +19,7 @@ query GetProduct($id: ID!) {
     {
       "kind": "Operation",
       "schema": "PRODUCTS",
-      "document": "query($id: ID!) { productById(id: $id) { description } }"
+      "document": "query($slug: String!) { productBySlug(slug: $slug) { __typename } }"
     }
   ]
 }

@@ -3,7 +3,7 @@
 ## Request
 
 ```graphql
-query GetProduct($id: ID!) {
+query GetProduct($slug: String!) {
   ... QueryFragment @skip(if: true)
   products {
     nodes {
@@ -13,7 +13,7 @@ query GetProduct($id: ID!) {
 }
 
 fragment QueryFragment on Query {
-  productById(id: $id) {
+  productBySlug(slug: $slug) {
     name
   }
 }

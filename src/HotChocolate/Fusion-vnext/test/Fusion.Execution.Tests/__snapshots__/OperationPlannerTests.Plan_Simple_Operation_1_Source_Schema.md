@@ -4,7 +4,7 @@
 
 ```graphql
 {
-  productById(id: 1) {
+  productBySlug(slug: "1") {
     ... Product
   }
 }
@@ -24,7 +24,7 @@ fragment Product on Product {
     {
       "kind": "Operation",
       "schema": "PRODUCTS",
-      "document": "{ productById(id: 1) { id name } }"
+      "document": "{ productBySlug(slug: \u00221\u0022) { id name } }"
     }
   ]
 }

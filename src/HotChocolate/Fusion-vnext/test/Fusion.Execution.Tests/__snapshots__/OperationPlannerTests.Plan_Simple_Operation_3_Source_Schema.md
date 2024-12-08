@@ -4,7 +4,7 @@
 
 ```graphql
 {
-  productById(id: 1) {
+  productBySlug(slug: "1") {
     ... ProductCard
   }
 }
@@ -40,7 +40,7 @@ fragment AuthorCard on UserProfile {
     {
       "kind": "Operation",
       "schema": "PRODUCTS",
-      "document": "{ productById(id: 1) { name } }",
+      "document": "{ productBySlug(slug: \u00221\u0022) { name } }",
       "nodes": [
         {
           "kind": "Operation",

@@ -1,12 +1,11 @@
-# Multiple_Skip_On_SubFields_From_Different_Subgraph_Only_Skipped_Fields_Selected
+# Skipped_Sub_Selection_From_Different_Subgraph
 
 ## Request
 
 ```graphql
-query GetProduct($id: ID!, $skip1: Boolean!, $skip2: Boolean!) {
-  productById(id: $id) {
-    name @skip(if: $skip1)
-    averageRating @skip(if: $skip2)
+query($slug: String!, $skip: Boolean!) {
+  productBySlug(slug: $slug) {
+    averageRating @skip(if: $skip)
   }
 }
 ```
@@ -20,11 +19,11 @@ query GetProduct($id: ID!, $skip1: Boolean!, $skip2: Boolean!) {
     {
       "kind": "Operation",
       "schema": "PRODUCTS",
-      "document": "query($id: ID!, $skip1: Boolean!) { productById(id: $id) { name @skip(if: $skip1) } }",
+      "document": "query($slug: String!) { productBySlug(slug: $slug) }",
       "nodes": [
         {
           "kind": "Condition",
-          "variableName": "skip2",
+          "variableName": "skip",
           "passingValue": false,
           "nodes": [
             {

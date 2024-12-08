@@ -13,7 +13,7 @@ public class OperationPlannerTests : FusionTestBase
         var request = Parse(
             """
             {
-                productById(id: 1) {
+                productBySlug(slug: "1") {
                     ... Product
                 }
             }
@@ -40,7 +40,7 @@ public class OperationPlannerTests : FusionTestBase
         var request = Parse(
             """
             {
-                productById(id: 1) {
+                productBySlug(slug: "1") {
                     ... Product
                 }
             }
@@ -68,7 +68,7 @@ public class OperationPlannerTests : FusionTestBase
         var request = Parse(
             """
             {
-                productById(id: 1) {
+                productBySlug(slug: "1") {
                     ... ProductCard
                 }
             }
@@ -110,8 +110,8 @@ public class OperationPlannerTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!, $first: Int! = 10) {
-                productById(id: $id) {
+            query GetProduct($slug: String! $first: Int! = 10) {
+                productBySlug(slug: $slug) {
                     ... ProductCard
                 }
             }

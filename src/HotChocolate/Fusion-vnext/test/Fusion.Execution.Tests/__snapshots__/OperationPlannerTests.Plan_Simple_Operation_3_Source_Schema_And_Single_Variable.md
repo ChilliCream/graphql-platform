@@ -3,8 +3,8 @@
 ## Request
 
 ```graphql
-query GetProduct($id: ID!, $first: Int! = 10) {
-  productById(id: $id) {
+query GetProduct($slug: String!, $first: Int! = 10) {
+  productBySlug(slug: $slug) {
     ... ProductCard
   }
 }
@@ -40,7 +40,7 @@ fragment AuthorCard on UserProfile {
     {
       "kind": "Operation",
       "schema": "PRODUCTS",
-      "document": "query($id: ID!) { productById(id: $id) { name } }",
+      "document": "query($slug: String!) { productBySlug(slug: $slug) { name } }",
       "nodes": [
         {
           "kind": "Operation",

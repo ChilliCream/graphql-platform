@@ -3,7 +3,7 @@
 ## Request
 
 ```graphql
-query GetProduct($id: ID!, $skip: Boolean!) {
+query GetProduct($slug: String!, $skip: Boolean!) {
   ... QueryFragment @skip(if: $skip)
   products {
     nodes {
@@ -13,7 +13,7 @@ query GetProduct($id: ID!, $skip: Boolean!) {
 }
 
 fragment QueryFragment on Query {
-  productById(id: $id) {
+  productBySlug(slug: $slug) {
     name
   }
 }
@@ -28,7 +28,7 @@ fragment QueryFragment on Query {
     {
       "kind": "Operation",
       "schema": "PRODUCTS",
-      "document": "query($id: ID!, $skip: Boolean!) { ... on Query @skip(if: $skip) { productById(id: $id) { name } } products { nodes { name } } }"
+      "document": "query($skip: Boolean!, $slug: String!) { ... on Query @skip(if: $skip) { productBySlug(slug: $slug) { name } } products { nodes { name } } }"
     }
   ]
 }

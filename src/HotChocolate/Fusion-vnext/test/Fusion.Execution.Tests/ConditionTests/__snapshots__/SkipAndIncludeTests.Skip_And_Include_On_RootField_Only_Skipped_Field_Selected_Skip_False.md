@@ -3,8 +3,8 @@
 ## Request
 
 ```graphql
-query GetProduct($id: ID!, $include: Boolean!) {
-  productById(id: $id) @include(if: $include) @skip(if: false) {
+query GetProduct($slug: String!, $include: Boolean!) {
+  productBySlug(slug: $slug) @include(if: $include) @skip(if: false) {
     name
   }
 }
@@ -24,7 +24,7 @@ query GetProduct($id: ID!, $include: Boolean!) {
         {
           "kind": "Operation",
           "schema": "PRODUCTS",
-          "document": "query($id: ID!) { productById(id: $id) { name } }"
+          "document": "query($slug: String!) { productBySlug(slug: $slug) { name } }"
         }
       ]
     }

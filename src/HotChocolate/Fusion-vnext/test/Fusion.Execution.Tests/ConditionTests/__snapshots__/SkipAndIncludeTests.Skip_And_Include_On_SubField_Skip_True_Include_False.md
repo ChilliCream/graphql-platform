@@ -3,8 +3,8 @@
 ## Request
 
 ```graphql
-query GetProduct($id: ID!) {
-  productById(id: $id) {
+query GetProduct($slug: String!) {
+  productBySlug(slug: $slug) {
     name @skip(if: true) @include(if: false)
     description
   }
@@ -20,7 +20,7 @@ query GetProduct($id: ID!) {
     {
       "kind": "Operation",
       "schema": "PRODUCTS",
-      "document": "query($id: ID!) { productById(id: $id) { description } }"
+      "document": "query($slug: String!) { productBySlug(slug: $slug) { description } }"
     }
   ]
 }

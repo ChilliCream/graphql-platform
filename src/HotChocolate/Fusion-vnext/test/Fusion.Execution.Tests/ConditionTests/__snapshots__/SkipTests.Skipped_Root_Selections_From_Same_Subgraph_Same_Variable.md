@@ -1,10 +1,10 @@
-# Multiple_Skip_On_RootFields_From_Same_Subgraph_Only_Skipped_Fields_Selected_With_Same_Variable
+# Skipped_Root_Selections_From_Same_Subgraph_Same_Variable
 
 ## Request
 
 ```graphql
-query GetProduct($id: ID!, $skip: Boolean!) {
-  productById(id: $id) @skip(if: $skip) {
+query($slug: String!, $skip: Boolean!) {
+  productBySlug(slug: $slug) @skip(if: $skip) {
     name
   }
   products @skip(if: $skip) {
@@ -29,7 +29,7 @@ query GetProduct($id: ID!, $skip: Boolean!) {
         {
           "kind": "Operation",
           "schema": "PRODUCTS",
-          "document": "query($id: ID!) { productById(id: $id) { name } products { nodes { name } } }"
+          "document": "query($slug: String!) { productBySlug(slug: $slug) { name } products { nodes { name } } }"
         }
       ]
     }

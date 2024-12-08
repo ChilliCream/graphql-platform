@@ -3,13 +3,13 @@
 ## Request
 
 ```graphql
-query GetProduct($id: ID!) {
+query GetProduct($slug: String!) {
   ... QueryFragment1
   ... QueryFragment2
 }
 
 fragment QueryFragment1 on Query {
-  productById(id: $id) {
+  productBySlug(slug: $slug) {
     name
   }
 }
@@ -32,7 +32,7 @@ fragment QueryFragment2 on Query {
     {
       "kind": "Operation",
       "schema": "PRODUCTS",
-      "document": "query($id: ID!) { productById(id: $id) { name } products { nodes { description } } }"
+      "document": "query($slug: String!) { productBySlug(slug: $slug) { name } products { nodes { description } } }"
     }
   ]
 }

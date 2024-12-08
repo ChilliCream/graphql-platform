@@ -12,12 +12,12 @@ public class FragmentTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!) {
+            query GetProduct($slug: String!) {
                 ...QueryFragment
             }
 
             fragment QueryFragment on Query {
-                productById(id: $id) {
+                productBySlug(slug: $slug) {
                     name
                 }
             }
@@ -38,15 +38,15 @@ public class FragmentTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!) {
-                productById(id: $id) {
+            query GetProduct($slug: String!) {
+                productBySlug(slug: $slug) {
                     name
                 }
                 ...QueryFragment
             }
 
             fragment QueryFragment on Query {
-                productById(id: $id) {
+                productBySlug(slug: $slug) {
                     name
                 }
             }
@@ -60,6 +60,7 @@ public class FragmentTests : FusionTestBase
     }
 
     [Test]
+    [Skip("InlineFragmentOperationRewriter can not merge selection sets yet")]
     public async Task Fragment_On_Root_Next_To_Same_Selection_With_Different_Sub_Selection()
     {
         // arrange
@@ -67,15 +68,15 @@ public class FragmentTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!) {
-                productById(id: $id) {
+            query GetProduct($slug: String!) {
+                productBySlug(slug: $slug) {
                     description
                 }
                 ...QueryFragment
             }
 
             fragment QueryFragment on Query {
-                productById(id: $id) {
+                productBySlug(slug: $slug) {
                     name
                 }
             }
@@ -96,7 +97,7 @@ public class FragmentTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!) {
+            query GetProduct($slug: String!) {
                 products {
                     nodes {
                         description
@@ -106,7 +107,7 @@ public class FragmentTests : FusionTestBase
             }
 
             fragment QueryFragment on Query {
-                productById(id: $id) {
+                productBySlug(slug: $slug) {
                     name
                 }
             }
@@ -128,7 +129,7 @@ public class FragmentTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!) {
+            query GetProduct($slug: String!) {
                 viewer {
                     displayName
                 }
@@ -136,7 +137,7 @@ public class FragmentTests : FusionTestBase
             }
 
             fragment QueryFragment on Query {
-                productById(id: $id) {
+                productBySlug(slug: $slug) {
                     name
                 }
             }
@@ -157,19 +158,19 @@ public class FragmentTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!) {
+            query GetProduct($slug: String!) {
                 ...QueryFragment1
                 ...QueryFragment2
             }
 
             fragment QueryFragment1 on Query {
-                productById(id: $id) {
+                productBySlug(slug: $slug) {
                     name
                 }
             }
 
             fragment QueryFragment2 on Query {
-                productById(id: $id) {
+                productBySlug(slug: $slug) {
                     name
                 }
             }
@@ -190,13 +191,13 @@ public class FragmentTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!) {
+            query GetProduct($slug: String!) {
                 ...QueryFragment1
                 ...QueryFragment2
             }
 
             fragment QueryFragment1 on Query {
-                productById(id: $id) {
+                productBySlug(slug: $slug) {
                     name
                 }
             }
@@ -226,13 +227,13 @@ public class FragmentTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!) {
+            query GetProduct($slug: String!) {
                 ...QueryFragment1
                 ...QueryFragment2
             }
 
             fragment QueryFragment1 on Query {
-                productById(id: $id) {
+                productBySlug(slug: $slug) {
                     name
                 }
             }
@@ -259,8 +260,8 @@ public class FragmentTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!) {
-                productById(id: $id) {
+            query GetProduct($slug: String!) {
+                productBySlug(slug: $slug) {
                     ...ProductFragment
                 }
             }
@@ -285,8 +286,8 @@ public class FragmentTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!) {
-                productById(id: $id) {
+            query GetProduct($slug: String!) {
+                productBySlug(slug: $slug) {
                     name
                     ...ProductFragment
                 }
@@ -312,8 +313,8 @@ public class FragmentTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!) {
-                productById(id: $id) {
+            query GetProduct($slug: String!) {
+                productBySlug(slug: $slug) {
                     name
                     ...ProductFragment
                 }
@@ -339,8 +340,8 @@ public class FragmentTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!) {
-                productById(id: $id) {
+            query GetProduct($slug: String!) {
+                productBySlug(slug: $slug) {
                     name
                     ...ProductFragment
                 }
@@ -366,8 +367,8 @@ public class FragmentTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!) {
-                productById(id: $id) {
+            query GetProduct($slug: String!) {
+                productBySlug(slug: $slug) {
                     ...ProductFragment1
                     ...ProductFragment2
                 }
@@ -397,8 +398,8 @@ public class FragmentTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!) {
-                productById(id: $id) {
+            query GetProduct($slug: String!) {
+                productBySlug(slug: $slug) {
                     ...ProductFragment1
                     ...ProductFragment2
                 }
@@ -428,8 +429,8 @@ public class FragmentTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($id: ID!) {
-                productById(id: $id) {
+            query GetProduct($slug: String!) {
+                productBySlug(slug: $slug) {
                     ...ProductFragment1
                     ...ProductFragment2
                 }

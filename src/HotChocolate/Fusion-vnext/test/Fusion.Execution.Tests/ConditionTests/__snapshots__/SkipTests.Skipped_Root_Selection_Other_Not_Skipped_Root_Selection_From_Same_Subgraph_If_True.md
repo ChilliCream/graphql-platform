@@ -1,10 +1,10 @@
-# Skip_On_RootField_If_False
+# Skipped_Root_Selection_Other_Not_Skipped_Root_Selection_From_Same_Subgraph_If_True
 
 ## Request
 
 ```graphql
-query GetProduct($id: ID!) {
-  productById(id: $id) @skip(if: false) {
+query($slug: String!) {
+  productBySlug(slug: $slug) @skip(if: true) {
     name
   }
   products {
@@ -24,7 +24,7 @@ query GetProduct($id: ID!) {
     {
       "kind": "Operation",
       "schema": "PRODUCTS",
-      "document": "query($id: ID!) { productById(id: $id) { name } products { nodes { name } } }"
+      "document": "{ products { nodes { name } } }"
     }
   ]
 }

@@ -1,14 +1,12 @@
-# Multiple_Skip_On_RootFields_From_Different_Subgraphs_Only_Skipped_Fields_Selected_With_Same_Variable
+# Skipped_Shared_byId_Root_Selection_With_Sub_Selections_From_Different_Subgraphs
 
 ## Request
 
 ```graphql
-query GetProduct($id: ID!, $skip: Boolean!) {
+query($id: ID!) {
   productById(id: $id) @skip(if: $skip) {
     name
-  }
-  viewer @skip(if: $skip) {
-    displayName
+    averageRating
   }
 }
 ```
@@ -31,8 +29,8 @@ query GetProduct($id: ID!, $skip: Boolean!) {
         },
         {
           "kind": "Operation",
-          "schema": "ACCOUNTS",
-          "document": "{ viewer { displayName } }"
+          "schema": "REVIEWS",
+          "document": "query($id: ID!) { productById(id: $id) { averageRating } }"
         }
       ]
     }
