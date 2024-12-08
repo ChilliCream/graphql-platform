@@ -12,7 +12,7 @@ public class FragmentTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($slug: String!) {
+            query($slug: String!) {
                 ...QueryFragment
             }
 
@@ -38,7 +38,7 @@ public class FragmentTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($slug: String!) {
+            query($slug: String!) {
                 productBySlug(slug: $slug) {
                     name
                 }
@@ -68,7 +68,7 @@ public class FragmentTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($slug: String!) {
+            query($slug: String!) {
                 productBySlug(slug: $slug) {
                     description
                 }
@@ -97,7 +97,7 @@ public class FragmentTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($slug: String!) {
+            query($slug: String!) {
                 products {
                     nodes {
                         description
@@ -129,7 +129,7 @@ public class FragmentTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($slug: String!) {
+            query($slug: String!) {
                 viewer {
                     displayName
                 }
@@ -158,7 +158,7 @@ public class FragmentTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($slug: String!) {
+            query($slug: String!) {
                 ...QueryFragment1
                 ...QueryFragment2
             }
@@ -191,7 +191,7 @@ public class FragmentTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($slug: String!) {
+            query($slug: String!) {
                 ...QueryFragment1
                 ...QueryFragment2
             }
@@ -227,7 +227,7 @@ public class FragmentTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($slug: String!) {
+            query($slug: String!) {
                 ...QueryFragment1
                 ...QueryFragment2
             }
@@ -260,7 +260,7 @@ public class FragmentTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($slug: String!) {
+            query($slug: String!) {
                 productBySlug(slug: $slug) {
                     ...ProductFragment
                 }
@@ -286,7 +286,7 @@ public class FragmentTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($slug: String!) {
+            query($slug: String!) {
                 productBySlug(slug: $slug) {
                     name
                     ...ProductFragment
@@ -313,7 +313,7 @@ public class FragmentTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($slug: String!) {
+            query($slug: String!) {
                 productBySlug(slug: $slug) {
                     name
                     ...ProductFragment
@@ -340,7 +340,7 @@ public class FragmentTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($slug: String!) {
+            query($slug: String!) {
                 productBySlug(slug: $slug) {
                     name
                     ...ProductFragment
@@ -367,7 +367,7 @@ public class FragmentTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($slug: String!) {
+            query($slug: String!) {
                 productBySlug(slug: $slug) {
                     ...ProductFragment1
                     ...ProductFragment2
@@ -398,7 +398,7 @@ public class FragmentTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($slug: String!) {
+            query($slug: String!) {
                 productBySlug(slug: $slug) {
                     ...ProductFragment1
                     ...ProductFragment2
@@ -429,7 +429,7 @@ public class FragmentTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($slug: String!) {
+            query($slug: String!) {
                 productBySlug(slug: $slug) {
                     ...ProductFragment1
                     ...ProductFragment2

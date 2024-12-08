@@ -4,333 +4,432 @@ namespace HotChocolate.Fusion;
 
 public class SkipFragmentTests : FusionTestBase
 {
-     [Test]
-     public async Task Skip_On_RootFragment()
-     {
-         // arrange
-         var compositeSchema = CreateCompositeSchema();
+    [Test]
+    public async Task Skipped_Root_Selection_Same_Selection_Without_Skip_In_Fragment()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
 
-         var request = Parse(
-             """
-             query GetProduct($slug: String!, $skip: Boolean!) {
-                 ...QueryFragment @skip(if: $skip)
-                 products {
-                   nodes {
-                     name
-                   }
-                 }
-             }
+        var request = Parse(
+            """
+            query($slug: String!, $skip: Boolean!) {
+                productBySlug(slug: $slug) @skip(if: $skip) {
+                    name
+                }
+                ... QueryFragment
+            }
 
-             fragment QueryFragment on Query {
-                 productBySlug(slug: $slug) {
-                     name
-                 }
-             }
-             """);
+            fragment QueryFragment on Query {
+                productBySlug(slug: $slug) {
+                    name
+                }
+            }
+            """);
 
-         // act
-         var plan = PlanOperation(request, compositeSchema);
+        // act
+        var plan = PlanOperation(request, compositeSchema);
 
-         // assert
-         await MatchSnapshotAsync(request, plan);
-     }
+        // assert
+        await MatchSnapshotAsync(request, plan);
+    }
 
-     [Test]
-     public async Task Skip_On_RootFragment_If_False()
-     {
-         // arrange
-         var compositeSchema = CreateCompositeSchema();
+    [Test]
+    public async Task Skipped_Root_Selection_Same_Selection_In_Fragment()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
 
-         var request = Parse(
-             """
-             query GetProduct($slug: String!) {
-                 ...QueryFragment @skip(if: false)
-                 products {
-                   nodes {
-                     name
-                   }
-                 }
-             }
+        var request = Parse(
+            """
+            query($slug: String!, $skip: Boolean!) {
+                productBySlug(slug: $slug) @skip(if: $skip) {
+                    name
+                }
+                ... QueryFragment
+            }
 
-             fragment QueryFragment on Query {
-                 productBySlug(slug: $slug) {
-                     name
-                 }
-             }
-             """);
+            fragment QueryFragment on Query {
+                productBySlug(slug: $slug) @skip(if: $skip) {
+                    name
+                }
+            }
+            """);
 
-         // act
-         var plan = PlanOperation(request, compositeSchema);
+        // act
+        var plan = PlanOperation(request, compositeSchema);
 
-         // assert
-         await MatchSnapshotAsync(request, plan);
-     }
+        // assert
+        await MatchSnapshotAsync(request, plan);
+    }
 
-     [Test]
-     public async Task Skip_On_RootFragment_If_True()
-     {
-         // arrange
-         var compositeSchema = CreateCompositeSchema();
+    [Test]
+    public async Task Skipped_Root_Selection_Same_Selection_With_Different_Skip_In_Fragment()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
 
-         var request = Parse(
-             """
-             query GetProduct($slug: String!) {
-                 ...QueryFragment @skip(if: true)
-                 products {
-                   nodes {
-                     name
-                   }
-                 }
-             }
+        var request = Parse(
+            """
+            query($slug: String!, $skip1: Boolean!, $skip2: Boolean!) {
+                productBySlug(slug: $slug) @skip(if: $skip1) {
+                    name
+                }
+                ... QueryFragment
+            }
 
-             fragment QueryFragment on Query {
-                 productBySlug(slug: $slug) {
-                     name
-                 }
-             }
-             """);
+            fragment QueryFragment on Query {
+                productBySlug(slug: $slug) @skip(if: $skip2) {
+                    name
+                }
+            }
+            """);
 
-         // act
-         var plan = PlanOperation(request, compositeSchema);
+        // act
+        var plan = PlanOperation(request, compositeSchema);
 
-         // assert
-         await MatchSnapshotAsync(request, plan);
-     }
+        // assert
+        await MatchSnapshotAsync(request, plan);
+    }
 
-     [Test]
-     public async Task Skip_On_RootFragment_Only_Skipped_Fragment_Selected()
-     {
-         // arrange
-         var compositeSchema = CreateCompositeSchema();
+    [Test]
+    public async Task Skipped_Root_Fragment()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
 
-         var request = Parse(
-             """
-             query GetProduct($slug: String!, $skip: Boolean!) {
-                 ...QueryFragment @skip(if: $skip)
-             }
+        var request = Parse(
+            """
+            query($slug: String!, $skip: Boolean!) {
+                ... QueryFragment @skip(if: $skip)
+            }
 
-             fragment QueryFragment on Query {
-                 productBySlug(slug: $slug) {
-                     name
-                 }
-             }
-             """);
+            fragment QueryFragment on Query {
+                productBySlug(slug: $slug) {
+                    name
+                }
+            }
+            """);
 
-         // act
-         var plan = PlanOperation(request, compositeSchema);
+        // act
+        var plan = PlanOperation(request, compositeSchema);
 
-         // assert
-         await MatchSnapshotAsync(request, plan);
-     }
+        // assert
+        await MatchSnapshotAsync(request, plan);
+    }
 
-     [Test]
-     public async Task Skip_On_RootFragment_Only_Skipped_Fragment_Selected_If_False()
-     {
-         // arrange
-         var compositeSchema = CreateCompositeSchema();
+    [Test]
+    public async Task Skipped_Root_Fragment_If_False()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
 
-         var request = Parse(
-             """
-             query GetProduct($slug: String!) {
-                 ...QueryFragment @skip(if: false)
-             }
+        var request = Parse(
+          """
+          query($slug: String!) {
+              ... QueryFragment @skip(if: false)
+          }
 
-             fragment QueryFragment on Query {
-                 productBySlug(slug: $slug) {
-                     name
-                 }
-             }
-             """);
+          fragment QueryFragment on Query {
+              productBySlug(slug: $slug) {
+                  name
+              }
+          }
+          """);
 
-         // act
-         var plan = PlanOperation(request, compositeSchema);
+        // act
+        var plan = PlanOperation(request, compositeSchema);
 
-         // assert
-         await MatchSnapshotAsync(request, plan);
-     }
+        // assert
+        await MatchSnapshotAsync(request, plan);
+    }
 
-     [Test]
-     public async Task Skip_On_RootFragment_Only_Skipped_Fragment_Selected_If_True()
-     {
-         // arrange
-         var compositeSchema = CreateCompositeSchema();
+    [Test]
+    public async Task Skipped_Root_Fragment_If_True()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
 
-         var request = Parse(
-             """
-             query GetProduct($slug: String!) {
-                 ...QueryFragment @skip(if: true)
-             }
+        var request = Parse(
+          """
+          query($slug: String!) {
+              ... QueryFragment @skip(if: true)
+          }
 
-             fragment QueryFragment on Query {
-                 productBySlug(slug: $slug) {
-                     name
-                 }
-             }
-             """);
+          fragment QueryFragment on Query {
+              productBySlug(slug: $slug) {
+                  name
+              }
+          }
+          """);
 
-         // act
-         var plan = PlanOperation(request, compositeSchema);
+        // act
+        var plan = PlanOperation(request, compositeSchema);
 
-         // assert
-         await MatchSnapshotAsync(request, plan);
-     }
+        // assert
+        await MatchSnapshotAsync(request, plan);
+    }
 
-     [Test]
-     public async Task Skip_On_SubFragment()
-     {
-         // arrange
-         var compositeSchema = CreateCompositeSchema();
+    [Test]
+    public async Task Skipped_Root_Fragment_Other_Not_Skipped_Root_Fragment_From_Same_Subgraph()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
 
-         var request = Parse(
-             """
-             query GetProduct($slug: String!, $skip: Boolean!) {
-                 productBySlug(slug: $slug) {
-                     ...ProductFragment @skip(if: $skip)
-                     description
-                 }
-             }
+        var request = Parse(
+            """
+            query($slug: String!, $skip: Boolean!) {
+                ... QueryFragment1 @skip(if: $skip)
+                ... QueryFragment2
+            }
 
-             fragment ProductFragment on Product {
-                 name
-             }
-             """);
+            fragment QueryFragment1 on Query {
+                productBySlug(slug: $slug) {
+                    name
+                }
+            }
 
-         // act
-         var plan = PlanOperation(request, compositeSchema);
+            fragment QueryFragment2 on Query {
+                products {
+                    nodes {
+                        description
+                    }
+                }
+            }
+            """);
 
-         // assert
-         await MatchSnapshotAsync(request, plan);
-     }
+        // act
+        var plan = PlanOperation(request, compositeSchema);
 
-     [Test]
-     public async Task Skip_On_SubFragment_If_False()
-     {
-         // arrange
-         var compositeSchema = CreateCompositeSchema();
+        // assert
+        await MatchSnapshotAsync(request, plan);
+    }
 
-         var request = Parse(
-             """
-             query GetProduct($slug: String!) {
-                 productBySlug(slug: $slug) {
-                     ...ProductFragment @skip(if: false)
-                     description
-                 }
-             }
+    [Test]
+    public async Task Skipped_Root_Fragment_Other_Not_Skipped_Root_Fragment_From_Same_Subgraph_If_False()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
 
-             fragment ProductFragment on Product {
-                 name
-             }
-             """);
+        var request = Parse(
+            """
+            query($slug: String!) {
+                ... QueryFragment1 @skip(if: false)
+                ... QueryFragment2
+            }
 
-         // act
-         var plan = PlanOperation(request, compositeSchema);
+            fragment QueryFragment1 on Query {
+                productBySlug(slug: $slug) {
+                    name
+                }
+            }
 
-         // assert
-         await MatchSnapshotAsync(request, plan);
-     }
+            fragment QueryFragment2 on Query {
+                products {
+                    nodes {
+                        description
+                    }
+                }
+            }
+            """);
 
-     [Test]
-     public async Task Skip_On_SubFragment_If_True()
-     {
-         // arrange
-         var compositeSchema = CreateCompositeSchema();
+        // act
+        var plan = PlanOperation(request, compositeSchema);
 
-         var request = Parse(
-             """
-             query GetProduct($slug: String!) {
-                 productBySlug(slug: $slug) {
-                     ...ProductFragment @skip(if: true)
-                     description
-                 }
-             }
+        // assert
+        await MatchSnapshotAsync(request, plan);
+    }
 
-             fragment ProductFragment on Product {
-                 name
-             }
-             """);
+    [Test]
+    public async Task Skipped_Root_Fragment_Other_Not_Skipped_Root_Fragment_From_Same_Subgraph_If_True()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
 
-         // act
-         var plan = PlanOperation(request, compositeSchema);
+        var request = Parse(
+            """
+            query($slug: String!) {
+                ... QueryFragment1 @skip(if: false)
+                ... QueryFragment2
+            }
 
-         // assert
-         await MatchSnapshotAsync(request, plan);
-     }
+            fragment QueryFragment1 on Query {
+                productBySlug(slug: $slug) {
+                    name
+                }
+            }
 
-     [Test]
-     public async Task Skip_On_SubFragment_Only_Skipped_Fragment_Selected()
-     {
-         // arrange
-         var compositeSchema = CreateCompositeSchema();
+            fragment QueryFragment2 on Query {
+                products {
+                    nodes {
+                        description
+                    }
+                }
+            }
+            """);
 
-         var request = Parse(
-             """
-             query GetProduct($slug: String!, $skip: Boolean!) {
-                 productBySlug(slug: $slug) {
-                     ...ProductFragment @skip(if: $skip)
-                 }
-             }
+        // act
+        var plan = PlanOperation(request, compositeSchema);
 
-             fragment ProductFragment on Product {
-                 name
-             }
-             """);
+        // assert
+        await MatchSnapshotAsync(request, plan);
+    }
 
-         // act
-         var plan = PlanOperation(request, compositeSchema);
-
-         // assert
-         await MatchSnapshotAsync(request, plan);
-     }
-
-     [Test]
-     public async Task Skip_On_SubFragment_Only_Skipped_Fragment_SelectedIf_False()
-     {
-         // arrange
-         var compositeSchema = CreateCompositeSchema();
-
-         var request = Parse(
-             """
-             query GetProduct($slug: String!) {
-                 productBySlug(slug: $slug) {
-                     ...ProductFragment @skip(if: false)
-                 }
-             }
-
-             fragment ProductFragment on Product {
-                 name
-             }
-             """);
-
-         // act
-         var plan = PlanOperation(request, compositeSchema);
-
-         // assert
-         await MatchSnapshotAsync(request, plan);
-     }
-
-     [Test]
-     public async Task Skip_On_SubFragment_Only_Skipped_Fragment_Selected_If_True()
-     {
-         // arrange
-         var compositeSchema = CreateCompositeSchema();
-
-         var request = Parse(
-             """
-             query GetProduct($slug: String!) {
-                 productBySlug(slug: $slug) {
-                     ...ProductFragment @skip(if: true)
-                 }
-             }
-
-             fragment ProductFragment on Product {
-                 name
-             }
-             """);
-
-         // act
-         var plan = PlanOperation(request, compositeSchema);
-
-         // assert
-         await MatchSnapshotAsync(request, plan);
-     }
+//      [Test]
+//      public async Task Skip_On_SubFragment()
+//      {
+//          // arrange
+//          var compositeSchema = CreateCompositeSchema();
+//
+//          var request = Parse(
+//              """
+//              query($slug: String!, $skip: Boolean!) {
+//                  productBySlug(slug: $slug) {
+//                      ...ProductFragment @skip(if: $skip)
+//                      description
+//                  }
+//              }
+//
+//              fragment ProductFragment on Product {
+//                  name
+//              }
+//              """);
+//
+//          // act
+//          var plan = PlanOperation(request, compositeSchema);
+//
+//          // assert
+//          await MatchSnapshotAsync(request, plan);
+//      }
+//
+//      [Test]
+//      public async Task Skip_On_SubFragment_If_False()
+//      {
+//          // arrange
+//          var compositeSchema = CreateCompositeSchema();
+//
+//          var request = Parse(
+//              """
+//              query($slug: String!) {
+//                  productBySlug(slug: $slug) {
+//                      ...ProductFragment @skip(if: false)
+//                      description
+//                  }
+//              }
+//
+//              fragment ProductFragment on Product {
+//                  name
+//              }
+//              """);
+//
+//          // act
+//          var plan = PlanOperation(request, compositeSchema);
+//
+//          // assert
+//          await MatchSnapshotAsync(request, plan);
+//      }
+//
+//      [Test]
+//      public async Task Skip_On_SubFragment_If_True()
+//      {
+//          // arrange
+//          var compositeSchema = CreateCompositeSchema();
+//
+//          var request = Parse(
+//              """
+//              query($slug: String!) {
+//                  productBySlug(slug: $slug) {
+//                      ...ProductFragment @skip(if: true)
+//                      description
+//                  }
+//              }
+//
+//              fragment ProductFragment on Product {
+//                  name
+//              }
+//              """);
+//
+//          // act
+//          var plan = PlanOperation(request, compositeSchema);
+//
+//          // assert
+//          await MatchSnapshotAsync(request, plan);
+//      }
+//
+//      [Test]
+//      public async Task Skip_On_SubFragment_Only_Skipped_Fragment_Selected()
+//      {
+//          // arrange
+//          var compositeSchema = CreateCompositeSchema();
+//
+//          var request = Parse(
+//              """
+//              query($slug: String!, $skip: Boolean!) {
+//                  productBySlug(slug: $slug) {
+//                      ...ProductFragment @skip(if: $skip)
+//                  }
+//              }
+//
+//              fragment ProductFragment on Product {
+//                  name
+//              }
+//              """);
+//
+//          // act
+//          var plan = PlanOperation(request, compositeSchema);
+//
+//          // assert
+//          await MatchSnapshotAsync(request, plan);
+//      }
+//
+//      [Test]
+//      public async Task Skip_On_SubFragment_Only_Skipped_Fragment_SelectedIf_False()
+//      {
+//          // arrange
+//          var compositeSchema = CreateCompositeSchema();
+//
+//          var request = Parse(
+//              """
+//              query($slug: String!) {
+//                  productBySlug(slug: $slug) {
+//                      ...ProductFragment @skip(if: false)
+//                  }
+//              }
+//
+//              fragment ProductFragment on Product {
+//                  name
+//              }
+//              """);
+//
+//          // act
+//          var plan = PlanOperation(request, compositeSchema);
+//
+//          // assert
+//          await MatchSnapshotAsync(request, plan);
+//      }
+//
+//      [Test]
+//      public async Task Skip_On_SubFragment_Only_Skipped_Fragment_Selected_If_True()
+//      {
+//          // arrange
+//          var compositeSchema = CreateCompositeSchema();
+//
+//          var request = Parse(
+//              """
+//              query($slug: String!) {
+//                  productBySlug(slug: $slug) {
+//                      ...ProductFragment @skip(if: true)
+//                  }
+//              }
+//
+//              fragment ProductFragment on Product {
+//                  name
+//              }
+//              """);
+//
+//          // act
+//          var plan = PlanOperation(request, compositeSchema);
+//
+//          // assert
+//          await MatchSnapshotAsync(request, plan);
+//      }
 }

@@ -12,7 +12,7 @@ public class InlineFragmentTests : FusionTestBase
 
         var request = Utf8GraphQLParser.Parse(
             """
-            query GetProduct($slug: String!) {
+            query($slug: String!) {
                 ... {
                     productBySlug(slug: $slug) {
                         name
@@ -36,7 +36,7 @@ public class InlineFragmentTests : FusionTestBase
 
         var request = Utf8GraphQLParser.Parse(
             """
-            query GetProduct($slug: String!) {
+            query($slug: String!) {
                 productBySlug(slug: $slug) {
                     name
                 }
@@ -64,7 +64,7 @@ public class InlineFragmentTests : FusionTestBase
 
         var request = Utf8GraphQLParser.Parse(
             """
-            query GetProduct($slug: String!) {
+            query($slug: String!) {
                 productBySlug(slug: $slug) {
                     description
                 }
@@ -91,7 +91,7 @@ public class InlineFragmentTests : FusionTestBase
 
         var request = Utf8GraphQLParser.Parse(
             """
-            query GetProduct($slug: String!) {
+            query($slug: String!) {
                 products {
                     nodes {
                         description
@@ -121,7 +121,7 @@ public class InlineFragmentTests : FusionTestBase
 
         var request = Utf8GraphQLParser.Parse(
             """
-            query GetProduct($slug: String!) {
+            query($slug: String!) {
                 viewer {
                     displayName
                 }
@@ -148,7 +148,7 @@ public class InlineFragmentTests : FusionTestBase
 
         var request = Utf8GraphQLParser.Parse(
             """
-            query GetProduct($slug: String!) {
+            query($slug: String!) {
                 ... {
                     productBySlug(slug: $slug) {
                         name
@@ -177,7 +177,7 @@ public class InlineFragmentTests : FusionTestBase
 
         var request = Utf8GraphQLParser.Parse(
             """
-            query GetProduct($slug: String!) {
+            query($slug: String!) {
                 ... {
                     productBySlug(slug: $slug) {
                         name
@@ -209,7 +209,7 @@ public class InlineFragmentTests : FusionTestBase
 
         var request = Utf8GraphQLParser.Parse(
             """
-            query GetProduct($slug: String!) {
+            query($slug: String!) {
                 ... {
                     productBySlug(slug: $slug) {
                         name
@@ -238,7 +238,7 @@ public class InlineFragmentTests : FusionTestBase
 
         var request = Utf8GraphQLParser.Parse(
             """
-            query GetProduct($slug: String!) {
+            query($slug: String!) {
                 productBySlug(slug: $slug) {
                     ... {
                         name
@@ -262,7 +262,7 @@ public class InlineFragmentTests : FusionTestBase
 
         var request = Utf8GraphQLParser.Parse(
             """
-            query GetProduct($slug: String!) {
+            query($slug: String!) {
                 productBySlug(slug: $slug) {
                     name
                     ... {
@@ -287,7 +287,7 @@ public class InlineFragmentTests : FusionTestBase
 
         var request = Utf8GraphQLParser.Parse(
             """
-            query GetProduct($slug: String!) {
+            query($slug: String!) {
                 productBySlug(slug: $slug) {
                     name
                     ... {
@@ -312,7 +312,7 @@ public class InlineFragmentTests : FusionTestBase
 
         var request = Utf8GraphQLParser.Parse(
             """
-            query GetProduct($slug: String!) {
+            query($slug: String!) {
                 productBySlug(slug: $slug) {
                     name
                     ... {
@@ -337,7 +337,7 @@ public class InlineFragmentTests : FusionTestBase
 
         var request = Utf8GraphQLParser.Parse(
             """
-            query GetProduct($slug: String!) {
+            query($slug: String!) {
                 productBySlug(slug: $slug) {
                     ... {
                         name
@@ -364,7 +364,7 @@ public class InlineFragmentTests : FusionTestBase
 
         var request = Utf8GraphQLParser.Parse(
             """
-            query GetProduct($slug: String!) {
+            query($slug: String!) {
                 productBySlug(slug: $slug) {
                     ... {
                         name
@@ -391,7 +391,7 @@ public class InlineFragmentTests : FusionTestBase
 
         var request = Utf8GraphQLParser.Parse(
             """
-            query GetProduct($slug: String!) {
+            query($slug: String!) {
                 productBySlug(slug: $slug) {
                    ... {
                        name

@@ -28,11 +28,9 @@ public sealed class OperationPlanner(CompositeSchema schema)
 
             if (TryPlanSelectionSet(operation, operation, new Stack<SelectionPathSegment>()))
             {
-                operation.FlattenSelections();
-
                 if (TryExtractSharedConditions(operation.Selections, out var sharedConditions))
                 {
-                    var conditionalNode = MakePlanNodeConditional(operation, sharedConditions);
+                    var conditionalNode = CreateConditionPlanNode(operation, sharedConditions);
                     operationPlan.AddChildNode(conditionalNode);
                 }
                 else
@@ -41,6 +39,8 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 }
             }
         }
+
+        OptimizePlan(operationPlan);
 
         OperationVariableBinder.BindOperationVariables(operationDefinition, operationPlan);
 
@@ -249,13 +249,11 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 continue;
             }
 
-            lookupField.FlattenSelections();
-
             // We have to check the selections of the lookup field, since the lookup field
             // itself is a virtually inserted field that doesn't contain any conditions.
             if (TryExtractSharedConditions(lookupField.Selections, out var sharedConditions))
             {
-                var conditionalNode = MakePlanNodeConditional(lookupOperation, sharedConditions);
+                var conditionalNode = CreateConditionPlanNode(lookupOperation, sharedConditions);
                 operation.AddChildNode(conditionalNode);
             }
             else
@@ -506,18 +504,10 @@ public sealed class OperationPlanner(CompositeSchema schema)
 
         sharedConditions = conditionsOnFirstSelectionNode;
 
-        foreach (var sharedCondition in sharedConditions)
-        {
-            foreach (var selection in selectionPlanNodes)
-            {
-                selection.RemoveCondition(sharedCondition);
-            }
-        }
-
         return true;
     }
 
-    private static PlanNode MakePlanNodeConditional(PlanNode planNode, IEnumerable<Condition> conditions)
+    private static ConditionPlanNode CreateConditionPlanNode(OperationPlanNode operation, HashSet<Condition> conditions)
     {
         ConditionPlanNode? startConditionNode = null;
         ConditionPlanNode? lastConditionNode = null;
@@ -537,7 +527,36 @@ public sealed class OperationPlanner(CompositeSchema schema)
             }
         }
 
-        lastConditionNode?.AddChildNode(planNode);
+        lastConditionNode?.AddChildNode(operation);
+
+        // With the conditions extracted to a separate node, we can clean them up in the original plan node.
+        var planNodeBacklog = new Queue<PlanNode>(operation.Selections);
+
+        while (planNodeBacklog.TryDequeue(out var planNode))
+        {
+            if (planNode is SelectionPlanNode selectionPlanNode)
+            {
+                foreach (var condition in conditions)
+                {
+                    selectionPlanNode.RemoveCondition(condition);
+                }
+            }
+
+            if (planNode is FieldPlanNode fieldPlanNode)
+            {
+                foreach (var childNode in fieldPlanNode.Selections)
+                {
+                    planNodeBacklog.Enqueue(childNode);
+                }
+            }
+            else if (planNode is InlineFragmentPlanNode inlineFragmentPlanNode)
+            {
+                foreach (var childNode in inlineFragmentPlanNode.Selections)
+                {
+                    planNodeBacklog.Enqueue(childNode);
+                }
+            }
+        }
 
         return startConditionNode!;
     }
@@ -572,6 +591,42 @@ public sealed class OperationPlanner(CompositeSchema schema)
         }
 
         return false;
+    }
+
+    // TODO: Further optimizations could be merging condition nodes and removing fields from
+    //       conditional inline fragments that are selected outside the conditional fragment.
+    private void OptimizePlan(RootPlanNode rootPlanNode)
+    {
+        var planNodeBacklog = new Queue<PlanNode>(rootPlanNode.Nodes);
+
+        while (planNodeBacklog.TryDequeue(out var planNode))
+        {
+            if (planNode is OperationPlanNode operation)
+            {
+                // Cleanup any inline fragments that are no longer needed, since they are on the declaring type,
+                // dead directives (like @skip(if: false) were removed or conditions like @skip(if: $variable) were
+                // hoisted up into a condition node.
+                operation.FlattenSelections();
+            }
+
+            if (planNode is IPlanNodeProvider planNodeProvider)
+            {
+                foreach (var childNode in planNodeProvider.Nodes)
+                {
+                    if (childNode is ConditionPlanNode conditionPlanNode)
+                    {
+                        foreach(var conditionChild in conditionPlanNode.Nodes)
+                        {
+                            planNodeBacklog.Enqueue(conditionChild);
+                        }
+                    }
+                    else
+                    {
+                        planNodeBacklog.Enqueue(childNode);
+                    }
+                }
+            }
+        }
     }
 
     public record SelectionPathSegment(
