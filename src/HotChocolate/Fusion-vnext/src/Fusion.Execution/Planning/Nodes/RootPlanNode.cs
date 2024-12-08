@@ -1,4 +1,4 @@
-using System.Text;
+using System.Buffers;
 using System.Text.Json;
 
 namespace HotChocolate.Fusion.Planning.Nodes;
@@ -22,18 +22,18 @@ public sealed class RootPlanNode : PlanNode, IPlanNodeProvider, ISerializablePla
 
     public PlanNodeKind Kind => PlanNodeKind.Root;
 
-    public string Serialize()
+    public void Serialize(IBufferWriter<byte> writer)
     {
-        using var memoryStream = new MemoryStream();
-        var jsonWriter = new Utf8JsonWriter(memoryStream, SerializerOptions);
+        ArgumentNullException.ThrowIfNull(writer);
 
+        using var jsonWriter = new Utf8JsonWriter(writer, SerializerOptions);
         Serialize(jsonWriter);
-
-        return Encoding.UTF8.GetString(memoryStream.ToArray());
     }
 
     public void Serialize(Utf8JsonWriter writer)
     {
+        ArgumentNullException.ThrowIfNull(writer);
+
         writer.WriteStartObject();
         SerializationHelper.WriteKind(writer, this);
         SerializationHelper.WriteChildNodes(writer, this);

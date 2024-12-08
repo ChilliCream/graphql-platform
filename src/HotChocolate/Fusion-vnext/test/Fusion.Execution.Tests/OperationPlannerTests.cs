@@ -1,16 +1,16 @@
+using static HotChocolate.Language.Utf8GraphQLParser;
+
 namespace HotChocolate.Fusion;
 
 public class OperationPlannerTests : FusionTestBase
 {
     [Test]
-    public void Plan_Simple_Operation_1_Source_Schema()
+    public async Task Plan_Simple_Operation_1_Source_Schema()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperationAsync(
-            compositeSchema,
+        var request = Parse(
             """
             {
                 productById(id: 1) {
@@ -24,19 +24,20 @@ public class OperationPlannerTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
-        plan.Serialize().MatchSnapshot();
+        await MatchSnapshotAsync(request, plan);
     }
 
     [Test]
-    public void Plan_Simple_Operation_2_Source_Schema()
+    public async Task Plan_Simple_Operation_2_Source_Schema()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperationAsync(
-            compositeSchema,
+        var request = Parse(
             """
             {
                 productById(id: 1) {
@@ -51,19 +52,20 @@ public class OperationPlannerTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
-        plan.Serialize().MatchSnapshot();
+        await MatchSnapshotAsync(request, plan);
     }
 
     [Test]
-    public void Plan_Simple_Operation_3_Source_Schema()
+    public async Task Plan_Simple_Operation_3_Source_Schema()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperationAsync(
-            compositeSchema,
+        var request = Parse(
             """
             {
                 productById(id: 1) {
@@ -93,19 +95,20 @@ public class OperationPlannerTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
-        plan.Serialize().MatchSnapshot();
+        await MatchSnapshotAsync(request, plan);
     }
 
     [Test]
-    public void Plan_Simple_Operation_3_Source_Schema_And_Single_Variable()
+    public async Task Plan_Simple_Operation_3_Source_Schema_And_Single_Variable()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperationAsync(
-            compositeSchema,
+        var request = Parse(
             """
             query GetProduct($id: ID!, $first: Int! = 10) {
                 productById(id: $id) {
@@ -135,7 +138,10 @@ public class OperationPlannerTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
-        plan.Serialize().MatchSnapshot();
+        await MatchSnapshotAsync(request, plan);
     }
 }

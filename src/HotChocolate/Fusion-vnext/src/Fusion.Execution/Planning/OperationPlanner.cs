@@ -15,7 +15,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
         ArgumentNullException.ThrowIfNull(document);
 
         var operationDefinition = document.GetOperation(operationName);
-        var schemasWeighted = GetSchemasWeighted(schema.QueryType, operationDefinition.SelectionSet);
+        var schemasWeighted = GetSchemasWeighted(document, schema.QueryType, operationDefinition.SelectionSet);
         var operationPlan = new RootPlanNode();
 
         // this need to be rewritten to check if everything is planned for.
@@ -28,8 +28,17 @@ public sealed class OperationPlanner(CompositeSchema schema)
 
             if (TryPlanSelectionSet(operation, operation, new Stack<SelectionPathSegment>()))
             {
-                var planNodeToAdd = PlanConditionNode(operation.Selections, operation);
-                operationPlan.AddChildNode(planNodeToAdd);
+                operation.FlattenSelections();
+
+                if (TryExtractSharedConditions(operation.Selections, out var sharedConditions))
+                {
+                    var conditionalNode = MakePlanNodeConditional(operation, sharedConditions);
+                    operationPlan.AddChildNode(conditionalNode);
+                }
+                else
+                {
+                    operationPlan.AddChildNode(operation);
+                }
             }
         }
 
@@ -62,7 +71,28 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 continue;
             }
 
-            if (selection is FieldNode fieldNode)
+            // We don't have to handle FragmentSpreadNode here because they are already
+            // either fully inlined or represented as an InlineFragmentNode.
+            if (selection is InlineFragmentNode inlineFragmentNode)
+            {
+                // TODO: We need the handle the type condition here for selection on abstract types
+                // TODO: We need to plan the selections
+                var inlineFragment = new InlineFragmentPlanNode(inlineFragmentNode, type);
+
+                var pathSegment = new SelectionPathSegment(inlineFragment);
+
+                path.Push(pathSegment);
+
+                if (TryPlanSelectionSet(operation, inlineFragment, path))
+                {
+                    parent.AddSelection(inlineFragment);
+                }
+                else
+                {
+                    // TODO: Handle unresolved case
+                }
+            }
+            else if (selection is FieldNode fieldNode)
             {
                 if (!type.Fields.TryGetField(fieldNode.Name.Value, out var field))
                 {
@@ -71,7 +101,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 }
 
                 // if we have an operation plan node we have a pre-validated set of
-                // root fields, so we now the field will be resolvable on the
+                // root fields, so we know the field will be resolvable on the
                 // source schema.
                 if (parent is OperationPlanNode || IsResolvable(fieldNode, field, operation.SchemaName))
                 {
@@ -219,8 +249,19 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 continue;
             }
 
-            var planNodeToAdd = PlanConditionNode(lookupField.Selections, lookupOperation);
-            operation.AddChildNode(planNodeToAdd);
+            lookupField.FlattenSelections();
+
+            // We have to check the selections of the lookup field, since the lookup field
+            // itself is a virtually inserted field that doesn't contain any conditions.
+            if (TryExtractSharedConditions(lookupField.Selections, out var sharedConditions))
+            {
+                var conditionalNode = MakePlanNodeConditional(lookupOperation, sharedConditions);
+                operation.AddChildNode(conditionalNode);
+            }
+            else
+            {
+                operation.AddChildNode(lookupOperation);
+            }
 
             foreach (var selection in lookupField.Selections)
             {
@@ -371,27 +412,61 @@ public sealed class OperationPlanner(CompositeSchema schema)
     }
 
     private static Dictionary<string, int> GetSchemasWeighted(
+        DocumentNode document,
         CompositeObjectType operationType,
         SelectionSetNode selectionSet)
     {
         var counts = new Dictionary<string, int>();
+        Dictionary<string, FragmentDefinitionNode>? fragmentDefinitions = null;
+
+        var fieldNodes = new List<FieldNode>();
 
         foreach (var selectionNode in selectionSet.Selections)
         {
             if (selectionNode is FieldNode fieldNode)
             {
-                var field = operationType.Fields[fieldNode.Name.Value];
+                fieldNodes.Add(fieldNode);
+            }
+            else if (selectionNode is FragmentSpreadNode fragmentSpread)
+            {
+                fragmentDefinitions ??= document.GetFragments();
 
-                foreach (var schemaName in field.Sources.Schemas)
+                if (fragmentDefinitions.TryGetValue(fragmentSpread.Name.Value, out var fragmentDefinition))
                 {
-                    if (counts.TryGetValue(schemaName, out var count))
+                    foreach(var selection in fragmentDefinition.SelectionSet.Selections)
                     {
-                        counts[schemaName] = count + 1;
+                        if (selection is FieldNode fieldNodeFromFragment)
+                        {
+                            fieldNodes.Add(fieldNodeFromFragment);
+                        }
                     }
-                    else
+                }
+            }
+            else if (selectionNode is InlineFragmentNode inlineFragment)
+            {
+                foreach (var selection in inlineFragment.SelectionSet.Selections)
+                {
+                    if (selection is FieldNode fieldNodeFromFragment)
                     {
-                        counts[schemaName] = 1;
+                        fieldNodes.Add(fieldNodeFromFragment);
                     }
+                }
+            }
+        }
+
+        foreach (var fieldNode in fieldNodes)
+        {
+            var field = operationType.Fields[fieldNode.Name.Value];
+
+            foreach (var schemaName in field.Sources.Schemas)
+            {
+                if (counts.TryGetValue(schemaName, out var count))
+                {
+                    counts[schemaName] = count + 1;
+                }
+                else
+                {
+                    counts[schemaName] = 1;
                 }
             }
         }
@@ -399,14 +474,16 @@ public sealed class OperationPlanner(CompositeSchema schema)
         return counts;
     }
 
-    private PlanNode PlanConditionNode(
+    private static bool TryExtractSharedConditions(
         IReadOnlyList<SelectionPlanNode> selectionPlanNodes,
-        OperationPlanNode operation)
+        [NotNullWhen(true)] out HashSet<Condition>? sharedConditions)
     {
+        sharedConditions = null;
+
         var firstSelection = selectionPlanNodes.FirstOrDefault();
         if (firstSelection is null || firstSelection.Conditions.Count == 0)
         {
-            return operation;
+            return false;
         }
 
         var conditionsOnFirstSelectionNode = new HashSet<Condition>(firstSelection.Conditions);
@@ -415,49 +492,58 @@ public sealed class OperationPlanner(CompositeSchema schema)
         {
             if (selection.Conditions.Count == 0)
             {
-                return operation;
+                return false;
             }
 
             foreach (var condition in selection.Conditions)
             {
                 if (!conditionsOnFirstSelectionNode.Contains(condition))
                 {
-                    return operation;
+                    return false;
                 }
             }
         }
 
-        ConditionPlanNode? startConditionNode = null;
-        ConditionPlanNode? lastConditionNode = null;
+        sharedConditions = conditionsOnFirstSelectionNode;
 
-        foreach (var sharedCondition in conditionsOnFirstSelectionNode)
+        foreach (var sharedCondition in sharedConditions)
         {
             foreach (var selection in selectionPlanNodes)
             {
                 selection.RemoveCondition(sharedCondition);
             }
+        }
 
+        return true;
+    }
+
+    private static PlanNode MakePlanNodeConditional(PlanNode planNode, IEnumerable<Condition> conditions)
+    {
+        ConditionPlanNode? startConditionNode = null;
+        ConditionPlanNode? lastConditionNode = null;
+
+        foreach (var condition in conditions)
+        {
             if (startConditionNode is null)
             {
                 startConditionNode = lastConditionNode =
-                    new ConditionPlanNode(sharedCondition.VariableName, sharedCondition.PassingValue);
+                    new ConditionPlanNode(condition.VariableName, condition.PassingValue);
             }
             else if (lastConditionNode is not null)
             {
-                var childCondition = new ConditionPlanNode(sharedCondition.VariableName, sharedCondition.PassingValue);
+                var childCondition = new ConditionPlanNode(condition.VariableName, condition.PassingValue);
                 lastConditionNode.AddChildNode(childCondition);
                 lastConditionNode = childCondition;
             }
         }
 
-        lastConditionNode?.AddChildNode(operation);
+        lastConditionNode?.AddChildNode(planNode);
 
         return startConditionNode!;
     }
 
-    private bool IsSelectionAlwaysSkipped(ISelectionNode selectionNode)
+    private static bool IsSelectionAlwaysSkipped(ISelectionNode selectionNode)
     {
-        var selectionIsSkipped = false;
         foreach (var directive in selectionNode.Directives)
         {
             var isSkipDirective = directive.Name.Value == "skip";
@@ -473,69 +559,19 @@ public sealed class OperationPlanner(CompositeSchema schema)
                     {
                         if (booleanValueNode.Value && isSkipDirective)
                         {
-                            selectionIsSkipped = true;
+                            return true;
                         }
-                        else if (!booleanValueNode.Value && isIncludedDirective)
-                        {
-                            selectionIsSkipped = true;
-                        }
-                        else
-                        {
-                            selectionIsSkipped = false;
-                        }
-                    }
-                    else
-                    {
-                        selectionIsSkipped = false;
-                    }
-                }
-            }
-        }
 
-        return selectionIsSkipped;
-    }
-
-    private (bool IsSelectionNodeObsolete, List<Condition>? conditions) CreateConditions(ISelectionNode selectionNode)
-    {
-        List<Condition>? conditions = null;
-        var isSelectionNodeObsolete = false;
-
-        foreach (var directive in selectionNode.Directives)
-        {
-            var isSkipDirective = directive.Name.Value == "skip";
-            var isIncludedDirective = directive.Name.Value == "include";
-
-            if (isSkipDirective || isIncludedDirective)
-            {
-                var ifArgument = directive.Arguments.FirstOrDefault(a => a.Name.Value == "if");
-
-                if (ifArgument is not null)
-                {
-                    if (ifArgument.Value is VariableNode variableNode)
-                    {
-                        conditions ??= new List<Condition>();
-                        conditions.Add(new Condition(variableNode.Name.Value, isIncludedDirective));
-                    }
-                    else if (ifArgument.Value is BooleanValueNode booleanValueNode)
-                    {
-                        if (booleanValueNode.Value && isSkipDirective)
+                        if (!booleanValueNode.Value && isIncludedDirective)
                         {
-                            isSelectionNodeObsolete = true;
-                        }
-                        else if (!booleanValueNode.Value && isIncludedDirective)
-                        {
-                            isSelectionNodeObsolete = true;
-                        }
-                        else
-                        {
-                            isSelectionNodeObsolete = false;
+                            return true;
                         }
                     }
                 }
             }
         }
 
-        return (isSelectionNodeObsolete, conditions);
+        return false;
     }
 
     public record SelectionPathSegment(

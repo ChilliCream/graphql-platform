@@ -50,13 +50,7 @@ public sealed class FieldPlanNode : SelectionPlanNode
     public FieldNode ToSyntaxNode()
     {
         var directives = new List<DirectiveNode>(Directives.ToSyntaxNode());
-
-        foreach (var condition in Conditions)
-        {
-            var directiveName = condition.PassingValue ? "include" : "skip";
-            directives.Add(new DirectiveNode(directiveName,
-                new ArgumentNode("if", new VariableNode(condition.VariableName))));
-        }
+        ExtendDirectivesWithConditions(directives);
 
         return new FieldNode(
             new NameNode(Field.Name),

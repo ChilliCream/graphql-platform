@@ -14,14 +14,21 @@ public abstract class FusionTestBase
         return CompositeSchemaBuilder.Create(compositeSchemaDoc);
     }
 
-    protected static RootPlanNode PlanOperationAsync(CompositeSchema compositeSchema, string operation)
+    protected static RootPlanNode PlanOperation(DocumentNode request, CompositeSchema compositeSchema)
     {
-        var doc = Utf8GraphQLParser.Parse(operation);
-
         var rewriter = new InlineFragmentOperationRewriter(compositeSchema);
-        var rewritten = rewriter.RewriteDocument(doc, null);
+        var rewritten = rewriter.RewriteDocument(request, null);
 
         var planner = new OperationPlanner(compositeSchema);
         return planner.CreatePlan(rewritten, null);
+    }
+
+    protected static async Task MatchSnapshotAsync(DocumentNode request,RootPlanNode plan)
+    {
+        var snapshot = new Snapshot();
+        snapshot.Add(request, "Request");
+        snapshot.Add(plan, "Plan");
+
+        await snapshot.MatchMarkdownAsync();
     }
 }
