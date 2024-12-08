@@ -51,10 +51,11 @@ public sealed class OperationPlanNode : SelectionPlanNode, IPlanNodeProvider, IS
 
     public IReadOnlyList<PlanNode> Nodes => _nodes;
 
-    public void AddRequirement(FieldRequirementPlanNode fieldRequirementPlanNode)
+    public void AddRequirement(FieldRequirementPlanNode requirement)
     {
-        ArgumentNullException.ThrowIfNull(fieldRequirementPlanNode);
-        (_requirements ??= new Dictionary<string, FieldRequirementPlanNode>()).Add(fieldRequirementPlanNode.Name, fieldRequirementPlanNode);
+        ArgumentNullException.ThrowIfNull(requirement);
+        (_requirements ??= new Dictionary<string, FieldRequirementPlanNode>()).Add(requirement.Name, requirement);
+        requirement.Parent = this;
     }
 
     public void AddVariableDefinition(VariableDefinitionNode variable)
