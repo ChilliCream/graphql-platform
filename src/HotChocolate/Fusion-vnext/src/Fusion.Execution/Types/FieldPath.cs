@@ -137,12 +137,21 @@ public sealed class FieldPath : IEnumerable<FieldPath>, IEquatable<FieldPath>
 
         do
         {
+            if(ReferenceEquals(current, Root))
+            {
+                break;
+            }
+
             if (first)
             {
-                path.Insert(0, current.Name);
-                path.Insert(0, '.');
                 first = false;
             }
+            else
+            {
+                path.Insert(0, ".");
+            }
+
+            path.Insert(0, current.Name);
 
             current = current.Parent;
         } while (current != null);

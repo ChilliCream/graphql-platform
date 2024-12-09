@@ -286,12 +286,6 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 schemasInContext[requiredSchema].AddDependantOperation(lookupOperation);
             }
 
-            // TODO: we need to include the entity path in here.
-            // actually ... we need to redo the whole path thingy.
-            // only the first one is path - entity path.
-            // second one is operation + entity path.
-            var currentSelectionPath = CreateFieldPath(context.Path);
-
             // add requirements to the operation
             for (var i = 0; i < lookup.Fields.Length; i++)
             {
@@ -299,17 +293,19 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 var requiredField = lookup.Fields[i];
                 var argument = lookup.Arguments[i];
 
-                // should we store on the requirement the operation from which data is required?
                 var requiredFromSchema = fieldSchemaDependencies[requiredField];
                 var requiredFromOperation = schemasInContext[requiredFromSchema];
                 var requiredFromSelectionSet = requiredFromOperation != context.Operation
                     ? requiredFromOperation.Selections.Single()
                     : context.Parent;
+                var requiredFromPathStack = requiredFromOperation != context.Operation
+                    ? ImmutableStack<SelectionPathSegment>.Empty.Push(new SelectionPathSegment(lookupField))
+                    : context.Path;
+                var requiredFromPath = CreateFieldPath(requiredFromPathStack);
                 var requiredFromContext = new PlaningContext(
                     requiredFromOperation,
                     requiredFromSelectionSet,
-                    // path is wrong ... we must check if this is a lookup context and build new path for it
-                    context.Path);
+                    requiredFromPathStack);
 
                 if (!TryPlanSelection(
                     requiredFromContext,
@@ -323,7 +319,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 var requirement = new FieldRequirementPlanNode(
                     requirementName,
                     requiredFromOperation,
-                    currentSelectionPath,
+                    requiredFromPath,
                     requiredField,
                     argument.Type);
 
@@ -582,7 +578,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
     {
         var current = FieldPath.Root;
 
-        foreach (var segment in path)
+        foreach (var segment in path.Reverse())
         {
             if (segment.PlanNode is FieldPlanNode field)
             {

@@ -66,10 +66,20 @@ public static class PlanNodeJsonFormatter
                 writer.WriteString("name", requirement.Name);
                 writer.WriteNumber("dependsOn", nodeIdLookup[requirement.From]);
 
-                writer.WritePropertyName("field");
+                writer.WritePropertyName("selectionSet");
                 writer.WriteStartArray();
 
                 foreach (var segment in requirement.SelectionSet.Reverse())
+                {
+                    writer.WriteStringValue(segment.Name);
+                }
+
+                writer.WriteEndArray();
+
+                writer.WritePropertyName("field");
+                writer.WriteStartArray();
+
+                foreach (var segment in requirement.RequiredField.Reverse())
                 {
                     writer.WriteStringValue(segment.Name);
                 }

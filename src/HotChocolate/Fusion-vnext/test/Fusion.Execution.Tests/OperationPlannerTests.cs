@@ -1,5 +1,4 @@
 using HotChocolate.Fusion.Planning;
-using HotChocolate.Fusion.Planning.Nodes;
 using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Language;
 
@@ -94,7 +93,8 @@ public class OperationPlannerTests : FusionTestBase
                 requirements:
                   - name: "__fusion_requirement_1"
                     dependsOn: "1"
-                    field: ".productById"
+                    selectionSet: "productById"
+                    field: "id"
                     type: "ID!"
 
             """);
@@ -170,7 +170,8 @@ public class OperationPlannerTests : FusionTestBase
                 requirements:
                   - name: "__fusion_requirement_2"
                     dependsOn: "1"
-                    field: ".productById"
+                    selectionSet: "productById"
+                    field: "id"
                     type: "ID!"
               - id: 3
                 schema: "ACCOUNTS"
@@ -183,7 +184,8 @@ public class OperationPlannerTests : FusionTestBase
                 requirements:
                   - name: "__fusion_requirement_1"
                     dependsOn: "2"
-                    field: ".productById"
+                    selectionSet: "productById.reviews.nodes.author"
+                    field: "id"
                     type: "ID!"
 
             """);
@@ -259,7 +261,8 @@ public class OperationPlannerTests : FusionTestBase
                 requirements:
                   - name: "__fusion_requirement_2"
                     dependsOn: "1"
-                    field: ".productById"
+                    selectionSet: "productById"
+                    field: "id"
                     type: "ID!"
               - id: 3
                 schema: "ACCOUNTS"
@@ -272,7 +275,8 @@ public class OperationPlannerTests : FusionTestBase
                 requirements:
                   - name: "__fusion_requirement_1"
                     dependsOn: "2"
-                    field: ".productById"
+                    selectionSet: "productById.reviews.nodes.author"
+                    field: "id"
                     type: "ID!"
 
             """);

@@ -68,7 +68,8 @@ public static class PlanNodeYamlFormatter
             {
                 writer.WriteLine("      - name: \"{0}\"", requirement.Name);
                 writer.WriteLine("        dependsOn: \"{0}\"", nodeIdLookup[requirement.From]);
-                writer.WriteLine("        field: \"{0}\"", requirement.SelectionSet);
+                writer.WriteLine("        selectionSet: \"{0}\"", requirement.SelectionSet);
+                writer.WriteLine("        field: \"{0}\"", requirement.RequiredField);
                 writer.WriteLine("        type: \"{0}\"", requirement.Type.ToString(false));
             }
         }

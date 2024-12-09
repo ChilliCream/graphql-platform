@@ -259,7 +259,8 @@ public class ConditionTests : FusionTestBase
                 requirements:
                   - name: "__fusion_requirement_1"
                     dependsOn: "1"
-                    field: ".productById"
+                    selectionSet: "productById"
+                    field: "id"
                     type: "ID!"
 
             """);
@@ -317,7 +318,8 @@ public class ConditionTests : FusionTestBase
                 requirements:
                   - name: "__fusion_requirement_1"
                     dependsOn: "1"
-                    field: ".productById"
+                    selectionSet: "productById"
+                    field: "id"
                     type: "ID!"
 
             """);
@@ -370,7 +372,8 @@ public class ConditionTests : FusionTestBase
                 requirements:
                   - name: "__fusion_requirement_1"
                     dependsOn: "1"
-                    field: ".productById"
+                    selectionSet: "productById"
+                    field: "id"
                     type: "ID!"
 
             """);
@@ -427,7 +430,8 @@ public class ConditionTests : FusionTestBase
                 requirements:
                   - name: "__fusion_requirement_1"
                     dependsOn: "1"
-                    field: ".productById"
+                    selectionSet: "productById"
+                    field: "id"
                     type: "ID!"
 
             """);
@@ -483,7 +487,8 @@ public class ConditionTests : FusionTestBase
               requirements:
                 - name: "__fusion_requirement_1"
                   dependsOn: "1"
-                  field: ".productById"
+                  selectionSet: "productById"
+                  field: "id"
                   type: "ID!"
 
             """);
