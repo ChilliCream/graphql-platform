@@ -45,10 +45,11 @@ The idea of a DataLoader is to batch these two requests into one call to the dat
 Let's look at some code to understand what data loaders are doing. First, let's have a look at how we would write our field resolver without data loaders:
 
 ```csharp
-public async Task<Person> GetPerson(string id, IPersonRepository repository)
-{
-    return await repository.GetPersonById(id);
-}
+public async Task<Person> GetPersonAsync(
+    string id,
+    IPersonRepository repository,
+    CancellationToken cancellationToken)
+    => await repository.GetPersonByIdAsync(id);
 ```
 
 The above example would result in two calls to the person repository that would then fetch the persons one by one from our data source.
@@ -65,7 +66,7 @@ The data loader batches all the requests together into one request to the databa
 ```csharp
 // This is one way of implementing a data loader. You will find the different ways of declaring
 // data loaders further down the page.
-public class PersonBatchDataLoader : BatchDataLoader<string, Person>
+public class PersonByIdDataLoader : BatchDataLoader<string, Person>
 {
     private readonly IPersonRepository _repository;
 
@@ -83,17 +84,18 @@ public class PersonBatchDataLoader : BatchDataLoader<string, Person>
         CancellationToken cancellationToken)
     {
         // instead of fetching one person, we fetch multiple persons
-        var persons =  await _repository.GetPersonByIds(keys);
+        var persons =  await _repository.GetPersonByIdsAsync(keys);
         return persons.ToDictionary(x => x.Id);
     }
 }
 
 public class Query
 {
-    public async Task<Person> GetPerson(
+    public async Task<Person?> GetPerson(
         string id,
-        PersonBatchDataLoader dataLoader)
-        => await dataLoader.LoadAsync(id);
+        PersonByIdDataLoader personById,
+        CancellationToken cancellationToken)
+        => await personById.LoadAsync(id, cancellationToken);
 }
 ```
 
@@ -136,7 +138,7 @@ The batch data loader gets the keys as `IReadOnlyList<TKey>` and returns an `IRe
 ### Class
 
 ```csharp
-public class PersonBatchDataLoader : BatchDataLoader<string, Person>
+public class PersonByIdDataLoader : BatchDataLoader<string, Person>
 {
     private readonly IPersonRepository _repository;
 
@@ -154,27 +156,29 @@ public class PersonBatchDataLoader : BatchDataLoader<string, Person>
         CancellationToken cancellationToken)
     {
         // instead of fetching one person, we fetch multiple persons
-        var persons =  await _repository.GetPersonByIds(keys);
+        var persons =  await _repository.GetPersonByIdsAsync(keys);
         return persons.ToDictionary(x => x.Id);
     }
 }
 
 public class Query
 {
-    public async Task<Person> GetPerson(
+    public async Task<Person?> GetPersonAsync(
         string id,
-        PersonBatchDataLoader dataLoader)
-        => await dataLoader.LoadAsync(id);
+        PersonByIdDataLoader personById,
+        CancellationToken cancellationToken)
+        => await personById.LoadAsync(id, cancellationToken);
 }
 ```
 
 ### Delegate
 
 ```csharp
-public Task<Person> GetPerson(
+public Task<Person> GetPersonAsync(
     string id,
     IResolverContext context,
-    IPersonRepository repository)
+    IPersonRepository repository,
+    CancellationToken cancellationToken)
 {
     return context.BatchDataLoader<string, Person>(
             async (keys, ct) =>
@@ -182,7 +186,33 @@ public Task<Person> GetPerson(
                 var result = await repository.GetPersonByIds(keys);
                 return result.ToDictionary(x => x.Id);
             })
-        .LoadAsync(id);
+        .LoadAsync(id, cancellationToken);
+}
+```
+
+### Source Generated
+
+```csharp
+public static class PersonDataLoader
+{
+    [DataLoader]
+    public static async Task<Dictionary<string, Person>> GetPersonByIdAsync(
+      IReadOnlyList<string?> ids,
+      IPersonRepository repository,
+      CancellationToken cancellationToken)
+    {
+        var persons = await repository.GetPersonByIdsAsync(ids, cancellationToken);
+        return persons.ToDictionary(x => x.Id);
+    }
+}
+
+public class Query
+{
+    public async Task<Person> GetPersonAsync(
+        string id,
+        IPersonByIdDataLoader personById,
+        CancellationToken cancellationToken)
+        => await personById.LoadAsync(id, cancellationToken);
 }
 ```
 
@@ -217,7 +247,7 @@ public class PersonsByLastNameDataloader
         IReadOnlyList<string> names,
         CancellationToken cancellationToken)
     {
-        var persons = await _repository.GetPersonsByLastName(names);
+        var persons = await _repository.GetPersonsByLastNameAsync(names, cancellationToken);
         return persons.ToLookup(x => x.LastName);
     }
 }
@@ -226,8 +256,9 @@ public class Query
 {
     public async Task<IEnumerable<Person>> GetPersonByLastName(
         string lastName,
-        PersonsByLastNameDataloader dataLoader)
-        => await dataLoader.LoadAsync(lastName);
+        PersonsByLastNameDataloader personsByLastName,
+        CancellationToken cancellationToken)
+        => await personsByLastName.LoadAsync(lastName, cancellationToken);
 }
 ```
 
@@ -237,7 +268,8 @@ public class Query
 public Task<IEnumerable<Person>> GetPersonByLastName(
    string lastName,
    IResolverContext context,
-   IPersonRepository repository)
+   IPersonRepository repository,
+    CancellationToken cancellationToken)
 {
     return context.GroupDataLoader<string, Person>(
             async (keys, ct) =>
@@ -245,7 +277,33 @@ public Task<IEnumerable<Person>> GetPersonByLastName(
                 var result = await repository.GetPersonsByLastName(keys);
                 return result.ToLookup(t => t.LastName);
             })
-        .LoadAsync(lastName);
+        .LoadAsync(lastName, cancellationToken);
+}
+```
+
+### Source Generated
+
+```csharp
+public static class PersonDataLoader
+{
+    [DataLoader]
+    public static async Task<Dictionary<string, Person[]>> GetPersonsByLastNameAsync(
+        IReadOnlyList<string?> lastNames,
+        IPersonRepository repository,
+        CancellationToken cancellationToken)
+    {
+        var persons = await repository.GetPersonsByLastNameAsync(lastNames, cancellationToken);
+        return persons.GroupBy(x => x.LastName).ToDictionary(x => x.Key, x => x.ToArray());
+    }
+}
+
+public class Query
+{
+    public async Task<IEnumerable<Person>> GetPersonByLastName(
+        string id,
+        IPersonsByLastNameDataLoader personsByLastName,
+        CancellationToken cancellationToken)
+        => await personsByLastName.LoadAsync(id, cancellationToken);
 }
 ```
 
@@ -255,11 +313,177 @@ public Task<IEnumerable<Person>> GetPersonByLastName(
 
 The cache data loader is the easiest to implement since there is no batching involved. You can just use the initial `GetPersonById` method. We do not get the benefits of batching with this one, but if in a query graph the same entity is resolved twice we will load it only once from the data source.
 
+### Class
+
 ```csharp
-public Task<Person> GetPerson(string id, IResolverContext context, IPersonRepository repository)
+public class PersonByIdDataLoader : CacheDataLoader<string, Person>
 {
-    return context.CacheDataLoader<string, Person>("personById", keys => repository.GetPersonById(keys)).LoadAsync(id);
+    private readonly IPersonRepository _repository;
+
+    public PersonByIdDataLoader(
+        IPersonRepository repository,
+        IBatchScheduler batchScheduler,
+        DataLoaderOptions? options = null)
+        : base(batchScheduler, options)
+    {
+        _repository = repository;
+    }
+
+    protected override async Task<Person?> LoadSingleAsync(
+        string key,
+        CancellationToken cancellationToken)
+    {
+        return await _repository.GetPersonByIdAsync(key, cancellationToken);
+    }
 }
+
+public class Query
+{
+    public async Task<Person?> GetPersonAsync(
+        string id,
+        PersonByIdDataLoader personById,
+        CancellationToken cancellationToken)
+        => await personById.LoadAsync(id, cancellationToken);
+}
+```
+
+### Delegate
+
+```csharp
+public Task<Person?> GetPersonAsync(
+    string id,
+    IResolverContext context,
+    IPersonRepository repository,
+    CancellationToken cancellationToken)
+{
+    return context.CacheDataLoader<string, Person>(
+        "personById",
+        keys => repository.GetPersonById(keys))
+        .LoadAsync(id, cancellationToken);
+}
+```
+
+### Source Generated
+
+```csharp
+public static class PersonDataLoader
+{
+    [DataLoader]
+    public static async Task<Person?> GetPersonByIdAsync(
+        string id,
+        IPersonRepository repository,
+        CancellationToken cancellationToken)
+        => await repository.GetPersonByIdAsync(id, cancellationToken);
+}
+
+public class Query
+{
+    public async Task<Person?> GetPersonAsync(
+        string id,
+        IPersonByIdDataLoader personById,
+        CancellationToken cancellationToken)
+        => await personById.LoadAsync(id, cancellationToken);
+}
+```
+
+# DataLoader with Projections
+
+When you have large objects with many fields, you might want to project only a subset of the fields with a DataLoader. This can be achieved with stateful DataLoader. Source generated DataLoader are stateful by default. For class DataLoader you have to inherit from `StatefulBatchDataLoader<TKey, TValue>`, `StatefulGroupedDataLoader<TKey, TValue>` or `StatefulCacheDataLoader<TKey, TValue>`.
+
+With a stateful DateLoader you can pass on a selection to the DataLoader which is translated into an expression (`LambdaExpression<Func<TValue, TProjection>>`). Within your DataLoader, inject the `ISelectorBuilder` and apply
+it to your `IQueryable<T>`.
+
+```csharp
+internal static class ProductDataLoader
+{
+    [DataLoader]
+    public static async Task<Dictionary<int, Product>> GetProductByIdAsync(
+        IReadOnlyList<int> ids,
+        ISelectorBuilder selector, // selector builder
+        CatalogContext context,
+        CancellationToken ct)
+        => await context.Products
+            .AsNoTracking()
+            .Where(t => ids.Contains(t.Id))
+            .Select(selector, t => t.Id) // apply selector
+            .ToDictionaryAsync(t => t.Id, ct);
+}
+```
+
+In order to apply the selector we provide an extension method called `Select` which applies the `selector` in addition to the key selector. Since the required data might not contain the DataLoader key we have to always provide a key selector as well.
+
+This `ProductByIdDataLoader` is now projectable but will only apply projections if at least one selection is passed in from the usage side.
+
+If we would use the `ProductByIdDataLoader` without providing a selection it would just return the full entity.
+
+```csharp
+public class Query
+{
+    public async Task<Product> GetProductAsync(
+        int id,
+        IProductByIdDataLoader productById,
+        CancellationToken cancellationToken)
+        => await productById.LoadAsync(id, cancellationToken);
+}
+```
+
+However if we provide a selection the DataLoader is branched and will return an entity with only the selected fields.
+
+```csharp
+public class Query
+{
+    public async Task<Product> GetProductAsync(
+        int id,
+        IProductByIdDataLoader productById,
+        ISelection selection,
+        CancellationToken cancellationToken)
+        => await productById
+            .Select(selection)
+            .LoadAsync(id, cancellationToken);
+}
+```
+
+Important to note here is that when using projections we can no longer make use of the cache in the same way as before. When we branch a DataLoader we assign the DataLoader a different partition of the cache. This means that resolvers will only share the same cache partition if their selection is translated into the exact same selector expression.
+
+In addition to the GraphQL selection we can also chain in manual includes to our DataLoader call.
+
+```csharp
+public class Query
+{
+    public async Task<Product> GetProductAsync(
+        int id,
+        IProductByIdDataLoader productById,
+        ISelection selection,
+        CancellationToken cancellationToken)
+        => await productById
+            .Select(selection)
+            .Include(t => t.Name)
+            .LoadAsync(id, cancellationToken);
+}
+```
+
+This allows us to make sure that certain data is always included in the projection. Lastly, instead of always including data we can also use requirements when using type extensions.
+
+```csharp
+[ObjectType<Brand>]
+public static partial class BrandNode
+{
+    [UsePaging(ConnectionName = "BrandProducts")]
+    public static async Task<Connection<Product>> GetProductsAsync(
+        [Parent(nameof(Brand.Id))] Brand brand, // id is always required for this parent
+        PagingArguments pagingArguments,
+        ProductService productService,
+        CancellationToken cancellationToken)
+        => await productService.GetProductsByBrandAsync(brand.Id, pagingArguments, cancellationToken).ToConnectionAsync();
+}
+```
+
+When extending a type we can describe requirements for our parent which are recognized by the DataLoader. This way we can make sure that the parent always provides the required data for the projection even if the data was not requested by the user.
+
+We can also describe more complex requirements by using a selection-set syntax with the property names of our parent.
+
+```csharp
+[Parent("Id Name")]
 ```
 
 # Stacked DataLoader Calls
