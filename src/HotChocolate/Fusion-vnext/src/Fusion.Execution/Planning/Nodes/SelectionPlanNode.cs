@@ -93,7 +93,7 @@ public abstract class SelectionPlanNode : PlanNode
         }
         set
         {
-            _includeVariable = value;
+            _skipVariable = value;
             _isConditional = _skipVariable is not null || _includeVariable is not null;
         }
     }
@@ -146,6 +146,9 @@ public abstract class SelectionPlanNode : PlanNode
         ArgumentNullException.ThrowIfNull(directive);
         (_directives ??= []).Add(directive);
     }
+
+    public bool RemoveDirective(CompositeDirective directive)
+        => _directives?.Remove(directive) == true;
 
     private void InitializeConditions()
     {

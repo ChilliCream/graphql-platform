@@ -134,7 +134,8 @@ public sealed class OperationPlanner(CompositeSchema schema)
         // if we have an operation plan node we have a pre-validated set of
         // root fields, so we now the field will be resolvable on the
         // source schema.
-        if (context.Parent is OperationPlanNode || IsResolvable(fieldNode, field, context.Operation.SchemaName))
+        if (context.Parent is OperationPlanNode
+            || IsResolvable(fieldNode, field, context.Operation.SchemaName))
         {
             var fieldNamedType = field.Type.NamedType();
 
@@ -150,7 +151,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 }
 
                 var leafField = new FieldPlanNode(fieldNode, field);
-                PlanSelectionDirectives(leafField, fieldNode.Directives);
+                AddSelectionDirectives(leafField, fieldNode.Directives);
                 context.Parent.AddSelection(leafField);
                 return true;
             }
@@ -167,7 +168,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
             }
 
             var fieldPlanNode = new FieldPlanNode(fieldNode, field);
-            PlanSelectionDirectives(fieldPlanNode, fieldNode.Directives);
+            AddSelectionDirectives(fieldPlanNode, fieldNode.Directives);
 
             var pathSegment = new SelectionPathSegment(fieldPlanNode);
 
@@ -186,13 +187,20 @@ public sealed class OperationPlanner(CompositeSchema schema)
         return false;
     }
 
-    private void PlanSelectionDirectives(
+    private void AddSelectionDirectives(
         SelectionPlanNode selection,
         IReadOnlyList<DirectiveNode> directiveNodes)
     {
         foreach (var directiveNode in directiveNodes)
         {
             var directiveType = schema.GetDirectiveType(directiveNode.Name.Value);
+
+            if ((directiveType == schema.SkipDirective || directiveType == schema.IncludeDirective)
+                && directiveNode.Arguments[0].Value is BooleanValueNode)
+            {
+                continue;
+            }
+
             var argumentAssignments = directiveNode.Arguments.Select(
                 a => new ArgumentAssignment(a.Name.Value, a.Value)).ToList();
             selection.AddDirective(new CompositeDirective(directiveType, argumentAssignments));
@@ -603,7 +611,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
         return current!;
     }
 
-    private static void PlanConditionNode(
+    private void PlanConditionNode(
         OperationPlanNode operation,
         IReadOnlyList<SelectionPlanNode> selections)
     {
@@ -632,10 +640,22 @@ public sealed class OperationPlanner(CompositeSchema schema)
         operation.SkipVariable = firstSelection.SkipVariable;
         operation.IncludeVariable = firstSelection.IncludeVariable;
 
+        var remove = new List<CompositeDirective>();
+
         foreach (var selection in selections)
         {
             selection.SkipVariable = null;
             selection.IncludeVariable = null;
+
+            remove.AddRange(
+                selection.Directives.Where(
+                    t => t.Type == schema.SkipDirective
+                        || t.Type == schema.IncludeDirective));
+
+            foreach (var directive in remove)
+            {
+                selection.RemoveDirective(directive);
+            }
         }
     }
 

@@ -25,6 +25,16 @@ public class ConditionTests : FusionTestBase
         // assert
         plan.ToYaml().MatchInlineSnapshot(
             """
+            nodes:
+              - id: 1
+                schema: "PRODUCTS"
+                operation: >-
+                  query($id: ID!, $skip: Boolean!) {
+                    productById(id: $id) {
+                      name @skip(if: $skip)
+                      description
+                    }
+                  }
 
             """);
     }
@@ -50,6 +60,16 @@ public class ConditionTests : FusionTestBase
         // assert
         plan.ToYaml().MatchInlineSnapshot(
             """
+            nodes:
+              - id: 1
+                schema: "PRODUCTS"
+                operation: >-
+                  query($id: ID!) {
+                    productById(id: $id) {
+                      name
+                      description
+                    }
+                  }
 
             """);
     }
@@ -75,6 +95,15 @@ public class ConditionTests : FusionTestBase
         // assert
         plan.ToYaml().MatchInlineSnapshot(
             """
+            nodes:
+              - id: 1
+                schema: "PRODUCTS"
+                operation: >-
+                  query($id: ID!) {
+                    productById(id: $id) {
+                      description
+                    }
+                  }
 
             """);
     }
@@ -99,6 +128,15 @@ public class ConditionTests : FusionTestBase
         // assert
         plan.ToYaml().MatchInlineSnapshot(
             """
+            nodes:
+              - id: 1
+                schema: "PRODUCTS"
+                operation: >-
+                  query($id: ID!, $skip: Boolean!) {
+                    productById(id: $id) {
+                      name @skip(if: $skip)
+                    }
+                  }
 
             """);
     }
@@ -123,6 +161,15 @@ public class ConditionTests : FusionTestBase
         // assert
         plan.ToYaml().MatchInlineSnapshot(
             """
+            nodes:
+              - id: 1
+                schema: "PRODUCTS"
+                operation: >-
+                  query($id: ID!) {
+                    productById(id: $id) {
+                      name
+                    }
+                  }
 
             """);
     }
@@ -147,6 +194,15 @@ public class ConditionTests : FusionTestBase
         // assert
         plan.ToYaml().MatchInlineSnapshot(
             """
+            nodes:
+              - id: 1
+                schema: "PRODUCTS"
+                operation: >-
+                  query($id: ID!) {
+                    productById(id: $id) {
+                      __typename
+                    }
+                  }
 
             """);
     }
@@ -177,6 +233,34 @@ public class ConditionTests : FusionTestBase
         // assert
         plan.ToYaml().MatchInlineSnapshot(
             """
+            nodes:
+              - id: 1
+                schema: "PRODUCTS"
+                operation: >-
+                  query($id: ID!) {
+                    productById(id: $id) {
+                      name
+                      id
+                    }
+                  }
+              - id: 2
+                schema: "REVIEWS"
+                operation: >-
+                  query($__fusion_requirement_1: ID!, $skip: Boolean!) {
+                    productById(id: $__fusion_requirement_1) {
+                      averageRating
+                      reviews(first: 10) @skip(if: $skip) {
+                        nodes {
+                          body
+                        }
+                      }
+                    }
+                  }
+                requirements:
+                  - name: "__fusion_requirement_1"
+                    dependsOn: "1"
+                    field: ".productById"
+                    type: "ID!"
 
             """);
     }
@@ -207,6 +291,34 @@ public class ConditionTests : FusionTestBase
         // assert
         plan.ToYaml().MatchInlineSnapshot(
             """
+            nodes:
+              - id: 1
+                schema: "PRODUCTS"
+                operation: >-
+                  query($id: ID!) {
+                    productById(id: $id) {
+                      name
+                      id
+                    }
+                  }
+              - id: 2
+                schema: "REVIEWS"
+                operation: >-
+                  query($__fusion_requirement_1: ID!) {
+                    productById(id: $__fusion_requirement_1) {
+                      averageRating
+                      reviews(first: 10) {
+                        nodes {
+                          body
+                        }
+                      }
+                    }
+                  }
+                requirements:
+                  - name: "__fusion_requirement_1"
+                    dependsOn: "1"
+                    field: ".productById"
+                    type: "ID!"
 
             """);
     }
@@ -237,6 +349,29 @@ public class ConditionTests : FusionTestBase
         // assert
         plan.ToYaml().MatchInlineSnapshot(
             """
+            nodes:
+              - id: 1
+                schema: "PRODUCTS"
+                operation: >-
+                  query($id: ID!) {
+                    productById(id: $id) {
+                      name
+                      id
+                    }
+                  }
+              - id: 2
+                schema: "REVIEWS"
+                operation: >-
+                  query($__fusion_requirement_1: ID!) {
+                    productById(id: $__fusion_requirement_1) {
+                      averageRating
+                    }
+                  }
+                requirements:
+                  - name: "__fusion_requirement_1"
+                    dependsOn: "1"
+                    field: ".productById"
+                    type: "ID!"
 
             """);
     }
@@ -266,6 +401,34 @@ public class ConditionTests : FusionTestBase
         // assert
         plan.ToYaml().MatchInlineSnapshot(
             """
+            nodes:
+              - id: 1
+                schema: "PRODUCTS"
+                operation: >-
+                  query($id: ID!) {
+                    productById(id: $id) {
+                      name
+                      id
+                    }
+                  }
+              - id: 2
+                schema: "REVIEWS"
+                operation: >-
+                  query($__fusion_requirement_1: ID!) {
+                    productById(id: $__fusion_requirement_1) {
+                      reviews(first: 10) {
+                        nodes {
+                          body
+                        }
+                      }
+                    }
+                  }
+                skipIf: "skip"
+                requirements:
+                  - name: "__fusion_requirement_1"
+                    dependsOn: "1"
+                    field: ".productById"
+                    type: "ID!"
 
             """);
     }
@@ -295,6 +458,33 @@ public class ConditionTests : FusionTestBase
         // assert
         plan.ToYaml().MatchInlineSnapshot(
             """
+            nodes:
+            - id: 1
+              schema: "PRODUCTS"
+              operation: >-
+                query($id: ID!) {
+                  productById(id: $id) {
+                    name
+                    id
+                  }
+                }
+            - id: 2
+              schema: "REVIEWS"
+              operation: >-
+                query($__fusion_requirement_1: ID!) {
+                  productById(id: $__fusion_requirement_1) {
+                    reviews(first: 10) {
+                      nodes {
+                        body
+                      }
+                    }
+                  }
+                }
+              requirements:
+                - name: "__fusion_requirement_1"
+                  dependsOn: "1"
+                  field: ".productById"
+                  type: "ID!"
 
             """);
     }
@@ -324,6 +514,15 @@ public class ConditionTests : FusionTestBase
         // assert
         plan.ToYaml().MatchInlineSnapshot(
             """
+            nodes:
+              - id: 1
+                schema: "PRODUCTS"
+                operation: >-
+                  query($id: ID!) {
+                    productById(id: $id) {
+                      name
+                    }
+                  }
 
             """);
     }
@@ -401,7 +600,7 @@ public class ConditionTests : FusionTestBase
                 schema: "PRODUCTS"
                 operation: >-
                   query($id: ID!) {
-                    productById(id: $id) @skip(if: false) {
+                    productById(id: $id) {
                       name
                     }
                     products {
@@ -439,6 +638,17 @@ public class ConditionTests : FusionTestBase
         // assert
         plan.ToYaml().MatchInlineSnapshot(
             """
+            nodes:
+              - id: 1
+                schema: "PRODUCTS"
+                operation: >-
+                  {
+                    products {
+                      nodes {
+                        name
+                      }
+                    }
+                  }
 
             """);
     }
@@ -463,6 +673,16 @@ public class ConditionTests : FusionTestBase
         // assert
         plan.ToYaml().MatchInlineSnapshot(
             """
+            nodes:
+              - id: 1
+                schema: "PRODUCTS"
+                operation: >-
+                  query($id: ID!) {
+                    productById(id: $id) {
+                      name
+                    }
+                  }
+                skipIf: "skip"
 
             """);
     }
@@ -487,6 +707,15 @@ public class ConditionTests : FusionTestBase
         // assert
         plan.ToYaml().MatchInlineSnapshot(
             """
+            nodes:
+              - id: 1
+                schema: "PRODUCTS"
+                operation: >-
+                  query($id: ID!) {
+                    productById(id: $id) {
+                      name
+                    }
+                  }
 
             """);
     }
@@ -511,6 +740,7 @@ public class ConditionTests : FusionTestBase
         // assert
         plan.ToYaml().MatchInlineSnapshot(
             """
+            nodes:
 
             """);
     }
@@ -539,11 +769,12 @@ public class ConditionTests : FusionTestBase
               - id: 1
                 schema: "PRODUCTS"
                 operation: >-
-                  query($id: ID!, $include: Boolean!, $skip: Boolean!) {
-                    productById(id: $id) @skip(if: $skip) @include(if: $include) {
+                  query($id: ID!) {
+                    productById(id: $id) {
                       name
                     }
                   }
+                skipIf: "skip"
 
             """);
     }
