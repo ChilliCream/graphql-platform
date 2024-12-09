@@ -17,7 +17,7 @@ public sealed class ValidationHelperTests
     [Arguments("[[Int]]", "[[Int!]]")]
     [Arguments("[[Int]]", "[[Int!]!]")]
     [Arguments("[[Int]]", "[[Int!]!]!")]
-    public async Task SameOutputTypeShape_True(string sdlTypeA, string sdlTypeB)
+    public async Task SameTypeShape_True(string sdlTypeA, string sdlTypeB)
     {
         // arrange
         var schema1 = SchemaParser.Parse($$"""type Test { field: {{sdlTypeA}} }""");
@@ -26,7 +26,7 @@ public sealed class ValidationHelperTests
         var typeB = ((ObjectTypeDefinition)schema2.Types["Test"]).Fields["field"].Type;
 
         // act
-        var result = ValidationHelper.SameOutputTypeShape(typeA, typeB);
+        var result = ValidationHelper.SameTypeShape(typeA, typeB);
 
         // assert
         await Assert.That(result).IsTrue();
@@ -49,7 +49,7 @@ public sealed class ValidationHelperTests
     // Different depth and nullability.
     [Arguments("String", "[String!]")]
     [Arguments("String", "[String!]!")]
-    public async Task SameOutputTypeShape_False(string sdlTypeA, string sdlTypeB)
+    public async Task SameTypeShape_False(string sdlTypeA, string sdlTypeB)
     {
         // arrange
         var schema1 = SchemaParser.Parse(
@@ -70,7 +70,7 @@ public sealed class ValidationHelperTests
         var typeB = ((ObjectTypeDefinition)schema2.Types["Test"]).Fields["field"].Type;
 
         // act
-        var result = ValidationHelper.SameOutputTypeShape(typeA, typeB);
+        var result = ValidationHelper.SameTypeShape(typeA, typeB);
 
         // assert
         await Assert.That(result).IsFalse();

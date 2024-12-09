@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using HotChocolate.Fusion.Extensions;
 using HotChocolate.Skimmed;
 
 namespace HotChocolate.Fusion;
@@ -13,7 +12,7 @@ internal sealed class ValidationHelper
             var typeA = fields[i].Type;
             var typeB = fields[i + 1].Type;
 
-            if (!SameOutputTypeShape(typeA, typeB))
+            if (!SameTypeShape(typeA, typeB))
             {
                 return false;
             }
@@ -27,63 +26,48 @@ internal sealed class ValidationHelper
         return !type.Directives.ContainsName(WellKnownDirectiveNames.Inaccessible);
     }
 
-    public static bool SameOutputTypeShape(ITypeDefinition typeA, ITypeDefinition typeB)
+    public static bool SameTypeShape(ITypeDefinition typeA, ITypeDefinition typeB)
     {
-        var nullableTypeA = typeA.NullableType();
-        var nullableTypeB = typeB.NullableType();
-
-        if (nullableTypeA.Kind != nullableTypeB.Kind)
-        {
-            // Different type kind.
-            return false;
-        }
-
-        if (nullableTypeA is INamedTypeDefinition namedNullableTypeA
-            && nullableTypeB is INamedTypeDefinition namedNullableTypeB
-            && namedNullableTypeA.Name != namedNullableTypeB.Name)
-        {
-            // Different type name.
-            return false;
-        }
-
         while (true)
         {
-            var innerNullableTypeA = nullableTypeA.InnerNullableType();
-            var innerNullableTypeB = nullableTypeB.InnerNullableType();
-
-            // Note: InnerNullableType returns the type itself when there is no inner type.
-            // "If type A has an inner type but type B does not" (or vice versa).
-            if ((innerNullableTypeA != nullableTypeA && innerNullableTypeB == nullableTypeB)
-                || (innerNullableTypeB != nullableTypeB && innerNullableTypeA == nullableTypeA))
+            if (typeA is NonNullTypeDefinition && typeB is not NonNullTypeDefinition)
             {
-                // Different type depth.
+                typeA = typeA.InnerType();
+
+                continue;
+            }
+
+            if (typeB is NonNullTypeDefinition && typeA is not NonNullTypeDefinition)
+            {
+                typeB = typeB.InnerType();
+
+                continue;
+            }
+
+            if (typeA is ListTypeDefinition || typeB is ListTypeDefinition)
+            {
+                if (typeA is not ListTypeDefinition || typeB is not ListTypeDefinition)
+                {
+                    return false;
+                }
+
+                typeA = typeA.InnerType();
+                typeB = typeB.InnerType();
+
+                continue;
+            }
+
+            if (typeA.Kind != typeB.Kind)
+            {
                 return false;
             }
 
-            if (innerNullableTypeA == nullableTypeA)
+            if (typeA.NamedType().Name != typeB.NamedType().Name)
             {
-                // No more inner types.
-                break;
-            }
-
-            if (innerNullableTypeA.Kind != innerNullableTypeB.Kind)
-            {
-                // Different type kind on inner type.
                 return false;
             }
 
-            if (innerNullableTypeA is INamedTypeDefinition namedNullableInnerTypeA
-                && innerNullableTypeB is INamedTypeDefinition namedNullableInnerTypeB
-                && namedNullableInnerTypeA.Name != namedNullableInnerTypeB.Name)
-            {
-                // Different type name on inner type.
-                return false;
-            }
-
-            nullableTypeA = innerNullableTypeA;
-            nullableTypeB = innerNullableTypeB;
+            return true;
         }
-
-        return true;
     }
 }
