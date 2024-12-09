@@ -1,6 +1,7 @@
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Language;
+using static HotChocolate.Language.Utf8GraphQLParser;
 
 namespace HotChocolate.Fusion;
 
@@ -12,12 +13,10 @@ public class OperationPlannerTests : FusionTestBase
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperationAsync(
-            compositeSchema,
+        var request = Parse(
             """
             {
-                productById(id: 1) {
+                productBySlug(slug: "1") {
                     ... Product
                 }
             }
@@ -27,6 +26,9 @@ public class OperationPlannerTests : FusionTestBase
                 name
             }
             """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
 
         // assert
         plan.MatchSnapshot();
@@ -38,12 +40,10 @@ public class OperationPlannerTests : FusionTestBase
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperationAsync(
-            compositeSchema,
+        var request = Parse(
             """
             {
-                productById(id: 1) {
+                productBySlug(slug: "1") {
                     ... Product
                 }
             }
@@ -55,6 +55,9 @@ public class OperationPlannerTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
         plan.MatchSnapshot();
     }
@@ -65,12 +68,10 @@ public class OperationPlannerTests : FusionTestBase
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperationAsync(
-            compositeSchema,
+        var request = Parse(
             """
             {
-                productById(id: 1) {
+                productBySlug(slug: "1") {
                     ... ProductCard
                 }
             }
@@ -97,6 +98,9 @@ public class OperationPlannerTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
         plan.MatchSnapshot();
     }
@@ -107,12 +111,10 @@ public class OperationPlannerTests : FusionTestBase
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperationAsync(
-            compositeSchema,
+        var request = Parse(
             """
-            query GetProduct($id: ID!, $first: Int! = 10) {
-                productById(id: $id) {
+            query GetProduct($slug: String! $first: Int! = 10) {
+                productBySlug(slug: $slug) {
                     ... ProductCard
                 }
             }
@@ -139,6 +141,9 @@ public class OperationPlannerTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
         plan.MatchSnapshot();
     }
@@ -146,10 +151,10 @@ public class OperationPlannerTests : FusionTestBase
     [Test]
     public void Plan_With_Conditional_InlineFragment()
     {
-        var compositeSchemaDoc = Utf8GraphQLParser.Parse(FileResource.Open("fusion1.graphql"));
-        var compositeSchema = CompositeSchemaBuilder.Create(compositeSchemaDoc);
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
 
-        var doc = Utf8GraphQLParser.Parse(
+        var request = Parse(
             """
             {
                 productById(id: 1) {
@@ -166,12 +171,8 @@ public class OperationPlannerTests : FusionTestBase
             }
             """);
 
-        var rewriter = new InlineFragmentOperationRewriter(compositeSchema);
-        var rewritten = rewriter.RewriteDocument(doc, null);
-
         // act
-        var planner = new OperationPlanner(compositeSchema);
-        var plan = planner.CreatePlan(rewritten, null);
+        var plan = PlanOperation(request, compositeSchema);
 
         // assert
         plan.MatchSnapshot();

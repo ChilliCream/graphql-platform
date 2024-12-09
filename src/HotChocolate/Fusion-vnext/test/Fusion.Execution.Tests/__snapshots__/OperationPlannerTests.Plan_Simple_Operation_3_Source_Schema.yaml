@@ -1,7 +1,7 @@
 request:
   - document: >-
       {
-        productById(id: 1) {
+        productBySlug(slug: "1") {
           name
           reviews(first: 10) {
             nodes {
@@ -19,7 +19,7 @@ nodes:
     schema: "PRODUCTS"
     operation: >-
       {
-        productById(id: 1) {
+        productBySlug(slug: "1") {
           name
           id
         }
@@ -43,7 +43,7 @@ nodes:
     requirements:
       - name: "__fusion_requirement_2"
         dependsOn: "1"
-        selectionSet: "productById"
+        selectionSet: "productBySlug"
         field: "id"
         type: "ID!"
   - id: 3
@@ -57,6 +57,6 @@ nodes:
     requirements:
       - name: "__fusion_requirement_1"
         dependsOn: "2"
-        selectionSet: "productById.reviews.nodes.author"
+        selectionSet: "productBySlug.reviews.nodes.author"
         field: "id"
         type: "ID!"
