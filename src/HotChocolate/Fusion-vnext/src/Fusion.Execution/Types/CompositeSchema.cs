@@ -10,7 +10,7 @@ namespace HotChocolate.Fusion.Types;
 public sealed class CompositeSchema
 {
     private readonly FrozenDictionary<string, ICompositeNamedType> _types;
-    private readonly FrozenDictionary<string, CompositeDirectiveDefinition> _directiveDefinitions;
+    private readonly FrozenDictionary<string, CompositeDirectiveType> _directiveTypes;
 
     public CompositeSchema(
         string? description,
@@ -19,7 +19,7 @@ public sealed class CompositeSchema
         CompositeObjectType? subscriptionType,
         FrozenDictionary<string, ICompositeNamedType> types,
         DirectiveCollection directives,
-        FrozenDictionary<string, CompositeDirectiveDefinition> directiveDefinitions)
+        FrozenDictionary<string, CompositeDirectiveType> directiveTypes)
     {
         Description = description;
         QueryType = queryType;
@@ -27,7 +27,10 @@ public sealed class CompositeSchema
         SubscriptionType = subscriptionType;
         _types = types;
         Directives = directives;
-        _directiveDefinitions = directiveDefinitions;
+        _directiveTypes = directiveTypes;
+
+        SkipDirective = _directiveTypes["skip"];
+        IncludeDirective = _directiveTypes["include"];
     }
 
     public string? Description { get; }
@@ -50,17 +53,30 @@ public sealed class CompositeSchema
     public CompositeObjectType? SubscriptionType { get; }
 
     /// <summary>
+    /// Gets the skip directive.
+    /// </summary>
+    public CompositeDirectiveType SkipDirective { get; }
+
+    /// <summary>
+    /// Gets the include directive.
+    /// </summary>
+    public CompositeDirectiveType IncludeDirective { get; }
+
+    /// <summary>
     /// Gets all the schema types.
     /// </summary>
     public ImmutableArray<ICompositeNamedType> Types => _types.Values;
 
+    /// <summary>
+    /// Gets all the directive types that are annotated to the schema.
+    /// </summary>
     public DirectiveCollection Directives { get; }
 
     /// <summary>
     /// Gets all the directive types that are supported by this schema.
     /// </summary>
-    public ImmutableArray<CompositeDirectiveDefinition> DirectiveDefinitions
-        => _directiveDefinitions.Values;
+    public ImmutableArray<CompositeDirectiveType> DirectiveTypes
+        => _directiveTypes.Values;
 
     /// <summary>
     /// Gets a type by its name and kind.
@@ -204,9 +220,9 @@ public sealed class CompositeSchema
     /// <exception cref="ArgumentException">
     /// The specified directive type does not exist.
     /// </exception>
-    public CompositeDirectiveDefinition GetDirectiveType(string directiveName)
+    public CompositeDirectiveType GetDirectiveType(string directiveName)
     {
-        if (_directiveDefinitions.TryGetValue(directiveName, out var directiveType))
+        if (_directiveTypes.TryGetValue(directiveName, out var directiveType))
         {
             return directiveType;
         }
@@ -232,6 +248,6 @@ public sealed class CompositeSchema
     /// </returns>
     public bool TryGetDirectiveType(
         string directiveName,
-        [NotNullWhen(true)] out CompositeDirectiveDefinition? directiveType)
-        => _directiveDefinitions.TryGetValue(directiveName, out directiveType);
+        [NotNullWhen(true)] out CompositeDirectiveType? directiveType)
+        => _directiveTypes.TryGetValue(directiveName, out directiveType);
 }

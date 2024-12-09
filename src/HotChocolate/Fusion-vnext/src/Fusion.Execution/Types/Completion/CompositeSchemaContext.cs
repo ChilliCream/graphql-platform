@@ -25,8 +25,8 @@ public sealed class CompositeSchemaContext(
 
     public IReadOnlyList<DirectiveNode> Directives { get; } = directives;
 
-    public ImmutableArray<CompositeDirectiveDefinition> DirectiveDefinitions { get; } =
-        ImmutableArray<CompositeDirectiveDefinition>.Empty;
+    public ImmutableArray<CompositeDirectiveType> DirectiveDefinitions { get; } =
+        ImmutableArray<CompositeDirectiveType>.Empty;
 
     public T GetTypeDefinition<T>(string typeName)
         where T : ITypeDefinitionNode
@@ -107,7 +107,7 @@ public sealed class CompositeSchemaContext(
         return compositeNamedType;
     }
 
-    public CompositeDirectiveDefinition GetDirectiveDefinition(string name)
+    public CompositeDirectiveType GetDirectiveDefinition(string name)
     {
         throw new NotImplementedException();
     }

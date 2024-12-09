@@ -1,8 +1,9 @@
 using System.Buffers;
 using System.Text;
 using System.Text.Json;
+using HotChocolate.Fusion.Planning.Nodes;
 
-namespace HotChocolate.Fusion.Planning.Nodes;
+namespace HotChocolate.Fusion.Planning;
 
 public static class PlanNodeJsonFormatter
 {
@@ -43,6 +44,16 @@ public static class PlanNodeJsonFormatter
         writer.WriteNumber("id", operationId);
         writer.WriteString("schema", operation.SchemaName);
         writer.WriteString("operation", operation.ToSyntaxNode().ToString(false));
+
+        if (operation.SkipVariable is not null)
+        {
+            writer.WriteString("skipIf", operation.SkipVariable);
+        }
+
+        if (operation.IncludeVariable is not null)
+        {
+            writer.WriteString("includeIf", operation.SkipVariable);
+        }
 
         if (operation.Requirements.Count > 0)
         {
@@ -86,7 +97,7 @@ public static class PlanNodeJsonFormatter
         {
             if (node is RootPlanNode rootPlanNode)
             {
-                foreach (var child in rootPlanNode.Nodes)
+                foreach (var child in rootPlanNode.Operations)
                 {
                     backlog.Enqueue(child);
                 }
@@ -98,14 +109,7 @@ public static class PlanNodeJsonFormatter
                     nodeIdLookup.Add(operationPlanNode, nextId++);
                 }
 
-                foreach (var child in operationPlanNode.Nodes)
-                {
-                    backlog.Enqueue(child);
-                }
-            }
-            else if (node is ConditionPlanNode conditionPlanNode)
-            {
-                foreach (var child in conditionPlanNode.Nodes)
+                foreach (var child in operationPlanNode.Dependants)
                 {
                     backlog.Enqueue(child);
                 }
