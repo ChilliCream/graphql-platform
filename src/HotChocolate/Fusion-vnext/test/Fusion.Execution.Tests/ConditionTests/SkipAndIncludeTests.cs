@@ -228,8 +228,8 @@ public class SkipAndIncludeTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($slug: String!, $skipOrInclude: Boolean!) {
-                productBySlug(slug: $slug) @skip(if: $skipOrInclude) @include(if: $skipOrInclude) {
+            query GetProduct($slug: String!, $skip: Boolean!, $include: Boolean!) {
+                productBySlug(slug: $slug) @skip(if: $skip) @include(if: $include) {
                     name
                 }
             }
@@ -250,8 +250,8 @@ public class SkipAndIncludeTests : FusionTestBase
 
         var request = Parse(
             """
-            query GetProduct($slug: String!, $skip: Boolean!, $include: Boolean!) {
-                productBySlug(slug: $slug) @skip(if: $skip) @include(if: $include) {
+            query GetProduct($slug: String!, $skipOrInclude: Boolean!) {
+                productBySlug(slug: $slug) @skip(if: $skipOrInclude) @include(if: $skipOrInclude) {
                     name
                 }
             }

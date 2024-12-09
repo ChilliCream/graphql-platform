@@ -66,7 +66,7 @@ public static class PlanNodeYamlFormatter
 
         if (operation.IncludeVariable is not null)
         {
-            writer.WriteLine("    includeIf: \"{0}\"", operation.SkipVariable);
+            writer.WriteLine("    includeIf: \"{0}\"", operation.IncludeVariable);
         }
 
         if (operation.Requirements.Count > 0)

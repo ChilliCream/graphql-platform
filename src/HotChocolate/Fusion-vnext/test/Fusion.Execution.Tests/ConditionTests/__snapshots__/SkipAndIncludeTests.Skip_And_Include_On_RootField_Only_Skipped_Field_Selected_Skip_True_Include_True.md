@@ -12,9 +12,8 @@ query GetProduct($slug: String!) {
 
 ## Plan
 
-```json
-{
-  "kind": "Root"
-}
+```yaml
+nodes:
+
 ```
 

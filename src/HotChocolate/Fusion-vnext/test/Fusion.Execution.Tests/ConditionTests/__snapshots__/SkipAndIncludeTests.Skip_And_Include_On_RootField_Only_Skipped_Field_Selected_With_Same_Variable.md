@@ -3,8 +3,8 @@
 ## Request
 
 ```graphql
-query GetProduct($slug: String!, $skip: Boolean!, $include: Boolean!) {
-  productBySlug(slug: $slug) @skip(if: $skip) @include(if: $include) {
+query GetProduct($slug: String!, $skipOrInclude: Boolean!) {
+  productBySlug(slug: $slug) @skip(if: $skipOrInclude) @include(if: $skipOrInclude) {
     name
   }
 }
@@ -12,30 +12,18 @@ query GetProduct($slug: String!, $skip: Boolean!, $include: Boolean!) {
 
 ## Plan
 
-```json
-{
-  "kind": "Root",
-  "nodes": [
-    {
-      "kind": "Condition",
-      "variableName": "skip",
-      "passingValue": false,
-      "nodes": [
-        {
-          "kind": "Condition",
-          "variableName": "include",
-          "passingValue": true,
-          "nodes": [
-            {
-              "kind": "Operation",
-              "schema": "PRODUCTS",
-              "document": "query($slug: String!) { productBySlug(slug: $slug) { name } }"
-            }
-          ]
+```yaml
+nodes:
+  - id: 1
+    schema: "PRODUCTS"
+    operation: >-
+      query($slug: String!) {
+        productBySlug(slug: $slug) {
+          name
         }
-      ]
-    }
-  ]
-}
+      }
+    skipIf: "skipOrInclude"
+    includeIf: "skipOrInclude"
+
 ```
 
