@@ -1,4 +1,3 @@
-using System.Text.Json;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
@@ -7,11 +6,13 @@ namespace HotChocolate.Fusion.Planning.Nodes;
 /// <summary>
 /// Represents an operation to resolve data from a specific source schema.
 /// </summary>
-public sealed class OperationPlanNode : SelectionPlanNode, IPlanNodeProvider, ISerializablePlanNode
+public sealed class OperationPlanNode : SelectionPlanNode
 {
     private static readonly IReadOnlyDictionary<string, VariableDefinitionNode> _emptyVariableMap =
         new Dictionary<string, VariableDefinitionNode>();
-    private readonly List<PlanNode> _nodes = [];
+    private readonly List<OperationPlanNode> _dependants = [];
+    // private List<OperationPlanNode>? _operations;
+    private Dictionary<string, FieldRequirementPlanNode>? _requirements;
     private Dictionary<string, VariableDefinitionNode>? _variables;
 
     public OperationPlanNode(
@@ -19,7 +20,7 @@ public sealed class OperationPlanNode : SelectionPlanNode, IPlanNodeProvider, IS
         ICompositeNamedType declaringType,
         SelectionSetNode selectionSet,
         PlanNode? parent = null)
-        : base(declaringType, selectionSet.Selections, [])
+        : base(declaringType, [], selectionSet.Selections)
     {
         SchemaName = schemaName;
         Parent = parent;
@@ -30,7 +31,7 @@ public sealed class OperationPlanNode : SelectionPlanNode, IPlanNodeProvider, IS
         ICompositeNamedType declaringType,
         IReadOnlyList<ISelectionNode> selections,
         PlanNode? parent = null)
-        : base(declaringType, selections, [])
+        : base(declaringType, [], selections)
     {
         SchemaName = schemaName;
         Parent = parent;
@@ -41,10 +42,20 @@ public sealed class OperationPlanNode : SelectionPlanNode, IPlanNodeProvider, IS
     // todo: variable representations are missing.
     // todo: how to we represent state?
 
+    public IReadOnlyDictionary<string, FieldRequirementPlanNode> Requirements
+        => _requirements ??= new Dictionary<string, FieldRequirementPlanNode>();
+
     public IReadOnlyDictionary<string, VariableDefinitionNode> VariableDefinitions
         => _variables ?? _emptyVariableMap;
 
-    public IReadOnlyList<PlanNode> Nodes => _nodes;
+    public IReadOnlyList<OperationPlanNode> Dependants => _dependants;
+
+    public void AddRequirement(FieldRequirementPlanNode requirement)
+    {
+        ArgumentNullException.ThrowIfNull(requirement);
+        (_requirements ??= new Dictionary<string, FieldRequirementPlanNode>()).Add(requirement.Name, requirement);
+        requirement.Parent = this;
+    }
 
     public void AddVariableDefinition(VariableDefinitionNode variable)
     {
@@ -52,11 +63,10 @@ public sealed class OperationPlanNode : SelectionPlanNode, IPlanNodeProvider, IS
         (_variables ??= new Dictionary<string, VariableDefinitionNode>()).Add(variable.Variable.Name.Value, variable);
     }
 
-    public void AddChildNode(PlanNode node)
+    public void AddDependantOperation(OperationPlanNode operation)
     {
-        ArgumentNullException.ThrowIfNull(node);
-        _nodes.Add(node);
-        node.Parent = this;
+        ArgumentNullException.ThrowIfNull(operation);
+        _dependants.Add(operation);
     }
 
     public OperationDefinitionNode ToSyntaxNode()
@@ -65,20 +75,8 @@ public sealed class OperationPlanNode : SelectionPlanNode, IPlanNodeProvider, IS
             null,
             null,
             OperationType.Query,
-            _variables?.Values.OrderBy(t => t.Variable.Name.Value).ToArray() ?? [],
+            VariableDefinitions.Values.OrderBy(t => t.Variable.Name.Value).ToArray(),
             Directives.ToSyntaxNode(),
             Selections.ToSyntaxNode());
-    }
-
-    public PlanNodeKind Kind => PlanNodeKind.Operation;
-
-    public void Serialize(Utf8JsonWriter writer)
-    {
-        writer.WriteStartObject();
-        SerializationHelper.WriteKind(writer, this);
-        writer.WriteString("schema", SchemaName);
-        writer.WriteString("document", ToSyntaxNode().ToString(indented: false));
-        SerializationHelper.WriteChildNodes(writer, this);
-        writer.WriteEndObject();
     }
 }

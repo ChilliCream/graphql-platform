@@ -9,7 +9,7 @@ internal static class OperationVariableBinder
         OperationDefinitionNode operationDefinition,
         RootPlanNode operationPlan)
     {
-        var operationBacklog = new Stack<OperationPlanNode>(operationPlan.Nodes.OfType<OperationPlanNode>());
+        var operationBacklog = new Stack<OperationPlanNode>(operationPlan.Operations.OfType<OperationPlanNode>());
         var selectionBacklog = new Stack<SelectionPlanNode>();
         var variableDefinitions = operationDefinition.VariableDefinitions.ToDictionary(t => t.Variable.Name.Value);
         var usedVariables = new HashSet<string>();
@@ -18,7 +18,7 @@ internal static class OperationVariableBinder
         {
             CollectAndBindUsedVariables(operation, variableDefinitions, usedVariables, selectionBacklog);
 
-            foreach (var child in operation.Nodes.OfType<OperationPlanNode>())
+            foreach (var child in operation.Dependants.OfType<OperationPlanNode>())
             {
                 operationBacklog.Push(child);
             }
@@ -57,11 +57,6 @@ internal static class OperationVariableBinder
                         }
                     }
                 }
-
-                foreach (var condition in field.Conditions)
-                {
-                    usedVariables.Add(condition.VariableName);
-                }
             }
 
             foreach (var selection in node.Selections)
@@ -72,7 +67,22 @@ internal static class OperationVariableBinder
 
         foreach (var variable in usedVariables)
         {
-            operation.AddVariableDefinition(variableDefinitions[variable]);
+            if(variableDefinitions.TryGetValue(variable, out var variableDefinition))
+            {
+                operation.AddVariableDefinition(variableDefinition);
+            }
+        }
+
+        foreach (var requirement in operation.Requirements.Values)
+        {
+            var variable = new VariableDefinitionNode(
+                null,
+                new VariableNode(requirement.Name),
+                requirement.Type,
+                null,
+                Array.Empty<DirectiveNode>());
+
+            operation.AddVariableDefinition(variable);
         }
     }
 }

@@ -1,3 +1,7 @@
+using HotChocolate.Fusion.Planning;
+using HotChocolate.Fusion.Types.Completion;
+using HotChocolate.Language;
+
 namespace HotChocolate.Fusion;
 
 public class OperationPlannerTests : FusionTestBase
@@ -25,7 +29,20 @@ public class OperationPlannerTests : FusionTestBase
             """);
 
         // assert
-        plan.Serialize().MatchSnapshot();
+        plan.ToYaml().MatchInlineSnapshot(
+            """
+            nodes:
+              - id: 1
+                schema: "PRODUCTS"
+                operation: >-
+                  {
+                    productById(id: 1) {
+                      id
+                      name
+                    }
+                  }
+
+            """);
     }
 
     [Test]
@@ -52,7 +69,35 @@ public class OperationPlannerTests : FusionTestBase
             """);
 
         // assert
-        plan.Serialize().MatchSnapshot();
+        plan.ToYaml().MatchInlineSnapshot(
+            """
+            nodes:
+              - id: 1
+                schema: "PRODUCTS"
+                operation: >-
+                  {
+                    productById(id: 1) {
+                      id
+                      name
+                      id
+                    }
+                  }
+              - id: 2
+                schema: "SHIPPING"
+                operation: >-
+                  query($__fusion_requirement_1: ID!) {
+                    productById(id: $__fusion_requirement_1) {
+                      estimatedDelivery(postCode: "12345")
+                    }
+                  }
+                requirements:
+                  - name: "__fusion_requirement_1"
+                    dependsOn: "1"
+                    selectionSet: "productById"
+                    field: "id"
+                    type: "ID!"
+
+            """);
     }
 
     [Test]
@@ -94,7 +139,56 @@ public class OperationPlannerTests : FusionTestBase
             """);
 
         // assert
-        plan.Serialize().MatchSnapshot();
+        plan.ToYaml().MatchInlineSnapshot(
+            """
+            nodes:
+              - id: 1
+                schema: "PRODUCTS"
+                operation: >-
+                  {
+                    productById(id: 1) {
+                      name
+                      id
+                    }
+                  }
+              - id: 2
+                schema: "REVIEWS"
+                operation: >-
+                  query($__fusion_requirement_2: ID!) {
+                    productById(id: $__fusion_requirement_2) {
+                      reviews(first: 10) {
+                        nodes {
+                          body
+                          stars
+                          author {
+                            id
+                          }
+                        }
+                      }
+                    }
+                  }
+                requirements:
+                  - name: "__fusion_requirement_2"
+                    dependsOn: "1"
+                    selectionSet: "productById"
+                    field: "id"
+                    type: "ID!"
+              - id: 3
+                schema: "ACCOUNTS"
+                operation: >-
+                  query($__fusion_requirement_1: ID!) {
+                    userById(id: $__fusion_requirement_1) {
+                      displayName
+                    }
+                  }
+                requirements:
+                  - name: "__fusion_requirement_1"
+                    dependsOn: "2"
+                    selectionSet: "productById.reviews.nodes.author"
+                    field: "id"
+                    type: "ID!"
+
+            """);
     }
 
     [Test]
@@ -136,6 +230,102 @@ public class OperationPlannerTests : FusionTestBase
             """);
 
         // assert
-        plan.Serialize().MatchSnapshot();
+        plan.ToYaml().MatchInlineSnapshot(
+            """
+            nodes:
+              - id: 1
+                schema: "PRODUCTS"
+                operation: >-
+                  query($id: ID!) {
+                    productById(id: $id) {
+                      name
+                      id
+                    }
+                  }
+              - id: 2
+                schema: "REVIEWS"
+                operation: >-
+                  query($__fusion_requirement_2: ID!, $first: Int! = 10) {
+                    productById(id: $__fusion_requirement_2) {
+                      reviews(first: $first) {
+                        nodes {
+                          body
+                          stars
+                          author {
+                            id
+                          }
+                        }
+                      }
+                    }
+                  }
+                requirements:
+                  - name: "__fusion_requirement_2"
+                    dependsOn: "1"
+                    selectionSet: "productById"
+                    field: "id"
+                    type: "ID!"
+              - id: 3
+                schema: "ACCOUNTS"
+                operation: >-
+                  query($__fusion_requirement_1: ID!) {
+                    userById(id: $__fusion_requirement_1) {
+                      displayName
+                    }
+                  }
+                requirements:
+                  - name: "__fusion_requirement_1"
+                    dependsOn: "2"
+                    selectionSet: "productById.reviews.nodes.author"
+                    field: "id"
+                    type: "ID!"
+
+            """);
+    }
+
+    [Test]
+    public void Plan_With_Conditional_InlineFragment()
+    {
+        var compositeSchemaDoc = Utf8GraphQLParser.Parse(FileResource.Open("fusion1.graphql"));
+        var compositeSchema = CompositeSchemaBuilder.Create(compositeSchemaDoc);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+                productById(id: 1) {
+                    ... Product
+                }
+            }
+
+            fragment Product on Product {
+                id
+                name
+                ... @include(if: true) {
+                    estimatedDelivery(postCode: "12345")
+                }
+            }
+            """);
+
+        var rewriter = new InlineFragmentOperationRewriter(compositeSchema);
+        var rewritten = rewriter.RewriteDocument(doc, null);
+
+        // act
+        var planner = new OperationPlanner(compositeSchema);
+        var plan = planner.CreatePlan(rewritten, null);
+
+        // assert
+        plan.ToYaml().MatchInlineSnapshot(
+            """
+            nodes:
+              - id: 1
+                schema: "PRODUCTS"
+                operation: >-
+                  {
+                    productById(id: 1) {
+                      id
+                      name
+                    }
+                  }
+
+            """);
     }
 }

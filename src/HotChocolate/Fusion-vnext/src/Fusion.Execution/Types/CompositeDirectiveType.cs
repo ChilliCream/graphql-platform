@@ -6,7 +6,7 @@ namespace HotChocolate.Fusion.Types;
 /// <summary>
 /// Represents a GraphQL directive definition.
 /// </summary>
-public sealed class CompositeDirectiveDefinition(
+public sealed class CompositeDirectiveType(
     string name,
     string? description,
     bool isRepeatable,
@@ -46,4 +46,12 @@ public sealed class CompositeDirectiveDefinition(
     /// The locations where this directive can be applied.
     /// </value>
     public DirectiveLocation Locations { get; } = locations;
+
+    /// <summary>
+    /// Returns the name of the directive.
+    /// </summary>
+    /// <returns>
+    /// The name of the directive.
+    /// </returns>
+    public override string ToString() => Name;
 }
