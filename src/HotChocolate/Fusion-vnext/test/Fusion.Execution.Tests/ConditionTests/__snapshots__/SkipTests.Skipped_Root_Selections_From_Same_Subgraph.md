@@ -1,0 +1,37 @@
+# Skipped_Root_Selections_From_Same_Subgraph
+
+## Request
+
+```graphql
+query($slug: String!, $skip1: Boolean!, $skip2: Boolean!) {
+  productBySlug(slug: $slug) @skip(if: $skip1) {
+    name
+  }
+  products @skip(if: $skip2) {
+    nodes {
+      name
+    }
+  }
+}
+```
+
+## Plan
+
+```yaml
+nodes:
+  - id: 1
+    schema: "PRODUCTS"
+    operation: >-
+      query($skip1: Boolean!, $skip2: Boolean!, $slug: String!) {
+        productBySlug(slug: $slug) @skip(if: $skip1) {
+          name
+        }
+        products @skip(if: $skip2) {
+          nodes {
+            name
+          }
+        }
+      }
+
+```
+

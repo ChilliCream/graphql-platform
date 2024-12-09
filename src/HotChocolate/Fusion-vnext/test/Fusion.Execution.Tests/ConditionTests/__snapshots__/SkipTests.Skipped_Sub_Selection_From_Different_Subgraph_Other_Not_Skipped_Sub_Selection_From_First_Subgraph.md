@@ -1,0 +1,44 @@
+# Skipped_Sub_Selection_From_Different_Subgraph_Other_Not_Skipped_Sub_Selection_From_First_Subgraph
+
+## Request
+
+```graphql
+query($slug: String!, $skip: Boolean!) {
+  productBySlug(slug: $slug) {
+    name
+    averageRating @skip(if: $skip)
+  }
+}
+```
+
+## Plan
+
+```yaml
+nodes:
+  - id: 1
+    schema: "PRODUCTS"
+    operation: >-
+      query($slug: String!) {
+        productBySlug(slug: $slug) {
+          name
+          id
+        }
+      }
+  - id: 2
+    schema: "REVIEWS"
+    operation: >-
+      query($__fusion_requirement_1: ID!) {
+        productById(id: $__fusion_requirement_1) {
+          averageRating
+        }
+      }
+    skipIf: "skip"
+    requirements:
+      - name: "__fusion_requirement_1"
+        dependsOn: "1"
+        selectionSet: "productBySlug"
+        field: "id"
+        type: "ID!"
+
+```
+
