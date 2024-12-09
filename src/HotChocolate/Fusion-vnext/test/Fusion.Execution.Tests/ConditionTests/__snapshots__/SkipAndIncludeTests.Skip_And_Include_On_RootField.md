@@ -1,0 +1,37 @@
+# Skip_And_Include_On_RootField
+
+## Request
+
+```graphql
+query GetProduct($slug: String!, $skip: Boolean!, $include: Boolean!) {
+  productBySlug(slug: $slug) @skip(if: $skip) @include(if: $include) {
+    name
+  }
+  products {
+    nodes {
+      name
+    }
+  }
+}
+```
+
+## Plan
+
+```yaml
+nodes:
+  - id: 1
+    schema: "PRODUCTS"
+    operation: >-
+      query($include: Boolean!, $skip: Boolean!, $slug: String!) {
+        productBySlug(slug: $slug) @skip(if: $skip) @include(if: $include) {
+          name
+        }
+        products {
+          nodes {
+            name
+          }
+        }
+      }
+
+```
+

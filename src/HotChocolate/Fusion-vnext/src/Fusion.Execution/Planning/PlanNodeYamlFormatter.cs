@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Buffers.Text;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Fusion.Planning.Nodes;
@@ -7,6 +8,14 @@ namespace HotChocolate.Fusion.Planning;
 
 public static class PlanNodeYamlFormatter
 {
+    public static void FormatToYaml(this RootPlanNode root, IBufferWriter<byte> writer)
+    {
+        var yaml = root.ToYaml();
+
+        // Performance go brrr
+        writer.Write(Encoding.UTF8.GetBytes(yaml));
+    }
+
     public static string ToYaml(this RootPlanNode root)
     {
         var sb = new StringBuilder();
@@ -16,7 +25,7 @@ public static class PlanNodeYamlFormatter
         return sb.ToString();
     }
 
-    public static void Write(this StringWriter writer, RootPlanNode root)
+    private static void Write(this StringWriter writer, RootPlanNode root)
     {
         var nodeIdLookup = CollectNodeIds(root);
 
@@ -57,7 +66,7 @@ public static class PlanNodeYamlFormatter
 
         if (operation.IncludeVariable is not null)
         {
-            writer.WriteLine("    includeIf: \"{0}\"", operation.SkipVariable);
+            writer.WriteLine("    includeIf: \"{0}\"", operation.IncludeVariable);
         }
 
         if (operation.Requirements.Count > 0)
