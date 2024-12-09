@@ -1,4 +1,5 @@
 using HotChocolate.Fusion.Planning;
+using HotChocolate.Fusion.Planning.Nodes;
 using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Language;
 
@@ -68,25 +69,9 @@ public class OperationPlannerTests : FusionTestBase
             """);
 
         // assert
-        plan.Serialize().MatchInlineSnapshot(
+        plan.ToJson().MatchInlineSnapshot(
             """
-            {
-              "kind": "Root",
-              "nodes": [
-                {
-                  "kind": "Operation",
-                  "schema": "PRODUCTS",
-                  "document": "{ productById(id: 1) { id name } }",
-                  "nodes": [
-                    {
-                      "kind": "Operation",
-                      "schema": "SHIPPING",
-                      "document": "{ productById { estimatedDelivery(postCode: \u002212345\u0022) } }"
-                    }
-                  ]
-                }
-              ]
-            }
+
             """);
     }
 

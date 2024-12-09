@@ -28,7 +28,8 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 schema.QueryType,
                 operationDefinition.SelectionSet);
 
-            if (TryPlanSelectionSet(operation, operation, new Stack<SelectionPathSegment>()))
+            var context = new PlaningContext(operation, operation, ImmutableStack<SelectionPathSegment>.Empty);
+            if (TryPlanSelectionSet(context))
             {
                 var planNodeToAdd = PlanConditionNode(operation.Selections, operation);
                 operationPlan.AddChildNode(planNodeToAdd);
@@ -41,12 +42,10 @@ public sealed class OperationPlanner(CompositeSchema schema)
     }
 
     private bool TryPlanSelectionSet(
-        OperationPlanNode operation,
-        SelectionPlanNode parent,
-        Stack<SelectionPathSegment> path,
+        PlaningContext context,
         bool skipUnresolved = false)
     {
-        if (parent.SelectionNodes is null)
+        if (context.Parent.SelectionNodes is null)
         {
             throw new InvalidOperationException(
                 "A leaf field cannot be a parent node.");
@@ -54,10 +53,10 @@ public sealed class OperationPlanner(CompositeSchema schema)
 
         List<UnresolvedField>? unresolvedFields = null;
         // List<UnresolvedType>? unresolvedTypes = null;
-        var type = (CompositeComplexType)parent.DeclaringType;
+        var type = (CompositeComplexType)context.Parent.DeclaringType;
         var haveConditionalSelectionsBeenRemoved = false;
 
-        foreach (var selection in parent.SelectionNodes)
+        foreach (var selection in context.Parent.SelectionNodes)
         {
             if (IsSelectionAlwaysSkipped(selection))
             {
@@ -65,27 +64,22 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 continue;
             }
 
-            if (selection is FieldNode fieldNode)
-            {
-                TryPlanFieldSelection(
-                    operation,
-                    parent,
-                    path,
-                    type,
-                    fieldNode,
-                    unresolvedField =>
-                    {
-                        unresolvedFields ??= new List<UnresolvedField>();
-                        unresolvedFields.Add(unresolvedField);
-                    });
-            }
+            TryPlanSelection(
+                context,
+                type,
+                selection,
+                unresolvedField =>
+                {
+                    unresolvedFields ??= new List<UnresolvedField>();
+                    unresolvedFields.Add(unresolvedField);
+                });
         }
 
         if (haveConditionalSelectionsBeenRemoved)
         {
             // If we have removed conditional selections from a composite field, we need to add a __typename field
             // to have a valid selection set.
-            if (parent is FieldPlanNode { Selections.Count: 0 } fieldPlanNode)
+            if (context.Parent is FieldPlanNode { Selections.Count: 0 } fieldPlanNode)
             {
                 // TODO: How to properly create a __typename field?
                 var dummyType = new CompositeObjectType("Dummy", description: null,
@@ -95,7 +89,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
             }
             // If we have removed conditional selections from an operation, we need to fail the creation
             // of the operation as it would be invalid without any selections.
-            else if (parent is OperationPlanNode { Selections.Count: 0 })
+            else if (context.Parent is OperationPlanNode { Selections.Count: 0 })
             {
                 return false;
             }
@@ -104,13 +98,29 @@ public sealed class OperationPlanner(CompositeSchema schema)
         return skipUnresolved
             || unresolvedFields is null
             || unresolvedFields.Count == 0
-            || TryHandleUnresolvedSelections(operation, parent, type, unresolvedFields, path);
+            || TryHandleUnresolvedSelections(context, type, unresolvedFields);
+    }
+
+    private bool TryPlanSelection(
+        PlaningContext context,
+        CompositeComplexType type,
+        ISelectionNode selectionNode,
+        Action<UnresolvedField> trackUnresolvedField)
+    {
+        if (selectionNode is FieldNode fieldNode)
+        {
+            return TryPlanFieldSelection(
+                context,
+                type,
+                fieldNode,
+                trackUnresolvedField);
+        }
+
+        return false;
     }
 
     private bool TryPlanFieldSelection(
-        OperationPlanNode operation,
-        SelectionPlanNode parent,
-        Stack<SelectionPathSegment> path,
+        PlaningContext context,
         CompositeComplexType type,
         FieldNode fieldNode,
         Action<UnresolvedField> trackUnresolvedField)
@@ -124,7 +134,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
         // if we have an operation plan node we have a pre-validated set of
         // root fields, so we now the field will be resolvable on the
         // source schema.
-        if (parent is OperationPlanNode || IsResolvable(fieldNode, field, operation.SchemaName))
+        if (context.Parent is OperationPlanNode || IsResolvable(fieldNode, field, context.Operation.SchemaName))
         {
             var fieldNamedType = field.Type.NamedType();
 
@@ -139,7 +149,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
                         "Only complex types can have a selection set.");
                 }
 
-                parent.AddSelection(new FieldPlanNode(fieldNode, field));
+                context.Parent.AddSelection(new FieldPlanNode(fieldNode, field));
                 return true;
             }
 
@@ -156,22 +166,15 @@ public sealed class OperationPlanner(CompositeSchema schema)
 
             var fieldPlanNode = new FieldPlanNode(fieldNode, field);
             var pathSegment = new SelectionPathSegment(fieldPlanNode);
-            var resolved = true;
 
-            path.Push(pathSegment);
-
-            if (TryPlanSelectionSet(operation, fieldPlanNode, path))
+            if (TryPlanSelectionSet(context with { Parent = fieldPlanNode, Path = context.Path.Push(pathSegment) }))
             {
-                parent.AddSelection(fieldPlanNode);
-            }
-            else
-            {
-                trackUnresolvedField(new UnresolvedField(fieldNode, field));
+                context.Parent.AddSelection(fieldPlanNode);
+                return true;
             }
 
-            path.Pop();
-
-            return resolved;
+            trackUnresolvedField(new UnresolvedField(fieldNode, field));
+            return false;
         }
 
         // unresolvable fields will be collected to backtrack later.
@@ -180,13 +183,11 @@ public sealed class OperationPlanner(CompositeSchema schema)
     }
 
     private bool TryHandleUnresolvedSelections(
-        OperationPlanNode operation,
-        SelectionPlanNode parent,
+        PlaningContext context,
         CompositeComplexType type,
-        List<UnresolvedField> unresolved,
-        Stack<SelectionPathSegment> path)
+        List<UnresolvedField> unresolved)
     {
-        if (!TryResolveEntityType(parent, out var entityPath))
+        if (!TryResolveEntityType(context.Parent, out var entityPath))
         {
             return false;
         }
@@ -197,7 +198,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
         var processedFields = new HashSet<string>();
         var fields = new List<ISelectionNode>();
 
-        schemasInContext.Add(operation.SchemaName, operation);
+        schemasInContext.Add(context.Operation.SchemaName, context.Operation);
 
         // we first try to weight the schemas that the fields can be resolved by.
         // The schema is weighted by the fields it potentially can resolve.
@@ -241,9 +242,9 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 }
             }
 
-            var (lookupOperation, lookupField) = CreateLookupOperation(schemaName, lookup, type, parent, fields);
-
-            if (!TryPlanSelectionSet(lookupOperation, lookupField, path, true))
+            var (lookupOperation, lookupField) =
+                CreateLookupOperation(schemaName, lookup, type, context.Parent, fields);
+            if (!TryPlanSelectionSet(context with { Operation = lookupOperation, Parent = lookupField }, true))
             {
                 continue;
             }
@@ -264,7 +265,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
             // actually ... we need to redo the whole path thingy.
             // only the first one is path - entity path.
             // second one is operation + entity path.
-            var currentSelectionPath = CreateFieldPath(path);
+            var currentSelectionPath = CreateFieldPath(context.Path);
 
             // add requirements to the operation
             for (var i = 0; i < lookup.Fields.Length; i++)
@@ -276,14 +277,17 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 // should we store on the requirement the operation from which data is required?
                 var requiredFromSchema = fieldSchemaDependencies[requiredField];
                 var requiredFromOperation = schemasInContext[requiredFromSchema];
-                var requiredFromSelectionSet = requiredFromOperation != operation
+                var requiredFromSelectionSet = requiredFromOperation != context.Operation
                     ? requiredFromOperation.Selections.Single()
-                    : parent;
-
-                if (!TryPlanFieldSelection(
+                    : context.Parent;
+                var requiredFromContext = new PlaningContext(
                     requiredFromOperation,
                     requiredFromSelectionSet,
-                    path, // path data might be wrong when using a lookup
+                    // path is wrong ... we must check if this is a lookup context and build new path for it
+                    context.Path);
+
+                if (!TryPlanSelection(
+                    requiredFromContext,
                     (CompositeComplexType)requiredFromSelectionSet.DeclaringType,
                     CreateFieldNodeFromPath(requiredField),
                     _ => { }))
@@ -293,7 +297,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
 
                 var requirement = new FieldRequirementPlanNode(
                     requirementName,
-                    operation,
+                    requiredFromOperation,
                     currentSelectionPath,
                     requiredField,
                     argument.Type);
@@ -549,7 +553,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
         return counts;
     }
 
-    private static FieldPath CreateFieldPath(Stack<SelectionPathSegment> path)
+    private static FieldPath CreateFieldPath(ImmutableStack<SelectionPathSegment> path)
     {
         var current = FieldPath.Root;
 
@@ -743,4 +747,9 @@ public sealed class OperationPlanner(CompositeSchema schema)
     private record struct LookupOperation(
         OperationPlanNode Operation,
         FieldPlanNode Field);
+
+    private record struct PlaningContext(
+        OperationPlanNode Operation,
+        SelectionPlanNode Parent,
+        ImmutableStack<SelectionPathSegment> Path);
 }

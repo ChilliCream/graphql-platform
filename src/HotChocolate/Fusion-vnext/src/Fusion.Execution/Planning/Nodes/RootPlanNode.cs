@@ -1,3 +1,4 @@
+using System.Resources;
 using System.Text;
 using System.Text.Json;
 
@@ -5,10 +6,7 @@ namespace HotChocolate.Fusion.Planning.Nodes;
 
 public sealed class RootPlanNode : PlanNode, IPlanNodeProvider, ISerializablePlanNode
 {
-    private static readonly JsonWriterOptions SerializerOptions = new()
-    {
-        Indented = true,
-    };
+    private static readonly JsonWriterOptions SerializerOptions = new() { Indented = true, };
     private readonly List<PlanNode> _nodes = [];
 
     public IReadOnlyList<PlanNode> Nodes => _nodes;
