@@ -69,7 +69,7 @@ internal sealed class DisallowedInaccessibleElementsRule : IPreMergeValidationRu
                 }
             }
 
-            foreach (var directive in schema.Directives)
+            foreach (var directive in schema.DirectiveDefinitions)
             {
                 if (BuiltIns.IsBuiltInDirective(directive.Name))
                 {

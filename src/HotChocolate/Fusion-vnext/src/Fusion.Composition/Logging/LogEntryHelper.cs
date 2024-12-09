@@ -63,7 +63,7 @@ internal static class LogEntryHelper
     }
 
     public static LogEntry DisallowedInaccessibleDirectiveArgument(
-        ArgumentAssignment argument,
+        InputFieldDefinition argument,
         string directiveName,
         SchemaDefinition schema)
         => new(

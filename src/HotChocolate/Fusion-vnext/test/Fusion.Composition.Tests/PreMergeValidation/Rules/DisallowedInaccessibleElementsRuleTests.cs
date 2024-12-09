@@ -116,9 +116,15 @@ public sealed class DisallowedInaccessibleElementsRuleTests
                     fields(includeDeprecated: Boolean = false @inaccessible): [__Field!]
                 }
                 """
+            ],
+            // Inaccessible built-in directive argument.
+            () =>
+            [
+                """
+                directive @skip(if: Boolean! @inaccessible)
+                    on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+                """
             ]
-            // Inaccessible directive argument.
-            // Skip("Requires support for directives on directive arguments.")
         ];
     }
 }

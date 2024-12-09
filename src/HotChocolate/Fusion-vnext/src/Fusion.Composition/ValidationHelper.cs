@@ -22,12 +22,6 @@ internal sealed class ValidationHelper
         return true;
     }
 
-    public static bool IsAccessible(ArgumentAssignment _)
-    {
-        // FIXME: Requires support for directives on directive arguments.
-        return true;
-    }
-
     public static bool IsAccessible(IDirectivesProvider type)
     {
         return !type.Directives.ContainsName(WellKnownDirectiveNames.Inaccessible);
