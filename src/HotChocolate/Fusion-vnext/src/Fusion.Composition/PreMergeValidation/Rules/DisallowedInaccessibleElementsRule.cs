@@ -31,8 +31,7 @@ internal sealed class DisallowedInaccessibleElementsRule : IPreMergeValidationRu
                     loggingSession.Write(DisallowedInaccessibleScalar(scalar, schema));
                 }
 
-                // FIXME: Better way to check for introspection type.
-                if (type.Name.StartsWith("__"))
+                if (type.IsIntrospectionType)
                 {
                     if (!ValidationHelper.IsAccessible(type))
                     {
