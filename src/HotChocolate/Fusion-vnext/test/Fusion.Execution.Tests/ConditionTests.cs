@@ -23,7 +23,7 @@ public class ConditionTests : FusionTestBase
             """);
 
         // assert
-        plan.ToJson().MatchInlineSnapshot(
+        plan.ToYaml().MatchInlineSnapshot(
             """
 
             """);
@@ -48,7 +48,7 @@ public class ConditionTests : FusionTestBase
             """);
 
         // assert
-        plan.ToJson().MatchInlineSnapshot(
+        plan.ToYaml().MatchInlineSnapshot(
             """
 
             """);
@@ -73,7 +73,7 @@ public class ConditionTests : FusionTestBase
             """);
 
         // assert
-        plan.ToJson().MatchInlineSnapshot(
+        plan.ToYaml().MatchInlineSnapshot(
             """
 
             """);
@@ -97,7 +97,7 @@ public class ConditionTests : FusionTestBase
             """);
 
         // assert
-        plan.ToJson().MatchInlineSnapshot(
+        plan.ToYaml().MatchInlineSnapshot(
             """
 
             """);
@@ -121,7 +121,7 @@ public class ConditionTests : FusionTestBase
             """);
 
         // assert
-        plan.ToJson().MatchInlineSnapshot(
+        plan.ToYaml().MatchInlineSnapshot(
             """
 
             """);
@@ -145,7 +145,7 @@ public class ConditionTests : FusionTestBase
             """);
 
         // assert
-        plan.ToJson().MatchInlineSnapshot(
+        plan.ToYaml().MatchInlineSnapshot(
             """
 
             """);
@@ -175,7 +175,7 @@ public class ConditionTests : FusionTestBase
             """);
 
         // assert
-        plan.ToJson().MatchInlineSnapshot(
+        plan.ToYaml().MatchInlineSnapshot(
             """
 
             """);
@@ -205,7 +205,7 @@ public class ConditionTests : FusionTestBase
             """);
 
         // assert
-        plan.ToJson().MatchInlineSnapshot(
+        plan.ToYaml().MatchInlineSnapshot(
             """
 
             """);
@@ -235,7 +235,7 @@ public class ConditionTests : FusionTestBase
             """);
 
         // assert
-        plan.ToJson().MatchInlineSnapshot(
+        plan.ToYaml().MatchInlineSnapshot(
             """
 
             """);
@@ -264,7 +264,7 @@ public class ConditionTests : FusionTestBase
             """);
 
         // assert
-        plan.ToJson().MatchInlineSnapshot(
+        plan.ToYaml().MatchInlineSnapshot(
             """
 
             """);
@@ -293,7 +293,7 @@ public class ConditionTests : FusionTestBase
             """);
 
         // assert
-        plan.ToJson().MatchInlineSnapshot(
+        plan.ToYaml().MatchInlineSnapshot(
             """
 
             """);
@@ -322,7 +322,7 @@ public class ConditionTests : FusionTestBase
             """);
 
         // assert
-        plan.ToJson().MatchInlineSnapshot(
+        plan.ToYaml().MatchInlineSnapshot(
             """
 
             """);
@@ -351,8 +351,22 @@ public class ConditionTests : FusionTestBase
             """);
 
         // assert
-        plan.ToJson().MatchInlineSnapshot(
+        plan.ToYaml().MatchInlineSnapshot(
             """
+            nodes:
+              - id: 1
+                schema: "PRODUCTS"
+                operation: >-
+                  query($id: ID!, $skip: Boolean!) {
+                    productById(id: $id) @skip(if: $skip) {
+                      name
+                    }
+                    products {
+                      nodes {
+                        name
+                      }
+                    }
+                  }
 
             """);
     }
@@ -380,8 +394,22 @@ public class ConditionTests : FusionTestBase
             """);
 
         // assert
-        plan.ToJson().MatchInlineSnapshot(
+        plan.ToYaml().MatchInlineSnapshot(
             """
+            nodes:
+              - id: 1
+                schema: "PRODUCTS"
+                operation: >-
+                  query($id: ID!) {
+                    productById(id: $id) @skip(if: false) {
+                      name
+                    }
+                    products {
+                      nodes {
+                        name
+                      }
+                    }
+                  }
 
             """);
     }
@@ -409,7 +437,7 @@ public class ConditionTests : FusionTestBase
             """);
 
         // assert
-        plan.ToJson().MatchInlineSnapshot(
+        plan.ToYaml().MatchInlineSnapshot(
             """
 
             """);
@@ -433,7 +461,7 @@ public class ConditionTests : FusionTestBase
             """);
 
         // assert
-        plan.ToJson().MatchInlineSnapshot(
+        plan.ToYaml().MatchInlineSnapshot(
             """
 
             """);
@@ -457,7 +485,7 @@ public class ConditionTests : FusionTestBase
             """);
 
         // assert
-        plan.ToJson().MatchInlineSnapshot(
+        plan.ToYaml().MatchInlineSnapshot(
             """
 
             """);
@@ -481,7 +509,7 @@ public class ConditionTests : FusionTestBase
             """);
 
         // assert
-        plan.ToJson().MatchInlineSnapshot(
+        plan.ToYaml().MatchInlineSnapshot(
             """
 
             """);
@@ -505,8 +533,17 @@ public class ConditionTests : FusionTestBase
             """);
 
         // assert
-        plan.ToJson().MatchInlineSnapshot(
+        plan.ToYaml().MatchInlineSnapshot(
             """
+            nodes:
+              - id: 1
+                schema: "PRODUCTS"
+                operation: >-
+                  query($id: ID!, $include: Boolean!, $skip: Boolean!) {
+                    productById(id: $id) @skip(if: $skip) @include(if: $include) {
+                      name
+                    }
+                  }
 
             """);
     }
@@ -534,8 +571,22 @@ public class ConditionTests : FusionTestBase
             """);
 
         // assert
-        plan.ToJson().MatchInlineSnapshot(
+        plan.ToYaml().MatchInlineSnapshot(
             """
+            nodes:
+              - id: 1
+                schema: "PRODUCTS"
+                operation: >-
+                  query($id: ID!, $include: Boolean!, $skip: Boolean!) {
+                    productById(id: $id) @skip(if: $skip) @include(if: $include) {
+                      name
+                    }
+                    products {
+                      nodes {
+                        name
+                      }
+                    }
+                  }
 
             """);
     }

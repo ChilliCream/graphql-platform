@@ -46,4 +46,12 @@ public sealed class CompositeDirectiveType(
     /// The locations where this directive can be applied.
     /// </value>
     public DirectiveLocation Locations { get; } = locations;
+
+    /// <summary>
+    /// Returns the name of the directive.
+    /// </summary>
+    /// <returns>
+    /// The name of the directive.
+    /// </returns>
+    public override string ToString() => Name;
 }

@@ -30,17 +30,19 @@ public class OperationPlannerTests : FusionTestBase
             """);
 
         // assert
-        plan.ToJson().MatchInlineSnapshot(
+        plan.ToYaml().MatchInlineSnapshot(
             """
-            {
-              "nodes": [
-                {
-                  "id": 1,
-                  "schema": "PRODUCTS",
-                  "operation": "{ productById(id: 1) { id name } }"
-                }
-              ]
-            }
+            nodes:
+              - id: 1
+                schema: "PRODUCTS"
+                operation: >-
+                  {
+                    productById(id: 1) {
+                      id
+                      name
+                    }
+                  }
+
             """);
     }
 
@@ -68,32 +70,33 @@ public class OperationPlannerTests : FusionTestBase
             """);
 
         // assert
-        plan.ToJson().MatchInlineSnapshot(
+        plan.ToYaml().MatchInlineSnapshot(
             """
-            {
-              "nodes": [
-                {
-                  "id": 1,
-                  "schema": "PRODUCTS",
-                  "operation": "{ productById(id: 1) { id name id } }"
-                },
-                {
-                  "id": 2,
-                  "schema": "SHIPPING",
-                  "operation": "query($__fusion_requirement_1: ID!) { productById(id: $__fusion_requirement_1) { estimatedDelivery(postCode: \u002212345\u0022) } }",
-                  "requirements": [
-                    {
-                      "name": "__fusion_requirement_1",
-                      "dependsOn": 1,
-                      "field": [
-                        "productById"
-                      ],
-                      "type": "ID!"
+            nodes:
+              - id: 1
+                schema: "PRODUCTS"
+                operation: >-
+                  {
+                    productById(id: 1) {
+                      id
+                      name
+                      id
                     }
-                  ]
-                }
-              ]
-            }
+                  }
+              - id: 2
+                schema: "SHIPPING"
+                operation: >-
+                  query($__fusion_requirement_1: ID!) {
+                    productById(id: $__fusion_requirement_1) {
+                      estimatedDelivery(postCode: "12345")
+                    }
+                  }
+                requirements:
+                  - name: "__fusion_requirement_1"
+                    dependsOn: "1"
+                    field: ".productById"
+                    type: "ID!"
+                    
             """);
     }
 
@@ -136,50 +139,53 @@ public class OperationPlannerTests : FusionTestBase
             """);
 
         // assert
-        plan.ToJson().MatchInlineSnapshot(
+        plan.ToYaml().MatchInlineSnapshot(
             """
-            {
-              "nodes": [
-                {
-                  "id": 1,
-                  "schema": "PRODUCTS",
-                  "operation": "{ productById(id: 1) { name id } }"
-                },
-                {
-                  "id": 2,
-                  "schema": "REVIEWS",
-                  "operation": "query($__fusion_requirement_2: ID!) { productById(id: $__fusion_requirement_2) { reviews(first: 10) { nodes { body stars author { id } } } } }",
-                  "requirements": [
-                    {
-                      "name": "__fusion_requirement_2",
-                      "dependsOn": 1,
-                      "field": [
-                        "productById"
-                      ],
-                      "type": "ID!"
+            nodes:
+              - id: 1
+                schema: "PRODUCTS"
+                operation: >-
+                  {
+                    productById(id: 1) {
+                      name
+                      id
                     }
-                  ]
-                },
-                {
-                  "id": 3,
-                  "schema": "ACCOUNTS",
-                  "operation": "query($__fusion_requirement_1: ID!) { userById(id: $__fusion_requirement_1) { displayName } }",
-                  "requirements": [
-                    {
-                      "name": "__fusion_requirement_1",
-                      "dependsOn": 2,
-                      "field": [
-                        "author",
-                        "nodes",
-                        "reviews",
-                        "productById"
-                      ],
-                      "type": "ID!"
+                  }
+              - id: 2
+                schema: "REVIEWS"
+                operation: >-
+                  query($__fusion_requirement_2: ID!) {
+                    productById(id: $__fusion_requirement_2) {
+                      reviews(first: 10) {
+                        nodes {
+                          body
+                          stars
+                          author {
+                            id
+                          }
+                        }
+                      }
                     }
-                  ]
-                }
-              ]
-            }
+                  }
+                requirements:
+                  - name: "__fusion_requirement_2"
+                    dependsOn: "1"
+                    field: ".productById"
+                    type: "ID!"
+              - id: 3
+                schema: "ACCOUNTS"
+                operation: >-
+                  query($__fusion_requirement_1: ID!) {
+                    userById(id: $__fusion_requirement_1) {
+                      displayName
+                    }
+                  }
+                requirements:
+                  - name: "__fusion_requirement_1"
+                    dependsOn: "2"
+                    field: ".productById"
+                    type: "ID!"
+
             """);
     }
 
@@ -222,7 +228,7 @@ public class OperationPlannerTests : FusionTestBase
             """);
 
         // assert
-        plan.ToJson().MatchInlineSnapshot(
+        plan.ToYaml().MatchInlineSnapshot(
             """
             {
               "nodes": [
@@ -300,7 +306,7 @@ public class OperationPlannerTests : FusionTestBase
         var plan = planner.CreatePlan(rewritten, null);
 
         // assert
-        plan.ToJson().MatchInlineSnapshot(
+        plan.ToYaml().MatchInlineSnapshot(
             """
             {
               "nodes": [
