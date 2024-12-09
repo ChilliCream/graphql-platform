@@ -311,6 +311,78 @@ public class IntegrationTests(PostgreSqlResource resource)
         result.MatchMarkdownSnapshot();
     }
 
+    [Fact]
+    public async Task Paging_Fetch_First_2_Items_Between()
+    {
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        var executor = await new ServiceCollection()
+            .AddScoped(_ => new CatalogContext(connectionString))
+            .AddGraphQLServer()
+            .AddQueryType<Query>()
+            .AddSorting()
+            .AddDbContextCursorPagingProvider()
+            .BuildRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(q => q
+            .SetDocument(
+                """
+                {
+                    brands(first: 2, after:"MQ==", before:"NA==") {
+                        nodes {
+                            name
+                        }
+                        pageInfo {
+                            hasNextPage
+                            hasPreviousPage
+                            endCursor
+                            startCursor
+                        }
+                    }
+                }
+                """)
+            .SetGlobalState("printSQL", true));
+
+        result.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Paging_Fetch_Last_2_Items_Between()
+    {
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        var executor = await new ServiceCollection()
+            .AddScoped(_ => new CatalogContext(connectionString))
+            .AddGraphQLServer()
+            .AddQueryType<Query>()
+            .AddSorting()
+            .AddDbContextCursorPagingProvider()
+            .BuildRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(q => q
+            .SetDocument(
+                """
+                {
+                    brands(last: 2, after:"OTc=", before:"MTAw") {
+                        nodes {
+                            name
+                        }
+                        pageInfo {
+                            hasNextPage
+                            hasPreviousPage
+                            endCursor
+                            startCursor
+                        }
+                    }
+                }
+                """)
+            .SetGlobalState("printSQL", true));
+
+        result.MatchMarkdownSnapshot();
+    }
+
     public class Query
     {
         [UsePaging]
