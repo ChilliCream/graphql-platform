@@ -31,7 +31,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
             var context = new PlaningContext(operation, operation, ImmutableStack<SelectionPathSegment>.Empty);
             if (TryPlanSelectionSet(context))
             {
-                PlanConditionNode(operation, operation.Selections);
+                TryMakeOperationConditional(operation, operation.Selections);
                 operationPlan.AddOperation(operation);
             }
         }
@@ -275,7 +275,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
             }
 
             schemasInContext.Add(schemaName, lookupOperation);
-            PlanConditionNode(lookupOperation, lookupField.Selections);
+            TryMakeOperationConditional(lookupOperation, lookupField.Selections);
 
             // we add the lookup operation to all the schemas that we have requirements with.
             foreach (var requiredSchema in fieldSchemaDependencies.Values.Distinct())
@@ -607,7 +607,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
         return current!;
     }
 
-    private void PlanConditionNode(
+    private void TryMakeOperationConditional(
         OperationPlanNode operation,
         IReadOnlyList<SelectionPlanNode> selections)
     {
@@ -655,9 +655,8 @@ public sealed class OperationPlanner(CompositeSchema schema)
         }
     }
 
-    private bool IsSelectionAlwaysSkipped(ISelectionNode selectionNode)
+    private static bool IsSelectionAlwaysSkipped(ISelectionNode selectionNode)
     {
-        var selectionIsSkipped = false;
         foreach (var directive in selectionNode.Directives)
         {
             var isSkipDirective = directive.Name.Value == "skip";
@@ -673,26 +672,19 @@ public sealed class OperationPlanner(CompositeSchema schema)
                     {
                         if (booleanValueNode.Value && isSkipDirective)
                         {
-                            selectionIsSkipped = true;
+                            return true;
                         }
-                        else if (!booleanValueNode.Value && isIncludedDirective)
+
+                        if (!booleanValueNode.Value && isIncludedDirective)
                         {
-                            selectionIsSkipped = true;
+                            return true;
                         }
-                        else
-                        {
-                            selectionIsSkipped = false;
-                        }
-                    }
-                    else
-                    {
-                        selectionIsSkipped = false;
                     }
                 }
             }
         }
 
-        return selectionIsSkipped;
+        return false;
     }
 
     private string GetNextRequirementName()

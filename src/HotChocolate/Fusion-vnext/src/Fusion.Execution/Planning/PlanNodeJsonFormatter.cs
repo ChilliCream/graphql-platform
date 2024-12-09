@@ -7,6 +7,13 @@ namespace HotChocolate.Fusion.Planning;
 
 public static class PlanNodeJsonFormatter
 {
+    public static void FormatToJson(this RootPlanNode root, IBufferWriter<byte> writer)
+    {
+        var jsonWriter = new Utf8JsonWriter(writer, new JsonWriterOptions { Indented = true });
+        jsonWriter.Write(root);
+        jsonWriter.Flush();
+    }
+
     public static string ToJson(this RootPlanNode root)
     {
         var buffer = new ArrayBufferWriter<byte>();
@@ -16,7 +23,7 @@ public static class PlanNodeJsonFormatter
         return Encoding.UTF8.GetString(buffer.WrittenSpan);
     }
 
-    public static void Write(this Utf8JsonWriter writer, RootPlanNode root)
+    private static void Write(this Utf8JsonWriter writer, RootPlanNode root)
     {
         var nodeIdLookup = CollectNodeIds(root);
 

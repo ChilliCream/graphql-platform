@@ -1,0 +1,28 @@
+# Skipped_Sub_Selection_From_Different_Subgraph_Other_Not_Skipped_Sub_Selection_From_First_Subgraph_If_True
+
+## Request
+
+```graphql
+query($slug: String!) {
+  productBySlug(slug: $slug) {
+    name
+    averageRating @skip(if: true)
+  }
+}
+```
+
+## Plan
+
+```yaml
+nodes:
+  - id: 1
+    schema: "PRODUCTS"
+    operation: >-
+      query($slug: String!) {
+        productBySlug(slug: $slug) {
+          name
+        }
+      }
+
+```
+
