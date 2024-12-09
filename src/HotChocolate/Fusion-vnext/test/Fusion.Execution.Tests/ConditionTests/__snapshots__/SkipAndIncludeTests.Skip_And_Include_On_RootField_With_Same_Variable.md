@@ -17,16 +17,21 @@ query GetProduct($slug: String!, $skipOrInclude: Boolean!) {
 
 ## Plan
 
-```json
-{
-  "kind": "Root",
-  "nodes": [
-    {
-      "kind": "Operation",
-      "schema": "PRODUCTS",
-      "document": "query($skipOrInclude: Boolean!, $slug: String!) { productBySlug(slug: $slug) @skip(if: $skipOrInclude) @include(if: $skipOrInclude) { name } products { nodes { name } } }"
-    }
-  ]
-}
+```yaml
+nodes:
+  - id: 1
+    schema: "PRODUCTS"
+    operation: >-
+      query($skipOrInclude: Boolean!, $slug: String!) {
+        productBySlug(slug: $slug) @skip(if: $skipOrInclude) @include(if: $skipOrInclude) {
+          name
+        }
+        products {
+          nodes {
+            name
+          }
+        }
+      }
+
 ```
 

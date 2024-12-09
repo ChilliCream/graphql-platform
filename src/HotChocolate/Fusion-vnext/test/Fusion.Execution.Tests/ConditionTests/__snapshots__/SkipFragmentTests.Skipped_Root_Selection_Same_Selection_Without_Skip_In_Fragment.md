@@ -19,16 +19,19 @@ fragment QueryFragment on Query {
 
 ## Plan
 
-```json
-{
-  "kind": "Root",
-  "nodes": [
-    {
-      "kind": "Operation",
-      "schema": "PRODUCTS",
-      "document": "query($skip: Boolean!, $slug: String!) { productBySlug(slug: $slug) @skip(if: $skip) { name } productBySlug(slug: $slug) { name } }"
-    }
-  ]
-}
+```yaml
+nodes:
+  - id: 1
+    schema: "PRODUCTS"
+    operation: >-
+      query($skip: Boolean!, $slug: String!) {
+        productBySlug(slug: $slug) @skip(if: $skip) {
+          name
+        }
+        productBySlug(slug: $slug) {
+          name
+        }
+      }
+
 ```
 

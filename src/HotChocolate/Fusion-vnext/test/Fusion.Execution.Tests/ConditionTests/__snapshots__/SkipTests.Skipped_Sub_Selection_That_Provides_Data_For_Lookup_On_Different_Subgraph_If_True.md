@@ -15,16 +15,16 @@ query($id: ID!) {
 
 ## Plan
 
-```json
-{
-  "kind": "Root",
-  "nodes": [
-    {
-      "kind": "Operation",
-      "schema": "REVIEWS",
-      "document": "query($id: ID!) { reviewById(id: $id) { body } }"
-    }
-  ]
-}
+```yaml
+nodes:
+  - id: 1
+    schema: "REVIEWS"
+    operation: >-
+      query($id: ID!) {
+        reviewById(id: $id) {
+          body
+        }
+      }
+
 ```
 

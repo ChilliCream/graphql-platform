@@ -15,23 +15,31 @@ query($slug: String!) {
 
 ## Plan
 
-```json
-{
-  "kind": "Root",
-  "nodes": [
-    {
-      "kind": "Operation",
-      "schema": "PRODUCTS",
-      "document": "query($slug: String!) { productBySlug(slug: $slug) { name } }",
-      "nodes": [
-        {
-          "kind": "Operation",
-          "schema": "REVIEWS",
-          "document": "{ productById { averageRating } }"
+```yaml
+nodes:
+  - id: 1
+    schema: "PRODUCTS"
+    operation: >-
+      query($slug: String!) {
+        productBySlug(slug: $slug) {
+          name
+          id
         }
-      ]
-    }
-  ]
-}
+      }
+  - id: 2
+    schema: "REVIEWS"
+    operation: >-
+      query($__fusion_requirement_1: ID!) {
+        productById(id: $__fusion_requirement_1) {
+          averageRating
+        }
+      }
+    requirements:
+      - name: "__fusion_requirement_1"
+        dependsOn: "1"
+        selectionSet: "productBySlug"
+        field: "id"
+        type: "ID!"
+
 ```
 

@@ -1,3 +1,6 @@
+using HotChocolate.Fusion.Planning;
+using HotChocolate.Fusion.Types.Completion;
+using HotChocolate.Language;
 using static HotChocolate.Language.Utf8GraphQLParser;
 
 namespace HotChocolate.Fusion;
@@ -135,6 +138,36 @@ public class OperationPlannerTests : FusionTestBase
 
             fragment AuthorCard on UserProfile {
                 displayName
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        await MatchSnapshotAsync(request, plan);
+    }
+
+    [Test]
+    public async Task Plan_With_Conditional_InlineFragment()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            {
+                productById(id: 1) {
+                    ... Product
+                }
+            }
+
+            fragment Product on Product {
+                id
+                name
+                ... @include(if: true) {
+                    estimatedDelivery(postCode: "12345")
+                }
             }
             """);
 

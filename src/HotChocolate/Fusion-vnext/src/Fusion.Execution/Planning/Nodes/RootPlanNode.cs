@@ -1,44 +1,15 @@
-using System.Buffers;
-using System.Text.Json;
-
 namespace HotChocolate.Fusion.Planning.Nodes;
 
-public sealed class RootPlanNode : PlanNode, IPlanNodeProvider, ISerializablePlanNode
+public sealed class RootPlanNode : PlanNode
 {
-    private static readonly JsonWriterOptions SerializerOptions = new()
-    {
-        Indented = true,
-    };
-    private readonly List<PlanNode> _nodes = [];
+    private readonly List<OperationPlanNode> _operations = [];
 
-    public IReadOnlyList<PlanNode> Nodes => _nodes;
+    public IReadOnlyList<OperationPlanNode> Operations => _operations;
 
-    public void AddChildNode(PlanNode node)
+    public void AddOperation(OperationPlanNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        _nodes.Add(node);
+        _operations.Add(node);
         node.Parent = this;
-    }
-
-    public PlanNodeKind Kind => PlanNodeKind.Root;
-
-    public void Serialize(IBufferWriter<byte> writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-
-        using var jsonWriter = new Utf8JsonWriter(writer, SerializerOptions);
-        Serialize(jsonWriter);
-    }
-
-    public void Serialize(Utf8JsonWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-
-        writer.WriteStartObject();
-        SerializationHelper.WriteKind(writer, this);
-        SerializationHelper.WriteChildNodes(writer, this);
-        writer.WriteEndObject();
-
-        writer.Flush();
     }
 }

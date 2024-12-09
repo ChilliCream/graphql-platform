@@ -27,4 +27,7 @@
   <data name="ThrowHelper_SchemaCoordinate_MemberNameCannotBeSetOnADirectiveCoordinate" xml:space="preserve">
     <value>A directive cannot contain a member name.</value>
   </data>
+  <data name="DirectiveTypeFactory_LocationNotSupported" xml:space="preserve">
+    <value>The specified location `{0}` is not supported.</value>
+  </data>
 </root>

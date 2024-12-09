@@ -12,9 +12,8 @@ query GetProduct($slug: String!, $include: Boolean!) {
 
 ## Plan
 
-```json
-{
-  "kind": "Root"
-}
+```yaml
+nodes:
+
 ```
 

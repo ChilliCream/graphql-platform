@@ -25,16 +25,18 @@ fragment QueryFragment2 on Query {
 
 ## Plan
 
-```json
-{
-  "kind": "Root",
-  "nodes": [
-    {
-      "kind": "Operation",
-      "schema": "PRODUCTS",
-      "document": "{ products { nodes { description } } }"
-    }
-  ]
-}
+```yaml
+nodes:
+  - id: 1
+    schema: "PRODUCTS"
+    operation: >-
+      {
+        products {
+          nodes {
+            description
+          }
+        }
+      }
+
 ```
 

@@ -23,9 +23,9 @@ internal static class CompletionTools
         for (var i = 0; i < directives.Count; i++)
         {
             var directive = directives[i];
-            var definition = context.GetDirectiveDefinition(directive.Name.Value);
+            var directiveType = context.GetDirectiveType(directive.Name.Value);
             var arguments = CreateArgumentAssignments(directive.Arguments);
-            temp[i] = new CompositeDirective(definition, arguments);
+            temp[i] = new CompositeDirective(directiveType, arguments);
         }
 
         return new DirectiveCollection(temp);
@@ -120,7 +120,6 @@ internal static class CompletionTools
                     new Lookup(
                         lookup.SchemaName,
                         lookup.Field.Name.Value,
-                        LookupKind.Default,
                         arguments.ToImmutable(),
                         fields.ToImmutable()));
             }

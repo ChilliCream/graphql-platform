@@ -1,4 +1,3 @@
-using System.Collections;
 using HotChocolate.Fusion.Planning.Nodes;
 using HotChocolate.Language;
 
@@ -8,36 +7,20 @@ internal static class OperationVariableBinder
 {
     public static void BindOperationVariables(
         OperationDefinitionNode operationDefinition,
-        RootPlanNode rootPlanNode)
+        RootPlanNode operationPlan)
     {
-        var planNodeBacklog = new Queue<PlanNode>(rootPlanNode.Nodes);
+        var operationBacklog = new Stack<OperationPlanNode>(operationPlan.Operations);
         var selectionBacklog = new Stack<SelectionPlanNode>();
         var variableDefinitions = operationDefinition.VariableDefinitions.ToDictionary(t => t.Variable.Name.Value);
         var usedVariables = new HashSet<string>();
 
-        while (planNodeBacklog.TryDequeue(out var planNode))
+        while (operationBacklog.TryPop(out var operation))
         {
-            if (planNode is OperationPlanNode operation)
-            {
-                CollectAndBindUsedVariables(operation, variableDefinitions, usedVariables, selectionBacklog);
-            }
+            CollectAndBindUsedVariables(operation, variableDefinitions, usedVariables, selectionBacklog);
 
-            if (planNode is IPlanNodeProvider planNodeProvider)
+            foreach (var child in operation.Dependants)
             {
-                foreach (var childNode in planNodeProvider.Nodes)
-                {
-                    if (childNode is ConditionPlanNode conditionPlanNode)
-                    {
-                        foreach(var conditionChild in conditionPlanNode.Nodes)
-                        {
-                            planNodeBacklog.Enqueue(conditionChild);
-                        }
-                    }
-                    else
-                    {
-                        planNodeBacklog.Enqueue(childNode);
-                    }
-                }
+                operationBacklog.Push(child);
             }
         }
     }
@@ -63,22 +46,17 @@ internal static class OperationVariableBinder
                         usedVariables.Add(variable.Name.Value);
                     }
                 }
-            }
 
-            foreach (var directive in node.Directives)
-            {
-                foreach (var argument in directive.Arguments)
+                foreach (var directive in field.Directives)
                 {
-                    if (argument.Value is VariableNode variable)
+                    foreach (var argument in directive.Arguments)
                     {
-                        usedVariables.Add(variable.Name.Value);
+                        if (argument.Value is VariableNode variable)
+                        {
+                            usedVariables.Add(variable.Name.Value);
+                        }
                     }
                 }
-            }
-
-            foreach (var condition in node.Conditions)
-            {
-                usedVariables.Add(condition.VariableName);
             }
 
             foreach (var selection in node.Selections)
@@ -89,7 +67,22 @@ internal static class OperationVariableBinder
 
         foreach (var variable in usedVariables)
         {
-            operation.AddVariableDefinition(variableDefinitions[variable]);
+            if(variableDefinitions.TryGetValue(variable, out var variableDefinition))
+            {
+                operation.AddVariableDefinition(variableDefinition);
+            }
+        }
+
+        foreach (var requirement in operation.Requirements.Values)
+        {
+            var variable = new VariableDefinitionNode(
+                null,
+                new VariableNode(requirement.Name),
+                requirement.Type,
+                null,
+                Array.Empty<DirectiveNode>());
+
+            operation.AddVariableDefinition(variable);
         }
     }
 }

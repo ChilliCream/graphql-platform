@@ -17,16 +17,17 @@ fragment Product on Product {
 
 ## Plan
 
-```json
-{
-  "kind": "Root",
-  "nodes": [
-    {
-      "kind": "Operation",
-      "schema": "PRODUCTS",
-      "document": "{ productBySlug(slug: \u00221\u0022) { id name } }"
-    }
-  ]
-}
+```yaml
+nodes:
+  - id: 1
+    schema: "PRODUCTS"
+    operation: >-
+      {
+        productBySlug(slug: "1") {
+          id
+          name
+        }
+      }
+
 ```
 

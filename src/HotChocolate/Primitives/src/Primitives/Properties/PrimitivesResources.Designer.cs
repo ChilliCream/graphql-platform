@@ -62,5 +62,11 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ThrowHelper_SchemaCoordinate_MemberNameCannotBeSetOnADirectiveCoordinate", resourceCulture);
             }
         }
+        
+        internal static string DirectiveTypeFactory_LocationNotSupported {
+            get {
+                return ResourceManager.GetString("DirectiveTypeFactory_LocationNotSupported", resourceCulture);
+            }
+        }
     }
 }

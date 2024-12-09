@@ -34,7 +34,7 @@ public sealed class TypeAttributeInspector : ISyntaxInspector
                     var attributeContainingTypeSymbol = attributeSymbol.ContainingType;
                     var fullName = attributeContainingTypeSymbol.ToDisplayString();
 
-                    // We do a start with here to capture the generic and non generic variant of
+                    // We do a startWith to capture the generic and non-generic variants of
                     // the object type extension attribute.
                     if (fullName.StartsWith(ExtendObjectTypeAttribute, Ordinal) &&
                         context.SemanticModel.GetDeclaredSymbol(possibleType) is { } typeExt)

@@ -19,9 +19,8 @@ fragment QueryFragment on Query {
 
 ## Plan
 
-```json
-{
-  "kind": "Root"
-}
+```yaml
+nodes:
+
 ```
 

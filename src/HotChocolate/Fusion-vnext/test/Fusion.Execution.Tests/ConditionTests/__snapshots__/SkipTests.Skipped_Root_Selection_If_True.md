@@ -12,9 +12,8 @@ query($slug: String!) {
 
 ## Plan
 
-```json
-{
-  "kind": "Root"
-}
+```yaml
+nodes:
+
 ```
 

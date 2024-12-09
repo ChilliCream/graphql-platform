@@ -15,23 +15,33 @@ query($id: ID!, $skip: Boolean!) {
 
 ## Plan
 
-```json
-{
-  "kind": "Root",
-  "nodes": [
-    {
-      "kind": "Operation",
-      "schema": "REVIEWS",
-      "document": "query($id: ID!, $skip: Boolean!) { reviewById(id: $id) { body author @skip(if: $skip) } }",
-      "nodes": [
-        {
-          "kind": "Operation",
-          "schema": "ACCOUNTS",
-          "document": "{ userById { displayName } }"
+```yaml
+nodes:
+  - id: 1
+    schema: "REVIEWS"
+    operation: >-
+      query($id: ID!, $skip: Boolean!) {
+        reviewById(id: $id) {
+          body
+          author @skip(if: $skip) {
+            id
+          }
         }
-      ]
-    }
-  ]
-}
+      }
+  - id: 2
+    schema: "ACCOUNTS"
+    operation: >-
+      query($__fusion_requirement_1: ID!) {
+        userById(id: $__fusion_requirement_1) {
+          displayName
+        }
+      }
+    requirements:
+      - name: "__fusion_requirement_1"
+        dependsOn: "1"
+        selectionSet: "reviewById.author"
+        field: "id"
+        type: "ID!"
+
 ```
 

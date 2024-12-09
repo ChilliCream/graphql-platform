@@ -19,16 +19,21 @@ query($slug: String!) {
 
 ## Plan
 
-```json
-{
-  "kind": "Root",
-  "nodes": [
-    {
-      "kind": "Operation",
-      "schema": "PRODUCTS",
-      "document": "query($slug: String!) { products { nodes { description } } productBySlug(slug: $slug) { name } }"
-    }
-  ]
-}
+```yaml
+nodes:
+  - id: 1
+    schema: "PRODUCTS"
+    operation: >-
+      query($slug: String!) {
+        products {
+          nodes {
+            description
+          }
+        }
+        productBySlug(slug: $slug) {
+          name
+        }
+      }
+
 ```
 

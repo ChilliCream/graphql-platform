@@ -6,21 +6,25 @@ namespace HotChocolate.Fusion.Planning.Nodes;
 public sealed class InlineFragmentPlanNode : SelectionPlanNode
 {
     public InlineFragmentPlanNode(
-        InlineFragmentNode inlineFragmentNode,
-        ICompositeNamedType declaringType)
-        : base(declaringType, inlineFragmentNode.SelectionSet.Selections, inlineFragmentNode.Directives)
+        ICompositeNamedType declaringType,
+        InlineFragmentNode inlineFragment)
+        : this(declaringType, inlineFragment.SelectionSet.Selections)
+    {
+    }
+
+    public InlineFragmentPlanNode(
+        ICompositeNamedType declaringType,
+        IReadOnlyList<ISelectionNode> selectionNodes)
+        : base(declaringType, [], selectionNodes)
     {
     }
 
     public InlineFragmentNode ToSyntaxNode()
     {
-        var directives = new List<DirectiveNode>(Directives.ToSyntaxNode());
-        ExtendDirectivesWithConditions(directives);
-
         return new InlineFragmentNode(
             null,
             new NamedTypeNode(DeclaringType.Name),
-            directives,
+            Directives.ToSyntaxNode(),
             Selections.ToSyntaxNode());
     }
 }

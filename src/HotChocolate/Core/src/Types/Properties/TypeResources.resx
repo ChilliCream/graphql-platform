@@ -129,9 +129,6 @@
   <data name="DirectiveTypeDescriptor_OnlyProperties" xml:space="preserve">
     <value>Only property expressions are allowed to describe a directive type argument.</value>
   </data>
-  <data name="DirectiveTypeFactory_LocationNotSupported" xml:space="preserve">
-    <value>The specified location `{0}` is not supported.</value>
-  </data>
   <data name="DirectiveType_NoLocations" xml:space="preserve">
     <value>The `{0}` directive does not declare any location on which it is valid.</value>
   </data>

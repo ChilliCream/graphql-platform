@@ -19,23 +19,17 @@ fragment QueryFragment on Query {
 
 ## Plan
 
-```json
-{
-  "kind": "Root",
-  "nodes": [
-    {
-      "kind": "Condition",
-      "variableName": "skip",
-      "passingValue": false,
-      "nodes": [
-        {
-          "kind": "Operation",
-          "schema": "PRODUCTS",
-          "document": "query($slug: String!) { productBySlug(slug: $slug) { name } }"
+```yaml
+nodes:
+  - id: 1
+    schema: "PRODUCTS"
+    operation: >-
+      query($slug: String!) {
+        productBySlug(slug: $slug) {
+          name
         }
-      ]
-    }
-  ]
-}
+      }
+    skipIf: "skip"
+
 ```
 

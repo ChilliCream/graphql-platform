@@ -136,6 +136,7 @@ Rgba
 Rhai
 Roslynator
 runbooks
+Satisfiability
 Senn
 shoooe
 Skywalker

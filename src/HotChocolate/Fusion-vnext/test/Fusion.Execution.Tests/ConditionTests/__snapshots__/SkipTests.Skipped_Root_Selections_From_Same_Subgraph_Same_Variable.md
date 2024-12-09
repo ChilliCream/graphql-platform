@@ -17,23 +17,22 @@ query($slug: String!, $skip: Boolean!) {
 
 ## Plan
 
-```json
-{
-  "kind": "Root",
-  "nodes": [
-    {
-      "kind": "Condition",
-      "variableName": "skip",
-      "passingValue": false,
-      "nodes": [
-        {
-          "kind": "Operation",
-          "schema": "PRODUCTS",
-          "document": "query($slug: String!) { productBySlug(slug: $slug) { name } products { nodes { name } } }"
+```yaml
+nodes:
+  - id: 1
+    schema: "PRODUCTS"
+    operation: >-
+      query($slug: String!) {
+        productBySlug(slug: $slug) {
+          name
         }
-      ]
-    }
-  ]
-}
+        products {
+          nodes {
+            name
+          }
+        }
+      }
+    skipIf: "skip"
+
 ```
 

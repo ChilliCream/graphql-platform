@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Runtime.CompilerServices;
 using CookieCrumble.Formatters;
+using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Planning.Nodes;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
@@ -17,12 +18,13 @@ internal static class ModuleInitializer
         Snapshot.TryRegisterFormatter(new SyntaxNodeSnapshotValueFormatter());
     }
 
-    private sealed class RootPlanNodeSnapshotValueFormatter() : SnapshotValueFormatter<RootPlanNode>("json")
+    private sealed class RootPlanNodeSnapshotValueFormatter() : SnapshotValueFormatter<RootPlanNode>("yaml")
     {
         protected override void Format(IBufferWriter<byte> snapshot, RootPlanNode value)
-            => value.Serialize(snapshot);
+            => value.FormatToYaml(snapshot);
     }
 
+    // Taken from CookieCrumble.HotChocolate
     private sealed class SyntaxNodeSnapshotValueFormatter : SnapshotValueFormatter<ISyntaxNode>
     {
         protected override void Format(IBufferWriter<byte> snapshot, ISyntaxNode value)
