@@ -7,7 +7,7 @@ internal static class OperationVariableBinder
 {
     public static void BindOperationVariables(
         OperationDefinitionNode operationDefinition,
-        RootPlanNode operationPlan)
+        RequestPlanNode operationPlan)
     {
         var operationBacklog = new Stack<OperationPlanNode>(operationPlan.Operations.OfType<OperationPlanNode>());
         var selectionBacklog = new Stack<SelectionPlanNode>();

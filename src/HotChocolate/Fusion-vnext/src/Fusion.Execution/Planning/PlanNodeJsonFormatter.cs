@@ -7,18 +7,18 @@ namespace HotChocolate.Fusion.Planning;
 
 public static class PlanNodeJsonFormatter
 {
-    public static string ToJson(this RootPlanNode root)
+    public static string ToJson(this RequestPlanNode request)
     {
         var buffer = new ArrayBufferWriter<byte>();
         var writer = new Utf8JsonWriter(buffer, new JsonWriterOptions { Indented = true });
-        writer.Write(root);
+        writer.Write(request);
         writer.Flush();
         return Encoding.UTF8.GetString(buffer.WrittenSpan);
     }
 
-    public static void Write(this Utf8JsonWriter writer, RootPlanNode root)
+    public static void Write(this Utf8JsonWriter writer, RequestPlanNode request)
     {
-        var nodeIdLookup = CollectNodeIds(root);
+        var nodeIdLookup = CollectNodeIds(request);
 
         writer.WriteStartObject();
 
@@ -105,7 +105,7 @@ public static class PlanNodeJsonFormatter
 
         while (backlog.TryDequeue(out var node))
         {
-            if (node is RootPlanNode rootPlanNode)
+            if (node is RequestPlanNode rootPlanNode)
             {
                 foreach (var child in rootPlanNode.Operations)
                 {

@@ -29,20 +29,7 @@ public class OperationPlannerTests : FusionTestBase
             """);
 
         // assert
-        plan.ToYaml().MatchInlineSnapshot(
-            """
-            nodes:
-              - id: 1
-                schema: "PRODUCTS"
-                operation: >-
-                  {
-                    productById(id: 1) {
-                      id
-                      name
-                    }
-                  }
-
-            """);
+        plan.ToYaml().MatchSnapshot();
     }
 
     [Test]
@@ -69,35 +56,7 @@ public class OperationPlannerTests : FusionTestBase
             """);
 
         // assert
-        plan.ToYaml().MatchInlineSnapshot(
-            """
-            nodes:
-              - id: 1
-                schema: "PRODUCTS"
-                operation: >-
-                  {
-                    productById(id: 1) {
-                      id
-                      name
-                      id
-                    }
-                  }
-              - id: 2
-                schema: "SHIPPING"
-                operation: >-
-                  query($__fusion_requirement_1: ID!) {
-                    productById(id: $__fusion_requirement_1) {
-                      estimatedDelivery(postCode: "12345")
-                    }
-                  }
-                requirements:
-                  - name: "__fusion_requirement_1"
-                    dependsOn: "1"
-                    selectionSet: "productById"
-                    field: "id"
-                    type: "ID!"
-
-            """);
+        plan.ToYaml().MatchSnapshot();
     }
 
     [Test]
@@ -139,56 +98,7 @@ public class OperationPlannerTests : FusionTestBase
             """);
 
         // assert
-        plan.ToYaml().MatchInlineSnapshot(
-            """
-            nodes:
-              - id: 1
-                schema: "PRODUCTS"
-                operation: >-
-                  {
-                    productById(id: 1) {
-                      name
-                      id
-                    }
-                  }
-              - id: 2
-                schema: "REVIEWS"
-                operation: >-
-                  query($__fusion_requirement_2: ID!) {
-                    productById(id: $__fusion_requirement_2) {
-                      reviews(first: 10) {
-                        nodes {
-                          body
-                          stars
-                          author {
-                            id
-                          }
-                        }
-                      }
-                    }
-                  }
-                requirements:
-                  - name: "__fusion_requirement_2"
-                    dependsOn: "1"
-                    selectionSet: "productById"
-                    field: "id"
-                    type: "ID!"
-              - id: 3
-                schema: "ACCOUNTS"
-                operation: >-
-                  query($__fusion_requirement_1: ID!) {
-                    userById(id: $__fusion_requirement_1) {
-                      displayName
-                    }
-                  }
-                requirements:
-                  - name: "__fusion_requirement_1"
-                    dependsOn: "2"
-                    selectionSet: "productById.reviews.nodes.author"
-                    field: "id"
-                    type: "ID!"
-
-            """);
+        plan.ToYaml().MatchSnapshot();
     }
 
     [Test]
@@ -230,56 +140,7 @@ public class OperationPlannerTests : FusionTestBase
             """);
 
         // assert
-        plan.ToYaml().MatchInlineSnapshot(
-            """
-            nodes:
-              - id: 1
-                schema: "PRODUCTS"
-                operation: >-
-                  query($id: ID!) {
-                    productById(id: $id) {
-                      name
-                      id
-                    }
-                  }
-              - id: 2
-                schema: "REVIEWS"
-                operation: >-
-                  query($__fusion_requirement_2: ID!, $first: Int! = 10) {
-                    productById(id: $__fusion_requirement_2) {
-                      reviews(first: $first) {
-                        nodes {
-                          body
-                          stars
-                          author {
-                            id
-                          }
-                        }
-                      }
-                    }
-                  }
-                requirements:
-                  - name: "__fusion_requirement_2"
-                    dependsOn: "1"
-                    selectionSet: "productById"
-                    field: "id"
-                    type: "ID!"
-              - id: 3
-                schema: "ACCOUNTS"
-                operation: >-
-                  query($__fusion_requirement_1: ID!) {
-                    userById(id: $__fusion_requirement_1) {
-                      displayName
-                    }
-                  }
-                requirements:
-                  - name: "__fusion_requirement_1"
-                    dependsOn: "2"
-                    selectionSet: "productById.reviews.nodes.author"
-                    field: "id"
-                    type: "ID!"
-
-            """);
+        plan.ToYaml().MatchSnapshot();
     }
 
     [Test]
@@ -313,19 +174,6 @@ public class OperationPlannerTests : FusionTestBase
         var plan = planner.CreatePlan(rewritten, null);
 
         // assert
-        plan.ToYaml().MatchInlineSnapshot(
-            """
-            nodes:
-              - id: 1
-                schema: "PRODUCTS"
-                operation: >-
-                  {
-                    productById(id: 1) {
-                      id
-                      name
-                    }
-                  }
-
-            """);
+        plan.ToYaml().MatchSnapshot();
     }
 }
