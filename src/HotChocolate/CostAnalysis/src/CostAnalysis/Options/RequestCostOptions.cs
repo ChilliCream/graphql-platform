@@ -1,6 +1,6 @@
 namespace HotChocolate.CostAnalysis;
 
-public record CostRequestOptions(
+public record RequestCostOptions(
     double MaxFieldCost,
     double MaxTypeCost,
     bool EnforceCostLimits,
