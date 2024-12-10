@@ -1,0 +1,18 @@
+request:
+  - document: >-
+      {
+        productById(id: 1) {
+          id
+          name
+        }
+      }
+nodes:
+  - id: 1
+    schema: "PRODUCTS"
+    operation: >-
+      {
+        productById(id: 1) {
+          id
+          name
+        }
+      }

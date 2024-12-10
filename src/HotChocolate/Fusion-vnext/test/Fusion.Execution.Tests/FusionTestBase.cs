@@ -14,7 +14,7 @@ public abstract class FusionTestBase
         return CompositeSchemaBuilder.Create(compositeSchemaDoc);
     }
 
-    protected static RootPlanNode PlanOperationAsync(CompositeSchema compositeSchema, string operation)
+    protected static RequestPlanNode PlanOperationAsync(CompositeSchema compositeSchema, string operation)
     {
         var doc = Utf8GraphQLParser.Parse(operation);
 

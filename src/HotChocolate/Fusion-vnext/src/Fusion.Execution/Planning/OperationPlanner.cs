@@ -12,13 +12,13 @@ public sealed class OperationPlanner(CompositeSchema schema)
 {
     private int _lastRequirementId;
 
-    public RootPlanNode CreatePlan(DocumentNode document, string? operationName)
+    public RequestPlanNode CreatePlan(DocumentNode document, string? operationName)
     {
         ArgumentNullException.ThrowIfNull(document);
 
         var operationDefinition = document.GetOperation(operationName);
         var schemasWeighted = GetSchemasWeighted(schema.QueryType, operationDefinition.SelectionSet);
-        var operationPlan = new RootPlanNode();
+        var operationPlan = new RequestPlanNode(document, operationName);
 
         // this need to be rewritten to check if everything is planned for.
         foreach (var schemaName in schemasWeighted.OrderByDescending(t => t.Value).Select(t => t.Key))
@@ -708,11 +708,6 @@ public sealed class OperationPlanner(CompositeSchema schema)
     public record UnresolvedType(
         InlineFragmentNode InlineFragment,
         CompositeComplexType TypeCondition);
-
-    public class RequestPlanNode
-    {
-        public ICollection<OperationPlanNode> Operations { get; } = new List<OperationPlanNode>();
-    }
 
     private record struct LookupOperation(
         OperationPlanNode Operation,

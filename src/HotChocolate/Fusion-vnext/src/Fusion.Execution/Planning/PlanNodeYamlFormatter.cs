@@ -7,18 +7,38 @@ namespace HotChocolate.Fusion.Planning;
 
 public static class PlanNodeYamlFormatter
 {
-    public static string ToYaml(this RootPlanNode root)
+    public static string ToYaml(this RequestPlanNode request)
     {
         var sb = new StringBuilder();
         var writer = new StringWriter(sb);
-        Write(writer, root);
+        Write(writer, request);
         writer.Flush();
         return sb.ToString();
     }
 
-    public static void Write(this StringWriter writer, RootPlanNode root)
+    public static void Write(this StringWriter writer, RequestPlanNode request)
     {
-        var nodeIdLookup = CollectNodeIds(root);
+        var nodeIdLookup = CollectNodeIds(request);
+
+        writer.WriteLine("request:");
+        writer.WriteLine("  - document: >-");
+
+        var reader = new StringReader(request.Document.ToString());
+        while (true)
+        {
+            var line = reader.ReadLine();
+            if (line is null)
+            {
+                break;
+            }
+
+            writer.WriteLine("      {0}", line);
+        }
+
+        if (!string.IsNullOrEmpty(request.OperationName))
+        {
+            writer.WriteLine("  - operationName: \"{0}\"", request.OperationName);
+        }
 
         writer.WriteLine("nodes:");
 
@@ -84,7 +104,7 @@ public static class PlanNodeYamlFormatter
 
         while (backlog.TryDequeue(out var node))
         {
-            if (node is RootPlanNode rootPlanNode)
+            if (node is RequestPlanNode rootPlanNode)
             {
                 foreach (var child in rootPlanNode.Operations)
                 {
