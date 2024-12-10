@@ -1,0 +1,13 @@
+request:
+  - document: >-
+      query($slug: String!) {
+        ... on Query @skip(if: true) {
+          productBySlug(slug: $slug) {
+            name
+          }
+          viewer {
+            displayName
+          }
+        }
+      }
+nodes:
