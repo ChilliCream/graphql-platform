@@ -34,7 +34,7 @@ public class SkipFragmentTests : FusionTestBase
     }
 
     [Test]
-    public void Skipped_Root_Selection_Same_Selection_In_Fragment()
+    public void Skipped_Root_Selection_Same_Skipped_Selection_In_Fragment()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
@@ -63,7 +63,7 @@ public class SkipFragmentTests : FusionTestBase
     }
 
     [Test]
-    public void Skipped_Root_Selection_Same_Selection_With_Different_Skip_In_Fragment()
+    public void Skipped_Root_Selection_Same_Skipped_Selection_With_Different_Skip_In_Fragment()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
@@ -554,6 +554,201 @@ public class SkipFragmentTests : FusionTestBase
                    }
                     displayName
                 }
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        plan.MatchSnapshot();
+    }
+
+    [Test]
+    public void Skipped_Sub_Selection_Same_Selection_Without_Skip_In_Fragment()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            query($slug: String!, $skip: Boolean!) {
+                productBySlug(slug: $slug) {
+                    name
+                    ... ProductFragment @skip(if: $skip)
+                }
+            }
+
+            fragment ProductFragment on Product {
+                name
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        plan.MatchSnapshot();
+    }
+
+    [Test]
+    public void Skipped_Sub_Selection_Same_Skipped_Selection_In_Fragment()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            query($slug: String!, $skip: Boolean!) {
+                productBySlug(slug: $slug) {
+                    name @skip(if: $skip)
+                    ... ProductFragment
+                }
+            }
+
+            fragment ProductFragment on Product {
+                name @skip(if: $skip)
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        plan.MatchSnapshot();
+    }
+
+    [Test]
+    public void Skipped_Sub_Selection_Same_Skipped_Selection_With_Different_Skip_In_Fragment()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            query($slug: String!, $skip1: Boolean!, $skip2: Boolean!) {
+                productBySlug(slug: $slug) {
+                    name @skip(if: $skip1)
+                    ... ProductFragment
+                }
+            }
+
+            fragment ProductFragment on Product {
+                name @skip(if: $skip2)
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        plan.MatchSnapshot();
+    }
+
+    [Test]
+    public void Skipped_Sub_Fragment()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            query($slug: String!, $skip: Boolean!) {
+                productBySlug(slug: $slug) {
+                    ... ProductFragment @skip(if: $skip)
+                }
+            }
+
+            fragment ProductFragment on Product {
+                name
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        plan.MatchSnapshot();
+    }
+
+    [Test]
+    public void Skipped_Sub_Fragment_If_True()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            query($slug: String!) {
+                productBySlug(slug: $slug) {
+                    ... ProductFragment @skip(if: true)
+                }
+            }
+
+            fragment ProductFragment on Product {
+                name
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        plan.MatchSnapshot();
+    }
+
+    [Test]
+    public void Skipped_Sub_Fragment_Other_Not_Skipped_Sub_Fragment_From_Same_Subgraph()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            query($slug: String!, $skip: Boolean!) {
+                productBySlug(slug: $slug) {
+                    ... ProductFragment1 @skip(if: $skip)
+                    ... ProductFragment2
+                }
+            }
+
+            fragment ProductFragment1 on Product {
+                name
+            }
+
+            fragment ProductFragment2 on Product {
+                description
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        plan.MatchSnapshot();
+    }
+
+    [Test]
+    public void Skipped_Sub_Fragment_Other_Not_Skipped_Sub_Fragment_From_Same_Subgraph_If_True()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            query($slug: String!) {
+                productBySlug(slug: $slug) {
+                    ... ProductFragment1 @skip(if: true)
+                    ... ProductFragment2
+                }
+            }
+
+            fragment ProductFragment1 on Product {
+                name
+            }
+
+            fragment ProductFragment2 on Product {
+                description
             }
             """);
 
