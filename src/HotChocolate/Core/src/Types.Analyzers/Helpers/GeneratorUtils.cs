@@ -17,7 +17,7 @@ internal static class GeneratorUtils
             if (syntaxInfo is ModuleInfo module)
             {
                 defaultModule = false;
-                return module;
+                return new ModuleInfo(SanitizeIdentifier(module.ModuleName), module.Options);
             }
         }
 
@@ -62,7 +62,7 @@ internal static class GeneratorUtils
     public static string CreateModuleName(string? assemblyName)
         => assemblyName is null
             ? "AssemblyTypes"
-            : assemblyName.Split('.').Last() + "Types";
+            : SanitizeIdentifier(assemblyName.Split('.').Last()) + "Types";
 
     public static string ConvertDefaultValueToString(object? defaultValue, ITypeSymbol type)
     {
