@@ -29,7 +29,7 @@ public class OperationPlannerTests : FusionTestBase
             """);
 
         // assert
-        plan.ToYaml().MatchSnapshot();
+        plan.MatchSnapshot();
     }
 
     [Test]
@@ -56,7 +56,7 @@ public class OperationPlannerTests : FusionTestBase
             """);
 
         // assert
-        plan.ToYaml().MatchSnapshot();
+        plan.MatchSnapshot();
     }
 
     [Test]
@@ -98,7 +98,7 @@ public class OperationPlannerTests : FusionTestBase
             """);
 
         // assert
-        plan.ToYaml().MatchSnapshot();
+        plan.MatchSnapshot();
     }
 
     [Test]
@@ -140,7 +140,7 @@ public class OperationPlannerTests : FusionTestBase
             """);
 
         // assert
-        plan.ToYaml().MatchSnapshot();
+        plan.MatchSnapshot();
     }
 
     [Test]
@@ -174,6 +174,6 @@ public class OperationPlannerTests : FusionTestBase
         var plan = planner.CreatePlan(rewritten, null);
 
         // assert
-        plan.ToYaml().MatchSnapshot();
+        plan.MatchSnapshot();
     }
 }
