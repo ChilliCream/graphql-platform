@@ -17,7 +17,7 @@ nodes:
   - id: 1
     schema: "PRODUCTS"
     operation: >-
-      query($slug: String!) {
+      query($skip1: Boolean!, $skip2: Boolean!, $slug: String!) {
         ... on Query @skip(if: $skip1) {
           productBySlug(slug: $slug) {
             name
