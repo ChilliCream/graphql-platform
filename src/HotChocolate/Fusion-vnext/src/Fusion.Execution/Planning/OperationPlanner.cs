@@ -95,10 +95,10 @@ public sealed class OperationPlanner(CompositeSchema schema)
             }
         }
 
-        return skipUnresolved
-            || unresolvedFields is null
-            || unresolvedFields.Count == 0
-            || TryHandleUnresolvedSelections(context, type, unresolvedFields);
+        return skipUnresolved ||
+            unresolvedFields is null ||
+            unresolvedFields.Count == 0 ||
+            TryHandleUnresolvedSelections(context, type, unresolvedFields);
     }
 
     private bool TryPlanSelection(
@@ -114,6 +114,64 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 type,
                 fieldNode,
                 trackUnresolvedField);
+        }
+
+        if (selectionNode is InlineFragmentNode inlineFragmentNode)
+        {
+            return TryPlanInlineFragmentSelection(
+                context,
+                type,
+                inlineFragmentNode,
+                trackUnresolvedField);
+        }
+
+        return false;
+    }
+
+    private bool TryPlanInlineFragmentSelection(
+        PlaningContext context,
+        CompositeComplexType type,
+        InlineFragmentNode inlineFragmentNode,
+        Action<UnresolvedField> trackUnresolvedField)
+    {
+        var typeCondition = type;
+        if (inlineFragmentNode.TypeCondition?.Name.Value is { } conditionTypeName &&
+            // TODO: CompositeComplexType does not include unions which are a valid value for type conditions.
+            schema.TryGetType<CompositeComplexType>(conditionTypeName, out var typeConditionType))
+        {
+            typeCondition = typeConditionType;
+        }
+
+        var inlineFragmentPlanNode = new InlineFragmentPlanNode(typeCondition, inlineFragmentNode);
+        var inlineFragmentContext = new PlaningContext(context.Operation, inlineFragmentPlanNode,
+            ImmutableStack<SelectionPathSegment>.Empty);
+
+        foreach (var selection in inlineFragmentNode.SelectionSet.Selections)
+        {
+            if (IsSelectionAlwaysSkipped(selection))
+            {
+                // TODO: How to reconcile this?
+                continue;
+            }
+
+            TryPlanSelection(
+                inlineFragmentContext,
+                typeCondition,
+                selection,
+                unresolvedField =>
+                {
+                    // unresolvedFields ??= new List<UnresolvedField>();
+                    // unresolvedFields.Add(unresolvedField);
+                });
+        }
+
+        if (inlineFragmentPlanNode.Selections.Count > 0)
+        {
+            AddSelectionDirectives(inlineFragmentPlanNode, inlineFragmentNode.Directives);
+            
+            context.Parent.AddSelection(inlineFragmentPlanNode);
+
+            return true;
         }
 
         return false;
@@ -134,8 +192,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
         // if we have an operation plan node we have a pre-validated set of
         // root fields, so we now the field will be resolvable on the
         // source schema.
-        if (context.Parent is OperationPlanNode
-            || IsResolvable(fieldNode, field, context.Operation.SchemaName))
+        if (context.Parent is OperationPlanNode || IsResolvable(fieldNode, field, context.Operation.SchemaName))
         {
             var fieldNamedType = field.Type.NamedType();
 
@@ -159,9 +216,9 @@ public sealed class OperationPlanner(CompositeSchema schema)
             // if this field as a selection set it must be a object, interface or union type,
             // otherwise the validation should have caught this. So, we just throw here if this
             // is not the case.
-            if (fieldNamedType.Kind != TypeKind.Object
-                && fieldNamedType.Kind != TypeKind.Interface
-                && fieldNamedType.Kind != TypeKind.Union)
+            if (fieldNamedType.Kind != TypeKind.Object &&
+                fieldNamedType.Kind != TypeKind.Interface &&
+                fieldNamedType.Kind != TypeKind.Union)
             {
                 throw new InvalidOperationException(
                     "Only object, interface, or union types can have a selection set.");
@@ -195,8 +252,8 @@ public sealed class OperationPlanner(CompositeSchema schema)
         {
             var directiveType = schema.GetDirectiveType(directiveNode.Name.Value);
 
-            if ((directiveType == schema.SkipDirective || directiveType == schema.IncludeDirective)
-                && directiveNode.Arguments[0].Value is BooleanValueNode)
+            if ((directiveType == schema.SkipDirective || directiveType == schema.IncludeDirective) &&
+                directiveNode.Arguments[0].Value is BooleanValueNode)
             {
                 continue;
             }
@@ -260,8 +317,8 @@ public sealed class OperationPlanner(CompositeSchema schema)
 
             foreach (var unresolvedField in unresolved)
             {
-                if (unresolvedField.Field.Sources.ContainsSchema(schemaName)
-                    && !processedFields.Contains(unresolvedField.Field.Name))
+                if (unresolvedField.Field.Sources.ContainsSchema(schemaName) &&
+                    !processedFields.Contains(unresolvedField.Field.Name))
                 {
                     fields.Add(unresolvedField.FieldNode);
                 }
@@ -414,8 +471,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
         var declaringType = (CompositeComplexType)selection.DeclaringType;
         var builder = ImmutableDictionary.CreateBuilder<FieldPath, string>();
 
-        if (declaringType.Sources.TryGetType(schemaName, out var source)
-            && source.Lookups.Length > 0)
+        if (declaringType.Sources.TryGetType(schemaName, out var source) && source.Lookups.Length > 0)
         {
             foreach (var possibleLookup in source.Lookups.OrderBy(t => t.Fields.Length))
             {
@@ -468,10 +524,10 @@ public sealed class OperationPlanner(CompositeSchema schema)
     {
         foreach (var segment in fieldPath.Reverse())
         {
-            if (type.NamedType() is not CompositeComplexType complexType
-                || !complexType.Fields.TryGetField(segment.Name, out var field)
-                || !field.Sources.TryGetMember(schemaName, out var source)
-                || source.Requirements is not null)
+            if (type.NamedType() is not CompositeComplexType complexType ||
+                !complexType.Fields.TryGetField(segment.Name, out var field) ||
+                !field.Sources.TryGetMember(schemaName, out var source) ||
+                source.Requirements is not null)
             {
                 return false;
             }
@@ -550,8 +606,10 @@ public sealed class OperationPlanner(CompositeSchema schema)
         SelectionSetNode selectionSet)
     {
         var counts = new Dictionary<string, int>();
+        var selectionBacklog = new Queue<ISelectionNode>(selectionSet.Selections);
+        var visitedSelections = new HashSet<ISelectionNode>(SyntaxComparer.BySyntax);
 
-        foreach (var selectionNode in selectionSet.Selections)
+        while (selectionBacklog.TryDequeue(out var selectionNode))
         {
             if (selectionNode is FieldNode fieldNode)
             {
@@ -566,6 +624,16 @@ public sealed class OperationPlanner(CompositeSchema schema)
                     else
                     {
                         counts[schemaName] = 1;
+                    }
+                }
+            }
+            else if (selectionNode is InlineFragmentNode inlineFragmentNode)
+            {
+                foreach (var selection in inlineFragmentNode.SelectionSet.Selections)
+                {
+                    if (visitedSelections.Add(selection))
+                    {
+                        selectionBacklog.Enqueue(selection);
                     }
                 }
             }
@@ -626,8 +694,8 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 return;
             }
 
-            if (!string.Equals(firstSelection.SkipVariable, selection.SkipVariable, StringComparison.Ordinal)
-                || !string.Equals(firstSelection.IncludeVariable, selection.IncludeVariable, StringComparison.Ordinal))
+            if (!string.Equals(firstSelection.SkipVariable, selection.SkipVariable, StringComparison.Ordinal) ||
+                !string.Equals(firstSelection.IncludeVariable, selection.IncludeVariable, StringComparison.Ordinal))
             {
                 return;
             }
@@ -645,8 +713,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
 
             remove.AddRange(
                 selection.Directives.Where(
-                    t => t.Type == schema.SkipDirective
-                        || t.Type == schema.IncludeDirective));
+                    t => t.Type == schema.SkipDirective || t.Type == schema.IncludeDirective));
 
             foreach (var directive in remove)
             {
