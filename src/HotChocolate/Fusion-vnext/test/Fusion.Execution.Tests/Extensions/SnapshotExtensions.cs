@@ -7,6 +7,6 @@ public static class TestSnapshotExtensions
 {
     public static void MatchSnapshot(this RequestPlanNode plan)
     {
-        plan.ToYaml().MatchSnapshot(".yaml");
+        plan.ToYaml().MatchSnapshot(extension: ".yaml");
     }
 }
