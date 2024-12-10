@@ -135,7 +135,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
         // root fields, so we now the field will be resolvable on the
         // source schema.
         if (context.Parent is OperationPlanNode
-            || IsResolvable(fieldNode, field, context.Operation.SchemaName))
+            || field.Sources.ContainsSchema(context.Operation.SchemaName))
         {
             var fieldNamedType = field.Type.NamedType();
 
@@ -389,20 +389,6 @@ public sealed class OperationPlanner(CompositeSchema schema)
 
         return true;
     }
-
-    // this needs more meat
-    private bool IsResolvable(
-        FieldNode fieldNode,
-        CompositeOutputField field,
-        string schemaName)
-        => field.Sources.ContainsSchema(schemaName);
-
-    // this needs more meat
-    private bool IsResolvable(
-        InlineFragmentNode inlineFragment,
-        CompositeComplexType typeCondition,
-        string schemaName)
-        => typeCondition.Sources.ContainsSchema(schemaName);
 
     private static bool TryGetLookup(
         SelectionPlanNode selection,
@@ -708,11 +694,6 @@ public sealed class OperationPlanner(CompositeSchema schema)
     public record UnresolvedType(
         InlineFragmentNode InlineFragment,
         CompositeComplexType TypeCondition);
-
-    public class RequestPlanNode
-    {
-        public ICollection<OperationPlanNode> Operations { get; } = new List<OperationPlanNode>();
-    }
 
     private record struct LookupOperation(
         OperationPlanNode Operation,
