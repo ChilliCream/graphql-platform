@@ -1,0 +1,20 @@
+request:
+  - document: >-
+      query($slug: String!, $skip: Boolean!) {
+        productBySlug(slug: $slug) {
+          ... on Product @skip(if: $skip) {
+            name
+          }
+        }
+      }
+nodes:
+  - id: 1
+    schema: "PRODUCTS"
+    operation: >-
+      query($skip: Boolean!, $slug: String!) {
+        productBySlug(slug: $slug) {
+          ... on Product @skip(if: $skip) {
+            name
+          }
+        }
+      }
