@@ -1,0 +1,68 @@
+request:
+  - document: >-
+      query($id: ID!) {
+        reviewById(id: $id) {
+          body
+          author {
+            displayName
+          }
+          author {
+            id
+            displayName
+            reviews {
+              pageInfo {
+                hasNextPage
+              }
+            }
+          }
+        }
+      }
+nodes:
+  - id: 1
+    schema: "REVIEWS"
+    operation: >-
+      query($id: ID!) {
+        reviewById(id: $id) {
+          body
+          author {
+            id
+          }
+          author {
+            id
+            reviews {
+              pageInfo {
+                hasNextPage
+              }
+            }
+            id
+          }
+        }
+      }
+  - id: 2
+    schema: "ACCOUNTS"
+    operation: >-
+      query($__fusion_requirement_1: ID!) {
+        userById(id: $__fusion_requirement_1) {
+          displayName
+        }
+      }
+    requirements:
+      - name: "__fusion_requirement_1"
+        dependsOn: "1"
+        selectionSet: "reviewById.author"
+        field: "id"
+        type: "ID!"
+  - id: 3
+    schema: "ACCOUNTS"
+    operation: >-
+      query($__fusion_requirement_2: ID!) {
+        userById(id: $__fusion_requirement_2) {
+          displayName
+        }
+      }
+    requirements:
+      - name: "__fusion_requirement_2"
+        dependsOn: "1"
+        selectionSet: "reviewById.author"
+        field: "id"
+        type: "ID!"

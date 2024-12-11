@@ -450,4 +450,82 @@ public class FragmentTests : FusionTestBase
         // assert
         plan.MatchSnapshot();
     }
+
+    [Test]
+    public void Two_Fragments_On_Sub_Selection_With_Different_But_Same_Entry_Selection_From_Different_Subgraph()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            query($slug: String!) {
+                productBySlug(slug: $slug) {
+                    ...ProductFragment1
+                    ...ProductFragment2
+                }
+            }
+
+            fragment ProductFragment1 on Product {
+                reviews {
+                    nodes {
+                        body
+                    }
+                }
+            }
+
+            fragment ProductFragment2 on Product {
+                reviews {
+                    pageInfo {
+                        hasNextPage
+                    }
+                }
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        plan.MatchSnapshot();
+    }
+
+    [Test]
+    [Skip("Doesn't work yet")]
+    public void Test()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            query($id: ID!) {
+                reviewById(id: $id) {
+                    body
+                    author {
+                        displayName
+                    }
+                    ...ReviewFragment
+                }
+            }
+
+            fragment ReviewFragment on Review {
+                author {
+                    id
+                    displayName
+                    reviews {
+                        pageInfo {
+                            hasNextPage
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        plan.MatchSnapshot();
+    }
 }

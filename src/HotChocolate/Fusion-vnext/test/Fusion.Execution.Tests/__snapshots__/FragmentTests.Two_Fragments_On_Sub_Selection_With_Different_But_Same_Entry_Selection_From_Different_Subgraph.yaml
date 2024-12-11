@@ -1,0 +1,17 @@
+request:
+  - document: >-
+      query($slug: String!) {
+        productBySlug(slug: $slug) {
+          reviews {
+            nodes {
+              body
+            }
+          }
+          reviews {
+            pageInfo {
+              hasNextPage
+            }
+          }
+        }
+      }
+nodes:

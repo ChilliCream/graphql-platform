@@ -883,10 +883,8 @@ public class SkipFragmentTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-
-
     [Test]
-    public void Skipped_Sub_Fragment_With_Fields_From_Different_Subgraphs()
+    public void Skipped_Sub_Fragment_From_Same_And_Different_Subgraph()
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
@@ -902,6 +900,194 @@ public class SkipFragmentTests : FusionTestBase
             fragment ProductFragment on Product {
                 name
                 averageRating
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        plan.MatchSnapshot();
+    }
+
+    [Test]
+    public void Skipped_Sub_Fragment_From_Same_And_Different_Subgraph_If_True()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            query($slug: String!) {
+                productBySlug(slug: $slug) {
+                    ... ProductFragment @skip(if: true)
+                }
+            }
+
+            fragment ProductFragment on Product {
+                name
+                averageRating
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        plan.MatchSnapshot();
+    }
+
+    [Test]
+    public void Skipped_Sub_Fragment_From_Different_Subgraph_Other_Not_Skipped_Selection_From_Different_Subgraph()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            query($slug: String!, $skip: Boolean!) {
+                productBySlug(slug: $slug) {
+                    ... ProductFragment @skip(if: $skip)
+                    averageRating
+                }
+            }
+
+            fragment ProductFragment on Product {
+                averageRating
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        plan.MatchSnapshot();
+    }
+
+    [Test]
+    public void Skipped_Sub_Fragment_From_Different_Subgraph_Other_Not_Skipped_Different_Selection_From_Different_Subgraph()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            query($slug: String!, $first: Int = 3, $skip: Boolean!) {
+                productBySlug(slug: $slug) {
+                    averageRating
+                    ... ProductFragment @skip(if: $skip)
+                }
+            }
+
+            fragment ProductFragment on Product {
+                reviews(first: $first) {
+                    nodes {
+                        body
+                    }
+                }
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assertx
+        plan.MatchSnapshot();
+    }
+
+    [Test]
+    public void Skipped_Sub_Fragment_From_Different_Subgraph_Other_Not_Skipped_Different_Selection_From_Different_Subgraph_If_True()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            query($slug: String!, $first: Int = 3) {
+                productBySlug(slug: $slug) {
+                    averageRating
+                    ... ProductFragment @skip(if: true)
+                }
+            }
+
+            fragment ProductFragment on Product {
+                reviews(first: $first) {
+                    nodes {
+                        body
+                    }
+                }
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        plan.MatchSnapshot();
+    }
+
+    [Test]
+    [Skip("Doesn't work yet")]
+    public void Skipped_Sub_Fragment_From_Different_Subgraph_Other_Not_Skipped_Selection_With_Same_Entry_Selection()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            query($slug: String!, $first: Int = 3, $skip: Boolean!) {
+                productBySlug(slug: $slug) {
+                    reviews(first: $first) {
+                        pageInfo {
+                            hasNextPage
+                        }
+                    }
+                    ... ProductFragment @skip(if: $skip)
+                }
+            }
+
+            fragment ProductFragment on Product {
+                reviews(first: $first) {
+                    nodes {
+                        body
+                    }
+                }
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        plan.MatchSnapshot();
+    }
+
+    [Test]
+    [Skip("Doesn't work yet")]
+    public void Skipped_Sub_Fragment_From_Different_Subgraph_Other_Not_Skipped_Selection_With_Same_Entry_Selection_If_True()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            query($slug: String!, $first: Int = 3) {
+                productBySlug(slug: $slug) {
+                    reviews(first: $first) {
+                        pageInfo {
+                            hasNextPage
+                        }
+                    }
+                    ... ProductFragment @skip(if: true)
+                }
+            }
+
+            fragment ProductFragment on Product {
+                reviews(first: $first) {
+                    nodes {
+                        body
+                    }
+                }
             }
             """);
 
