@@ -169,6 +169,14 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 });
         }
 
+        if (unresolvedSelections is { Count: > 0 })
+        {
+            var unresolvedInlineFragment =
+                new UnresolvedInlineFragment(inlineFragmentNode.Directives, typeCondition, unresolvedSelections);
+
+            trackUnresolvedSelection(unresolvedInlineFragment);
+        }
+
         if (inlineFragmentPlanNode.Selections.Count > 0)
         {
             AddSelectionDirectives(inlineFragmentPlanNode, inlineFragmentNode.Directives);
@@ -176,14 +184,6 @@ public sealed class OperationPlanner(CompositeSchema schema)
             context.Parent.AddSelection(inlineFragmentPlanNode);
 
             return true;
-        }
-
-        if (unresolvedSelections is { Count: > 0 })
-        {
-            var unresolvedInlineFragment =
-                new UnresolvedInlineFragment(inlineFragmentNode.Directives, typeCondition, unresolvedSelections);
-
-            trackUnresolvedSelection(unresolvedInlineFragment);
         }
 
         return false;
