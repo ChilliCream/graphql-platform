@@ -1,4 +1,5 @@
 using HotChocolate.CostAnalysis;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution;
 
@@ -56,16 +57,11 @@ public static class CostAnalyzerRequestContextExtensions
 
     internal static CostAnalyzerMode GetCostAnalyzerMode(
         this IRequestContext context,
-        CostOptions options)
+        bool enforceCostLimits)
     {
         if (context is null)
         {
             throw new ArgumentNullException(nameof(context));
-        }
-
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
         }
 
         if (context.ContextData.ContainsKey(WellKnownContextData.ValidateCost))
@@ -75,7 +71,7 @@ public static class CostAnalyzerRequestContextExtensions
 
         var flags = CostAnalyzerMode.Analyze;
 
-        if (options.EnforceCostLimits)
+        if (enforceCostLimits)
         {
             flags |= CostAnalyzerMode.Enforce;
         }
@@ -89,4 +85,51 @@ public static class CostAnalyzerRequestContextExtensions
 
         return flags;
     }
+
+    /// <summary>
+    /// Gets the cost options for the current request.
+    /// </summary>
+    /// <param name="context">
+    /// The request context.
+    /// </param>
+    /// <returns>
+    /// Returns the cost options.
+    /// </returns>
+    public static RequestCostOptions GetCostOptions(this IRequestContext context)
+    {
+        if (context.ContextData.TryGetValue(WellKnownContextData.RequestCostOptions, out var value)
+            && value is RequestCostOptions options)
+        {
+            return options;
+        }
+
+        return context.Schema.Services.GetRequiredService<RequestCostOptions>();
+    }
+
+    internal static RequestCostOptions? TryGetCostOptions(this IRequestContext context)
+    {
+        if (context.ContextData.TryGetValue(WellKnownContextData.RequestCostOptions, out var value)
+            && value is RequestCostOptions options)
+        {
+            return options;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Sets the cost options for the current request.
+    /// </summary>
+    /// <param name="context">
+    /// The request context.
+    /// </param>
+    /// <param name="options">
+    /// The cost options.
+    /// </param>
+    public static void SetCostOptions(this IRequestContext context, RequestCostOptions options)
+    {
+        context.ContextData[WellKnownContextData.RequestCostOptions] = options;
+    }
 }
+
+// public static class CostAnalyzerRequest

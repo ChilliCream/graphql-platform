@@ -11,7 +11,7 @@ using HotChocolate.Validation;
 
 namespace HotChocolate.CostAnalysis;
 
-internal sealed class CostAnalyzer(CostOptions options) : TypeDocumentValidatorVisitor
+internal sealed class CostAnalyzer(RequestCostOptions options) : TypeDocumentValidatorVisitor
 {
     private readonly Dictionary<SelectionSetNode, CostSummary> _selectionSetCost = new();
     private readonly HashSet<string> _processed = new();
@@ -280,9 +280,9 @@ internal sealed class CostAnalyzer(CostOptions options) : TypeDocumentValidatorV
 
                             if ((argument.Flags & FieldFlags.FilterArgument) == FieldFlags.FilterArgument
                                 && argumentNode.Value.Kind == SyntaxKind.Variable
-                                && options.Filtering.VariableMultiplier.HasValue)
+                                && options.FilterVariableMultiplier.HasValue)
                             {
-                                argumentCost *= options.Filtering.VariableMultiplier.Value;
+                                argumentCost *= options.FilterVariableMultiplier.Value;
                             }
 
                             fieldCost += argumentCost;

@@ -310,6 +310,11 @@ public static class WellKnownContextData
     public const string ValidateCost = "HotChocolate.CostAnalysis.ValidateCost";
 
     /// <summary>
+    /// The key to access the cost options on the context data..
+    /// </summary>
+    public const string RequestCostOptions = "HotChocolate.CostAnalysis.CostRequestOptions";
+
+    /// <summary>
     /// The key to access the paging observers stored on the local resolver state.
     /// </summary>
     public const string PagingObserver = "HotChocolate.Types.PagingObserver";

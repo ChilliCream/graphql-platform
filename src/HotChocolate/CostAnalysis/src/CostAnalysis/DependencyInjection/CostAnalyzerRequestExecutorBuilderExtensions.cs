@@ -48,6 +48,16 @@ public static class CostAnalyzerRequestExecutorBuilderExtensions
 
                         return options;
                     });
+
+                    services.TryAddSingleton<RequestCostOptions>(sp =>
+                    {
+                        var requestOptions = sp.GetRequiredService<CostOptions>();
+                        return new RequestCostOptions(
+                            requestOptions.MaxFieldCost,
+                            requestOptions.MaxTypeCost,
+                            requestOptions.EnforceCostLimits,
+                            requestOptions.Filtering.VariableMultiplier);
+                    });
                 })
             .AddDirectiveType<CostDirectiveType>()
             .AddDirectiveType<ListSizeDirectiveType>()
