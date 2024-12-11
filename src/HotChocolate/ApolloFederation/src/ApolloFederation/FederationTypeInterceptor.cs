@@ -294,7 +294,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             var typeReference = _typeInspector.GetTypeRef(exportedDirective);
             if (_typeRegistry.TryGetType(typeReference, out var exportedDirectiveType))
             {
-                composeDirectives.Add(new ComposeDirective(exportedDirectiveType.Type.Name));
+                composeDirectives.Add(new ComposeDirective($"@{exportedDirectiveType.Type.Name}"));
             }
         }
 
