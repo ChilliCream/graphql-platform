@@ -882,4 +882,33 @@ public class SkipFragmentTests : FusionTestBase
         // assert
         plan.MatchSnapshot();
     }
+
+
+
+    [Test]
+    public void Skipped_Sub_Fragment_With_Fields_From_Different_Subgraphs()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            query($slug: String!, $skip: Boolean!) {
+                productBySlug(slug: $slug) {
+                    ... ProductFragment @skip(if: $skip)
+                }
+            }
+
+            fragment ProductFragment on Product {
+                name
+                averageRating
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        plan.MatchSnapshot();
+    }
 }
