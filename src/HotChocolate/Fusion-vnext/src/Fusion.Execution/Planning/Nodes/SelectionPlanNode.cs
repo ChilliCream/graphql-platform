@@ -10,7 +10,9 @@ public abstract class SelectionPlanNode : PlanNode
 {
     private List<CompositeDirective>? _directives;
     private List<SelectionPlanNode>? _selections;
-    private List<Condition>? _conditions;
+    private bool? _isConditional;
+    private string? _skipVariable;
+    private string? _includeVariable;
 
     /// <summary>
     /// Initializes a new instance of <see cref="SelectionPlanNode"/>.
@@ -18,39 +20,21 @@ public abstract class SelectionPlanNode : PlanNode
     /// <param name="declaringType">
     /// The type on which this selection is declared on.
     /// </param>
-    /// <param name="selectionNodes">
-    /// The child selection syntax nodes of this selection.
-    /// </param>
     /// <param name="directiveNodes">
     /// The directives applied to this selection.
     /// </param>
+    /// <param name="selectionNodes">
+    /// The child selection syntax nodes of this selection.
+    /// </param>
     protected SelectionPlanNode(
         ICompositeNamedType declaringType,
-        IReadOnlyList<ISelectionNode>? selectionNodes,
-        IReadOnlyList<DirectiveNode> directiveNodes)
+        IReadOnlyList<DirectiveNode> directiveNodes,
+        IReadOnlyList<ISelectionNode>? selectionNodes)
     {
         DeclaringType = declaringType;
         IsEntity = declaringType.IsEntity();
+        DirectiveNodes = directiveNodes;
         SelectionNodes = selectionNodes;
-
-        foreach (var directive in directiveNodes)
-        {
-            var isSkipDirective = directive.Name.Value.Equals("skip");
-            var isIncludeDirective = directive.Name.Value.Equals("include");
-
-            // TODO: Ideally this would be just a lookup to the directive
-            if (isSkipDirective || isIncludeDirective)
-            {
-                var ifArgument = directive.Arguments.FirstOrDefault(
-                    t => t.Name.Value.Equals("if"));
-
-                if (ifArgument?.Value is VariableNode variableNode)
-                {
-                    var condition = new Condition(variableNode.Name.Value, isIncludeDirective);
-                    (_conditions ??= []).Add(condition);
-                }
-            }
-        }
     }
 
     /// <summary>
@@ -62,6 +46,11 @@ public abstract class SelectionPlanNode : PlanNode
     /// Defines if the selection is declared on an entity type.
     /// </summary>
     public bool IsEntity { get; }
+
+    /// <summary>
+    /// Gets the directives nodes that are annotated to the selection.
+    /// </summary>
+    public IReadOnlyList<DirectiveNode> DirectiveNodes { get; }
 
     /// <summary>
     /// Gets the directives that are annotated to this selection.
@@ -80,7 +69,51 @@ public abstract class SelectionPlanNode : PlanNode
     public IReadOnlyList<SelectionPlanNode> Selections
         => _selections ?? (IReadOnlyList<SelectionPlanNode>)Array.Empty<SelectionPlanNode>();
 
-    public IReadOnlyList<Condition> Conditions => _conditions ?? [];
+    /// <summary>
+    /// Defines if the selection is conditional.
+    /// </summary>
+    public bool IsConditional
+    {
+        get
+        {
+            InitializeConditions();
+            return _isConditional ?? false;
+        }
+    }
+
+    /// <summary>
+    /// Gets the skip variable name if the selection is conditional.
+    /// </summary>
+    public string? SkipVariable
+    {
+        get
+        {
+            InitializeConditions();
+            return _skipVariable;
+        }
+        set
+        {
+            _skipVariable = value;
+            _isConditional = _skipVariable is not null || _includeVariable is not null;
+        }
+    }
+
+    /// <summary>
+    /// Gets the include variable name if the selection is conditional.
+    /// </summary>
+    public string? IncludeVariable
+    {
+        get
+        {
+            InitializeConditions();
+            return _includeVariable;
+        }
+        set
+        {
+            _includeVariable = value;
+            _isConditional = _skipVariable is not null || _includeVariable is not null;
+        }
+    }
 
     /// <summary>
     /// Adds a child selection to this selection.
@@ -114,16 +147,48 @@ public abstract class SelectionPlanNode : PlanNode
         (_directives ??= []).Add(directive);
     }
 
-    // TODO: Maybe remove
-    public void RemoveCondition(Condition condition)
-    {
-        ArgumentNullException.ThrowIfNull(condition);
+    public bool RemoveDirective(CompositeDirective directive)
+        => _directives?.Remove(directive) == true;
 
-        if (_conditions is null)
+    private void InitializeConditions()
+    {
+        if (_isConditional.HasValue)
         {
             return;
         }
 
-        _conditions.Remove(condition);
+        foreach (var directive in DirectiveNodes)
+        {
+            if (_skipVariable is not null && _includeVariable is not null)
+            {
+                break;
+            }
+
+            if (directive.Name.Value.Equals("skip"))
+            {
+                _skipVariable = GetVariableName(directive);
+                continue;
+            }
+
+            if (directive.Name.Value.Equals("include"))
+            {
+                _includeVariable = GetVariableName(directive);
+            }
+        }
+
+        _isConditional = _skipVariable is not null || _includeVariable is not null;
+        return;
+
+        string? GetVariableName(DirectiveNode directive)
+        {
+            var ifArgument = directive.Arguments.FirstOrDefault(t => t.Name.Value.Equals("if"));
+
+            if (ifArgument?.Value is VariableNode variableNode)
+            {
+                return variableNode.Name.Value;
+            }
+
+            return null;
+        }
     }
 }

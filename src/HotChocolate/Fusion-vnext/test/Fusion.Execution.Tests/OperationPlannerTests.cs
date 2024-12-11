@@ -1,3 +1,8 @@
+using HotChocolate.Fusion.Planning;
+using HotChocolate.Fusion.Types.Completion;
+using HotChocolate.Language;
+using static HotChocolate.Language.Utf8GraphQLParser;
+
 namespace HotChocolate.Fusion;
 
 public class OperationPlannerTests : FusionTestBase
@@ -8,12 +13,10 @@ public class OperationPlannerTests : FusionTestBase
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperationAsync(
-            compositeSchema,
+        var request = Parse(
             """
             {
-                productById(id: 1) {
+                productBySlug(slug: "1") {
                     ... Product
                 }
             }
@@ -24,8 +27,11 @@ public class OperationPlannerTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
-        plan.Serialize().MatchSnapshot();
+        plan.MatchSnapshot();
     }
 
     [Test]
@@ -34,12 +40,10 @@ public class OperationPlannerTests : FusionTestBase
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperationAsync(
-            compositeSchema,
+        var request = Parse(
             """
             {
-                productById(id: 1) {
+                productBySlug(slug: "1") {
                     ... Product
                 }
             }
@@ -51,8 +55,11 @@ public class OperationPlannerTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
-        plan.Serialize().MatchSnapshot();
+        plan.MatchSnapshot();
     }
 
     [Test]
@@ -61,12 +68,10 @@ public class OperationPlannerTests : FusionTestBase
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperationAsync(
-            compositeSchema,
+        var request = Parse(
             """
             {
-                productById(id: 1) {
+                productBySlug(slug: "1") {
                     ... ProductCard
                 }
             }
@@ -93,8 +98,11 @@ public class OperationPlannerTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
-        plan.Serialize().MatchSnapshot();
+        plan.MatchSnapshot();
     }
 
     [Test]
@@ -103,12 +111,10 @@ public class OperationPlannerTests : FusionTestBase
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperationAsync(
-            compositeSchema,
+        var request = Parse(
             """
-            query GetProduct($id: ID!, $first: Int! = 10) {
-                productById(id: $id) {
+            query GetProduct($slug: String! $first: Int! = 10) {
+                productBySlug(slug: $slug) {
                     ... ProductCard
                 }
             }
@@ -135,7 +141,40 @@ public class OperationPlannerTests : FusionTestBase
             }
             """);
 
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
         // assert
-        plan.Serialize().MatchSnapshot();
+        plan.MatchSnapshot();
+    }
+
+    [Test]
+    public void Plan_With_Conditional_InlineFragment()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            {
+                productById(id: 1) {
+                    ... Product
+                }
+            }
+
+            fragment Product on Product {
+                id
+                name
+                ... @include(if: true) {
+                    estimatedDelivery(postCode: "12345")
+                }
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        plan.MatchSnapshot();
     }
 }
