@@ -15,3 +15,34 @@ request:
         }
       }
 nodes:
+  - id: 1
+    schema: "PRODUCTS"
+    operation: >-
+      query($slug: String!) {
+        productBySlug(slug: $slug) {
+          id
+        }
+      }
+  - id: 2
+    schema: "REVIEWS"
+    operation: >-
+      query($__fusion_requirement_1: ID!) {
+        productById(id: $__fusion_requirement_1) {
+          reviews {
+            nodes {
+              body
+            }
+          }
+          reviews {
+            pageInfo {
+              hasNextPage
+            }
+          }
+        }
+      }
+    requirements:
+      - name: "__fusion_requirement_1"
+        dependsOn: "1"
+        selectionSet: "productBySlug"
+        field: "id"
+        type: "ID!"

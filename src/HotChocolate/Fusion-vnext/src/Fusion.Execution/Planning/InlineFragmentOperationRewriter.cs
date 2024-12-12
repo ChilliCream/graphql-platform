@@ -4,6 +4,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning;
 
+// TODO: We need to merge selections
 public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
 {
     public DocumentNode RewriteDocument(DocumentNode document, string? operationName)

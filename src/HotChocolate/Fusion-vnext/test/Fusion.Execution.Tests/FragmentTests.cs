@@ -489,43 +489,4 @@ public class FragmentTests : FusionTestBase
         // assert
         plan.MatchSnapshot();
     }
-
-    [Test]
-    [Skip("Doesn't work yet")]
-    public void Test()
-    {
-        // arrange
-        var compositeSchema = CreateCompositeSchema();
-
-        var request = Parse(
-            """
-            query($id: ID!) {
-                reviewById(id: $id) {
-                    body
-                    author {
-                        displayName
-                    }
-                    ...ReviewFragment
-                }
-            }
-
-            fragment ReviewFragment on Review {
-                author {
-                    id
-                    displayName
-                    reviews {
-                        pageInfo {
-                            hasNextPage
-                        }
-                    }
-                }
-            }
-            """);
-
-        // act
-        var plan = PlanOperation(request, compositeSchema);
-
-        // assert
-        plan.MatchSnapshot();
-    }
 }

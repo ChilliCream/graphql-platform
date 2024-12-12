@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Fusion.Planning.Nodes;
@@ -154,7 +153,6 @@ public sealed class OperationPlanner(CompositeSchema schema)
         {
             if (IsSelectionAlwaysSkipped(selection))
             {
-                // TODO: How to reconcile this?
                 continue;
             }
 
@@ -437,7 +435,14 @@ public sealed class OperationPlanner(CompositeSchema schema)
                         break;
 
                     case InlineFragmentPlanNode inlineFragmentNode:
-                        // TODO: Do we have to do this?
+                        foreach (var inlineFragmentSelection in inlineFragmentNode.Selections)
+                        {
+                            if (inlineFragmentSelection is FieldPlanNode field)
+                            {
+                                processedFields.Add(field.Field.Name);
+                            }
+                        }
+
                         break;
 
                     default:
@@ -446,13 +451,26 @@ public sealed class OperationPlanner(CompositeSchema schema)
             }
         }
 
-        // TODO: Uuuuuuuuuuuuuuugly hack, just to make tests work for now
-        if (unresolvedSelections.OfType<UnresolvedInlineFragment>().Any())
+        var unresolvedFields = new HashSet<string>();
+        foreach (var unresolvedSelection in unresolvedSelections)
         {
-            return true;
+            if (unresolvedSelection is UnresolvedField unresolvedField)
+            {
+                unresolvedFields.Add(unresolvedField.Field.Name);
+            }
+            else if (unresolvedSelection is UnresolvedInlineFragment unresolvedInlineFragment)
+            {
+                foreach (var inlineFragmentSelection in unresolvedInlineFragment.UnresolvedSelections)
+                {
+                    if (inlineFragmentSelection is UnresolvedField field)
+                    {
+                        unresolvedFields.Add(field.Field.Name);
+                    }
+                }
+            }
         }
 
-        return unresolvedSelections.Count == processedFields.Count;
+        return unresolvedFields.Count == processedFields.Count;
     }
 
     /// <summary>
