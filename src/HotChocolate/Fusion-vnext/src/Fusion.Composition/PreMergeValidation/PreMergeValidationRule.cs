@@ -24,15 +24,15 @@ internal abstract class PreMergeValidationRule : IPreMergeValidationRule
     {
     }
 
-    public virtual void OnEachTypeName(EachTypeNameEvent @event)
+    public virtual void OnEachTypeGroup(EachTypeGroupEvent @event)
     {
     }
 
-    public virtual void OnEachOutputFieldName(EachOutputFieldNameEvent @event)
+    public virtual void OnEachOutputFieldGroup(EachOutputFieldGroupEvent @event)
     {
     }
 
-    public virtual void OnEachFieldArgumentName(EachFieldArgumentNameEvent @event)
+    public virtual void OnEachFieldArgumentGroup(EachFieldArgumentGroupEvent @event)
     {
     }
 }

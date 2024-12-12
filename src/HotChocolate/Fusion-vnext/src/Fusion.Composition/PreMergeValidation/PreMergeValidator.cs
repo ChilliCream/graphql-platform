@@ -23,7 +23,7 @@ internal sealed class PreMergeValidator(IEnumerable<IPreMergeValidationRule> rul
 
     private void PublishEvents(CompositionContext context)
     {
-        MultiValueDictionary<string, TypeInfo> typeInfoByName = [];
+        MultiValueDictionary<string, TypeInfo> typeGroupByName = [];
 
         foreach (var schema in context.SchemaDefinitions)
         {
@@ -31,7 +31,7 @@ internal sealed class PreMergeValidator(IEnumerable<IPreMergeValidationRule> rul
             {
                 PublishEvent(new EachTypeEvent(context, type, schema));
 
-                typeInfoByName.Add(type.Name, new TypeInfo(type, schema));
+                typeGroupByName.Add(type.Name, new TypeInfo(type, schema));
 
                 if (type is ComplexTypeDefinition complexType)
                 {
@@ -60,47 +60,47 @@ internal sealed class PreMergeValidator(IEnumerable<IPreMergeValidationRule> rul
             }
         }
 
-        foreach (var (typeName, typeInfo) in typeInfoByName)
+        foreach (var (typeName, typeGroup) in typeGroupByName)
         {
-            PublishEvent(new EachTypeNameEvent(context, typeName, [.. typeInfo]));
+            PublishEvent(new EachTypeGroupEvent(context, typeName, [.. typeGroup]));
 
-            MultiValueDictionary<string, OutputFieldInfo> fieldInfoByName = [];
+            MultiValueDictionary<string, OutputFieldInfo> fieldGroupByName = [];
 
-            foreach (var (type, schema) in typeInfo)
+            foreach (var (type, schema) in typeGroup)
             {
                 if (type is ComplexTypeDefinition complexType)
                 {
                     foreach (var field in complexType.Fields)
                     {
-                        fieldInfoByName.Add(field.Name, new OutputFieldInfo(field, type, schema));
+                        fieldGroupByName.Add(field.Name, new OutputFieldInfo(field, type, schema));
                     }
                 }
             }
 
-            foreach (var (fieldName, fieldInfo) in fieldInfoByName)
+            foreach (var (fieldName, fieldGroup) in fieldGroupByName)
             {
                 PublishEvent(
-                    new EachOutputFieldNameEvent(context, fieldName, [.. fieldInfo], typeName));
+                    new EachOutputFieldGroupEvent(context, fieldName, [.. fieldGroup], typeName));
 
-                MultiValueDictionary<string, FieldArgumentInfo> argumentInfoByName = [];
+                MultiValueDictionary<string, FieldArgumentInfo> argumentGroupByName = [];
 
-                foreach (var (field, type, schema) in fieldInfo)
+                foreach (var (field, type, schema) in fieldGroup)
                 {
                     foreach (var argument in field.Arguments)
                     {
-                        argumentInfoByName.Add(
+                        argumentGroupByName.Add(
                             argument.Name,
                             new FieldArgumentInfo(argument, field, type, schema));
                     }
                 }
 
-                foreach (var (argumentName, argumentInfo) in argumentInfoByName)
+                foreach (var (argumentName, argumentGroup) in argumentGroupByName)
                 {
                     PublishEvent(
-                        new EachFieldArgumentNameEvent(
+                        new EachFieldArgumentGroupEvent(
                             context,
                             argumentName,
-                            [.. argumentInfo],
+                            [.. argumentGroup],
                             fieldName,
                             typeName));
                 }
@@ -134,16 +134,16 @@ internal sealed class PreMergeValidator(IEnumerable<IPreMergeValidationRule> rul
                     rule.OnEachDirectiveArgument(e);
                     break;
 
-                case EachTypeNameEvent e:
-                    rule.OnEachTypeName(e);
+                case EachTypeGroupEvent e:
+                    rule.OnEachTypeGroup(e);
                     break;
 
-                case EachOutputFieldNameEvent e:
-                    rule.OnEachOutputFieldName(e);
+                case EachOutputFieldGroupEvent e:
+                    rule.OnEachOutputFieldGroup(e);
                     break;
 
-                case EachFieldArgumentNameEvent e:
-                    rule.OnEachFieldArgumentName(e);
+                case EachFieldArgumentGroupEvent e:
+                    rule.OnEachFieldArgumentGroup(e);
                     break;
             }
         }

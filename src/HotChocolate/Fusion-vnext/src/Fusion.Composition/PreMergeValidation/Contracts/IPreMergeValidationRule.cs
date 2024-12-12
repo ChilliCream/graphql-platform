@@ -12,9 +12,9 @@ internal interface IPreMergeValidationRule
 
     void OnEachDirectiveArgument(EachDirectiveArgumentEvent @event);
 
-    void OnEachTypeName(EachTypeNameEvent @event);
+    void OnEachTypeGroup(EachTypeGroupEvent @event);
 
-    void OnEachOutputFieldName(EachOutputFieldNameEvent @event);
+    void OnEachOutputFieldGroup(EachOutputFieldGroupEvent @event);
 
-    void OnEachFieldArgumentName(EachFieldArgumentNameEvent @event);
+    void OnEachFieldArgumentGroup(EachFieldArgumentGroupEvent @event);
 }

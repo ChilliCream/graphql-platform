@@ -22,10 +22,10 @@ internal record EachFieldArgumentEvent(
     INamedTypeDefinition Type,
     SchemaDefinition Schema) : IEvent;
 
-internal record EachFieldArgumentNameEvent(
+internal record EachFieldArgumentGroupEvent(
     CompositionContext Context,
     string ArgumentName,
-    ImmutableArray<FieldArgumentInfo> ArgumentInfo,
+    ImmutableArray<FieldArgumentInfo> ArgumentGroup,
     string FieldName,
     string TypeName) : IEvent;
 
@@ -35,10 +35,10 @@ internal record EachOutputFieldEvent(
     INamedTypeDefinition Type,
     SchemaDefinition Schema) : IEvent;
 
-internal record EachOutputFieldNameEvent(
+internal record EachOutputFieldGroupEvent(
     CompositionContext Context,
     string FieldName,
-    ImmutableArray<OutputFieldInfo> FieldInfo,
+    ImmutableArray<OutputFieldInfo> FieldGroup,
     string TypeName) : IEvent;
 
 internal record EachTypeEvent(
@@ -46,7 +46,7 @@ internal record EachTypeEvent(
     INamedTypeDefinition Type,
     SchemaDefinition Schema) : IEvent;
 
-internal record EachTypeNameEvent(
+internal record EachTypeGroupEvent(
     CompositionContext Context,
     string TypeName,
-    ImmutableArray<TypeInfo> TypeInfo) : IEvent;
+    ImmutableArray<TypeInfo> TypeGroup) : IEvent;

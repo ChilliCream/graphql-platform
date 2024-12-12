@@ -12,11 +12,11 @@ namespace HotChocolate.Fusion.PreMergeValidation.Rules;
 /// </seealso>
 internal sealed class OutputFieldTypesMergeableRule : PreMergeValidationRule
 {
-    public override void OnEachOutputFieldName(EachOutputFieldNameEvent @event)
+    public override void OnEachOutputFieldGroup(EachOutputFieldGroupEvent @event)
     {
-        var (context, fieldName, fieldInfo, typeName) = @event;
+        var (context, fieldName, fieldGroup, typeName) = @event;
 
-        if (!ValidationHelper.FieldsAreMergeable([.. fieldInfo.Select(i => i.Field)]))
+        if (!ValidationHelper.FieldsAreMergeable([.. fieldGroup.Select(i => i.Field)]))
         {
             context.Log.Write(LogEntryHelper.OutputFieldTypesNotMergeable(fieldName, typeName));
         }
