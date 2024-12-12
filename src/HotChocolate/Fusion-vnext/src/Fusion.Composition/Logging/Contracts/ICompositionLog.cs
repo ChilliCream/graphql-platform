@@ -5,6 +5,10 @@ namespace HotChocolate.Fusion.Logging.Contracts;
 /// </summary>
 public interface ICompositionLog
 {
+    // FIXME: Docs.
+    bool HasErrors { get; }
+
+    // FIXME: Docs.
     bool IsEmpty { get; }
 
     /// <summary>
@@ -12,10 +16,4 @@ public interface ICompositionLog
     /// </summary>
     /// <param name="entry">The <see cref="LogEntry"/> to write.</param>
     void Write(LogEntry entry);
-
-    /// <summary>
-    /// Creates a new logging session that keeps track of the number of info, warning, and error
-    /// entries logged.
-    /// </summary>
-    ILoggingSession CreateSession();
 }

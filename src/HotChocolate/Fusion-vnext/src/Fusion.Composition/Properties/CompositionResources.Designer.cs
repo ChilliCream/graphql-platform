@@ -60,11 +60,11 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Pre-merge validation rule &apos;{0}&apos; failed. View the composition log for details..
+        ///   Looks up a localized string similar to Pre-merge validation failed. View the composition log for details..
         /// </summary>
-        internal static string ErrorHelper_PreMergeValidationRuleFailed {
+        internal static string ErrorHelper_PreMergeValidationFailed {
             get {
-                return ResourceManager.GetString("ErrorHelper_PreMergeValidationRuleFailed", resourceCulture);
+                return ResourceManager.GetString("ErrorHelper_PreMergeValidationFailed", resourceCulture);
             }
         }
         

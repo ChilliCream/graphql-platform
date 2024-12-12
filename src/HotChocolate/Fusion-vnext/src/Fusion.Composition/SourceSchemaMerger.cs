@@ -1,5 +1,6 @@
 using HotChocolate.Fusion.PostMergeValidation;
 using HotChocolate.Fusion.PreMergeValidation;
+using HotChocolate.Fusion.PreMergeValidation.Rules;
 using HotChocolate.Fusion.Results;
 using HotChocolate.Skimmed;
 
@@ -10,7 +11,8 @@ internal sealed class SourceSchemaMerger
     public CompositionResult<SchemaDefinition> Merge(CompositionContext context)
     {
         // Pre Merge Validation
-        var preMergeValidationResult = new PreMergeValidator().Validate(context);
+        var preMergeValidationResult =
+            new PreMergeValidator(_preMergeValidationRules).Validate(context);
 
         if (preMergeValidationResult.IsFailure)
         {
@@ -41,4 +43,10 @@ internal sealed class SourceSchemaMerger
         // FIXME: Implement.
         return new SchemaDefinition();
     }
+
+    private static readonly List<object> _preMergeValidationRules =
+    [
+        new DisallowedInaccessibleElementsRule(),
+        new OutputFieldTypesMergeableRule()
+    ];
 }

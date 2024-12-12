@@ -14,13 +14,11 @@ public sealed class OutputFieldTypesMergeableRuleTests
     {
         // arrange
         var log = new CompositionLog();
-        var context = new PreMergeValidationContext(
-            new CompositionContext([.. sdl.Select(SchemaParser.Parse)], log));
-
-        context.Initialize();
+        var context = new CompositionContext([.. sdl.Select(SchemaParser.Parse)], log);
+        var preMergeValidator = new PreMergeValidator([new OutputFieldTypesMergeableRule()]);
 
         // act
-        var result = new OutputFieldTypesMergeableRule().Run(context);
+        var result = preMergeValidator.Validate(context);
 
         // assert
         await Assert.That(result.IsSuccess).IsTrue();
@@ -33,13 +31,11 @@ public sealed class OutputFieldTypesMergeableRuleTests
     {
         // arrange
         var log = new CompositionLog();
-        var context = new PreMergeValidationContext(
-            new CompositionContext([.. sdl.Select(SchemaParser.Parse)], log));
-
-        context.Initialize();
+        var context = new CompositionContext([.. sdl.Select(SchemaParser.Parse)], log);
+        var preMergeValidator = new PreMergeValidator([new OutputFieldTypesMergeableRule()]);
 
         // act
-        var result = new OutputFieldTypesMergeableRule().Run(context);
+        var result = preMergeValidator.Validate(context);
 
         // assert
         await Assert.That(result.IsFailure).IsTrue();
