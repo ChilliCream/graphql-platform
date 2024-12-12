@@ -1,3 +1,4 @@
+using HotChocolate.Fusion.Events;
 using HotChocolate.Skimmed;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
@@ -12,11 +13,15 @@ namespace HotChocolate.Fusion.PreMergeValidation.Rules;
 /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Disallowed-Inaccessible-Elements">
 /// Specification
 /// </seealso>
-internal sealed class DisallowedInaccessibleElementsRule : PreMergeValidationRule
+internal sealed class DisallowedInaccessibleElementsRule
+    : IEventHandler<EachTypeEvent>
+    , IEventHandler<EachOutputFieldEvent>
+    , IEventHandler<EachFieldArgumentEvent>
+    , IEventHandler<EachDirectiveArgumentEvent>
 {
-    public override void OnEachType(EachTypeEvent @event)
+    public void Handle(EachTypeEvent @event, CompositionContext context)
     {
-        var (context, type, schema) = @event;
+        var (type, schema) = @event;
 
         // Built-in scalar types must be accessible.
         if (type is ScalarTypeDefinition { IsSpecScalar: true } scalar
@@ -32,9 +37,9 @@ internal sealed class DisallowedInaccessibleElementsRule : PreMergeValidationRul
         }
     }
 
-    public override void OnEachOutputField(EachOutputFieldEvent @event)
+    public void Handle(EachOutputFieldEvent @event, CompositionContext context)
     {
-        var (context, field, type, schema) = @event;
+        var (field, type, schema) = @event;
 
         // Introspection fields must be accessible.
         if (type.IsIntrospectionType && !ValidationHelper.IsAccessible(field))
@@ -47,9 +52,9 @@ internal sealed class DisallowedInaccessibleElementsRule : PreMergeValidationRul
         }
     }
 
-    public override void OnEachFieldArgument(EachFieldArgumentEvent @event)
+    public void Handle(EachFieldArgumentEvent @event, CompositionContext context)
     {
-        var (context, argument, field, type, schema) = @event;
+        var (argument, field, type, schema) = @event;
 
         // Introspection arguments must be accessible.
         if (type.IsIntrospectionType && !ValidationHelper.IsAccessible(argument))
@@ -63,9 +68,9 @@ internal sealed class DisallowedInaccessibleElementsRule : PreMergeValidationRul
         }
     }
 
-    public override void OnEachDirectiveArgument(EachDirectiveArgumentEvent @event)
+    public void Handle(EachDirectiveArgumentEvent @event, CompositionContext context)
     {
-        var (context, argument, directive, schema) = @event;
+        var (argument, directive, schema) = @event;
 
         // Built-in directive arguments must be accessible.
         if (BuiltIns.IsBuiltInDirective(directive.Name) && !ValidationHelper.IsAccessible(argument))

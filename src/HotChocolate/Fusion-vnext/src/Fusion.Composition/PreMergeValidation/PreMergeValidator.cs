@@ -2,15 +2,14 @@ using System.Collections.Immutable;
 using HotChocolate.Fusion.Collections;
 using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.Events;
-using HotChocolate.Fusion.PreMergeValidation.Contracts;
 using HotChocolate.Fusion.Results;
 using HotChocolate.Skimmed;
 
 namespace HotChocolate.Fusion.PreMergeValidation;
 
-internal sealed class PreMergeValidator(IEnumerable<IPreMergeValidationRule> rules)
+internal sealed class PreMergeValidator(IEnumerable<object> rules)
 {
-    private readonly ImmutableArray<IPreMergeValidationRule> _rules = [.. rules];
+    private readonly ImmutableArray<object> _rules = [.. rules];
 
     public CompositionResult Validate(CompositionContext context)
     {
@@ -29,7 +28,7 @@ internal sealed class PreMergeValidator(IEnumerable<IPreMergeValidationRule> rul
         {
             foreach (var type in schema.Types)
             {
-                PublishEvent(new EachTypeEvent(context, type, schema));
+                PublishEvent(new EachTypeEvent(type, schema), context);
 
                 typeGroupByName.Add(type.Name, new TypeInfo(type, schema));
 
@@ -37,12 +36,12 @@ internal sealed class PreMergeValidator(IEnumerable<IPreMergeValidationRule> rul
                 {
                     foreach (var field in complexType.Fields)
                     {
-                        PublishEvent(new EachOutputFieldEvent(context, field, type, schema));
+                        PublishEvent(new EachOutputFieldEvent(field, type, schema), context);
 
                         foreach (var argument in field.Arguments)
                         {
                             PublishEvent(
-                                new EachFieldArgumentEvent(context, argument, field, type, schema));
+                                new EachFieldArgumentEvent(argument, field, type, schema), context);
                         }
                     }
                 }
@@ -50,19 +49,19 @@ internal sealed class PreMergeValidator(IEnumerable<IPreMergeValidationRule> rul
 
             foreach (var directive in schema.DirectiveDefinitions)
             {
-                PublishEvent(new EachDirectiveEvent(context, directive, schema));
+                PublishEvent(new EachDirectiveEvent(directive, schema), context);
 
                 foreach (var argument in directive.Arguments)
                 {
                     PublishEvent(
-                        new EachDirectiveArgumentEvent(context, argument, directive, schema));
+                        new EachDirectiveArgumentEvent(argument, directive, schema), context);
                 }
             }
         }
 
         foreach (var (typeName, typeGroup) in typeGroupByName)
         {
-            PublishEvent(new EachTypeGroupEvent(context, typeName, [.. typeGroup]));
+            PublishEvent(new EachTypeGroupEvent(typeName, [.. typeGroup]), context);
 
             MultiValueDictionary<string, OutputFieldInfo> fieldGroupByName = [];
 
@@ -80,7 +79,7 @@ internal sealed class PreMergeValidator(IEnumerable<IPreMergeValidationRule> rul
             foreach (var (fieldName, fieldGroup) in fieldGroupByName)
             {
                 PublishEvent(
-                    new EachOutputFieldGroupEvent(context, fieldName, [.. fieldGroup], typeName));
+                    new EachOutputFieldGroupEvent(fieldName, [.. fieldGroup], typeName), context);
 
                 MultiValueDictionary<string, FieldArgumentInfo> argumentGroupByName = [];
 
@@ -98,53 +97,24 @@ internal sealed class PreMergeValidator(IEnumerable<IPreMergeValidationRule> rul
                 {
                     PublishEvent(
                         new EachFieldArgumentGroupEvent(
-                            context,
                             argumentName,
                             [.. argumentGroup],
                             fieldName,
-                            typeName));
+                            typeName),
+                        context);
                 }
             }
         }
     }
 
-    private void PublishEvent(IEvent @event)
+    private void PublishEvent<TEvent>(TEvent @event, CompositionContext context)
+        where TEvent : IEvent
     {
         foreach (var rule in _rules)
         {
-            switch (@event)
+            if (rule is IEventHandler<TEvent> handler)
             {
-                case EachTypeEvent e:
-                    rule.OnEachType(e);
-                    break;
-
-                case EachOutputFieldEvent e:
-                    rule.OnEachOutputField(e);
-                    break;
-
-                case EachFieldArgumentEvent e:
-                    rule.OnEachFieldArgument(e);
-                    break;
-
-                case EachDirectiveEvent e:
-                    rule.OnEachDirective(e);
-                    break;
-
-                case EachDirectiveArgumentEvent e:
-                    rule.OnEachDirectiveArgument(e);
-                    break;
-
-                case EachTypeGroupEvent e:
-                    rule.OnEachTypeGroup(e);
-                    break;
-
-                case EachOutputFieldGroupEvent e:
-                    rule.OnEachOutputFieldGroup(e);
-                    break;
-
-                case EachFieldArgumentGroupEvent e:
-                    rule.OnEachFieldArgumentGroup(e);
-                    break;
+                handler.Handle(@event, context);
             }
         }
     }

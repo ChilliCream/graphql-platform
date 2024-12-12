@@ -1,6 +1,5 @@
 using HotChocolate.Fusion.PostMergeValidation;
 using HotChocolate.Fusion.PreMergeValidation;
-using HotChocolate.Fusion.PreMergeValidation.Contracts;
 using HotChocolate.Fusion.PreMergeValidation.Rules;
 using HotChocolate.Fusion.Results;
 using HotChocolate.Skimmed;
@@ -45,7 +44,7 @@ internal sealed class SourceSchemaMerger
         return new SchemaDefinition();
     }
 
-    private static readonly List<IPreMergeValidationRule> _preMergeValidationRules =
+    private static readonly List<object> _preMergeValidationRules =
     [
         new DisallowedInaccessibleElementsRule(),
         new OutputFieldTypesMergeableRule()
