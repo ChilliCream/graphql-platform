@@ -135,7 +135,7 @@ public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
         {
             var fragmentContext = context.Branch(typeCondition);
 
-            RewriteFields(fragmentDefinition.SelectionSet, context);
+            RewriteFields(fragmentDefinition.SelectionSet, fragmentContext);
 
             var selectionSet = new SelectionSetNode(
                 null,

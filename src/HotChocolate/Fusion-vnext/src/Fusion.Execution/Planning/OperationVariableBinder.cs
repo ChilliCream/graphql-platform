@@ -7,23 +7,18 @@ internal static class OperationVariableBinder
 {
     public static void BindOperationVariables(
         OperationDefinitionNode operationDefinition,
-        RootPlanNode operationPlan)
+        RequestPlanNode operationPlan)
     {
-        var operationBacklog = new Stack<OperationPlanNode>();
+        var operationBacklog = new Stack<OperationPlanNode>(operationPlan.Operations);
         var selectionBacklog = new Stack<SelectionPlanNode>();
         var variableDefinitions = operationDefinition.VariableDefinitions.ToDictionary(t => t.Variable.Name.Value);
         var usedVariables = new HashSet<string>();
-
-        foreach (var operation in operationPlan.Nodes.OfType<OperationPlanNode>())
-        {
-            operationBacklog.Push(operation);
-        }
 
         while (operationBacklog.TryPop(out var operation))
         {
             CollectAndBindUsedVariables(operation, variableDefinitions, usedVariables, selectionBacklog);
 
-            foreach (var child in operation.Nodes.OfType<OperationPlanNode>())
+            foreach (var child in operation.Dependants)
             {
                 operationBacklog.Push(child);
             }
@@ -72,7 +67,22 @@ internal static class OperationVariableBinder
 
         foreach (var variable in usedVariables)
         {
-            operation.AddVariableDefinition(variableDefinitions[variable]);
+            if(variableDefinitions.TryGetValue(variable, out var variableDefinition))
+            {
+                operation.AddVariableDefinition(variableDefinition);
+            }
+        }
+
+        foreach (var requirement in operation.Requirements.Values)
+        {
+            var variable = new VariableDefinitionNode(
+                null,
+                new VariableNode(requirement.Name),
+                requirement.Type,
+                null,
+                Array.Empty<DirectiveNode>());
+
+            operation.AddVariableDefinition(variable);
         }
     }
 }

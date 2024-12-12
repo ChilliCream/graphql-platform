@@ -1,0 +1,8 @@
+request:
+  - document: >-
+      query GetProduct($slug: String!) {
+        productBySlug(slug: $slug) @skip(if: true) @include(if: true) {
+          name
+        }
+      }
+nodes:
