@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Text.RegularExpressions;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 
@@ -16,7 +17,7 @@ internal static class GeneratorUtils
             if (syntaxInfo is ModuleInfo module)
             {
                 defaultModule = false;
-                return module;
+                return new ModuleInfo(SanitizeIdentifier(module.ModuleName), module.Options);
             }
         }
 
@@ -61,7 +62,7 @@ internal static class GeneratorUtils
     public static string CreateModuleName(string? assemblyName)
         => assemblyName is null
             ? "AssemblyTypes"
-            : assemblyName.Split('.').Last() + "Types";
+            : SanitizeIdentifier(assemblyName.Split('.').Last()) + "Types";
 
     public static string ConvertDefaultValueToString(object? defaultValue, ITypeSymbol type)
     {
@@ -103,5 +104,19 @@ internal static class GeneratorUtils
         }
 
         return defaultValue.ToString();
+    }
+
+    public static string SanitizeIdentifier(string input)
+    {
+        Regex invalidCharsRegex = new("[^a-zA-Z0-9]", RegexOptions.Compiled);
+
+        var sanitized = invalidCharsRegex.Replace(input, "_");
+
+        if (!char.IsLetter(sanitized[0]))
+        {
+            sanitized = "_" + sanitized.Substring(1);
+        }
+
+        return sanitized;
     }
 }

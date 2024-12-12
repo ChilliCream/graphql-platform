@@ -81,7 +81,7 @@ public sealed class DataLoaderModuleGenerator : ISyntaxGenerator
         {
             if (syntaxInfo is DataLoaderModuleInfo module)
             {
-                return module;
+                return new DataLoaderModuleInfo(GeneratorUtils.SanitizeIdentifier(module.ModuleName));
             }
         }
 
