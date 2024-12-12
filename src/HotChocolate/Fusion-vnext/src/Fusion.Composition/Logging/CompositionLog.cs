@@ -5,6 +5,8 @@ namespace HotChocolate.Fusion.Logging;
 
 public sealed class CompositionLog : ICompositionLog, IEnumerable<LogEntry>
 {
+    public bool HasErrors { get; private set; }
+
     public bool IsEmpty => _entries.Count == 0;
 
     private readonly List<LogEntry> _entries = [];
@@ -13,12 +15,12 @@ public sealed class CompositionLog : ICompositionLog, IEnumerable<LogEntry>
     {
         ArgumentNullException.ThrowIfNull(entry);
 
-        _entries.Add(entry);
-    }
+        if (entry.Severity == LogSeverity.Error)
+        {
+            HasErrors = true;
+        }
 
-    public ILoggingSession CreateSession()
-    {
-        return new LoggingSession(this);
+        _entries.Add(entry);
     }
 
     public IEnumerator<LogEntry> GetEnumerator() => _entries.GetEnumerator();

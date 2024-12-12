@@ -1,7 +1,5 @@
-using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.PreMergeValidation.Contracts;
-using HotChocolate.Fusion.Results;
 
 namespace HotChocolate.Fusion.PreMergeValidation.Rules;
 
@@ -12,28 +10,16 @@ namespace HotChocolate.Fusion.PreMergeValidation.Rules;
 /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Output-Field-Types-Mergeable">
 /// Specification
 /// </seealso>
-internal sealed class OutputFieldTypesMergeableRule : IPreMergeValidationRule
+internal sealed class OutputFieldTypesMergeableRule
+    : IEachOutputFieldNameEventHandler
 {
-    public CompositionResult Run(PreMergeValidationContext context)
+    public void OnEachOutputFieldName(EachOutputFieldNameEvent @event)
     {
-        var loggingSession = context.Log.CreateSession();
+        var (context, fieldName, fieldInfo, typeName) = @event;
 
-        foreach (var outputTypeInfo in context.OutputTypeInfo)
+        if (!ValidationHelper.FieldsAreMergeable([.. fieldInfo.Select(i => i.Field)]))
         {
-            foreach (var fieldInfo in outputTypeInfo.FieldInfo)
-            {
-                if (!ValidationHelper.FieldsAreMergeable(fieldInfo.Fields))
-                {
-                    loggingSession.Write(
-                        LogEntryHelper.OutputFieldTypesNotMergeable(
-                            fieldInfo.FieldName,
-                            outputTypeInfo.TypeName));
-                }
-            }
+            context.Log.Write(LogEntryHelper.OutputFieldTypesNotMergeable(fieldName, typeName));
         }
-
-        return loggingSession.ErrorCount == 0
-            ? CompositionResult.Success()
-            : ErrorHelper.PreMergeValidationRuleFailed(this);
     }
 }
