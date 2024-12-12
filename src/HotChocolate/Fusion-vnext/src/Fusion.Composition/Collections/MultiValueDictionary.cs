@@ -1,7 +1,7 @@
 namespace HotChocolate.Fusion.Collections;
 
 internal sealed class MultiValueDictionary<TKey, TValue>
-    : Dictionary<TKey, IList<TValue>> where TKey : notnull
+    : Dictionary<TKey, List<TValue>> where TKey : notnull
 {
     public void Add(TKey key, TValue value)
     {
