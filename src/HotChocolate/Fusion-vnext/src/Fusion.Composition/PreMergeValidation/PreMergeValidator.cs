@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Fusion.Collections;
 using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.Events;
@@ -7,16 +8,9 @@ using HotChocolate.Skimmed;
 
 namespace HotChocolate.Fusion.PreMergeValidation;
 
-internal sealed class PreMergeValidator
+internal sealed class PreMergeValidator(IEnumerable<IPreMergeValidationRule> rules)
 {
-    private readonly EventAggregator _eventAggregator;
-
-    public PreMergeValidator(IEnumerable<object> rules)
-    {
-        _eventAggregator = new EventAggregator();
-
-        SubscribeRules(rules);
-    }
+    private readonly ImmutableArray<IPreMergeValidationRule> _rules = [.. rules];
 
     public CompositionResult Validate(CompositionContext context)
     {
@@ -27,48 +21,6 @@ internal sealed class PreMergeValidator
             : CompositionResult.Success();
     }
 
-    private void SubscribeRules(IEnumerable<object> rules)
-    {
-        foreach (var rule in rules)
-        {
-            if (rule is IEachTypeEventHandler eachTypeEventHandler)
-            {
-                _eventAggregator.Subscribe<EachTypeEvent>(
-                    eachTypeEventHandler.OnEachType);
-            }
-
-            if (rule is IEachOutputFieldEventHandler eachOutputFieldEventHandler)
-            {
-                _eventAggregator.Subscribe<EachOutputFieldEvent>(
-                    eachOutputFieldEventHandler.OnEachOutputField);
-            }
-
-            if (rule is IEachFieldArgumentEventHandler eachFieldArgumentEventHandler)
-            {
-                _eventAggregator.Subscribe<EachFieldArgumentEvent>(
-                    eachFieldArgumentEventHandler.OnEachFieldArgument);
-            }
-
-            if (rule is IEachDirectiveEventHandler eachDirectiveEventHandler)
-            {
-                _eventAggregator.Subscribe<EachDirectiveEvent>(
-                    eachDirectiveEventHandler.OnEachDirective);
-            }
-
-            if (rule is IEachDirectiveArgumentEventHandler eachDirectiveArgumentEventHandler)
-            {
-                _eventAggregator.Subscribe<EachDirectiveArgumentEvent>(
-                    eachDirectiveArgumentEventHandler.OnEachDirectiveArgument);
-            }
-
-            if (rule is IEachOutputFieldNameEventHandler eachOutputFieldNameEventHandler)
-            {
-                _eventAggregator.Subscribe<EachOutputFieldNameEvent>(
-                    eachOutputFieldNameEventHandler.OnEachOutputFieldName);
-            }
-        }
-    }
-
     private void PublishEvents(CompositionContext context)
     {
         MultiValueDictionary<string, TypeInfo> typeInfoByName = [];
@@ -77,7 +29,7 @@ internal sealed class PreMergeValidator
         {
             foreach (var type in schema.Types)
             {
-                _eventAggregator.Publish(new EachTypeEvent(context, type, schema));
+                PublishEvent(new EachTypeEvent(context, type, schema));
 
                 typeInfoByName.Add(type.Name, new TypeInfo(type, schema));
 
@@ -85,12 +37,11 @@ internal sealed class PreMergeValidator
                 {
                     foreach (var field in complexType.Fields)
                     {
-                        _eventAggregator.Publish(
-                            new EachOutputFieldEvent(context, field, type, schema));
+                        PublishEvent(new EachOutputFieldEvent(context, field, type, schema));
 
                         foreach (var argument in field.Arguments)
                         {
-                            _eventAggregator.Publish(
+                            PublishEvent(
                                 new EachFieldArgumentEvent(context, argument, field, type, schema));
                         }
                     }
@@ -99,12 +50,11 @@ internal sealed class PreMergeValidator
 
             foreach (var directive in schema.DirectiveDefinitions)
             {
-                _eventAggregator.Publish(
-                    new EachDirectiveEvent(context, directive, schema));
+                PublishEvent(new EachDirectiveEvent(context, directive, schema));
 
                 foreach (var argument in directive.Arguments)
                 {
-                    _eventAggregator.Publish(
+                    PublishEvent(
                         new EachDirectiveArgumentEvent(context, argument, directive, schema));
                 }
             }
@@ -112,7 +62,7 @@ internal sealed class PreMergeValidator
 
         foreach (var (typeName, typeInfo) in typeInfoByName)
         {
-            _eventAggregator.Publish(new EachTypeNameEvent(context, typeName, [.. typeInfo]));
+            PublishEvent(new EachTypeNameEvent(context, typeName, [.. typeInfo]));
 
             MultiValueDictionary<string, OutputFieldInfo> fieldInfoByName = [];
 
@@ -129,7 +79,7 @@ internal sealed class PreMergeValidator
 
             foreach (var (fieldName, fieldInfo) in fieldInfoByName)
             {
-                _eventAggregator.Publish(
+                PublishEvent(
                     new EachOutputFieldNameEvent(context, fieldName, [.. fieldInfo], typeName));
 
                 MultiValueDictionary<string, FieldArgumentInfo> argumentInfoByName = [];
@@ -146,7 +96,7 @@ internal sealed class PreMergeValidator
 
                 foreach (var (argumentName, argumentInfo) in argumentInfoByName)
                 {
-                    _eventAggregator.Publish(
+                    PublishEvent(
                         new EachFieldArgumentNameEvent(
                             context,
                             argumentName,
@@ -154,6 +104,47 @@ internal sealed class PreMergeValidator
                             fieldName,
                             typeName));
                 }
+            }
+        }
+    }
+
+    private void PublishEvent(IEvent @event)
+    {
+        foreach (var rule in _rules)
+        {
+            switch (@event)
+            {
+                case EachTypeEvent e:
+                    rule.OnEachType(e);
+                    break;
+
+                case EachOutputFieldEvent e:
+                    rule.OnEachOutputField(e);
+                    break;
+
+                case EachFieldArgumentEvent e:
+                    rule.OnEachFieldArgument(e);
+                    break;
+
+                case EachDirectiveEvent e:
+                    rule.OnEachDirective(e);
+                    break;
+
+                case EachDirectiveArgumentEvent e:
+                    rule.OnEachDirectiveArgument(e);
+                    break;
+
+                case EachTypeNameEvent e:
+                    rule.OnEachTypeName(e);
+                    break;
+
+                case EachOutputFieldNameEvent e:
+                    rule.OnEachOutputFieldName(e);
+                    break;
+
+                case EachFieldArgumentNameEvent e:
+                    rule.OnEachFieldArgumentName(e);
+                    break;
             }
         }
     }

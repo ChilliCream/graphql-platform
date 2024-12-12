@@ -1,4 +1,3 @@
-using HotChocolate.Fusion.PreMergeValidation.Contracts;
 using HotChocolate.Skimmed;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
@@ -13,13 +12,9 @@ namespace HotChocolate.Fusion.PreMergeValidation.Rules;
 /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Disallowed-Inaccessible-Elements">
 /// Specification
 /// </seealso>
-internal sealed class DisallowedInaccessibleElementsRule
-    : IEachTypeEventHandler
-    , IEachOutputFieldEventHandler
-    , IEachFieldArgumentEventHandler
-    , IEachDirectiveArgumentEventHandler
+internal sealed class DisallowedInaccessibleElementsRule : PreMergeValidationRule
 {
-    public void OnEachType(EachTypeEvent @event)
+    public override void OnEachType(EachTypeEvent @event)
     {
         var (context, type, schema) = @event;
 
@@ -37,7 +32,7 @@ internal sealed class DisallowedInaccessibleElementsRule
         }
     }
 
-    public void OnEachOutputField(EachOutputFieldEvent @event)
+    public override void OnEachOutputField(EachOutputFieldEvent @event)
     {
         var (context, field, type, schema) = @event;
 
@@ -52,7 +47,7 @@ internal sealed class DisallowedInaccessibleElementsRule
         }
     }
 
-    public void OnEachFieldArgument(EachFieldArgumentEvent @event)
+    public override void OnEachFieldArgument(EachFieldArgumentEvent @event)
     {
         var (context, argument, field, type, schema) = @event;
 
@@ -68,7 +63,7 @@ internal sealed class DisallowedInaccessibleElementsRule
         }
     }
 
-    public void OnEachDirectiveArgument(EachDirectiveArgumentEvent @event)
+    public override void OnEachDirectiveArgument(EachDirectiveArgumentEvent @event)
     {
         var (context, argument, directive, schema) = @event;
 

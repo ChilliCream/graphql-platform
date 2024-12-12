@@ -10,10 +10,9 @@ namespace HotChocolate.Fusion.PreMergeValidation.Rules;
 /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Output-Field-Types-Mergeable">
 /// Specification
 /// </seealso>
-internal sealed class OutputFieldTypesMergeableRule
-    : IEachOutputFieldNameEventHandler
+internal sealed class OutputFieldTypesMergeableRule : PreMergeValidationRule
 {
-    public void OnEachOutputFieldName(EachOutputFieldNameEvent @event)
+    public override void OnEachOutputFieldName(EachOutputFieldNameEvent @event)
     {
         var (context, fieldName, fieldInfo, typeName) = @event;
 
