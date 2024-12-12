@@ -1,5 +1,4 @@
 using HotChocolate.Fusion.Logging;
-using HotChocolate.Fusion.PreMergeValidation.Contracts;
 
 namespace HotChocolate.Fusion.PreMergeValidation.Rules;
 
