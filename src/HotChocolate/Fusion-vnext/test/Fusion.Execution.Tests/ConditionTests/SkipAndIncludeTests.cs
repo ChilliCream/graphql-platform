@@ -2,6 +2,7 @@ using static HotChocolate.Language.Utf8GraphQLParser;
 
 namespace HotChocolate.Fusion;
 
+// TODO: Test shared skip selection with one selection having an include - should fail today incorrectly!
 public class SkipAndIncludeTests : FusionTestBase
 {
     [Test]

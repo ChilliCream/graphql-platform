@@ -1,0 +1,52 @@
+request:
+  - document: >-
+      query($slug: String!, $first: Int = 3, $skip: Boolean!) {
+        productBySlug(slug: $slug) {
+          reviews(first: $first) {
+            pageInfo {
+              hasNextPage
+            }
+          }
+          ... on Product @skip(if: $skip) {
+            reviews(first: $first) {
+              nodes {
+                body
+              }
+            }
+          }
+        }
+      }
+nodes:
+  - id: 1
+    schema: "PRODUCTS"
+    operation: >-
+      query($slug: String!) {
+        productBySlug(slug: $slug) {
+          id
+        }
+      }
+  - id: 2
+    schema: "REVIEWS"
+    operation: >-
+      query($__fusion_requirement_1: ID!, $first: Int = 3, $skip: Boolean!) {
+        productById(id: $__fusion_requirement_1) {
+          reviews(first: $first) {
+            pageInfo {
+              hasNextPage
+            }
+          }
+          ... on Product @skip(if: $skip) {
+            reviews(first: $first) {
+              nodes {
+                body
+              }
+            }
+          }
+        }
+      }
+    requirements:
+      - name: "__fusion_requirement_1"
+        dependsOn: "1"
+        selectionSet: "productBySlug"
+        field: "id"
+        type: "ID!"

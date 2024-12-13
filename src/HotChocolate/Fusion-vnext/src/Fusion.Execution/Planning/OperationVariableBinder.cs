@@ -46,15 +46,15 @@ internal static class OperationVariableBinder
                         usedVariables.Add(variable.Name.Value);
                     }
                 }
+            }
 
-                foreach (var directive in field.Directives)
+            foreach (var directive in node.Directives)
+            {
+                foreach (var argument in directive.Arguments)
                 {
-                    foreach (var argument in directive.Arguments)
+                    if (argument.Value is VariableNode variable)
                     {
-                        if (argument.Value is VariableNode variable)
-                        {
-                            usedVariables.Add(variable.Name.Value);
-                        }
+                        usedVariables.Add(variable.Name.Value);
                     }
                 }
             }
@@ -67,7 +67,7 @@ internal static class OperationVariableBinder
 
         foreach (var variable in usedVariables)
         {
-            if(variableDefinitions.TryGetValue(variable, out var variableDefinition))
+            if (variableDefinitions.TryGetValue(variable, out var variableDefinition))
             {
                 operation.AddVariableDefinition(variableDefinition);
             }

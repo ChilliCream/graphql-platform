@@ -1,38 +1,34 @@
 request:
   - document: >-
-      {
-        productById(id: 1) {
-          id
-          name
-          ... @include(if: true) {
-            estimatedDelivery(postCode: "12345")
+      query($slug: String!) {
+        productBySlug(slug: $slug) {
+          ... on Product @skip(if: true) {
+            name
           }
+          averageRating
         }
       }
 nodes:
   - id: 1
     schema: "PRODUCTS"
     operation: >-
-      {
-        productById(id: 1) {
-          id
-          name
+      query($slug: String!) {
+        productBySlug(slug: $slug) {
+          __typename
           id
         }
       }
   - id: 2
-    schema: "SHIPPING"
+    schema: "REVIEWS"
     operation: >-
       query($__fusion_requirement_1: ID!) {
         productById(id: $__fusion_requirement_1) {
-          ... on Product {
-            estimatedDelivery(postCode: "12345")
-          }
+          averageRating
         }
       }
     requirements:
       - name: "__fusion_requirement_1"
         dependsOn: "1"
-        selectionSet: "productById"
+        selectionSet: "productBySlug"
         field: "id"
         type: "ID!"
