@@ -14,12 +14,12 @@ namespace HotChocolate.Fusion.PreMergeValidation.Rules;
 /// Specification
 /// </seealso>
 internal sealed class DisallowedInaccessibleElementsRule
-    : IEventHandler<EachTypeEvent>
-    , IEventHandler<EachOutputFieldEvent>
-    , IEventHandler<EachFieldArgumentEvent>
-    , IEventHandler<EachDirectiveArgumentEvent>
+    : IEventHandler<TypeEvent>
+    , IEventHandler<OutputFieldEvent>
+    , IEventHandler<FieldArgumentEvent>
+    , IEventHandler<DirectiveArgumentEvent>
 {
-    public void Handle(EachTypeEvent @event, CompositionContext context)
+    public void Handle(TypeEvent @event, CompositionContext context)
     {
         var (type, schema) = @event;
 
@@ -37,7 +37,7 @@ internal sealed class DisallowedInaccessibleElementsRule
         }
     }
 
-    public void Handle(EachOutputFieldEvent @event, CompositionContext context)
+    public void Handle(OutputFieldEvent @event, CompositionContext context)
     {
         var (field, type, schema) = @event;
 
@@ -52,7 +52,7 @@ internal sealed class DisallowedInaccessibleElementsRule
         }
     }
 
-    public void Handle(EachFieldArgumentEvent @event, CompositionContext context)
+    public void Handle(FieldArgumentEvent @event, CompositionContext context)
     {
         var (argument, field, type, schema) = @event;
 
@@ -68,7 +68,7 @@ internal sealed class DisallowedInaccessibleElementsRule
         }
     }
 
-    public void Handle(EachDirectiveArgumentEvent @event, CompositionContext context)
+    public void Handle(DirectiveArgumentEvent @event, CompositionContext context)
     {
         var (argument, directive, schema) = @event;
 

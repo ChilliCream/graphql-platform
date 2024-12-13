@@ -4,41 +4,41 @@ using HotChocolate.Skimmed;
 
 namespace HotChocolate.Fusion.PreMergeValidation;
 
-internal record EachDirectiveArgumentEvent(
+internal record DirectiveArgumentEvent(
     InputFieldDefinition Argument,
     DirectiveDefinition Directive,
     SchemaDefinition Schema) : IEvent;
 
-internal record EachDirectiveEvent(
+internal record DirectiveEvent(
     DirectiveDefinition Directive,
     SchemaDefinition Schema) : IEvent;
 
-internal record EachFieldArgumentEvent(
+internal record FieldArgumentEvent(
     InputFieldDefinition Argument,
     OutputFieldDefinition Field,
     INamedTypeDefinition Type,
     SchemaDefinition Schema) : IEvent;
 
-internal record EachFieldArgumentGroupEvent(
+internal record FieldArgumentGroupEvent(
     string ArgumentName,
     ImmutableArray<FieldArgumentInfo> ArgumentGroup,
     string FieldName,
     string TypeName) : IEvent;
 
-internal record EachOutputFieldEvent(
+internal record OutputFieldEvent(
     OutputFieldDefinition Field,
     INamedTypeDefinition Type,
     SchemaDefinition Schema) : IEvent;
 
-internal record EachOutputFieldGroupEvent(
+internal record OutputFieldGroupEvent(
     string FieldName,
     ImmutableArray<OutputFieldInfo> FieldGroup,
     string TypeName) : IEvent;
 
-internal record EachTypeEvent(
+internal record TypeEvent(
     INamedTypeDefinition Type,
     SchemaDefinition Schema) : IEvent;
 
-internal record EachTypeGroupEvent(
+internal record TypeGroupEvent(
     string TypeName,
     ImmutableArray<TypeInfo> TypeGroup) : IEvent;

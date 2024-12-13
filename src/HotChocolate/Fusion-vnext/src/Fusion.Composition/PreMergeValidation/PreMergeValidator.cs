@@ -28,7 +28,7 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
         {
             foreach (var type in schema.Types)
             {
-                PublishEvent(new EachTypeEvent(type, schema), context);
+                PublishEvent(new TypeEvent(type, schema), context);
 
                 typeGroupByName.Add(type.Name, new TypeInfo(type, schema));
 
@@ -36,12 +36,12 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
                 {
                     foreach (var field in complexType.Fields)
                     {
-                        PublishEvent(new EachOutputFieldEvent(field, type, schema), context);
+                        PublishEvent(new OutputFieldEvent(field, type, schema), context);
 
                         foreach (var argument in field.Arguments)
                         {
                             PublishEvent(
-                                new EachFieldArgumentEvent(argument, field, type, schema), context);
+                                new FieldArgumentEvent(argument, field, type, schema), context);
                         }
                     }
                 }
@@ -49,19 +49,18 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
 
             foreach (var directive in schema.DirectiveDefinitions)
             {
-                PublishEvent(new EachDirectiveEvent(directive, schema), context);
+                PublishEvent(new DirectiveEvent(directive, schema), context);
 
                 foreach (var argument in directive.Arguments)
                 {
-                    PublishEvent(
-                        new EachDirectiveArgumentEvent(argument, directive, schema), context);
+                    PublishEvent(new DirectiveArgumentEvent(argument, directive, schema), context);
                 }
             }
         }
 
         foreach (var (typeName, typeGroup) in typeGroupByName)
         {
-            PublishEvent(new EachTypeGroupEvent(typeName, [.. typeGroup]), context);
+            PublishEvent(new TypeGroupEvent(typeName, [.. typeGroup]), context);
 
             MultiValueDictionary<string, OutputFieldInfo> fieldGroupByName = [];
 
@@ -79,7 +78,7 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
             foreach (var (fieldName, fieldGroup) in fieldGroupByName)
             {
                 PublishEvent(
-                    new EachOutputFieldGroupEvent(fieldName, [.. fieldGroup], typeName), context);
+                    new OutputFieldGroupEvent(fieldName, [.. fieldGroup], typeName), context);
 
                 MultiValueDictionary<string, FieldArgumentInfo> argumentGroupByName = [];
 
@@ -96,7 +95,7 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
                 foreach (var (argumentName, argumentGroup) in argumentGroupByName)
                 {
                     PublishEvent(
-                        new EachFieldArgumentGroupEvent(
+                        new FieldArgumentGroupEvent(
                             argumentName,
                             [.. argumentGroup],
                             fieldName,
