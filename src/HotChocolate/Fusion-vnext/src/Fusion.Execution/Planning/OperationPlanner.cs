@@ -226,9 +226,9 @@ public sealed class OperationPlanner(CompositeSchema schema)
             // if this field as a selection set it must be a object, interface or union type,
             // otherwise the validation should have caught this. So, we just throw here if this
             // is not the case.
-            if (fieldNamedType.Kind != TypeKind.Object &&
-                fieldNamedType.Kind != TypeKind.Interface &&
-                fieldNamedType.Kind != TypeKind.Union)
+            if (fieldNamedType.Kind != TypeKind.Object
+                && fieldNamedType.Kind != TypeKind.Interface
+                && fieldNamedType.Kind != TypeKind.Union)
             {
                 throw new InvalidOperationException(
                     "Only object, interface, or union types can have a selection set.");
