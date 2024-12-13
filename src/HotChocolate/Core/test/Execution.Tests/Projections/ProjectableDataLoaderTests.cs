@@ -759,6 +759,60 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             .MatchMarkdownSnapshot();
     }
 
+    [Fact]
+    public async Task Brand_Without_Country_Should_Allow_Nullable_Country()
+    {
+        // Arrange
+        var queries = new List<string>();
+        var connectionString = CreateConnectionString();
+
+        var services = new ServiceCollection()
+            .AddScoped(_ => queries)
+            .AddTransient(_ => new CatalogContext(connectionString))
+            .AddDataLoader(
+                sp => new ProductByBrandIdDataLoader2(
+                    sp,
+                    sp.GetRequiredService<List<string>>(),
+                    sp.GetRequiredService<IBatchScheduler>(),
+                    sp.GetRequiredService<DataLoaderOptions>()))
+            .BuildServiceProvider();
+
+        await using var catalogContext = services.GetRequiredService<CatalogContext>();
+        await catalogContext.Database.EnsureCreatedAsync();
+        catalogContext.Brands.Add(new Brand
+            {
+                Name = "Some brand",
+                Details = new BrandDetails { Country = null },
+            });
+        await catalogContext.SaveChangesAsync();
+
+        // Act
+        var result = await new ServiceCollection()
+            .AddScoped(_ => queries)
+            .AddTransient(_ => new CatalogContext(connectionString))
+            .AddGraphQLServer()
+            .AddQueryType<BrandsQuery>()
+            .AddTypeExtension(typeof(BrandListExtensions))
+            .ExecuteRequestAsync(
+                """
+                {
+                    brandById(id: 1) {
+                        details {
+                            country {
+                                name
+                            }
+                        }
+                    }
+                }
+                """);
+
+        // Assert
+        Snapshot.Create()
+            .AddSql(queries)
+            .Add(result, "Result")
+            .MatchMarkdownSnapshot();
+    }
+
     public class Query
     {
         public async Task<Brand?> GetBrandByIdAsync(
