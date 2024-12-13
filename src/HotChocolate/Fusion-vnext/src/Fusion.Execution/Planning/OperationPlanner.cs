@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Fusion.Planning.Nodes;
 using HotChocolate.Fusion.Types;
+using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -9,13 +10,15 @@ namespace HotChocolate.Fusion.Planning;
 
 public sealed class OperationPlanner(CompositeSchema schema)
 {
-    public RootPlanNode CreatePlan(DocumentNode document, string? operationName)
+    private int _lastRequirementId;
+
+    public RequestPlanNode CreatePlan(DocumentNode document, string? operationName)
     {
         ArgumentNullException.ThrowIfNull(document);
 
         var operationDefinition = document.GetOperation(operationName);
         var schemasWeighted = GetSchemasWeighted(schema.QueryType, operationDefinition.SelectionSet);
-        var operationPlan = new RootPlanNode();
+        var operationPlan = new RequestPlanNode(document, operationName);
 
         // this need to be rewritten to check if everything is planned for.
         foreach (var schemaName in schemasWeighted.OrderByDescending(t => t.Value).Select(t => t.Key))
@@ -25,9 +28,11 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 schema.QueryType,
                 operationDefinition.SelectionSet);
 
-            if (TryPlanSelectionSet(operation, operation, new Stack<SelectionPathSegment>()))
+            var context = new PlaningContext(operation, operation, ImmutableStack<SelectionPathSegment>.Empty);
+            if (TryPlanSelectionSet(context))
             {
-                operationPlan.AddChildNode(operation);
+                TryMakeOperationConditional(operation, operation.Selections);
+                operationPlan.AddOperation(operation);
             }
         }
 
@@ -37,121 +42,196 @@ public sealed class OperationPlanner(CompositeSchema schema)
     }
 
     private bool TryPlanSelectionSet(
-        OperationPlanNode operation,
-        SelectionPlanNode parent,
-        Stack<SelectionPathSegment> path,
+        PlaningContext context,
         bool skipUnresolved = false)
     {
-        if (parent.SelectionNodes is null)
+        if (context.Parent.SelectionNodes is null)
         {
             throw new InvalidOperationException(
                 "A leaf field cannot be a parent node.");
         }
 
-        List<UnresolvedField>? unresolved = null;
-        var type = (CompositeComplexType)parent.DeclaringType;
+        List<UnresolvedField>? unresolvedFields = null;
+        // List<UnresolvedType>? unresolvedTypes = null;
+        var type = (CompositeComplexType)context.Parent.DeclaringType;
+        var haveConditionalSelectionsBeenRemoved = false;
 
-        foreach (var selection in parent.SelectionNodes)
+        foreach (var selection in context.Parent.SelectionNodes)
         {
-            if (selection is FieldNode fieldNode)
+            if (IsSelectionAlwaysSkipped(selection))
             {
-                if (!type.Fields.TryGetField(fieldNode.Name.Value, out var field))
+                haveConditionalSelectionsBeenRemoved = true;
+                continue;
+            }
+
+            TryPlanSelection(
+                context,
+                type,
+                selection,
+                unresolvedField =>
                 {
-                    throw new InvalidOperationException(
-                        "There is an unknown field in the selection set.");
-                }
+                    unresolvedFields ??= new List<UnresolvedField>();
+                    unresolvedFields.Add(unresolvedField);
+                });
+        }
 
-                // if we have an operation plan node we have a pre-validated set of
-                // root fields, so we now the field will be resolvable on the
-                // source schema.
-                if (parent is OperationPlanNode
-                    || IsResolvable(fieldNode, field, operation.SchemaName))
-                {
-                    var fieldNamedType = field.Type.NamedType();
-
-                    // if the field has no selection set it must be a leaf type.
-                    // This also means that if this field is resolvable that we can
-                    // just include it and no further processing is required.
-                    if (fieldNode.SelectionSet is null)
-                    {
-                        if (fieldNamedType.Kind is not TypeKind.Enum and not TypeKind.Scalar)
-                        {
-                            throw new InvalidOperationException(
-                                "Only complex types can have a selection set.");
-                        }
-
-                        parent.AddSelection(new FieldPlanNode(fieldNode, field));
-                        continue;
-                    }
-
-                    // if this field as a selection set it must be a object, interface or union type,
-                    // otherwise the validation should have caught this. So, we just throw here if this
-                    // is not the case.
-                    if (fieldNamedType.Kind != TypeKind.Object
-                        && fieldNamedType.Kind != TypeKind.Interface
-                        && fieldNamedType.Kind != TypeKind.Union)
-                    {
-                        throw new InvalidOperationException(
-                            "Only object, interface, or union types can have a selection set.");
-                    }
-
-                    var fieldPlanNode = new FieldPlanNode(fieldNode, field);
-                    var pathSegment = new SelectionPathSegment(fieldPlanNode);
-
-                    path.Push(pathSegment);
-
-                    if (TryPlanSelectionSet(operation, fieldPlanNode, path))
-                    {
-                        parent.AddSelection(fieldPlanNode);
-                    }
-                    else
-                    {
-                        unresolved ??= [];
-                        unresolved.Add(new UnresolvedField(fieldNode, field, parent));
-                    }
-
-                    path.Pop();
-                }
-                else
-                {
-                    // unresolvable fields will be collected to backtrack later.
-                    unresolved ??= [];
-                    unresolved.Add(new UnresolvedField(fieldNode, field, parent));
-                }
+        if (haveConditionalSelectionsBeenRemoved)
+        {
+            // If we have removed conditional selections from a composite field, we need to add a __typename field
+            // to have a valid selection set.
+            if (context.Parent is FieldPlanNode { Selections.Count: 0 } fieldPlanNode)
+            {
+                // TODO: How to properly create a __typename field?
+                var dummyType = new CompositeObjectType("Dummy", description: null,
+                    fields: new CompositeOutputFieldCollection([]));
+                var outputFieldInfo = new OutputFieldInfo("__typename", dummyType, []);
+                fieldPlanNode.AddSelection(new FieldPlanNode(new FieldNode("__typename"), outputFieldInfo));
+            }
+            // If we have removed conditional selections from an operation, we need to fail the creation
+            // of the operation as it would be invalid without any selections.
+            else if (context.Parent is OperationPlanNode { Selections.Count: 0 })
+            {
+                return false;
             }
         }
 
         return skipUnresolved
-            || unresolved is null
-            || unresolved.Count == 0
-            || TryHandleUnresolvedSelections(operation, parent, type, unresolved, path);
+            || unresolvedFields is null
+            || unresolvedFields.Count == 0
+            || TryHandleUnresolvedSelections(context, type, unresolvedFields);
+    }
+
+    private bool TryPlanSelection(
+        PlaningContext context,
+        CompositeComplexType type,
+        ISelectionNode selectionNode,
+        Action<UnresolvedField> trackUnresolvedField)
+    {
+        if (selectionNode is FieldNode fieldNode)
+        {
+            return TryPlanFieldSelection(
+                context,
+                type,
+                fieldNode,
+                trackUnresolvedField);
+        }
+
+        return false;
+    }
+
+    private bool TryPlanFieldSelection(
+        PlaningContext context,
+        CompositeComplexType type,
+        FieldNode fieldNode,
+        Action<UnresolvedField> trackUnresolvedField)
+    {
+        if (!type.Fields.TryGetField(fieldNode.Name.Value, out var field))
+        {
+            throw new InvalidOperationException(
+                "There is an unknown field in the selection set.");
+        }
+
+        // if we have an operation plan node we have a pre-validated set of
+        // root fields, so we now the field will be resolvable on the
+        // source schema.
+        if (context.Parent is OperationPlanNode
+            || IsResolvable(fieldNode, field, context.Operation.SchemaName))
+        {
+            var fieldNamedType = field.Type.NamedType();
+
+            // if the field has no selection set it must be a leaf type.
+            // This also means that if this field is resolvable that we can
+            // just include it and no further processing is required.
+            if (fieldNode.SelectionSet is null)
+            {
+                if (fieldNamedType.Kind is not TypeKind.Enum and not TypeKind.Scalar)
+                {
+                    throw new InvalidOperationException(
+                        "Only complex types can have a selection set.");
+                }
+
+                var leafField = new FieldPlanNode(fieldNode, field);
+                AddSelectionDirectives(leafField, fieldNode.Directives);
+                context.Parent.AddSelection(leafField);
+                return true;
+            }
+
+            // if this field as a selection set it must be a object, interface or union type,
+            // otherwise the validation should have caught this. So, we just throw here if this
+            // is not the case.
+            if (fieldNamedType.Kind != TypeKind.Object
+                && fieldNamedType.Kind != TypeKind.Interface
+                && fieldNamedType.Kind != TypeKind.Union)
+            {
+                throw new InvalidOperationException(
+                    "Only object, interface, or union types can have a selection set.");
+            }
+
+            var fieldPlanNode = new FieldPlanNode(fieldNode, field);
+            AddSelectionDirectives(fieldPlanNode, fieldNode.Directives);
+
+            var pathSegment = new SelectionPathSegment(fieldPlanNode);
+
+            if (TryPlanSelectionSet(context with { Parent = fieldPlanNode, Path = context.Path.Push(pathSegment) }))
+            {
+                context.Parent.AddSelection(fieldPlanNode);
+                return true;
+            }
+
+            trackUnresolvedField(new UnresolvedField(fieldNode, field));
+            return false;
+        }
+
+        // unresolvable fields will be collected to backtrack later.
+        trackUnresolvedField(new UnresolvedField(fieldNode, field));
+        return false;
+    }
+
+    private void AddSelectionDirectives(
+        SelectionPlanNode selection,
+        IReadOnlyList<DirectiveNode> directiveNodes)
+    {
+        foreach (var directiveNode in directiveNodes)
+        {
+            var directiveType = schema.GetDirectiveType(directiveNode.Name.Value);
+
+            if ((directiveType == schema.SkipDirective || directiveType == schema.IncludeDirective)
+                && directiveNode.Arguments[0].Value is BooleanValueNode)
+            {
+                continue;
+            }
+
+            var argumentAssignments = directiveNode.Arguments.Select(
+                a => new ArgumentAssignment(a.Name.Value, a.Value)).ToList();
+            selection.AddDirective(new CompositeDirective(directiveType, argumentAssignments));
+        }
     }
 
     private bool TryHandleUnresolvedSelections(
-        OperationPlanNode operation,
-        SelectionPlanNode parent,
+        PlaningContext context,
         CompositeComplexType type,
-        List<UnresolvedField> unresolved,
-        Stack<SelectionPathSegment> path)
+        List<UnresolvedField> unresolved)
     {
-        if (!TryResolveEntityType(parent, out var entityPath))
+        if (!TryResolveEntityType(context.Parent, out var entityPath))
         {
             return false;
         }
 
         // if we have found an entity to branch of from we will check
         // if any of the unresolved selections can be resolved through one of the entity lookups.
-        var processedSchemas = new HashSet<string>();
+        var schemasInContext = new Dictionary<string, OperationPlanNode>();
         var processedFields = new HashSet<string>();
         var fields = new List<ISelectionNode>();
 
+        schemasInContext.Add(context.Operation.SchemaName, context.Operation);
+
         // we first try to weight the schemas that the fields can be resolved by.
         // The schema is weighted by the fields it potentially can resolve.
-        var schemasWeighted = GetSchemasWeighted(unresolved, processedSchemas);
+        var schemasWeighted = GetSchemasWeighted(unresolved, schemasInContext.Keys);
 
         foreach (var schemaName in schemasWeighted.OrderByDescending(t => t.Value).Select(t => t.Key))
         {
-            if (!processedSchemas.Add(schemaName))
+            if (schemasInContext.ContainsKey(schemaName))
             {
                 continue;
             }
@@ -163,7 +243,12 @@ public sealed class OperationPlanner(CompositeSchema schema)
             }
 
             // next we try to find a lookup
-            if (!TryGetLookup((SelectionPlanNode)entityPath.Peek(), processedSchemas, out var lookup))
+            if (!TryGetLookup(
+                (SelectionPlanNode)entityPath.Peek(),
+                schemaName,
+                schemasInContext.Keys,
+                out var lookup,
+                out var fieldSchemaDependencies))
             {
                 continue;
             }
@@ -182,17 +267,69 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 }
             }
 
-            var lookupOperation = CreateLookupOperation(schemaName, lookup, type, parent, fields);
-            var lookupField = lookupOperation.Selections[0];
-
-            // what do we do of its not successful
-            if (!TryPlanSelectionSet(lookupOperation, lookupField, path))
+            var (lookupOperation, lookupField) =
+                CreateLookupOperation(schemaName, lookup, type, context.Parent, fields);
+            if (!TryPlanSelectionSet(context with { Operation = lookupOperation, Parent = lookupField }, true))
             {
                 continue;
             }
 
-            operation.AddChildNode(lookupOperation);
+            schemasInContext.Add(schemaName, lookupOperation);
+            TryMakeOperationConditional(lookupOperation, lookupField.Selections);
 
+            // we add the lookup operation to all the schemas that we have requirements with.
+            foreach (var requiredSchema in fieldSchemaDependencies.Values.Distinct())
+            {
+                // Add child node is wrong ... this is a graph and the lookup operation has dependencies on
+                // this operation. We should probably double link here.
+                // maybe AddDependantNode()?
+                schemasInContext[requiredSchema].AddDependantOperation(lookupOperation);
+            }
+
+            // add requirements to the operation
+            for (var i = 0; i < lookup.Fields.Length; i++)
+            {
+                var requirementName = GetNextRequirementName();
+                var requiredField = lookup.Fields[i];
+                var argument = lookup.Arguments[i];
+
+                var requiredFromSchema = fieldSchemaDependencies[requiredField];
+                var requiredFromOperation = schemasInContext[requiredFromSchema];
+                var requiredFromSelectionSet = requiredFromOperation != context.Operation
+                    ? requiredFromOperation.Selections.Single()
+                    : context.Parent;
+                var requiredFromPathStack = requiredFromOperation != context.Operation
+                    ? ImmutableStack<SelectionPathSegment>.Empty.Push(new SelectionPathSegment(lookupField))
+                    : context.Path;
+                var requiredFromPath = CreateFieldPath(requiredFromPathStack);
+                var requiredFromContext = new PlaningContext(
+                    requiredFromOperation,
+                    requiredFromSelectionSet,
+                    requiredFromPathStack);
+
+                if (!TryPlanSelection(
+                    requiredFromContext,
+                    (CompositeComplexType)requiredFromSelectionSet.DeclaringType,
+                    CreateFieldNodeFromPath(requiredField),
+                    _ => { }))
+                {
+                    return false;
+                }
+
+                var requirement = new FieldRequirementPlanNode(
+                    requirementName,
+                    requiredFromOperation,
+                    requiredFromPath,
+                    requiredField,
+                    argument.Type);
+
+                lookupOperation.AddRequirement(requirement);
+                lookupField.AddArgument(new ArgumentAssignment(argument.Name, new VariableNode(requirementName)));
+            }
+
+            // we register the fields that we were able to resolve with the lookup
+            // so that if there are still unresolved fields we can check if we can
+            // resolve them with another lookup.
             foreach (var selection in lookupField.Selections)
             {
                 switch (selection)
@@ -260,25 +397,92 @@ public sealed class OperationPlanner(CompositeSchema schema)
         string schemaName)
         => field.Sources.ContainsSchema(schemaName);
 
-    private bool TryGetLookup(SelectionPlanNode selection, HashSet<string> schemas, out Lookup lookup)
+    // this needs more meat
+    private bool IsResolvable(
+        InlineFragmentNode inlineFragment,
+        CompositeComplexType typeCondition,
+        string schemaName)
+        => typeCondition.Sources.ContainsSchema(schemaName);
+
+    private static bool TryGetLookup(
+        SelectionPlanNode selection,
+        string schemaName,
+        IReadOnlyCollection<string> schemasInContext,
+        [NotNullWhen(true)] out Lookup? lookup,
+        [NotNullWhen(true)] out ImmutableDictionary<FieldPath, string>? fieldSchemaDependencies)
     {
-        // we need a helper here that can take lookups from interfaces
-        // also this is a simplified selection of a lookup ... we have to take into account what data
-        // is available for free.
-        foreach (var schemaName in schemas)
+        var declaringType = (CompositeComplexType)selection.DeclaringType;
+        var builder = ImmutableDictionary.CreateBuilder<FieldPath, string>();
+
+        if (declaringType.Sources.TryGetType(schemaName, out var source)
+            && source.Lookups.Length > 0)
         {
-            if (((CompositeComplexType)selection.DeclaringType).Sources.TryGetType(schemaName, out var source)
-                && source.Lookups.Length > 0)
+            foreach (var possibleLookup in source.Lookups.OrderBy(t => t.Fields.Length))
             {
-                lookup = source.Lookups[0];
+                builder.Clear();
+
+                foreach (var field in possibleLookup.Fields)
+                {
+                    if (!IsResolvable(declaringType, field, schemasInContext, out var requiredSchema))
+                    {
+                        break;
+                    }
+
+                    builder.Add(field, requiredSchema);
+                }
+
+                lookup = possibleLookup;
+                fieldSchemaDependencies = builder.ToImmutable();
                 return true;
             }
         }
 
-        throw new NotImplementedException();
+        lookup = default;
+        fieldSchemaDependencies = default;
+        return false;
     }
 
-    private OperationPlanNode CreateLookupOperation(
+    private static bool IsResolvable(
+        ICompositeType type,
+        FieldPath fieldPath,
+        IEnumerable<string> schemasInContext,
+        [NotNullWhen(true)] out string? requiredSchema)
+    {
+        foreach (var schemaName in schemasInContext)
+        {
+            if (IsResolvable(type, fieldPath, schemaName))
+            {
+                requiredSchema = schemaName;
+                return true;
+            }
+        }
+
+        requiredSchema = null;
+        return false;
+    }
+
+    private static bool IsResolvable(
+        ICompositeType type,
+        FieldPath fieldPath,
+        string schemaName)
+    {
+        foreach (var segment in fieldPath.Reverse())
+        {
+            if (type.NamedType() is not CompositeComplexType complexType
+                || !complexType.Fields.TryGetField(segment.Name, out var field)
+                || !field.Sources.TryGetMember(schemaName, out var source)
+                || source.Requirements is not null)
+            {
+                return false;
+            }
+
+            type = field.Type;
+        }
+
+        return true;
+    }
+
+    private LookupOperation CreateLookupOperation(
         string schemaName,
         Lookup lookup,
         CompositeComplexType entityType,
@@ -288,8 +492,8 @@ public sealed class OperationPlanner(CompositeSchema schema)
         var lookupFieldNode = new FieldNode(
             new NameNode(lookup.Name),
             null,
-            Array.Empty<DirectiveNode>(),
-            Array.Empty<ArgumentNode>(),
+            [],
+            [],
             new SelectionSetNode(selections));
 
         var selectionNodes = new ISelectionNode[] { lookupFieldNode };
@@ -309,7 +513,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
 
         lookupOperation.AddSelection(lookupFieldPlan);
 
-        return lookupOperation;
+        return new LookupOperation(lookupOperation, lookupFieldPlan);
     }
 
     private static Dictionary<string, int> GetSchemasWeighted(
@@ -370,16 +574,139 @@ public sealed class OperationPlanner(CompositeSchema schema)
         return counts;
     }
 
+    private static FieldPath CreateFieldPath(ImmutableStack<SelectionPathSegment> path)
+    {
+        var current = FieldPath.Root;
+
+        foreach (var segment in path.Reverse())
+        {
+            if (segment.PlanNode is FieldPlanNode field)
+            {
+                current = current.Append(field.Field.Name);
+            }
+        }
+
+        return current;
+    }
+
+    private static FieldNode CreateFieldNodeFromPath(FieldPath path)
+    {
+        var current = new FieldNode(path.Name);
+
+        foreach (var segment in path.Skip(1))
+        {
+            current = new FieldNode(
+                null,
+                new NameNode(segment.Name),
+                null,
+                Array.Empty<DirectiveNode>(),
+                Array.Empty<ArgumentNode>(),
+                new SelectionSetNode([current]));
+        }
+
+        return current!;
+    }
+
+    private void TryMakeOperationConditional(
+        OperationPlanNode operation,
+        IReadOnlyList<SelectionPlanNode> selections)
+    {
+        var firstSelection = selections.FirstOrDefault();
+        if (firstSelection?.IsConditional != true)
+        {
+            return;
+        }
+
+        foreach (var selection in selections.Skip(1))
+        {
+            // if any root selection of an operation node has no condition
+            // the operation will always be executed.
+            if (!selection.IsConditional)
+            {
+                return;
+            }
+
+            if (!string.Equals(firstSelection.SkipVariable, selection.SkipVariable, StringComparison.Ordinal)
+                || !string.Equals(firstSelection.IncludeVariable, selection.IncludeVariable, StringComparison.Ordinal))
+            {
+                return;
+            }
+        }
+
+        operation.SkipVariable = firstSelection.SkipVariable;
+        operation.IncludeVariable = firstSelection.IncludeVariable;
+
+        var remove = new List<CompositeDirective>();
+
+        foreach (var selection in selections)
+        {
+            selection.SkipVariable = null;
+            selection.IncludeVariable = null;
+
+            remove.AddRange(
+                selection.Directives.Where(
+                    t => t.Type == schema.SkipDirective
+                        || t.Type == schema.IncludeDirective));
+
+            foreach (var directive in remove)
+            {
+                selection.RemoveDirective(directive);
+            }
+        }
+    }
+
+    private static bool IsSelectionAlwaysSkipped(ISelectionNode selectionNode)
+    {
+        foreach (var directive in selectionNode.Directives)
+        {
+            var isSkipDirective = directive.Name.Value == "skip";
+            var isIncludedDirective = directive.Name.Value == "include";
+
+            if (isSkipDirective || isIncludedDirective)
+            {
+                var ifArgument = directive.Arguments.FirstOrDefault(a => a.Name.Value == "if");
+
+                if (ifArgument is not null)
+                {
+                    if (ifArgument.Value is BooleanValueNode booleanValueNode)
+                    {
+                        if (booleanValueNode.Value && isSkipDirective)
+                        {
+                            return true;
+                        }
+
+                        if (!booleanValueNode.Value && isIncludedDirective)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private string GetNextRequirementName()
+        => $"__fusion_requirement_{++_lastRequirementId}";
+
     public record SelectionPathSegment(
         SelectionPlanNode PlanNode);
 
     public record UnresolvedField(
         FieldNode FieldNode,
-        CompositeOutputField Field,
-        SelectionPlanNode Parent);
+        CompositeOutputField Field);
 
-    public class RequestPlanNode
-    {
-        public ICollection<OperationPlanNode> Operations { get; } = new List<OperationPlanNode>();
-    }
+    public record UnresolvedType(
+        InlineFragmentNode InlineFragment,
+        CompositeComplexType TypeCondition);
+
+    private record struct LookupOperation(
+        OperationPlanNode Operation,
+        FieldPlanNode Field);
+
+    private record struct PlaningContext(
+        OperationPlanNode Operation,
+        SelectionPlanNode Parent,
+        ImmutableStack<SelectionPathSegment> Path);
 }

@@ -1,12 +1,27 @@
 type Query
   @fusion__type(schema: ACCOUNTS)
+  @fusion__type(schema: REVIEWS)
   @fusion__type(schema: PRODUCTS) {
-  viewer: UserProfile
+  viewer: Viewer
     @fusion__field(schema: ACCOUNTS)
+    @fusion__field(schema: REVIEWS)
   productById(id: ID!): Product
     @fusion__field(schema: PRODUCTS)
   products(first: Int, after: String, last: Int, before: String): ProductConnection
     @fusion__field(schema: PRODUCTS)
+  productBySlug(slug: String!): Product
+    @fusion__field(schema: PRODUCTS)
+  reviewById(id: ID!): Review
+    @fusion__field(schema: REVIEWS)
+}
+
+type Viewer
+  @fusion__type(schema: ACCOUNTS)
+  @fusion__type(schema: REVIEWS) {
+  displayName: String!
+    @fusion__field(schema: ACCOUNTS)
+  reviews(first: Int, after: String, last: Int, before: String): ProductReviewConnection
+    @fusion__field(schema: REVIEWS)
 }
 
 type Product
@@ -42,6 +57,7 @@ type Product
     @fusion__field(schema: PRODUCTS)
   dimension: ProductDimension!
     @fusion__field(schema: PRODUCTS)
+  averageRating: Int! @fusion__field(schema: REVIEWS)
   reviews(first: Int, after: String, last: Int, before: String): ProductReviewConnection
     @fusion__field(schema: REVIEWS)
   estimatedDelivery(postCode: String): Int!

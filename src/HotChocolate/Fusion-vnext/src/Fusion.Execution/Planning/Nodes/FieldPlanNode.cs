@@ -1,6 +1,4 @@
-using System.Diagnostics;
 using HotChocolate.Fusion.Types;
-using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning.Nodes;
@@ -12,7 +10,7 @@ public sealed class FieldPlanNode : SelectionPlanNode
     public FieldPlanNode(
         FieldNode fieldNode,
         OutputFieldInfo field)
-        : base(field.Type.NamedType(), fieldNode.SelectionSet?.Selections)
+        : base(field.Type.NamedType(), fieldNode.Directives, fieldNode.SelectionSet?.Selections)
     {
         FieldNode = fieldNode;
         Field = field;
@@ -38,7 +36,7 @@ public sealed class FieldPlanNode : SelectionPlanNode
     public OutputFieldInfo Field { get; }
 
     public IReadOnlyList<ArgumentAssignment> Arguments
-        => _arguments ?? (IReadOnlyList<ArgumentAssignment>)Array.Empty<ArgumentAssignment>();
+        => _arguments ?? [];
 
     public void AddArgument(ArgumentAssignment argument)
     {
