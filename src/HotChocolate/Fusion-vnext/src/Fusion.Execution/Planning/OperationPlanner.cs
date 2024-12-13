@@ -774,8 +774,8 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 return;
             }
 
-            if (!string.Equals(firstSelection.SkipVariable, selection.SkipVariable, StringComparison.Ordinal) ||
-                !string.Equals(firstSelection.IncludeVariable, selection.IncludeVariable, StringComparison.Ordinal))
+            if (!string.Equals(firstSelection.SkipVariable, selection.SkipVariable, StringComparison.Ordinal)
+                || !string.Equals(firstSelection.IncludeVariable, selection.IncludeVariable, StringComparison.Ordinal))
             {
                 return;
             }
