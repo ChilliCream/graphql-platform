@@ -593,10 +593,10 @@ public sealed class OperationPlanner(CompositeSchema schema)
     {
         foreach (var segment in fieldPath.Reverse())
         {
-            if (type.NamedType() is not CompositeComplexType complexType ||
-                !complexType.Fields.TryGetField(segment.Name, out var field) ||
-                !field.Sources.TryGetMember(schemaName, out var source) ||
-                source.Requirements is not null)
+            if (type.NamedType() is not CompositeComplexType complexType
+                || !complexType.Fields.TryGetField(segment.Name, out var field)
+                || !field.Sources.TryGetMember(schemaName, out var source)
+                || source.Requirements is not null)
             {
                 return false;
             }
