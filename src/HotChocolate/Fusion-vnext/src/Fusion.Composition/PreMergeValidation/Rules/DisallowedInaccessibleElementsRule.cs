@@ -1,6 +1,4 @@
-using HotChocolate.Fusion.Errors;
-using HotChocolate.Fusion.PreMergeValidation.Contracts;
-using HotChocolate.Fusion.Results;
+using HotChocolate.Fusion.Events;
 using HotChocolate.Skimmed;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
@@ -15,80 +13,73 @@ namespace HotChocolate.Fusion.PreMergeValidation.Rules;
 /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Disallowed-Inaccessible-Elements">
 /// Specification
 /// </seealso>
-internal sealed class DisallowedInaccessibleElementsRule : IPreMergeValidationRule
+internal sealed class DisallowedInaccessibleElementsRule
+    : IEventHandler<TypeEvent>
+    , IEventHandler<OutputFieldEvent>
+    , IEventHandler<FieldArgumentEvent>
+    , IEventHandler<DirectiveArgumentEvent>
 {
-    public CompositionResult Run(PreMergeValidationContext context)
+    public void Handle(TypeEvent @event, CompositionContext context)
     {
-        var loggingSession = context.Log.CreateSession();
+        var (type, schema) = @event;
 
-        foreach (var schema in context.SchemaDefinitions)
+        // Built-in scalar types must be accessible.
+        if (type is ScalarTypeDefinition { IsSpecScalar: true } scalar
+            && !ValidationHelper.IsAccessible(scalar))
         {
-            foreach (var type in schema.Types)
-            {
-                if (type is ScalarTypeDefinition { IsSpecScalar: true } scalar
-                    && !ValidationHelper.IsAccessible(type))
-                {
-                    loggingSession.Write(DisallowedInaccessibleScalar(scalar, schema));
-                }
-
-                if (type.IsIntrospectionType)
-                {
-                    if (!ValidationHelper.IsAccessible(type))
-                    {
-                        loggingSession.Write(DisallowedInaccessibleIntrospectionType(type, schema));
-                    }
-
-                    if (type is ComplexTypeDefinition complexType)
-                    {
-                        foreach (var field in complexType.Fields)
-                        {
-                            if (!ValidationHelper.IsAccessible(field))
-                            {
-                                loggingSession.Write(
-                                    DisallowedInaccessibleIntrospectionField(
-                                        field,
-                                        type.Name,
-                                        schema));
-                            }
-
-                            foreach (var argument in field.Arguments)
-                            {
-                                if (!ValidationHelper.IsAccessible(argument))
-                                {
-                                    loggingSession.Write(
-                                        DisallowedInaccessibleIntrospectionArgument(
-                                            argument,
-                                            field.Name,
-                                            type.Name,
-                                            schema));
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            foreach (var directive in schema.DirectiveDefinitions)
-            {
-                if (BuiltIns.IsBuiltInDirective(directive.Name))
-                {
-                    foreach (var argument in directive.Arguments)
-                    {
-                        if (!ValidationHelper.IsAccessible(argument))
-                        {
-                            loggingSession.Write(
-                                DisallowedInaccessibleDirectiveArgument(
-                                    argument,
-                                    directive.Name,
-                                    schema));
-                        }
-                    }
-                }
-            }
+            context.Log.Write(DisallowedInaccessibleBuiltInScalar(scalar, schema));
         }
 
-        return loggingSession.ErrorCount == 0
-            ? CompositionResult.Success()
-            : ErrorHelper.PreMergeValidationRuleFailed(this);
+        // Introspection types must be accessible.
+        if (type.IsIntrospectionType && !ValidationHelper.IsAccessible(type))
+        {
+            context.Log.Write(DisallowedInaccessibleIntrospectionType(type, schema));
+        }
+    }
+
+    public void Handle(OutputFieldEvent @event, CompositionContext context)
+    {
+        var (field, type, schema) = @event;
+
+        // Introspection fields must be accessible.
+        if (type.IsIntrospectionType && !ValidationHelper.IsAccessible(field))
+        {
+            context.Log.Write(
+                DisallowedInaccessibleIntrospectionField(
+                    field,
+                    type.Name,
+                    schema));
+        }
+    }
+
+    public void Handle(FieldArgumentEvent @event, CompositionContext context)
+    {
+        var (argument, field, type, schema) = @event;
+
+        // Introspection arguments must be accessible.
+        if (type.IsIntrospectionType && !ValidationHelper.IsAccessible(argument))
+        {
+            context.Log.Write(
+                DisallowedInaccessibleIntrospectionArgument(
+                    argument,
+                    field.Name,
+                    type.Name,
+                    schema));
+        }
+    }
+
+    public void Handle(DirectiveArgumentEvent @event, CompositionContext context)
+    {
+        var (argument, directive, schema) = @event;
+
+        // Built-in directive arguments must be accessible.
+        if (BuiltIns.IsBuiltInDirective(directive.Name) && !ValidationHelper.IsAccessible(argument))
+        {
+            context.Log.Write(
+                DisallowedInaccessibleDirectiveArgument(
+                    argument,
+                    directive.Name,
+                    schema));
+        }
     }
 }

@@ -18,10 +18,10 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ErrorHelper_PreMergeValidationRuleFailed" xml:space="preserve">
-    <value>Pre-merge validation rule '{0}' failed. View the composition log for details.</value>
+  <data name="ErrorHelper_PreMergeValidationFailed" xml:space="preserve">
+    <value>Pre-merge validation failed. View the composition log for details.</value>
   </data>
-  <data name="LogEntryHelper_DisallowedInaccessibleScalar" xml:space="preserve">
+  <data name="LogEntryHelper_DisallowedInaccessibleBuiltInScalar" xml:space="preserve">
     <value>The built-in scalar type '{0}' is not accessible.</value>
   </data>
   <data name="LogEntryHelper_DisallowedInaccessibleIntrospectionType" xml:space="preserve">
