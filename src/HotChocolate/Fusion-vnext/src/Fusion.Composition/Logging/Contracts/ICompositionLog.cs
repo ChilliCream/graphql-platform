@@ -5,10 +5,14 @@ namespace HotChocolate.Fusion.Logging.Contracts;
 /// </summary>
 public interface ICompositionLog
 {
-    // FIXME: Docs.
+    /// <summary>
+    /// Gets a value indicating whether the log contains errors.
+    /// </summary>
     bool HasErrors { get; }
 
-    // FIXME: Docs.
+    /// <summary>
+    /// Gets a value indicating whether the log is empty.
+    /// </summary>
     bool IsEmpty { get; }
 
     /// <summary>
