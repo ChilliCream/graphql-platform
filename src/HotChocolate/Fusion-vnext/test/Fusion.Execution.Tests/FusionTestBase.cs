@@ -14,12 +14,10 @@ public abstract class FusionTestBase
         return CompositeSchemaBuilder.Create(compositeSchemaDoc);
     }
 
-    protected static RequestPlanNode PlanOperationAsync(CompositeSchema compositeSchema, string operation)
+    protected static RequestPlanNode PlanOperation(DocumentNode request, CompositeSchema compositeSchema)
     {
-        var doc = Utf8GraphQLParser.Parse(operation);
-
         var rewriter = new InlineFragmentOperationRewriter(compositeSchema);
-        var rewritten = rewriter.RewriteDocument(doc, null);
+        var rewritten = rewriter.RewriteDocument(request, null);
 
         var planner = new OperationPlanner(compositeSchema);
         return planner.CreatePlan(rewritten, null);

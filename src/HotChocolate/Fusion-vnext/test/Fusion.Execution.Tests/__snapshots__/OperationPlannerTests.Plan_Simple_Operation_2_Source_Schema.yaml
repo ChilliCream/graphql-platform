@@ -1,7 +1,7 @@
 request:
   - document: >-
       {
-        productById(id: 1) {
+        productBySlug(slug: "1") {
           id
           name
           estimatedDelivery(postCode: "12345")
@@ -12,7 +12,7 @@ nodes:
     schema: "PRODUCTS"
     operation: >-
       {
-        productById(id: 1) {
+        productBySlug(slug: "1") {
           id
           name
           id
@@ -29,6 +29,6 @@ nodes:
     requirements:
       - name: "__fusion_requirement_1"
         dependsOn: "1"
-        selectionSet: "productById"
+        selectionSet: "productBySlug"
         field: "id"
         type: "ID!"

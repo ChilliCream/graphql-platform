@@ -1,0 +1,17 @@
+request:
+  - document: >-
+      query GetProduct($slug: String!, $include: Boolean!) {
+        productBySlug(slug: $slug) {
+          name @include(if: $include) @skip(if: true)
+          description
+        }
+      }
+nodes:
+  - id: 1
+    schema: "PRODUCTS"
+    operation: >-
+      query($slug: String!) {
+        productBySlug(slug: $slug) {
+          description
+        }
+      }

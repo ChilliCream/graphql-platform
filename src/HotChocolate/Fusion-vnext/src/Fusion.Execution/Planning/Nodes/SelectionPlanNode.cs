@@ -152,7 +152,7 @@ public abstract class SelectionPlanNode : PlanNode
 
     private void InitializeConditions()
     {
-        if(_isConditional.HasValue)
+        if (_isConditional.HasValue)
         {
             return;
         }
@@ -170,7 +170,7 @@ public abstract class SelectionPlanNode : PlanNode
                 continue;
             }
 
-            if (directive.Name.Value.Equals("skip"))
+            if (directive.Name.Value.Equals("include"))
             {
                 _includeVariable = GetVariableName(directive);
             }
