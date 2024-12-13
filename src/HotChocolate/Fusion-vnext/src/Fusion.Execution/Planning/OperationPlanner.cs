@@ -97,10 +97,10 @@ public sealed class OperationPlanner(CompositeSchema schema)
             }
         }
 
-        return skipUnresolved ||
-            unresolvedSelections is null ||
-            unresolvedSelections.Count == 0 ||
-            TryHandleUnresolvedSelections(context, type, unresolvedSelections);
+        return skipUnresolved
+            || unresolvedSelections is null
+            || unresolvedSelections.Count == 0
+            || TryHandleUnresolvedSelections(context, type, unresolvedSelections);
     }
 
     private bool TryPlanSelection(
