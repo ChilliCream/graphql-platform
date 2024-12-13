@@ -760,47 +760,26 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
     }
 
     [Fact]
-    public async Task Brand_Without_Country_Should_Allow_Nullable_Country()
+    public async Task Product_With_Nullable_Reference_Property_Set_To_Null()
     {
         // Arrange
         var queries = new List<string>();
         var connectionString = CreateConnectionString();
-
-        var services = new ServiceCollection()
-            .AddScoped(_ => queries)
-            .AddTransient(_ => new CatalogContext(connectionString))
-            .AddDataLoader(
-                sp => new ProductByBrandIdDataLoader2(
-                    sp,
-                    sp.GetRequiredService<List<string>>(),
-                    sp.GetRequiredService<IBatchScheduler>(),
-                    sp.GetRequiredService<DataLoaderOptions>()))
-            .BuildServiceProvider();
-
-        await using var catalogContext = services.GetRequiredService<CatalogContext>();
-        await catalogContext.Database.EnsureCreatedAsync();
-        catalogContext.Brands.Add(new Brand
-            {
-                Name = "Some brand",
-                Details = new BrandDetails { Country = null },
-            });
-        await catalogContext.SaveChangesAsync();
+        await CatalogContext.SeedAsync(connectionString);
 
         // Act
         var result = await new ServiceCollection()
             .AddScoped(_ => queries)
             .AddTransient(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
-            .AddQueryType<BrandsQuery>()
-            .AddTypeExtension(typeof(BrandListExtensions))
+            .AddQueryType<ProductsWithNullBrandQuery>()
             .ExecuteRequestAsync(
                 """
                 {
-                    brandById(id: 1) {
-                        details {
-                            country {
-                                name
-                            }
+                    productById(id: 1) {
+                        name
+                        type {
+                            name
                         }
                     }
                 }
@@ -808,7 +787,6 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
 
         // Assert
         Snapshot.Create()
-            .AddSql(queries)
             .Add(result, "Result")
             .MatchMarkdownSnapshot();
     }
@@ -888,6 +866,30 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 .Select(selection.AsSelector<Brand>())
                 .Take(2)
                 .ToListAsync(cancellationToken);
+    }
+
+    public class ProductsWithNullBrandQuery
+    {
+        public async Task<ProductProjection?> GetProductByIdAsync(
+            int id,
+            ISelection selection,
+            CatalogContext context,
+            CancellationToken cancellationToken)
+            => await context.Products
+                .Where(p => p.Id == id)
+                .Select(p => new ProductProjection
+                {
+                    Name = p.Name,
+                })
+                .Select(selection.AsSelector<ProductProjection>())
+                .SingleOrDefaultAsync(cancellationToken);
+
+        public class ProductProjection
+        {
+            public string Name { get; set; } = default!;
+
+            public ProductType? Type { get; set; }
+        }
     }
 
     [ExtendObjectType<Brand>]

@@ -21,7 +21,7 @@ public class Brand
 
 public class BrandDetails
 {
-    public Country? Country { get; set; }
+    public Country Country { get; set; } = default!;
 }
 
 public class Country
