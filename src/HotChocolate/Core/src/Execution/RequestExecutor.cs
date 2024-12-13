@@ -153,7 +153,14 @@ internal sealed class RequestExecutor : IRequestExecutor
                 _contextPool.Return(context);
             }
 
-            scope?.Dispose();
+            if(scope is IAsyncDisposable asyncScope)
+            {
+                await asyncScope.DisposeAsync();
+            }
+            else
+            {
+                scope?.Dispose();
+            }
         }
     }
 
