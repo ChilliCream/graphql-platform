@@ -5,11 +5,11 @@ namespace HotChocolate.Fusion.Logging;
 
 internal static class LogEntryHelper
 {
-    public static LogEntry DisallowedInaccessibleScalar(
+    public static LogEntry DisallowedInaccessibleBuiltInScalar(
         ScalarTypeDefinition scalar,
         SchemaDefinition schema)
         => new(
-            string.Format(LogEntryHelper_DisallowedInaccessibleScalar, scalar.Name),
+            string.Format(LogEntryHelper_DisallowedInaccessibleBuiltInScalar, scalar.Name),
             LogEntryCodes.DisallowedInaccessible,
             LogSeverity.Error,
             new SchemaCoordinate(scalar.Name),

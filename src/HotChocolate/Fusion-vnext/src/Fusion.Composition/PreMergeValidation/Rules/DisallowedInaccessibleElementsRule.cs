@@ -27,7 +27,7 @@ internal sealed class DisallowedInaccessibleElementsRule
         if (type is ScalarTypeDefinition { IsSpecScalar: true } scalar
             && !ValidationHelper.IsAccessible(scalar))
         {
-            context.Log.Write(DisallowedInaccessibleScalar(scalar, schema));
+            context.Log.Write(DisallowedInaccessibleBuiltInScalar(scalar, schema));
         }
 
         // Introspection types must be accessible.
