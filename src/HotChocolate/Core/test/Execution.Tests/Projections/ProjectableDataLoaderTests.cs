@@ -772,7 +772,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             .AddScoped(_ => queries)
             .AddTransient(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
-            .AddQueryType<ProductsWithNullBrandQuery>()
+            .AddQueryType<ProductsWithNullPropertyQuery>()
             .ExecuteRequestAsync(
                 """
                 {
@@ -868,7 +868,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 .ToListAsync(cancellationToken);
     }
 
-    public class ProductsWithNullBrandQuery
+    public class ProductsWithNullPropertyQuery
     {
         public async Task<ProductProjection?> GetProductByIdAsync(
             int id,
