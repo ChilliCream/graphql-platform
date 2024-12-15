@@ -13,6 +13,7 @@ namespace HotChocolate.CostAnalysis.Types;
 public sealed class ListSizeAttribute : ObjectFieldDescriptorAttribute
 {
     private readonly int? _assumedSize;
+    private readonly bool? _requireOneSlicingArgument;
 
     /// <summary>
     /// The maximum length of the list returned by this field.
@@ -38,7 +39,11 @@ public sealed class ListSizeAttribute : ObjectFieldDescriptorAttribute
     /// Whether to require a single slicing argument in the query. If that is not the case (i.e., if
     /// none or multiple slicing arguments are present), the static analysis will throw an error.
     /// </summary>
-    public bool RequireOneSlicingArgument { get; init; } = true;
+    public bool RequireOneSlicingArgument
+    {
+        get => _requireOneSlicingArgument ?? true;
+        init => _requireOneSlicingArgument = value;
+    }
 
     protected override void OnConfigure(
         IDescriptorContext context,
@@ -50,6 +55,6 @@ public sealed class ListSizeAttribute : ObjectFieldDescriptorAttribute
                 _assumedSize,
                 SlicingArguments?.ToImmutableArray(),
                 SizedFields?.ToImmutableArray(),
-                RequireOneSlicingArgument));
+                _requireOneSlicingArgument));
     }
 }
