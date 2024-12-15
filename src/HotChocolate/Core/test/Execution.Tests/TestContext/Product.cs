@@ -19,11 +19,11 @@ public class Product
 
     public int TypeId { get; set; }
 
-    public ProductType? Type { get; set; }
+    public ProductType Type { get; set; } = default!;
 
     public int BrandId { get; set; }
 
-    public Brand? Brand { get; set; }
+    public Brand Brand { get; set; } = default!;
 
     // Quantity in stock
     public int AvailableStock { get; set; }
