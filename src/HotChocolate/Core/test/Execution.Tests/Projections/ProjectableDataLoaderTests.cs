@@ -787,6 +787,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
 
         // Assert
         Snapshot.Create()
+            .AddSql(queries)
             .Add(result, "Result")
             .MatchMarkdownSnapshot();
     }
@@ -872,17 +873,26 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
     {
         public async Task<ProductProjection?> GetProductByIdAsync(
             int id,
+            List<string> queries,
             ISelection selection,
             CatalogContext context,
             CancellationToken cancellationToken)
-            => await context.Products
+        {
+            var query = context.Products
                 .Where(p => p.Id == id)
-                .Select(p => new ProductProjection
+                .Select(p => new ProductProjection // Cast to an object with nullable Type property
                 {
                     Name = p.Name,
                 })
-                .Select(selection.AsSelector<ProductProjection>())
-                .SingleOrDefaultAsync(cancellationToken);
+                .Select(selection.AsSelector<ProductProjection>());
+
+            lock (queries)
+            {
+                queries.Add(query.ToQueryString());
+            }
+
+            return await query.SingleOrDefaultAsync(cancellationToken);
+        }
 
         public class ProductProjection
         {
