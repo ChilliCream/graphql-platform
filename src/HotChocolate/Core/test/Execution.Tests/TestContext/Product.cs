@@ -19,11 +19,11 @@ public class Product
 
     public int TypeId { get; set; }
 
-    public ProductType Type { get; set; } = default!;
+    public ProductType? Type { get; set; }
 
     public int BrandId { get; set; }
 
-    public Brand Brand { get; set; } = default!;
+    public Brand? Brand { get; set; }
 
     // Quantity in stock
     public int AvailableStock { get; set; }
@@ -33,10 +33,6 @@ public class Product
 
     // Maximum number of units that can be in-stock at any time (due to physicial/logistical constraints in warehouses)
     public int MaxStockThreshold { get; set; }
-
-    /// <summary>Optional embedding for the catalog item's description.</summary>
-    // [JsonIgnore]
-    // public Vector Embedding { get; set; }
 
     /// <summary>
     /// True if item is on reorder
