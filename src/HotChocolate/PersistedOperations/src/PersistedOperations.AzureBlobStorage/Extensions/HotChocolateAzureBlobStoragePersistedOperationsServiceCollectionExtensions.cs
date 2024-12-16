@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace HotChocolate;
 
 /// <summary>
-/// Provides utility methods to setup dependency injection.
+/// Provides utility methods to set up dependency injection.
 /// </summary>
 public static class HotChocolateAzureBlobStoragePersistedOperationsServiceCollectionExtensions
 {
@@ -20,22 +20,24 @@ public static class HotChocolateAzureBlobStoragePersistedOperationsServiceCollec
     /// A factory that resolves the Azure Blob Container Client that
     /// shall be used for persistence.
     /// </param>
-    /// <param name="blobNamePrefix">This prefix string is prepended before the hash of the document.</param>
-    /// <param name="blobNameSuffix">This suffix is appended after the hash of the document.</param>
     public static IServiceCollection AddAzureBlobStorageOperationDocumentStorage(
         this IServiceCollection services,
-        Func<IServiceProvider, BlobContainerClient> containerClientFactory,
-        string blobNamePrefix = "",
-        string blobNameSuffix = ".graphql"
-        )
+        Func<IServiceProvider, BlobContainerClient> containerClientFactory)
     {
-        ArgumentNullException.ThrowIfNull(services);
-        ArgumentNullException.ThrowIfNull(containerClientFactory);
+        if(services == null)
+        {
+            throw new ArgumentNullException(nameof(services));
+        }
+
+        if(containerClientFactory == null)
+        {
+            throw new ArgumentNullException(nameof(containerClientFactory));
+        }
 
         return services
             .RemoveService<IOperationDocumentStorage>()
             .AddSingleton<IOperationDocumentStorage>(
-                sp => new AzureBlobOperationDocumentStorage(containerClientFactory(sp), blobNamePrefix, blobNameSuffix));
+                sp => new AzureBlobOperationDocumentStorage(containerClientFactory(sp)));
     }
 
     private static IServiceCollection RemoveService<TService>(

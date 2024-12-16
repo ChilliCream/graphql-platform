@@ -9,8 +9,6 @@ namespace HotChocolate.PersistedOperations.AzureBlobStorage;
 public class AzureBlobStorageOperationDocumentStorageTests : IClassFixture<AzureStorageBlobResource>
 {
     private readonly BlobContainerClient _client;
-    private const string Prefix = "hc_";
-    private const string Suffix = ".graphql";
 
     public AzureBlobStorageOperationDocumentStorageTests(AzureStorageBlobResource blobStorageResource)
     {
@@ -23,7 +21,7 @@ public class AzureBlobStorageOperationDocumentStorageTests : IClassFixture<Azure
     {
         // arrange
         var documentId = new OperationDocumentId(Guid.NewGuid().ToString("N"));
-        var storage = new AzureBlobOperationDocumentStorage(_client, Prefix, Suffix);
+        var storage = new AzureBlobOperationDocumentStorage(_client);
         var document = new OperationDocumentSourceText("{ foo }");
 
         // act
@@ -41,21 +39,21 @@ public class AzureBlobStorageOperationDocumentStorageTests : IClassFixture<Azure
     {
         // arrange
         var documentId = new OperationDocumentId();
-        var storage = new AzureBlobOperationDocumentStorage(_client, Prefix, Suffix);
+        var storage = new AzureBlobOperationDocumentStorage(_client);
         var document = new OperationDocumentSourceText("{ foo }");
 
         // act
         async Task Action() => await storage.SaveAsync(documentId, document);
 
         // assert
-        await Assert.ThrowsAsync<ArgumentNullException>(Action);
+        await Assert.ThrowsAsync<ArgumentException>(Action);
     }
 
     [Fact]
     public async Task Write_OperationDocument_OperationDocument_Is_Null()
     {
         // arrange
-        var storage = new AzureBlobOperationDocumentStorage(_client, Prefix, Suffix);
+        var storage = new AzureBlobOperationDocumentStorage(_client);
         var documentId = new OperationDocumentId(Guid.NewGuid().ToString("N"));
 
         // act
@@ -70,7 +68,7 @@ public class AzureBlobStorageOperationDocumentStorageTests : IClassFixture<Azure
     {
         // arrange
         var documentId = new OperationDocumentId(Guid.NewGuid().ToString("N"));
-        var storage = new AzureBlobOperationDocumentStorage(_client, Prefix, Suffix);
+        var storage = new AzureBlobOperationDocumentStorage(_client);
         var buffer = "{ foo }"u8.ToArray();
         await WriteBlob(documentId.Value, buffer);
 
@@ -89,7 +87,7 @@ public class AzureBlobStorageOperationDocumentStorageTests : IClassFixture<Azure
     {
         // arrange
         var documentId = new OperationDocumentId();
-        var storage = new AzureBlobOperationDocumentStorage(_client, Prefix, Suffix);
+        var storage = new AzureBlobOperationDocumentStorage(_client);
 
         // act
         async Task Action() => await storage.TryReadAsync(documentId);
@@ -116,5 +114,5 @@ public class AzureBlobStorageOperationDocumentStorageTests : IClassFixture<Azure
 
     private async Task DeleteBlob(string key) => await _client.DeleteBlobAsync(BlobName(key));
 
-    private static string BlobName(string key) => $"{Prefix}{key}{Suffix}";
+    private static string BlobName(string key) => $"{key}.graphql";
 }
