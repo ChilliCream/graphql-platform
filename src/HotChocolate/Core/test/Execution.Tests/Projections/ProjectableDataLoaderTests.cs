@@ -759,6 +759,39 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             .MatchMarkdownSnapshot();
     }
 
+    [Fact]
+    public async Task Product_With_Nullable_Reference_Property_Set_To_Null()
+    {
+        // Arrange
+        var queries = new List<string>();
+        var connectionString = CreateConnectionString();
+        await CatalogContext.SeedAsync(connectionString);
+
+        // Act
+        var result = await new ServiceCollection()
+            .AddScoped(_ => queries)
+            .AddTransient(_ => new CatalogContext(connectionString))
+            .AddGraphQLServer()
+            .AddQueryType<ProductsWithNullPropertyQuery>()
+            .ExecuteRequestAsync(
+                """
+                {
+                    productById(id: 1) {
+                        name
+                        type {
+                            name
+                        }
+                    }
+                }
+                """);
+
+        // Assert
+        Snapshot.Create()
+            .AddSql(queries)
+            .Add(result, "Result")
+            .MatchMarkdownSnapshot();
+    }
+
     public class Query
     {
         public async Task<Brand?> GetBrandByIdAsync(
@@ -834,6 +867,39 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 .Select(selection.AsSelector<Brand>())
                 .Take(2)
                 .ToListAsync(cancellationToken);
+    }
+
+    public class ProductsWithNullPropertyQuery
+    {
+        public async Task<ProductProjection?> GetProductByIdAsync(
+            int id,
+            List<string> queries,
+            ISelection selection,
+            CatalogContext context,
+            CancellationToken cancellationToken)
+        {
+            var query = context.Products
+                .Where(p => p.Id == id)
+                .Select(p => new ProductProjection // Cast to an object with nullable Type property
+                {
+                    Name = p.Name,
+                })
+                .Select(selection.AsSelector<ProductProjection>());
+
+            lock (queries)
+            {
+                queries.Add(query.ToQueryString());
+            }
+
+            return await query.SingleOrDefaultAsync(cancellationToken);
+        }
+
+        public class ProductProjection
+        {
+            public string Name { get; set; } = default!;
+
+            public ProductType? Type { get; set; }
+        }
     }
 
     [ExtendObjectType<Brand>]
