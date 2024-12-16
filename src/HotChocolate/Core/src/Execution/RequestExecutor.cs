@@ -99,7 +99,7 @@ internal sealed class RequestExecutor : IRequestExecutor
 
         if (scopeDataLoader)
         {
-            // we ensure that at the begin of each execution there is a fresh batching scope.
+            // we ensure that at the beginning of each execution there is a fresh batching scope.
             services.InitializeDataLoaderScope();
         }
 
@@ -153,7 +153,14 @@ internal sealed class RequestExecutor : IRequestExecutor
                 _contextPool.Return(context);
             }
 
-            scope?.Dispose();
+            if(scope is IAsyncDisposable asyncScope)
+            {
+                await asyncScope.DisposeAsync();
+            }
+            else
+            {
+                scope?.Dispose();
+            }
         }
     }
 
@@ -174,7 +181,7 @@ internal sealed class RequestExecutor : IRequestExecutor
 
     private async IAsyncEnumerable<IOperationResult> CreateResponseStream(
         OperationRequestBatch requestBatch,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        [EnumeratorCancellation] CancellationToken ct = default)
     {
         IServiceScope? scope = null;
 
@@ -197,6 +204,31 @@ internal sealed class RequestExecutor : IRequestExecutor
         // we ensure that at the start of each execution there is a fresh batching scope.
         services.InitializeDataLoaderScope();
 
+        try
+        {
+            await foreach (var result in ExecuteBatchStream(requestBatch, services, ct).ConfigureAwait(false))
+            {
+                yield return result;
+            }
+        }
+        finally
+        {
+            if(scope is IAsyncDisposable asyncScope)
+            {
+                await asyncScope.DisposeAsync();
+            }
+            else
+            {
+                scope?.Dispose();
+            }
+        }
+    }
+
+    private async IAsyncEnumerable<IOperationResult> ExecuteBatchStream(
+        OperationRequestBatch requestBatch,
+        IServiceProvider services,
+        [EnumeratorCancellation] CancellationToken ct = default)
+    {
         var requests = requestBatch.Requests;
         var requestCount = requests.Count;
         var tasks = new List<Task>(requestCount);
@@ -205,7 +237,7 @@ internal sealed class RequestExecutor : IRequestExecutor
 
         for (var i = 0; i < requestCount; i++)
         {
-            tasks.Add(ExecuteBatchItemAsync(requests[i], i, completed, cancellationToken));
+            tasks.Add(ExecuteBatchItemAsync(WithServices(requests[i], services), i, completed, ct));
         }
 
         var buffer = new IOperationResult[8];
@@ -228,7 +260,7 @@ internal sealed class RequestExecutor : IRequestExecutor
 
                     if (task.Status is not TaskStatus.RanToCompletion)
                     {
-                        // we await to throw if its not successful.
+                        // we await to throw if it's not successful.
                         await task;
                     }
 
@@ -250,6 +282,21 @@ internal sealed class RequestExecutor : IRequestExecutor
             }
         }
         while (tasks.Count > 0 || bufferCount > 0);
+    }
+
+    private static IOperationRequest WithServices(IOperationRequest request, IServiceProvider services)
+    {
+        switch (request)
+        {
+            case OperationRequest operationRequest:
+                return operationRequest.WithServices(services);
+
+            case VariableBatchRequest variableBatchRequest:
+                return variableBatchRequest.WithServices(services);
+
+            default:
+                throw new InvalidOperationException("Unexpected request type.");
+        }
     }
 
     private async Task ExecuteBatchItemAsync(
