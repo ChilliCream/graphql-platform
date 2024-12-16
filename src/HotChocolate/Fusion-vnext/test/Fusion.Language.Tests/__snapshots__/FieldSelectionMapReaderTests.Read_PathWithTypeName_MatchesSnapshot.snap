@@ -1,44 +1,37 @@
 [
   {
-    "Kind": "Name",
+    "Kind": "LeftAngleBracket",
     "Start": 0,
-    "End": 6,
+    "End": 1,
     "Line": 1,
     "Column": 1
   },
   {
-    "Kind": "LeftAngleBracket",
+    "Kind": "Name",
+    "Start": 1,
+    "End": 6,
+    "Line": 1,
+    "Column": 2
+  },
+  {
+    "Kind": "RightAngleBracket",
     "Start": 6,
     "End": 7,
     "Line": 1,
     "Column": 7
   },
   {
-    "Kind": "Name",
+    "Kind": "Period",
     "Start": 7,
-    "End": 12,
+    "End": 8,
     "Line": 1,
     "Column": 8
   },
   {
-    "Kind": "RightAngleBracket",
-    "Start": 12,
-    "End": 13,
-    "Line": 1,
-    "Column": 13
-  },
-  {
-    "Kind": "Period",
-    "Start": 13,
+    "Kind": "Name",
+    "Start": 8,
     "End": 14,
     "Line": 1,
-    "Column": 14
-  },
-  {
-    "Kind": "Name",
-    "Start": 14,
-    "End": 20,
-    "Line": 1,
-    "Column": 15
+    "Column": 9
   }
 ]

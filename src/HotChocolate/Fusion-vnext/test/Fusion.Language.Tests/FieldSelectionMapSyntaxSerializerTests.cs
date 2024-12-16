@@ -25,31 +25,66 @@ public sealed class FieldSelectionMapSyntaxSerializerTests
     }
 
     [Test]
-    public async Task Serialize_PathSingleFieldName_ReturnsExpectedString()
+    public async Task Serialize_PathSegmentSingleFieldName_ReturnsExpectedString()
     {
         // arrange
-        var pathNode = new PathNode(fieldName: new NameNode("field1"));
+        var pathSegmentNode = new PathSegmentNode(fieldName: new NameNode("field1"));
 
         // act
-        _serializer.Serialize(pathNode, _writer);
+        _serializer.Serialize(pathSegmentNode, _writer);
 
         // assert
         await Assert.That(_writer.ToString()).IsEqualTo("field1");
     }
 
     [Test]
-    public async Task Serialize_PathNestedFieldName_ReturnsExpectedString()
+    public async Task Serialize_PathSegmentNestedFieldName_ReturnsExpectedString()
     {
         // arrange
-        var pathNode = new PathNode(
+        var pathSegmentNode = new PathSegmentNode(
             fieldName: new NameNode("field1"),
-            path: new PathNode(fieldName: new NameNode("field2")));
+            pathSegment: new PathSegmentNode(fieldName: new NameNode("field2")));
 
         // act
-        _serializer.Serialize(pathNode, _writer);
+        _serializer.Serialize(pathSegmentNode, _writer);
 
         // assert
         await Assert.That(_writer.ToString()).IsEqualTo("field1.field2");
+    }
+
+    [Test]
+    public async Task Serialize_PathSegmentWithTypeName_ReturnsExpectedString()
+    {
+        // arrange
+        var pathSegmentNode = new PathSegmentNode(
+            fieldName: new NameNode("field1"),
+            typeName: new NameNode("Type1"),
+            pathSegment: new PathSegmentNode(fieldName: new NameNode("field2")));
+
+        // act
+        _serializer.Serialize(pathSegmentNode, _writer);
+
+        // assert
+        await Assert.That(_writer.ToString()).IsEqualTo("field1<Type1>.field2");
+    }
+
+    [Test]
+    public async Task Serialize_PathSegmentWithTwoTypeNames_ReturnsExpectedString()
+    {
+        // arrange
+        var pathSegmentNode = new PathSegmentNode(
+            fieldName: new NameNode("field1"),
+            typeName: new NameNode("Type1"),
+            pathSegment: new PathSegmentNode(
+                fieldName: new NameNode("field2"),
+                typeName: new NameNode("Type2"),
+                pathSegment: new PathSegmentNode(fieldName: new NameNode("field3"))));
+
+        // act
+        _serializer.Serialize(pathSegmentNode, _writer);
+
+        // assert
+        await Assert.That(_writer.ToString()).IsEqualTo("field1<Type1>.field2<Type2>.field3");
     }
 
     [Test]
@@ -57,34 +92,14 @@ public sealed class FieldSelectionMapSyntaxSerializerTests
     {
         // arrange
         var pathNode = new PathNode(
-            fieldName: new NameNode("field1"),
-            typeName: new NameNode("Type1"),
-            path: new PathNode(fieldName: new NameNode("field2")));
+            pathSegment: new PathSegmentNode(fieldName: new NameNode("field1")),
+            typeName: new NameNode("Type1"));
 
         // act
         _serializer.Serialize(pathNode, _writer);
 
         // assert
-        await Assert.That(_writer.ToString()).IsEqualTo("field1<Type1>.field2");
-    }
-
-    [Test]
-    public async Task Serialize_PathWithTwoTypeNames_ReturnsExpectedString()
-    {
-        // arrange
-        var pathNode = new PathNode(
-            fieldName: new NameNode("field1"),
-            typeName: new NameNode("Type1"),
-            path: new PathNode(
-                fieldName: new NameNode("field2"),
-                typeName: new NameNode("Type2"),
-                path: new PathNode(fieldName: new NameNode("field3"))));
-
-        // act
-        _serializer.Serialize(pathNode, _writer);
-
-        // assert
-        await Assert.That(_writer.ToString()).IsEqualTo("field1<Type1>.field2<Type2>.field3");
+        await Assert.That(_writer.ToString()).IsEqualTo("<Type1>.field1");
     }
 
     [Test]
@@ -93,13 +108,27 @@ public sealed class FieldSelectionMapSyntaxSerializerTests
         // arrange
         var selectedObjectFieldNode = new SelectedObjectFieldNode(
             new NameNode("field1"),
-            new SelectedValueNode(new PathNode(fieldName: new NameNode("field1"))));
+            new SelectedValueNode(
+                new PathNode(pathSegment: new PathSegmentNode(fieldName: new NameNode("field1")))));
 
         // act
         _serializer.Serialize(selectedObjectFieldNode, _writer);
 
         // assert
         await Assert.That(_writer.ToString()).IsEqualTo("field1: field1");
+    }
+
+    [Test]
+    public async Task Serialize_SelectedObjectFieldNoSelectedValue_ReturnsExpectedString()
+    {
+        // arrange
+        var selectedObjectFieldNode = new SelectedObjectFieldNode(new NameNode("field1"));
+
+        // act
+        _serializer.Serialize(selectedObjectFieldNode, _writer);
+
+        // assert
+        await Assert.That(_writer.ToString()).IsEqualTo("field1");
     }
 
     [Test]
@@ -121,8 +150,35 @@ public sealed class FieldSelectionMapSyntaxSerializerTests
             [
                 new SelectedObjectFieldNode(
                     new NameNode("field1"),
-                    new SelectedValueNode(new PathNode(fieldName: new NameNode("field1"))))
+                    new SelectedValueNode(
+                        new PathNode(
+                            pathSegment: new PathSegmentNode(fieldName: new NameNode("field1")))))
             ]);
+
+        // act
+        var serializer = indent ? _serializer : _serializerNoIndent;
+        serializer.Serialize(selectedObjectValueNode, _writer);
+
+        // assert
+        await Assert.That(_writer.ToString()).IsEqualTo(result);
+    }
+
+    [Test]
+    [Arguments(
+        """
+        {
+            field1
+        }
+        """,
+        true)]
+    [Arguments("{ field1 }", false)]
+    public async Task Serialize_SelectedObjectValueNoSelectedValue_ReturnsExpectedString(
+        string result,
+        bool indent)
+    {
+        // arrange
+        var selectedObjectValueNode = new SelectedObjectValueNode(
+            fields: [new SelectedObjectFieldNode(new NameNode("field1"))]);
 
         // act
         var serializer = indent ? _serializer : _serializerNoIndent;
@@ -138,14 +194,16 @@ public sealed class FieldSelectionMapSyntaxSerializerTests
         // arrange
         var selectedValueNode = new SelectedValueNode(
             path: new PathNode(
-                fieldName: new NameNode("field1"),
-                typeName: new NameNode("Type1"),
-                path: new PathNode(fieldName: new NameNode("field2"))),
+                pathSegment: new PathSegmentNode(
+                    fieldName: new NameNode("field1"),
+                    typeName: new NameNode("Type1"),
+                    pathSegment: new PathSegmentNode(fieldName: new NameNode("field2")))),
             selectedValue: new SelectedValueNode(
                 new PathNode(
-                    fieldName: new NameNode("field1"),
-                    typeName: new NameNode("Type2"),
-                    path: new PathNode(fieldName: new NameNode("field2")))));
+                    pathSegment: new PathSegmentNode(
+                        fieldName: new NameNode("field1"),
+                        typeName: new NameNode("Type2"),
+                        pathSegment: new PathSegmentNode(fieldName: new NameNode("field2"))))));
 
         // act
         _serializer.Serialize(selectedValueNode, _writer);
@@ -178,7 +236,10 @@ public sealed class FieldSelectionMapSyntaxSerializerTests
                 [
                     new SelectedObjectFieldNode(
                         new NameNode("field1"),
-                        new SelectedValueNode(new PathNode(fieldName: new NameNode("field1"))))
+                        new SelectedValueNode(
+                            new PathNode(
+                                pathSegment: new PathSegmentNode(
+                                    fieldName: new NameNode("field1")))))
                 ]),
             selectedValue: new SelectedValueNode(
                 selectedObjectValue: new SelectedObjectValueNode(
@@ -186,7 +247,10 @@ public sealed class FieldSelectionMapSyntaxSerializerTests
                     [
                         new SelectedObjectFieldNode(
                             new NameNode("field2"),
-                            new SelectedValueNode(new PathNode(fieldName: new NameNode("field2"))))
+                            new SelectedValueNode(
+                                new PathNode(
+                                    pathSegment: new PathSegmentNode(
+                                        fieldName: new NameNode("field2")))))
                     ])));
 
         // act
@@ -228,7 +292,9 @@ public sealed class FieldSelectionMapSyntaxSerializerTests
                                     new SelectedObjectFieldNode(
                                         new NameNode("field1"),
                                         new SelectedValueNode(
-                                            path: new PathNode(fieldName: new NameNode("field1"))))
+                                            path: new PathNode(
+                                                pathSegment: new PathSegmentNode(
+                                                    fieldName: new NameNode("field1")))))
                                 ]),
                             selectedValue: new SelectedValueNode(
                                 selectedObjectValue: new SelectedObjectValueNode(
@@ -238,7 +304,8 @@ public sealed class FieldSelectionMapSyntaxSerializerTests
                                             new NameNode("field2"),
                                             new SelectedValueNode(
                                                 path: new PathNode(
-                                                    fieldName: new NameNode("field2"))))
+                                                    pathSegment: new PathSegmentNode(
+                                                        fieldName: new NameNode("field2")))))
                                     ]))))
                 ]));
 

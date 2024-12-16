@@ -23,6 +23,23 @@ internal class FieldSelectionMapSyntaxSerializer(SyntaxSerializerOptions options
         PathNode node,
         ISyntaxWriter writer)
     {
+        if (node.TypeName is not null)
+        {
+            writer.Write(LeftAngleBracket);
+            writer.Write(node.TypeName.Value);
+            writer.Write(RightAngleBracket);
+            writer.Write(Period);
+        }
+
+        Visit(node.PathSegment, writer);
+
+        return Skip;
+    }
+
+    protected override ISyntaxVisitorAction Enter(
+        PathSegmentNode node,
+        ISyntaxWriter writer)
+    {
         writer.Write(node.FieldName.Value);
 
         if (node.TypeName is not null)
@@ -32,10 +49,10 @@ internal class FieldSelectionMapSyntaxSerializer(SyntaxSerializerOptions options
             writer.Write(RightAngleBracket);
         }
 
-        if (node.Path is not null)
+        if (node.PathSegment is not null)
         {
             writer.Write(Period);
-            Visit(node.Path, writer);
+            Visit(node.PathSegment, writer);
         }
 
         return Skip;
@@ -47,8 +64,13 @@ internal class FieldSelectionMapSyntaxSerializer(SyntaxSerializerOptions options
     {
         writer.WriteIndent(options.Indented);
 
-        writer.Write($"{node.Name}{Colon} ");
-        Visit(node.SelectedValue, writer);
+        writer.Write(node.Name.Value);
+
+        if (node.SelectedValue is not null)
+        {
+            writer.Write($"{Colon} ");
+            Visit(node.SelectedValue, writer);
+        }
 
         return Skip;
     }
@@ -68,7 +90,7 @@ internal class FieldSelectionMapSyntaxSerializer(SyntaxSerializerOptions options
 
             for (var i = 1; i < node.Fields.Count; i++)
             {
-                WriteLineOrCommaSpace(writer);
+                WriteLineOrSpace(writer);
                 Visit(node.Fields[i], writer);
             }
         }
@@ -114,18 +136,6 @@ internal class FieldSelectionMapSyntaxSerializer(SyntaxSerializerOptions options
         else
         {
             writer.WriteSpace();
-        }
-    }
-
-    private void WriteLineOrCommaSpace(ISyntaxWriter writer)
-    {
-        if (options.Indented)
-        {
-            writer.WriteLine();
-        }
-        else
-        {
-            writer.Write(", ");
         }
     }
 }

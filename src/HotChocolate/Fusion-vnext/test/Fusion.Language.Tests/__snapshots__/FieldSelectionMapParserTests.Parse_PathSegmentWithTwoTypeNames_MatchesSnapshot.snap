@@ -2,7 +2,7 @@
   "Kind": "SelectedValue",
   "Location": {
     "Start": 0,
-    "End": 43,
+    "End": 34,
     "Line": 1,
     "Column": 1
   },
@@ -10,7 +10,7 @@
     "Kind": "Path",
     "Location": {
       "Start": 0,
-      "End": 22,
+      "End": 34,
       "Line": 1,
       "Column": 1
     },
@@ -18,7 +18,7 @@
       "Kind": "PathSegment",
       "Location": {
         "Start": 0,
-        "End": 22,
+        "End": 34,
         "Line": 1,
         "Column": 1
       },
@@ -46,7 +46,7 @@
         "Kind": "PathSegment",
         "Location": {
           "Start": 14,
-          "End": 22,
+          "End": 34,
           "Line": 1,
           "Column": 15
         },
@@ -54,88 +54,47 @@
           "Kind": "Name",
           "Location": {
             "Start": 14,
-            "End": 22,
+            "End": 21,
             "Line": 1,
             "Column": 15
           },
           "Value": "field2"
         },
-        "TypeName": null,
-        "PathSegment": null
-      }
-    },
-    "TypeName": null
-  },
-  "SelectedObjectValue": null,
-  "SelectedValue": {
-    "Kind": "SelectedValue",
-    "Location": {
-      "Start": 23,
-      "End": 43,
-      "Line": 1,
-      "Column": 24
-    },
-    "Path": {
-      "Kind": "Path",
-      "Location": {
-        "Start": 23,
-        "End": 43,
-        "Line": 1,
-        "Column": 24
-      },
-      "PathSegment": {
-        "Kind": "PathSegment",
-        "Location": {
-          "Start": 23,
-          "End": 43,
-          "Line": 1,
-          "Column": 24
-        },
-        "FieldName": {
-          "Kind": "Name",
-          "Location": {
-            "Start": 23,
-            "End": 30,
-            "Line": 1,
-            "Column": 24
-          },
-          "Value": "field1"
-        },
         "TypeName": {
           "Kind": "Name",
           "Location": {
-            "Start": 30,
-            "End": 36,
+            "Start": 21,
+            "End": 27,
             "Line": 1,
-            "Column": 31
+            "Column": 22
           },
           "Value": "Type2"
         },
         "PathSegment": {
           "Kind": "PathSegment",
           "Location": {
-            "Start": 37,
-            "End": 43,
+            "Start": 28,
+            "End": 34,
             "Line": 1,
-            "Column": 38
+            "Column": 29
           },
           "FieldName": {
             "Kind": "Name",
             "Location": {
-              "Start": 37,
-              "End": 43,
+              "Start": 28,
+              "End": 34,
               "Line": 1,
-              "Column": 38
+              "Column": 29
             },
-            "Value": "field2"
+            "Value": "field3"
           },
           "TypeName": null,
           "PathSegment": null
         }
-      },
-      "TypeName": null
+      }
     },
-    "SelectedObjectValue": null,
-    "SelectedValue": null
-  }
+    "TypeName": null
+  },
+  "SelectedObjectValue": null,
+  "SelectedValue": null
 }

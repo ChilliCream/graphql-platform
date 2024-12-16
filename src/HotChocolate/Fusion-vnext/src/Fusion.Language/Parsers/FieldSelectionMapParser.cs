@@ -54,13 +54,14 @@ internal ref struct FieldSelectionMapParser
     {
         var start = Start();
 
-        SelectedObjectValueNode? selectedObjectValue = null;
         PathNode? path = null;
+        SelectedObjectValueNode? selectedObjectValue = null;
 
         // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
         switch (_reader.TokenKind)
         {
-            case TokenKind.Name:
+            case TokenKind.Name: // For a PathSegment.
+            case TokenKind.LeftAngleBracket: // For a <TypeName>.
                 path = ParsePath();
                 break;
 
@@ -100,20 +101,62 @@ internal ref struct FieldSelectionMapParser
     ///
     /// <code>
     /// Path ::
-    ///     - FieldName
-    ///     - Path . FieldName
-    ///     - FieldName &lt; TypeName &gt; . Path
+    ///     &lt; TypeName &gt; . PathSegment
+    ///     PathSegment
+    ///
+    /// PathSegment ::
+    ///     FieldName
+    ///     FieldName . PathSegment
+    ///     FieldName &lt; TypeName &gt; . PathSegment
     ///
     /// FieldName ::
-    ///     - Name
+    ///     Name
     ///
     /// TypeName ::
-    ///     - Name
+    ///     Name
     /// </code>
     /// </summary>
     /// <returns>The parsed <see cref="PathNode"/>.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private PathNode ParsePath()
+    {
+        var start = Start();
+
+        NameNode? typeName = null;
+
+        if (_reader.TokenKind == TokenKind.LeftAngleBracket)
+        {
+            MoveNext(); // skip "<"
+            typeName = ParseName();
+            Expect(TokenKind.RightAngleBracket);
+            Expect(TokenKind.Period);
+        }
+
+        var pathSegment = ParsePathSegment();
+        var location = CreateLocation(in start);
+
+        return new PathNode(location, pathSegment, typeName);
+    }
+
+    /// <summary>
+    /// Parses a <see cref="PathSegmentNode"/>.
+    ///
+    /// <code>
+    /// PathSegment ::
+    ///     FieldName
+    ///     FieldName . PathSegment
+    ///     FieldName &lt; TypeName &gt; . PathSegment
+    ///
+    /// FieldName ::
+    ///     Name
+    ///
+    /// TypeName ::
+    ///     Name
+    /// </code>
+    /// </summary>
+    /// <returns>The parsed <see cref="PathSegmentNode"/>.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private PathSegmentNode ParsePathSegment()
     {
         var start = Start();
 
@@ -128,22 +171,22 @@ internal ref struct FieldSelectionMapParser
             Expect(TokenKind.RightAngleBracket);
         }
 
-        PathNode? path = null;
+        PathSegmentNode? pathSegment = null;
 
         if (typeName is not null)
         {
             Expect(TokenKind.Period);
-            path = ParsePath();
+            pathSegment = ParsePathSegment();
         }
         else if (_reader.TokenKind == TokenKind.Period)
         {
             MoveNext(); // skip "."
-            path = ParsePath();
+            pathSegment = ParsePathSegment();
         }
 
         var location = CreateLocation(in start);
 
-        return new PathNode(location, fieldName, typeName, path);
+        return new PathSegmentNode(location, fieldName, typeName, pathSegment);
     }
 
     /// <summary>
@@ -182,6 +225,7 @@ internal ref struct FieldSelectionMapParser
     /// <code>
     /// SelectedObjectField ::
     ///     Name : SelectedValue
+    ///     Name
     /// </code>
     /// </summary>
     /// <returns>The parsed <see cref="SelectedObjectFieldNode"/>.</returns>
@@ -191,8 +235,13 @@ internal ref struct FieldSelectionMapParser
         var start = Start();
 
         var name = ParseName();
-        Expect(TokenKind.Colon);
-        var selectedValue = ParseSelectedValue();
+
+        SelectedValueNode? selectedValue = null;
+        if (_reader.TokenKind == TokenKind.Colon)
+        {
+            MoveNext(); // skip ":"
+            selectedValue = ParseSelectedValue();
+        }
 
         var location = CreateLocation(in start);
 

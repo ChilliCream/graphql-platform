@@ -4,13 +4,15 @@ namespace HotChocolate.Fusion;
 /// <see cref="SelectedObjectFieldNode"/> represents a field within a
 /// <see cref="SelectedObjectValueNode"/>.
 /// </summary>
-internal sealed class SelectedObjectFieldNode(NameNode name, SelectedValueNode selectedValue)
+internal sealed class SelectedObjectFieldNode(
+    NameNode name,
+    SelectedValueNode? selectedValue = null)
     : IFieldSelectionMapSyntaxNode
 {
     public SelectedObjectFieldNode(
         Location? location,
         NameNode name,
-        SelectedValueNode selectedValue) : this(name, selectedValue)
+        SelectedValueNode? selectedValue) : this(name, selectedValue)
     {
         Location = location;
     }
@@ -19,16 +21,18 @@ internal sealed class SelectedObjectFieldNode(NameNode name, SelectedValueNode s
 
     public Location? Location { get; }
 
-    public NameNode Name { get; } = name
-        ?? throw new ArgumentNullException(nameof(name));
+    public NameNode Name { get; } = name ?? throw new ArgumentNullException(nameof(name));
 
-    public SelectedValueNode SelectedValue { get; } = selectedValue
-        ?? throw new ArgumentNullException(nameof(selectedValue));
+    public SelectedValueNode? SelectedValue { get; } = selectedValue;
 
     public IEnumerable<IFieldSelectionMapSyntaxNode> GetNodes()
     {
         yield return Name;
-        yield return SelectedValue;
+
+        if (SelectedValue is not null)
+        {
+            yield return SelectedValue;
+        }
     }
 
     public override string ToString() => this.Print();

@@ -5,7 +5,7 @@ namespace HotChocolate.Fusion;
 public sealed class FieldSelectionMapReaderTests
 {
     [Test]
-    public void Read_PathSingleFieldName_MatchesSnapshot()
+    public void Read_PathSegmentSingleFieldName_MatchesSnapshot()
     {
         // arrange
         var reader = new FieldSelectionMapReader("field1");
@@ -22,7 +22,7 @@ public sealed class FieldSelectionMapReaderTests
     }
 
     [Test]
-    public void Read_PathNestedFieldName_MatchesSnapshot()
+    public void Read_PathSegmentNestedFieldName_MatchesSnapshot()
     {
         // arrange
         var reader = new FieldSelectionMapReader("field1.field2");
@@ -39,10 +39,27 @@ public sealed class FieldSelectionMapReaderTests
     }
 
     [Test]
-    public void Read_PathWithTypeName_MatchesSnapshot()
+    public void Read_PathSegmentWithTypeName_MatchesSnapshot()
     {
         // arrange
         var reader = new FieldSelectionMapReader("field1<Type1>.field2");
+        List<SyntaxTokenInfo> readTokens = [];
+
+        // act
+        while (reader.Read())
+        {
+            readTokens.Add(SyntaxTokenInfo.FromReader(reader));
+        }
+
+        // assert
+        readTokens.MatchSnapshot();
+    }
+
+    [Test]
+    public void Read_PathWithTypeName_MatchesSnapshot()
+    {
+        // arrange
+        var reader = new FieldSelectionMapReader("<Type1>.field1");
         List<SyntaxTokenInfo> readTokens = [];
 
         // act
@@ -60,6 +77,40 @@ public sealed class FieldSelectionMapReaderTests
     {
         // arrange
         var reader = new FieldSelectionMapReader("{ field1: field1 }");
+        List<SyntaxTokenInfo> readTokens = [];
+
+        // act
+        while (reader.Read())
+        {
+            readTokens.Add(SyntaxTokenInfo.FromReader(reader));
+        }
+
+        // assert
+        readTokens.MatchSnapshot();
+    }
+
+    [Test]
+    public void Read_SelectedObjectValueNoSelectedValue_MatchesSnapshot()
+    {
+        // arrange
+        var reader = new FieldSelectionMapReader("{ field1 }");
+        List<SyntaxTokenInfo> readTokens = [];
+
+        // act
+        while (reader.Read())
+        {
+            readTokens.Add(SyntaxTokenInfo.FromReader(reader));
+        }
+
+        // assert
+        readTokens.MatchSnapshot();
+    }
+
+    [Test]
+    public void Read_SelectedObjectValueMultipleFieldsNoSelectedValue_MatchesSnapshot()
+    {
+        // arrange
+        var reader = new FieldSelectionMapReader("{ field1 field2 }");
         List<SyntaxTokenInfo> readTokens = [];
 
         // act

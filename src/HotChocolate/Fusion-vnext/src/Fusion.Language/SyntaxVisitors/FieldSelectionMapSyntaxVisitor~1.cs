@@ -54,6 +54,8 @@ internal class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction def
                 => Enter((NameNode)node, writer),
             FieldSelectionMapSyntaxKind.Path
                 => Enter((PathNode)node, writer),
+            FieldSelectionMapSyntaxKind.PathSegment
+                => Enter((PathSegmentNode)node, writer),
             FieldSelectionMapSyntaxKind.SelectedObjectField
                 => Enter((SelectedObjectFieldNode)node, writer),
             FieldSelectionMapSyntaxKind.SelectedObjectValue
@@ -71,6 +73,11 @@ internal class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction def
 
     protected virtual ISyntaxVisitorAction Enter(
         PathNode node,
+        TContext writer) =>
+        DefaultAction;
+
+    protected virtual ISyntaxVisitorAction Enter(
+        PathSegmentNode node,
         TContext writer) =>
         DefaultAction;
 
@@ -170,6 +177,8 @@ internal class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction def
                 => DefaultAction,
             FieldSelectionMapSyntaxKind.Path
                 => VisitChildren((PathNode)node, context),
+            FieldSelectionMapSyntaxKind.PathSegment
+                => VisitChildren((PathSegmentNode)node, context),
             FieldSelectionMapSyntaxKind.SelectedObjectField
                 => VisitChildren((SelectedObjectFieldNode)node, context),
             FieldSelectionMapSyntaxKind.SelectedObjectValue
@@ -184,6 +193,23 @@ internal class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction def
         PathNode node,
         TContext context)
     {
+        if (node.TypeName is not null && Visit(node.TypeName, node, context).IsBreak())
+        {
+            return Break;
+        }
+
+        if (Visit(node.PathSegment, node, context).IsBreak())
+        {
+            return Break;
+        }
+
+        return DefaultAction;
+    }
+
+    protected virtual ISyntaxVisitorAction VisitChildren(
+        PathSegmentNode node,
+        TContext context)
+    {
         if (Visit(node.FieldName, node, context).IsBreak())
         {
             return Break;
@@ -194,7 +220,7 @@ internal class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction def
             return Break;
         }
 
-        if (node.Path is not null && Visit(node.Path, node, context).IsBreak())
+        if (node.PathSegment is not null && Visit(node.PathSegment, node, context).IsBreak())
         {
             return Break;
         }
@@ -211,7 +237,7 @@ internal class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction def
             return Break;
         }
 
-        if (Visit(node.SelectedValue, node, context).IsBreak())
+        if (node.SelectedValue is not null && Visit(node.SelectedValue, node, context).IsBreak())
         {
             return Break;
         }

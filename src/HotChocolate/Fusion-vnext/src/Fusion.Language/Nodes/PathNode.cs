@@ -5,11 +5,11 @@ namespace HotChocolate.Fusion;
 /// specifying a path to that value. This path is defined as a sequence of field names, each
 /// separated by a period (<c>.</c>) to create segments.
 /// </summary>
-internal sealed class PathNode(NameNode fieldName, NameNode? typeName = null, PathNode? path = null)
+internal sealed class PathNode(PathSegmentNode pathSegment, NameNode? typeName = null)
     : IFieldSelectionMapSyntaxNode
 {
-    public PathNode(Location? location, NameNode fieldName, NameNode? typeName, PathNode? path)
-        : this(fieldName, typeName, path)
+    public PathNode(Location? location, PathSegmentNode pathSegment, NameNode? typeName)
+        : this(pathSegment, typeName)
     {
         Location = location;
     }
@@ -18,25 +18,18 @@ internal sealed class PathNode(NameNode fieldName, NameNode? typeName = null, Pa
 
     public Location? Location { get; }
 
-    public NameNode FieldName { get; } = fieldName
-        ?? throw new ArgumentNullException(nameof(fieldName));
+    public PathSegmentNode PathSegment { get; } = pathSegment
+        ?? throw new ArgumentNullException(nameof(pathSegment));
 
     public NameNode? TypeName { get; } = typeName;
 
-    public PathNode? Path { get; } = path;
-
     public IEnumerable<IFieldSelectionMapSyntaxNode> GetNodes()
     {
-        yield return FieldName;
+        yield return PathSegment;
 
         if (TypeName is not null)
         {
             yield return TypeName;
-        }
-
-        if (Path is not null)
-        {
-            yield return Path;
         }
     }
 

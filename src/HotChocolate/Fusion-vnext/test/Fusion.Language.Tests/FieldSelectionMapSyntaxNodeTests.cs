@@ -40,16 +40,16 @@ public sealed class FieldSelectionMapSyntaxNodeTests
     }
 
     [Test]
-    public async Task ToString_PathNode_ReturnsExpectedString()
+    public async Task ToString_PathSegmentNode_ReturnsExpectedString()
     {
         // arrange
-        var node = new PathNode(
+        var node = new PathSegmentNode(
             fieldName: new NameNode("field1"),
             typeName: new NameNode("Type1"),
-            path: new PathNode(
+            pathSegment: new PathSegmentNode(
                 fieldName: new NameNode("field2"),
                 typeName: new NameNode("Type2"),
-                path: new PathNode(fieldName: new NameNode("field3"))));
+                pathSegment: new PathSegmentNode(fieldName: new NameNode("field3"))));
 
         // act
         var result = node.ToString();
@@ -59,12 +59,29 @@ public sealed class FieldSelectionMapSyntaxNodeTests
     }
 
     [Test]
+    public async Task ToString_PathNode_ReturnsExpectedString()
+    {
+        // arrange
+        var node = new PathNode(
+            pathSegment: new PathSegmentNode(fieldName: new NameNode("field1")),
+            typeName: new NameNode("Type1"));
+
+        // act
+        var result = node.ToString();
+
+        // assert
+        await Assert.That(result).IsEqualTo("<Type1>.field1");
+    }
+
+    [Test]
     public async Task ToString_SelectedObjectFieldNode_ReturnsExpectedString()
     {
         // arrange
         var node = new SelectedObjectFieldNode(
             new NameNode("field1"),
-            new SelectedValueNode(path: new PathNode(fieldName: new NameNode("field1"))));
+            new SelectedValueNode(
+                path: new PathNode(
+                    pathSegment: new PathSegmentNode(fieldName: new NameNode("field1")))));
 
         // act
         var result = node.ToString();
@@ -81,10 +98,14 @@ public sealed class FieldSelectionMapSyntaxNodeTests
             [
                 new SelectedObjectFieldNode(
                     new NameNode("field1"),
-                    new SelectedValueNode(path: new PathNode(fieldName: new NameNode("field1")))),
+                    new SelectedValueNode(
+                        path: new PathNode(
+                            pathSegment: new PathSegmentNode(fieldName: new NameNode("field1"))))),
                 new SelectedObjectFieldNode(
                     new NameNode("field2"),
-                    new SelectedValueNode(path: new PathNode(fieldName: new NameNode("field2"))))
+                    new SelectedValueNode(
+                        path: new PathNode(
+                            pathSegment: new PathSegmentNode(fieldName: new NameNode("field2")))))
             ]);
 
         // act
@@ -111,16 +132,20 @@ public sealed class FieldSelectionMapSyntaxNodeTests
         // arrange
         var node = new SelectedValueNode(
             path: new PathNode(
-                fieldName: new NameNode("field1"),
-                path: new PathNode(fieldName: new NameNode("field2"))),
+                pathSegment: new PathSegmentNode(
+                    fieldName: new NameNode("field1"),
+                    pathSegment: new PathSegmentNode(fieldName: new NameNode("field2")))),
             selectedValue: new SelectedValueNode(
                 path: new PathNode(
-                    fieldName: new NameNode("field3"),
-                    path: new PathNode(fieldName: new NameNode("field4"))),
+                    pathSegment: new PathSegmentNode(
+                        fieldName: new NameNode("field3"),
+                        pathSegment: new PathSegmentNode(fieldName: new NameNode("field4")))),
                 selectedValue: new SelectedValueNode(
                     path: new PathNode(
-                        fieldName: new NameNode("field5"),
-                        path: new PathNode(fieldName: new NameNode("field6"))))));
+                        pathSegment: new PathSegmentNode(
+                            fieldName: new NameNode("field5"),
+                            pathSegment: new PathSegmentNode(
+                                fieldName: new NameNode("field6")))))));
 
         // act
         var result = node.ToString();
