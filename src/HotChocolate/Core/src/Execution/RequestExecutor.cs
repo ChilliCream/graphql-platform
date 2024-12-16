@@ -241,47 +241,30 @@ internal sealed class RequestExecutor : IRequestExecutor
         }
 
         var buffer = new IOperationResult[8];
-        int bufferCount;
 
         do
         {
-            bufferCount = completed.TryPopRange(buffer);
+            var resultCount = completed.TryPopRange(buffer);
 
-            for (var i = 0; i < bufferCount; i++)
+            for (var i = 0; i < resultCount; i++)
             {
                 yield return buffer[i];
             }
 
-            if (bufferCount == 0)
+            if (completed.IsEmpty && tasks.Count > 0)
             {
-                if(tasks.Any(t => !t.IsCompleted))
+                var task = await Task.WhenAny(tasks);
+
+                // we await to throw if it's not successful.
+                if (task.Status is not TaskStatus.RanToCompletion)
                 {
-                    var task = await Task.WhenAny(tasks);
-
-                    if (task.Status is not TaskStatus.RanToCompletion)
-                    {
-                        // we await to throw if it's not successful.
-                        await task;
-                    }
-
-                    tasks.Remove(task);
+                    await task;
                 }
-                else
-                {
-                    foreach (var task in tasks)
-                    {
-                        if (task.Status is not TaskStatus.RanToCompletion)
-                        {
-                            // we await to throw if it's not successful.
-                            await task;
-                        }
-                    }
 
-                    tasks.Clear();
-                }
+                tasks.Remove(task);
             }
         }
-        while (tasks.Count > 0 || bufferCount > 0);
+        while (tasks.Count > 0 || !completed.IsEmpty);
     }
 
     private static IOperationRequest WithServices(IOperationRequest request, IServiceProvider services)
