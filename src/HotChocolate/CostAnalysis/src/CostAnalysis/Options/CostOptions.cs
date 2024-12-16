@@ -26,6 +26,11 @@ public sealed class CostOptions
     public bool ApplyCostDefaults { get; set; } = true;
 
     /// <summary>
+    /// Defines if the non-spec slicing argument default value shall be applied.
+    /// </summary>
+    public bool ApplySlicingArgumentDefaultValue { get; set; } = true;
+
+    /// <summary>
     /// Gets or sets the default cost for an async resolver pipeline.
     /// </summary>
     public double? DefaultResolverCost { get; set; } = 10.0;

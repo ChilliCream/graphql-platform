@@ -213,9 +213,9 @@ curl -g 'http://localhost:5000/graphql/?query={__typename}&extensions={"persiste
 }
 ```
 
-## Step 4: Use Redis as an operation document storage
+## Step 4: Use a persisted operation document storage
 
-If you run multiple Hot Chocolate server instances and want to preserve stored operation documents after a server restart, you can opt to use a file-system-based operation document storage or opt to use a Redis cache. Hot Chocolate server supports both.
+If you run multiple Hot Chocolate server instances and want to preserve stored operation documents after a server restart, you can opt to use a persisted operation document storage. Hot Chocolate supports a file-system-based operation document storage, Azure Blob Storage or a Redis cache.
 
 1. Setup a Redis docker container.
 
