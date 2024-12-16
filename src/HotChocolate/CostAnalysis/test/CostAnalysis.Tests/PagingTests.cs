@@ -84,7 +84,7 @@ public class PagingTests
                 """
                 {
                     "fieldCost": 6,
-                    "typeCost": 52
+                    "typeCost": 12
                 }
                 """);
 
@@ -397,7 +397,7 @@ public class PagingTests
                 """
                 {
                     "fieldCost": 9,
-                    "typeCost": 52
+                    "typeCost": 12
                 }
                 """);
 
@@ -450,7 +450,7 @@ public class PagingTests
                 """
                 {
                     "fieldCost": 10,
-                    "typeCost": 52
+                    "typeCost": 12
                 }
                 """);
 
@@ -503,7 +503,7 @@ public class PagingTests
                 """
                 {
                     "fieldCost": 10,
-                    "typeCost": 52
+                    "typeCost": 12
                 }
                 """);
 

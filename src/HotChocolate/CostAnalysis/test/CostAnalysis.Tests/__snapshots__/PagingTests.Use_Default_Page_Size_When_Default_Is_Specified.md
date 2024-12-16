@@ -24,7 +24,7 @@
   "extensions": {
     "operationCost": {
       "fieldCost": 11,
-      "typeCost": 52
+      "typeCost": 4
     }
   }
 }
