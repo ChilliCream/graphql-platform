@@ -60,11 +60,20 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Pre-merge validation rule &apos;{0}&apos; failed. View the composition log for details..
+        ///   Looks up a localized string similar to Pre-merge validation failed. View the composition log for details..
         /// </summary>
-        internal static string ErrorHelper_PreMergeValidationRuleFailed {
+        internal static string ErrorHelper_PreMergeValidationFailed {
             get {
-                return ResourceManager.GetString("ErrorHelper_PreMergeValidationRuleFailed", resourceCulture);
+                return ResourceManager.GetString("ErrorHelper_PreMergeValidationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The built-in scalar type &apos;{0}&apos; is not accessible..
+        /// </summary>
+        internal static string LogEntryHelper_DisallowedInaccessibleBuiltInScalar {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_DisallowedInaccessibleBuiltInScalar", resourceCulture);
             }
         }
         
@@ -101,15 +110,6 @@ namespace HotChocolate.Fusion.Properties {
         internal static string LogEntryHelper_DisallowedInaccessibleIntrospectionType {
             get {
                 return ResourceManager.GetString("LogEntryHelper_DisallowedInaccessibleIntrospectionType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The built-in scalar type &apos;{0}&apos; is not accessible..
-        /// </summary>
-        internal static string LogEntryHelper_DisallowedInaccessibleScalar {
-            get {
-                return ResourceManager.GetString("LogEntryHelper_DisallowedInaccessibleScalar", resourceCulture);
             }
         }
         

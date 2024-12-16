@@ -1,0 +1,26 @@
+request:
+  - document: >-
+      query GetProduct($slug: String!) {
+        productBySlug(slug: $slug) @skip(if: false) @include(if: true) {
+          name
+        }
+        products {
+          nodes {
+            name
+          }
+        }
+      }
+nodes:
+  - id: 1
+    schema: "PRODUCTS"
+    operation: >-
+      query($slug: String!) {
+        productBySlug(slug: $slug) {
+          name
+        }
+        products {
+          nodes {
+            name
+          }
+        }
+      }

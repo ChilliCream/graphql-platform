@@ -22,7 +22,7 @@ internal static partial class TestHelper
         return GetGeneratedSourceSnapshot([sourceText]);
     }
 
-    public static Snapshot GetGeneratedSourceSnapshot(string[] sourceTexts)
+    public static Snapshot GetGeneratedSourceSnapshot(string[] sourceTexts, string? assemblyName = "Tests")
     {
         IEnumerable<PortableExecutableReference> references =
         [
@@ -47,7 +47,7 @@ internal static partial class TestHelper
 
         // Create a Roslyn compilation for the syntax tree.
         var compilation = CSharpCompilation.Create(
-            assemblyName: "Tests",
+            assemblyName: assemblyName,
             syntaxTrees: sourceTexts.Select(s => CSharpSyntaxTree.ParseText(s)),
             references);
 
