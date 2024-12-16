@@ -317,7 +317,7 @@ internal sealed class CostAnalyzer(RequestCostOptions options) : TypeDocumentVal
 
                     // if the field is a list type we are multiplying the cost
                     // by the estimated list size.
-                    var listSize = field.GetListSize(arguments, listSizeDirective, context.Variables);
+                    var listSize = field.GetListSize(arguments, listSizeDirective);
                     typeCost *= listSize;
                     selectionSetCost *= listSize;
                 }

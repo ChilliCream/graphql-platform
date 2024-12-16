@@ -30,6 +30,12 @@ public sealed class ListSizeAttribute : ObjectFieldDescriptorAttribute
     public string[]? SlicingArguments { get; init; }
 
     /// <summary>
+    /// The default value for a slicing argument, which is used if the argument is not present in a
+    /// query.
+    /// </summary>
+    public int? SlicingArgumentDefaultValue { get; init; }
+
+    /// <summary>
     /// The subfield(s) that the list size applies to.
     /// </summary>
     public string[]? SizedFields { get; init; }
