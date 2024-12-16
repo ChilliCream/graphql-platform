@@ -60,6 +60,9 @@ public static class CostAnalyzerObjectFieldDescriptorExtensions
     /// Whether to require a single slicing argument in the query. If that is not the case (i.e., if
     /// none or multiple slicing arguments are present), the static analysis will throw an error.
     /// </param>
+    /// <param name="slicingArgumentDefaultValue">
+    /// The default value to use for slicing arguments if no slicing argument is provided.
+    /// </param>
     /// <returns>
     /// Returns the object field descriptor for configuration chaining.
     /// </returns>
@@ -71,7 +74,8 @@ public static class CostAnalyzerObjectFieldDescriptorExtensions
         int? assumedSize = null,
         ImmutableArray<string>? slicingArguments = null,
         ImmutableArray<string>? sizedFields = null,
-        bool requireOneSlicingArgument = true)
+        bool requireOneSlicingArgument = true,
+        int? slicingArgumentDefaultValue = null)
     {
         if (descriptor is null)
         {
@@ -83,6 +87,7 @@ public static class CostAnalyzerObjectFieldDescriptorExtensions
                 assumedSize,
                 slicingArguments,
                 sizedFields,
-                requireOneSlicingArgument));
+                requireOneSlicingArgument,
+                slicingArgumentDefaultValue));
     }
 }

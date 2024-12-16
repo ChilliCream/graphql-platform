@@ -112,4 +112,25 @@ public sealed class VariableBatchRequest : IOperationRequest
     /// GraphQL request flags allow to limit the GraphQL executor capabilities.
     /// </summary>
     public GraphQLRequestFlags Flags { get; }
+
+    /// <summary>
+    /// Creates a new request with the specified services.
+    /// </summary>
+    /// <param name="services">
+    /// The services that shall be used while executing the operation.
+    /// </param>
+    /// <returns>
+    /// Returns a new request with the specified services.
+    /// </returns>
+    public VariableBatchRequest WithServices(IServiceProvider services) =>
+        new(
+            Document,
+            DocumentId,
+            DocumentHash,
+            OperationName,
+            VariableValues,
+            Extensions,
+            ContextData,
+            services,
+            Flags);
 }
