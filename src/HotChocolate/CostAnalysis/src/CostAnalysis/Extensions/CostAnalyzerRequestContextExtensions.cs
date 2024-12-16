@@ -1,4 +1,5 @@
 using HotChocolate.CostAnalysis;
+using HotChocolate.Resolvers;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution;
@@ -106,6 +107,20 @@ public static class CostAnalyzerRequestContextExtensions
         return context.Schema.Services.GetRequiredService<RequestCostOptions>();
     }
 
+    /// <summary>
+    /// Gets the global cost options from the executor.
+    /// </summary>
+    /// <param name="executor">
+    /// The GraphQL executor.
+    /// </param>
+    /// <returns>
+    /// Returns the global cost options.
+    /// </returns>
+    public static RequestCostOptions GetCostOptions(this IRequestExecutor executor)
+    {
+        return executor.Schema.Services.GetRequiredService<RequestCostOptions>();
+    }
+
     internal static RequestCostOptions? TryGetCostOptions(this IRequestContext context)
     {
         if (context.ContextData.TryGetValue(WellKnownContextData.RequestCostOptions, out var value)
@@ -130,6 +145,21 @@ public static class CostAnalyzerRequestContextExtensions
     {
         context.ContextData[WellKnownContextData.RequestCostOptions] = options;
     }
-}
 
-// public static class CostAnalyzerRequest
+    /// <summary>
+    /// Sets the cost options for the current request.
+    /// </summary>
+    /// <param name="builder">
+    /// The operation request builder.
+    /// </param>
+    /// <param name="options">
+    /// The cost options.
+    /// </param>
+    /// <returns>
+    /// Returns the operation request builder.
+    /// </returns>
+    public static OperationRequestBuilder SetCostOptions(
+        this OperationRequestBuilder builder,
+        RequestCostOptions options)
+        => builder.SetGlobalState(WellKnownContextData.RequestCostOptions, options);
+}
