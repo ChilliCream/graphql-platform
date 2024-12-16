@@ -86,7 +86,7 @@ This file is expected to contain the operation document that the hash was genera
 
 > Warning: Do not forget to ensure that the server has access to the directory.
 
-### Redis
+## Redis
 
 To load persisted operation documents from Redis, we have to add the following package.
 
@@ -108,7 +108,60 @@ public void ConfigureServices(IServiceCollection services)
 
 Keys in the specified Redis database are expected to be operation IDs (hashes) and contain the actual operation document as the value.
 
-## Hashing algorithms
+## Azure Blob Storage
+
+To load persisted operation documents from Azure Blob Storage, we have to add the following package.
+
+<PackageInstallation packageName="HotChocolate.PersistedOperations.AzureBlobStorage" />
+
+After this we need to specify where the persisted operation documents are located. Using `AddAzureBlobStorageOperationDocumentStorage()` we can point to a specific Azure Blob Storage Container. It must contain the operation documents. The blob's name is the hash of the query, its content the corresponding GraphQL query.
+
+> Important: The Azure Blob Storage Container must already exist when Hot Chocolate uses it for the first time.
+
+```csharp
+public void ConfigureServices(IServiceCollection services)
+{
+    services
+        .AddGraphQLServer()
+        .AddQueryType<Query>()
+        .UsePersistedOperationPipeline()
+        .AddAzureBlobStorageOperationDocumentStorage(services =>
+            services.GetService<BlobServiceClient>().GetBlobContainerClient("hotchocolate"));
+}
+```
+
+Unlike with Redis, a Blob Storage client has no easy way to set the expiration of files in Azure Blob Storage. However, you can define [a Lifecycle Management Policy](https://learn.microsoft.com/en-us/azure/storage/blobs/lifecycle-management-overview?tabs=azure-portal). The following sample policy will instruct Azure to remove all files from the `hotchocolate` container when they have not been accessed for 10 days.
+
+```json
+{
+  "rules": [
+    {
+      "enabled": true,
+      "name": "remove-after-10d",
+      "type": "Lifecycle",
+      "definition": {
+        "actions": {
+          "baseBlob": {
+            "delete": {
+              "daysAfterLastAccessTimeGreaterThan": 10
+            }
+          }
+        },
+        "filters": {
+          "blobTypes": [
+            "blockBlob"
+          ],
+          "prefixMatch": [
+            "hotchocolate/"
+          ]
+        }
+      }
+    }
+  ]
+}
+```
+
+# Hashing algorithms
 
 Per default Hot Chocolate uses the MD5 hashing algorithm, but we can override this default by specifying a `DocumentHashProvider`.
 
@@ -138,7 +191,7 @@ AddSha256DocumentHashProvider(HashFormat.Base64)
 
 > Note: [Relay](https://relay.dev) uses the MD5 hashing algorithm - no additional Hot Chocolate configuration is required.
 
-## Blocking regular operations
+# Blocking regular operations
 
 If you want to disallow any dynamic operations, you can enable `OnlyAllowPersistedDocuments`:
 
