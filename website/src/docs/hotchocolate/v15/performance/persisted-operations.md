@@ -86,7 +86,7 @@ This file is expected to contain the operation document that the hash was genera
 
 > Warning: Do not forget to ensure that the server has access to the directory.
 
-## Redis
+### Redis
 
 To load persisted operation documents from Redis, we have to add the following package.
 
@@ -108,7 +108,7 @@ public void ConfigureServices(IServiceCollection services)
 
 Keys in the specified Redis database are expected to be operation IDs (hashes) and contain the actual operation document as the value.
 
-## Azure Blob Storage
+### Azure Blob Storage
 
 To load persisted operation documents from Azure Blob Storage, we have to add the following package.
 

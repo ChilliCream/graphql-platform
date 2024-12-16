@@ -215,7 +215,7 @@ curl -g 'http://localhost:5000/graphql/?query={__typename}&extensions={"persiste
 
 ## Step 4: Use a persisted operation document storage
 
-If you run multiple Hot Chocolate server instances and want to preserve stored operation documents after a server restart, you can opt to use a persisted operation document storage. Hot Chocolate supports a file-system-based operation document storage, Azure Blob Storage or a Redis cache. See [the persisted operations manual](/docs/hotchocolate/v15/performance/persisted-operations) to learn more about each option. The following example uses a Redis cache.
+If you run multiple Hot Chocolate server instances and want to preserve stored operation documents after a server restart, you can opt to use a persisted operation document storage. Hot Chocolate supports a file-system-based operation document storage, Azure Blob Storage or a Redis cache.
 
 1. Setup a Redis docker container.
 

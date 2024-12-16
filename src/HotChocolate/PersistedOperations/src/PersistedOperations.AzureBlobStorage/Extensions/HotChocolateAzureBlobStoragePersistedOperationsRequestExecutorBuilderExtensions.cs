@@ -19,19 +19,22 @@ public static class HotChocolateAzureBlobStoragePersistedOperationsRequestExecut
     /// A factory that resolves the Azure Blob Container Client that
     /// shall be used for persistence.
     /// </param>
-    /// <param name="blobNamePrefix">This prefix string is prepended before the hash of the document.</param>
-    /// <param name="blobNameSuffix">This suffix is appended after the hash of the document.</param>
     public static IRequestExecutorBuilder AddAzureBlobStorageOperationDocumentStorage(
         this IRequestExecutorBuilder builder,
-        Func<IServiceProvider, BlobContainerClient> containerClientFactory,
-        string blobNamePrefix = "",
-        string blobNameSuffix = ".graphql")
+        Func<IServiceProvider, BlobContainerClient> containerClientFactory)
     {
-        ArgumentNullException.ThrowIfNull(builder);
-        ArgumentNullException.ThrowIfNull(containerClientFactory);
+        if(builder == null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if(containerClientFactory is null)
+        {
+            throw new ArgumentNullException(nameof(containerClientFactory));
+        }
 
         return builder.ConfigureSchemaServices(
             s => s.AddAzureBlobStorageOperationDocumentStorage(
-                sp => containerClientFactory(sp.GetCombinedServices()), blobNamePrefix, blobNameSuffix));
+                sp => containerClientFactory(sp.GetCombinedServices())));
     }
 }
