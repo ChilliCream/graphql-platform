@@ -18,7 +18,7 @@ ORDER BY t."Name", t."Id"
 ## Expression 0
 
 ```text
-[Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].OrderBy(t => t.Name).ThenBy(t => t.Id).Select(root => new Foo() {Id = root.Id, Name = root.Name, Bar = IIF((root.Bar == null), null, new Bar() {Id = root.Bar.Id, Description = root.Bar.Description, SomeField1 = root.Bar.SomeField1, SomeField2 = root.Bar.SomeField2})}).Take(11)
+[Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].OrderBy(t => t.Name).ThenBy(t => t.Id).Select(root => new Foo() {Id = root.Id, Name = root.Name, Bar = IIF((root.Bar == null), null, new Bar() {Id = root.Bar.Id, Description = IIF((root.Bar.Description == null), null, root.Bar.Description), SomeField1 = root.Bar.SomeField1, SomeField2 = IIF((root.Bar.SomeField2 == null), null, root.Bar.SomeField2)})}).Take(11)
 ```
 
 ## Result

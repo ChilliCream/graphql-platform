@@ -80,7 +80,12 @@ public class AuthorizationPolicyProviderTess(TestServerFactory serverFactory) : 
         Assert.Null(result1.Errors);
         Assert.Equal(HttpStatusCode.OK, result2.StatusCode);
         Assert.Null(result2.Errors);
+
+#if NET6_0
+        Assert.Equal(1, policyProvider.InvocationsOfGetPolicyAsync);
+#else
         Assert.Equal(2, policyProvider.InvocationsOfGetPolicyAsync);
+#endif
     }
 
     public class Query
