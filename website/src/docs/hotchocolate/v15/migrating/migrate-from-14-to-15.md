@@ -41,6 +41,15 @@ Use the `LocalDate` type if you do not want the date to be converted to universa
 
 Please ensure that your clients are sending date/time strings in the correct format to avoid errors.
 
+## LocalDate and LocalTime scalars moved
+
+`LocalDate` and `LocalTime` have been moved from `HotChocolate.Types.Scalars` to `HotChocolate.Types`, and are therefore available without installing the additional package.
+
+## DateOnly and TimeOnly binding change
+
+- `DateOnly` is now bound to `LocalDateType` instead of `DateType`.
+- `TimeOnly` is now bound to `LocalTimeType` instead of `TimeSpanType`.
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.

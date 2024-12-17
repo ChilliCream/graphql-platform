@@ -194,18 +194,23 @@ scalar DateTime @specifiedBy(url: "https://www.graphql-scalars.com/date-time/")
 
 In addition to the scalars defined by the specification, Hot Chocolate also supports the following set of scalar types:
 
-| Type        | Description                                                  |
-| ----------- | ------------------------------------------------------------ |
-| `Byte`      | Byte                                                         |
-| `ByteArray` | Base64 encoded array of bytes                                |
-| `Short`     | Signed 16-bit numeric non-fractional value                   |
-| `Long`      | Signed 64-bit numeric non-fractional value                   |
-| `Decimal`   | .NET Floating Point Type                                     |
-| `Url`       | Url                                                          |
-| `Date`      | ISO-8601 date                                                |
-| `TimeSpan`  | ISO-8601 duration                                            |
-| `Uuid`      | GUID                                                         |
-| `Any`       | This type can be anything, string, int, list or object, etc. |
+| Type            | Description                                                                                      |
+| --------------- | ------------------------------------------------------------------------------------------------ |
+| `Byte`          | Byte                                                                                             |
+| `ByteArray`     | Base64 encoded array of bytes                                                                    |
+| `Short`         | Signed 16-bit numeric non-fractional value                                                       |
+| `Long`          | Signed 64-bit numeric non-fractional value                                                       |
+| `Decimal`       | .NET Floating Point Type                                                                         |
+| `Url`           | Url                                                                                              |
+| `Date`          | ISO-8601 date                                                                                    |
+| `LocalDate`     | ISO date string, represented as UTF-8 character sequences YYYY-MM-DD, as defined in [RFC3339][1] |
+| `LocalDateTime` | Local date/time string (i.e., with no associated timezone) with the format `YYYY-MM-DDThh:mm:ss` |
+| `LocalTime`     | Local time string (i.e., with no associated timezone) in 24-hr `HH:mm:ss`                        |
+| `TimeSpan`      | ISO-8601 duration                                                                                |
+| `Uuid`          | GUID                                                                                             |
+| `Any`           | This type can be anything, string, int, list or object, etc.                                     |
+
+[1]: https://tools.ietf.org/html/rfc3339
 
 ## Uuid Type
 
@@ -305,16 +310,14 @@ To use these scalars we have to add the `HotChocolate.Types.Scalars` package.
 | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | EmailAddress     | Email address, represented as UTF-8 character sequences, as defined in [RFC5322](https://tools.ietf.org/html/rfc5322)                                    |
 | HexColor         | HEX color code                                                                                                                                           |
-| Hsl              | CSS HSL color as defined [here][1]                                                                                                                       |
-| Hsla             | CSS HSLA color as defined [here][1]                                                                                                                      |
+| Hsl              | CSS HSL color as defined [here][2]                                                                                                                       |
+| Hsla             | CSS HSLA color as defined [here][2]                                                                                                                      |
 | IPv4             | IPv4 address as defined [here](https://en.wikipedia.org/wiki/IPv4)                                                                                       |
 | IPv6             | IPv6 address as defined in [RFC8064](https://tools.ietf.org/html/rfc8064)                                                                                |
 | Isbn             | ISBN-10 or ISBN-13 number as defined [here](https://en.wikipedia.org/wiki/International_Standard_Book_Number)                                            |
 | Latitude         | Decimal degrees latitude number                                                                                                                          |
 | Longitude        | Decimal degrees longitude number                                                                                                                         |
 | LocalCurrency    | Currency string                                                                                                                                          |
-| LocalDate        | ISO date string, represented as UTF-8 character sequences yyyy-mm-dd, as defined in [RFC3339][2]                                                         |
-| LocalTime        | Local time string (i.e., with no associated timezone) in 24-hr `HH:mm:ss`                                                                                |
 | MacAddress       | IEEE 802 48-bit (MAC-48/EUI-48) and 64-bit (EUI-64) Mac addresses, represented as UTF-8 character sequences, as defined in [RFC7042][3] and [RFC7043][4] |
 | NegativeFloat    | Double‐precision fractional value less than 0                                                                                                            |
 | NegativeInt      | Signed 32-bit numeric non-fractional with a maximum of -1                                                                                                |
@@ -335,8 +338,7 @@ To use these scalars we have to add the `HotChocolate.Types.Scalars` package.
 | UnsignedShort    | Unsigned 16‐bit numeric non‐fractional value greater than or equal to 0 and smaller or equal to 65535.                                                   |
 | UtcOffset        | A value of format `±hh:mm`                                                                                                                               |
 
-[1]: https://developer.mozilla.org/docs/Web/CSS/color_value#hsl_colors
-[2]: https://tools.ietf.org/html/rfc3339
+[2]: https://developer.mozilla.org/docs/Web/CSS/color_value#hsl_colors
 [3]: https://tools.ietf.org/html/rfc7042#page-19
 [4]: https://tools.ietf.org/html/rfc7043
 
