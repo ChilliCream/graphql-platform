@@ -114,6 +114,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Field &apos;{0}&apos; on type &apos;{1}&apos; is only declared as external..
+        /// </summary>
+        internal static string LogEntryHelper_ExternalMissingOnBase {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ExternalMissingOnBase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Field &apos;{0}&apos; on type &apos;{1}&apos; is not mergeable..
         /// </summary>
         internal static string LogEntryHelper_OutputFieldTypesNotMergeable {
