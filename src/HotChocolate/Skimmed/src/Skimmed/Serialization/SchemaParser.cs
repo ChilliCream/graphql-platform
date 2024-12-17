@@ -639,6 +639,10 @@ public static class SchemaParser
                 {
                     directiveType = BuiltIns.SpecifiedBy.Create(schema);
                 }
+                else if (directiveNode.Name.Value == BuiltIns.SemanticNonNull.Name)
+                {
+                    directiveType = BuiltIns.SemanticNonNull.Create(schema);
+                }
                 else
                 {
                     directiveType = new DirectiveDefinition(directiveNode.Name.Value);
