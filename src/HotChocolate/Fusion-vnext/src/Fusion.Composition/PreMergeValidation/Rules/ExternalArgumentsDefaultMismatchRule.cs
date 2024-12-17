@@ -1,85 +1,59 @@
 using HotChocolate.Fusion.Events;
+using HotChocolate.Language;
 using HotChocolate.Skimmed;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
 namespace HotChocolate.Fusion.PreMergeValidation.Rules;
 
 /// <summary>
-/// This rule ensures that certain essential elements of a GraphQL schema, particularly built-in
-/// scalars, directive arguments, and introspection types, cannot be marked as @inaccessible. These
-/// types are fundamental to GraphQL. Making these elements inaccessible would break core GraphQL
-/// functionality.
+/// This rule ensures that arguments on fields marked as @external have default values compatible
+/// with the corresponding arguments on fields from other source schemas where the field is defined (non-@external).
 /// </summary>
-/// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Disallowed-Inaccessible-Elements">
+/// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-External-Argument-Default-Mismatch">
 /// Specification
 /// </seealso>
 internal sealed class ExternalArgumentsDefaultMismatchRule
-    : IEventHandler<TypeEvent>
-    , IEventHandler<OutputFieldEvent>
-    , IEventHandler<FieldArgumentEvent>
-    , IEventHandler<DirectiveArgumentEvent>
+    : IEventHandler<OutputFieldGroupEvent>
 {
-    public void Handle(TypeEvent @event, CompositionContext context)
+    public void Handle(OutputFieldGroupEvent @event, CompositionContext context)
     {
-        var (type, schema) = @event;
+        var (fieldName, fieldGroup, typeName) = @event;
 
-        // Built-in scalar types must be accessible.
-        if (type is ScalarTypeDefinition { IsSpecScalar: true } scalar
-            && !ValidationHelper.IsAccessible(scalar))
+        if (fieldGroup.FirstOrDefault(i => ValidationHelper.IsExternal(i.Field)) is { } externalField)
         {
-            context.Log.Write(DisallowedInaccessibleBuiltInScalar(scalar, schema));
-        }
+            var argumentNames = fieldGroup.SelectMany(fg => fg.Field.Arguments, (_, arg) => arg.Name).ToHashSet();
+            foreach (var argumentName in argumentNames)
+            {
+                if (!externalField.Field.Arguments.TryGetField(argumentName, out var argumentField))
+                {
+                    // Logged in separate rule.
+                    continue;
+                }
 
-        // Introspection types must be accessible.
-        if (type.IsIntrospectionType && !ValidationHelper.IsAccessible(type))
-        {
-            context.Log.Write(DisallowedInaccessibleIntrospectionType(type, schema));
-        }
-    }
+                var defaultValue = argumentField.DefaultValue;
+                foreach (var currentField in fieldGroup.Except([externalField]))
+                {
+                    if (!currentField.Field.Arguments.TryGetField(argumentName, out argumentField))
+                    {
+                        // Logged in separate rule.
+                        continue;
+                    }
 
-    public void Handle(OutputFieldEvent @event, CompositionContext context)
-    {
-        var (field, type, schema) = @event;
+                    var currentValue = argumentField.DefaultValue;
+                    var match = (currentValue, defaultValue) switch
+                    {
+                        (null, null) => true,
+                        (not null, null) => false,
+                        (null, not null) => false,
+                        _ => currentValue.Value!.Equals(defaultValue.Value)
+                    };
 
-        // Introspection fields must be accessible.
-        if (type.IsIntrospectionType && !ValidationHelper.IsAccessible(field))
-        {
-            context.Log.Write(
-                DisallowedInaccessibleIntrospectionField(
-                    field,
-                    type.Name,
-                    schema));
-        }
-    }
-
-    public void Handle(FieldArgumentEvent @event, CompositionContext context)
-    {
-        var (argument, field, type, schema) = @event;
-
-        // Introspection arguments must be accessible.
-        if (type.IsIntrospectionType && !ValidationHelper.IsAccessible(argument))
-        {
-            context.Log.Write(
-                DisallowedInaccessibleIntrospectionArgument(
-                    argument,
-                    field.Name,
-                    type.Name,
-                    schema));
-        }
-    }
-
-    public void Handle(DirectiveArgumentEvent @event, CompositionContext context)
-    {
-        var (argument, directive, schema) = @event;
-
-        // Built-in directive arguments must be accessible.
-        if (BuiltIns.IsBuiltInDirective(directive.Name) && !ValidationHelper.IsAccessible(argument))
-        {
-            context.Log.Write(
-                DisallowedInaccessibleDirectiveArgument(
-                    argument,
-                    directive.Name,
-                    schema));
+                    if (!match)
+                    {
+                        context.Log.Write(ExternalArgumentDefaultMismatch(fieldName, typeName));
+                    }
+                }
+            }
         }
     }
 }

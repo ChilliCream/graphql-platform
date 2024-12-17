@@ -42,4 +42,7 @@
   <data name="LogEntryHelper_OutputFieldTypesNotMergeable" xml:space="preserve">
     <value>Field '{0}' on type '{1}' is not mergeable.</value>
   </data>
+  <data name="LogEntryHelper_ExternalArgumentDefaultMismatch" xml:space="preserve">
+    <value>Field '{0}' on type '{1}' must have consistent default values.</value>
+  </data>
 </root>

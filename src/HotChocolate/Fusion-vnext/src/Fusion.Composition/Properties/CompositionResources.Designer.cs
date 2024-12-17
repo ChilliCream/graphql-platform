@@ -9,8 +9,8 @@
 
 namespace HotChocolate.Fusion.Properties {
     using System;
-    
-    
+
+
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -22,15 +22,15 @@ namespace HotChocolate.Fusion.Properties {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CompositionResources {
-        
+
         private static global::System.Resources.ResourceManager resourceMan;
-        
+
         private static global::System.Globalization.CultureInfo resourceCulture;
-        
+
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal CompositionResources() {
         }
-        
+
         /// <summary>
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
@@ -44,7 +44,7 @@ namespace HotChocolate.Fusion.Properties {
                 return resourceMan;
             }
         }
-        
+
         /// <summary>
         ///   Overrides the current thread's CurrentUICulture property for all
         ///   resource lookups using this strongly typed resource class.
@@ -58,7 +58,7 @@ namespace HotChocolate.Fusion.Properties {
                 resourceCulture = value;
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Pre-merge validation failed. View the composition log for details..
         /// </summary>
@@ -67,7 +67,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("ErrorHelper_PreMergeValidationFailed", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The built-in scalar type &apos;{0}&apos; is not accessible..
         /// </summary>
@@ -76,7 +76,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_DisallowedInaccessibleBuiltInScalar", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The argument &apos;{0}&apos; on built-in directive type &apos;{1}&apos; is not accessible..
         /// </summary>
@@ -85,7 +85,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_DisallowedInaccessibleDirectiveArgument", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The introspection argument &apos;{0}&apos; with schema coordinate &apos;{1}&apos; is not accessible..
         /// </summary>
@@ -94,7 +94,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_DisallowedInaccessibleIntrospectionArgument", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The introspection field &apos;{0}&apos; on type &apos;{1}&apos; is not accessible..
         /// </summary>
@@ -103,7 +103,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_DisallowedInaccessibleIntrospectionField", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The introspection type &apos;{0}&apos; is not accessible..
         /// </summary>
@@ -112,7 +112,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_DisallowedInaccessibleIntrospectionType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Field &apos;{0}&apos; on type &apos;{1}&apos; is only declared as external..
         /// </summary>
@@ -121,7 +121,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_ExternalMissingOnBase", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Field &apos;{0}&apos; on type &apos;{1}&apos; is not mergeable..
         /// </summary>

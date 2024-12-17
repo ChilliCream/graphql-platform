@@ -62,6 +62,19 @@ public sealed class ExternalArgumentsDefaultMismatchRuleTests
                 }
                 """
             ],
+            () =>
+            [
+                """
+                type Product {
+                  name(language: String = "en", localization: String = "sr"): String
+                }
+                """,
+                """
+                type Product {
+                  name(language: String = "en", localization: String = "sr"): String @external
+                }
+                """
+            ],
         ];
     }
 
@@ -95,7 +108,33 @@ public sealed class ExternalArgumentsDefaultMismatchRuleTests
                   name(language: String): String @external
                 }
                 """
-            ]
+            ],
+            () =>
+            [
+                """
+                type Product {
+                  name(language: String = "en", localization: String = "sr"): String
+                }
+                """,
+                """
+                type Product {
+                  name(language: String = "en", localization: String = "sa"): String @external
+                }
+                """
+            ],
+            () =>
+            [
+                """
+                type Product {
+                  name(language: String = "en", localization: String = "sr"): String
+                }
+                """,
+                """
+                type Product {
+                  name(language: String = "en", localization: String): String @external
+                }
+                """
+            ],
         ];
     }
 }
