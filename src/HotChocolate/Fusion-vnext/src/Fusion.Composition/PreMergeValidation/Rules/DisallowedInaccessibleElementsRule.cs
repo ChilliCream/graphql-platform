@@ -6,9 +6,9 @@ namespace HotChocolate.Fusion.PreMergeValidation.Rules;
 
 /// <summary>
 /// This rule ensures that certain essential elements of a GraphQL schema, particularly built-in
-/// scalars, directive arguments, and introspection types, cannot be marked as @inaccessible. These
-/// types are fundamental to GraphQL. Making these elements inaccessible would break core GraphQL
-/// functionality.
+/// scalars, directive arguments, and introspection types, cannot be marked as <c>@inaccessible</c>.
+/// These types are fundamental to GraphQL. Making these elements inaccessible would break core
+/// GraphQL functionality.
 /// </summary>
 /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Disallowed-Inaccessible-Elements">
 /// Specification
