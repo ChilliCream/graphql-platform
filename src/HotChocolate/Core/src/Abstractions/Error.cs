@@ -111,28 +111,16 @@ public class Error : IError
     }
 
     /// <inheritdoc />
-    public IError WithPath(Path? path)
-        => path is null
-            ? RemovePath()
-            : new Error(Message, Code, path, Locations, Extensions, Exception);
+    public IError WithPath(Path path)
+        => new Error(Message, Code, path, Locations, Extensions, Exception);
 
     /// <inheritdoc />
-    public IError WithPath(IReadOnlyList<object>? path)
-        => WithPath(path is null ? null : Path.FromList(path));
+    public IError WithPath(IReadOnlyList<object> path)
+        => WithPath(Path.FromList(path));
 
     /// <inheritdoc />
-    public IError RemovePath()
-        => new Error(Message, Code, null, Locations, Extensions, Exception);
-
-    /// <inheritdoc />
-    public IError WithLocations(IReadOnlyList<Location>? locations)
-        => locations is null
-            ? RemoveLocations()
-            : new Error(Message, Code, Path, locations, Extensions, Exception);
-
-    /// <inheritdoc />
-    public IError RemoveLocations()
-        => new Error(Message, Code, Path, null, Extensions, Exception);
+    public IError WithLocations(IReadOnlyList<Location> locations)
+        => new Error(Message, Code, Path, locations, Extensions, Exception);
 
     /// <inheritdoc />
     public IError WithExtensions(IReadOnlyDictionary<string, object?> extensions)
