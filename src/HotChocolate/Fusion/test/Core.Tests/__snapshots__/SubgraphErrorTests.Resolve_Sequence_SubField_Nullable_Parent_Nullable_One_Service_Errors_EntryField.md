@@ -9,13 +9,14 @@
       "message": "Unexpected Execution Error",
       "locations": [
         {
-          "line": 4,
-          "column": 5
+          "line": 6,
+          "column": 7
         }
       ],
       "path": [
         "product",
-        "brand"
+        "brand",
+        "name"
       ]
     }
   ],
