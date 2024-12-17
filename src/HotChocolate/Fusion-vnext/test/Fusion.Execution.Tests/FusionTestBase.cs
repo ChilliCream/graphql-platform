@@ -15,14 +15,22 @@ public abstract class FusionTestBase
         return CompositeSchemaBuilder.Create(compositeSchemaDoc);
     }
 
-    protected static CompositeSchema CreateCompositeSchema([StringSyntax("graphql")] string schema)
+    protected static CompositeSchema CreateCompositeSchema(
+        [StringSyntax("graphql")] string schema)
     {
         var compositeSchemaDoc = Utf8GraphQLParser.Parse(schema);
         return CompositeSchemaBuilder.Create(compositeSchemaDoc);
     }
 
-    protected static RequestPlanNode PlanOperation(DocumentNode request, CompositeSchema compositeSchema)
+    protected static RequestPlanNode PlanOperation(
+        [StringSyntax("graphql")] string request,
+        CompositeSchema compositeSchema)
+    {
+        var document = Utf8GraphQLParser.Parse(request);
+        return PlanOperation(document, compositeSchema);
+    }
 
+    protected static RequestPlanNode PlanOperation(DocumentNode request, CompositeSchema compositeSchema)
     {
         var rewriter = new InlineFragmentOperationRewriter(compositeSchema);
         var rewritten = rewriter.RewriteDocument(request, null);

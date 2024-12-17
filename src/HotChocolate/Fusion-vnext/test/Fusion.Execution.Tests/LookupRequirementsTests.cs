@@ -52,15 +52,15 @@ public class LookupRequirementsTests : FusionTestBase
             }
             """);
 
-        var plan = PlanOperationAsync(
-            schema,
+        var plan = PlanOperation(
             """
             {
                 productById(id: 1) {
                     internalSomeOther
                 }
             }
-            """);
+            """,
+            schema);
 
         plan.ToYaml().MatchInlineSnapshot(
             """
