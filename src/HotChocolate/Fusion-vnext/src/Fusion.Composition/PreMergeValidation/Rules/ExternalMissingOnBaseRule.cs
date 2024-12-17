@@ -10,7 +10,7 @@ namespace HotChocolate.Fusion.PreMergeValidation.Rules;
 /// directive is used to indicate that the field is not usually resolved by the source schema it is
 /// declared in, implying it should be resolvable by at least one other source schema.
 /// </summary>
-/// <seealso href="file:///D:/Programming/Git/composite-schemas-spec/public/draft/index.html#sec-External-Missing-on-Base">
+/// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-External-Missing-on-Base">
 /// Specification
 /// </seealso>
 internal sealed class ExternalMissingOnBaseRule : IEventHandler<OutputFieldGroupEvent>
