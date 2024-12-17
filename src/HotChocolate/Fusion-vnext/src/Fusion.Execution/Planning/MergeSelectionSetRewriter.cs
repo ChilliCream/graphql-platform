@@ -19,7 +19,8 @@ public class MergeSelectionSetRewriter(CompositeSchema schema)
             null,
             selectionSets.SelectMany(t => t.Selections).ToList());
 
-        _rewriter.RewriteFields(merged, context);
+        _rewriter.CollectSelections(merged, context);
+        _rewriter.RewriteSelections(context);
 
         return new SelectionSetNode(
             null,

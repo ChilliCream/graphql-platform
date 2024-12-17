@@ -172,6 +172,7 @@ public class InlineFragmentOperationRewriterTests
             """
             {
                 productById(id: 1) {
+                    id
                     ... @include(if: true) {
                         id
                         name
@@ -189,6 +190,7 @@ public class InlineFragmentOperationRewriterTests
             """
             {
               productById(id: 1) {
+                id
                 ... @include(if: true) {
                   id
                   name
@@ -273,6 +275,61 @@ public class InlineFragmentOperationRewriterTests
                 id
                 name @include(if: $skip)
                 name @skip(if: $skip)
+              }
+            }
+            """);
+    }
+
+    [Test]
+    public void Composites_Without_Directives_Are_Merged()
+    {
+        // arrange
+        var compositeSchemaDoc = Utf8GraphQLParser.Parse(FileResource.Open("fusion1.graphql"));
+        var compositeSchema = CompositeSchemaBuilder.Create(compositeSchemaDoc);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($slug: String!) {
+                productBySlug(slug: $slug) {
+                    ...ProductFragment1
+                    ...ProductFragment2
+                }
+            }
+
+            fragment ProductFragment1 on Product {
+                reviews {
+                    nodes {
+                        body
+                    }
+                }
+            }
+
+            fragment ProductFragment2 on Product {
+                reviews {
+                    pageInfo {
+                        hasNextPage
+                    }
+                }
+            }
+            """);
+
+        // act
+        var rewriter = new InlineFragmentOperationRewriter(compositeSchema);
+        var rewritten = rewriter.RewriteDocument(doc, null);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            query($slug: String!) {
+              productBySlug(slug: $slug) {
+                reviews {
+                  nodes {
+                    body
+                  }
+                  pageInfo {
+                    hasNextPage
+                  }
+                }
               }
             }
             """);

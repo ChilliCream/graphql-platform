@@ -16,7 +16,8 @@ public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
         var fragmentLookup = CreateFragmentLookup(document);
         var context = new Context(operationType, fragmentLookup);
 
-        RewriteFields(operation.SelectionSet, context);
+        CollectSelections(operation.SelectionSet, context);
+        RewriteSelections(context);
 
         var newSelectionSet = new SelectionSetNode(
             null,
@@ -33,7 +34,7 @@ public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
         return new DocumentNode(ImmutableArray<IDefinitionNode>.Empty.Add(newOperation));
     }
 
-    internal void RewriteFields(SelectionSetNode selectionSet, Context context)
+    internal void CollectSelections(SelectionSetNode selectionSet, Context context)
     {
         foreach (var selection in selectionSet.Selections)
         {
@@ -41,6 +42,30 @@ public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
             {
                 case FieldNode field:
                     context.AddField(field);
+                    break;
+
+                case InlineFragmentNode inlineFragment:
+                    CollectInlineFragment(inlineFragment, context);
+                    break;
+
+                case FragmentSpreadNode fragmentSpread:
+                    CollectFragmentSpread(fragmentSpread, context);
+                    break;
+            }
+        }
+    }
+
+    internal void RewriteSelections(Context context)
+    {
+        var collectedSelections = context.Selections.ToImmutableArray();
+        context.Selections.Clear();
+
+        foreach (var selection in collectedSelections)
+        {
+            switch (selection)
+            {
+                case FieldNode field:
+                    MergeField(field.Name.Value, context);
                     break;
 
                 case InlineFragmentNode inlineFragment:
@@ -53,9 +78,9 @@ public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
             }
         }
 
-        foreach (var (_, fields) in context.Fields)
+        void MergeField(string fieldName, Context ctx)
         {
-            foreach (var field in fields.GroupBy(t => t, t => t, FieldComparer.Instance))
+            foreach (var field in ctx.Fields[fieldName].GroupBy(t => t, t => t, FieldComparer.Instance))
             {
                 var mergedField = field.Key;
 
@@ -66,7 +91,7 @@ public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
                             field.SelectMany(t => t.SelectionSet!.Selections).ToList()));
                 }
 
-                RewriteField(mergedField, context);
+                RewriteField(mergedField, ctx);
             }
         }
     }
@@ -87,7 +112,8 @@ public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
             var field = ((CompositeComplexType)context.Type).Fields[fieldNode.Name.Value];
             var fieldContext = context.Branch(field.Type.NamedType());
 
-            RewriteFields(fieldNode.SelectionSet, fieldContext);
+            CollectSelections(fieldNode.SelectionSet, fieldContext);
+            RewriteSelections(fieldContext);
 
             var newSelectionSetNode = new SelectionSetNode(
                 null,
@@ -108,23 +134,29 @@ public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
         }
     }
 
-    private void RewriteInlineFragment(InlineFragmentNode inlineFragment, Context context)
+    private void CollectInlineFragment(InlineFragmentNode inlineFragment, Context context)
     {
-        if ((inlineFragment.TypeCondition is  null
-            || inlineFragment.TypeCondition.Name.Value.Equals(context.Type.Name, StringComparison.Ordinal))
+        if ((inlineFragment.TypeCondition is null
+                || inlineFragment.TypeCondition.Name.Value.Equals(context.Type.Name, StringComparison.Ordinal))
             && inlineFragment.Directives.Count == 0)
         {
-            RewriteFields(inlineFragment.SelectionSet, context);
+            CollectSelections(inlineFragment.SelectionSet, context);
             return;
         }
 
+        context.AddInlineFragment(inlineFragment);
+    }
+
+    private void RewriteInlineFragment(InlineFragmentNode inlineFragment, Context context)
+    {
         var typeCondition = inlineFragment.TypeCondition is null
             ? context.Type
             : schema.GetType(inlineFragment.TypeCondition.Name.Value);
 
         var inlineFragmentContext = context.Branch(typeCondition);
 
-        RewriteFields(inlineFragment.SelectionSet, inlineFragmentContext);
+        CollectSelections(inlineFragment.SelectionSet, inlineFragmentContext);
+        RewriteSelections(inlineFragmentContext);
 
         var newSelectionSetNode = new SelectionSetNode(
             null,
@@ -139,7 +171,7 @@ public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
         context.Selections.Add(newInlineFragment);
     }
 
-    private void InlineFragmentDefinition(
+    private void CollectFragmentSpread(
         FragmentSpreadNode fragmentSpread,
         Context context)
     {
@@ -149,28 +181,37 @@ public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
         if (fragmentSpread.Directives.Count == 0
             && typeCondition.IsAssignableFrom(context.Type))
         {
-            RewriteFields(fragmentDefinition.SelectionSet, context);
+            CollectSelections(fragmentDefinition.SelectionSet, context);
+            return;
         }
-        else
+
+        context.AddFragmentSpread(fragmentSpread);
+    }
+
+    private void InlineFragmentDefinition(
+        FragmentSpreadNode fragmentSpread,
+        Context context)
+    {
+        var fragmentDefinition = context.GetFragmentDefinition(fragmentSpread.Name.Value);
+        var typeCondition = schema.GetType(fragmentDefinition.TypeCondition.Name.Value);
+        var fragmentContext = context.Branch(typeCondition);
+
+        CollectSelections(fragmentDefinition.SelectionSet, fragmentContext);
+        RewriteSelections(fragmentContext);
+
+        var selectionSet = new SelectionSetNode(
+            null,
+            fragmentContext.Selections.ToImmutable());
+
+        var inlineFragment = new InlineFragmentNode(
+            null,
+            new NamedTypeNode(typeCondition.Name),
+            RewriteDirectives(fragmentSpread.Directives),
+            selectionSet);
+
+        if (context.Visited.Add(inlineFragment))
         {
-            var fragmentContext = context.Branch(typeCondition);
-
-            RewriteFields(fragmentDefinition.SelectionSet, fragmentContext);
-
-            var selectionSet = new SelectionSetNode(
-                null,
-                fragmentContext.Selections.ToImmutable());
-
-            var inlineFragment = new InlineFragmentNode(
-                null,
-                new NamedTypeNode(typeCondition.Name),
-                RewriteDirectives(fragmentSpread.Directives),
-                selectionSet);
-
-            if (context.Visited.Add(inlineFragment))
-            {
-                context.Selections.Add(inlineFragment);
-            }
+            context.Selections.Add(inlineFragment);
         }
     }
 
@@ -194,6 +235,7 @@ public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
             var directive = directives[i];
             buffer[i] = new DirectiveNode(directive.Name.Value, RewriteArguments(directive.Arguments));
         }
+
         return ImmutableArray.Create(buffer);
     }
 
@@ -214,6 +256,7 @@ public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
         {
             buffer[i] = arguments[i].WithLocation(null);
         }
+
         return ImmutableArray.Create(buffer);
     }
 
@@ -243,7 +286,7 @@ public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
 
         public HashSet<ISelectionNode> Visited { get; } = new(SyntaxComparer.BySyntax);
 
-        public OrderedDictionary<string, List<FieldNode>> Fields { get; } = new(StringComparer.Ordinal);
+        public Dictionary<string, List<FieldNode>> Fields { get; } = new(StringComparer.Ordinal);
 
         public FragmentDefinitionNode GetFragmentDefinition(string name)
             => fragments[name];
@@ -254,9 +297,20 @@ public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
             {
                 fields = [];
                 Fields.Add(field.Name.Value, fields);
+                Selections.Add(field);
             }
 
             fields.Add(field);
+        }
+
+        public void AddInlineFragment(InlineFragmentNode inlineFragment)
+        {
+            Selections.Add(inlineFragment);
+        }
+
+        public void AddFragmentSpread(FragmentSpreadNode fragmentSpread)
+        {
+            Selections.Add(fragmentSpread);
         }
 
         public Context Branch(ICompositeNamedType type)
@@ -329,7 +383,7 @@ public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
 #if NET8_0
 public class OrderedDictionary<TKey, TValue>
     : IDictionary<TKey, TValue>
-    , IReadOnlyDictionary<TKey, TValue>
+        , IReadOnlyDictionary<TKey, TValue>
     where TKey : notnull
 {
     private readonly List<KeyValuePair<TKey, TValue>> _order;
@@ -441,6 +495,7 @@ public class OrderedDictionary<TKey, TValue>
             _order.RemoveAt(IndexOfKey(key));
             return true;
         }
+
         return false;
     }
 
@@ -467,6 +522,7 @@ public class OrderedDictionary<TKey, TValue>
                 return i;
             }
         }
+
         return -1;
     }
 
