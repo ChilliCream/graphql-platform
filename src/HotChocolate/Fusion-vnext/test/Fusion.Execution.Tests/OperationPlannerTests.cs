@@ -1,6 +1,7 @@
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Language;
+using static HotChocolate.Language.Utf8GraphQLParser;
 
 namespace HotChocolate.Fusion;
 
@@ -12,12 +13,10 @@ public class OperationPlannerTests : FusionTestBase
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperationAsync(
-            compositeSchema,
+        var request = Parse(
             """
             {
-                productById(id: 1) {
+                productBySlug(slug: "1") {
                     ... Product
                 }
             }
@@ -28,21 +27,11 @@ public class OperationPlannerTests : FusionTestBase
             }
             """);
 
-        // assert
-        plan.ToYaml().MatchInlineSnapshot(
-            """
-            nodes:
-              - id: 1
-                schema: "PRODUCTS"
-                operation: >-
-                  {
-                    productById(id: 1) {
-                      id
-                      name
-                    }
-                  }
+        // act
+        var plan = PlanOperation(request, compositeSchema);
 
-            """);
+        // assert
+        plan.MatchSnapshot();
     }
 
     [Test]
@@ -51,12 +40,10 @@ public class OperationPlannerTests : FusionTestBase
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperationAsync(
-            compositeSchema,
+        var request = Parse(
             """
             {
-                productById(id: 1) {
+                productBySlug(slug: "1") {
                     ... Product
                 }
             }
@@ -68,36 +55,11 @@ public class OperationPlannerTests : FusionTestBase
             }
             """);
 
-        // assert
-        plan.ToYaml().MatchInlineSnapshot(
-            """
-            nodes:
-              - id: 1
-                schema: "PRODUCTS"
-                operation: >-
-                  {
-                    productById(id: 1) {
-                      id
-                      name
-                      id
-                    }
-                  }
-              - id: 2
-                schema: "SHIPPING"
-                operation: >-
-                  query($__fusion_requirement_1: ID!) {
-                    productById(id: $__fusion_requirement_1) {
-                      estimatedDelivery(postCode: "12345")
-                    }
-                  }
-                requirements:
-                  - name: "__fusion_requirement_1"
-                    dependsOn: "1"
-                    selectionSet: "productById"
-                    field: "id"
-                    type: "ID!"
+        // act
+        var plan = PlanOperation(request, compositeSchema);
 
-            """);
+        // assert
+        plan.MatchSnapshot();
     }
 
     [Test]
@@ -106,12 +68,10 @@ public class OperationPlannerTests : FusionTestBase
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperationAsync(
-            compositeSchema,
+        var request = Parse(
             """
             {
-                productById(id: 1) {
+                productBySlug(slug: "1") {
                     ... ProductCard
                 }
             }
@@ -138,57 +98,11 @@ public class OperationPlannerTests : FusionTestBase
             }
             """);
 
-        // assert
-        plan.ToYaml().MatchInlineSnapshot(
-            """
-            nodes:
-              - id: 1
-                schema: "PRODUCTS"
-                operation: >-
-                  {
-                    productById(id: 1) {
-                      name
-                      id
-                    }
-                  }
-              - id: 2
-                schema: "REVIEWS"
-                operation: >-
-                  query($__fusion_requirement_2: ID!) {
-                    productById(id: $__fusion_requirement_2) {
-                      reviews(first: 10) {
-                        nodes {
-                          body
-                          stars
-                          author {
-                            id
-                          }
-                        }
-                      }
-                    }
-                  }
-                requirements:
-                  - name: "__fusion_requirement_2"
-                    dependsOn: "1"
-                    selectionSet: "productById"
-                    field: "id"
-                    type: "ID!"
-              - id: 3
-                schema: "ACCOUNTS"
-                operation: >-
-                  query($__fusion_requirement_1: ID!) {
-                    userById(id: $__fusion_requirement_1) {
-                      displayName
-                    }
-                  }
-                requirements:
-                  - name: "__fusion_requirement_1"
-                    dependsOn: "2"
-                    selectionSet: "productById.reviews.nodes.author"
-                    field: "id"
-                    type: "ID!"
+        // act
+        var plan = PlanOperation(request, compositeSchema);
 
-            """);
+        // assert
+        plan.MatchSnapshot();
     }
 
     [Test]
@@ -197,12 +111,10 @@ public class OperationPlannerTests : FusionTestBase
         // arrange
         var compositeSchema = CreateCompositeSchema();
 
-        // act
-        var plan = PlanOperationAsync(
-            compositeSchema,
+        var request = Parse(
             """
-            query GetProduct($id: ID!, $first: Int! = 10) {
-                productById(id: $id) {
+            query GetProduct($slug: String! $first: Int! = 10) {
+                productBySlug(slug: $slug) {
                     ... ProductCard
                 }
             }
@@ -229,66 +141,20 @@ public class OperationPlannerTests : FusionTestBase
             }
             """);
 
-        // assert
-        plan.ToYaml().MatchInlineSnapshot(
-            """
-            nodes:
-              - id: 1
-                schema: "PRODUCTS"
-                operation: >-
-                  query($id: ID!) {
-                    productById(id: $id) {
-                      name
-                      id
-                    }
-                  }
-              - id: 2
-                schema: "REVIEWS"
-                operation: >-
-                  query($__fusion_requirement_2: ID!, $first: Int! = 10) {
-                    productById(id: $__fusion_requirement_2) {
-                      reviews(first: $first) {
-                        nodes {
-                          body
-                          stars
-                          author {
-                            id
-                          }
-                        }
-                      }
-                    }
-                  }
-                requirements:
-                  - name: "__fusion_requirement_2"
-                    dependsOn: "1"
-                    selectionSet: "productById"
-                    field: "id"
-                    type: "ID!"
-              - id: 3
-                schema: "ACCOUNTS"
-                operation: >-
-                  query($__fusion_requirement_1: ID!) {
-                    userById(id: $__fusion_requirement_1) {
-                      displayName
-                    }
-                  }
-                requirements:
-                  - name: "__fusion_requirement_1"
-                    dependsOn: "2"
-                    selectionSet: "productById.reviews.nodes.author"
-                    field: "id"
-                    type: "ID!"
+        // act
+        var plan = PlanOperation(request, compositeSchema);
 
-            """);
+        // assert
+        plan.MatchSnapshot();
     }
 
     [Test]
     public void Plan_With_Conditional_InlineFragment()
     {
-        var compositeSchemaDoc = Utf8GraphQLParser.Parse(FileResource.Open("fusion1.graphql"));
-        var compositeSchema = CompositeSchemaBuilder.Create(compositeSchemaDoc);
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
 
-        var doc = Utf8GraphQLParser.Parse(
+        var request = Parse(
             """
             {
                 productById(id: 1) {
@@ -305,27 +171,10 @@ public class OperationPlannerTests : FusionTestBase
             }
             """);
 
-        var rewriter = new InlineFragmentOperationRewriter(compositeSchema);
-        var rewritten = rewriter.RewriteDocument(doc, null);
-
         // act
-        var planner = new OperationPlanner(compositeSchema);
-        var plan = planner.CreatePlan(rewritten, null);
+        var plan = PlanOperation(request, compositeSchema);
 
         // assert
-        plan.ToYaml().MatchInlineSnapshot(
-            """
-            nodes:
-              - id: 1
-                schema: "PRODUCTS"
-                operation: >-
-                  {
-                    productById(id: 1) {
-                      id
-                      name
-                    }
-                  }
-
-            """);
+        plan.MatchSnapshot();
     }
 }

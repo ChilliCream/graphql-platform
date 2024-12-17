@@ -1,0 +1,39 @@
+request:
+  - document: >-
+      query($slug: String!, $skip: Boolean!) {
+        productBySlug(slug: $slug) {
+          ... on Product @skip(if: $skip) {
+            name
+            averageRating
+          }
+        }
+      }
+nodes:
+  - id: 1
+    schema: "PRODUCTS"
+    operation: >-
+      query($skip: Boolean!, $slug: String!) {
+        productBySlug(slug: $slug) {
+          ... on Product @skip(if: $skip) {
+            name
+          }
+          id
+        }
+      }
+  - id: 2
+    schema: "REVIEWS"
+    operation: >-
+      query($__fusion_requirement_1: ID!) {
+        productById(id: $__fusion_requirement_1) {
+          ... on Product {
+            averageRating
+          }
+        }
+      }
+    skipIf: "skip"
+    requirements:
+      - name: "__fusion_requirement_1"
+        dependsOn: "1"
+        selectionSet: "productBySlug"
+        field: "id"
+        type: "ID!"

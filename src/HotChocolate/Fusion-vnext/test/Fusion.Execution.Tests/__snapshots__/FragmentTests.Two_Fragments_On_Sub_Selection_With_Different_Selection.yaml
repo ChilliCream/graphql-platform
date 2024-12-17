@@ -1,0 +1,18 @@
+request:
+  - document: >-
+      query($slug: String!) {
+        productBySlug(slug: $slug) {
+          name
+          description
+        }
+      }
+nodes:
+  - id: 1
+    schema: "PRODUCTS"
+    operation: >-
+      query($slug: String!) {
+        productBySlug(slug: $slug) {
+          name
+          description
+        }
+      }

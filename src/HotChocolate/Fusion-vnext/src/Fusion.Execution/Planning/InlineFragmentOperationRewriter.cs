@@ -4,6 +4,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning;
 
+// TODO: We need to merge selections
 public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
 {
     public DocumentNode RewriteDocument(DocumentNode document, string? operationName)
@@ -135,7 +136,7 @@ public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
         {
             var fragmentContext = context.Branch(typeCondition);
 
-            RewriteFields(fragmentDefinition.SelectionSet, context);
+            RewriteFields(fragmentDefinition.SelectionSet, fragmentContext);
 
             var selectionSet = new SelectionSetNode(
                 null,

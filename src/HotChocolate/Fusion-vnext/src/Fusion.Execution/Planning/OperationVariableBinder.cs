@@ -7,9 +7,9 @@ internal static class OperationVariableBinder
 {
     public static void BindOperationVariables(
         OperationDefinitionNode operationDefinition,
-        RootPlanNode operationPlan)
+        RequestPlanNode operationPlan)
     {
-        var operationBacklog = new Stack<OperationPlanNode>(operationPlan.Operations.OfType<OperationPlanNode>());
+        var operationBacklog = new Stack<OperationPlanNode>(operationPlan.Operations);
         var selectionBacklog = new Stack<SelectionPlanNode>();
         var variableDefinitions = operationDefinition.VariableDefinitions.ToDictionary(t => t.Variable.Name.Value);
         var usedVariables = new HashSet<string>();
@@ -18,7 +18,7 @@ internal static class OperationVariableBinder
         {
             CollectAndBindUsedVariables(operation, variableDefinitions, usedVariables, selectionBacklog);
 
-            foreach (var child in operation.Dependants.OfType<OperationPlanNode>())
+            foreach (var child in operation.Dependants)
             {
                 operationBacklog.Push(child);
             }
@@ -46,15 +46,15 @@ internal static class OperationVariableBinder
                         usedVariables.Add(variable.Name.Value);
                     }
                 }
+            }
 
-                foreach (var directive in field.Directives)
+            foreach (var directive in node.Directives)
+            {
+                foreach (var argument in directive.Arguments)
                 {
-                    foreach (var argument in directive.Arguments)
+                    if (argument.Value is VariableNode variable)
                     {
-                        if (argument.Value is VariableNode variable)
-                        {
-                            usedVariables.Add(variable.Name.Value);
-                        }
+                        usedVariables.Add(variable.Name.Value);
                     }
                 }
             }
@@ -67,7 +67,7 @@ internal static class OperationVariableBinder
 
         foreach (var variable in usedVariables)
         {
-            if(variableDefinitions.TryGetValue(variable, out var variableDefinition))
+            if (variableDefinitions.TryGetValue(variable, out var variableDefinition))
             {
                 operation.AddVariableDefinition(variableDefinition);
             }
