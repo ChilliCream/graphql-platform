@@ -1,13 +1,12 @@
-using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Language;
 
-namespace HotChocolate.Fusion.Execution.Planning;
+namespace HotChocolate.Fusion.Planning;
 
-public static class InlineFragmentOperationRewriterTests
+public class InlineFragmentOperationRewriterTests
 {
-    [Fact]
-    public static void Inline_Into_ProductById_SelectionSet()
+    [Test]
+    public void Inline_Into_ProductById_SelectionSet()
     {
         // arrange
         var compositeSchemaDoc = Utf8GraphQLParser.Parse(FileResource.Open("fusion1.graphql"));
@@ -43,8 +42,8 @@ public static class InlineFragmentOperationRewriterTests
             """);
     }
 
-    [Fact]
-    public static void Inline_Into_ProductById_SelectionSet_2_Levels()
+    [Test]
+    public void Inline_Into_ProductById_SelectionSet_2_Levels()
     {
         // arrange
         var compositeSchemaDoc = Utf8GraphQLParser.Parse(FileResource.Open("fusion1.graphql"));
@@ -84,8 +83,8 @@ public static class InlineFragmentOperationRewriterTests
             """);
     }
 
-    [Fact]
-    public static void Inline_Inline_Fragment_Into_ProductById_SelectionSet_1()
+    [Test]
+    public void Inline_Inline_Fragment_Into_ProductById_SelectionSet_1()
     {
         // arrange
         var compositeSchemaDoc = Utf8GraphQLParser.Parse(FileResource.Open("fusion1.graphql"));
@@ -119,8 +118,8 @@ public static class InlineFragmentOperationRewriterTests
             """);
     }
 
-    [Fact]
-    public static void Inline_Into_ProductById_SelectionSet_3_Levels()
+    [Test]
+    public void Inline_Into_ProductById_SelectionSet_3_Levels()
     {
         // arrange
         var compositeSchemaDoc = Utf8GraphQLParser.Parse(FileResource.Open("fusion1.graphql"));
@@ -162,8 +161,8 @@ public static class InlineFragmentOperationRewriterTests
             """);
     }
 
-    [Fact]
-    public static void Do_Not_Inline_Inline_Fragment_Into_ProductById_SelectionSet()
+    [Test]
+    public void Do_Not_Inline_Inline_Fragment_Into_ProductById_SelectionSet()
     {
         // arrange
         var compositeSchemaDoc = Utf8GraphQLParser.Parse(FileResource.Open("fusion1.graphql"));
@@ -199,8 +198,8 @@ public static class InlineFragmentOperationRewriterTests
             """);
     }
 
-    [Fact]
-    public static void Deduplicate_Fields()
+    [Test]
+    public void Deduplicate_Fields()
     {
         // arrange
         var compositeSchemaDoc = Utf8GraphQLParser.Parse(FileResource.Open("fusion1.graphql"));
@@ -233,6 +232,47 @@ public static class InlineFragmentOperationRewriterTests
               productById(id: 1) {
                 id
                 name
+              }
+            }
+            """);
+    }
+
+    [Test]
+    public void Leafs_With_Different_Directives_Do_Not_Merge()
+    {
+        // arrange
+        var compositeSchemaDoc = Utf8GraphQLParser.Parse(FileResource.Open("fusion1.graphql"));
+        var compositeSchema = CompositeSchemaBuilder.Create(compositeSchemaDoc);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($skip: Boolean!) {
+                productById(id: 1) {
+                    ... Product
+                }
+            }
+
+            fragment Product on Product {
+                id
+                name @include(if: $skip)
+                name @include(if: $skip)
+                name @skip(if: $skip)
+                name @skip(if: $skip)
+            }
+            """);
+
+        // act
+        var rewriter = new InlineFragmentOperationRewriter(compositeSchema);
+        var rewritten = rewriter.RewriteDocument(doc, null);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            query($skip: Boolean!) {
+              productById(id: 1) {
+                id
+                name @include(if: $skip)
+                name @skip(if: $skip)
               }
             }
             """);

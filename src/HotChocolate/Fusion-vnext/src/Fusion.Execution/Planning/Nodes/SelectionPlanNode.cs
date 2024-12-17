@@ -10,6 +10,7 @@ public abstract class SelectionPlanNode : PlanNode
 {
     private List<CompositeDirective>? _directives;
     private List<SelectionPlanNode>? _selections;
+    private List<SelectionSetNode>? _requirements;
     private bool? _isConditional;
     private string? _skipVariable;
     private string? _includeVariable;
@@ -68,6 +69,12 @@ public abstract class SelectionPlanNode : PlanNode
     /// </summary>
     public IReadOnlyList<SelectionPlanNode> Selections
         => _selections ?? (IReadOnlyList<SelectionPlanNode>)Array.Empty<SelectionPlanNode>();
+
+    /// <summary>
+    /// Gets the requirements that are needed to execute this selection.
+    /// </summary>
+    public IReadOnlyList<SelectionSetNode> RequirementNodes
+        => _requirements ?? (IReadOnlyList<SelectionSetNode>)Array.Empty<SelectionSetNode>();
 
     /// <summary>
     /// Defines if the selection is conditional.
@@ -149,6 +156,12 @@ public abstract class SelectionPlanNode : PlanNode
 
     public bool RemoveDirective(CompositeDirective directive)
         => _directives?.Remove(directive) == true;
+
+    public void AddRequirementNode(SelectionSetNode selectionSet)
+    {
+        ArgumentNullException.ThrowIfNull(selectionSet);
+        (_requirements ??= []).Add(selectionSet);
+    }
 
     private void InitializeConditions()
     {

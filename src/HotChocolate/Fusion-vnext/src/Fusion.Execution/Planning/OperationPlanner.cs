@@ -173,7 +173,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
         if (unresolvedSelections is { Count: > 0 })
         {
             var unresolvedInlineFragment =
-                new UnresolvedInlineFragment(inlineFragmentNode.Directives, typeCondition, unresolvedSelections);
+                new UnresolvedInlineFragment(typeCondition, inlineFragmentNode.Directives, unresolvedSelections);
 
             trackUnresolvedSelection(unresolvedInlineFragment);
         }
@@ -213,12 +213,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
 
             if (source.Requirements is not null)
             {
-                var unresolvedRequirements = ParseSelectionSet(type, source.Requirements.SelectionSet);
-                foreach (var requiredField in unresolvedRequirements)
-                {
-                    // TODO : reintegrate
-                    // trackRequiredField(new UnresolvedField(requiredField.FieldNode, requiredField.Field));
-                }
+                context.Parent.AddRequirementNode(source.Requirements.SelectionSet);
             }
 
             // if the field has no selection set it must be a leaf type.
@@ -831,11 +826,11 @@ public sealed class OperationPlanner(CompositeSchema schema)
         return false;
     }
 
-    private static IReadOnlyList<UnresolvedField> ParseSelectionSet(
+    private IReadOnlyList<IUnresolvedSelection> ParseRequirements(
         CompositeComplexType type,
         SelectionSetNode selectionSetNode)
     {
-        var unresolvedFields = new List<UnresolvedField>();
+        var unresolvedFields = new List<IUnresolvedSelection>();
 
         foreach (var selectionNode in selectionSetNode.Selections)
         {
@@ -848,6 +843,21 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 }
 
                 unresolvedFields.Add(new UnresolvedField(fieldNode, field));
+            }
+            else if (selectionNode is InlineFragmentNode fragmentNode)
+            {
+                var typeCondition = type;
+                if (fragmentNode.TypeCondition?.Name is { Value : { } conditionTypeName }  &&
+                    schema.TryGetType<CompositeComplexType>(conditionTypeName, out var typeConditionType))
+                {
+                    typeCondition = typeConditionType;
+                }
+
+                unresolvedFields.Add(
+                    new UnresolvedInlineFragment(
+                        typeCondition,
+                        fragmentNode.Directives,
+                        ParseRequirements(typeCondition, fragmentNode.SelectionSet)));
             }
         }
 
@@ -864,12 +874,14 @@ public sealed class OperationPlanner(CompositeSchema schema)
 
     public record UnresolvedField(
         FieldNode FieldNode,
-        CompositeOutputField Field) : IUnresolvedSelection;
+        CompositeOutputField Field)
+        : IUnresolvedSelection;
 
     public record UnresolvedInlineFragment(
-        IReadOnlyList<DirectiveNode> Directives,
         CompositeComplexType TypeCondition,
-        List<IUnresolvedSelection> UnresolvedSelections) : IUnresolvedSelection;
+        IReadOnlyList<DirectiveNode> Directives,
+        IReadOnlyList<IUnresolvedSelection> UnresolvedSelections)
+        : IUnresolvedSelection;
 
     private record struct LookupOperation(
         OperationPlanNode Operation,
