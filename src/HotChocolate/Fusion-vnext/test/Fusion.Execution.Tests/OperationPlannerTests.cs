@@ -7,7 +7,7 @@ namespace HotChocolate.Fusion;
 
 public class OperationPlannerTests : FusionTestBase
 {
-    [Test]
+    [Fact]
     public void Plan_Simple_Operation_1_Source_Schema()
     {
         // arrange
@@ -34,7 +34,7 @@ public class OperationPlannerTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Plan_Simple_Operation_2_Source_Schema()
     {
         // arrange
@@ -62,7 +62,7 @@ public class OperationPlannerTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Plan_Simple_Operation_3_Source_Schema()
     {
         // arrange
@@ -105,7 +105,7 @@ public class OperationPlannerTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Plan_Simple_Operation_3_Source_Schema_And_Single_Variable()
     {
         // arrange
@@ -148,7 +148,7 @@ public class OperationPlannerTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Plan_With_Conditional_InlineFragment()
     {
         // arrange

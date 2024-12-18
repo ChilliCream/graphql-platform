@@ -5,7 +5,7 @@ namespace HotChocolate.Fusion;
 // TODO: Test shared skip selection with one selection having an include - should fail today incorrectly!
 public class SkipAndIncludeTests : FusionTestBase
 {
-    [Test]
+    [Fact]
     public void Skip_And_Include_On_RootField()
     {
         // arrange
@@ -32,7 +32,7 @@ public class SkipAndIncludeTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skip_And_Include_On_RootField_With_Same_Variable()
     {
         // arrange
@@ -59,7 +59,7 @@ public class SkipAndIncludeTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skip_And_Include_On_RootField_Skip_False()
     {
         // arrange
@@ -86,7 +86,7 @@ public class SkipAndIncludeTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skip_And_Include_On_RootField_Skip_True()
     {
         // arrange
@@ -113,7 +113,7 @@ public class SkipAndIncludeTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skip_And_Include_On_RootField_Skip_True_Include_False()
     {
         // arrange
@@ -140,7 +140,7 @@ public class SkipAndIncludeTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skip_And_Include_On_RootField_Skip_False_Include_True()
     {
         // arrange
@@ -167,7 +167,7 @@ public class SkipAndIncludeTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skip_And_Include_On_RootField_Skip_True_Include_True()
     {
         // arrange
@@ -194,7 +194,7 @@ public class SkipAndIncludeTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skip_And_Include_On_RootField_Skip_False_Include_False()
     {
         // arrange
@@ -221,7 +221,7 @@ public class SkipAndIncludeTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skip_And_Include_On_RootField_Only_Skipped_Field_Selected()
     {
         // arrange
@@ -243,7 +243,7 @@ public class SkipAndIncludeTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skip_And_Include_On_RootField_Only_Skipped_Field_Selected_With_Same_Variable()
     {
         // arrange
@@ -265,7 +265,7 @@ public class SkipAndIncludeTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skip_And_Include_On_RootField_Only_Skipped_Field_Selected_Skip_False()
     {
         // arrange
@@ -287,7 +287,7 @@ public class SkipAndIncludeTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skip_And_Include_On_RootField_Only_Skipped_Field_Selected_Skip_True()
     {
         // arrange
@@ -309,7 +309,7 @@ public class SkipAndIncludeTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skip_And_Include_On_RootField_Only_Skipped_Field_Selected_Skip_True_Include_False()
     {
         // arrange
@@ -331,7 +331,7 @@ public class SkipAndIncludeTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skip_And_Include_On_RootField_Only_Skipped_Field_Selected_Skip_False_Include_True()
     {
         // arrange
@@ -353,7 +353,7 @@ public class SkipAndIncludeTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skip_And_Include_On_RootField_Only_Skipped_Field_Selected_Skip_True_Include_True()
     {
         // arrange
@@ -375,7 +375,7 @@ public class SkipAndIncludeTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skip_And_Include_On_RootField_Only_Skipped_Field_Selected_Skip_False_Include_False()
     {
         // arrange
@@ -397,7 +397,7 @@ public class SkipAndIncludeTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skip_And_Include_On_SubField()
     {
         // arrange
@@ -420,7 +420,7 @@ public class SkipAndIncludeTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skip_And_Include_On_SubField_With_Same_Variable()
     {
         // arrange
@@ -443,7 +443,7 @@ public class SkipAndIncludeTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skip_And_Include_On_SubField_Skip_False()
     {
         // arrange
@@ -466,7 +466,7 @@ public class SkipAndIncludeTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skip_And_Include_On_SubField_Skip_True()
     {
         // arrange
@@ -489,7 +489,7 @@ public class SkipAndIncludeTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skip_And_Include_On_SubField_Skip_True_Include_False()
     {
         // arrange
@@ -512,7 +512,7 @@ public class SkipAndIncludeTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skip_And_Include_On_SubField_Skip_False_Include_True()
     {
         // arrange
@@ -535,7 +535,7 @@ public class SkipAndIncludeTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skip_And_Include_On_SubField_Skip_True_Include_True()
     {
         // arrange
@@ -558,7 +558,7 @@ public class SkipAndIncludeTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skip_And_Include_On_SubField_Skip_False_Include_False()
     {
         // arrange
@@ -581,7 +581,7 @@ public class SkipAndIncludeTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skip_And_Include_On_SubField_Only_Skipped_Field_Selected()
     {
         // arrange
@@ -603,7 +603,7 @@ public class SkipAndIncludeTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skip_And_Include_On_SubField_Only_Skipped_Field_Selected_Skip_False()
     {
         // arrange
@@ -625,7 +625,7 @@ public class SkipAndIncludeTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skip_And_Include_On_SubField_Only_Skipped_Field_Selected_Skip_True()
     {
         // arrange
@@ -647,7 +647,7 @@ public class SkipAndIncludeTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skip_And_Include_On_SubField_Only_Skipped_Field_Selected_With_Same_Variable()
     {
         // arrange
@@ -669,7 +669,7 @@ public class SkipAndIncludeTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skip_And_Include_On_SubField_Only_Skipped_Field_Selected_Skip_True_Include_False()
     {
         // arrange
@@ -691,7 +691,7 @@ public class SkipAndIncludeTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skip_And_Include_On_SubField_Only_Skipped_Field_Selected_Skip_False_Include_True()
     {
         // arrange
@@ -713,7 +713,7 @@ public class SkipAndIncludeTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skip_And_Include_On_SubField_Only_Skipped_Field_Selected_Skip_True_Include_True()
     {
         // arrange
@@ -735,7 +735,7 @@ public class SkipAndIncludeTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skip_And_Include_On_SubField_Only_Skipped_Field_Selected_Skip_False_Include_False()
     {
         // arrange

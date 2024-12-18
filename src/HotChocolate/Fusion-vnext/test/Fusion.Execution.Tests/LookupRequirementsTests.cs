@@ -4,7 +4,7 @@ namespace HotChocolate.Fusion;
 
 public class LookupRequirementsTests : FusionTestBase
 {
-    [Test]
+    [Fact]
     public void Key_Has_Requirement_To_Schema_That_Is_Not_In_Context()
     {
         var schema = CreateCompositeSchema(
