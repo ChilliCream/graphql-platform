@@ -76,12 +76,22 @@ internal static class LogEntryHelper
             new SchemaCoordinate(directiveName, argumentName: argument.Name, ofDirective: true),
             schema: schema);
 
-    public static LogEntry OutputFieldTypesNotMergeable(string typeName, string fieldName)
+    public static LogEntry ExternalMissingOnBase(string fieldName, string typeName)
+        => new(
+            string.Format(
+                LogEntryHelper_ExternalMissingOnBase,
+                fieldName,
+                typeName),
+            LogEntryCodes.ExternalMissingOnBase,
+            LogSeverity.Error,
+            new SchemaCoordinate(typeName, fieldName));
+
+    public static LogEntry OutputFieldTypesNotMergeable(string fieldName, string typeName)
         => new(
             string.Format(
                 LogEntryHelper_OutputFieldTypesNotMergeable,
-                typeName,
-                fieldName),
+                fieldName,
+                typeName),
             LogEntryCodes.OutputFieldTypesNotMergeable,
             LogSeverity.Error,
             new SchemaCoordinate(typeName, fieldName));

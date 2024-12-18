@@ -36,6 +36,9 @@
   <data name="LogEntryHelper_DisallowedInaccessibleDirectiveArgument" xml:space="preserve">
     <value>The argument '{0}' on built-in directive type '{1}' is not accessible.</value>
   </data>
+  <data name="LogEntryHelper_ExternalMissingOnBase" xml:space="preserve">
+    <value>Field '{0}' on type '{1}' is only declared as external.</value>
+  </data>
   <data name="LogEntryHelper_OutputFieldTypesNotMergeable" xml:space="preserve">
     <value>Field '{0}' on type '{1}' is not mergeable.</value>
   </data>
