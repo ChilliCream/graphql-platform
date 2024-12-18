@@ -334,4 +334,43 @@ public class InlineFragmentOperationRewriterTests
             }
             """);
     }
+
+    [Test]
+    public void Merge_Fields_With_Aliases()
+    {
+        // arrange
+        var compositeSchemaDoc = Utf8GraphQLParser.Parse(FileResource.Open("fusion1.graphql"));
+        var compositeSchema = CompositeSchemaBuilder.Create(compositeSchemaDoc);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($slug: String!) {
+                productBySlug(slug: $slug) {
+                   ... {
+                       a: name
+                   }
+                   a: name
+                   name
+                   ... {
+                       name
+                   }
+                }
+            }
+            """);
+
+        // act
+        var rewriter = new InlineFragmentOperationRewriter(compositeSchema);
+        var rewritten = rewriter.RewriteDocument(doc, null);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            query($slug: String!) {
+              productBySlug(slug: $slug) {
+                a: name
+                name
+              }
+            }
+            """);
+    }
 }
