@@ -6,8 +6,6 @@ request:
             nodes {
               body
             }
-          }
-          reviews {
             pageInfo {
               hasNextPage
             }
@@ -32,8 +30,6 @@ nodes:
             nodes {
               body
             }
-          }
-          reviews {
             pageInfo {
               hasNextPage
             }

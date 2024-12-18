@@ -2,7 +2,7 @@ request:
   - document: >-
       query($slug: String!) {
         productBySlug(slug: $slug) {
-          description
+          a: name
           name
         }
       }
@@ -12,7 +12,7 @@ nodes:
     operation: >-
       query($slug: String!) {
         productBySlug(slug: $slug) {
-          description
+          a: name
           name
         }
       }
