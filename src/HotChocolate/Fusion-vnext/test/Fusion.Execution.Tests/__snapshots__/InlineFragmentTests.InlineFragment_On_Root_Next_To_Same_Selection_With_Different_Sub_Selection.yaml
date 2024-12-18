@@ -3,8 +3,6 @@ request:
       query($slug: String!) {
         productBySlug(slug: $slug) {
           description
-        }
-        productBySlug(slug: $slug) {
           name
         }
       }
@@ -15,8 +13,6 @@ nodes:
       query($slug: String!) {
         productBySlug(slug: $slug) {
           description
-        }
-        productBySlug(slug: $slug) {
           name
         }
       }

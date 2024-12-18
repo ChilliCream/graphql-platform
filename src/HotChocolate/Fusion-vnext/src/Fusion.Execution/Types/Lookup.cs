@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Types;
 
@@ -35,4 +36,9 @@ public sealed class Lookup
     /// Gets the paths to the field that are required.
     /// </summary>
     public ImmutableArray<FieldPath> Fields { get; }
+
+    /// <summary>
+    /// Gets the complexity score of fulfilling the requirements.
+    /// </summary>
+    public int RequirementsCost { get; set; }
 }

@@ -222,7 +222,7 @@ directive @fusion__inputField(
 directive @fusion__requires(
   schema: fusion__Schema!
   field: fusion__FieldDefinition!
-  map: [fusion__FieldSelectionMap!]!
+  map: [fusion__FieldSelectionMap]!
 ) repeatable on FIELD_DEFINITION
 
 directive @fusion__lookup(

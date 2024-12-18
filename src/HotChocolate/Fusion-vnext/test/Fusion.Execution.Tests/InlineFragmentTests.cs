@@ -408,4 +408,33 @@ public class InlineFragmentTests : FusionTestBase
         // assert
         plan.MatchSnapshot();
     }
+
+    [Test]
+    public void Merge_Fields_With_Alias()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Utf8GraphQLParser.Parse(
+            """
+            query($slug: String!) {
+                productBySlug(slug: $slug) {
+                   ... {
+                       a: name
+                   }
+                   a: name
+                   name
+                   ... {
+                       name
+                   }
+                }
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        plan.MatchSnapshot();
+    }
 }

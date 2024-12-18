@@ -2,6 +2,7 @@ using System.Collections.Frozen;
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Directives;
+using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Types.Completion;
@@ -295,21 +296,25 @@ public static class CompositeSchemaBuilder
 
             if (requireDirective is not null)
             {
-                var arguments = ImmutableArray.CreateBuilder<RequiredArgument>();
+                var argumentsBuilder = ImmutableArray.CreateBuilder<RequiredArgument>();
 
                 foreach (var argument in requireDirective.Field.Arguments)
                 {
-                    arguments.Add(new RequiredArgument(argument.Name.Value, argument.Type));
+                    argumentsBuilder.Add(new RequiredArgument(argument.Name.Value, argument.Type));
                 }
 
-                var fields = ImmutableArray.CreateBuilder<FieldPath>();
+                var fieldsBuilder = ImmutableArray.CreateBuilder<FieldPath>();
 
                 foreach (var field in requireDirective.Map)
                 {
-                    fields.Add(FieldPath.Parse(field));
+                    fieldsBuilder.Add(FieldPath.Parse(field));
                 }
 
-                return new FieldRequirements(schemaName, arguments.ToImmutable(), fields.ToImmutable());
+                var arguments = argumentsBuilder.ToImmutable();
+                var fields = fieldsBuilder.ToImmutable();
+                var selectionSet = fields.ToSelectionSetNode();
+
+                return new FieldRequirements(schemaName, arguments, fields, selectionSet);
             }
 
             return null;
