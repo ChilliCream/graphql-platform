@@ -61,6 +61,7 @@
     <PackageVersion Include="System.Reactive" Version="6.0.0" />
     <PackageVersion Include="Xunit" Version="2.9.0" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <PackageVersion Include="xunit.v3" Version="1.0.0" />
     <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="17.12.5" />
     <PackageVersion Include="TUnit" Version="0.4.71" />
   </ItemGroup>
