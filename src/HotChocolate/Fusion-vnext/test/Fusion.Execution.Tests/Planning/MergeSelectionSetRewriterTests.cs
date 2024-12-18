@@ -6,7 +6,7 @@ namespace HotChocolate.Fusion.Planning;
 
 public class MergeSelectionSetRewriterTests
 {
-    [Test]
+    [Fact]
     public void Merge_Two_SelectionSets()
     {
         // arrange

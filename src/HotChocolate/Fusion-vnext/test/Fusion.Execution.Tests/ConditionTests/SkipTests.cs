@@ -4,7 +4,7 @@ namespace HotChocolate.Fusion;
 
 public class SkipTests : FusionTestBase
 {
-    [Test]
+    [Fact]
     public void Skipped_Root_Selection()
     {
         // arrange
@@ -26,7 +26,7 @@ public class SkipTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skipped_Root_Selection_If_True()
     {
         // arrange
@@ -48,7 +48,7 @@ public class SkipTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skipped_Root_Selections_From_Same_Subgraph()
     {
         // arrange
@@ -75,7 +75,7 @@ public class SkipTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skipped_Root_Selections_From_Same_Subgraph_Same_Variable()
     {
         // arrange
@@ -102,8 +102,7 @@ public class SkipTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
-    [Skip("Not yet supported by the planner")]
+    [Fact(Skip = "Not yet supported by the planner")]
     public void Skipped_Root_Selections_From_Different_Subgraphs()
     {
         // arrange
@@ -128,8 +127,7 @@ public class SkipTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
-    [Skip("Not yet supported by the planner")]
+    [Fact(Skip = "Not yet supported by the planner")]
     public void Skipped_Root_Selections_From_Different_Subgraphs_Same_Variable()
     {
         // arrange
@@ -154,8 +152,7 @@ public class SkipTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
-    [Skip("Not yet supported by the planner")]
+    [Fact(Skip = "Not yet supported by the planner")]
     public void Skipped_Shared_Viewer_Root_Selection_With_Sub_Selections_From_Different_Subgraphs()
     {
         // arrange
@@ -182,8 +179,7 @@ public class SkipTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
-    [Skip("Not yet supported by the planner")]
+    [Fact(Skip = "Not yet supported by the planner")]
     public void Skipped_Shared_byId_Root_Selection_With_Sub_Selections_From_Different_Subgraphs()
     {
         // arrange
@@ -206,7 +202,7 @@ public class SkipTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skipped_Root_Selection_Other_Not_Skipped_Root_Selection_From_Same_Subgraph()
     {
         // arrange
@@ -233,7 +229,7 @@ public class SkipTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skipped_Root_Selection_Other_Not_Skipped_Root_Selection_From_Same_Subgraph_If_True()
     {
         // arrange
@@ -260,8 +256,7 @@ public class SkipTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
-    [Skip("Not yet supported by the planner")]
+    [Fact(Skip = "Not yet supported by the planner")]
     public void Skipped_Root_Selection_Other_Not_Skipped_Root_Selection_From_Different_Subgraph()
     {
         // arrange
@@ -286,8 +281,7 @@ public class SkipTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
-    [Skip("Not yet supported by the planner")]
+    [Fact(Skip = "Not yet supported by the planner")]
     public void Skipped_Root_Selection_Other_Not_Skipped_Root_Selection_From_Different_Subgraph_If_True()
     {
         // arrange
@@ -312,7 +306,7 @@ public class SkipTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skipped_Sub_Selection()
     {
         // arrange
@@ -334,7 +328,7 @@ public class SkipTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skipped_Sub_Selection_If_True()
     {
         // arrange
@@ -356,7 +350,7 @@ public class SkipTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skipped_Sub_Selection_Other_Not_Skipped_Sub_Selection_From_Same_Subgraph()
     {
         // arrange
@@ -379,7 +373,7 @@ public class SkipTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skipped_Sub_Selection_Other_Not_Skipped_Sub_Selection_From_Same_Subgraph_If_True()
     {
         // arrange
@@ -402,7 +396,7 @@ public class SkipTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skipped_Sub_Selection_Other_Not_Skipped_Sub_Selection_From_Different_Subgraph()
     {
         // arrange
@@ -425,7 +419,7 @@ public class SkipTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skipped_Sub_Selection_Other_Not_Skipped_Sub_Selection_From_Different_Subgraph_If_True()
     {
         // arrange
@@ -448,7 +442,7 @@ public class SkipTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skipped_Sub_Selection_From_Different_Subgraph()
     {
         // arrange
@@ -470,7 +464,7 @@ public class SkipTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skipped_Sub_Selection_From_Different_Subgraph_If_True()
     {
         // arrange
@@ -492,7 +486,7 @@ public class SkipTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skipped_Sub_Selection_From_Different_Subgraph_Other_Not_Skipped_Sub_Selection_From_First_Subgraph()
     {
         // arrange
@@ -515,7 +509,7 @@ public class SkipTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skipped_Sub_Selection_From_Different_Subgraph_Other_Not_Skipped_Sub_Selection_From_First_Subgraph_If_True()
     {
         // arrange
@@ -538,7 +532,7 @@ public class SkipTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skipped_Sub_Selection_From_Different_Subgraph_Other_Not_Skipped_Sub_Selection_From_Same_Subgraph()
     {
         // arrange
@@ -565,7 +559,7 @@ public class SkipTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skipped_Sub_Selection_From_Different_Subgraph_Other_Not_Skipped_Sub_Selection_From_Same_Subgraph_If_True()
     {
         // arrange
@@ -592,7 +586,7 @@ public class SkipTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skipped_Sub_Selection_That_Provides_Data_For_Lookup_On_Different_Subgraph()
     {
         // arrange
@@ -617,7 +611,7 @@ public class SkipTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Skipped_Sub_Selection_That_Provides_Data_For_Lookup_On_Different_Subgraph_If_True()
     {
         // arrange

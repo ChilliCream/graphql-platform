@@ -5,7 +5,7 @@ namespace HotChocolate.Fusion.Planning;
 
 public class InlineFragmentOperationRewriterTests
 {
-    [Test]
+    [Fact]
     public void Inline_Into_ProductById_SelectionSet()
     {
         // arrange
@@ -42,7 +42,7 @@ public class InlineFragmentOperationRewriterTests
             """);
     }
 
-    [Test]
+    [Fact]
     public void Inline_Into_ProductById_SelectionSet_2_Levels()
     {
         // arrange
@@ -83,7 +83,7 @@ public class InlineFragmentOperationRewriterTests
             """);
     }
 
-    [Test]
+    [Fact]
     public void Inline_Inline_Fragment_Into_ProductById_SelectionSet_1()
     {
         // arrange
@@ -118,7 +118,7 @@ public class InlineFragmentOperationRewriterTests
             """);
     }
 
-    [Test]
+    [Fact]
     public void Inline_Into_ProductById_SelectionSet_3_Levels()
     {
         // arrange
@@ -161,7 +161,7 @@ public class InlineFragmentOperationRewriterTests
             """);
     }
 
-    [Test]
+    [Fact]
     public void Do_Not_Inline_Inline_Fragment_Into_ProductById_SelectionSet()
     {
         // arrange
@@ -200,7 +200,7 @@ public class InlineFragmentOperationRewriterTests
             """);
     }
 
-    [Test]
+    [Fact]
     public void Deduplicate_Fields()
     {
         // arrange
@@ -239,7 +239,7 @@ public class InlineFragmentOperationRewriterTests
             """);
     }
 
-    [Test]
+    [Fact]
     public void Leafs_With_Different_Directives_Do_Not_Merge()
     {
         // arrange
@@ -280,7 +280,7 @@ public class InlineFragmentOperationRewriterTests
             """);
     }
 
-    [Test]
+    [Fact]
     public void Composites_Without_Directives_Are_Merged()
     {
         // arrange
@@ -335,7 +335,7 @@ public class InlineFragmentOperationRewriterTests
             """);
     }
 
-    [Test]
+    [Fact]
     public void Merge_Fields_With_Aliases()
     {
         // arrange

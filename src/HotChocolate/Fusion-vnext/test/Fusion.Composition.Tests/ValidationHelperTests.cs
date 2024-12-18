@@ -6,18 +6,18 @@ namespace HotChocolate.Composition;
 
 public sealed class ValidationHelperTests
 {
-    [Test]
-    [Arguments("Int", "Int")]
-    [Arguments("[Int]", "[Int]")]
-    [Arguments("[[Int]]", "[[Int]]")]
+    [Theory]
+    [InlineData("Int", "Int")]
+    [InlineData("[Int]", "[Int]")]
+    [InlineData("[[Int]]", "[[Int]]")]
     // Different nullability.
-    [Arguments("Int", "Int!")]
-    [Arguments("[Int]", "[Int!]")]
-    [Arguments("[Int]", "[Int!]!")]
-    [Arguments("[[Int]]", "[[Int!]]")]
-    [Arguments("[[Int]]", "[[Int!]!]")]
-    [Arguments("[[Int]]", "[[Int!]!]!")]
-    public async Task SameTypeShape_True(string sdlTypeA, string sdlTypeB)
+    [InlineData("Int", "Int!")]
+    [InlineData("[Int]", "[Int!]")]
+    [InlineData("[Int]", "[Int!]!")]
+    [InlineData("[[Int]]", "[[Int!]]")]
+    [InlineData("[[Int]]", "[[Int!]!]")]
+    [InlineData("[[Int]]", "[[Int!]!]!")]
+    public void SameTypeShape_True(string sdlTypeA, string sdlTypeB)
     {
         // arrange
         var schema1 = SchemaParser.Parse($$"""type Test { field: {{sdlTypeA}} }""");
@@ -29,27 +29,27 @@ public sealed class ValidationHelperTests
         var result = ValidationHelper.SameTypeShape(typeA, typeB);
 
         // assert
-        await Assert.That(result).IsTrue();
+        Assert.True(result);
     }
 
-    [Test]
+    [Theory]
     // Different type kind.
-    [Arguments("Tag", "Tag")]
-    [Arguments("[Tag]", "[Tag]")]
-    [Arguments("[[Tag]]", "[[Tag]]")]
+    [InlineData("Tag", "Tag")]
+    [InlineData("[Tag]", "[Tag]")]
+    [InlineData("[[Tag]]", "[[Tag]]")]
     // Different type name.
-    [Arguments("String", "DateTime")]
-    [Arguments("[String]", "[DateTime]")]
-    [Arguments("[[String]]", "[[DateTime]]")]
+    [InlineData("String", "DateTime")]
+    [InlineData("[String]", "[DateTime]")]
+    [InlineData("[[String]]", "[[DateTime]]")]
     // Different depth.
-    [Arguments("String", "[String]")]
-    [Arguments("String", "[[String]]")]
-    [Arguments("[String]", "[[String]]")]
-    [Arguments("[[String]]", "[[[String]]]")]
+    [InlineData("String", "[String]")]
+    [InlineData("String", "[[String]]")]
+    [InlineData("[String]", "[[String]]")]
+    [InlineData("[[String]]", "[[[String]]]")]
     // Different depth and nullability.
-    [Arguments("String", "[String!]")]
-    [Arguments("String", "[String!]!")]
-    public async Task SameTypeShape_False(string sdlTypeA, string sdlTypeB)
+    [InlineData("String", "[String!]")]
+    [InlineData("String", "[String!]!")]
+    public void SameTypeShape_False(string sdlTypeA, string sdlTypeB)
     {
         // arrange
         var schema1 = SchemaParser.Parse(
@@ -73,6 +73,6 @@ public sealed class ValidationHelperTests
         var result = ValidationHelper.SameTypeShape(typeA, typeB);
 
         // assert
-        await Assert.That(result).IsFalse();
+        Assert.False(result);
     }
 }
