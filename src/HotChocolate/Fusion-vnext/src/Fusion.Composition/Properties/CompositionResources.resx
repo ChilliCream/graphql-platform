@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <root>
-  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+              xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:element name="root" msdata:IsDataSet="true">
 
     </xsd:element>
@@ -13,10 +14,14 @@
     <value>1.3</value>
   </resheader>
   <resheader name="reader">
-    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral,
+      PublicKeyToken=b77a5c561934e089
+    </value>
   </resheader>
   <resheader name="writer">
-    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral,
+      PublicKeyToken=b77a5c561934e089
+    </value>
   </resheader>
   <data name="ErrorHelper_PreMergeValidationFailed" xml:space="preserve">
     <value>Pre-merge validation failed. View the composition log for details.</value>
@@ -36,13 +41,13 @@
   <data name="LogEntryHelper_DisallowedInaccessibleDirectiveArgument" xml:space="preserve">
     <value>The argument '{0}' on built-in directive type '{1}' is not accessible.</value>
   </data>
+  <data name="LogEntryHelper_ExternalArgumentDefaultMismatch" xml:space="preserve">
+    <value>The argument with schema coordinate '{0}' has inconsistent default values.</value>
+  </data>
   <data name="LogEntryHelper_ExternalMissingOnBase" xml:space="preserve">
     <value>Field '{0}' on type '{1}' is only declared as external.</value>
   </data>
   <data name="LogEntryHelper_OutputFieldTypesNotMergeable" xml:space="preserve">
     <value>Field '{0}' on type '{1}' is not mergeable.</value>
-  </data>
-  <data name="LogEntryHelper_ExternalArgumentDefaultMismatch" xml:space="preserve">
-    <value>Field '{0}' on type '{1}' must have consistent default values.</value>
   </data>
 </root>

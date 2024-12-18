@@ -76,15 +76,17 @@ internal static class LogEntryHelper
             new SchemaCoordinate(directiveName, argumentName: argument.Name, ofDirective: true),
             schema: schema);
 
-    public static LogEntry ExternalArgumentDefaultMismatch(string fieldName, string typeName)
-        => new(
+    public static LogEntry ExternalArgumentDefaultMismatch(string fieldName, string typeName, string argumentName)
+    {
+        var coordinate = new SchemaCoordinate(typeName, fieldName, argumentName);
+        return new LogEntry(
             string.Format(
                 LogEntryHelper_ExternalArgumentDefaultMismatch,
-                fieldName,
-                typeName),
+                coordinate),
             LogEntryCodes.ExternalArgumentDefaultMismatch,
             LogSeverity.Error,
-            new SchemaCoordinate(typeName, fieldName));
+            coordinate);
+    }
 
     public static LogEntry ExternalMissingOnBase(string fieldName, string typeName)
         => new(
