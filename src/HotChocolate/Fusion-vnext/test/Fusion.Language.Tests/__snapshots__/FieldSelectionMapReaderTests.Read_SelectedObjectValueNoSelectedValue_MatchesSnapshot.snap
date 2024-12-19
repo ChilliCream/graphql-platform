@@ -1,0 +1,23 @@
+[
+  {
+    "Kind": "LeftBrace",
+    "Start": 0,
+    "End": 1,
+    "Line": 1,
+    "Column": 1
+  },
+  {
+    "Kind": "Name",
+    "Start": 2,
+    "End": 8,
+    "Line": 1,
+    "Column": 3
+  },
+  {
+    "Kind": "RightBrace",
+    "Start": 9,
+    "End": 10,
+    "Line": 1,
+    "Column": 10
+  }
+]
