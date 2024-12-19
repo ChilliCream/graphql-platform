@@ -4,7 +4,7 @@ namespace HotChocolate.Fusion;
 
 public class InlineFragmentTests : FusionTestBase
 {
-    [Test]
+    [Fact]
     public void InlineFragment_On_Root()
     {
         // arrange
@@ -28,7 +28,7 @@ public class InlineFragmentTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void InlineFragment_On_Root_Next_To_Same_Selection()
     {
         // arrange
@@ -55,7 +55,7 @@ public class InlineFragmentTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void InlineFragment_On_Root_Next_To_Same_Selection_With_Different_Sub_Selection()
     {
         // arrange
@@ -82,7 +82,7 @@ public class InlineFragmentTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void InlineFragment_On_Root_Next_To_Different_Selection()
     {
         // arrange
@@ -111,8 +111,7 @@ public class InlineFragmentTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
-    [Skip("Not yet supported by the planner")]
+    [Fact(Skip = "Not yet supported by the planner")]
     public void InlineFragment_On_Root_Next_To_Different_Selection_From_Different_Subgraph()
     {
         // arrange
@@ -139,7 +138,7 @@ public class InlineFragmentTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Two_InlineFragments_On_Root_With_Same_Selection()
     {
         // arrange
@@ -168,7 +167,7 @@ public class InlineFragmentTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Two_InlineFragments_On_Root_With_Different_Selection()
     {
         // arrange
@@ -199,8 +198,7 @@ public class InlineFragmentTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
-    [Skip("Not yet supported by the planner")]
+    [Fact(Skip = "Not yet supported by the planner")]
     public void Two_InlineFragments_On_Root_With_Different_Selection_From_Different_Subgraph()
     {
         // arrange
@@ -229,7 +227,7 @@ public class InlineFragmentTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void InlineFragment_On_Sub_Selection()
     {
         // arrange
@@ -253,7 +251,7 @@ public class InlineFragmentTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void InlineFragment_On_Sub_Selection_Next_To_Same_Selection()
     {
         // arrange
@@ -278,7 +276,7 @@ public class InlineFragmentTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void InlineFragment_On_Sub_Selection_Next_To_Different_Selection()
     {
         // arrange
@@ -303,7 +301,7 @@ public class InlineFragmentTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void InlineFragment_On_Sub_Selection_Next_To_Different_Selection_From_Different_Subgraph()
     {
         // arrange
@@ -328,7 +326,7 @@ public class InlineFragmentTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Two_Fragments_On_Sub_Selection_With_Same_Selection()
     {
         // arrange
@@ -355,7 +353,7 @@ public class InlineFragmentTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Two_Fragments_On_Sub_Selection_With_Different_Selection()
     {
         // arrange
@@ -382,7 +380,7 @@ public class InlineFragmentTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Two_Fragments_On_Sub_Selection_With_Different_Selection_From_Different_Subgraph()
     {
         // arrange
@@ -397,6 +395,35 @@ public class InlineFragmentTests : FusionTestBase
                    }
                    ... {
                        averageRating
+                   }
+                }
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        plan.MatchSnapshot();
+    }
+
+    [Fact]
+    public void Merge_Fields_With_Alias()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Utf8GraphQLParser.Parse(
+            """
+            query($slug: String!) {
+                productBySlug(slug: $slug) {
+                   ... {
+                       a: name
+                   }
+                   a: name
+                   name
+                   ... {
+                       name
                    }
                 }
             }

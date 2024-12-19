@@ -4,7 +4,7 @@ namespace HotChocolate.Fusion;
 
 public class FragmentTests : FusionTestBase
 {
-    [Test]
+    [Fact]
     public void Fragment_On_Root()
     {
         // arrange
@@ -30,7 +30,7 @@ public class FragmentTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Fragment_On_Root_Next_To_Same_Selection()
     {
         // arrange
@@ -59,7 +59,7 @@ public class FragmentTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Fragment_On_Root_Next_To_Same_Selection_With_Different_Sub_Selection()
     {
         // arrange
@@ -88,7 +88,7 @@ public class FragmentTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Fragment_On_Root_Next_To_Different_Selection()
     {
         // arrange
@@ -119,8 +119,7 @@ public class FragmentTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
-    [Skip("Not yet supported by the planner")]
+    [Fact(Skip = "Not yet supported by the planner")]
     public void Fragment_On_Root_Next_To_Different_Selection_From_Different_Subgraph()
     {
         // arrange
@@ -149,7 +148,7 @@ public class FragmentTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Two_Fragments_On_Root_With_Same_Selection()
     {
         // arrange
@@ -182,7 +181,7 @@ public class FragmentTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Two_Fragments_On_Root_With_Different_Selection()
     {
         // arrange
@@ -217,8 +216,7 @@ public class FragmentTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
-    [Skip("Not yet supported by the planner")]
+    [Fact(Skip = "Not yet supported by the planner")]
     public void Two_Fragments_On_Root_With_Different_Selection_From_Different_Subgraph()
     {
         // arrange
@@ -251,7 +249,7 @@ public class FragmentTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Fragment_On_Sub_Selection()
     {
         // arrange
@@ -277,7 +275,7 @@ public class FragmentTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Fragment_On_Sub_Selection_Next_To_Same_Selection()
     {
         // arrange
@@ -304,7 +302,7 @@ public class FragmentTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Fragment_On_Sub_Selection_Next_To_Different_Selection()
     {
         // arrange
@@ -331,7 +329,7 @@ public class FragmentTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Fragment_On_Sub_Selection_Next_To_Different_Selection_From_Different_Subgraph()
     {
         // arrange
@@ -358,7 +356,7 @@ public class FragmentTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Two_Fragments_On_Sub_Selection_With_Same_Selection()
     {
         // arrange
@@ -389,7 +387,7 @@ public class FragmentTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Two_Fragments_On_Sub_Selection_With_Different_Selection()
     {
         // arrange
@@ -420,7 +418,7 @@ public class FragmentTests : FusionTestBase
         plan.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Two_Fragments_On_Sub_Selection_With_Different_Selection_From_Different_Subgraph()
     {
         // arrange
@@ -441,6 +439,45 @@ public class FragmentTests : FusionTestBase
 
             fragment ProductFragment2 on Product {
                 averageRating
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        plan.MatchSnapshot();
+    }
+
+    [Fact]
+    public void Two_Fragments_On_Sub_Selection_With_Different_But_Same_Entry_Selection_From_Different_Subgraph()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+
+        var request = Parse(
+            """
+            query($slug: String!) {
+                productBySlug(slug: $slug) {
+                    ...ProductFragment1
+                    ...ProductFragment2
+                }
+            }
+
+            fragment ProductFragment1 on Product {
+                reviews {
+                    nodes {
+                        body
+                    }
+                }
+            }
+
+            fragment ProductFragment2 on Product {
+                reviews {
+                    pageInfo {
+                        hasNextPage
+                    }
+                }
             }
             """);
 

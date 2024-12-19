@@ -1,0 +1,41 @@
+type Query {
+  productById(id: ID!): Product
+    @fusion__field(schema: PRODUCTS)
+}
+
+type Product
+  @fusion__type(schema: PRODUCTS)
+  @fusion__type(schema: SHIPPING)
+  @fusion__type(schema: REVIEWS)
+  @fusion__lookup(
+      schema: PRODUCTS
+      key: "{ id }"
+      field: "productById(id: ID!): Product"
+      map: ["id"]
+  )
+  @fusion__lookup(
+      schema: SHIPPING
+      key: "{ id }"
+      field: "productById(id: ID!): Product"
+      map: ["id"]
+  )
+  @fusion__lookup(
+      schema: REVIEWS
+      key: "{ id }"
+      field: "productById(id: ID!): Product"
+      map: ["id"]
+  ) {
+  id: ID!
+    @fusion__field(schema: PRODUCTS)
+    @fusion__field(schema: SHIPPING)
+    @fusion__field(schema: REVIEWS)
+  internalId: String!
+    @fusion__field(schema: SHIPPING)
+  internalSomeOther: String!
+    @fusion__field(schema: SHIPPING)
+    @fusion__requires(
+      schema: SHIPPING
+      field: "internalSomeOther(internalId: String!): String!"
+      map: ["internalId"]
+    )
+}

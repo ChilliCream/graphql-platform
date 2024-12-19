@@ -11,6 +11,8 @@ namespace HotChocolate.Execution.Projections;
 
 internal sealed class SelectionExpressionBuilder
 {
+    private static readonly NullabilityInfoContext _nullabilityInfoContext = new();
+
     public Expression<Func<TRoot, TRoot>> BuildExpression<TRoot>(ISelection selection)
     {
         var rootType = typeof(TRoot);
@@ -291,14 +293,9 @@ internal sealed class SelectionExpressionBuilder
             return Nullable.GetUnderlyingType(propertyInfo.PropertyType) != null;
         }
 
-        var nullableAttribute = propertyInfo.GetCustomAttribute<NullableAttribute>();
+        var nullabilityInfo = _nullabilityInfoContext.Create(propertyInfo);
 
-        if (nullableAttribute != null)
-        {
-            return nullableAttribute.NullableFlags[0] == 2;
-        }
-
-        return false;
+        return nullabilityInfo.WriteState == NullabilityState.Nullable;
     }
 
     private readonly record struct Context(
