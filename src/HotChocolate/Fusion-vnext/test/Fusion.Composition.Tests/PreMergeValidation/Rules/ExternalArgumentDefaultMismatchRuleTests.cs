@@ -110,8 +110,10 @@ public sealed class ExternalArgumentDefaultMismatchRuleTests
                     """
                 ]
             },
-            // Here, the `name` field on Product is defined without a default value in one source
-            // schema, violating the rule.
+            // In the following example, the `name` field on Product is defined in one source schema
+            // and marked as @external in another. The argument `language` has a default value in
+            // the source schema where the field is defined, but it does not have a default value in
+            // the source schema where the field is marked as @external, violating the rule.
             {
                 [
                     """

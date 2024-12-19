@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Events;
-using HotChocolate.Skimmed;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
 namespace HotChocolate.Fusion.PreMergeValidation.Rules;
@@ -19,9 +18,11 @@ internal sealed class ExternalArgumentDefaultMismatchRule : IEventHandler<Output
     {
         var (fieldName, fieldGroup, typeName) = @event;
 
-        IReadOnlyCollection<OutputFieldInfo> externalFields =
-            [..fieldGroup.Where(i => ValidationHelper.IsExternal(i.Field))];
-        if (externalFields.Count == 0)
+        var externalFields = fieldGroup
+            .Where(i => ValidationHelper.IsExternal(i.Field))
+            .ToImmutableArray();
+
+        if (externalFields.Length == 0)
         {
             return;
         }
@@ -32,7 +33,10 @@ internal sealed class ExternalArgumentDefaultMismatchRule : IEventHandler<Output
 
         foreach (var argumentName in argumentNames)
         {
-            IReadOnlyList<InputFieldDefinition> arguments = [..fieldGroup.Select(i => i.Field.Arguments[argumentName])];
+            var arguments = fieldGroup
+                .Select(i => i.Field.Arguments[argumentName])
+                .ToImmutableArray();
+
             var defaultValue = arguments[0].DefaultValue;
 
             foreach (var argument in arguments)
@@ -48,7 +52,8 @@ internal sealed class ExternalArgumentDefaultMismatchRule : IEventHandler<Output
 
                 if (!match)
                 {
-                    context.Log.Write(ExternalArgumentDefaultMismatch(fieldName, typeName, argumentName));
+                    context.Log.Write(
+                        ExternalArgumentDefaultMismatch(argumentName, fieldName, typeName));
                 }
             }
         }
