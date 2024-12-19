@@ -1,9 +1,7 @@
 namespace CookieCrumble.Xunit;
 
-public static class CookieCrumbleXunit
+public sealed class CookieCrumbleXunit : SnapshotModule
 {
-    public static void Initialize()
-    {
-        Snapshot.RegisterTestFramework(new XunitFramework());
-    }
+    protected override ITestFramework TryCreateTestFramework()
+        => new XunitFramework();
 }

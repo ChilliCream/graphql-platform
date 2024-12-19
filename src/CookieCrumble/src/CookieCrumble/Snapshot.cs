@@ -93,7 +93,8 @@ public class Snapshot
         snapshot.Match();
     }
 
-    public static void RegisterTestFramework(ITestFramework testFramework)
+    public static void RegisterTestFramework(
+        ITestFramework testFramework)
     {
         if (testFramework is null)
         {

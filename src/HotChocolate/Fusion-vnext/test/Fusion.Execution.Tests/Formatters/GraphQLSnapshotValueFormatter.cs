@@ -3,7 +3,7 @@ using CookieCrumble.Formatters;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 
-namespace CookieCrumble.HotChocolate.Formatters;
+namespace HotChocolate.Fusion.Formatters;
 
 internal sealed class GraphQLSnapshotValueFormatter : SnapshotValueFormatter<ISyntaxNode>
 {
