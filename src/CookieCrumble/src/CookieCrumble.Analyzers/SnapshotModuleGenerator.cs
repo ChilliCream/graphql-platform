@@ -19,7 +19,7 @@ public class SnapshotModuleGenerator : IIncrementalGenerator
         var compilationProvider = context.CompilationProvider;
 
         var providerInterfaceProvider = compilationProvider
-            .Select((comp, _) => comp.GetTypeByMetadataName("CookieCrumble.ISnapshotExtensionProvider"));
+            .Select((comp, _) => comp.GetTypeByMetadataName("CookieCrumble.ISnapshotModule"));
 
         var providerTypes = compilationProvider
             .Combine(providerInterfaceProvider)

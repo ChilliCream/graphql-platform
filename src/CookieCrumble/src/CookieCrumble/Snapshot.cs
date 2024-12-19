@@ -220,7 +220,7 @@ public class Snapshot
         // we capture the current immutable serializer list
         var serializers = _formatters;
 
-        // the we iterate over the captured stack.
+        // we iterate over the captured stack.
         foreach (var serializer in serializers)
         {
             if (serializer.CanHandle(value))
@@ -697,7 +697,7 @@ public class Snapshot
             "Snapshot.Match method.");
     }
 
-    private static MethodBase? EvaluateAsynchronousMethodBase(MemberInfo? method)
+    private static MethodInfo? EvaluateAsynchronousMethodBase(MemberInfo? method)
     {
         var methodDeclaringType = method?.DeclaringType;
         var classDeclaringType = methodDeclaringType?.DeclaringType;
@@ -728,32 +728,5 @@ public class Snapshot
         public object? Value { get; } = value;
 
         public ISnapshotValueFormatter Formatter { get; } = formatter;
-    }
-}
-
-public sealed class DisposableSnapshot(string? postFix = null, string? extension = null)
-    : Snapshot(postFix, extension)
-    , IDisposable
-{
-    public void Dispose() => Match();
-}
-
-public abstract class SnapshotValue : ISnapshotSegment
-{
-    public abstract string? Name { get; }
-
-    public abstract ReadOnlySpan<byte> Value { get; }
-
-    protected virtual string MarkdownType => "text";
-
-    public virtual void FormatMarkdown(IBufferWriter<byte> snapshot)
-    {
-        snapshot.Append("```");
-        snapshot.Append(MarkdownType);
-        snapshot.AppendLine();
-        snapshot.Write(Value);
-        snapshot.AppendLine();
-        snapshot.Append("```");
-        snapshot.AppendLine();
     }
 }
