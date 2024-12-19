@@ -40,6 +40,21 @@ public sealed class FieldSelectionMapSyntaxNodeTests
     }
 
     [Test]
+    public async Task ToString_PathNode_ReturnsExpectedString()
+    {
+        // arrange
+        var node = new PathNode(
+            pathSegment: new PathSegmentNode(fieldName: new NameNode("field1")),
+            typeName: new NameNode("Type1"));
+
+        // act
+        var result = node.ToString();
+
+        // assert
+        await Assert.That(result).IsEqualTo("<Type1>.field1");
+    }
+
+    [Test]
     public async Task ToString_PathSegmentNode_ReturnsExpectedString()
     {
         // arrange
@@ -56,21 +71,6 @@ public sealed class FieldSelectionMapSyntaxNodeTests
 
         // assert
         await Assert.That(result).IsEqualTo("field1<Type1>.field2<Type2>.field3");
-    }
-
-    [Test]
-    public async Task ToString_PathNode_ReturnsExpectedString()
-    {
-        // arrange
-        var node = new PathNode(
-            pathSegment: new PathSegmentNode(fieldName: new NameNode("field1")),
-            typeName: new NameNode("Type1"));
-
-        // act
-        var result = node.ToString();
-
-        // assert
-        await Assert.That(result).IsEqualTo("<Type1>.field1");
     }
 
     [Test]
