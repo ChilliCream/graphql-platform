@@ -4,7 +4,7 @@ namespace HotChocolate.Fusion;
 
 public sealed class FieldSelectionMapReaderTests
 {
-    [Test]
+    [Fact]
     public void Read_PathSegmentSingleFieldName_MatchesSnapshot()
     {
         // arrange
@@ -21,7 +21,7 @@ public sealed class FieldSelectionMapReaderTests
         readTokens.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Read_PathSegmentNestedFieldName_MatchesSnapshot()
     {
         // arrange
@@ -38,7 +38,7 @@ public sealed class FieldSelectionMapReaderTests
         readTokens.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Read_PathSegmentWithTypeName_MatchesSnapshot()
     {
         // arrange
@@ -55,7 +55,7 @@ public sealed class FieldSelectionMapReaderTests
         readTokens.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Read_PathWithTypeName_MatchesSnapshot()
     {
         // arrange
@@ -72,7 +72,7 @@ public sealed class FieldSelectionMapReaderTests
         readTokens.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Read_SelectedListValue_MatchesSnapshot()
     {
         // arrange
@@ -89,7 +89,7 @@ public sealed class FieldSelectionMapReaderTests
         readTokens.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Read_SelectedObjectValue_MatchesSnapshot()
     {
         // arrange
@@ -106,7 +106,7 @@ public sealed class FieldSelectionMapReaderTests
         readTokens.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Read_SelectedObjectValueNoSelectedValue_MatchesSnapshot()
     {
         // arrange
@@ -123,7 +123,7 @@ public sealed class FieldSelectionMapReaderTests
         readTokens.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Read_SelectedObjectValueMultipleFieldsNoSelectedValue_MatchesSnapshot()
     {
         // arrange
@@ -140,7 +140,7 @@ public sealed class FieldSelectionMapReaderTests
         readTokens.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Read_SelectedValueMultiplePaths_MatchesSnapshot()
     {
         // arrange
@@ -157,7 +157,7 @@ public sealed class FieldSelectionMapReaderTests
         readTokens.MatchSnapshot();
     }
 
-    [Test]
+    [Fact]
     public void Read_WithWhiteSpace_MatchesSnapshot()
     {
         // arrange
@@ -174,8 +174,8 @@ public sealed class FieldSelectionMapReaderTests
         readTokens.MatchSnapshot();
     }
 
-    [Test]
-    public async Task Read_WithTokenLimitExceeded_ThrowsSyntaxException()
+    [Fact]
+    public void Read_WithTokenLimitExceeded_ThrowsSyntaxException()
     {
         // arrange & act
         static void Act()
@@ -186,13 +186,13 @@ public sealed class FieldSelectionMapReaderTests
         }
 
         // assert
-        await Assert
-            .That(Assert.Throws<SyntaxException>(Act).Message)
-            .IsEqualTo("Source text contains more than 2 tokens. Parsing aborted.");
+        Assert.Equal(
+            "Source text contains more than 2 tokens. Parsing aborted.",
+            Assert.Throws<SyntaxException>(Act).Message);
     }
 
-    [Test]
-    public async Task Read_UnexpectedCharacter_ThrowsSyntaxException()
+    [Fact]
+    public void Read_UnexpectedCharacter_ThrowsSyntaxException()
     {
         // arrange & act
         static void Act()
@@ -203,8 +203,8 @@ public sealed class FieldSelectionMapReaderTests
         }
 
         // assert
-        await Assert
-            .That(Assert.Throws<SyntaxException>(Act).Message)
-            .IsEqualTo("Unexpected character `*`.");
+        Assert.Equal(
+            "Unexpected character `*`.",
+            Assert.Throws<SyntaxException>(Act).Message);
     }
 }

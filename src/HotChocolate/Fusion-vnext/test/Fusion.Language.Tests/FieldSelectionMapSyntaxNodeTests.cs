@@ -2,32 +2,32 @@ namespace HotChocolate.Fusion;
 
 public sealed class FieldSelectionMapSyntaxNodeTests
 {
-    [Test]
-    public async Task Create_NameNodeNullValue_ThrowsArgumentNullException()
+    [Fact]
+    public void Create_NameNodeNullValue_ThrowsArgumentNullException()
     {
         // arrange & act
         static void Act() => _ = new NameNode(null!);
 
         // assert
-        await Assert
-            .That(Assert.Throws<ArgumentNullException>(Act).Message)
-            .IsEqualTo("Value cannot be null. (Parameter 'value')");
+        Assert.Equal(
+            "Value cannot be null. (Parameter 'value')",
+            Assert.Throws<ArgumentNullException>(Act).Message);
     }
 
-    [Test]
-    public async Task Create_NameNodeEmptyValue_ThrowsArgumentException()
+    [Fact]
+    public void Create_NameNodeEmptyValue_ThrowsArgumentException()
     {
         // arrange & act
         static void Act() => _ = new NameNode("");
 
         // assert
-        await Assert
-            .That(Assert.Throws<ArgumentException>(Act).Message)
-            .IsEqualTo("The value cannot be an empty string. (Parameter 'value')");
+        Assert.Equal(
+            "The value cannot be an empty string. (Parameter 'value')",
+            Assert.Throws<ArgumentException>(Act).Message);
     }
 
-    [Test]
-    public async Task ToString_NameNode_ReturnsExpectedString()
+    [Fact]
+    public void ToString_NameNode_ReturnsExpectedString()
     {
         // arrange
         var node = new NameNode("field1");
@@ -36,11 +36,11 @@ public sealed class FieldSelectionMapSyntaxNodeTests
         var result = node.ToString();
 
         // assert
-        await Assert.That(result).IsEqualTo("field1");
+        Assert.Equal("field1", result);
     }
 
-    [Test]
-    public async Task ToString_PathNode_ReturnsExpectedString()
+    [Fact]
+    public void ToString_PathNode_ReturnsExpectedString()
     {
         // arrange
         var node = new PathNode(
@@ -51,11 +51,11 @@ public sealed class FieldSelectionMapSyntaxNodeTests
         var result = node.ToString();
 
         // assert
-        await Assert.That(result).IsEqualTo("<Type1>.field1");
+        Assert.Equal("<Type1>.field1", result);
     }
 
-    [Test]
-    public async Task ToString_PathSegmentNode_ReturnsExpectedString()
+    [Fact]
+    public void ToString_PathSegmentNode_ReturnsExpectedString()
     {
         // arrange
         var node = new PathSegmentNode(
@@ -70,11 +70,11 @@ public sealed class FieldSelectionMapSyntaxNodeTests
         var result = node.ToString();
 
         // assert
-        await Assert.That(result).IsEqualTo("field1<Type1>.field2<Type2>.field3");
+        Assert.Equal("field1<Type1>.field2<Type2>.field3", result);
     }
 
-    [Test]
-    public async Task ToString_SelectedListValueNode_ReturnsExpectedString()
+    [Fact]
+    public void ToString_SelectedListValueNode_ReturnsExpectedString()
     {
         // arrange
         var node = new SelectedListValueNode(
@@ -86,11 +86,11 @@ public sealed class FieldSelectionMapSyntaxNodeTests
         var result = node.ToString();
 
         // assert
-        await Assert.That(result).IsEqualTo("[field1]");
+        Assert.Equal("[field1]", result);
     }
 
-    [Test]
-    public async Task ToString_SelectedObjectFieldNode_ReturnsExpectedString()
+    [Fact]
+    public void ToString_SelectedObjectFieldNode_ReturnsExpectedString()
     {
         // arrange
         var node = new SelectedObjectFieldNode(
@@ -103,11 +103,11 @@ public sealed class FieldSelectionMapSyntaxNodeTests
         var result = node.ToString();
 
         // assert
-        await Assert.That(result).IsEqualTo("field1: field1");
+        Assert.Equal("field1: field1", result);
     }
 
-    [Test]
-    public async Task ToString_SelectedObjectValueNode_ReturnsExpectedString()
+    [Fact]
+    public void ToString_SelectedObjectValueNode_ReturnsExpectedString()
     {
         // arrange
         var node = new SelectedObjectValueNode(fields:
@@ -133,17 +133,18 @@ public sealed class FieldSelectionMapSyntaxNodeTests
             });
 
         // assert
-        await Assert.That(result).IsEqualTo(
+        Assert.Equal(
             """
             {
                 field1: field1
                 field2: field2
             }
-            """);
+            """,
+            result);
     }
 
-    [Test]
-    public async Task ToString_SelectedValueNode_ReturnsExpectedString()
+    [Fact]
+    public void ToString_SelectedValueNode_ReturnsExpectedString()
     {
         // arrange
         var node = new SelectedValueNode(
@@ -167,6 +168,6 @@ public sealed class FieldSelectionMapSyntaxNodeTests
         var result = node.ToString();
 
         // assert
-        await Assert.That(result).IsEqualTo("field1.field2 | field3.field4 | field5.field6");
+        Assert.Equal("field1.field2 | field3.field4 | field5.field6", result);
     }
 }

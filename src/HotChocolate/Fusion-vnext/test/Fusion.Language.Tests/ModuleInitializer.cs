@@ -7,6 +7,6 @@ internal static class ModuleInitializer
     [ModuleInitializer]
     public static void Initialize()
     {
-        CookieCrumbleTUnit.Initialize();
+        CookieCrumbleXunit3.Initialize();
     }
 }
