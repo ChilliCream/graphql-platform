@@ -225,10 +225,12 @@ internal ref struct FieldSelectionMapReader
             CharConstants.Colon => TokenKind.Colon,
             CharConstants.LeftAngleBracket => TokenKind.LeftAngleBracket,
             CharConstants.LeftBrace => TokenKind.LeftBrace,
+            CharConstants.LeftSquareBracket => TokenKind.LeftSquareBracket,
             CharConstants.Period => TokenKind.Period,
             CharConstants.Pipe => TokenKind.Pipe,
             CharConstants.RightAngleBracket => TokenKind.RightAngleBracket,
             CharConstants.RightBrace => TokenKind.RightBrace,
+            CharConstants.RightSquareBracket => TokenKind.RightSquareBracket,
             _ => throw new InvalidOperationException(CodeIsNotPunctuator)
         };
     }

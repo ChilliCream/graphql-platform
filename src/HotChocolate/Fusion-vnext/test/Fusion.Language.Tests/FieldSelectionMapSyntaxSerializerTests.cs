@@ -103,6 +103,21 @@ public sealed class FieldSelectionMapSyntaxSerializerTests
     }
 
     [Test]
+    public async Task Serialize_SelectedListValue_ReturnsExpectedString()
+    {
+        // arrange
+        var selectedListValueNode = new SelectedListValueNode(
+            selectedValue: new SelectedValueNode(
+                new PathNode(pathSegment: new PathSegmentNode(fieldName: new NameNode("field1")))));
+
+        // act
+        _serializer.Serialize(selectedListValueNode, _writer);
+
+        // assert
+        await Assert.That(_writer.ToString()).IsEqualTo("[field1]");
+    }
+
+    [Test]
     public async Task Serialize_SelectedObjectField_ReturnsExpectedString()
     {
         // arrange

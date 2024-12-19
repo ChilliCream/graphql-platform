@@ -74,6 +74,22 @@ public sealed class FieldSelectionMapSyntaxNodeTests
     }
 
     [Test]
+    public async Task ToString_SelectedListValueNode_ReturnsExpectedString()
+    {
+        // arrange
+        var node = new SelectedListValueNode(
+            selectedValue: new SelectedValueNode(
+                path: new PathNode(
+                    pathSegment: new PathSegmentNode(fieldName: new NameNode("field1")))));
+
+        // act
+        var result = node.ToString();
+
+        // assert
+        await Assert.That(result).IsEqualTo("[field1]");
+    }
+
+    [Test]
     public async Task ToString_SelectedObjectFieldNode_ReturnsExpectedString()
     {
         // arrange

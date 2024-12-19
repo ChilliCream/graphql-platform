@@ -33,9 +33,13 @@ internal ref struct FieldSelectionMapParser
     {
         _parsedNodes = 0;
 
-        MoveNext(); // skip start of file
+        Expect(TokenKind.StartOfFile);
 
-        return ParseSelectedValue();
+        var selectedValue = ParseSelectedValue();
+
+        Expect(TokenKind.EndOfFile);
+
+        return selectedValue;
     }
 
     /// <summary>
@@ -246,6 +250,31 @@ internal ref struct FieldSelectionMapParser
         var location = CreateLocation(in start);
 
         return new SelectedObjectFieldNode(location, name, selectedValue);
+    }
+
+    /// <summary>
+    /// Parses a <see cref="SelectedListValueNode"/>.
+    ///
+    /// <code>
+    /// SelectedListValue ::
+    ///     [ SelectedValue ]
+    /// </code>
+    /// </summary>
+    /// <returns>The parsed <see cref="SelectedListValueNode"/>.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private SelectedListValueNode ParseSelectedListValue()
+    {
+        var start = Start();
+
+        Expect(TokenKind.LeftSquareBracket);
+
+        var selectedValue = ParseSelectedValue();
+
+        Expect(TokenKind.RightSquareBracket);
+
+        var location = CreateLocation(in start);
+
+        return new SelectedListValueNode(location, selectedValue);
     }
 
     /// <summary>

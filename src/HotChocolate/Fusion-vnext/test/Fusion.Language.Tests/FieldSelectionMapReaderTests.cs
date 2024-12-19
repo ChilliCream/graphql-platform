@@ -73,6 +73,23 @@ public sealed class FieldSelectionMapReaderTests
     }
 
     [Test]
+    public void Read_SelectedListValue_MatchesSnapshot()
+    {
+        // arrange
+        var reader = new FieldSelectionMapReader("[field1]");
+        List<SyntaxTokenInfo> readTokens = [];
+
+        // act
+        while (reader.Read())
+        {
+            readTokens.Add(SyntaxTokenInfo.FromReader(reader));
+        }
+
+        // assert
+        readTokens.MatchSnapshot();
+    }
+
+    [Test]
     public void Read_SelectedObjectValue_MatchesSnapshot()
     {
         // arrange

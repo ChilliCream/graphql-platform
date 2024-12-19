@@ -59,6 +59,19 @@ internal class FieldSelectionMapSyntaxSerializer(SyntaxSerializerOptions options
     }
 
     protected override ISyntaxVisitorAction Enter(
+        SelectedListValueNode node,
+        ISyntaxWriter writer)
+    {
+        writer.Write(LeftSquareBracket);
+
+        Visit(node.SelectedValue, writer);
+
+        writer.Write(RightSquareBracket);
+
+        return Skip;
+    }
+
+    protected override ISyntaxVisitorAction Enter(
         SelectedObjectFieldNode node,
         ISyntaxWriter writer)
     {

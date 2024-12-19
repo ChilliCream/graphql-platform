@@ -56,6 +56,8 @@ internal class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction def
                 => Enter((PathNode)node, writer),
             FieldSelectionMapSyntaxKind.PathSegment
                 => Enter((PathSegmentNode)node, writer),
+            FieldSelectionMapSyntaxKind.SelectedListValue
+                => Enter((SelectedListValueNode)node, writer),
             FieldSelectionMapSyntaxKind.SelectedObjectField
                 => Enter((SelectedObjectFieldNode)node, writer),
             FieldSelectionMapSyntaxKind.SelectedObjectValue
@@ -78,6 +80,11 @@ internal class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction def
 
     protected virtual ISyntaxVisitorAction Enter(
         PathSegmentNode node,
+        TContext writer) =>
+        DefaultAction;
+
+    protected virtual ISyntaxVisitorAction Enter(
+        SelectedListValueNode node,
         TContext writer) =>
         DefaultAction;
 
@@ -106,6 +113,8 @@ internal class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction def
                 => Leave((NameNode)node, context),
             FieldSelectionMapSyntaxKind.Path
                 => Leave((PathNode)node, context),
+            FieldSelectionMapSyntaxKind.SelectedListValue
+                => Leave((SelectedListValueNode)node, context),
             FieldSelectionMapSyntaxKind.SelectedObjectField
                 => Leave((SelectedObjectFieldNode)node, context),
             FieldSelectionMapSyntaxKind.SelectedObjectValue
@@ -123,6 +132,11 @@ internal class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction def
 
     protected virtual ISyntaxVisitorAction Leave(
         PathNode node,
+        TContext context) =>
+        DefaultAction;
+
+    protected virtual ISyntaxVisitorAction Leave(
+        SelectedListValueNode node,
         TContext context) =>
         DefaultAction;
 
@@ -179,6 +193,8 @@ internal class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction def
                 => VisitChildren((PathNode)node, context),
             FieldSelectionMapSyntaxKind.PathSegment
                 => VisitChildren((PathSegmentNode)node, context),
+            FieldSelectionMapSyntaxKind.SelectedListValue
+                => VisitChildren((SelectedListValueNode)node, context),
             FieldSelectionMapSyntaxKind.SelectedObjectField
                 => VisitChildren((SelectedObjectFieldNode)node, context),
             FieldSelectionMapSyntaxKind.SelectedObjectValue

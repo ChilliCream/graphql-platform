@@ -105,6 +105,49 @@ public sealed class FieldSelectionMapParserTests
     }
 
     [Test]
+    public void Parse_SelectedListValue_MatchesSnapshot()
+    {
+        // arrange
+        var parser = new FieldSelectionMapParser("field1[field2]");
+
+        // act
+        var selectedValueNode = parser.Parse();
+
+        // assert
+        selectedValueNode.MatchSnapshot();
+    }
+
+    [Test]
+    // https://graphql.github.io/composite-schemas-spec/draft/#sec-SelectedListValue
+    [Arguments("parts[id]")]
+    [Arguments("parts[{ id name }]")]
+    [Arguments("parts[[{ id name }]]")]
+    [Arguments("{ coordinates: coordinates[{ lat: x lon: y }] }")]
+    public async Task ParseAndPrint_SelectedListValueValidExamples_Matches(string sourceText)
+    {
+        // arrange & act
+        var result = new FieldSelectionMapParser(sourceText).Parse().Print(indented: false);
+
+        // assert
+        await Assert.That(result).IsEqualTo(sourceText);
+    }
+
+    [Test]
+    // https://graphql.github.io/composite-schemas-spec/draft/#sec-SelectedListValue
+    [Arguments("parts[id name]")]
+    public async Task Parse_SelectedListValueInvalidExamples_ThrowsSyntaxException(
+        string sourceText)
+    {
+        // arrange & act
+        void Act() => new FieldSelectionMapParser(sourceText).Parse();
+
+        // assert
+        await Assert
+            .That(Assert.Throws<SyntaxException>(Act).Message)
+            .IsEqualTo("..."); // FIXME: Add the correct exception message.
+    }
+
+    [Test]
     public void Parse_SelectedObjectValue_MatchesSnapshot()
     {
         // arrange
