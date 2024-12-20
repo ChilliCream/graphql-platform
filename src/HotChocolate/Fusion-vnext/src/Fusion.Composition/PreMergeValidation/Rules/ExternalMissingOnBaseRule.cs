@@ -1,5 +1,5 @@
+using System.Collections.Immutable;
 using HotChocolate.Fusion.Events;
-using HotChocolate.Fusion.Extensions;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
 namespace HotChocolate.Fusion.PreMergeValidation.Rules;
@@ -17,14 +17,20 @@ internal sealed class ExternalMissingOnBaseRule : IEventHandler<OutputFieldGroup
 {
     public void Handle(OutputFieldGroupEvent @event, CompositionContext context)
     {
-        var (fieldName, fieldGroup, typeName) = @event;
+        var fieldGroup = @event.FieldGroup;
 
-        var externalFieldCount = fieldGroup.Count(i => ValidationHelper.IsExternal(i.Field));
-        var nonExternalFieldCount = fieldGroup.Length - externalFieldCount;
+        var externalFields = fieldGroup
+            .Where(i => ValidationHelper.IsExternal(i.Field))
+            .ToImmutableArray();
 
-        if (externalFieldCount != 0 && nonExternalFieldCount == 0)
+        var nonExternalFieldCount = fieldGroup.Length - externalFields.Length;
+
+        foreach (var (field, type, schema) in externalFields)
         {
-            context.Log.Write(ExternalMissingOnBase(fieldName, typeName));
+            if (nonExternalFieldCount == 0)
+            {
+                context.Log.Write(ExternalMissingOnBase(field, type, schema));
+            }
         }
     }
 }

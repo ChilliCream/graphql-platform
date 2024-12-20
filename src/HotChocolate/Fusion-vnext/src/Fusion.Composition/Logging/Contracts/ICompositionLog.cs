@@ -3,7 +3,7 @@ namespace HotChocolate.Fusion.Logging.Contracts;
 /// <summary>
 /// Defines an interface for logging composition information, warnings, and errors.
 /// </summary>
-public interface ICompositionLog
+public interface ICompositionLog : IEnumerable<LogEntry>
 {
     /// <summary>
     /// Gets a value indicating whether the log contains errors.

@@ -1,26 +1,9 @@
-using System.Collections.Immutable;
 using HotChocolate.Skimmed;
 
 namespace HotChocolate.Fusion;
 
 internal sealed class ValidationHelper
 {
-    public static bool FieldsAreMergeable(ImmutableArray<OutputFieldDefinition> fields)
-    {
-        for (var i = 0; i < fields.Length - 1; i++)
-        {
-            var typeA = fields[i].Type;
-            var typeB = fields[i + 1].Type;
-
-            if (!SameTypeShape(typeA, typeB))
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
     public static bool IsAccessible(IDirectivesProvider type)
     {
         return !type.Directives.ContainsName(WellKnownDirectiveNames.Inaccessible);
