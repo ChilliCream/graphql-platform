@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <AssemblyName>HotChocolate.Fetching.Tests</AssemblyName>
-    <RootNamespace>HotChocolate.Fetching.</RootNamespace>
+    <RootNamespace>HotChocolate.Fetching</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
