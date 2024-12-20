@@ -14,11 +14,24 @@ internal sealed class OutputFieldTypesMergeableRule : IEventHandler<OutputFieldG
 {
     public void Handle(OutputFieldGroupEvent @event, CompositionContext context)
     {
-        var (fieldName, fieldGroup, typeName) = @event;
+        var (_, fieldGroup, typeName) = @event;
 
-        if (!ValidationHelper.FieldsAreMergeable([.. fieldGroup.Select(i => i.Field)]))
+        for (var i = 0; i < fieldGroup.Length - 1; i++)
         {
-            context.Log.Write(OutputFieldTypesNotMergeable(fieldName, typeName));
+            var fieldInfoA = fieldGroup[i];
+            var fieldInfoB = fieldGroup[i + 1];
+            var typeA = fieldInfoA.Field.Type;
+            var typeB = fieldInfoB.Field.Type;
+
+            if (!ValidationHelper.SameTypeShape(typeA, typeB))
+            {
+                context.Log.Write(
+                    OutputFieldTypesNotMergeable(
+                        fieldInfoA.Field,
+                        typeName,
+                        fieldInfoA.Schema,
+                        fieldInfoB.Schema));
+            }
         }
     }
 }
