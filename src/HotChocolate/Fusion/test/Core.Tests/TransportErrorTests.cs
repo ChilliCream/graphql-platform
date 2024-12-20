@@ -53,7 +53,7 @@ public class TransportErrorTests(ITestOutputHelper output)
     #region Parallel, Shared Entry Field
 
     [Fact]
-    public async Task Resolve_Parallel_One_Service_Offline_SubField_Nullable_SharedEntryField_Nullable()
+    public async Task Resolve_Parallel_SharedEntryField_Nullable_SubField_Nullable_First_Service_Offline()
     {
         // arrange
         var subgraphA = await TestSubgraph.CreateAsync(
@@ -98,7 +98,7 @@ public class TransportErrorTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public async Task Resolve_Parallel_One_Service_Offline_SubField_NonNull_SharedEntryField_Nullable()
+    public async Task Resolve_Parallel_SharedEntryField_Nullable_SubField_NonNull_First_Service_Offline()
     {
         // arrange
         var subgraphA = await TestSubgraph.CreateAsync(
@@ -143,7 +143,7 @@ public class TransportErrorTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public async Task Resolve_Parallel_One_Service_Offline_SubField_NonNull_SharedEntryField_NonNull()
+    public async Task Resolve_Parallel_SharedEntryField_NonNull_SubField_NonNull_First_Service_Offline()
     {
         // arrange
         var subgraphA = await TestSubgraph.CreateAsync(
@@ -187,8 +187,143 @@ public class TransportErrorTests(ITestOutputHelper output)
         MatchMarkdownSnapshot(request, result);
     }
 
+    [Fact(Skip = "Missing errors")]
+    public async Task Resolve_Parallel_SharedEntryField_Nullable_SubField_Nullable_Second_Service_Offline()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              name: String
+            }
+            """);
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              userId: ID
+            }
+            """,
+            isOffline: true);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        viewer {
+                          userId
+                          name
+                        }
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        MatchMarkdownSnapshot(request, result);
+    }
+
+    [Fact(Skip = "Missing errors")]
+    public async Task Resolve_Parallel_SharedEntryField_Nullable_SubField_NonNull_Second_Service_Offline()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              name: String!
+            }
+            """);
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              userId: ID!
+            }
+            """,
+            isOffline: true);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        viewer {
+                          userId
+                          name
+                        }
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        MatchMarkdownSnapshot(request, result);
+    }
+
+    [Fact(Skip = "Missing errors")]
+    public async Task Resolve_Parallel_SharedEntryField_NonNull_SubField_NonNull_Second_Service_Offline()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              viewer: Viewer!
+            }
+
+            type Viewer {
+              name: String!
+            }
+            """);
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              viewer: Viewer!
+            }
+
+            type Viewer {
+              userId: ID!
+            }
+            """,
+            isOffline: true);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        viewer {
+                          userId
+                          name
+                        }
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        MatchMarkdownSnapshot(request, result);
+    }
+
     [Fact]
-    public async Task Resolve_Parallel_Both_Services_Offline_SharedEntryField_Nullable()
+    public async Task Resolve_Parallel_SharedEntryField_Nullable_Both_Services_Offline()
     {
         // arrange
         var subgraphA = await TestSubgraph.CreateAsync(
@@ -234,7 +369,7 @@ public class TransportErrorTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public async Task Resolve_Parallel_Both_Services_Offline_SharedEntryField_NonNull()
+    public async Task Resolve_Parallel_SharedEntryField_NonNull_Both_Services_Offline()
     {
         // arrange
         var subgraphA = await TestSubgraph.CreateAsync(
@@ -284,7 +419,7 @@ public class TransportErrorTests(ITestOutputHelper output)
     #region Parallel, No Shared Entry Field
 
     [Fact]
-    public async Task Resolve_Parallel_Single_Service_Offline_EntryField_Nullable()
+    public async Task Resolve_Parallel_EntryField_Nullable_Single_Service_Offline()
     {
         // arrange
         var subgraphA = await TestSubgraph.CreateAsync(
@@ -317,7 +452,7 @@ public class TransportErrorTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public async Task Resolve_Parallel_Single_Service_Offline_EntryField_NonNull()
+    public async Task Resolve_Parallel_EntryField_NonNull_Single_Service_Offline()
     {
         // arrange
         var subgraphA = await TestSubgraph.CreateAsync(
@@ -350,7 +485,7 @@ public class TransportErrorTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public async Task Resolve_Parallel_One_Service_Offline_EntryFields_Nullable()
+    public async Task Resolve_Parallel_EntryFields_Nullable_One_Service_Offline()
     {
         // arrange
         var subgraphA = await TestSubgraph.CreateAsync(
@@ -397,7 +532,7 @@ public class TransportErrorTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public async Task Resolve_Parallel_One_Service_Offline_EntryFields_NonNull()
+    public async Task Resolve_Parallel_EntryFields_NonNull_One_Service_Offline()
     {
         // arrange
         var subgraphA = await TestSubgraph.CreateAsync(
