@@ -188,6 +188,12 @@ public interface IReadOnlySchemaOptions
     bool EnableTag { get; }
 
     /// <summary>
+    /// Errors if either an ASP.NET Core [Authorize] or [AllowAnonymous] attribute
+    /// is used on a Hot Chocolate resolver or type definition.
+    /// </summary>
+    bool ErrorOnAspNetCoreAuthorizationAttributes { get; }
+
+    /// <summary>
     /// Specifies the default dependency injection scope for query fields.
     /// </summary>
     public DependencyInjectionScope DefaultQueryDependencyInjectionScope { get; }
