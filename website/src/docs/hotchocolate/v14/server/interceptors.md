@@ -26,7 +26,7 @@ public class HttpRequestInterceptor : DefaultHttpRequestInterceptor
 Once we have defined our custom `HttpRequestInterceptor`, we also have to register it.
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddHttpRequestInterceptor<HttpRequestInterceptor>();
 ```
@@ -90,7 +90,7 @@ public class SocketSessionInterceptor : DefaultSocketSessionInterceptor
 Once we have defined our custom `SocketSessionInterceptor`, we also have to register it.
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddSocketSessionInterceptor<SocketSessionInterceptor>();
 ```

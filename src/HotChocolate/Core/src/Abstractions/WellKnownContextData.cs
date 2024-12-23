@@ -260,11 +260,6 @@ public static class WellKnownContextData
     public const string AllowAnonymous = "HotChocolate.Authorization.AllowAnonymous";
 
     /// <summary>
-    /// The key to access the true nullability flag on the execution context.
-    /// </summary>
-    public const string EnableTrueNullability = "HotChocolate.Types.EnableTrueNullability";
-
-    /// <summary>
     /// The key to access the tag options object.
     /// </summary>
     public const string TagOptions = "HotChocolate.Types.TagOptions";
@@ -315,6 +310,11 @@ public static class WellKnownContextData
     public const string ValidateCost = "HotChocolate.CostAnalysis.ValidateCost";
 
     /// <summary>
+    /// The key to access the cost options on the context data..
+    /// </summary>
+    public const string RequestCostOptions = "HotChocolate.CostAnalysis.CostRequestOptions";
+
+    /// <summary>
     /// The key to access the paging observers stored on the local resolver state.
     /// </summary>
     public const string PagingObserver = "HotChocolate.Types.PagingObserver";
@@ -333,4 +333,14 @@ public static class WellKnownContextData
     /// The key to access the compiled requirements.
     /// </summary>
     public const string FieldRequirements = "HotChocolate.Types.ObjectField.Requirements";
+
+    /// <summary>
+    /// The key to determine whether the request is a warmup request.
+    /// </summary>
+    public const string IsWarmupRequest = "HotChocolate.AspNetCore.Warmup.IsWarmupRequest";
+
+    /// <summary>
+    /// The key to determine whether the @authorize directive was already registered.
+    /// </summary>
+    public const string AreAuthorizeDirectivesRegistered = "HotChocolate.Authorization.AuthDirectivesRegistered";
 }

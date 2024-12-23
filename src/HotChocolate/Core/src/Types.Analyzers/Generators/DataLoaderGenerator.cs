@@ -100,7 +100,7 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
                 .OrderBy(t => t.Key, StringComparer.Ordinal))
             {
                 var isPublic = defaults.IsInterfacePublic ?? true;
-                var groups = group.Select(
+                var dataLoaderGroups = dataLoaderGroup.Select(
                     t => new GroupedDataLoaderInfo(
                         t.NameWithoutSuffix,
                         t.InterfaceName,
@@ -108,8 +108,8 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
 
                 buffer ??= new();
                 buffer.Clear();
-                buffer.AddRange(groups);
-                generator.WriteDataLoaderGroupClass(dataLoaderGroup.Key, buffer);
+                buffer.AddRange(dataLoaderGroups);
+                generator.WriteDataLoaderGroupClass(dataLoaderGroup.Key, buffer, defaults.GenerateInterfaces);
             }
 
             generator.WriteEndNamespace();
@@ -133,7 +133,10 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
         var isPublic = dataLoader.IsPublic ?? defaults.IsPublic ?? true;
         var isInterfacePublic = dataLoader.IsInterfacePublic ?? defaults.IsInterfacePublic ?? true;
 
-        generator.WriteDataLoaderInterface(dataLoader.InterfaceName, isInterfacePublic, kind, keyType, valueType);
+        if (defaults.GenerateInterfaces)
+        {
+            generator.WriteDataLoaderInterface(dataLoader.InterfaceName, isInterfacePublic, kind, keyType, valueType);
+        }
 
         generator.WriteBeginDataLoaderClass(
             dataLoader.Name,
@@ -141,7 +144,8 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
             isPublic,
             kind,
             keyType,
-            valueType);
+            valueType,
+            defaults.GenerateInterfaces);
         generator.WriteDataLoaderConstructor(
             dataLoader.Name,
             kind,

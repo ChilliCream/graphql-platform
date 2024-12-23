@@ -78,6 +78,8 @@ public sealed class DataLoaderInfo : SyntaxInfo
 
     public ImmutableArray<DataLoaderParameterInfo> Parameters { get; }
 
+    public override string OrderByKey => FullName;
+
     public ImmutableArray<CacheLookup> GetLookups(ITypeSymbol keyType, ITypeSymbol valueType)
     {
         if (_lookups.Length > 0)
@@ -181,6 +183,18 @@ public sealed class DataLoaderInfo : SyntaxInfo
                 continue;
             }
 
+            // check for well-known state
+            if (IsPredicateBuilder(parameter))
+            {
+                builder.Add(
+                    new DataLoaderParameterInfo(
+                        $"p{i}",
+                        parameter,
+                        DataLoaderParameterKind.PredicateBuilder,
+                        WellKnownTypes.PredicateBuilder));
+                continue;
+            }
+
             if (IsPagingArguments(parameter))
             {
                 builder.Add(
@@ -227,6 +241,12 @@ public sealed class DataLoaderInfo : SyntaxInfo
     {
         var typeName = parameter.Type.ToDisplayString();
         return string.Equals(typeName, WellKnownTypes.SelectorBuilder, StringComparison.Ordinal);
+    }
+
+    private static bool IsPredicateBuilder(IParameterSymbol parameter)
+    {
+        var typeName = parameter.Type.ToDisplayString();
+        return string.Equals(typeName, WellKnownTypes.PredicateBuilder, StringComparison.Ordinal);
     }
 
     private static bool IsPagingArguments(IParameterSymbol parameter)

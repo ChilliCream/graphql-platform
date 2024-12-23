@@ -50,8 +50,12 @@ public static partial class RequestExecutorBuilderExtensions
             builder.Services.AddSingleton<INodeIdValueSerializer, Int32NodeIdValueSerializer>();
             builder.Services.AddSingleton<INodeIdValueSerializer, Int64NodeIdValueSerializer>();
             builder.Services.AddSingleton<INodeIdValueSerializer>(new GuidNodeIdValueSerializer(compress: outputNewIdFormat));
+            builder.Services.AddSingleton<INodeIdValueSerializer, DecimalNodeIdValueSerializer>();
+            builder.Services.AddSingleton<INodeIdValueSerializer, SingleNodeIdValueSerializer>();
+            builder.Services.AddSingleton<INodeIdValueSerializer, DoubleNodeIdValueSerializer>();
         }
 
+        builder.Services.RemoveService<INodeIdSerializer>();
         builder.Services.TryAddSingleton<INodeIdSerializer>(sp =>
         {
             var allSerializers = sp.GetServices<INodeIdValueSerializer>().ToArray();
@@ -65,6 +69,7 @@ public static partial class RequestExecutorBuilderExtensions
         builder.ConfigureSchemaServices(
             services =>
             {
+                services.RemoveService<INodeIdSerializer>();
                 services.TryAddSingleton<INodeIdSerializer>(sp =>
                 {
                     var schema = sp.GetRequiredService<ISchema>();

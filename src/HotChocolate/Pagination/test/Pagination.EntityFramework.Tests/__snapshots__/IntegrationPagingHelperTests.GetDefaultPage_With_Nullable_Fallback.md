@@ -1,5 +1,23 @@
 # GetDefaultPage_With_Nullable_Fallback
 
+## SQL 0
+
+```sql
+-- @__p_0='11'
+SELECT b."Id", b."AlwaysNull", b."DisplayName", b."Name", b."BrandDetails_Country_Name"
+FROM "Brands" AS b
+ORDER BY COALESCE(b."DisplayName", b."Name"), b."Id"
+LIMIT @__p_0
+```
+
+## Expression 0
+
+```text
+[Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].OrderBy(t => (t.DisplayName ?? t.Name)).ThenBy(t => t.Id).Take(11)
+```
+
+## Result
+
 ```json
 {
   "data": {
@@ -148,3 +166,4 @@
   }
 }
 ```
+

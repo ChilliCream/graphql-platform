@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using Newtonsoft.Json;
 

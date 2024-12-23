@@ -27,7 +27,11 @@ public class OffsetType : StringToStructBaseType<Offset>
 
         _allowedPatterns = allowedPatterns;
         _serializationPattern = allowedPatterns[0];
-        Description = NodaTimeResources.OffsetType_Description;
+
+        Description = CreateDescription(
+            allowedPatterns,
+            NodaTimeResources.OffsetType_Description,
+            NodaTimeResources.OffsetType_Description_Extended);
     }
 
     /// <summary>
@@ -48,4 +52,16 @@ public class OffsetType : StringToStructBaseType<Offset>
         string resultValue,
         [NotNullWhen(true)] out Offset? runtimeValue)
         => _allowedPatterns.TryParse(resultValue, out runtimeValue);
+
+    protected override Dictionary<IPattern<Offset>, string> PatternMap => new()
+    {
+        { OffsetPattern.GeneralInvariant, "±hh:mm:ss" },
+        { OffsetPattern.GeneralInvariantWithZ, "Z" }
+    };
+
+    protected override Dictionary<IPattern<Offset>, string> ExampleMap => new()
+    {
+        { OffsetPattern.GeneralInvariant, "+02:30:00" },
+        { OffsetPattern.GeneralInvariantWithZ, "Z" }
+    };
 }

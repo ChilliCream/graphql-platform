@@ -17,6 +17,7 @@ public sealed class BatchScheduler : IBatchHandler
     private readonly List<Func<ValueTask>> _tasks = [];
     private bool _dispatchOnSchedule;
     private readonly List<EventHandler> _listeners = [];
+    private bool _disposed;
 
     /// <inheritdoc />
     public event EventHandler TaskEnqueued
@@ -217,6 +218,15 @@ public sealed class BatchScheduler : IBatchHandler
         finally
         {
             _semaphore.Release();
+        }
+    }
+
+    public void Dispose()
+    {
+        if (!_disposed)
+        {
+            _semaphore.Dispose();
+            _disposed = true;
         }
     }
 }

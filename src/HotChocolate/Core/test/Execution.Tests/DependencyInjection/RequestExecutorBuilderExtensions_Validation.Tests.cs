@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Language;
 using HotChocolate.Tests;
 using HotChocolate.Types;
@@ -70,6 +69,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
     }
 
     [Fact]
+    [Obsolete]
     public async Task AddIntrospectionAllowedRule_IntegrationTest_NotAllowed()
     {
         await new ServiceCollection()
@@ -85,6 +85,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
     }
 
     [Fact]
+    [Obsolete]
     public async Task AllowIntrospection_IntegrationTest_NotAllowed()
     {
         await new ServiceCollection()
@@ -100,6 +101,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
     }
 
     [Fact]
+    [Obsolete]
     public async Task AllowIntrospection_IntegrationTest_Allowed()
     {
         await new ServiceCollection()
@@ -115,6 +117,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
     }
 
     [Fact]
+    [Obsolete]
     public async Task AllowIntrospection_IntegrationTest_NotAllowed_CustomMessage()
     {
         await new ServiceCollection()
@@ -131,6 +134,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
     }
 
     [Fact]
+    [Obsolete]
     public async Task AddIntrospectionAllowedRule_IntegrationTest_NotAllowed_CustomMessageFact()
     {
         await new ServiceCollection()
@@ -147,6 +151,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
     }
 
     [Fact]
+    [Obsolete]
     public async Task AddIntrospectionAllowedRule_IntegrationTest_NotAllowed_CustomMessage()
     {
         await new ServiceCollection()
@@ -163,6 +168,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
     }
 
     [Fact]
+    [Obsolete]
     public async Task AddIntrospectionAllowedRule_IntegrationTest_Allowed()
     {
         var executor =

@@ -1,5 +1,4 @@
 using System.Text.RegularExpressions;
-using CookieCrumble;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types;

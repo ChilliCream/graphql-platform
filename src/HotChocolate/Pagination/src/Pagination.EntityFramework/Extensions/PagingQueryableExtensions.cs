@@ -10,6 +10,8 @@ namespace HotChocolate.Pagination;
 /// </summary>
 public static class PagingQueryableExtensions
 {
+    private static readonly AsyncLocal<InterceptorHolder> _interceptor = new();
+
     /// <summary>
     /// Executes a query with paging and returns the selected page.
     /// </summary>
@@ -72,6 +74,8 @@ public static class PagingQueryableExtensions
             throw new ArgumentNullException(nameof(source));
         }
 
+        source = QueryHelpers.EnsureOrderPropsAreSelected(source);
+
         var keys = ParseDataSetKeys(source);
 
         if (keys.Length == 0)
@@ -95,13 +99,13 @@ public static class PagingQueryableExtensions
         if (arguments.After is not null)
         {
             var cursor = CursorParser.Parse(arguments.After, keys);
-            source = source.Where(BuildWhereExpression<T>(keys, cursor, forward));
+            source = source.Where(BuildWhereExpression<T>(keys, cursor, true));
         }
 
         if (arguments.Before is not null)
         {
             var cursor = CursorParser.Parse(arguments.Before, keys);
-            source = source.Where(BuildWhereExpression<T>(keys, cursor, forward));
+            source = source.Where(BuildWhereExpression<T>(keys, cursor, false));
         }
 
         if (arguments.First is not null)
@@ -124,6 +128,8 @@ public static class PagingQueryableExtensions
         {
             var combinedQuery = source.Select(t => new { TotalCount = originalQuery.Count(), Item = t });
 
+            TryGetQueryInterceptor()?.OnBeforeExecute(combinedQuery);
+
             await foreach (var item in combinedQuery.AsAsyncEnumerable()
                 .WithCancellation(cancellationToken).ConfigureAwait(false))
             {
@@ -140,6 +146,8 @@ public static class PagingQueryableExtensions
         }
         else
         {
+            TryGetQueryInterceptor()?.OnBeforeExecute(source);
+
             await foreach (var item in source.AsAsyncEnumerable()
                 .WithCancellation(cancellationToken).ConfigureAwait(false))
             {
@@ -192,9 +200,49 @@ public static class PagingQueryableExtensions
     /// <exception cref="ArgumentException">
     /// If the queryable does not have any keys specified.
     /// </exception>
-    public static async ValueTask<Dictionary<TKey, Page<TValue>>> ToBatchPageAsync<TKey, TValue>(
+    public static ValueTask<Dictionary<TKey, Page<TValue>>> ToBatchPageAsync<TKey, TValue>(
         this IQueryable<TValue> source,
         Expression<Func<TValue, TKey>> keySelector,
+        PagingArguments arguments,
+        CancellationToken cancellationToken = default)
+        where TKey : notnull
+        => ToBatchPageAsync<TKey, TValue, TValue>(source, keySelector, t => t, arguments, cancellationToken);
+
+    /// <summary>
+    /// Executes a batch query with paging and returns the selected pages for each parent.
+    /// </summary>
+    /// <param name="source">
+    /// The queryable to be paged.
+    /// </param>
+    /// <param name="keySelector">
+    /// A function to select the key of the parent.
+    /// </param>
+    /// <param name="valueSelector">
+    /// A function to select the value of the items in the queryable.
+    /// </param>
+    /// <param name="arguments">
+    /// The paging arguments.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <typeparam name="TKey">
+    /// The type of the parent key.
+    /// </typeparam>
+    /// <typeparam name="TValue">
+    /// The type of the items in the queryable.
+    /// </typeparam>
+    /// <typeparam name="TElement">
+    /// The type of the items in the queryable.
+    /// </typeparam>
+    /// <returns></returns>
+    /// <exception cref="ArgumentException">
+    /// If the queryable does not have any keys specified.
+    /// </exception>
+    public static async ValueTask<Dictionary<TKey, Page<TValue>>> ToBatchPageAsync<TKey, TValue, TElement>(
+        this IQueryable<TElement> source,
+        Expression<Func<TElement, TKey>> keySelector,
+        Func<TElement, TValue> valueSelector,
         PagingArguments arguments,
         CancellationToken cancellationToken = default)
         where TKey : notnull
@@ -215,6 +263,8 @@ public static class PagingQueryableExtensions
                 nameof(arguments));
         }
 
+        source = QueryHelpers.EnsureOrderPropsAreSelected(source);
+
         // we need to move the ordering into the select expression we are constructing
         // so that the groupBy will not remove it. The first thing we do here is to extract the order expressions
         // and to create a new expression that will not contain it anymore.
@@ -223,7 +273,7 @@ public static class PagingQueryableExtensions
         var forward = arguments.Last is null;
         var requestedCount = int.MaxValue;
         var selectExpression =
-            BuildBatchSelectExpression<TKey, TValue>(
+            BuildBatchSelectExpression<TKey, TElement>(
                 arguments,
                 keys,
                 ordering.OrderExpressions,
@@ -233,7 +283,9 @@ public static class PagingQueryableExtensions
         var map = new Dictionary<TKey, Page<TValue>>();
 
         // we apply our new expression here.
-        source = source.Provider.CreateQuery<TValue>(ordering.Expression);
+        source = source.Provider.CreateQuery<TElement>(ordering.Expression);
+
+        TryGetQueryInterceptor()?.OnBeforeExecute(source.GroupBy(keySelector).Select(selectExpression));
 
         await foreach (var item in source
             .GroupBy(keySelector)
@@ -253,7 +305,7 @@ public static class PagingQueryableExtensions
 
             for (var i = 0; i < itemCount; i++)
             {
-                builder.Add(item.Items[i]);
+                builder.Add(valueSelector(item.Items[i]));
             }
 
             var page = CreatePage(builder.ToImmutable(), arguments, keys, item.Items.Count);
@@ -301,7 +353,12 @@ public static class PagingQueryableExtensions
             hasNext = true;
         }
 
-        return new Page<T>(items, hasNext, hasPrevious, item => CursorFormatter.Format(item, keys), totalCount);
+        return new Page<T>(
+            items,
+            hasNext,
+            hasPrevious,
+            item => CursorFormatter.Format(item, keys),
+            totalCount);
     }
 
     private static CursorKey[] ParseDataSetKeys<T>(IQueryable<T> source)
@@ -309,5 +366,31 @@ public static class PagingQueryableExtensions
         var parser = new CursorKeyParser();
         parser.Visit(source.Expression);
         return parser.Keys.ToArray();
+    }
+
+    private sealed class InterceptorHolder
+    {
+        public PagingQueryInterceptor? Interceptor { get; set; }
+    }
+
+    private static PagingQueryInterceptor? TryGetQueryInterceptor()
+        => _interceptor.Value?.Interceptor;
+
+    internal static void SetQueryInterceptor(PagingQueryInterceptor pagingQueryInterceptor)
+    {
+        if (_interceptor.Value is null)
+        {
+            _interceptor.Value = new InterceptorHolder();
+        }
+
+        _interceptor.Value.Interceptor = pagingQueryInterceptor;
+    }
+
+    internal static void ClearQueryInterceptor(PagingQueryInterceptor pagingQueryInterceptor)
+    {
+        if (_interceptor.Value is not null)
+        {
+            _interceptor.Value.Interceptor = null;
+        }
     }
 }

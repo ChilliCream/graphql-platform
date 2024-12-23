@@ -49,6 +49,7 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
         List<SyntaxInfo> syntaxInfos,
         ModuleInfo module)
     {
+        var dataLoaderDefaults = syntaxInfos.GetDataLoaderDefaults();
         HashSet<(string InterfaceName, string ClassName)>? groups = null;
         using var generator = new ModuleFileBuilder(module.ModuleName, "Microsoft.Extensions.DependencyInjection");
 
@@ -62,7 +63,7 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
         var hasInterfaceTypes = false;
         var hasConfigurations = false;
 
-        foreach (var syntaxInfo in syntaxInfos)
+        foreach (var syntaxInfo in syntaxInfos.OrderBy(s => s.OrderByKey))
         {
             if(syntaxInfo.Diagnostics.Length > 0)
             {
@@ -109,7 +110,10 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
                         var typeName = $"{dataLoader.Namespace}.{dataLoader.Name}";
                         var interfaceTypeName = $"{dataLoader.Namespace}.{dataLoader.InterfaceName}";
 
-                        generator.WriteRegisterDataLoader(typeName, interfaceTypeName);
+                        generator.WriteRegisterDataLoader(
+                            typeName,
+                            interfaceTypeName,
+                            dataLoaderDefaults.GenerateInterfaces);
                         hasConfigurations = true;
 
                         if(dataLoader.Groups.Count > 0)
@@ -117,7 +121,9 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
                             groups ??= [];
                             foreach (var groupName in dataLoader.Groups)
                             {
-                                groups.Add(($"{dataLoader.Namespace}.I{groupName}", $"{dataLoader.Namespace}.{groupName}"));
+                                groups.Add((
+                                    $"{dataLoader.Namespace}.I{groupName}",
+                                    $"{dataLoader.Namespace}.{groupName}"));
                             }
                         }
                     }

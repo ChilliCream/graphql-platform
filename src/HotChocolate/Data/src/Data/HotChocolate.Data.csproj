@@ -5,11 +5,13 @@
     <AssemblyName>HotChocolate.Data</AssemblyName>
     <RootNamespace>HotChocolate.Data</RootNamespace>
     <Description>Contains ready to use extensions for data management in HotChocolate. This includes filtering, projections and sorting</Description>
+    <NoWarn>HC8001;GD0001;$(NoWarn)</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Core\src\Execution\HotChocolate.Execution.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Types.CursorPagination\HotChocolate.Types.CursorPagination.csproj" />
+    <ProjectReference Include="..\..\..\Pagination\src\Pagination.Batching\HotChocolate.Pagination.Batching.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -42,6 +42,19 @@ public static class DataLoaderServiceCollectionExtensions
         return services;
     }
 
+    public static IServiceCollection AddDataLoader<TService, TImplementation>(
+        this IServiceCollection services,
+        Func<IServiceProvider, TImplementation> factory)
+        where TService : class, IDataLoader
+        where TImplementation : class, TService
+    {
+        services.TryAddDataLoaderCore();
+        services.AddSingleton(new DataLoaderRegistration(typeof(TService), typeof(TImplementation), sp => factory(sp)));
+        services.TryAddScoped<TImplementation>(sp => sp.GetDataLoader<TImplementation>());
+        services.TryAddScoped<TService>(sp => sp.GetDataLoader<TService>());
+        return services;
+    }
+
     public static IServiceCollection TryAddDataLoaderCore(
         this IServiceCollection services)
     {

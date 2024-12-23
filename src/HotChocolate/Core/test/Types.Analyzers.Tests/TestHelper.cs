@@ -5,7 +5,6 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Basic.Reference.Assemblies;
-using CookieCrumble;
 using GreenDonut;
 using HotChocolate.Pagination;
 using HotChocolate.Types.Analyzers;
@@ -20,9 +19,11 @@ internal static partial class TestHelper
 
     public static Snapshot GetGeneratedSourceSnapshot([StringSyntax("csharp")] string sourceText)
     {
-        // Parse the provided string into a C# syntax tree.
-        var syntaxTree = CSharpSyntaxTree.ParseText(sourceText);
+        return GetGeneratedSourceSnapshot([sourceText]);
+    }
 
+    public static Snapshot GetGeneratedSourceSnapshot(string[] sourceTexts, string? assemblyName = "Tests")
+    {
         IEnumerable<PortableExecutableReference> references =
         [
 #if NET8_0
@@ -46,8 +47,8 @@ internal static partial class TestHelper
 
         // Create a Roslyn compilation for the syntax tree.
         var compilation = CSharpCompilation.Create(
-            assemblyName: "Tests",
-            syntaxTrees: [syntaxTree],
+            assemblyName: assemblyName,
+            syntaxTrees: sourceTexts.Select(s => CSharpSyntaxTree.ParseText(s)),
             references);
 
         // Create an instance of our GraphQLServerGenerator incremental source generator.

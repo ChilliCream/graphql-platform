@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using CookieCrumble;
 using GreenDonut;
 using GreenDonut.DependencyInjection;
 using HotChocolate.Fetching;
@@ -57,6 +56,43 @@ public class DataLoaderTests
             ));
 
         await snapshot.MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task FetchMultipleNodesDataLoader()
+    {
+        var batchFetchCount = 0;
+
+        await ExpectValid(
+            """
+            {
+                a: node(id: "RW50aXR5OjE==") { ... on Entity { id } }
+                b: node(id: "RW50aXR5OjI==") { ... on Entity { id } }
+            }
+            """,
+            configure: b => b
+                .AddGraphQL()
+                .AddGlobalObjectIdentification()
+                .AddObjectType<Entity>(descriptor =>
+                {
+                    descriptor
+                        .ImplementsNode()
+                        .IdField(e => e.Id)
+                        .ResolveNode(
+                            async (ctx, id) => await ctx.BatchDataLoader<int, Entity>(
+                                (keys, _) =>
+                                {
+                                    batchFetchCount++;
+
+                                    return Task.FromResult<IReadOnlyDictionary<int, Entity>>(
+                                        keys.ToDictionary(t => t, _ => new Entity { Id = id }));
+                                })
+                                .LoadAsync(id))
+                        .Resolve(ctx => ctx.Parent<Entity>().Id);
+                })
+                .AddQueryType());
+
+        Assert.Equal(1, batchFetchCount);
     }
 
     [LocalFact]
@@ -435,6 +471,67 @@ public class DataLoaderTests
         await snapshot.MatchMarkdownAsync();
     }
 
+    [Fact]
+    public async Task ClassDataLoader_Resolve_From_DependencyInjection_Using_Factory()
+    {
+        var snapshot = new Snapshot();
+
+        // arrange
+        var executor = await CreateExecutorAsync(
+            c => c
+                .AddQueryType<Query>()
+                .AddDataLoader<ITestDataLoader, TestDataLoader>(sp =>
+                    new TestDataLoader(
+                        sp.GetRequiredService<IBatchScheduler>(),
+                        new DataLoaderOptions()))
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .UseRequest(
+                    next => async context =>
+                    {
+                        await next(context);
+
+                        var dataLoader = (TestDataLoader)context.Services.GetRequiredService<ITestDataLoader>();
+
+                        context.Result = OperationResultBuilder
+                            .FromResult(((IOperationResult)context.Result!))
+                            .AddExtension("loads", dataLoader.Loads)
+                            .Build();
+                    })
+                .UseDefaultPipeline());
+
+        // act
+        snapshot.Add(
+            await executor.ExecuteAsync(
+                OperationRequestBuilder.New()
+                    .SetDocument(
+                        @"{
+                            a: dataLoaderWithInterface(key: ""a"")
+                            b: dataLoaderWithInterface(key: ""b"")
+                        }")
+                    .Build()));
+
+        snapshot.Add(
+            await executor.ExecuteAsync(
+                OperationRequestBuilder.New()
+                    .SetDocument(
+                        @"{
+                            a: dataLoaderWithInterface(key: ""a"")
+                        }")
+                    .Build()));
+
+        snapshot.Add(
+            await executor.ExecuteAsync(
+                OperationRequestBuilder.New()
+                    .SetDocument(
+                        @"{
+                            c: dataLoaderWithInterface(key: ""c"")
+                        }")
+                    .Build()));
+
+        // assert
+        await snapshot.MatchMarkdownAsync();
+    }
+
     [LocalFact]
     public async Task NestedDataLoader()
     {
@@ -666,5 +763,10 @@ public class DataLoaderTests
 
         protected override Task<string> LoadSingleAsync(string key, CancellationToken cancellationToken)
             => Task.FromResult(key + Counter);
+    }
+
+    public class Entity
+    {
+        public int Id { get; set; }
     }
 }

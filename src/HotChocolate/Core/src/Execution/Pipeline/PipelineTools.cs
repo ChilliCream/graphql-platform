@@ -28,19 +28,8 @@ internal static class PipelineTools
 
         var operationId = CreateOperationId(documentId, operationName);
 
-        var flags = OperationFlags.Nothing;
-
-        if (!context.IsNullBubblingEnabled())
-        {
-            flags |= OperationFlags.DisableNullBubbling;
-        }
-
-        return $"{context.Schema.Name}-{context.ExecutorVersion}-{(int)flags}-{operationId}";
+        return $"{context.Schema.Name}-{context.ExecutorVersion}-{operationId}";
     }
-
-    public static bool IsNullBubblingEnabled(this IRequestContext context)
-        => !context.Schema.ContextData.ContainsKey(WellKnownContextData.EnableTrueNullability)
-            || !context.ContextData.ContainsKey(WellKnownContextData.EnableTrueNullability);
 
     public static IReadOnlyList<IVariableValueCollection> CoerceVariables(
         IRequestContext context,
@@ -103,12 +92,5 @@ internal static class PipelineTools
         }
 
         throw new NotSupportedException("Request type not supported.");
-    }
-
-    [Flags]
-    private enum OperationFlags
-    {
-        Nothing = 0,
-        DisableNullBubbling
     }
 }

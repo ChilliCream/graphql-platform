@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using AutoMapper;
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 

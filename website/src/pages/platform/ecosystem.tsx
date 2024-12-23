@@ -131,8 +131,8 @@ const EcosystemPage: FC = () => {
                   </h5>
                 </header>
                 <p>
-                  Use your favorite Browser to install Banana Cake Pop as PWA on
-                  your Device without requiring administrative privileges.
+                  Use your favorite Browser to install Nitro as a PWA on your
+                  Device without requiring administrative privileges.
                 </p>
               </CardOffer>
             </Card>

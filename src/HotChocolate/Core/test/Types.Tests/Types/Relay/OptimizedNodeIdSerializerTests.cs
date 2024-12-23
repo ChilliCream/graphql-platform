@@ -1,5 +1,4 @@
 using System.Text;
-using CookieCrumble;
 using Moq;
 
 namespace HotChocolate.Types.Relay;
@@ -152,6 +151,36 @@ public class OptimizedNodeIdSerializerTests
         var id = serializer.Format("Foo", (long)64);
 
         Assert.Equal("Rm9vCmw2NA==", id);
+    }
+
+    [Fact]
+    public void Format_DecimalId()
+    {
+        var serializer = CreateSerializer("Foo", new DecimalNodeIdValueSerializer());
+
+        var id = serializer.Format("Foo", (decimal)6);
+
+        Assert.Equal("Rm9vOjY=", id);
+    }
+
+    [Fact]
+    public void Format_FloatId()
+    {
+        var serializer = CreateSerializer("Foo", new SingleNodeIdValueSerializer());
+
+        var id = serializer.Format("Foo", (float)6);
+
+        Assert.Equal("Rm9vOjY=", id);
+    }
+
+    [Fact]
+    public void Format_DoubleId()
+    {
+        var serializer = CreateSerializer("Foo", new DoubleNodeIdValueSerializer());
+
+        var id = serializer.Format("Foo", (double)6);
+
+        Assert.Equal("Rm9vOjY=", id);
     }
 
     [Fact]
@@ -364,6 +393,39 @@ public class OptimizedNodeIdSerializerTests
     }
 
     [Fact]
+    public void Parse_DecimalId()
+    {
+        var serializer = CreateSerializer("Foo", new DecimalNodeIdValueSerializer());
+
+        var id = serializer.Parse("Rm9vOjEyMw==", typeof(decimal));
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal((decimal)123, id.InternalId);
+    }
+
+    [Fact]
+    public void Parse_SingleId()
+    {
+        var serializer = CreateSerializer("Foo", new SingleNodeIdValueSerializer());
+
+        var id = serializer.Parse("Rm9vOjEyMw==", typeof(float));
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal((float)123, id.InternalId);
+    }
+
+    [Fact]
+    public void Parse_DoublelId()
+    {
+        var serializer = CreateSerializer("Foo", new DoubleNodeIdValueSerializer());
+
+        var id = serializer.Parse("Rm9vOjEyMw==", typeof(double));
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal((double)123, id.InternalId);
+    }
+
+    [Fact]
     public void Parse_CompositeId()
     {
         var lookup = new Mock<INodeIdRuntimeTypeLookup>();
@@ -497,7 +559,7 @@ public class OptimizedNodeIdSerializerTests
 
         protected override bool TryParse(ReadOnlySpan<byte> buffer, out CompositeId value)
         {
-            if(TryParseIdPart(buffer, out string a, out var ac) &&
+            if (TryParseIdPart(buffer, out string a, out var ac) &&
                 TryParseIdPart(buffer.Slice(ac), out int b, out var bc) &&
                 TryParseIdPart(buffer.Slice(ac + bc), out Guid c, out var cc) &&
                 TryParseIdPart(buffer.Slice(ac + bc + cc), out bool d, out _))

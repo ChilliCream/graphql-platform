@@ -4,6 +4,6 @@
     <PackageIcon>hotchocolate-signet.png</PackageIcon>
   </PropertyGroup>
   <PropertyGroup>
-    <BananaCakePopVersion>16.0.1</BananaCakePopVersion>
+    <NitroVersion>20.0.2</NitroVersion>
   </PropertyGroup>
 </Project>

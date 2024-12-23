@@ -1,5 +1,4 @@
 using System.Text;
-using CookieCrumble;
 
 namespace StrawberryShake.Transport.WebSockets;
 

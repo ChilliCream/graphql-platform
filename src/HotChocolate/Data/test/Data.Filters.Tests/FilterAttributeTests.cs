@@ -1,7 +1,6 @@
 using System.Reflection;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using CookieCrumble;
 
 namespace HotChocolate.Data.Filters;
 

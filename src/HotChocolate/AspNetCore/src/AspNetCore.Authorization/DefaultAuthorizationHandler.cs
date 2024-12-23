@@ -12,7 +12,9 @@ namespace HotChocolate.AspNetCore.Authorization;
 internal sealed class DefaultAuthorizationHandler : IAuthorizationHandler
 {
     private readonly IAuthorizationService _authSvc;
-    private readonly AuthorizationPolicyCache _policyCache;
+    private readonly IAuthorizationPolicyProvider _authorizationPolicyProvider;
+    private readonly AuthorizationPolicyCache _authorizationPolicyCache;
+    private readonly bool _canCachePolicies;
 
     /// <summary>
     /// Initializes a new instance <see cref="DefaultAuthorizationHandler"/>.
@@ -20,21 +22,29 @@ internal sealed class DefaultAuthorizationHandler : IAuthorizationHandler
     /// <param name="authorizationService">
     /// The authorization service.
     /// </param>
-    /// <param name="policyCache">
+    /// <param name="authorizationPolicyProvider">
+    /// The authorization policy provider.
+    /// </param>
+    /// <param name="authorizationPolicyCache">
     /// The authorization policy cache.
     /// </param>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="authorizationService"/> is <c>null</c>.
-    /// <paramref name="policyCache"/> is <c>null</c>.
+    /// <paramref name="authorizationPolicyCache"/> is <c>null</c>.
     /// </exception>
     public DefaultAuthorizationHandler(
         IAuthorizationService authorizationService,
-        AuthorizationPolicyCache policyCache)
+        IAuthorizationPolicyProvider authorizationPolicyProvider,
+        AuthorizationPolicyCache authorizationPolicyCache)
     {
         _authSvc = authorizationService ??
             throw new ArgumentNullException(nameof(authorizationService));
-        _policyCache = policyCache ??
-            throw new ArgumentNullException(nameof(policyCache));
+        _authorizationPolicyProvider = authorizationPolicyProvider ??
+            throw new ArgumentNullException(nameof(authorizationPolicyProvider));
+        _authorizationPolicyCache = authorizationPolicyCache ??
+            throw new ArgumentNullException(nameof(authorizationPolicyCache));
+
+        _canCachePolicies = _authorizationPolicyProvider.AllowsCachingPolicies;
     }
 
     /// <summary>
@@ -123,9 +133,24 @@ internal sealed class DefaultAuthorizationHandler : IAuthorizationHandler
     {
         try
         {
-            var combinedPolicy = await _policyCache.GetOrCreatePolicyAsync(directive);
+            AuthorizationPolicy? authorizationPolicy = null;
 
-            var result = await _authSvc.AuthorizeAsync(user, context, combinedPolicy).ConfigureAwait(false);
+            if (_canCachePolicies)
+            {
+                authorizationPolicy = _authorizationPolicyCache.LookupPolicy(directive);
+            }
+
+            if (authorizationPolicy is null)
+            {
+                authorizationPolicy = await BuildAuthorizationPolicy(directive.Policy, directive.Roles);
+
+                if (_canCachePolicies)
+                {
+                    _authorizationPolicyCache.CachePolicy(directive, authorizationPolicy);
+                }
+            }
+
+            var result = await _authSvc.AuthorizeAsync(user, context, authorizationPolicy).ConfigureAwait(false);
 
             return result.Succeeded
                 ? AuthorizeResult.Allowed
@@ -135,6 +160,40 @@ internal sealed class DefaultAuthorizationHandler : IAuthorizationHandler
         {
             return AuthorizeResult.PolicyNotFound;
         }
+    }
+
+    private async Task<AuthorizationPolicy> BuildAuthorizationPolicy(
+        string? policyName,
+        IReadOnlyList<string>? roles)
+    {
+        var policyBuilder = new AuthorizationPolicyBuilder();
+
+        if (!string.IsNullOrWhiteSpace(policyName))
+        {
+            var policy = await _authorizationPolicyProvider.GetPolicyAsync(policyName).ConfigureAwait(false);
+
+            if (policy is not null)
+            {
+                policyBuilder = policyBuilder.Combine(policy);
+            }
+            else
+            {
+                throw new MissingAuthorizationPolicyException(policyName);
+            }
+        }
+        else
+        {
+            var defaultPolicy = await _authorizationPolicyProvider.GetDefaultPolicyAsync().ConfigureAwait(false);
+
+            policyBuilder = policyBuilder.Combine(defaultPolicy);
+        }
+
+        if (roles is not null)
+        {
+            policyBuilder = policyBuilder.RequireRole(roles);
+        }
+
+        return policyBuilder.Build();
     }
 
     private static UserState GetUserState(IDictionary<string, object?> contextData)

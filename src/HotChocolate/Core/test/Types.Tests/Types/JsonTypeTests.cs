@@ -1,7 +1,6 @@
 using System.Numerics;
 using System.Text.Json;
-using CookieCrumble;
-using CookieCrumble.Attributes;
+using CookieCrumble.Xunit.Attributes;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 

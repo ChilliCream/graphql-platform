@@ -44,7 +44,11 @@ public static class SchemaParser
                     throw new Exception("duplicate");
                 }
 
-                schema.DirectiveDefinitions.Add(new DirectiveDefinition(def.Name.Value));
+                schema.DirectiveDefinitions.Add(
+                    new DirectiveDefinition(def.Name.Value)
+                    {
+                        IsSpecDirective = BuiltIns.IsBuiltInDirective(def.Name.Value)
+                    });
             }
         }
     }
@@ -55,11 +59,6 @@ public static class SchemaParser
         {
             if (definition is ITypeDefinitionNode typeDef)
             {
-                if (BuiltIns.IsBuiltInScalar(typeDef.Name.Value))
-                {
-                    continue;
-                }
-
                 if (schema.Types.ContainsName(typeDef.Name.Value))
                 {
                     // TODO : parsing error
@@ -85,7 +84,11 @@ public static class SchemaParser
                         break;
 
                     case ScalarTypeDefinitionNode:
-                        schema.Types.Add(new ScalarTypeDefinition(typeDef.Name.Value));
+                        schema.Types.Add(
+                            new ScalarTypeDefinition(typeDef.Name.Value)
+                            {
+                                IsSpecScalar = BuiltIns.IsBuiltInScalar(typeDef.Name.Value)
+                            });
                         break;
 
                     case UnionTypeDefinitionNode:
@@ -190,11 +193,6 @@ public static class SchemaParser
                         break;
 
                     case ScalarTypeDefinitionNode typeDef:
-                        if (BuiltIns.IsBuiltInScalar(typeDef.Name.Value))
-                        {
-                            continue;
-                        }
-
                         BuildScalarType(
                             schema,
                             (ScalarTypeDefinition)schema.Types[typeDef.Name.Value],
@@ -633,8 +631,22 @@ public static class SchemaParser
                 directiveNode.Name.Value,
                 out var directiveType))
             {
-                directiveType = new DirectiveDefinition(directiveNode.Name.Value);
-                directiveType.IsRepeatable = true;
+                if (directiveNode.Name.Value == BuiltIns.Deprecated.Name)
+                {
+                    directiveType = BuiltIns.Deprecated.Create(schema);
+                }
+                else if (directiveNode.Name.Value == BuiltIns.SpecifiedBy.Name)
+                {
+                    directiveType = BuiltIns.SpecifiedBy.Create(schema);
+                }
+                else
+                {
+                    directiveType = new DirectiveDefinition(directiveNode.Name.Value);
+                    // TODO: This is problematic, but currently necessary for the Fusion
+                    // directives to work, since they don't have definitions in the source schema.
+                    directiveType.IsRepeatable = true;
+                }
+
                 schema.DirectiveDefinitions.Add(directiveType);
             }
 

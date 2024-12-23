@@ -6,6 +6,8 @@ public sealed class ModuleInfo(string moduleName, ModuleOptions options) : Synta
 
     public ModuleOptions Options { get; } = options;
 
+    public override string OrderByKey => ModuleName;
+
     public override bool Equals(object? obj)
         => obj is ModuleInfo other && Equals(other);
 

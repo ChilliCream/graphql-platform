@@ -131,32 +131,28 @@ public class BookInput
 
     public string Author { get; set; }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddDocumentFromString(@"
+        input BookInput {
+          title: String
+          author: String
+        }
+
+        type Mutation {
+          addBook(input: BookInput): Book
+        }
+    ")
+    .BindRuntimeType<BookInput>()
+    .AddResolver( "Mutation", "addBook", (context) =>
     {
-        services
-            .AddGraphQLServer()
-            .AddDocumentFromString(@"
-                input BookInput {
-                  title: String
-                  author: String
-                }
+        var input = context.ArgumentValue<BookInput>("input");
 
-                type Mutation {
-                  addBook(input: BookInput): Book
-                }
-            ")
-            .BindRuntimeType<BookInput>()
-            .AddResolver( "Mutation", "addBook", (context) =>
-            {
-                var input = context.ArgumentValue<BookInput>("input");
-
-                // Omitted code for brevity
-            });
-    }
-}
+        // Omitted code for brevity
+    });
 ```
 
 </Schema>
@@ -675,49 +671,45 @@ public class Mutation
         // Omitted code for brevity
     }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddDocumentFromString(@"
-                input PetInput @oneOf {
-                    dog: DogInput
-                    cat: CatInput
-                }
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddDocumentFromString(@"
+        input PetInput @oneOf {
+            dog: DogInput
+            cat: CatInput
+        }
 
-                input DogInput {
-                    name: String!
-                }
+        input DogInput {
+            name: String!
+        }
 
-                input CatInput {
-                    name: String!
-                }
+        input CatInput {
+            name: String!
+        }
 
-                interface Pet {
-                    name: String!
-                }
+        interface Pet {
+            name: String!
+        }
 
-                type Dog implements Pet {
-                    name: String!
-                }
+        type Dog implements Pet {
+            name: String!
+        }
 
-                type Cat implements Pet {
-                    name: String!
-                }
+        type Cat implements Pet {
+            name: String!
+        }
 
-                type Mutation {
-                    createPet(input: PetInput): Pet
-                }
-            ")
-            .BindRuntimeType<Mutation>()
-            .BindRuntimeType<Pet>()
-            .BindRuntimeType<Dog>()
-            .ModifyOptions(o => o.EnableOneOf = true);
-    }
-}
+        type Mutation {
+            createPet(input: PetInput): Pet
+        }
+    ")
+    .BindRuntimeType<Mutation>()
+    .BindRuntimeType<Pet>()
+    .BindRuntimeType<Dog>()
+    .ModifyOptions(o => o.EnableOneOf = true);
 ```
 
 </Schema>

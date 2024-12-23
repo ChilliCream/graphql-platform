@@ -3,6 +3,7 @@ using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
 using HotChocolate.Utilities;
+using HotChocolate.Validation.Options;
 
 namespace HotChocolate.Validation.Rules;
 
@@ -10,15 +11,17 @@ namespace HotChocolate.Validation.Rules;
 /// This rules ensures that recursive introspection fields cannot be used
 /// to create endless cycles.
 /// </summary>
-internal sealed class IntrospectionDepthVisitor : TypeDocumentValidatorVisitor
+internal sealed class IntrospectionDepthVisitor(
+    IIntrospectionOptionsAccessor options)
+    : TypeDocumentValidatorVisitor
 {
     private readonly (SchemaCoordinate Coordinate, ushort MaxAllowed)[] _limits =
     [
-        (new SchemaCoordinate("__Type", "fields"), 1),
-        (new SchemaCoordinate("__Type", "inputFields"), 1),
-        (new SchemaCoordinate("__Type", "interfaces"), 1),
-        (new SchemaCoordinate("__Type", "possibleTypes"), 1),
-        (new SchemaCoordinate("__Type", "ofType"), 8)
+        (new SchemaCoordinate("__Type", "fields"), options.MaxAllowedListRecursiveDepth),
+        (new SchemaCoordinate("__Type", "inputFields"), options.MaxAllowedListRecursiveDepth),
+        (new SchemaCoordinate("__Type", "interfaces"), options.MaxAllowedListRecursiveDepth),
+        (new SchemaCoordinate("__Type", "possibleTypes"), options.MaxAllowedListRecursiveDepth),
+        (new SchemaCoordinate("__Type", "ofType"), options.MaxAllowedOfTypeDepth)
     ];
 
     protected override ISyntaxVisitorAction Enter(

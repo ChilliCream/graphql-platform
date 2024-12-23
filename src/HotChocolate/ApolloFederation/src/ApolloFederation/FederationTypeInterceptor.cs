@@ -127,7 +127,8 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         DefinitionBase definition)
     {
-        if (definition is not ITypeDefinition and not DirectiveTypeDefinition)
+        if (_context.GetFederationVersion() == FederationVersion.Federation10
+            || definition is not ITypeDefinition and not DirectiveTypeDefinition)
         {
             return;
         }
@@ -161,16 +162,18 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         if (type.IsDefined(typeof(PackageAttribute)))
         {
             RegisterImport(type);
+            return;
         }
+
+        if (type == typeof(DirectiveType<Tag>))
+        {
+            RegisterTagImport();
+        }
+
         return;
 
         void RegisterImport(MemberInfo element)
         {
-            if (_context.GetFederationVersion() == FederationVersion.Federation10)
-            {
-                return;
-            }
-
             var package = element.GetCustomAttribute<PackageAttribute>();
 
             if (package is null)
@@ -192,6 +195,19 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             {
                 types.Add(completionContext.Type.Name);
             }
+        }
+
+        void RegisterTagImport()
+        {
+            var packageUrl = FederationVersion.Federation20.ToUrl();
+
+            if (!_imports.TryGetValue(packageUrl, out var types))
+            {
+                types = [];
+                _imports[packageUrl] = types;
+            }
+
+            types.Add($"@{completionContext.Type.Name}");
         }
     }
 
@@ -278,7 +294,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             var typeReference = _typeInspector.GetTypeRef(exportedDirective);
             if (_typeRegistry.TryGetType(typeReference, out var exportedDirectiveType))
             {
-                composeDirectives.Add(new ComposeDirective(exportedDirectiveType.Type.Name));
+                composeDirectives.Add(new ComposeDirective($"@{exportedDirectiveType.Type.Name}"));
             }
         }
 
@@ -298,7 +314,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         }
     }
 
-    internal override void OnAfterResolveRootType(
+    public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
         ObjectTypeDefinition definition,
         OperationType operationType)

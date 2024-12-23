@@ -2,7 +2,7 @@
 title: Introspection
 ---
 
-Introspection is what enables GraphQL's rich tooling ecosystem as well powerful IDEs like [Banana Cake Pop](/products/bananacakepop) or GraphiQL.
+Introspection is what enables GraphQL's rich tooling ecosystem as well powerful IDEs like [Nitro](/products/nitro) or GraphiQL.
 
 Every GraphQL server exposes a `__schema` and `__type` field on the query type as well as an `__typename` field on each type. These fields are used to gain insights into the schema of our GraphQL server.
 
@@ -63,30 +63,19 @@ While introspection is a powerful feature that can tremendously improve our deve
 We can disable introspection by calling `AllowIntrospection()` with a `false` argument on the `IRequestExecutorBuilder`.
 
 ```csharp
-services.AddGraphQLServer().AllowIntrospection(false);
+builder.Services
+    .AddGraphQLServer()
+    .AllowIntrospection(false);
 ```
 
 While clients can still issue introspection queries, Hot Chocolate will now return an error response.
 
-But we most likely do not want to disable introspection while developing, so we can make use of the `IWebHostEnvironment` to toggle introspection based on the current hosting environment.
+But we most likely do not want to disable introspection while developing, so we can toggle it based on the current hosting environment.
 
 ```csharp
-public class Startup
-{
-    private readonly IWebHostEnvironment _webHostEnvironment;
-
-    public Startup(IWebHostEnvironment webHostEnvironment)
-    {
-        _webHostEnvironment = webHostEnvironment;
-    }
-
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AllowIntrospection(_webHostEnvironment.IsDevelopment());
-    }
-}
+builder.Services
+    .AddGraphQLServer()
+    .AllowIntrospection(builder.Environment.IsDevelopment());
 ```
 
 ## Allowlisting requests
@@ -109,18 +98,14 @@ public class IntrospectionInterceptor : DefaultHttpRequestInterceptor
             cancellationToken);
     }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            // We disable introspection per default
-            .AllowIntrospection(false)
-            .AddHttpRequestInterceptor<IntrospectionInterceptor>();
-    }
-}
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    // We disable introspection per default
+    .AllowIntrospection(false)
+    .AddHttpRequestInterceptor<IntrospectionInterceptor>();
 ```
 
 [Learn more about interceptors](/docs/hotchocolate/v14/server/interceptors)
