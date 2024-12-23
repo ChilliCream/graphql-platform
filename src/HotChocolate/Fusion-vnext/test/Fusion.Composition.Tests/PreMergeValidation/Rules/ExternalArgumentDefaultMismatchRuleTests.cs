@@ -1,47 +1,44 @@
-using HotChocolate.Fusion;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.PreMergeValidation;
 using HotChocolate.Fusion.PreMergeValidation.Rules;
-using HotChocolate.Skimmed.Serialization;
 
 namespace HotChocolate.Composition.PreMergeValidation.Rules;
 
-public sealed class ExternalArgumentDefaultMismatchRuleTests
+public sealed class ExternalArgumentDefaultMismatchRuleTests : CompositionTestBase
 {
+    private readonly PreMergeValidator _preMergeValidator =
+        new([new ExternalArgumentDefaultMismatchRule()]);
+
     [Theory]
     [MemberData(nameof(ValidExamplesData))]
     public void Examples_Valid(string[] sdl)
     {
         // arrange
-        var log = new CompositionLog();
-        var context = new CompositionContext([.. sdl.Select(SchemaParser.Parse)], log);
-        var preMergeValidator = new PreMergeValidator([new ExternalArgumentDefaultMismatchRule()]);
+        var context = CreateCompositionContext(sdl);
 
         // act
-        var result = preMergeValidator.Validate(context);
+        var result = _preMergeValidator.Validate(context);
 
         // assert
         Assert.True(result.IsSuccess);
-        Assert.True(log.IsEmpty);
+        Assert.True(context.Log.IsEmpty);
     }
 
     [Theory]
     [MemberData(nameof(InvalidExamplesData))]
-    public void Examples_Invalid(string[] sdl)
+    public void Examples_Invalid(string[] sdl, string[] errorMessages)
     {
         // arrange
-        var log = new CompositionLog();
-        var context = new CompositionContext([.. sdl.Select(SchemaParser.Parse)], log);
-        var preMergeValidator = new PreMergeValidator([new ExternalArgumentDefaultMismatchRule()]);
+        var context = CreateCompositionContext(sdl);
 
         // act
-        var result = preMergeValidator.Validate(context);
+        var result = _preMergeValidator.Validate(context);
 
         // assert
         Assert.True(result.IsFailure);
-        Assert.Single(log);
-        Assert.Equal("EXTERNAL_ARGUMENT_DEFAULT_MISMATCH", log.First().Code);
-        Assert.Equal(LogSeverity.Error, log.First().Severity);
+        Assert.Equal(errorMessages, context.Log.Select(e => e.Message).ToArray());
+        Assert.True(context.Log.All(e => e.Code == "EXTERNAL_ARGUMENT_DEFAULT_MISMATCH"));
+        Assert.True(context.Log.All(e => e.Severity == LogSeverity.Error));
     }
 
     public static TheoryData<string[]> ValidExamplesData()
@@ -89,9 +86,9 @@ public sealed class ExternalArgumentDefaultMismatchRuleTests
         };
     }
 
-    public static TheoryData<string[]> InvalidExamplesData()
+    public static TheoryData<string[], string[]> InvalidExamplesData()
     {
-        return new TheoryData<string[]>
+        return new TheoryData<string[], string[]>
         {
             // Here, the `name` field on Product is defined in one source schema and marked as
             // @external in another. The argument `language` has different default values in the
@@ -108,6 +105,10 @@ public sealed class ExternalArgumentDefaultMismatchRuleTests
                         name(language: String = "de"): String @external
                     }
                     """
+                ],
+                [
+                    "The argument with schema coordinate 'Product.name(language:)' has " +
+                    "inconsistent default values."
                 ]
             },
             // In the following example, the `name` field on Product is defined in one source schema
@@ -126,6 +127,10 @@ public sealed class ExternalArgumentDefaultMismatchRuleTests
                         name(language: String): String @external
                     }
                     """
+                ],
+                [
+                    "The argument with schema coordinate 'Product.name(language:)' has " +
+                    "inconsistent default values."
                 ]
             },
             // Here, the `name` field on Product is defined without a default value in the
@@ -142,6 +147,10 @@ public sealed class ExternalArgumentDefaultMismatchRuleTests
                         name(language: String = "en"): String @external
                     }
                     """
+                ],
+                [
+                    "The argument with schema coordinate 'Product.name(language:)' has " +
+                    "inconsistent default values."
                 ]
             },
             // Here, the `name` field on Product is defined with multiple arguments. One argument
@@ -158,6 +167,10 @@ public sealed class ExternalArgumentDefaultMismatchRuleTests
                         name(language: String = "en", localization: String = "sa"): String @external
                     }
                     """
+                ],
+                [
+                    "The argument with schema coordinate 'Product.name(localization:)' has " +
+                    "inconsistent default values."
                 ]
             },
             // Here, the `name` field on Product is defined with multiple arguments. One argument
@@ -175,6 +188,10 @@ public sealed class ExternalArgumentDefaultMismatchRuleTests
                         name(language: String = "en", localization: String): String @external
                     }
                     """
+                ],
+                [
+                    "The argument with schema coordinate 'Product.name(localization:)' has " +
+                    "inconsistent default values."
                 ]
             }
         };
