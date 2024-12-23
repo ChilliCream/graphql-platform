@@ -227,12 +227,12 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
             var argumentType = _completionContext.GetType<IInputType>(argument.Type!);
 
-            var formatter =
-                argument.Formatters.Count switch
+            var formatters = argument.GetFormatters();
+            var formatter = formatters.Count switch
                 {
                     0 => null,
-                    1 => argument.Formatters[0],
-                    _ => new AggregateInputValueFormatter(argument.Formatters),
+                    1 => formatters[0],
+                    _ => new AggregateInputValueFormatter(formatters),
                 };
 
             var defaultValue = argument.DefaultValue;
