@@ -1,0 +1,14 @@
+schema {
+  query: QueryDate2
+}
+
+type Bar {
+  date: Date
+}
+
+type QueryDate2 {
+  bar: Bar
+}
+
+"The `Date` scalar represents an ISO-8601 compliant date type."
+scalar Date
