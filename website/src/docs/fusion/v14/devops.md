@@ -22,10 +22,10 @@ By integrating Nitro with Fusion, you can streamline the management and deployme
 
 ## 1. Install the Nitro Package
 
-To integrate your Fusion gateway with Nitro, install the `ChilliCream.Nitro` package:
+To integrate your Fusion gateway with Nitro, install the `ChilliCream.Nitro.Fusion` package:
 
 ```bash
-dotnet add package ChilliCream.Nitro
+dotnet add package ChilliCream.Nitro.Fusion
 ```
 
 ## 2. Configure the Gateway Services
