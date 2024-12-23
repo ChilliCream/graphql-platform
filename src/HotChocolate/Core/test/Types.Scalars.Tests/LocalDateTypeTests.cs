@@ -1,5 +1,4 @@
 using System.Globalization;
-using CookieCrumble;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types;
@@ -290,6 +289,19 @@ public class LocalDateTypeTests : ScalarTypeTestBase
 
         // assert
         Assert.Equal(expected, result);
+    }
+
+    [Fact]
+    public void LocalDate_ExpectDeserializeInvalidFormatToDateOnly()
+    {
+        // arrange
+        ScalarType scalar = new LocalDateType();
+
+        // act
+        var success = scalar.TryDeserialize("2018/06/11", out var _);
+
+        // assert
+        Assert.False(success);
     }
 
     [Fact]

@@ -1,5 +1,3 @@
-using CookieCrumble;
-
 namespace StrawberryShake.Transport.WebSockets;
 
 public class WebSocketClientTests

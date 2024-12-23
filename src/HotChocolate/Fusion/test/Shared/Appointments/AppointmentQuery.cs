@@ -18,7 +18,7 @@ public class AppointmentQuery
     {
         if (appointmentId == 1)
         {
-            return new Appointment { Id = 1, Patient = new Patient1 { Id = 1, }, }; ;
+            return new Appointment { Id = 1, Patient = new Patient1 { Id = 1, }, };
         }
         else if (appointmentId == 2)
         {

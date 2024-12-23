@@ -88,8 +88,7 @@ internal static class CostAnalyzerUtilities
     public static double GetListSize(
         this IOutputField field,
         IReadOnlyList<ArgumentNode> arguments,
-        ListSizeDirective? listSizeDirective,
-        IDictionary<string, VariableDefinitionNode> variables)
+        ListSizeDirective? listSizeDirective)
     {
         const int defaultListSize = 1;
 
@@ -114,11 +113,10 @@ internal static class CostAnalyzerUtilities
                             slicingValues[index++] = intValueNode.ToInt32();
                             continue;
 
-                        case VariableNode variableNode
-                            when variables[variableNode.Name.Value].DefaultValue is
-                                IntValueNode intValueNode:
-                            slicingValues[index++] = intValueNode.ToInt32();
-                            continue;
+                        // if one of the slicing arguments is variable we will assume the
+                        // maximum allowed page size.
+                        case VariableNode when listSizeDirective.AssumedSize.HasValue:
+                            return listSizeDirective.AssumedSize.Value;
                     }
                 }
 
@@ -127,6 +125,13 @@ internal static class CostAnalyzerUtilities
                 {
                     slicingValues[index++] = defaultValueNode.ToInt32();
                 }
+            }
+
+            if (index == 0 && listSizeDirective.SlicingArgumentDefaultValue.HasValue)
+            {
+                // if no slicing arguments were found we assume the
+                // paging default size if one is set.
+                return listSizeDirective.SlicingArgumentDefaultValue.Value;
             }
 
             if (index == 1)

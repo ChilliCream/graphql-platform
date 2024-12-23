@@ -20,7 +20,7 @@ Extracting operations is supported by client libraries like [Relay](https://rela
 
 # Benefits
 
-There are two main benefits to using persisted operations:
+There are several benefits to using persisted operations:
 
 **Performance**
 
@@ -30,7 +30,7 @@ There are two main benefits to using persisted operations:
 
 **Security**
 
-The server can be tweaked to [only execute persisted operations](#blocking-regular-operations) and refuse any other operation provided by a client. This gets rid of a whole suite of potential attack vectors, since malicious actors can no longer craft and execute harmful operations against your GraphQL server.
+- The server can be tweaked to [only execute persisted operations](#blocking-regular-operations) and refuse any other operation provided by a client. This gets rid of a whole suite of potential attack vectors, since malicious actors can no longer craft and execute harmful operations against your GraphQL server.
 
 # Usage
 
@@ -140,30 +140,39 @@ AddSha256DocumentHashProvider(HashFormat.Base64)
 
 ## Blocking regular operations
 
-If you want to disallow any dynamic operations, you can enable `OnlyAllowPersistedOperations`:
+If you want to disallow any dynamic operations, you can enable `OnlyAllowPersistedDocuments`:
 
 ```csharp
 builder.Services
     .AddGraphQLServer()
     // Omitted for brevity
-    .ModifyRequestOptions(o => o.OnlyAllowPersistedOperations = true);
+    .ModifyRequestOptions(
+        options => options
+            .PersistedOperations
+            .OnlyAllowPersistedDocuments = true);
 ```
 
 This will block any dynamic operations that do not contain the `id` of a persisted operation.
 
-You might still want to allow the execution of dynamic operations in certain circumstances. You can override the `OnlyAllowPersistedOperations` rule on a per-request basis, using the `AllowNonPersistedOperation` method on the `OperationRequestBuilder`. Simply implement a custom [IHttpRequestInterceptor](/docs/hotchocolate/v14/server/interceptors#ihttprequestinterceptor) and call `AllowNonPersistedOperation` if a certain condition is met:
+You might still want to allow the execution of dynamic operations in certain circumstances. You can override the `OnlyAllowPersistedDocuments` rule on a per-request basis, using the `AllowNonPersistedOperation` method on the `OperationRequestBuilder`. Simply implement a custom [IHttpRequestInterceptor](/docs/hotchocolate/v14/server/interceptors#ihttprequestinterceptor) and call `AllowNonPersistedOperation` if a certain condition is met:
 
 ```csharp
 builder.Services
     .AddGraphQLServer()
     // Omitted for brevity
     .AddHttpRequestInterceptor<CustomHttpRequestInterceptor>()
-    .ModifyRequestOptions(o => o.OnlyAllowPersistedOperations = true);
+    .ModifyRequestOptions(
+        options => options
+            .PersistedOperations
+            .OnlyAllowPersistedDocuments = true);
 
-public class CustomHttpRequestInterceptor : DefaultHttpRequestInterceptor
+public class CustomHttpRequestInterceptor
+    : DefaultHttpRequestInterceptor
 {
-    public override ValueTask OnCreateAsync(HttpContext context,
-        IRequestExecutor requestExecutor, OperationRequestBuilder requestBuilder,
+    public override ValueTask OnCreateAsync(
+        HttpContext context,
+        IRequestExecutor requestExecutor,
+        OperationRequestBuilder requestBuilder,
         CancellationToken cancellationToken)
     {
         if (context.Request.Headers.ContainsKey("X-Developer"))
@@ -171,7 +180,10 @@ public class CustomHttpRequestInterceptor : DefaultHttpRequestInterceptor
             requestBuilder.AllowNonPersistedOperation();
         }
 
-        return base.OnCreateAsync(context, requestExecutor, requestBuilder,
+        return base.OnCreateAsync(
+            context,
+            requestExecutor,
+            requestBuilder,
             cancellationToken);
     }
 }

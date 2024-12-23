@@ -1,5 +1,4 @@
 using System.Globalization;
-using CookieCrumble;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types;
@@ -287,6 +286,19 @@ public class LocalTimeTypeTests : ScalarTypeTestBase
 
         // assert
         Assert.Equal(expected, result);
+    }
+
+    [Fact]
+    public void LocalTime_ExpectDeserializeInvalidFormatToTimeOnly()
+    {
+        // arrange
+        ScalarType scalar = new LocalTimeType();
+
+        // act
+        var success = scalar.TryDeserialize("08:46:14 pm", out var _);
+
+        // assert
+        Assert.False(success);
     }
 
     [Fact]

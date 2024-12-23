@@ -19,37 +19,43 @@ namespace TestNamespace
 {
     internal static class BookNodeResolvers
     {
+        private static readonly object _sync = new object();
         private static bool _bindingsInitialized;
         private readonly static global::HotChocolate.Internal.IParameterBinding[] _args_BookNode_GetAuthorAsync = new global::HotChocolate.Internal.IParameterBinding[2];
 
         public static void InitializeBindings(global::HotChocolate.Internal.IParameterBindingResolver bindingResolver)
         {
-            if (_bindingsInitialized)
+            if (!_bindingsInitialized)
             {
-                return;
-            }
-            _bindingsInitialized = true;
-
-            const global::System.Reflection.BindingFlags bindingFlags =
-                global::System.Reflection.BindingFlags.Public
-                    | global::System.Reflection.BindingFlags.NonPublic
-                    | global::System.Reflection.BindingFlags.Static;
-
-            var type = typeof(global::TestNamespace.BookNode);
-            global::System.Reflection.MethodInfo resolver = default!;
-            global::System.Reflection.ParameterInfo[] parameters = default!;
-
-            resolver = type.GetMethod(
-                "GetAuthorAsync",
-                bindingFlags,
-                new global::System.Type[]
+                lock (_sync)
                 {
-                    typeof(global::TestNamespace.Book),
-                    typeof(global::System.Threading.CancellationToken)
-                })!;
-            parameters = resolver.GetParameters();
-            _args_BookNode_GetAuthorAsync[0] = bindingResolver.GetBinding(parameters[0]);
-            _args_BookNode_GetAuthorAsync[1] = bindingResolver.GetBinding(parameters[1]);
+                    if (!_bindingsInitialized)
+                    {
+
+                        const global::System.Reflection.BindingFlags bindingFlags =
+                            global::System.Reflection.BindingFlags.Public
+                                | global::System.Reflection.BindingFlags.NonPublic
+                                | global::System.Reflection.BindingFlags.Static;
+
+                        var type = typeof(global::TestNamespace.BookNode);
+                        global::System.Reflection.MethodInfo resolver = default!;
+                        global::System.Reflection.ParameterInfo[] parameters = default!;
+                        _bindingsInitialized = true;
+
+                        resolver = type.GetMethod(
+                            "GetAuthorAsync",
+                            bindingFlags,
+                            new global::System.Type[]
+                            {
+                                typeof(global::TestNamespace.Book),
+                                typeof(global::System.Threading.CancellationToken)
+                            })!;
+                        parameters = resolver.GetParameters();
+                        _args_BookNode_GetAuthorAsync[0] = bindingResolver.GetBinding(parameters[0]);
+                        _args_BookNode_GetAuthorAsync[1] = bindingResolver.GetBinding(parameters[1]);
+                    }
+                }
+            }
         }
 
         public static HotChocolate.Resolvers.FieldResolverDelegates BookNode_GetAuthorAsync()

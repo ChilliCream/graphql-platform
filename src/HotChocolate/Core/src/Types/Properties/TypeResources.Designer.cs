@@ -683,15 +683,6 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The specified location `{0}` is not supported..
-        /// </summary>
-        internal static string DirectiveTypeFactory_LocationNotSupported {
-            get {
-                return ResourceManager.GetString("DirectiveTypeFactory_LocationNotSupported", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to A cursor for use in pagination..
         /// </summary>
         internal static string EdgeType_Cursor_Description {

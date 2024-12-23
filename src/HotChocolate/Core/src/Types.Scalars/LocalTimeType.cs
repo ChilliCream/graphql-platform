@@ -120,9 +120,9 @@ public class LocalTimeType : ScalarType<TimeOnly, StringValueNode>
         [NotNullWhen(true)] out TimeOnly? value)
     {
         if (serialized is not null
-            && TimeOnly.TryParse(
+            && TimeOnly.TryParseExact(
                 serialized,
-                CultureInfo.InvariantCulture,
+                _localFormat,
                 out var time))
         {
             value = time;

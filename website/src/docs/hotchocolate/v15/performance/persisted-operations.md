@@ -108,7 +108,60 @@ public void ConfigureServices(IServiceCollection services)
 
 Keys in the specified Redis database are expected to be operation IDs (hashes) and contain the actual operation document as the value.
 
-## Hashing algorithms
+### Azure Blob Storage
+
+To load persisted operation documents from Azure Blob Storage, we have to add the following package.
+
+<PackageInstallation packageName="HotChocolate.PersistedOperations.AzureBlobStorage" />
+
+After this we need to specify where the persisted operation documents are located. Using `AddAzureBlobStorageOperationDocumentStorage()` we can point to a specific Azure Blob Storage Container. It must contain the operation documents. The blob's name is the hash of the query, its content the corresponding GraphQL query.
+
+> Important: The Azure Blob Storage Container must already exist when Hot Chocolate uses it for the first time.
+
+```csharp
+public void ConfigureServices(IServiceCollection services)
+{
+    services
+        .AddGraphQLServer()
+        .AddQueryType<Query>()
+        .UsePersistedOperationPipeline()
+        .AddAzureBlobStorageOperationDocumentStorage(services =>
+            services.GetService<BlobServiceClient>().GetBlobContainerClient("hotchocolate"));
+}
+```
+
+Unlike with Redis, a Blob Storage client has no easy way to set the expiration of files in Azure Blob Storage. However, you can define [a Lifecycle Management Policy](https://learn.microsoft.com/en-us/azure/storage/blobs/lifecycle-management-overview?tabs=azure-portal). The following sample policy will instruct Azure to remove all files from the `hotchocolate` container when they have not been accessed for 10 days.
+
+```json
+{
+  "rules": [
+    {
+      "enabled": true,
+      "name": "remove-after-10d",
+      "type": "Lifecycle",
+      "definition": {
+        "actions": {
+          "baseBlob": {
+            "delete": {
+              "daysAfterLastAccessTimeGreaterThan": 10
+            }
+          }
+        },
+        "filters": {
+          "blobTypes": [
+            "blockBlob"
+          ],
+          "prefixMatch": [
+            "hotchocolate/"
+          ]
+        }
+      }
+    }
+  ]
+}
+```
+
+# Hashing algorithms
 
 Per default Hot Chocolate uses the MD5 hashing algorithm, but we can override this default by specifying a `DocumentHashProvider`.
 
@@ -138,32 +191,41 @@ AddSha256DocumentHashProvider(HashFormat.Base64)
 
 > Note: [Relay](https://relay.dev) uses the MD5 hashing algorithm - no additional Hot Chocolate configuration is required.
 
-## Blocking regular operations
+# Blocking regular operations
 
-If you want to disallow any dynamic operations, you can enable `OnlyAllowPersistedOperations`:
+If you want to disallow any dynamic operations, you can enable `OnlyAllowPersistedDocuments`:
 
 ```csharp
 builder.Services
     .AddGraphQLServer()
     // Omitted for brevity
-    .ModifyRequestOptions(o => o.OnlyAllowPersistedOperations = true);
+    .ModifyRequestOptions(
+        options => options
+            .PersistedOperations
+            .OnlyAllowPersistedDocuments = true);
 ```
 
 This will block any dynamic operations that do not contain the `id` of a persisted operation.
 
-You might still want to allow the execution of dynamic operations in certain circumstances. You can override the `OnlyAllowPersistedOperations` rule on a per-request basis, using the `AllowNonPersistedOperation` method on the `OperationRequestBuilder`. Simply implement a custom [IHttpRequestInterceptor](/docs/hotchocolate/v15/server/interceptors#ihttprequestinterceptor) and call `AllowNonPersistedOperation` if a certain condition is met:
+You might still want to allow the execution of dynamic operations in certain circumstances. You can override the `OnlyAllowPersistedDocuments` rule on a per-request basis, using the `AllowNonPersistedOperation` method on the `OperationRequestBuilder`. Simply implement a custom [IHttpRequestInterceptor](/docs/hotchocolate/v15/server/interceptors#ihttprequestinterceptor) and call `AllowNonPersistedOperation` if a certain condition is met:
 
 ```csharp
 builder.Services
     .AddGraphQLServer()
     // Omitted for brevity
     .AddHttpRequestInterceptor<CustomHttpRequestInterceptor>()
-    .ModifyRequestOptions(o => o.OnlyAllowPersistedOperations = true);
+    .ModifyRequestOptions(
+        options => options
+            .PersistedOperations
+            .OnlyAllowPersistedDocuments = true);
 
-public class CustomHttpRequestInterceptor : DefaultHttpRequestInterceptor
+public class CustomHttpRequestInterceptor
+    : DefaultHttpRequestInterceptor
 {
-    public override ValueTask OnCreateAsync(HttpContext context,
-        IRequestExecutor requestExecutor, OperationRequestBuilder requestBuilder,
+    public override ValueTask OnCreateAsync(
+        HttpContext context,
+        IRequestExecutor requestExecutor,
+        OperationRequestBuilder requestBuilder,
         CancellationToken cancellationToken)
     {
         if (context.Request.Headers.ContainsKey("X-Developer"))
@@ -171,7 +233,10 @@ public class CustomHttpRequestInterceptor : DefaultHttpRequestInterceptor
             requestBuilder.AllowNonPersistedOperation();
         }
 
-        return base.OnCreateAsync(context, requestExecutor, requestBuilder,
+        return base.OnCreateAsync(
+            context,
+            requestExecutor,
+            requestBuilder,
             cancellationToken);
     }
 }

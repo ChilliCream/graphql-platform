@@ -5,7 +5,6 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Basic.Reference.Assemblies;
-using CookieCrumble;
 using GreenDonut;
 using HotChocolate.Pagination;
 using HotChocolate.Types.Analyzers;
@@ -23,7 +22,7 @@ internal static partial class TestHelper
         return GetGeneratedSourceSnapshot([sourceText]);
     }
 
-    public static Snapshot GetGeneratedSourceSnapshot(string[] sourceTexts)
+    public static Snapshot GetGeneratedSourceSnapshot(string[] sourceTexts, string? assemblyName = "Tests")
     {
         IEnumerable<PortableExecutableReference> references =
         [
@@ -48,7 +47,7 @@ internal static partial class TestHelper
 
         // Create a Roslyn compilation for the syntax tree.
         var compilation = CSharpCompilation.Create(
-            assemblyName: "Tests",
+            assemblyName: assemblyName,
             syntaxTrees: sourceTexts.Select(s => CSharpSyntaxTree.ParseText(s)),
             references);
 
