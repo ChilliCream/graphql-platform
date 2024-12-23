@@ -19,6 +19,7 @@
     <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.Fusion\CookieCrumble.Fusion.csproj" />
     <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.HotChocolate\CookieCrumble.HotChocolate.csproj" />
     <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.Xunit\CookieCrumble.Xunit.csproj" />
+    <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.Analyzers\CookieCrumble.Analyzers.csproj" OutputItemType="Analyzer" />
   </ItemGroup>
 
   <ItemGroup>

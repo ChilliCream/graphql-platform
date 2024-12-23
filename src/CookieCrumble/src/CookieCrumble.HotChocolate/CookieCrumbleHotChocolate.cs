@@ -1,16 +1,17 @@
-using CookieCrumble.HotChocolate.Formatters;
+using CookieCrumble.Formatters;
+using SnapshotValueFormatters = CookieCrumble.HotChocolate.Formatters.SnapshotValueFormatters;
 
 namespace CookieCrumble.HotChocolate;
 
-public static class CookieCrumbleHotChocolate
+public sealed class CookieCrumbleHotChocolate : SnapshotModule
 {
-    public static void Initialize()
+    protected override IEnumerable<ISnapshotValueFormatter> CreateFormatters()
     {
-        Snapshot.TryRegisterFormatter(SnapshotValueFormatters.ExecutionResult);
-        Snapshot.TryRegisterFormatter(SnapshotValueFormatters.GraphQL);
-        Snapshot.TryRegisterFormatter(SnapshotValueFormatters.GraphQLHttp);
-        Snapshot.TryRegisterFormatter(SnapshotValueFormatters.OperationResult);
-        Snapshot.TryRegisterFormatter(SnapshotValueFormatters.Schema);
-        Snapshot.TryRegisterFormatter(SnapshotValueFormatters.SchemaError);
+        yield return SnapshotValueFormatters.ExecutionResult;
+        yield return SnapshotValueFormatters.GraphQL;
+        yield return SnapshotValueFormatters.GraphQLHttp;
+        yield return SnapshotValueFormatters.OperationResult;
+        yield return SnapshotValueFormatters.Schema;
+        yield return SnapshotValueFormatters.SchemaError;
     }
 }

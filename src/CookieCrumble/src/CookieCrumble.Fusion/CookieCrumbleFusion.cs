@@ -1,11 +1,12 @@
-using CookieCrumble.Fusion.Formatters;
+using CookieCrumble.Formatters;
+using SnapshotValueFormatters = CookieCrumble.Fusion.Formatters.SnapshotValueFormatters;
 
 namespace CookieCrumble.Fusion;
 
-public static class CookieCrumbleFusion
+public class CookieCrumbleFusion : SnapshotModule
 {
-    public static void Initialize()
+    protected override IEnumerable<ISnapshotValueFormatter> CreateFormatters()
     {
-        Snapshot.TryRegisterFormatter(SnapshotValueFormatters.QueryPlan);
+        yield return SnapshotValueFormatters.QueryPlan;
     }
 }
