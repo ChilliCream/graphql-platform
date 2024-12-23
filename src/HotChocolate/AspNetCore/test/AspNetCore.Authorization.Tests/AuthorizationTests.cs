@@ -1,6 +1,5 @@
 using System.Net;
 using System.Security.Claims;
-using CookieCrumble;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;

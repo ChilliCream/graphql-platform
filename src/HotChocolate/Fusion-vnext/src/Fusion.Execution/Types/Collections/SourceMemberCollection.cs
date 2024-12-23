@@ -5,7 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Fusion.Types.Collections;
 
-public class SourceMemberCollection<TMember> : IEnumerable<TMember> where TMember : ISourceMember
+public class SourceMemberCollection<TMember> : ISourceMemberCollection<TMember> where TMember : ISourceMember
 {
     private readonly FrozenDictionary<string, TMember> _members;
 

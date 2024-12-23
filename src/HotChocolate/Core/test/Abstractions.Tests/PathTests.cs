@@ -1,5 +1,3 @@
-using CookieCrumble;
-
 namespace HotChocolate.Execution.Instrumentation;
 
 public class PathExtensionsTests

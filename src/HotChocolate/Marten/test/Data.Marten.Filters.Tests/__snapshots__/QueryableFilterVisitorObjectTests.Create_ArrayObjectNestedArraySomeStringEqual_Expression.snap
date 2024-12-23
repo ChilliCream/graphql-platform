@@ -21,7 +21,7 @@ a Result:
 
 a SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_bar as d where CAST(d.data -> 'Foo' ->> 'ObjectArray' as jsonb) @> :p0;
+select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_bar as d where d.data -> 'Foo' -> 'ObjectArray' @> :p0;
 ---------------
 
 b Result:
@@ -47,7 +47,7 @@ b Result:
 
 b SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_bar as d where CAST(d.data -> 'Foo' ->> 'ObjectArray' as jsonb) @> :p0;
+select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_bar as d where d.data -> 'Foo' -> 'ObjectArray' @> :p0;
 ---------------
 
 null

@@ -1,6 +1,6 @@
-namespace HotChocolate.Fusion.Planning;
+namespace HotChocolate.Fusion.Planning.Nodes;
 
 public abstract class PlanNode
 {
-    public PlanNode? Parent { get; internal set; }
+    public virtual PlanNode? Parent { get; internal set; }
 }

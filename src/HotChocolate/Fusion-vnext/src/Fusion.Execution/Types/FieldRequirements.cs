@@ -1,11 +1,13 @@
 using System.Collections.Immutable;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Types;
 
 public sealed class FieldRequirements(
     string schemaName,
     ImmutableArray<RequiredArgument> arguments,
-    ImmutableArray<FieldPath> fields)
+    ImmutableArray<FieldPath> fields,
+    SelectionSetNode selectionSet)
 {
     /// <summary>
     /// Gets the name of the source schema that has requirements. for a field.
@@ -21,4 +23,9 @@ public sealed class FieldRequirements(
     /// Gets the paths to the field that are required.
     /// </summary>
     public ImmutableArray<FieldPath> Fields { get; } = fields;
+
+    /// <summary>
+    /// Gets the selection set that represents the field requirements.
+    /// </summary>
+    public SelectionSetNode SelectionSet { get; } = selectionSet;
 }

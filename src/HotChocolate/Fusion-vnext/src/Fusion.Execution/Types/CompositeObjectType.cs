@@ -12,7 +12,7 @@ public sealed class CompositeObjectType(
 {
     public override TypeKind Kind => TypeKind.Object;
 
-    public SourceObjectTypeCollection Sources { get; private set; } = default!;
+    public new ISourceComplexTypeCollection<SourceObjectType> Sources { get; private set; } = default!;
 
     public bool IsEntity { get; private set; }
 
@@ -21,7 +21,8 @@ public sealed class CompositeObjectType(
         Directives = context.Directives;
         Implements = context.Interfaces;
         Sources = context.Sources;
-        IsEntity = context.Sources.Any(t => t.Lookups.Length > 0);
+        base.Sources = context.Sources;
+        IsEntity = Sources.Any(t => t.Lookups.Length > 0);
 
         base.Complete();
     }

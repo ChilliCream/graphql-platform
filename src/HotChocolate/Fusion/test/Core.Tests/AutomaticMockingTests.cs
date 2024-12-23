@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Shared;
 using Microsoft.Extensions.DependencyInjection;

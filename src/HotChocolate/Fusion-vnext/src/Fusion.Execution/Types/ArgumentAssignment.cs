@@ -93,4 +93,13 @@ public sealed class ArgumentAssignment
     /// The value of the argument.
     /// </value>
     public IValueNode Value { get; }
+
+    /// <summary>
+    /// Converts the argument assignment into a syntax node.
+    /// </summary>
+    /// <returns>
+    /// Returns a syntax node that represents the argument assignment.
+    /// </returns>
+    public ArgumentNode ToSyntaxNode()
+        => new(new NameNode(Name), Value);
 }

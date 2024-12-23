@@ -1,4 +1,4 @@
 namespace HotChocolate.Fusion.Types.Collections;
 
-public class SourceObjectFieldCollection(IEnumerable<SourceObjectField> members)
-    : SourceMemberCollection<SourceObjectField>(members);
+public class SourceObjectFieldCollection(IEnumerable<SourceOutputField> members)
+    : SourceMemberCollection<SourceOutputField>(members);

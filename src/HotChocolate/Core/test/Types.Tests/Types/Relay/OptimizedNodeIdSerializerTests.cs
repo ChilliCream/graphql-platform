@@ -1,5 +1,4 @@
 using System.Text;
-using CookieCrumble;
 using Moq;
 
 namespace HotChocolate.Types.Relay;

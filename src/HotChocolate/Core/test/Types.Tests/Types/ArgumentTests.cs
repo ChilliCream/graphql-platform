@@ -1,6 +1,5 @@
 #nullable enable
 
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using Microsoft.Extensions.DependencyInjection;
