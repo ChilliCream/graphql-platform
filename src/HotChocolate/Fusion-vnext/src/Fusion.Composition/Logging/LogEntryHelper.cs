@@ -8,39 +8,53 @@ internal static class LogEntryHelper
     public static LogEntry DisallowedInaccessibleBuiltInScalar(
         ScalarTypeDefinition scalar,
         SchemaDefinition schema)
-        => new(
-            string.Format(LogEntryHelper_DisallowedInaccessibleBuiltInScalar, scalar.Name),
+    {
+        return new LogEntry(
+            string.Format(
+                LogEntryHelper_DisallowedInaccessibleBuiltInScalar,
+                scalar.Name,
+                schema.Name),
             LogEntryCodes.DisallowedInaccessible,
             LogSeverity.Error,
             new SchemaCoordinate(scalar.Name),
             scalar,
             schema);
+    }
 
     public static LogEntry DisallowedInaccessibleIntrospectionType(
         INamedTypeDefinition type,
         SchemaDefinition schema)
-        => new(
-            string.Format(LogEntryHelper_DisallowedInaccessibleIntrospectionType, type.Name),
+    {
+        return new LogEntry(
+            string.Format(
+                LogEntryHelper_DisallowedInaccessibleIntrospectionType,
+                type.Name,
+                schema.Name),
             LogEntryCodes.DisallowedInaccessible,
             LogSeverity.Error,
             new SchemaCoordinate(type.Name),
             type,
             schema);
+    }
 
     public static LogEntry DisallowedInaccessibleIntrospectionField(
         OutputFieldDefinition field,
         string typeName,
         SchemaDefinition schema)
-        => new(
+    {
+        var coordinate = new SchemaCoordinate(typeName, field.Name);
+
+        return new LogEntry(
             string.Format(
                 LogEntryHelper_DisallowedInaccessibleIntrospectionField,
-                field.Name,
-                typeName),
+                coordinate,
+                schema.Name),
             LogEntryCodes.DisallowedInaccessible,
             LogSeverity.Error,
-            new SchemaCoordinate(typeName, field.Name),
+            coordinate,
             field,
             schema);
+    }
 
     public static LogEntry DisallowedInaccessibleIntrospectionArgument(
         InputFieldDefinition argument,
@@ -53,8 +67,8 @@ internal static class LogEntryHelper
         return new LogEntry(
             string.Format(
                 LogEntryHelper_DisallowedInaccessibleIntrospectionArgument,
-                argument.Name,
-                coordinate),
+                coordinate,
+                schema.Name),
             LogEntryCodes.DisallowedInaccessible,
             LogSeverity.Error,
             coordinate,
@@ -66,15 +80,23 @@ internal static class LogEntryHelper
         InputFieldDefinition argument,
         string directiveName,
         SchemaDefinition schema)
-        => new(
+    {
+        var coordinate = new SchemaCoordinate(
+            directiveName,
+            argumentName: argument.Name,
+            ofDirective: true);
+
+        return new LogEntry(
             string.Format(
                 LogEntryHelper_DisallowedInaccessibleDirectiveArgument,
-                argument.Name,
-                directiveName),
+                coordinate,
+                schema.Name),
             LogEntryCodes.DisallowedInaccessible,
             LogSeverity.Error,
-            new SchemaCoordinate(directiveName, argumentName: argument.Name, ofDirective: true),
-            schema: schema);
+            coordinate,
+            argument,
+            schema);
+    }
 
     public static LogEntry ExternalArgumentDefaultMismatch(
         string argumentName,
@@ -90,23 +112,40 @@ internal static class LogEntryHelper
             coordinate);
     }
 
-    public static LogEntry ExternalMissingOnBase(string fieldName, string typeName)
-        => new(
-            string.Format(
-                LogEntryHelper_ExternalMissingOnBase,
-                fieldName,
-                typeName),
+    public static LogEntry ExternalMissingOnBase(
+        OutputFieldDefinition externalField,
+        INamedTypeDefinition type,
+        SchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(type.Name, externalField.Name);
+
+        return new LogEntry(
+            string.Format(LogEntryHelper_ExternalMissingOnBase, coordinate, schema.Name),
             LogEntryCodes.ExternalMissingOnBase,
             LogSeverity.Error,
-            new SchemaCoordinate(typeName, fieldName));
+            coordinate,
+            externalField,
+            schema);
+    }
 
-    public static LogEntry OutputFieldTypesNotMergeable(string fieldName, string typeName)
-        => new(
+    public static LogEntry OutputFieldTypesNotMergeable(
+        OutputFieldDefinition field,
+        string typeName,
+        SchemaDefinition schemaA,
+        SchemaDefinition schemaB)
+    {
+        var coordinate = new SchemaCoordinate(typeName, field.Name);
+
+        return new LogEntry(
             string.Format(
                 LogEntryHelper_OutputFieldTypesNotMergeable,
-                fieldName,
-                typeName),
+                coordinate,
+                schemaA.Name,
+                schemaB.Name),
             LogEntryCodes.OutputFieldTypesNotMergeable,
             LogSeverity.Error,
-            new SchemaCoordinate(typeName, fieldName));
+            coordinate,
+            field,
+            schemaA);
+    }
 }
