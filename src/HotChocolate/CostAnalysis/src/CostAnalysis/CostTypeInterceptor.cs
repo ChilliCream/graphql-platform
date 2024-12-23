@@ -32,15 +32,16 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
 
     internal override uint Position => int.MaxValue;
 
+    internal override bool IsEnabled(IDescriptorContext context)
+        => context.Services.GetRequiredService<CostOptions>().ApplyCostDefaults;
+
     internal override void InitializeContext(
         IDescriptorContext context,
         TypeInitializer typeInitializer,
         TypeRegistry typeRegistry,
         TypeLookup typeLookup,
         TypeReferenceResolver typeReferenceResolver)
-    {
-        _options = context.Services.GetRequiredService<CostOptions>();
-    }
+        => _options = context.Services.GetRequiredService<CostOptions>();
 
     public override void OnAfterCompleteName(ITypeCompletionContext completionContext, DefinitionBase definition)
     {
@@ -72,15 +73,26 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
                     // https://ibm.github.io/graphql-specs/cost-spec.html#sec-requireOneSlicingArgument
                     // Per default, requireOneSlicingArgument is enabled,
                     // and has to be explicitly disabled if not desired for a field.
+                    // However, we have found that users turn the whole cost feature of because of this setting
+                    // which leads to less overall security for the deployed GraphQL server.
+                    // For this reason we have decided to disable slicing arguments by default.
                     var requirePagingBoundaries =
-                        slicingArgs.Length > 0 && (options.RequirePagingBoundaries ?? true);
+                        slicingArgs.Length > 0
+                            && (options.RequirePagingBoundaries ?? false);
+
+                    int? slicingArgumentDefaultValue = null;
+                    if (_options.ApplySlicingArgumentDefaultValue)
+                    {
+                        slicingArgumentDefaultValue = options.DefaultPageSize ?? DefaultPageSize;
+                    }
 
                     fieldDef.AddDirective(
                         new ListSizeDirective(
                             assumedSize,
                             slicingArgs,
                             sizeFields,
-                            requirePagingBoundaries),
+                            requirePagingBoundaries,
+                            slicingArgumentDefaultValue),
                         completionContext.DescriptorContext.TypeInspector);
                 }
 

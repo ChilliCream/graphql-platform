@@ -20,14 +20,17 @@ public sealed class ListSizeDirective
     /// <seealso href="https://ibm.github.io/graphql-specs/cost-spec.html#sec-The-List-Size-Directive">
     /// Specification URL
     /// </seealso>
-    public ListSizeDirective(int? assumedSize = null,
+    public ListSizeDirective(
+        int? assumedSize = null,
         ImmutableArray<string>? slicingArguments = null,
         ImmutableArray<string>? sizedFields = null,
-        bool? requireOneSlicingArgument = null)
+        bool? requireOneSlicingArgument = null,
+        int? slicingArgumentDefaultValue = null)
     {
         AssumedSize = assumedSize;
         SlicingArguments = slicingArguments ?? ImmutableArray<string>.Empty;
         SizedFields = sizedFields ?? ImmutableArray<string>.Empty;
+        SlicingArgumentDefaultValue = slicingArgumentDefaultValue;
         RequireOneSlicingArgument = requireOneSlicingArgument;
     }
 
@@ -49,6 +52,16 @@ public sealed class ListSizeDirective
     /// Specification URL
     /// </seealso>
     public ImmutableArray<string> SlicingArguments { get; }
+
+    /// <summary>
+    /// Specifies the default value to use for slicing arguments if no slicing argument is provided.
+    /// </summary>
+    /// <remarks>
+    /// This property is a non-spec addition and can provide a default value for slicing arguments if no slicing
+    /// argument is provided. This is useful for fields that have a default value for a slicing
+    /// argument that cannot be expressed in the schema.
+    /// </remarks>
+    public int? SlicingArgumentDefaultValue { get; }
 
     /// <summary>
     /// The <c>sizedFields</c> argument can be used to define that the value of the

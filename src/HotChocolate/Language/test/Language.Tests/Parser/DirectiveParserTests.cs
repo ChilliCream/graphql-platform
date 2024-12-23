@@ -1,5 +1,4 @@
 using System.Text;
-using CookieCrumble;
 using Xunit;
 
 namespace HotChocolate.Language;

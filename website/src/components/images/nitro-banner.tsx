@@ -10,7 +10,7 @@ export const NitroBannerImage: FC = () => {
   const data = useStaticQuery<GetNitroBannerImageQuery>(graphql`
     query getNitroBannerImage {
       file(
-        relativePath: { eq: "nitro-banner.png" }
+        relativePath: { eq: "nitro/nitro-banner.png" }
         sourceInstanceName: { eq: "images" }
       ) {
         childImageSharp {

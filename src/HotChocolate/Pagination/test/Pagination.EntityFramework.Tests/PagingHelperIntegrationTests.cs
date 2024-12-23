@@ -1,8 +1,7 @@
 using System.Collections.Immutable;
 using HotChocolate.Data.TestContext;
-using CookieCrumble;
 using GreenDonut;
-using GreenDonut.Projections;
+using GreenDonut.Selectors;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
@@ -1312,7 +1311,6 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
             ProductsByBrandDataLoader dataLoader,
             ISelection selection,
             PagingArguments arguments,
-            IResolverContext context,
             CancellationToken cancellationToken)
             => await dataLoader
                 .WithPagingArguments(arguments)
@@ -1340,13 +1338,14 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
             CancellationToken cancellationToken)
         {
             var pagingArgs = context.GetPagingArguments();
+            var selector = context.GetSelector();
 
             await using var scope = _services.CreateAsyncScope();
             await using var catalogContext = scope.ServiceProvider.GetRequiredService<CatalogContext>();
 
             return await catalogContext.Products
                 .Where(t => keys.Contains(t.BrandId))
-                .Select(context.GetSelector(), b => b.BrandId)
+                .Select(b => b.BrandId, selector)
                 .OrderBy(t => t.Name).ThenBy(t => t.Id)
                 .ToBatchPageAsync(t => t.BrandId, pagingArgs, cancellationToken);
         }

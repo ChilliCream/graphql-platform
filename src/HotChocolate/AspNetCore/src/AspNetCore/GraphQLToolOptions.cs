@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 namespace HotChocolate.AspNetCore;
 
 /// <summary>
-/// Represents the GraphQL tool options for Banana Cake Pop.
+/// Represents the GraphQL tool options for Nitro.
 /// </summary>
 public sealed class GraphQLToolOptions
 {
@@ -38,7 +38,7 @@ public sealed class GraphQLToolOptions
     public bool? IncludeCookies { get; set; }
 
     /// <summary>
-    /// Gets or sets the default http headers for Banana Cake Pop.
+    /// Gets or sets the default http headers for Nitro.
     /// </summary>
     public IHeaderDictionary? HttpHeaders { get; set; }
 
@@ -48,12 +48,12 @@ public sealed class GraphQLToolOptions
     public DefaultHttpMethod? HttpMethod { get; set; }
 
     /// <summary>
-    /// Defines if Banana Cake Pop is enabled.
+    /// Defines if Nitro is enabled.
     /// </summary>
     public bool Enable { get; set; } = true;
 
     /// <summary>
-    /// Specifies the Google analytics tracking ID for Banana Cake Pop.
+    /// Specifies the Google analytics tracking ID for Nitro.
     /// </summary>
     public string? GaTrackingId { get; set; }
 

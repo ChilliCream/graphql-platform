@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using MongoDB.Bson;
@@ -29,9 +28,6 @@ public class MongoDbFilterVisitorDateOnlyTests
     public MongoDbFilterVisitorDateOnlyTests(MongoResource resource)
     {
         Init(resource);
-
-        // NOTE: At the time of coding, MongoDB C# Driver doesn't natively support DateOnly
-        BsonSerializer.RegisterSerializationProvider(new LocalDateOnlySerializationProvider());
     }
 
     [Fact]
@@ -53,10 +49,10 @@ public class MongoDbFilterVisitorDateOnlyTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "2022-01-16"), res2, "2022-01-15")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "2022-01-16")
+            .AddResult(res2, "2022-01-15")
             .MatchAsync();
     }
 
@@ -78,10 +74,10 @@ public class MongoDbFilterVisitorDateOnlyTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "2022-01-16"), res2, "2022-01-15")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "2022-01-16")
+            .AddResult(res2, "2022-01-15")
             .MatchAsync();
     }
 
@@ -109,11 +105,11 @@ public class MongoDbFilterVisitorDateOnlyTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "2022-01-16"), res2, "2022-01-15"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "2022-01-16")
+            .AddResult(res2, "2022-01-15")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -142,17 +138,18 @@ public class MongoDbFilterVisitorDateOnlyTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "2022-01-16"), res2, "2022-01-15"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "2022-01-16")
+            .AddResult(res2, "2022-01-15")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
     public class Foo
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public DateOnly Bar { get; set; }
@@ -161,6 +158,7 @@ public class MongoDbFilterVisitorDateOnlyTests
     public class FooNullable
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public DateOnly? Bar { get; set; }
@@ -172,37 +170,5 @@ public class MongoDbFilterVisitorDateOnlyTests
 
     public class FooNullableFilterType : FilterInputType<FooNullable>
     {
-    }
-
-    internal class LocalDateOnlySerializationProvider : IBsonSerializationProvider
-    {
-        public IBsonSerializer? GetSerializer(Type type)
-        {
-            return type == typeof(DateOnly) ? new DateOnlySerializer() : null;
-        }
-    }
-
-    internal class DateOnlySerializer : StructSerializerBase<DateOnly>
-    {
-        private static readonly TimeOnly _zeroTimeComponent = new();
-
-        public override void Serialize(
-            BsonSerializationContext context,
-            BsonSerializationArgs args,
-            DateOnly value)
-        {
-            var dateTime = value.ToDateTime(_zeroTimeComponent, DateTimeKind.Utc);
-            var ticks = BsonUtils.ToMillisecondsSinceEpoch(dateTime);
-            context.Writer.WriteDateTime(ticks);
-        }
-
-        public override DateOnly Deserialize(
-            BsonDeserializationContext context,
-            BsonDeserializationArgs args)
-        {
-            var ticks = context.Reader.ReadDateTime();
-            var dateTime = BsonUtils.ToDateTimeFromMillisecondsSinceEpoch(ticks);
-            return new DateOnly(dateTime.Year, dateTime.Month, dateTime.Day);
-        }
     }
 }

@@ -11,48 +11,16 @@ namespace HotChocolate.Fusion.Shared;
 
 public class TestSubgraphCollection(ITestOutputHelper outputHelper, TestSubgraph[] subgraphs) : IDisposable
 {
-    public IHttpClientFactory GetHttpClientFactory()
-    {
-        var subgraphsDictionary = GetSubgraphs()
-            .ToDictionary(s => s.SubgraphName, s => s.Subgraph);
-
-        return new TestSubgraphCollectionHttpClientFactory(subgraphsDictionary);
-    }
-
     public async Task<IRequestExecutor> GetExecutorAsync(
         FusionFeatureCollection? features = null,
-        Action<FusionGatewayBuilder>? configureBuilder = null)
+        Action<FusionGatewayBuilder>? configure = null)
     {
-        var fusionGraph = await ComposeFusionGraphAsync(features);
+        var fusionGraph = await GetFusionGraphAsync(features);
 
-        return await GetExecutorAsync(fusionGraph, configureBuilder);
+        return await GetExecutorAsync(fusionGraph, configure);
     }
 
-    public void Dispose()
-    {
-        foreach (var subgraph in subgraphs)
-        {
-            subgraph.TestServer.Dispose();
-        }
-    }
-
-    private async Task<IRequestExecutor> GetExecutorAsync(
-        Skimmed.SchemaDefinition fusionGraph,
-        Action<FusionGatewayBuilder>? configureBuilder = null)
-    {
-        var httpClientFactory = GetHttpClientFactory();
-
-        var builder = new ServiceCollection()
-            .AddSingleton(httpClientFactory)
-            .AddFusionGatewayServer()
-            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph));
-
-        configureBuilder?.Invoke(builder);
-
-        return await builder.BuildRequestExecutorAsync();
-    }
-
-    private async Task<Skimmed.SchemaDefinition> ComposeFusionGraphAsync(FusionFeatureCollection? features = null)
+    public async Task<Skimmed.SchemaDefinition> GetFusionGraphAsync(FusionFeatureCollection? features = null)
     {
         features ??= new FusionFeatureCollection(FusionFeatures.NodeField);
 
@@ -72,6 +40,38 @@ public class TestSubgraphCollection(ITestOutputHelper outputHelper, TestSubgraph
 
         return await new FusionGraphComposer(logFactory: () => new TestCompositionLog(outputHelper))
             .ComposeAsync(configurations, features);
+    }
+
+    public void Dispose()
+    {
+        foreach (var subgraph in subgraphs)
+        {
+            subgraph.TestServer.Dispose();
+        }
+    }
+
+    private async Task<IRequestExecutor> GetExecutorAsync(
+        Skimmed.SchemaDefinition fusionGraph,
+        Action<FusionGatewayBuilder>? configure = null)
+    {
+        var httpClientFactory = GetHttpClientFactory();
+
+        var builder = new ServiceCollection()
+            .AddSingleton(httpClientFactory)
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph));
+
+        configure?.Invoke(builder);
+
+        return await builder.BuildRequestExecutorAsync();
+    }
+
+    private IHttpClientFactory GetHttpClientFactory()
+    {
+        var subgraphsDictionary = GetSubgraphs()
+            .ToDictionary(s => s.SubgraphName, s => s.Subgraph);
+
+        return new TestSubgraphCollectionHttpClientFactory(subgraphsDictionary);
     }
 
     private IEnumerable<(string SubgraphName, TestSubgraph Subgraph)> GetSubgraphs()

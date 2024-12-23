@@ -4,6 +4,8 @@ public sealed class DataLoaderModuleInfo(string moduleName) : SyntaxInfo
 {
     public string ModuleName { get; } = moduleName;
 
+    public override string OrderByKey => ModuleName;
+
     public override bool Equals(object? obj)
         => obj is DataLoaderModuleInfo other && Equals(other);
 

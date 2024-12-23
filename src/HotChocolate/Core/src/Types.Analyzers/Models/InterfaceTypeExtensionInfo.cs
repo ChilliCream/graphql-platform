@@ -23,6 +23,8 @@ public sealed class InterfaceTypeExtensionInfo(
 
     public ImmutableArray<Resolver> Resolvers { get; } = resolvers;
 
+    public override string OrderByKey => Name;
+
     public override bool Equals(object? obj)
         => obj is ObjectTypeExtensionInfo other && Equals(other);
 

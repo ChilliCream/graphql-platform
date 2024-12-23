@@ -1,7 +1,6 @@
 using System.Collections.Immutable;
-using CookieCrumble;
 using GreenDonut;
-using GreenDonut.Projections;
+using GreenDonut.Selectors;
 using HotChocolate.Data.TestContext;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;

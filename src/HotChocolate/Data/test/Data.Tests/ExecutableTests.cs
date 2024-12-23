@@ -1,5 +1,3 @@
-using CookieCrumble;
-
 namespace HotChocolate.Data;
 
 public class ExecutableTests(AuthorFixture authorFixture) : IClassFixture<AuthorFixture>

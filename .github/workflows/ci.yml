@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - main
+      - main-version-*
 
 concurrency:
   group: ci-new-2-${{ github.event.pull_request.number }}
@@ -68,7 +69,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: 22
           cache: "yarn"
           cache-dependency-path: "website/yarn.lock"
 
@@ -89,7 +90,7 @@ jobs:
       - uses: actions/setup-node@v4
         name: Setup node
         with:
-          node-version: "20"
+          node-version: 22
       - run: npm install -g markdownlint-cli2
         name: Install markdownlint-cli2
       - run: markdownlint-cli2 "*.md" "website/src/**/*.md"
@@ -109,7 +110,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "14.x"
+          node-version: 22
           cache: "yarn"
           cache-dependency-path: "website/yarn.lock"
 
@@ -149,9 +150,7 @@ jobs:
       - name: Install .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: |
-            8.x
-            9.x
+          dotnet-version: 9.x
 
       - name: Generate Test Matrix
         run: dotnet run --project ./.build -- GenerateMatrix

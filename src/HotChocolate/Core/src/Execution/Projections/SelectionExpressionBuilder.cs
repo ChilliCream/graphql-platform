@@ -11,6 +11,8 @@ namespace HotChocolate.Execution.Projections;
 
 internal sealed class SelectionExpressionBuilder
 {
+    private static readonly NullabilityInfoContext _nullabilityInfoContext = new();
+
     public Expression<Func<TRoot, TRoot>> BuildExpression<TRoot>(ISelection selection)
     {
         var rootType = typeof(TRoot);
@@ -39,7 +41,9 @@ internal sealed class SelectionExpressionBuilder
         var context = new Context(parameter, rootType, requirements);
         var root = new TypeContainer();
 
-        var entityType = selection.DeclaringOperation.GetPossibleTypes(selection).FirstOrDefault(t => t.RuntimeType == typeof(TRoot));
+        var entityType = selection.DeclaringOperation
+            .GetPossibleTypes(selection)
+            .FirstOrDefault(t => t.RuntimeType == typeof(TRoot));
 
         if (entityType is null)
         {
@@ -175,7 +179,7 @@ internal sealed class SelectionExpressionBuilder
             return;
         }
 
-        if (selection.Field.Member is not PropertyInfo property)
+        if (selection.Field.Member is not PropertyInfo { CanRead: true, CanWrite: true } property)
         {
             return;
         }
@@ -289,14 +293,9 @@ internal sealed class SelectionExpressionBuilder
             return Nullable.GetUnderlyingType(propertyInfo.PropertyType) != null;
         }
 
-        var nullableAttribute = propertyInfo.GetCustomAttribute<NullableAttribute>();
+        var nullabilityInfo = _nullabilityInfoContext.Create(propertyInfo);
 
-        if (nullableAttribute != null)
-        {
-            return nullableAttribute.NullableFlags[0] == 2;
-        }
-
-        return false;
+        return nullabilityInfo.WriteState == NullabilityState.Nullable;
     }
 
     private readonly record struct Context(

@@ -6,13 +6,13 @@ namespace HotChocolate.Data;
 
 public class SchemaCache : SortVisitorTestBase
 {
-    private readonly ConcurrentDictionary<(Type, Type, object), IRequestExecutor> _cache = new();
+    private readonly ConcurrentDictionary<(Type, Type, object), Task<IRequestExecutor>> _cache = new();
 
-    public IRequestExecutor CreateSchema<T, TType>(T[] entities)
+    public async Task<IRequestExecutor> CreateSchemaAsync<T, TType>(T[] entities)
         where T : class
         where TType : SortInputType<T>
     {
         var key = (typeof(T), typeof(TType), entities);
-        return _cache.GetOrAdd(key, (k) => base.CreateSchema<T, TType>(entities));
+        return await _cache.GetOrAdd(key, async (k) => await base.CreateSchemaAsync<T, TType>(entities));
     }
 }

@@ -1,6 +1,6 @@
 [
   {
-    "Message": "`field` is an object, interface or union type field. Leaf selections on objects, interfaces, and unions without subfields are disallowed.",
+    "Message": "Field \"field\" of type \"Query\" must have a selection of subfields. Did you mean \"field { ... }\"?",
     "Code": null,
     "Path": null,
     "Locations": [

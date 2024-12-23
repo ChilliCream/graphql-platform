@@ -4,16 +4,20 @@
     <LangVersion>preview</LangVersion>
     <Version Condition="$(Version) == ''">0.0.0</Version>
     <NoWarn>$(NoWarn);CS0436;RS0026;RS0027;RS0041;AD0001;CS1591;NU5104;NU5128;NU5501</NoWarn>
+    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <NuGetAuditMode>direct</NuGetAuditMode>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(CI)' == 'true'">
+  <PropertyGroup Condition="'$(TreatWarningsAsErrors)' == ''">
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
     <WarningsNotAsErrors>NU1901;NU1902;NU1903;NU1904</WarningsNotAsErrors>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TreatWarningsAsErrors)' == 'false'">
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <PropertyGroup>
