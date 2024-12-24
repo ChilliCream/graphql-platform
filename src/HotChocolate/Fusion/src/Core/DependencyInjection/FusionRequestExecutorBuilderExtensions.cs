@@ -1,4 +1,5 @@
 using HotChocolate;
+using HotChocolate.CostAnalysis;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Errors;
@@ -62,6 +63,7 @@ public static class FusionRequestExecutorBuilderExtensions
             .AddOperationCompilerOptimizer<OperationQueryPlanCompiler>()
             .AddOperationCompilerOptimizer<FieldFlagsOptimizer>()
             .AddConvention<INamingConventions>(_ => new DefaultNamingConventions())
+            .ModifyCostOptions(o => o.ApplyCostDefaults = false)
             .Configure(
                 c =>
                 {
@@ -643,6 +645,7 @@ public static class FusionRequestExecutorBuilderExtensions
         pipeline.Add(DocumentCacheMiddleware.Create());
         pipeline.Add(DocumentParserMiddleware.Create());
         pipeline.Add(DocumentValidationMiddleware.Create());
+        pipeline.Add(CostAnalyzerMiddleware.Create());
         pipeline.Add(OperationCacheMiddleware.Create());
         pipeline.Add(OperationResolverMiddleware.Create());
         pipeline.Add(OperationVariableCoercionMiddleware.Create());

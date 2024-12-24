@@ -74,6 +74,9 @@ public abstract class TypeInterceptor
     /// </summary>
     public virtual void OnAfterDiscoverTypes() { }
 
+    internal virtual bool SkipDirectiveDefinition(DirectiveDefinitionNode node)
+        => false;
+
     /// <summary>
     /// This event is triggered after the type instance was created but before
     /// any type definition was initialized.

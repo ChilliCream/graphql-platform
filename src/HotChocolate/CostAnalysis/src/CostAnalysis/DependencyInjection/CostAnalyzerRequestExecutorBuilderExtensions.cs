@@ -63,6 +63,7 @@ public static class CostAnalyzerRequestExecutorBuilderExtensions
             .AddDirectiveType<CostDirectiveType>()
             .AddDirectiveType<ListSizeDirectiveType>()
             .TryAddTypeInterceptor<CostTypeInterceptor>()
+            .TryAddTypeInterceptor<CostDirectiveTypeInterceptor>()
 
             // we are replacing the default pipeline if the cost analyzer is added.
             .Configure(c => c.DefaultPipelineFactory = AddDefaultPipeline);

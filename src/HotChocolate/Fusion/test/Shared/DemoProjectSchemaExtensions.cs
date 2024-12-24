@@ -93,6 +93,29 @@ public static class DemoProjectSchemaExtensions
         }
         """;
 
+    public const string Reviews2ExtensionWithCostSdl =
+        """
+        extend type Query {
+          authorById(id: ID! @is(field: "id")): User @cost(weight: "2.0")
+          productById(id: ID! @is(field: "id")): Product @cost(weight: "1.0")
+        }
+
+        extend type User {
+            reviews: [Review!]! @listSize(assumedSize: 10)
+        }
+
+        schema
+            @rename(coordinate: "Query.authorById", newName: "userById") {
+        }
+
+        directive @listSize(
+            assumedSize: Int
+            slicingArguments: [String!]
+            slicingArgumentDefaultValue: Int
+            sizedFields: [String!]
+            requireOneSlicingArgument: Boolean! = true) on FIELD_DEFINITION
+        """;
+
     public const string ProductsExtensionSdl =
         """
         extend type Query {
