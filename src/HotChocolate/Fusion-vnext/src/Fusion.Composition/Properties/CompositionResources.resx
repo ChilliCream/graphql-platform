@@ -51,4 +51,7 @@
   <data name="LogEntryHelper_RootMutationUsed" xml:space="preserve">
     <value>The root mutation type in schema '{0}' must be named 'Mutation'.</value>
   </data>
+  <data name="LogEntryHelper_RootQueryUsed" xml:space="preserve">
+    <value>The root query type in schema '{0}' must be named 'Query'.</value>
+  </data>
 </root>

@@ -51,6 +51,7 @@ internal sealed class SourceSchemaMerger
         new ExternalMissingOnBaseRule(),
         new ExternalUnusedRule(),
         new OutputFieldTypesMergeableRule(),
-        new RootMutationUsedRule()
+        new RootMutationUsedRule(),
+        new RootQueryUsedRule()
     ];
 }

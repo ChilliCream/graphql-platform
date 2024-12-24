@@ -157,5 +157,14 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_RootMutationUsed", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The root query type in schema &apos;{0}&apos; must be named &apos;Query&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_RootQueryUsed {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_RootQueryUsed", resourceCulture);
+            }
+        }
     }
 }

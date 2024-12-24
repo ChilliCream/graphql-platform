@@ -174,4 +174,14 @@ internal static class LogEntryHelper
             member: schema,
             schema: schema);
     }
+
+    public static LogEntry RootQueryUsed(SchemaDefinition schema)
+    {
+        return new LogEntry(
+            string.Format(LogEntryHelper_RootQueryUsed, schema.Name),
+            LogEntryCodes.RootQueryUsed,
+            severity: LogSeverity.Error,
+            member: schema,
+            schema: schema);
+    }
 }

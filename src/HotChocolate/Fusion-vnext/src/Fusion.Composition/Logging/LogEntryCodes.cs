@@ -8,4 +8,5 @@ public static class LogEntryCodes
     public const string ExternalUnused = "EXTERNAL_UNUSED";
     public const string OutputFieldTypesNotMergeable = "OUTPUT_FIELD_TYPES_NOT_MERGEABLE";
     public const string RootMutationUsed = "ROOT_MUTATION_USED";
+    public const string RootQueryUsed = "ROOT_QUERY_USED";
 }
